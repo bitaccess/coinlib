@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "node_modules/.bin/mocha --slow 35000 --timeout 3000000 --bail"
+    "test": "mocha --slow 35000 --timeout 3000000 --bail"
   },
   "author": "Moe Adham <moe@bitaccess.co>",
   "license": "MIT",
@@ -22,5 +22,22 @@
     "elliptic": "^6.4.0",
     "ethereum-address": "0.0.4",
     "ethereumjs-util": "^5.1.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/go-faast/ethereum-payments.git"
+  },
+  "keywords": [
+    "ethereum",
+    "bitcoin",
+    "bip44",
+    "payments",
+    "eth",
+    "faast",
+    "bitaccess"
+  ],
+  "bugs": {
+    "url": "https://github.com/go-faast/ethereum-payments/issues"
+  },
+  "homepage": "https://github.com/go-faast/ethereum-payments#readme"
 }

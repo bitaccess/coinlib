@@ -17,15 +17,15 @@ Coming soon: tools to sign transactions passed down from the server connected to
 npm install --save ethereum-payments
 ```
 
-Create a new wallet:
+Create a new wallet (DON'T DO THIS ON PRODUCTION):
 ```js
-let ethereumPayments = require('ethereum-payments')()
-let keys = EthDepositUtils.generateNewKeys()
+let ethereumPayments = require('@faast/ethereum-payments')()
+let keys = ethereumPayments.generateNewKeys()
 console.log(keys.xpub)
 console.log(keys.xprv)
 ```
 
-Generate an ethereum depoist address from a public seed (xpub).
+Generate an ethereum deposit address from a public seed (xpub).
 This is useful if you are a hot wallet and don't store the private key. You will need
 to keep track of which path node you are on (increasing INT):
 ```js
