@@ -1,0 +1,26 @@
+{
+  "name": "@faast/ethereum-payments",
+  "version": "1.0.0",
+  "description": "Utilities for ethereum payments, such as bip44 addresses, and sweeping funds",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "node_modules/.bin/mocha --slow 35000 --timeout 3000000 --bail"
+  },
+  "author": "Moe Adham <moe@bitaccess.co>",
+  "license": "MIT",
+  "devDependencies": {
+    "async": "^2.5.0",
+    "chai": "^3.5.0",
+    "mocha": "^3.0.2",
+    "standard": "^8.5.0"
+  },
+  "dependencies": {
+    "bitcore-lib": "^0.14.0",
+    "elliptic": "^6.4.0",
+    "ethereum-address": "0.0.4",
+    "ethereumjs-util": "^5.1.2"
+  }
+}
