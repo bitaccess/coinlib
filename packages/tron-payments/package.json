@@ -1,6 +1,6 @@
 {
   "name": "@faast/ethereum-payments",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Utilities for ethereum payments, such as bip44 addresses, and sweeping funds",
   "main": "index.js",
   "directories": {

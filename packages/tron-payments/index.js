@@ -22,8 +22,9 @@ EthDepositUtils.prototype.bip44 = function (xpub, path) {
 }
 
 // // https://github.com/trapp/ethereum-bip44
-EthDepositUtils.prototype.getPrivateKey = function (xprv, path, done) {
+EthDepositUtils.prototype.getPrivateKey = function (xprv, path) {
   let self = this
+  if (!xprv) throw new Error('Xprv is null. Bad things will happen to you.')
   // create the hd wallet
   let secretKey = EthereumBip44.getPrivateKey(xprv, path)
   return secretKey
