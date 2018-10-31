@@ -1,15 +1,15 @@
 const bitcore = require('bitcore-lib')
 const TronBip44 = require('./tron-bip44')()
-function EthDepositUtils (options) {
-  if (!(this instanceof EthDepositUtils)) return new EthDepositUtils(options)
+function TronDepositUtils (options) {
+  if (!(this instanceof TronDepositUtils)) return new TronDepositUtils(options)
   let self = this
   self.options = Object.assign({}, options || {})
-  // if (!self.options.password) throw new Error('EthDepositUtils: password required')
+  // if (!self.options.password) throw new Error('TronDepositUtils: password required')
   return self
 }
 
 // https://github.com/trapp/ethereum-bip44
-EthDepositUtils.prototype.bip44 = function (xpub, path) {
+TronDepositUtils.prototype.bip44 = function (xpub, path) {
   let self = this
   let address = TronBip44.getAddress(xpub, path)
   // if (ethereumAddress.isAddress(address)) {
@@ -20,7 +20,7 @@ EthDepositUtils.prototype.bip44 = function (xpub, path) {
 }
 
 // // https://github.com/trapp/ethereum-bip44
-EthDepositUtils.prototype.getPrivateKey = function (xprv, path) {
+TronDepositUtils.prototype.getPrivateKey = function (xprv, path) {
   let self = this
   if (!xprv) throw new Error('Xprv is null. Bad things will happen to you.')
   // create the hd wallet
@@ -28,7 +28,7 @@ EthDepositUtils.prototype.getPrivateKey = function (xprv, path) {
   return secretKey
 }
 
-EthDepositUtils.prototype.privateToPublic = function (privateKey) {
+TronDepositUtils.prototype.privateToPublic = function (privateKey) {
   let pub = TronBip44.privateToPublic(privateKey)
   if (ethereumAddress.isAddress(pub)) {
     return pub
@@ -37,20 +37,20 @@ EthDepositUtils.prototype.privateToPublic = function (privateKey) {
   }
 }
 
-EthDepositUtils.prototype.generateNewKeys = function () {
+TronDepositUtils.prototype.generateNewKeys = function () {
   // to gererate a key:
   let key = new bitcore.HDPrivateKey()
-  let derivedPubKey = key.derive("m/44'/60'/0'/0").hdPublicKey
+  let derivedPubKey = key.derive("m/44'/195'/0'/0").hdPublicKey
   return {
     xpub: derivedPubKey.toString(),
     xprv: key.toString()
   }
 }
 
-EthDepositUtils.prototype.getXpubFromXprv = function (xprv) {
+TronDepositUtils.prototype.getXpubFromXprv = function (xprv) {
   let key = new bitcore.HDPrivateKey(xprv)
-  let derivedPubKey = key.derive("m/44'/60'/0'/0").hdPublicKey
+  let derivedPubKey = key.derive("m/44'/195'/0'/0").hdPublicKey
   return derivedPubKey.toString()
 }
 
-module.exports = EthDepositUtils
+module.exports = TronDepositUtils

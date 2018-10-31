@@ -1,24 +1,13 @@
-const ethereumjsUtil = require('ethereumjs-util')
-const pubToAddress = ethereumjsUtil.pubToAddress
-const bufferToHex = ethereumjsUtil.bufferToHex
-const privateToPublic = ethereumjsUtil.privateToPublic
+// Many parts of this code are snippets from tronWeb:
+// https://github.com/tronprotocol/tron-web/blob/master/src/index.js
+
 const bitcore = require('bitcore-lib')
 const keccak256 = require('js-sha3').keccak256
-const jsSHA = require('jssha')
+const JsSHA = require('jssha')
 const encode58 = require('./base58').encode58
 const HDPrivateKey = bitcore.HDPrivateKey
 const HDPublicKey = bitcore.HDPublicKey
 const ec = require('elliptic').ec('secp256k1')
-
-function padTo32 (msg) {
-  while (msg.length < 32) {
-    msg = Buffer.concat([new Buffer([0]), msg])
-  }
-  if (msg.length !== 32) {
-    throw new Error('invalid key length: ' + msg.length)
-  }
-  return msg
-}
 
 function TronBip44 () {
   if (!(this instanceof TronBip44)) return new TronBip44()
@@ -31,14 +20,6 @@ function TronBip44 () {
   // index
   ]
   return self
-}
-
-TronBip44.prototype.bip32PublicToEthereumPublic = function (pubKey) {
-  let key = ec.keyFromPublic(pubKey).getPublic().toJSON()
-  console.log('ec.keyFromPublic(pubKey).getPublic().toJSON()', ec.keyFromPublic(pubKey).getPublic().toJSON())
-  let hex = byteArray2hexStr(Buffer.concat([padTo32(new Buffer(key[0].toArray())), padTo32(new Buffer(key[1].toArray()))]))
-  console.log('hex', hex)
-  return Buffer.concat([padTo32(new Buffer(key[0].toArray())), padTo32(new Buffer(key[1].toArray()))])
 }
 
 TronBip44.prototype.bip32PublicToTronPublic = function (pubKey) {
@@ -74,42 +55,33 @@ TronBip44.prototype.getAddress = function (xpub, index) {
       derived.publicKey.toBuffer()
     )
   )
-  console.log('address', address)
   address = getBase58CheckAddress(address)
-  console.log('getBase58CheckAddress(address)', address)
   return address
 }
 
+TronBip44.prototype.bip32PrivateToTronPrivate = function (priKeyBytes) {
+  const key = ec.keyFromPrivate(priKeyBytes, 'bytes')
+  const privkey = key.getPrivate()
+  let priKeyHex = privkey.toString('hex')
+  while (priKeyHex.length < 64) {
+    priKeyHex = `0${priKeyHex}`
+  }
+  let privArray = hexStr2byteArray(priKeyHex)
+  return byteArray2hexStr(privArray)
+}
+
 TronBip44.prototype.getPrivateKey = function (xprv, index) {
+  let self = this
   let key = new HDPrivateKey(xprv)
   let path = this.parts.slice(key.depth)
   let derived = key.derive('m/' + (path.length > 0 ? path.join('/') + '/' : '') + index)
-  return strip0x(bufferToHex(padTo32(derived.privateKey.toBuffer())))
+
+  return self.bip32PrivateToTronPrivate(derived.privateKey.toBuffer())
 }
 
 TronBip44.prototype.privateToPublic = function (privateKey) {
   let self = this
   return bufferToHex(pubToAddress(privateToPublic(privateKey)))
-}
-
-function strip0x (input) {
-  if (typeof (input) !== 'string') {
-    return input
-  } else if (input.length >= 2 && input.slice(0, 2) === '0x') {
-    return input.slice(2)
-  } else {
-    return input
-  }
-}
-
-function add0x (input) {
-  if (typeof (input) !== 'string') {
-    return input
-  } else if (input.length < 2 || input.slice(0, 2) !== '0x') {
-    return '0x' + input
-  } else {
-    return input
-  }
 }
 
 // HELPER FUNCTIONS
@@ -194,20 +166,16 @@ function computeAddress (pubBytes) {
 function getBase58CheckAddress (addressBytes) {
   const hash0 = SHA256(addressBytes)
   const hash1 = SHA256(hash0)
-
   let checkSum = hash1.slice(0, 4)
   checkSum = addressBytes.concat(checkSum)
-
   return encode58(checkSum)
 }
 
 function SHA256 (msgBytes) {
-  const shaObj = new jsSHA('SHA-256', 'HEX')
+  const shaObj = new JsSHA('SHA-256', 'HEX')
   const msgHex = byteArray2hexStr(msgBytes)
-
   shaObj.update(msgHex)
   const hashHex = shaObj.getHash('HEX')
-
   return hexStr2byteArray(hashHex)
 }
 

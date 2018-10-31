@@ -17,7 +17,7 @@ const tronWeb = new TronWeb(
   eventServer
 )
 let xprv = 'xprv9s21ZrQH143K3z2wCDRa3rHg9CHKedM1GvbJzGeZB14tsFdiDtpY6T96c1wWr9rwWhU5C8zcEWFbBVa4T3A8bhGSESDG8Kx1SSPfM2rrjxk'
-let xpubOnPath = 'xpub6Ei3StWywFofNKsWoem3m4x7hsRHCXjdPfYoEB1bPFgw4BASMbuLhyi5QdAPZ3MSULoFWt4yzyTJLF91Cw9VsokejWJuCbC6NgyVuBkL3hm'
+let xpubOnPath = 'xpub6F26s5sffTo9QdiPbC9vBqCdQDZ6ChDpQPp5oEVW1Fy8ShQKnVWWKETZbcwnTNLCc15PzhcDpMz7t2iJnqZ5ukWiG3aHNudjRmeXC3GBhMr'
 
 let privateKey = ''
 let pubAddress = ''
@@ -26,42 +26,44 @@ describe('TrxDepositUtils', function () {
   it('try to derive a publicKey', function (done) {
     // > tronWeb.address.toHex('TBR4KDPrN9BrnyjienckS2xixcTpJ9aP26')
     // '410fdbb073f86cea5c16eb05f1b2e174236c003b57'
-
-    pubAddress = TrxDepositUtils.bip44(xpubOnPath, 1)
-    let address = tronWeb.address.fromHex(pubAddress)
-    console.log('address', address)
+    let generatedXpub = TrxDepositUtils.getXpubFromXprv(xprv)
+    expect(generatedXpub).to.equal(xpubOnPath)
+    pubAddress = TrxDepositUtils.bip44(generatedXpub, 1)
+    let priv = TrxDepositUtils.getPrivateKey(xprv, 1)
+    let addr = tronWeb.address.fromPrivateKey(priv.toUpperCase())
+    expect(addr).to.equal(pubAddress)
     done()
   })
 
-  it('getPrivateKey for 0/1', function (done) {
-    let privateKey1 = TrxDepositUtils.getPrivateKey(xprv, 1)
-    let privateKey2 = TrxDepositUtils.getPrivateKey(xprv, 2)
-
-    let publicKey1 = tronWeb.address.fromPrivateKey(privateKey1)
-    let publicKey2 = tronWeb.address.fromPrivateKey(privateKey2)
-    console.log(publicKey1)
-    console.log(publicKey2)
-    tronWeb.trx.getBalance(publicKey1).then(balance => {
-      console.log(publicKey1, balance)
-      return tronWeb.trx.getBalance(publicKey2)
-    }).then(balance => {
-      console.log(publicKey2, balance)
-      return tronWeb.transactionBuilder.sendTrx(publicKey2, 100, publicKey1)
-    }).then(tx => {
-      console.log(tx)
-      return tronWeb.trx.sign(tx, privateKey1)
-    }).then(signed => {
-      console.log(signed)
-      return tronWeb.trx.sendRawTransaction(signed)
-    }).then(broadcasted => {
-      console.log(broadcasted)
-      done()
-    }).catch(err => {
-      let error = new Error(err)
-      console.error(error)
-      done(err)
-    })
-  })
+  // it('getPrivateKey for 0/1', function (done) {
+  //   let privateKey1 = TrxDepositUtils.getPrivateKey(xprv, 1)
+  //   let privateKey2 = TrxDepositUtils.getPrivateKey(xprv, 2)
+  //
+  //   let publicKey1 = tronWeb.address.fromPrivateKey(privateKey1)
+  //   let publicKey2 = tronWeb.address.fromPrivateKey(privateKey2)
+  //   console.log(publicKey1)
+  //   console.log(publicKey2)
+  //   tronWeb.trx.getBalance(publicKey1).then(balance => {
+  //     console.log(publicKey1, balance)
+  //     return tronWeb.trx.getBalance(publicKey2)
+  //   }).then(balance => {
+  //     console.log(publicKey2, balance)
+  //     return tronWeb.transactionBuilder.sendTrx(publicKey2, 100, publicKey1)
+  //   }).then(tx => {
+  //     console.log(tx)
+  //     return tronWeb.trx.sign(tx, privateKey1)
+  //   }).then(signed => {
+  //     console.log(signed)
+  //     return tronWeb.trx.sendRawTransaction(signed)
+  //   }).then(broadcasted => {
+  //     console.log(broadcasted)
+  //     done()
+  //   }).catch(err => {
+  //     let error = new Error(err)
+  //     console.error(error)
+  //     done(err)
+  //   })
+  // })
 
 // it('getDepositAddress for 0/1', function (done) {
 //   pubAddress = TrxDepositUtils.bip44(xpubOnPath, 1)
