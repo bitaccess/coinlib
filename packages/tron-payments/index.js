@@ -1,7 +1,5 @@
-
-const ethereumAddress = require('ethereum-address')
 const bitcore = require('bitcore-lib')
-const EthereumBip44 = require('./ethereum-bip44')()
+const TronBip44 = require('./tron-bip44')()
 function EthDepositUtils (options) {
   if (!(this instanceof EthDepositUtils)) return new EthDepositUtils(options)
   let self = this
@@ -13,12 +11,12 @@ function EthDepositUtils (options) {
 // https://github.com/trapp/ethereum-bip44
 EthDepositUtils.prototype.bip44 = function (xpub, path) {
   let self = this
-  let address = EthereumBip44.getAddress(xpub, path)
-  if (ethereumAddress.isAddress(address)) {
-    return address
-  } else {
-    return new Error('address validation failed')
-  }
+  let address = TronBip44.getAddress(xpub, path)
+  // if (ethereumAddress.isAddress(address)) {
+  return address
+  // } else {
+  return new Error('address validation failed')
+// }
 }
 
 // // https://github.com/trapp/ethereum-bip44
@@ -26,12 +24,12 @@ EthDepositUtils.prototype.getPrivateKey = function (xprv, path) {
   let self = this
   if (!xprv) throw new Error('Xprv is null. Bad things will happen to you.')
   // create the hd wallet
-  let secretKey = EthereumBip44.getPrivateKey(xprv, path)
+  let secretKey = TronBip44.getPrivateKey(xprv, path)
   return secretKey
 }
 
 EthDepositUtils.prototype.privateToPublic = function (privateKey) {
-  let pub = EthereumBip44.privateToPublic(privateKey)
+  let pub = TronBip44.privateToPublic(privateKey)
   if (ethereumAddress.isAddress(pub)) {
     return pub
   } else {

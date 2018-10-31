@@ -1,7 +1,7 @@
 {
-  "name": "ethereum-payments",
-  "version": "1.0.2",
-  "description": "Utilities for ethereum payments, such as bip44 addresses, and sweeping funds",
+  "name": "tron-payments",
+  "version": "1.0.0",
+  "description": "Utilities for tron payments, such as bip44 addresses, and sweeping funds",
   "main": "index.js",
   "directories": {
     "test": "test"
@@ -9,7 +9,7 @@
   "scripts": {
     "test": "mocha --slow 35000 --timeout 3000000 --bail"
   },
-  "author": "Moe Adham <moe@bitaccess.co>",
+  "author": "Moe Adham <moe@bitaccess.ca>",
   "license": "MIT",
   "devDependencies": {
     "async": "^2.5.0",
@@ -21,23 +21,24 @@
     "bitcore-lib": "^0.14.0",
     "elliptic": "^6.4.0",
     "ethereum-address": "0.0.4",
-    "ethereumjs-util": "^5.1.2"
+    "ethereumjs-util": "^5.1.2",
+    "tronweb": "^2.0.24"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/go-faast/ethereum-payments.git"
+    "url": "git+https://github.com/go-faast/tron-payments.git"
   },
   "keywords": [
-    "ethereum",
+    "tron",
     "bitcoin",
     "bip44",
     "payments",
-    "eth",
+    "trx",
     "faast",
     "bitaccess"
   ],
   "bugs": {
-    "url": "https://github.com/go-faast/ethereum-payments/issues"
+    "url": "https://github.com/go-faast/tron-payments/issues"
   },
-  "homepage": "https://github.com/go-faast/ethereum-payments#readme"
+  "homepage": "https://github.com/go-faast/tron-payments#readme"
 }
