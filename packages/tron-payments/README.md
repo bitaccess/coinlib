@@ -55,15 +55,15 @@ let xpub = tronPayments.getXpubFromXprv(xprv) // for path m/44'/195'/0'/0/1234
 
 Get the balance of an address:
 ```js
-TrxDepositUtils.getBalanceFromPath(xpubOnPath, 3, function (err, balance) {
+tronPayments.getBalanceFromPath(xpubOnPath, 3, function (err, balance) {
 
 })
 ```
 
 Generate a sweep transaction for a deposit address, then broadcast it:
 ```js
-TrxDepositUtils.getSweepTransaction(xprv, 3, to, function (err, signedtx) {
-  TrxDepositUtils.broadcastTransaction(signedtx, function (err, txHash) {
+tronPayments.getSweepTransaction(xprv, 3, to, function (err, signedtx) {
+  tronPayments.broadcastTransaction(signedtx, function (err, txHash) {
 
   })
 })
@@ -71,7 +71,7 @@ TrxDepositUtils.getSweepTransaction(xprv, 3, to, function (err, signedtx) {
 
 Generate a simple send transaction
 ```js
-TrxDepositUtils.getSendTransaction(privateKey, amountInSun, to, function (err, signedtx) {
+tronPayments.getSendTransaction(privateKey, amountInSun, to, function (err, signedtx) {
   // You still need to broadcast the transaction
 })
 ```
@@ -79,7 +79,7 @@ TrxDepositUtils.getSendTransaction(privateKey, amountInSun, to, function (err, s
 Get a transaction and check if it is confirmed based on a number of blocks:
 ```js
 // 2 blocks is considered confirmed
-TrxDepositUtils.getTransaction(txHash, 2, function (err, tx) {
+tronPayments.getTransaction(txHash, 2, function (err, tx) {
 
 })
 ```
