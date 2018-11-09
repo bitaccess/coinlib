@@ -72,34 +72,12 @@ describe('TrxDepositUtils', function () {
     })
   }
 
-  // it('send from for 1 to 3', function (done) {
-  //   let privateKey1 = TrxDepositUtils.getPrivateKey(xprv, 1)
-  //   let privateKey2 = TrxDepositUtils.getPrivateKey(xprv, 3)
-  //
-  //   let publicKey1 = tronWeb.address.fromPrivateKey(privateKey1)
-  //   let publicKey2 = tronWeb.address.fromPrivateKey(privateKey2)
-  //   tronWeb.trx.getBalance(publicKey1).then(balance => {
-  //     return tronWeb.trx.getBalance(publicKey2)
-  //   }).then(balance => {
-  //     return tronWeb.transactionBuilder.sendTrx(publicKey2, 123456, publicKey1)
-  //   }).then(tx => {
-  //     return tronWeb.trx.sign(tx, privateKey1)
-  //   }).then(signed => {
-  //     return tronWeb.trx.sendRawTransaction(signed)
-  //   }).then(broadcasted => {
-  //     done()
-  //   }).catch(err => {
-  //     let error = new Error(err)
-  //     console.error(error)
-  //     done(err)
-  //   })
-  // })
   let sweepBalance
   it('Get Balance for a single address', function (done) {
-    TrxDepositUtils.getBalance(xpubOnPath, 3, function (err, balance) {
+    TrxDepositUtils.getBalanceFromPath(xpubOnPath, 3, function (err, balance) {
       if (err) console.log(err)
       expect(balance.balance).to.exist
-      sweepBalance = balance.balance
+      sweepBalance = balance.rawBalance
       done()
     })
   })
@@ -160,27 +138,22 @@ describe('TrxDepositUtils', function () {
       done()
     })
   })
-  // it('Generate a sweep transaction from 5 to 6', function (done) {
-  //   let to = TrxDepositUtils.bip44(xpubOnPath, 6)
-  //   TrxDepositUtils.getSweepTransaction(xprv, 5, to, function (err, signedtx) {
-  //     if (err) console.log(err)
-  //     expect(signedtx).to.exist
-  //     expect(signedtx.signedTx.raw_data.contract[0].parameter.value.amount).to.equal(sweepBalance)
-  //     // expect(signedtx.raw_data).to.exist
-  //     done()
-  //   })
-  // })
-  // it('Wait for a transaction to confirm', function (done) {})
-  // it('Generate a sweep transaction from 6 to 5', function (done) {
-  //   let to = TrxDepositUtils.bip44(xpubOnPath, 5)
-  //   TrxDepositUtils.getSweepTransaction(xprv, 6, to, function (err, signedtx) {
-  //     if (err) console.log(err)
-  //     expect(signedtx).to.exist
-  //     expect(signedtx.signedTx.raw_data.contract[0].parameter.value.amount).to.equal(sweepBalance)
-  //     // expect(signedtx.raw_data).to.exist
-  //     done()
-  //   })
-  // })
+  it('Get the Balance of an address', function (done) {
+    TrxDepositUtils.getBalanceFromPath(xpubOnPath, 1, function (err, balance) {
+      if (err) console.log(err)
+      expect(balance).to.exist
+      expect(balance.balance).to.exist
+      done()
+    })
+  })
+  it('Get the Balance of an address', function (done) {
+    TrxDepositUtils.getBalanceAddress('TBR4KDPrN9BrnyjienckS2xixcTpJ9aP26', function (err, balance) {
+      if (err) console.log(err)
+      expect(balance).to.exist
+      expect(balance.balance).to.exist
+      done()
+    })
+  })
 
 // let fullsweep = true
 // if (fullsweep) {

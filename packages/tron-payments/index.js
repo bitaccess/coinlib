@@ -70,13 +70,24 @@ TronDepositUtils.prototype.getXpubFromXprv = function (xprv) {
   return derivedPubKey.toString()
 }
 
-// {balance: body.balance, unconfirmedBalance: body.unconfirmedBalance}
-TronDepositUtils.prototype.getBalance = function (xpub, path, done) {
+// {address, balance: (decimal), unconfirmedBalance: (decimal), rawBalance: int/str - Satoshi-style}
+TronDepositUtils.prototype.getBalanceFromPath = function (xpub, path, done) {
   let self = this
-  let pub = TronBip44.getAddress(xpub, path)
-  self.tronweb.trx.getBalance(pub, function (err, balance) {
+  let address = TronBip44.getAddress(xpub, path)
+  self.tronweb.trx.getBalance(address, function (err, balance) {
     if (err) return done(new Error(err))
-    return done(null, {balance: balance, unconfirmedBalance: 0})
+    return done(null, {address: address, balance: self.tronweb.fromSun(balance), unconfirmedBalance: 0, rawBalance: balance})
+  })
+}
+
+TronDepositUtils.prototype.getBalanceAddress = function (address, done) {
+  let self = this
+  if (!self.tronweb.isAddress(address)) {
+    return done(new Error('address validation failed'))
+  }
+  self.tronweb.trx.getBalance(address, function (err, balance) {
+    if (err) return done(new Error(err))
+    return done(null, {address: address, balance: self.tronweb.fromSun(balance), unconfirmedBalance: 0, rawBalance: balance})
   })
 }
 
