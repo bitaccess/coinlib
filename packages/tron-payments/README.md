@@ -53,8 +53,38 @@ Get the derived xpub key from a hardened private key:
 let xpub = tronPayments.getXpubFromXprv(xprv) // for path m/44'/195'/0'/0/1234
 ```
 
+Get the balance of an address:
+```js
+TrxDepositUtils.getBalanceFromPath(xpubOnPath, 3, function (err, balance) {
 
+})
+```
 
+Generate a sweep transaction for a deposit address, then broadcast it:
+```js
+TrxDepositUtils.getSweepTransaction(xprv, 3, to, function (err, signedtx) {
+  TrxDepositUtils.broadcastTransaction(signedtx, function (err, txHash) {
+
+  })
+})
+```
+
+Generate a simple send transaction
+```js
+TrxDepositUtils.getSendTransaction(privateKey, amountInSun, to, function (err, signedtx) {
+  // You still need to broadcast the transaction
+})
+```
+
+Get a transaction and check if it is confirmed based on a number of blocks:
+```js
+// 2 blocks is considered confirmed
+TrxDepositUtils.getTransaction(txHash, 2, function (err, tx) {
+
+})
+```
+
+*See test/test.js for more utilities*
 
 
 **Note:** It is suggested to generate your Private key offline with FAR more entropy than the default function, then use getXpubFromXprv.
