@@ -2,6 +2,7 @@ const bitcore = require('bitcore-lib')
 const Tronweb = require('tronweb')
 const TronBip44 = require('./tron-bip44')()
 const async = require('async')
+const TRX_FEE_FOR_TRANSFER = process.env.TRX_FEE_FOR_TRANSFER || 1000
 
 function TronDepositUtils (options) {
   if (!(this instanceof TronDepositUtils)) return new TronDepositUtils(options)
@@ -57,7 +58,7 @@ TronDepositUtils.prototype.privateToPublic = function (privateKey) {
 TronDepositUtils.prototype.generateNewKeys = function () {
   // to gererate a key:
   let key = new bitcore.HDPrivateKey()
-  let derivedPubKey = key.derive("m/44'/195'/0'/0").hdPublicKey
+  let derivedPubKey = key.derive("m/44'/195'/0").hdPublicKey
   return {
     xpub: derivedPubKey.toString(),
     xprv: key.toString()
@@ -66,7 +67,7 @@ TronDepositUtils.prototype.generateNewKeys = function () {
 
 TronDepositUtils.prototype.getXpubFromXprv = function (xprv) {
   let key = new bitcore.HDPrivateKey(xprv)
-  let derivedPubKey = key.derive("m/44'/195'/0'/0").hdPublicKey
+  let derivedPubKey = key.derive("m/44'/195'/0").hdPublicKey
   return derivedPubKey.toString()
 }
 
@@ -91,12 +92,15 @@ TronDepositUtils.prototype.getBalanceAddress = function (address, done) {
   })
 }
 
+// TRX = Energy needed * 100 sun
 TronDepositUtils.prototype.getSweepTransaction = function (xprv, path, to, done) {
   let self = this
   let privateKey = self.getPrivateKey(xprv, path)
+
   let publicKey = self.privateToPublic(privateKey)
   self.tronweb.trx.getBalance(publicKey, function (err, balance) {
     if (err) return done(new Error(err))
+    balance = balance - TRX_FEE_FOR_TRANSFER * 100
     self.tronweb.transactionBuilder.sendTrx(to, balance, publicKey, function (err, tx) {
       if (err) return done(new Error(err))
       self.tronweb.trx.sign(tx, privateKey, function (err, signed) {
@@ -112,7 +116,8 @@ TronDepositUtils.prototype.getSendTransaction = function (privateKey, amountInSu
   let publicKey = self.privateToPublic(privateKey)
   self.tronweb.trx.getBalance(publicKey, function (err, balance) {
     if (err) return done(new Error(err))
-    if (balance < amountInSun) return done(new Error('insufficient balance to send'))
+    let fee = TRX_FEE_FOR_TRANSFER * 100
+    if ((balance - fee) < amountInSun) return done(new Error('insufficient balance to send including fee of ', fee))
     self.tronweb.transactionBuilder.sendTrx(to, amountInSun, publicKey, function (err, tx) {
       if (err) return done(new Error(err))
       self.tronweb.trx.sign(tx, privateKey, function (err, signed) {
@@ -125,7 +130,9 @@ TronDepositUtils.prototype.getSendTransaction = function (privateKey, amountInSu
 
 TronDepositUtils.prototype.broadcastTransaction = function (txObject, done) {
   let self = this
-  self.tronweb.trx.sendRawTransaction(txObject, function (err, broadcasted) {
+  let signedTx = txObject
+  if (txObject.signedTx) signedTx = txObject.signedTx
+  self.tronweb.trx.sendRawTransaction(signedTx, function (err, broadcasted) {
     if (err) return done(new Error(err))
     done(null, broadcasted)
   })

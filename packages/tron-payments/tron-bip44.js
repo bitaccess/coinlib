@@ -15,8 +15,8 @@ function TronBip44 () {
   this.parts = [
     `44'`, // bip 44
     `195'`, // coin - from https://github.com/satoshilabs/slips/blob/master/slip-0044.md
-    `0'`, // wallet
-    `0` // 0 - public, 1 = private
+    `0` // , // wallet
+  // `0` // 0 - public, 1 = private
   // index
   ]
   return self
