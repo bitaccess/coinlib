@@ -29,18 +29,18 @@ Generate an tron deposit address from a public seed (xpub).
 This is useful if you are a hot wallet and don't store the private key. You will need
 to keep track of which path node you are on (increasing INT):
 ```js
-let depositAddress = tronPayments.bip44(keys.xpub, 1234) // for path m/44'/195'/0'/0/1234
+let depositAddress = tronPayments.bip44(keys.xpub, 1234) // for path m/44'/195'/0/1234
 console.log(depositAddress)
 ```
 
 Get the private key for an address on a specific path:
 ```js
-let privateKey = tronPayments.getPrivateKey(keys.xprv, 1234) // for path m/44'/195'/0'/0/1234
+let privateKey = tronPayments.getPrivateKey(keys.xprv, 1234) // for path m/44'/195'/0/1234
 ```
 
 Get the public key from a private key:
 ```js
-let address = tronPayments.privateToPublic(privateKey) // for path m/44'/195'/0'/0/1234
+let address = tronPayments.privateToPublic(privateKey) // for path m/44'/195'/0/1234
 if(address === depositAddress){
   console.log('this library works')
 } else {
