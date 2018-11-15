@@ -73,64 +73,30 @@ describe('TrxDepositUtils', function () {
       })
     })
   }
-  let sweepBalance
-  it('Get Balance for a single address', function (done) {
-    TrxDepositUtils.getBalanceFromPath(xpubOnPath, 1, function (err, balance) {
-      if (err) console.log(err)
-      expect(balance.balance).to.exist
-      sweepBalance = balance.rawBalance
-      done()
-    })
-  })
 
-  it('Generate a sweep transaction for a single address', function (done) {
-    let to = TrxDepositUtils.bip44(xpubOnPath, 0)
-    TrxDepositUtils.getSweepTransaction(xprv, 1, to, function (err, signedtx) {
-      if (err) console.log(err)
-      expect(signedtx).to.exist
-      expect(signedtx.signedTx.raw_data.contract[0].parameter.value.amount).to.equal(sweepBalance - 1000 * 100)
-      done()
-    })
-  })
-  let signedSendTransaction
-  it('Generate a send transaction', function (done) {
-    let amountInSun = 12323
-    let to = TrxDepositUtils.bip44(xpubOnPath, 6)
-    TrxDepositUtils.getSendTransaction(privateKey, amountInSun, to, function (err, signedtx) {
-      if (err) console.log(err)
-      expect(signedtx).to.exist
-      expect(signedtx.signedTx.raw_data.contract[0].parameter.value.amount).to.equal(12323)
-      signedSendTransaction = signedtx.signedTx
-      done()
-    })
-  })
-  let broadcast = false
-  if (broadcast) {
-    it('Broadcast a sweep transaction for a single address', function (done) {
-      TrxDepositUtils.broadcastTransaction(signedSendTransaction, function (err, txHash) {
-        if (err) console.log(err)
-        expect(txHash).to.exist
-        console.log(txHash)
-        console.log(signedSendTransaction)
-        done()
-      })
-    })
-  }
-  let txHash = '209f8dbefe6bbb9395f1be76dfb581b7bb53197d27cb28fbfe6c819b914c140c'
   it('Get a transaction hash without confirmations', function (done) {
-    TrxDepositUtils.getTransaction(txHash, function (err, tx) {
+    TrxDepositUtils.getTransaction('209f8dbefe6bbb9395f1be76dfb581b7bb53197d27cb28fbfe6c819b914c140c', function (err, tx) {
+      if (err) console.log(err)
+      expect(tx).to.exist
+      expect(tx.confirmed).to.equal(true)
+      expect(tx.fee).to.equal(100000)
+      done()
+    })
+  })
+  it('Get a transaction hash with confirmations', function (done) {
+    TrxDepositUtils.getTransaction('209f8dbefe6bbb9395f1be76dfb581b7bb53197d27cb28fbfe6c819b914c140c', 200000000000000, function (err, tx) {
       if (err) console.log(err)
       expect(tx).to.exist
       expect(tx.confirmed).to.equal(false)
       done()
     })
   })
-  it('Get a transaction hash with confirmations', function (done) {
-    TrxDepositUtils.getTransaction(txHash, 2, function (err, tx) {
+  it('Get a transaction hash without a fee', function (done) {
+    TrxDepositUtils.getTransaction('a078736ab768b34dc06ca9048dddfa73383947aed0d93f1eff2adde4b7254f39', function (err, tx) {
       if (err) console.log(err)
       expect(tx).to.exist
       expect(tx.confirmed).to.equal(true)
-      // console.log(tx)
+      expect(tx.fee).to.equal(0)
       done()
     })
   })
@@ -157,14 +123,52 @@ describe('TrxDepositUtils', function () {
       done()
     })
   })
-
-// let fullsweep = true
-// if (fullsweep) {
-//   it('Sweep transaction for a single address', function (done) {
-//     // TrxDepositUtils.sweepTransaction(xprv, 2, to, function (err, sweptTransaction) {
-//     //
-//     // })
-//     done()
-//   })
-// }
+  let sweepBalance
+  it('Get Balance for a single address', function (done) {
+    TrxDepositUtils.getBalanceFromPath(xpubOnPath, 1, function (err, balance) {
+      if (err) console.log(err)
+      expect(balance.balance).to.exist
+      sweepBalance = balance.rawBalance
+      done()
+    })
+  })
+  let sweep = false
+  if (sweep) {
+    it('Generate a sweep transaction for a single address', function (done) {
+      let to = TrxDepositUtils.bip44(xpubOnPath, 1)
+      TrxDepositUtils.getSweepTransaction(xprv, 3, to, function (err, signedtx) {
+        if (err) console.log(err)
+        expect(signedtx).to.exist
+        expect(signedtx.signedTx.raw_data.contract[0].parameter.value.amount).to.equal(sweepBalance - 1000 * 100)
+        done()
+      })
+    })
+  }
+  let signedSendTransaction
+  let send = false
+  if (send) {
+    it('Generate a send transaction', function (done) {
+      let amountInSun = 12323
+      let to = TrxDepositUtils.bip44(xpubOnPath, 6)
+      TrxDepositUtils.getSendTransaction(privateKey, amountInSun, to, function (err, signedtx) {
+        if (err) console.log(err)
+        expect(signedtx).to.exist
+        expect(signedtx.signedTx.raw_data.contract[0].parameter.value.amount).to.equal(12323)
+        signedSendTransaction = signedtx.signedTx
+        done()
+      })
+    })
+  }
+  let broadcast = false
+  if (broadcast) {
+    it('Broadcast a sweep transaction for a single address', function (done) {
+      TrxDepositUtils.broadcastTransaction(signedSendTransaction, function (err, txHash) {
+        if (err) console.log(err)
+        expect(txHash).to.exist
+        console.log(txHash)
+        console.log(signedSendTransaction)
+        done()
+      })
+    })
+  }
 })

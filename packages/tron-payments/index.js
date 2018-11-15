@@ -101,6 +101,7 @@ TronDepositUtils.prototype.getSweepTransaction = function (xprv, path, to, done)
   self.tronweb.trx.getBalance(publicKey, function (err, balance) {
     if (err) return done(new Error(err))
     balance = balance - TRX_FEE_FOR_TRANSFER * 100
+    if (balance <= 0) return done(new Error('No balance to sweep'))
     self.tronweb.transactionBuilder.sendTrx(to, balance, publicKey, function (err, tx) {
       if (err) return done(new Error(err))
       self.tronweb.trx.sign(tx, privateKey, function (err, signed) {
@@ -140,8 +141,11 @@ TronDepositUtils.prototype.broadcastTransaction = function (txObject, done) {
 
 // {amount, from, to, executed, block, fee, confirmed}
 TronDepositUtils.prototype.getTransaction = function (txid, blocksForConfirmation, done) {
+  let confirmations = 1
   if (typeof (blocksForConfirmation) === 'function') {
     done = blocksForConfirmation
+  } else {
+    confirmations = blocksForConfirmation
   }
   let self = this
 
@@ -183,23 +187,27 @@ TronDepositUtils.prototype.getTransaction = function (txid, blocksForConfirmatio
       }
 
       response.executed = contractExecuted
-      response.txid = transaction.txid
+      response.txid = transaction.txID
       response.raw = transaction
       response.block = transactionInfo.blockNumber
-      response.fee = transactionInfo.fee
+      if (transactionInfo.fee) {
+        response.fee = transactionInfo.fee
+      } else {
+        response.fee = 0
+      }
 
       let confirmed = false
-      if (blocksForConfirmation && currentBlock && currentBlock.block_header &&
+      if (confirmations && currentBlock && currentBlock.block_header &&
         currentBlock.block_header.raw_data && currentBlock.block_header.raw_data.number) {
         let currentBlockNumber = currentBlock.block_header.raw_data.number
         response.currentBlock = currentBlockNumber
-        if (currentBlockNumber - response.block >= blocksForConfirmation) confirmed = true
+        if (currentBlockNumber - response.block >= confirmations) confirmed = true
       }
       response.confirmed = confirmed
 
-      done(null, response)
+      return done(null, response)
     } else {
-      done(new Error('Unable to get transaction'))
+      return done(new Error('Unable to get transaction'))
     }
   })
 }

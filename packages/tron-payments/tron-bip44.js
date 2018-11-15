@@ -79,11 +79,6 @@ TronBip44.prototype.getPrivateKey = function (xprv, index) {
   return self.bip32PrivateToTronPrivate(derived.privateKey.toBuffer())
 }
 
-TronBip44.prototype.privateToPublic = function (privateKey) {
-  let self = this
-  return bufferToHex(pubToAddress(privateToPublic(privateKey)))
-}
-
 // HELPER FUNCTIONS
 // Borrowed from tronweb:  https://github.com/tronprotocol/tron-web/blob/master/src/utils/code.js
 const ADDRESS_PREFIX = '41'
