@@ -1,6 +1,6 @@
 {
   "name": "@faast/tron-payments",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Utilities for tron payments, such as bip44 addresses, and sweeping funds",
   "main": "index.js",
   "directories": {
@@ -12,12 +12,12 @@
   "author": "Moe Adham <moe@bitaccess.ca>",
   "license": "MIT",
   "devDependencies": {
-    "async": "^2.5.0",
     "chai": "^4.2.0",
     "mocha": "^3.0.2",
     "standard": "^8.5.0"
   },
   "dependencies": {
+    "async": "^2.6.1",
     "bitcore-lib": "^0.14.0",
     "elliptic": "^6.4.0",
     "tronweb": "^2.0.24"
