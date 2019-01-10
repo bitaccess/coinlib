@@ -14,9 +14,9 @@ function TronDepositUtils (options) {
   } else {
     // default to mainnet
     self.options = {
-      fullNode: 'https://api.trongrid.io',
-      solidityNode: 'https://api.trongrid.io',
-      eventServer: 'https://api.trongrid.io'
+      fullNode: process.env.TRX_FULL_NODE_URL || 'http://54.236.37.243:8090', // 'https://api.trongrid.io',
+      solidityNode: process.env.TRX_SOLIDITY_NODE_URL || 'http://47.89.187.247:8091', // 'https://api.trongrid.io',
+      eventServer: process.env.TRX_EVENT_SERVER_URL || 'https://api.trongrid.io'
     }
   }
 

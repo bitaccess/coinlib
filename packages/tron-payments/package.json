@@ -1,6 +1,6 @@
 {
   "name": "@faast/tron-payments",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Utilities for tron payments, such as bip44 addresses, and sweeping funds",
   "main": "index.js",
   "directories": {
