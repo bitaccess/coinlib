@@ -1,0 +1,24 @@
+{
+  "name": "monero-payments",
+  "version": "0.0.1",
+  "description": "Utilities for monero payments, like generating integrated addresses and sweeping funds",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/bitaccess/monero-payments.git"
+  },
+  "keywords": [
+    "monero",
+    "payments",
+    "xmr",
+    "bitcoin",
+    "faast",
+    "bitaccess"
+  ],
+  "author": "Dylan Seago <dylan@bitaccess.co>",
+  "license": "MIT",
+  "homepage": "https://bitbucket.org/bitaccess/monero-payments#readme"
+}
