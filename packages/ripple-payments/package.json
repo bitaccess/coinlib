@@ -20,5 +20,9 @@
   ],
   "author": "Dylan Seago <dylan@bitaccess.co>",
   "license": "MIT",
-  "homepage": "https://bitbucket.org/bitaccess/monero-payments#readme"
+  "homepage": "https://bitbucket.org/bitaccess/monero-payments#readme",
+  "devDependencies": {
+    "tslint": "^5.12.1",
+    "typescript": "^3.2.4"
+  }
 }
