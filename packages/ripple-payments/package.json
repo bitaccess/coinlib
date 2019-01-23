@@ -22,6 +22,8 @@
   "license": "MIT",
   "homepage": "https://bitbucket.org/bitaccess/monero-payments#readme",
   "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0",
     "tslint": "^5.12.1",
     "typescript": "^3.2.4"
   }
