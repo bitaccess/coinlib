@@ -1,5 +1,6 @@
 
-export interface UnsignedTx {
+export interface Transaction {
+  id: string
   from: string
   to: string
   amount: string // main denomination (eg "0.125")
@@ -8,13 +9,7 @@ export interface UnsignedTx {
   data: any // TODO: Shape TBD -- dependent on monero lib used
 }
 
-export interface TxStatus extends UnsignedTx {
-  id: string
+export interface TransactionStatus extends Transaction {
   confirmations: number
   block: number | null
-}
-
-export interface SignedTx extends UnsignedTx {
-  id: string
-  signedData: any // Shape TBD -- dependent on monero lib used
 }

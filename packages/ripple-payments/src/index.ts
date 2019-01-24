@@ -1,5 +1,5 @@
 import {
-  UnsignedTx, SignedTx, TxStatus,
+  Transaction, TransactionStatus,
 } from './types'
 
 export * from './types'
@@ -60,13 +60,13 @@ export default class MoneroPayments {
   /**
    * Get the status of a transaction.
    */
-  async getTransactionStatus(txId: string): Promise<TxStatus> {
+  async getTransactionStatus(txId: string): Promise<TransactionStatus> {
     // TODO
     return null
   }
 
   /**
-   * Create a new payment transaction sending `amount` to from address `from` to address `to`.
+   * Creates and signs a new payment transaction sending `amount` to from address `from` to address `to`.
    *
    * @param from - The monero address to send from, or an index to pass into getAddress
    * @param to - The monero address of the recipient. To include a payment ID this should be an integrated address
@@ -75,27 +75,17 @@ export default class MoneroPayments {
    */
   async createTransaction(
     from: string | number, to: string, amount: string, options?: CreateTransactionOptions,
-  ): Promise<UnsignedTx> {
+  ): Promise<Transaction> {
     // TODO
     return null
   }
 
   /**
-   * Create a new payment transaction sending the entire balance of address `from` to address `to`.
+   * Creates and signs a new payment transaction sending the entire balance of address `from` to address `to`.
    */
   async createSweepTransaction(
     from: string | number, to: string, options?: CreateTransactionOptions,
-  ): Promise<UnsignedTx> {
-    // TODO
-    return null
-  }
-
-  /**
-   * Signs the transaction specified by `unsignedTx`.
-   *
-   * @throws Error if the transaction cannot be signed by this monero account
-   */
-  async signTransaction(unsignedTx: UnsignedTx): Promise<SignedTx> {
+  ): Promise<Transaction> {
     // TODO
     return null
   }
@@ -105,7 +95,7 @@ export default class MoneroPayments {
    *
    * @throws Error if the transaction is invalid or not signed
    */
-  async broadcastTransaction(signedTx: SignedTx): Promise<void> {
+  async broadcastTransaction(signedTx: Transaction): Promise<void> {
     // TODO
   }
 }

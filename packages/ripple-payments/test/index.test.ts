@@ -2,7 +2,8 @@ import MoneroPayments from '../src'
 
 const fakeNode = 'http://localhost:1234'
 
-const fakeUnsignedTx = {
+const fakeTx = {
+  id: 'fakeId',
   from: 'fromAddr',
   to: 'toAddr',
   amount: '1',
@@ -11,15 +12,8 @@ const fakeUnsignedTx = {
   data: {},
 }
 
-const fakeSignedTx = {
-  ...fakeUnsignedTx,
-  id: 'fakeId',
-  signedData: 'signedTxStr',
-}
-
 const fakeTxStatus = {
-  ...fakeUnsignedTx,
-  id: 'fakeId',
+  ...fakeTx,
   block: 1234,
   confirmations: 5,
 }
@@ -67,11 +61,8 @@ describe('MoneroPayments', () => {
     test('createSweepTransaction', async () => {
       expect(await mp.createSweepTransaction(0, '')).toBe(null)
     })
-    test('signTransaction', async () => {
-      expect(await mp.signTransaction(fakeUnsignedTx)).toBe(null)
-    })
     test('broadcastTransaction', async () => {
-      expect(await mp.broadcastTransaction(fakeSignedTx))
+      expect(await mp.broadcastTransaction(fakeTx))
     })
   })
 })
