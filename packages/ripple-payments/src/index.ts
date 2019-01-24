@@ -1,15 +1,24 @@
 import {
-  MoneroPaymentsOptions, CreateTransactionOptions, TxStatus, UnsignedTx, SignedTx,
+  UnsignedTx, SignedTx, TxStatus,
 } from './types'
 
 export * from './types'
+
+export interface MoneroPaymentsOptions {
+  paymentsNode: string // required
+  network?: 'mainnet' | 'stagenet' | 'testnet' // default to mainnet
+}
+
+export interface CreateTransactionOptions {
+  feeRate?: number // base denomination per byte (ie sat/byte)
+}
 
 /**
  * A class that provides the necessary tools for accepting and sending monero payments.
  * Communicates with a [monero payments server](https://bitbucket.org/bitaccess/monero-payments-server/src)
  * for most of the core logic including getting balance, generating txs, and signing txs.
  */
-export class MoneroPayments {
+export default class MoneroPayments {
 
   options: MoneroPaymentsOptions
 

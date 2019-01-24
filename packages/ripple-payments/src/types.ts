@@ -1,13 +1,4 @@
 
-export interface MoneroPaymentsOptions {
-  paymentsNode: string // required
-  network?: 'mainnet' | 'stagenet' | 'testnet' // default to mainnet
-}
-
-export interface CreateTransactionOptions {
-  feeRate?: number // base denomination per byte (ie sat/byte)
-}
-
 export interface UnsignedTx {
   from: string
   to: string

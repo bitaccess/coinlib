@@ -1,4 +1,11 @@
 node_modules/
 .DS_Store
 .env*
-dist/
+coverage/
+.nyc_output
+*.log
+.vscode
+.idea
+compiled/
+.awcache
+.rpt2_cache
