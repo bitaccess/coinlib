@@ -32,7 +32,9 @@
     "test:watch": "jest --coverage --watch",
     "test:prod": "npm run lint && npm run test -- --no-cache",
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "preversion": "bin/preversion.sh",
+    "postversion": "git push && git push --tags"
   },
   "lint-staged": {
     "{src,test}/**/*.ts": [
