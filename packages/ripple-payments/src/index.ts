@@ -38,12 +38,12 @@ export class MoneroPayments {
   }
 
   /**
-   * Get the balance of an address. If address is not provided get the balance of the entire
+   * Get the balance of an address (or address at `index`). If address is not provided get the balance of the entire
    * account (ie every address).
    *
    * @return The balance formatted as a string in the main denomination (eg "0.125" XMR)
    */
-  async getBalance(address?: string): Promise<string> {
+  async getBalance(addressOrIndex?: string | number): Promise<string> {
     // TODO
     return ''
   }
@@ -59,13 +59,13 @@ export class MoneroPayments {
   /**
    * Create a new payment transaction sending `amount` to from address `from` to address `to`.
    *
-   * @param from - The monero address of the sender (anything returned by getAddress)
+   * @param from - The monero address to send from, or an index to pass into getAddress
    * @param to - The monero address of the recipient. To include a payment ID this should be an integrated address
    * @param amount - The amount to send in the main denomination (eg "0.125" XMR)
    * @returns An object representing the unsigned transaction
    */
   async createTransaction(
-    from: string, to: string, amount: string, options?: CreateTransactionOptions,
+    from: string | number, to: string, amount: string, options?: CreateTransactionOptions,
   ): Promise<UnsignedTx> {
     // TODO
     return null
@@ -75,7 +75,7 @@ export class MoneroPayments {
    * Create a new payment transaction sending the entire balance of address `from` to address `to`.
    */
   async createSweepTransaction(
-    from: string, to: string, options?: CreateTransactionOptions,
+    from: string | number, to: string, options?: CreateTransactionOptions,
   ): Promise<UnsignedTx> {
     // TODO
     return null
@@ -92,11 +92,11 @@ export class MoneroPayments {
   }
 
   /**
-   * Sends the transaction specified by `signedTx`. Allows rebroadcasting already sent transactions.
+   * Broadcasts the transaction specified by `signedTx`. Allows rebroadcasting already sent transactions.
    *
    * @throws Error if the transaction is invalid or not signed
    */
-  async sendTransaction(signedTx: SignedTx): Promise<void> {
+  async broadcastTransaction(signedTx: SignedTx): Promise<void> {
     // TODO
   }
 }
