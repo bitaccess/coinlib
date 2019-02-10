@@ -1,25 +1,25 @@
 {
-  "name": "monero-payments",
+  "name": "xrp-payments",
   "version": "0.0.1",
-  "description": "Utilities for monero payments, like generating integrated addresses and sweeping funds",
-  "main": "dist/monero-payments.umd.js",
-  "module": "dist/monero-payments.es5.js",
-  "typings": "dist/types/monero-payments.d.ts",
+  "description": "Utilities for xrp payments, like generating integrated addresses and sweeping funds",
+  "main": "dist/xrp-payments.umd.js",
+  "module": "dist/xrp-payments.es5.js",
+  "typings": "dist/types/xrp-payments.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@bitbucket.org/bitaccess/monero-payments.git"
+    "url": "git+ssh://git@bitbucket.org/bitaccess/xrp-payments.git"
   },
   "keywords": [
-    "monero",
+    "ripple",
     "payments",
-    "xmr",
+    "xrp",
     "bitcoin",
     "faast",
     "bitaccess"
   ],
-  "author": "Dylan Seago <dylan@bitaccess.co>",
+  "author": "Dan Wolfgram <dan@bitaccess.co>",
   "license": "MIT",
-  "homepage": "https://bitbucket.org/bitaccess/monero-payments#readme",
+  "homepage": "https://bitbucket.org/bitaccess/xrp-payments#readme",
   "engines": {
     "node": ">=6.0.0"
   },
