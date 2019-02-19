@@ -1,40 +1,55 @@
 import {
   Transaction, TransactionStatus,
 } from './types'
+import axios from 'axios'
+import { isValidAddress } from './utils/address'
 
 export * from './types'
 
-export interface MoneroPaymentsOptions {
-  paymentsNode: string // required
-  network?: 'mainnet' | 'stagenet' | 'testnet' // default to mainnet
+export interface RipplePaymentsOptions {
+  apiUrl: string // required
 }
 
 export interface CreateTransactionOptions {
   feeRate?: number // base denomination per byte (ie sat/byte)
 }
 
-/**
- * A class that provides the necessary tools for accepting and sending monero payments.
- * Communicates with a [monero payments server](https://bitbucket.org/bitaccess/monero-payments-server/src)
- * for most of the core logic including getting balance, generating txs, and signing txs.
- */
-export default class MoneroPayments {
+export default class RipplePayments {
 
-  options: MoneroPaymentsOptions
+  options: RipplePaymentsOptions
 
-  constructor(options: MoneroPaymentsOptions) {
+  constructor(options: RipplePaymentsOptions) {
     this.options = Object.assign({}, options)
-    if (!options.network) {
-      options.network = 'mainnet'
+    if (!this.options) {
+      this.options.apiUrl = 'http://s1.ripple.com:51234' 
     }
   }
 
   /**
-   * Return `true` if `address` is a valid Monero address.
+   * Generate a ripple wallet/keys using the key type 'secp256k1'
+   */
+  async generateKeys() {
+    try {
+      const newAccount = await axios.post(this.options.apiUrl, {
+        'method': 'wallet_propose',
+        'params': [
+            {
+                'key_type': 'secp256k1'
+            }
+          ]
+        }
+      )
+      return newAccount.data.result
+    } catch(err) {
+      throw err
+    }
+  }
+
+  /**
+   * Determine if an address is a valid xrp address
    */
   static isValidAddress(address: string): boolean {
-    // TODO
-    return false
+    return isValidAddress(address)
   }
 
   /**
@@ -47,55 +62,163 @@ export default class MoneroPayments {
   }
 
   /**
-   * Get the balance of an address (or address at `index`). If address is not provided get the balance of the entire
+   * Get the balance of an address. If address is not provided get the balance of the entire
    * account (ie every address).
    *
-   * @return The balance formatted as a string in the main denomination (eg "0.125" XMR)
+   * @return The balance formatted as a string in the main denomination (eg "0.125" XRP)
    */
-  async getBalance(addressOrIndex?: string | number): Promise<string> {
-    // TODO
-    return ''
+  async getBalance(address: string): Promise<string> {
+    try {
+      const account = await axios.post(this.options.apiUrl, {
+        'method': 'account_info',
+        'params': [
+            {
+                'account': address,
+                'strict': true,
+                'ledger_index': 'validated'
+            }
+          ]
+        }
+      )
+      return account.data.result.account_data.Balance
+    } catch(err) {
+      throw err
+    }
   }
 
   /**
    * Get the status of a transaction.
    */
-  async getTransactionStatus(txId: string): Promise<TransactionStatus> {
-    // TODO
-    return null
+  async getTransactionStatus(txHash: string): Promise<object> {
+    try {
+      const tx = await axios.post(this.options.apiUrl, {
+        'method': 'tx',
+        'params': [
+            {
+                'transaction': txHash,
+                'binary': false
+            }
+          ]
+        }
+      )
+      return tx.data
+    } catch(err) {
+      throw err
+    }
   }
 
   /**
-   * Creates and signs a new payment transaction sending `amount` to from address `from` to address `to`.
-   *
-   * @param from - The monero address to send from, or an index to pass into getAddress
-   * @param to - The monero address of the recipient. To include a payment ID this should be an integrated address
-   * @param amount - The amount to send in the main denomination (eg "0.125" XMR)
-   * @returns An object representing the unsigned transaction
+   * fetch previous history of an addresses' tx.
+   */
+  async getAccountTransactions(address: string): Promise<object> {
+    try {
+      const txs = await axios.post(this.options.apiUrl, {
+        'method': 'tx',
+        'params': [
+          {
+            'method': 'account_tx',
+            'params': [
+                {
+                  'account': address,
+                  'binary': false,
+                  'forward': false,
+                  'ledger_index_max': -1,
+                  'ledger_index_min': -1,
+                }
+              ]
+            }
+          ]
+        }
+      )
+      return txs.data
+    } catch(err) {
+      throw err
+    }
+  }
+
+  /**
+   * signs a new payment transaction with address `from` to address `to`.
+   */
+  async signTransaction(
+    from: string, to: string, amount: string, secret: string
+  ): Promise<string> {
+    try {
+      const signedTx = await axios.post(this.options.apiUrl, {
+        'method': 'sign',
+        'params': [
+            {
+                'offline': false,
+                'secret': secret,
+                'tx_json': {
+                    'Account': from,
+                    'Amount': {
+                        'currency': 'USD',
+                        'issuer': from,
+                        'value': amount
+                    },
+                    'Destination': to,
+                    'TransactionType': 'Payment'
+                },
+                'fee_mult_max': 1000
+            }
+          ]
+        }
+      )
+      return signedTx.data.result.tx_blob
+    } catch (err) {
+      throw err
+    }
+  }
+
+  /**
+   * Submits the signed tx
+   */
+  async submitTransaction (
+    txBlob: string
+  ) : Promise<any> {
+    try {
+      const submittedTx = await axios.post(this.options.apiUrl, {
+        'method': 'submit',
+        'params': [
+            {
+              'tx_blob': txBlob
+            }
+          ]
+        }
+      )
+      return submittedTx
+    } catch(err) {
+      throw err
+    }
+  }
+
+  /**
+   * Creates and signs a new payment transaction sending the entire balance of address `from` to address `to`.
    */
   async createTransaction(
-    from: string | number, to: string, amount: string, options?: CreateTransactionOptions,
-  ): Promise<Transaction> {
-    // TODO
-    return null
+    from: string, to: string, amount: string, secret: string,
+  ): Promise<any> {
+    try {
+      const signedTxBlob = await this.signTransaction(from, to, amount, secret)
+      const submittedTx = await this.submitTransaction(signedTxBlob)
+      return submittedTx
+    } catch (err) {
+      throw err
+    }
   }
 
   /**
    * Creates and signs a new payment transaction sending the entire balance of address `from` to address `to`.
    */
   async createSweepTransaction(
-    from: string | number, to: string, options?: CreateTransactionOptions,
-  ): Promise<Transaction> {
-    // TODO
-    return null
-  }
-
-  /**
-   * Broadcasts the transaction specified by `signedTx`. Allows rebroadcasting already sent transactions.
-   *
-   * @throws Error if the transaction is invalid or not signed
-   */
-  async broadcastTransaction(signedTx: Transaction): Promise<void> {
-    // TODO
+    from: string, to: string, secret: string,
+  ): Promise<any> {
+    try {
+      const balance = await this.getBalance(from)
+      const tx = await this.createTransaction(from, to, balance, secret)
+      return tx
+    } catch(err) {
+      throw err
+    }
   }
 }
