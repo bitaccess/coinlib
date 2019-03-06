@@ -1,0 +1,21 @@
+{
+  "name": "payments-common",
+  "version": "1.0.0",
+  "description": "Common modules used by payments libs",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/bitaccess/payments-common.git"
+  },
+  "keywords": [
+    "crypto",
+    "payments",
+    "common"
+  ],
+  "author": "Dylan Seago <dylan@bitaccess.co>",
+  "license": "MIT",
+  "homepage": "https://bitbucket.org/bitaccess/payments-common#readme"
+}
