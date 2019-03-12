@@ -8,8 +8,9 @@ export type TransactionStatus = 'confirmed' | 'pending' | 'failed'
 
 interface TransactionCommon {
   id: string // txid
-  from: string | null // sender address, null if we aren't the sender or status !== confirmed
-  to: string | null // recipient address, null when status !== confirmed
+  from: string | null // sender address
+  to: string | null // recipient address
+  toExtraId: string | null // eg Monero payment ID
   fromIndex: number | null // sender address index, null if sender isn't us or status !== confirmed
   toIndex: number | null // recipient address index, null if recipient isn't us or status !== confirmed
   amount: string // main denomination (eg "0.125")
