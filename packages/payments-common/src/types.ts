@@ -11,8 +11,8 @@ interface TransactionCommon {
   from: string | null // sender address
   to: string | null // recipient address
   toExtraId: string | null // eg Monero payment ID
-  fromIndex: number | null // sender address index, null if sender isn't us or status !== confirmed
-  toIndex: number | null // recipient address index, null if recipient isn't us or status !== confirmed
+  fromIndex: number | null // sender address index, null if sender isn't us
+  toIndex: number | null // recipient address index, null if recipient isn't us
   amount: string // main denomination (eg "0.125")
   fee: string // total fee in main denomination
   status: TransactionStatus

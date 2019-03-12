@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@bitbucket.org/bitaccess/payments-common.git"
+    "url": "git+ssh://git@github.com/go-faast/payments-common.git"
   },
   "keywords": [
     "crypto",
@@ -17,5 +17,5 @@
   ],
   "author": "Dylan Seago <dylan@bitaccess.co>",
   "license": "MIT",
-  "homepage": "https://bitbucket.org/bitaccess/payments-common#readme"
+  "homepage": "https://github.com/go-faast/payments-common#readme"
 }
