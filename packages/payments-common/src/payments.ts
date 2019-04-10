@@ -10,31 +10,28 @@ export interface PaymentsInterface<
   PendingTransaction extends BasePendingTransaction<any>
 > {
 
-  /*
-   * Should also implement the following three static functions
-   */
+  // The following static methods should also be implemented
+  //
+  // static toMainDenomination<O extends object>(amount: number | string, options?: O): string
+  // static toBaseDenomination<O extends object>(amount: number | string, options?: O): string
+  // static isValidAddress<O extends object>(address: string, options?: O): boolean
 
   /**
    * Converts to main denomination units
    * Example: convert "125000000000" moneroj to "0.125" XMR
    */
-  // static toMainDenomination(amount: number | string): string
+  toMainDenomination<O extends object>(amount: number | string, options?: O): string
 
   /**
    * Converts to base atomic units
    * Example: convert "0.125" XMR to "125000000000" moneroj
    */
-  // static toBaseDenomination(amount: number | string): string
-
-  /** Return true if address is a valid address for the provided network. */
-  // static isValidAddress(address: string, network: string): boolean
+  toBaseDenomination<O extends object>(amount: number | string, options?: O): string
 
   /**
    * Return true if it's a valid address.
    */
-  isValidAddress<O extends object>(
-    address: string, options?: O
-  ): boolean
+  isValidAddress<O extends object>(address: string, options?: O): boolean
 
   /**
    * Get the index of the provided address.
