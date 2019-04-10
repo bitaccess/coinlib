@@ -17,5 +17,8 @@
   ],
   "author": "Dylan Seago <dylan@bitaccess.co>",
   "license": "MIT",
-  "homepage": "https://github.com/go-faast/payments-common#readme"
+  "homepage": "https://github.com/go-faast/payments-common#readme",
+  "dependencies": {
+    "faast-ts-config": "github:go-faast/faast-ts-config"
+  }
 }
