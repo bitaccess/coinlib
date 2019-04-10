@@ -20,7 +20,7 @@
     "async": "^2.6.1",
     "bitcore-lib": "^0.14.0",
     "elliptic": "^6.4.0",
-    "tronweb": "^2.0.24"
+    "tronweb": "2.3.6"
   },
   "repository": {
     "type": "git",
