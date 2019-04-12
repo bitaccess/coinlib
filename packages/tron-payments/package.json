@@ -1,6 +1,6 @@
 {
   "name": "@faast/tron-payments",
-  "version": "0.0.8",
+  "version": "0.1.0",
   "description": "Library to assist in processing tron payments, such as deriving addresses and sweeping funds",
   "main": "dist/monero-payments.umd.js",
   "module": "dist/monero-payments.es5.js",
