@@ -1,27 +1,10 @@
 {
   "name": "@faast/tron-payments",
   "version": "0.0.8",
-  "description": "Utilities for tron payments, such as bip44 addresses, and sweeping funds",
-  "main": "index.js",
-  "directories": {
-    "test": "test"
-  },
-  "scripts": {
-    "test": "mocha --slow 35000 --timeout 3000000 --bail"
-  },
-  "author": "Moe Adham <moe@bitaccess.ca>",
-  "license": "MIT",
-  "devDependencies": {
-    "chai": "^4.2.0",
-    "mocha": "^3.0.2",
-    "standard": "^8.5.0"
-  },
-  "dependencies": {
-    "async": "^2.6.1",
-    "bitcore-lib": "^0.14.0",
-    "elliptic": "^6.4.0",
-    "tronweb": "2.3.6"
-  },
+  "description": "Library to assist in processing tron payments, such as deriving addresses and sweeping funds",
+  "main": "dist/monero-payments.umd.js",
+  "module": "dist/monero-payments.es5.js",
+  "typings": "dist/types/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/go-faast/tron-payments.git"
@@ -35,8 +18,71 @@
     "faast",
     "bitaccess"
   ],
+  "contributors": [
+    "Moe Adham <moe@bitaccess.ca>",
+    "Dylan Seago <dylan@bitaccess.ca>"
+  ],
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/go-faast/tron-payments/issues"
   },
-  "homepage": "https://github.com/go-faast/tron-payments#readme"
+  "homepage": "https://github.com/go-faast/tron-payments#readme",
+  "files": [
+    "dist/",
+    "src/"
+  ],
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "scripts": {
+    "lint": "tslint --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
+    "prebuild": "rimraf dist",
+    "build": "tsc --module commonjs && rollup -c rollup.config.ts && typedoc --out docs --target es6 --theme minimal --mode file src",
+    "start": "rollup -c rollup.config.ts -w",
+    "pretest": "npm run lint",
+    "test": "jest --runInBand --detectOpenHandles",
+    "report-coverage": "cat ./coverage/lcov.info | coveralls",
+    "precommit": "lint-staged",
+    "preversion": "bin/preversion.sh",
+    "version": "git checkout master && npm run build && git add -Af dist docs",
+    "postversion": "git push && git push --tags"
+  },
+  "dependencies": {
+    "async": "^2.6.1",
+    "bitcore-lib": "^0.14.0",
+    "elliptic": "^6.4.0",
+    "js-sha3": "^0.8.0",
+    "jssha": "^2.3.1",
+    "payments-common": "github:go-faast/payments-common#v0.1.0",
+    "tronweb": "^2.0.24"
+  },
+  "devDependencies": {
+    "@types/elliptic": "^6.4.6",
+    "@types/jest": "^23.3.2",
+    "@types/jssha": "^2.0.0",
+    "@types/node": "^10.11.0",
+    "@types/rollup-plugin-json": "^3.0.2",
+    "@types/rollup-plugin-node-resolve": "^4.0.0",
+    "@types/rollup-plugin-sourcemaps": "^0.4.1",
+    "chai": "^4.2.0",
+    "coveralls": "^3.0.2",
+    "faast-ts-config": "github:go-faast/faast-ts-config",
+    "jest": "^23.6.0",
+    "jest-config": "^23.6.0",
+    "lint-staged": "^8.0.0",
+    "prettier": "^1.14.3",
+    "rimraf": "^2.6.2",
+    "rollup": "^0.67.0",
+    "rollup-plugin-commonjs": "^9.1.8",
+    "rollup-plugin-json": "^3.1.0",
+    "rollup-plugin-node-resolve": "^3.4.0",
+    "rollup-plugin-sourcemaps": "^0.4.2",
+    "rollup-plugin-typescript2": "^0.18.0",
+    "ts-jest": "^23.10.2",
+    "ts-lint": "^4.5.1",
+    "ts-node": "^7.0.1",
+    "tslint": "^5.14.0",
+    "typedoc": "^0.14.2",
+    "typescript": "^3.3.3333"
+  }
 }
