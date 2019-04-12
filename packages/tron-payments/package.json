@@ -37,7 +37,7 @@
   "scripts": {
     "lint": "tslint --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
     "prebuild": "rimraf dist",
-    "build": "tsc --module commonjs && rollup -c rollup.config.ts && typedoc --out docs --target es6 --theme minimal --mode file src",
+    "build": "tsc --build ./tsconfig.build.json && rollup -c rollup.config.ts && typedoc --out docs --target es6 --theme minimal --mode file src",
     "start": "rollup -c rollup.config.ts -w",
     "pretest": "npm run lint",
     "test": "jest --runInBand --detectOpenHandles",
@@ -53,6 +53,7 @@
     "elliptic": "^6.4.0",
     "js-sha3": "^0.8.0",
     "jssha": "^2.3.1",
+    "lodash": "^4.17.11",
     "payments-common": "github:go-faast/payments-common#v0.1.0",
     "tronweb": "^2.0.24"
   },
@@ -60,6 +61,7 @@
     "@types/elliptic": "^6.4.6",
     "@types/jest": "^23.3.2",
     "@types/jssha": "^2.0.0",
+    "@types/lodash": "^4.14.123",
     "@types/node": "^10.11.0",
     "@types/rollup-plugin-json": "^3.0.2",
     "@types/rollup-plugin-node-resolve": "^4.0.0",
