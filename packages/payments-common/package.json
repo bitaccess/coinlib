@@ -1,6 +1,6 @@
 {
   "name": "payments-common",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "Common modules used by payments libs",
   "main": "src/index.ts",
   "scripts": {
