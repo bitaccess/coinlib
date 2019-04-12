@@ -25,8 +25,13 @@ export interface BasePendingTransaction<Raw> extends TransactionCommon {
 
 export interface BaseTransactionInfo<Raw> extends TransactionCommon {
   raw: Raw
+  executed: boolean // true if transaction didn't fail (eg TRX/ETH contract succeeded)
+  confirmed: boolean
   confirmations: number // 0 if not confirmed
-  confirmed: boolean,
   block: number | null // null if not confirmed
   date: Date
+}
+
+export interface BroadcastResult {
+  id: string
 }

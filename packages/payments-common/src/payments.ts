@@ -1,5 +1,5 @@
 import {
-  Balance, BasePendingTransaction, BaseTransactionInfo,
+  Balance, BasePendingTransaction, BaseTransactionInfo, BroadcastResult,
 } from './types'
 
 /**
@@ -101,5 +101,5 @@ export interface PaymentsInterface<
    * @return The transaction id
    * @throws Error if the transaction is invalid, not signed, or fails to broadcast
    */
-  broadcastTransaction<O extends object>(pendingTx: PendingTransaction, options?: O): Promise<string>
+  broadcastTransaction<O extends object>(pendingTx: PendingTransaction, options?: O): Promise<BroadcastResult>
 }
