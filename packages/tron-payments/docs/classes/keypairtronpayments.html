@@ -990,6 +990,9 @@ img { max-width: 100%; }
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="keypairtronpayments.html#privatekeytoaddress" class="tsd-kind-icon">private<wbr>Key<wbr>ToAddress</a>
 				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a href="keypairtronpayments.html#signtransaction" class="tsd-kind-icon">sign<wbr>Transaction</a>
+				</li>
 			</ul>
 		</li>
 	</ul>
@@ -1012,7 +1015,7 @@ img { max-width: 100%; }
 		<section class="tsd-panel">
 			<h3>Implements</h3>
 			<ul class="tsd-hierarchy">
-				<li><a href="../interfaces/paymentsinterface.html" class="tsd-signature-type">PaymentsInterface</a><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/transactioninfo.html" class="tsd-signature-type">TransactionInfo</a><span class="tsd-signature-symbol">, </span><a href="../interfaces/signedtransaction.html" class="tsd-signature-type">SignedTransaction</a><span class="tsd-signature-symbol">&gt;</span></li>
+				<li><a href="../interfaces/paymentsinterface.html" class="tsd-signature-type">PaymentsInterface</a><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/unsignedtransaction.html" class="tsd-signature-type">UnsignedTransaction</a><span class="tsd-signature-symbol">, </span><a href="../interfaces/signedtransaction.html" class="tsd-signature-type">SignedTransaction</a><span class="tsd-signature-symbol">, </span><a href="../interfaces/transactioninfo.html" class="tsd-signature-type">TransactionInfo</a><span class="tsd-signature-symbol">&gt;</span></li>
 			</ul>
 		</section>
 		<section class="tsd-panel-group tsd-index-group">
@@ -1058,6 +1061,7 @@ img { max-width: 100%; }
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="keypairtronpayments.html#isvalidaddress" class="tsd-kind-icon">is<wbr>Valid<wbr>Address</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="keypairtronpayments.html#isvalidprivatekey" class="tsd-kind-icon">is<wbr>Valid<wbr>Private<wbr>Key</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="keypairtronpayments.html#privatekeytoaddress" class="tsd-kind-icon">private<wbr>Key<wbr>ToAddress</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="keypairtronpayments.html#signtransaction" class="tsd-kind-icon">sign<wbr>Transaction</a></li>
 						</ul>
 					</section>
 				</div>
@@ -1076,7 +1080,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#constructor">constructor</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/KeyPairTronPayments.ts#L14">src/KeyPairTronPayments.ts:14</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/KeyPairTronPayments.ts#L14">src/KeyPairTronPayments.ts:14</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1098,7 +1102,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">address<wbr>Indices<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/KeyPairTronPayments.ts#L14">src/KeyPairTronPayments.ts:14</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/KeyPairTronPayments.ts#L14">src/KeyPairTronPayments.ts:14</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-type-declaration">
@@ -1116,7 +1120,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">addresses<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/KeyPairTronPayments.ts#L12">src/KeyPairTronPayments.ts:12</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/KeyPairTronPayments.ts#L12">src/KeyPairTronPayments.ts:12</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-type-declaration">
@@ -1135,7 +1139,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#eventserver">eventServer</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L26">src/BaseTronPayments.ts:26</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L29">src/BaseTronPayments.ts:29</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1146,7 +1150,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#fullnode">fullNode</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L24">src/BaseTronPayments.ts:24</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L27">src/BaseTronPayments.ts:27</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1156,7 +1160,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">private<wbr>Keys<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/KeyPairTronPayments.ts#L13">src/KeyPairTronPayments.ts:13</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/KeyPairTronPayments.ts#L13">src/KeyPairTronPayments.ts:13</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-type-declaration">
@@ -1175,7 +1179,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#soliditynode">solidityNode</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L25">src/BaseTronPayments.ts:25</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L28">src/BaseTronPayments.ts:28</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1187,7 +1191,7 @@ img { max-width: 100%; }
 					<p>Implementation of <a href="../interfaces/paymentsinterface.html">PaymentsInterface</a>.<a href="../interfaces/paymentsinterface.html#tobasedenomination">toBaseDenomination</a></p>
 					<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#tobasedenomination">toBaseDenomination</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L44">src/BaseTronPayments.ts:44</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L47">src/BaseTronPayments.ts:47</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1199,7 +1203,7 @@ img { max-width: 100%; }
 					<p>Implementation of <a href="../interfaces/paymentsinterface.html">PaymentsInterface</a>.<a href="../interfaces/paymentsinterface.html#tomaindenomination">toMainDenomination</a></p>
 					<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#tomaindenomination">toMainDenomination</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L43">src/BaseTronPayments.ts:43</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L46">src/BaseTronPayments.ts:46</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1210,7 +1214,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#tronweb">tronweb</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L27">src/BaseTronPayments.ts:27</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L30">src/BaseTronPayments.ts:30</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1221,7 +1225,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#tobasedenomination-1">toBaseDenomination</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L42">src/BaseTronPayments.ts:42</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L45">src/BaseTronPayments.ts:45</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1232,7 +1236,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#tomaindenomination-1">toMainDenomination</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L41">src/BaseTronPayments.ts:41</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L44">src/BaseTronPayments.ts:44</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1250,7 +1254,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#broadcasttransaction">broadcastTransaction</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L175">src/BaseTronPayments.ts:175</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L193">src/BaseTronPayments.ts:193</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1274,7 +1278,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#cansweep">canSweep</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L101">src/BaseTronPayments.ts:101</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L104">src/BaseTronPayments.ts:104</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1291,14 +1295,14 @@ img { max-width: 100%; }
 				<a name="createsweeptransaction" class="tsd-anchor"></a>
 				<h3>create<wbr>Sweep<wbr>Transaction</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-					<li class="tsd-signature tsd-kind-icon">create<wbr>Sweep<wbr>Transaction<span class="tsd-signature-symbol">(</span>from<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, to<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/createtransactionoptions.html" class="tsd-signature-type">CreateTransactionOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/signedtransaction.html" class="tsd-signature-type">SignedTransaction</a><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">create<wbr>Sweep<wbr>Transaction<span class="tsd-signature-symbol">(</span>from<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, to<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/createtransactionoptions.html" class="tsd-signature-type">CreateTransactionOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/unsignedtransaction.html" class="tsd-signature-type">UnsignedTransaction</a><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#createsweeptransaction">createSweepTransaction</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L106">src/BaseTronPayments.ts:106</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L109">src/BaseTronPayments.ts:109</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1313,7 +1317,7 @@ img { max-width: 100%; }
 								<h5><span class="tsd-flag ts-flagDefault value">Default value</span> options: <a href="../interfaces/createtransactionoptions.html" class="tsd-signature-type">CreateTransactionOptions</a><span class="tsd-signature-symbol"> =&nbsp;{}</span></h5>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/signedtransaction.html" class="tsd-signature-type">SignedTransaction</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/unsignedtransaction.html" class="tsd-signature-type">UnsignedTransaction</a><span class="tsd-signature-symbol">&gt;</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -1321,14 +1325,14 @@ img { max-width: 100%; }
 				<a name="createtransaction" class="tsd-anchor"></a>
 				<h3>create<wbr>Transaction</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-					<li class="tsd-signature tsd-kind-icon">create<wbr>Transaction<span class="tsd-signature-symbol">(</span>from<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, to<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, amountTrx<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/createtransactionoptions.html" class="tsd-signature-type">CreateTransactionOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/signedtransaction.html" class="tsd-signature-type">SignedTransaction</a><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">create<wbr>Transaction<span class="tsd-signature-symbol">(</span>from<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, to<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, amountTrx<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/createtransactionoptions.html" class="tsd-signature-type">CreateTransactionOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/unsignedtransaction.html" class="tsd-signature-type">UnsignedTransaction</a><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#createtransaction">createTransaction</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L141">src/BaseTronPayments.ts:141</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L143">src/BaseTronPayments.ts:143</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1346,7 +1350,7 @@ img { max-width: 100%; }
 								<h5><span class="tsd-flag ts-flagDefault value">Default value</span> options: <a href="../interfaces/createtransactionoptions.html" class="tsd-signature-type">CreateTransactionOptions</a><span class="tsd-signature-symbol"> =&nbsp;{}</span></h5>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/signedtransaction.html" class="tsd-signature-type">SignedTransaction</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/unsignedtransaction.html" class="tsd-signature-type">UnsignedTransaction</a><span class="tsd-signature-symbol">&gt;</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -1361,7 +1365,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#getaddress">getAddress</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/KeyPairTronPayments.ts#L40">src/KeyPairTronPayments.ts:40</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/KeyPairTronPayments.ts#L40">src/KeyPairTronPayments.ts:40</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1385,7 +1389,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#getaddressindex">getAddressIndex</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/KeyPairTronPayments.ts#L48">src/KeyPairTronPayments.ts:48</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/KeyPairTronPayments.ts#L48">src/KeyPairTronPayments.ts:48</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1409,7 +1413,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#getaddressindexornull">getAddressIndexOrNull</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L80">src/BaseTronPayments.ts:80</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L83">src/BaseTronPayments.ts:83</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1434,7 +1438,7 @@ img { max-width: 100%; }
 							<p>Implementation of <a href="../interfaces/paymentsinterface.html">PaymentsInterface</a>.<a href="../interfaces/paymentsinterface.html#getaddressornull">getAddressOrNull</a></p>
 							<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#getaddressornull">getAddressOrNull</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L72">src/BaseTronPayments.ts:72</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L75">src/BaseTronPayments.ts:75</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1454,14 +1458,14 @@ img { max-width: 100%; }
 				<a name="getbalance" class="tsd-anchor"></a>
 				<h3>get<wbr>Balance</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Balance<span class="tsd-signature-symbol">(</span>addressOrIndex<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/balance.html" class="tsd-signature-type">Balance</a><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">get<wbr>Balance<span class="tsd-signature-symbol">(</span>addressOrIndex<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/balanceresult.html" class="tsd-signature-type">BalanceResult</a><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#getbalance">getBalance</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L88">src/BaseTronPayments.ts:88</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L91">src/BaseTronPayments.ts:91</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1470,7 +1474,7 @@ img { max-width: 100%; }
 								<h5>addressOrIndex: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/balance.html" class="tsd-signature-type">Balance</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/balanceresult.html" class="tsd-signature-type">BalanceResult</a><span class="tsd-signature-symbol">&gt;</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -1485,7 +1489,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#getprivatekey">getPrivateKey</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/KeyPairTronPayments.ts#L56">src/KeyPairTronPayments.ts:56</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/KeyPairTronPayments.ts#L56">src/KeyPairTronPayments.ts:56</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1509,7 +1513,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#gettransactioninfo">getTransactionInfo</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L189">src/BaseTronPayments.ts:189</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L234">src/BaseTronPayments.ts:234</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1533,7 +1537,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#isvalidaddress">isValidAddress</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L46">src/BaseTronPayments.ts:46</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L49">src/BaseTronPayments.ts:49</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1557,7 +1561,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#isvalidprivatekey">isValidPrivateKey</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L50">src/BaseTronPayments.ts:50</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L53">src/BaseTronPayments.ts:53</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1581,7 +1585,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#privatekeytoaddress">privateKeyToAddress</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/BaseTronPayments.ts#L59">src/BaseTronPayments.ts:59</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L62">src/BaseTronPayments.ts:62</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1591,6 +1595,30 @@ img { max-width: 100%; }
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+				<a name="signtransaction" class="tsd-anchor"></a>
+				<h3>sign<wbr>Transaction</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<li class="tsd-signature tsd-kind-icon">sign<wbr>Transaction<span class="tsd-signature-symbol">(</span>unsignedTx<span class="tsd-signature-symbol">: </span><a href="../interfaces/unsignedtransaction.html" class="tsd-signature-type">UnsignedTransaction</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/signedtransaction.html" class="tsd-signature-type">SignedTransaction</a><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<p>Inherited from <a href="basetronpayments.html">BaseTronPayments</a>.<a href="basetronpayments.html#signtransaction">signTransaction</a></p>
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/BaseTronPayments.ts#L176">src/BaseTronPayments.ts:176</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>unsignedTx: <a href="../interfaces/unsignedtransaction.html" class="tsd-signature-type">UnsignedTransaction</a></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/signedtransaction.html" class="tsd-signature-type">SignedTransaction</a><span class="tsd-signature-symbol">&gt;</span></h4>
 					</li>
 				</ul>
 			</section>

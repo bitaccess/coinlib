@@ -988,7 +988,7 @@ img { max-width: 100%; }
 			<a href="interfaces/awaitexpression.html" class="tsd-kind-icon">Await<wbr>Expression</a>
 		</li>
 		<li class=" tsd-kind-interface tsd-is-external">
-			<a href="interfaces/balance.html" class="tsd-kind-icon">Balance</a>
+			<a href="interfaces/balanceresult.html" class="tsd-kind-icon">Balance<wbr>Result</a>
 		</li>
 		<li class=" tsd-kind-interface tsd-is-external tsd-is-not-exported">
 			<a href="interfaces/basecallexpression.html" class="tsd-kind-icon">Base<wbr>Call<wbr>Expression</a>
@@ -1024,7 +1024,7 @@ img { max-width: 100%; }
 			<a href="interfaces/basepattern.html" class="tsd-kind-icon">Base<wbr>Pattern</a>
 		</li>
 		<li class=" tsd-kind-interface tsd-has-type-parameter tsd-is-external">
-			<a href="interfaces/basependingtransaction.html" class="tsd-kind-icon">Base<wbr>Pending<wbr>Transaction</a>
+			<a href="interfaces/basesignedtransaction.html" class="tsd-kind-icon">Base<wbr>Signed<wbr>Transaction</a>
 		</li>
 		<li class=" tsd-kind-interface tsd-is-external tsd-is-not-exported">
 			<a href="interfaces/basestatement.html" class="tsd-kind-icon">Base<wbr>Statement</a>
@@ -1034,6 +1034,9 @@ img { max-width: 100%; }
 		</li>
 		<li class=" tsd-kind-interface">
 			<a href="interfaces/basetronpaymentsconfig.html" class="tsd-kind-icon">Base<wbr>Tron<wbr>Payments<wbr>Config</a>
+		</li>
+		<li class=" tsd-kind-interface tsd-has-type-parameter tsd-is-external">
+			<a href="interfaces/baseunsignedtransaction.html" class="tsd-kind-icon">Base<wbr>Unsigned<wbr>Transaction</a>
 		</li>
 		<li class=" tsd-kind-interface tsd-is-external">
 			<a href="interfaces/binaryexpression.html" class="tsd-kind-icon">Binary<wbr>Expression</a>
@@ -1719,6 +1722,12 @@ img { max-width: 100%; }
 		<li class=" tsd-kind-interface tsd-is-external">
 			<a href="interfaces/uniqfunction.html" class="tsd-kind-icon">Uniq<wbr>Function</a>
 		</li>
+		<li class=" tsd-kind-interface tsd-has-type-parameter tsd-is-external tsd-is-not-exported">
+			<a href="interfaces/unsignedcommon.html" class="tsd-kind-icon">Unsigned<wbr>Common</a>
+		</li>
+		<li class=" tsd-kind-interface">
+			<a href="interfaces/unsignedtransaction.html" class="tsd-kind-icon">Unsigned<wbr>Transaction</a>
+		</li>
 		<li class=" tsd-kind-interface tsd-is-external">
 			<a href="interfaces/updateexpression.html" class="tsd-kind-icon">Update<wbr>Expression</a>
 		</li>
@@ -1884,6 +1893,9 @@ img { max-width: 100%; }
 		<li class=" tsd-kind-type-alias tsd-has-type-parameter tsd-is-external tsd-is-not-exported">
 			<a href="globals.html#nonnullable" class="tsd-kind-icon">Non<wbr>Nullable</a>
 		</li>
+		<li class=" tsd-kind-type-alias tsd-has-type-parameter tsd-is-external tsd-is-not-exported">
+			<a href="globals.html#nullable" class="tsd-kind-icon">Nullable</a>
+		</li>
 		<li class=" tsd-kind-type-alias tsd-is-external">
 			<a href="globals.html#optionspaths" class="tsd-kind-icon">Options<wbr>Paths</a>
 		</li>
@@ -2000,9 +2012,6 @@ img { max-width: 100%; }
 		</li>
 		<li class=" tsd-kind-variable tsd-is-not-exported">
 			<a href="globals.html#base" class="tsd-kind-icon">BASE</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#broadcast_success_codes" class="tsd-kind-icon">BROADCAST_<wbr>SUCCESS_<wbr>CODES</a>
 		</li>
 		<li class=" tsd-kind-variable">
 			<a href="globals.html#default_event_server" class="tsd-kind-icon">DEFAULT_<wbr>EVENT_<wbr>SERVER</a>
@@ -2740,7 +2749,7 @@ img { max-width: 100%; }
 							<li class="tsd-kind-interface tsd-has-type-parameter tsd-is-external tsd-is-not-exported"><a href="interfaces/asynciterableiterator.html" class="tsd-kind-icon">Async<wbr>Iterable<wbr>Iterator</a></li>
 							<li class="tsd-kind-interface tsd-is-external tsd-is-not-exported"><a href="interfaces/atomics.html" class="tsd-kind-icon">Atomics</a></li>
 							<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/awaitexpression.html" class="tsd-kind-icon">Await<wbr>Expression</a></li>
-							<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/balance.html" class="tsd-kind-icon">Balance</a></li>
+							<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/balanceresult.html" class="tsd-kind-icon">Balance<wbr>Result</a></li>
 							<li class="tsd-kind-interface tsd-is-external tsd-is-not-exported"><a href="interfaces/basecallexpression.html" class="tsd-kind-icon">Base<wbr>Call<wbr>Expression</a></li>
 							<li class="tsd-kind-interface tsd-is-external tsd-is-not-exported"><a href="interfaces/baseclass.html" class="tsd-kind-icon">Base<wbr>Class</a></li>
 							<li class="tsd-kind-interface tsd-is-external tsd-is-not-exported"><a href="interfaces/basedeclaration.html" class="tsd-kind-icon">Base<wbr>Declaration</a></li>
@@ -2752,10 +2761,11 @@ img { max-width: 100%; }
 							<li class="tsd-kind-interface tsd-is-external tsd-is-not-exported"><a href="interfaces/basenode.html" class="tsd-kind-icon">Base<wbr>Node</a></li>
 							<li class="tsd-kind-interface tsd-is-external tsd-is-not-exported"><a href="interfaces/basenodewithoutcomments.html" class="tsd-kind-icon">Base<wbr>Node<wbr>Without<wbr>Comments</a></li>
 							<li class="tsd-kind-interface tsd-is-external tsd-is-not-exported"><a href="interfaces/basepattern.html" class="tsd-kind-icon">Base<wbr>Pattern</a></li>
-							<li class="tsd-kind-interface tsd-has-type-parameter tsd-is-external"><a href="interfaces/basependingtransaction.html" class="tsd-kind-icon">Base<wbr>Pending<wbr>Transaction</a></li>
+							<li class="tsd-kind-interface tsd-has-type-parameter tsd-is-external"><a href="interfaces/basesignedtransaction.html" class="tsd-kind-icon">Base<wbr>Signed<wbr>Transaction</a></li>
 							<li class="tsd-kind-interface tsd-is-external tsd-is-not-exported"><a href="interfaces/basestatement.html" class="tsd-kind-icon">Base<wbr>Statement</a></li>
 							<li class="tsd-kind-interface tsd-has-type-parameter tsd-is-external"><a href="interfaces/basetransactioninfo.html" class="tsd-kind-icon">Base<wbr>Transaction<wbr>Info</a></li>
 							<li class="tsd-kind-interface"><a href="interfaces/basetronpaymentsconfig.html" class="tsd-kind-icon">Base<wbr>Tron<wbr>Payments<wbr>Config</a></li>
+							<li class="tsd-kind-interface tsd-has-type-parameter tsd-is-external"><a href="interfaces/baseunsignedtransaction.html" class="tsd-kind-icon">Base<wbr>Unsigned<wbr>Transaction</a></li>
 							<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/binaryexpression.html" class="tsd-kind-icon">Binary<wbr>Expression</a></li>
 							<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/blockstatement.html" class="tsd-kind-icon">Block<wbr>Statement</a></li>
 							<li class="tsd-kind-interface tsd-is-external tsd-is-not-exported"><a href="interfaces/boolean.html" class="tsd-kind-icon">Boolean</a></li>
@@ -2984,6 +2994,8 @@ img { max-width: 100%; }
 							<li class="tsd-kind-interface tsd-is-external tsd-is-not-exported"><a href="interfaces/uint8clampedarrayconstructor.html" class="tsd-kind-icon">Uint8<wbr>Clamped<wbr>Array<wbr>Constructor</a></li>
 							<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/unaryexpression.html" class="tsd-kind-icon">Unary<wbr>Expression</a></li>
 							<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/uniqfunction.html" class="tsd-kind-icon">Uniq<wbr>Function</a></li>
+							<li class="tsd-kind-interface tsd-has-type-parameter tsd-is-external tsd-is-not-exported"><a href="interfaces/unsignedcommon.html" class="tsd-kind-icon">Unsigned<wbr>Common</a></li>
+							<li class="tsd-kind-interface"><a href="interfaces/unsignedtransaction.html" class="tsd-kind-icon">Unsigned<wbr>Transaction</a></li>
 							<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/updateexpression.html" class="tsd-kind-icon">Update<wbr>Expression</a></li>
 							<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/variabledeclaration.html" class="tsd-kind-icon">Variable<wbr>Declaration</a></li>
 							<li class="tsd-kind-interface tsd-is-external"><a href="interfaces/variabledeclarator.html" class="tsd-kind-icon">Variable<wbr>Declarator</a></li>
@@ -3044,6 +3056,7 @@ img { max-width: 100%; }
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="globals.html#modulespecifier" class="tsd-kind-icon">Module<wbr>Specifier</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="globals.html#node" class="tsd-kind-icon">Node</a></li>
 							<li class="tsd-kind-type-alias tsd-has-type-parameter tsd-is-external tsd-is-not-exported"><a href="globals.html#nonnullable" class="tsd-kind-icon">Non<wbr>Nullable</a></li>
+							<li class="tsd-kind-type-alias tsd-has-type-parameter tsd-is-external tsd-is-not-exported"><a href="globals.html#nullable" class="tsd-kind-icon">Nullable</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="globals.html#optionspaths" class="tsd-kind-icon">Options<wbr>Paths</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external"><a href="globals.html#outputfile" class="tsd-kind-icon">Output<wbr>File</a></li>
 							<li class="tsd-kind-type-alias tsd-is-external tsd-is-not-exported"><a href="globals.html#parameterdecorator" class="tsd-kind-icon">Parameter<wbr>Decorator</a></li>
@@ -3088,7 +3101,6 @@ img { max-width: 100%; }
 							<li class="tsd-kind-variable tsd-is-not-exported"><a href="globals.html#alphabet" class="tsd-kind-icon">ALPHABET</a></li>
 							<li class="tsd-kind-variable tsd-is-not-exported"><a href="globals.html#alphabet_map" class="tsd-kind-icon">ALPHABET_<wbr>MAP</a></li>
 							<li class="tsd-kind-variable tsd-is-not-exported"><a href="globals.html#base" class="tsd-kind-icon">BASE</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#broadcast_success_codes" class="tsd-kind-icon">BROADCAST_<wbr>SUCCESS_<wbr>CODES</a></li>
 							<li class="tsd-kind-variable"><a href="globals.html#default_event_server" class="tsd-kind-icon">DEFAULT_<wbr>EVENT_<wbr>SERVER</a></li>
 							<li class="tsd-kind-variable"><a href="globals.html#default_full_node" class="tsd-kind-icon">DEFAULT_<wbr>FULL_<wbr>NODE</a></li>
 							<li class="tsd-kind-variable"><a href="globals.html#default_max_address_scan" class="tsd-kind-icon">DEFAULT_<wbr>MAX_<wbr>ADDRESS_<wbr>SCAN</a></li>
@@ -3671,7 +3683,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">HDKey<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L16">src/bip44.ts:16</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L16">src/bip44.ts:16</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-type-declaration">
@@ -3995,6 +4007,21 @@ img { max-width: 100%; }
 					<div class="lead">
 						<p>Exclude null and undefined from T</p>
 					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-has-type-parameter tsd-is-external tsd-is-not-exported">
+				<a name="nullable" class="tsd-anchor"></a>
+				<h3>Nullable</h3>
+				<div class="tsd-signature tsd-kind-icon">Nullable<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in node_modules/payments-common/src/types.ts:1</li>
+					</ul>
+				</aside>
+				<div class="tsd-type-declaration">
+					<h4>Type declaration</h4>
+					<ul class="tsd-parameters">
+					</ul>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
@@ -4487,17 +4514,17 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">Transaction<wbr>Info<wbr>Raw<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">TronTransaction</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">TronTransactionInfo</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">object</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/types.ts#L8">src/types.ts:8</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/types.ts#L8">src/types.ts:8</a></li>
 					</ul>
 				</aside>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-is-external">
 				<a name="transactionstatus" class="tsd-anchor"></a>
 				<h3>Transaction<wbr>Status</h3>
-				<div class="tsd-signature tsd-kind-icon">Transaction<wbr>Status<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"confirmed"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"pending"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"failed"</span></div>
+				<div class="tsd-signature tsd-kind-icon">Transaction<wbr>Status<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"unsigned"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"signed"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"pending"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"confirmed"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"failed"</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in node_modules/payments-common/src/types.ts:7</li>
+						<li>Defined in node_modules/payments-common/src/types.ts:8</li>
 					</ul>
 				</aside>
 			</section>
@@ -4843,7 +4870,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">ADDRESS_<wbr>PREFIX<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"41"</span><span class="tsd-signature-symbol"> =&nbsp;&quot;41&quot;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L92">src/bip44.ts:92</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L92">src/bip44.ts:92</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -4853,7 +4880,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">ALPHABET<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"</span><span class="tsd-signature-symbol"> =&nbsp;&quot;123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz&quot;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/base58.ts#L4">src/base58.ts:4</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/base58.ts#L4">src/base58.ts:4</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -4863,7 +4890,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">ALPHABET_<wbr>MAP<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/base58.ts#L5">src/base58.ts:5</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/base58.ts#L5">src/base58.ts:5</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-type-declaration">
@@ -4881,17 +4908,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">BASE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">58</span><span class="tsd-signature-symbol"> =&nbsp;58</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/base58.ts#L11">src/base58.ts:11</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="broadcast_success_codes" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> BROADCAST_<wbr>SUCCESS_<wbr>CODES</h3>
-				<div class="tsd-signature tsd-kind-icon">BROADCAST_<wbr>SUCCESS_<wbr>CODES<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[&#x27;SUCCESS&#x27;, &#x27;DUP_TRANSACTION_ERROR&#x27;]</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/constants.ts#L3">src/constants.ts:3</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/base58.ts#L11">src/base58.ts:11</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -4901,7 +4918,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">DEFAULT_<wbr>EVENT_<wbr>SERVER<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;process.env.TRX_EVENT_SERVER_URL || &#x27;https://api.trongrid.io&#x27;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/constants.ts#L7">src/constants.ts:7</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/constants.ts#L6">src/constants.ts:6</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -4911,7 +4928,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">DEFAULT_<wbr>FULL_<wbr>NODE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;process.env.TRX_FULL_NODE_URL || &#x27;http://54.236.37.243:8090&#x27;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/constants.ts#L5">src/constants.ts:5</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/constants.ts#L4">src/constants.ts:4</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -4921,7 +4938,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">DEFAULT_<wbr>MAX_<wbr>ADDRESS_<wbr>SCAN<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">10</span><span class="tsd-signature-symbol"> =&nbsp;10</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/constants.ts#L8">src/constants.ts:8</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/constants.ts#L7">src/constants.ts:7</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -4931,7 +4948,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">DEFAULT_<wbr>SOLIDITY_<wbr>NODE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;process.env.TRX_SOLIDITY_NODE_URL || &#x27;http://47.89.187.247:8091&#x27;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/constants.ts#L6">src/constants.ts:6</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/constants.ts#L5">src/constants.ts:5</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -5127,7 +5144,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">TRX_<wbr>FEE_<wbr>FOR_<wbr>TRANSFER<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;Number.parseInt(process.env.TRX_FEE_FOR_TRANSFER || &#x27;1000&#x27;)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/constants.ts#L1">src/constants.ts:1</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/constants.ts#L1">src/constants.ts:1</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -5137,7 +5154,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">TRX_<wbr>FEE_<wbr>FOR_<wbr>TRANSFER_<wbr>SUN<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;TRX_FEE_FOR_TRANSFER * 100</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/constants.ts#L2">src/constants.ts:2</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/constants.ts#L2">src/constants.ts:2</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -5345,7 +5362,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">derivation<wbr>Path<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"m/44&#x27;/195&#x27;/0"</span><span class="tsd-signature-symbol"> =&nbsp;&quot;m/44&#x27;/195&#x27;/0&quot;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L13">src/bip44.ts:13</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L13">src/bip44.ts:13</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -5355,7 +5372,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">derivation<wbr>Path<wbr>Parts<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;derivationPath.split(&#x27;/&#x27;).slice(1)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L14">src/bip44.ts:14</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L14">src/bip44.ts:14</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -6221,7 +6238,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">xpub<wbr>Cache<span class="tsd-signature-symbol">:</span> <a href="classes/bip44cache.html" class="tsd-signature-type">Bip44Cache</a><span class="tsd-signature-symbol"> =&nbsp;new Bip44Cache()</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/HdTronPayments.ts#L16">src/HdTronPayments.ts:16</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/HdTronPayments.ts#L16">src/HdTronPayments.ts:16</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -6248,7 +6265,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L175">src/bip44.ts:175</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L175">src/bip44.ts:175</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -6372,7 +6389,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L167">src/bip44.ts:167</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L167">src/bip44.ts:167</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -6516,7 +6533,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L80">src/bip44.ts:80</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L80">src/bip44.ts:80</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -6539,7 +6556,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L57">src/bip44.ts:57</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L57">src/bip44.ts:57</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -6562,7 +6579,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L93">src/bip44.ts:93</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L93">src/bip44.ts:93</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -6585,7 +6602,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L147">src/bip44.ts:147</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L147">src/bip44.ts:147</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -7236,7 +7253,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/base58.ts#L50">src/base58.ts:50</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/base58.ts#L50">src/base58.ts:50</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -7321,7 +7338,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L21">src/bip44.ts:21</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L21">src/bip44.ts:21</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -7347,7 +7364,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L41">src/bip44.ts:41</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L41">src/bip44.ts:41</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -7376,7 +7393,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L27">src/bip44.ts:27</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L27">src/bip44.ts:27</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -7484,7 +7501,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/base58.ts#L13">src/base58.ts:13</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/base58.ts#L13">src/base58.ts:13</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -8653,7 +8670,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L53">src/bip44.ts:53</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L53">src/bip44.ts:53</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -8676,7 +8693,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L49">src/bip44.ts:49</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L49">src/bip44.ts:49</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -8699,7 +8716,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L133">src/bip44.ts:133</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L133">src/bip44.ts:133</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -8722,7 +8739,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L103">src/bip44.ts:103</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L103">src/bip44.ts:103</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -8776,7 +8793,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L127">src/bip44.ts:127</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L127">src/bip44.ts:127</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -8830,7 +8847,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/utils.ts#L25">src/utils.ts:25</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/utils.ts#L25">src/utils.ts:25</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -8853,7 +8870,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/utils.ts#L29">src/utils.ts:29</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/utils.ts#L29">src/utils.ts:29</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -10275,7 +10292,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L156">src/bip44.ts:156</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L156">src/bip44.ts:156</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -11780,7 +11797,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/utils.ts#L21">src/utils.ts:21</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/utils.ts#L21">src/utils.ts:21</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -11803,7 +11820,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/utils.ts#L17">src/utils.ts:17</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/utils.ts#L17">src/utils.ts:17</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -11826,7 +11843,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/utils.ts#L2">src/utils.ts:2</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/utils.ts#L2">src/utils.ts:2</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -11854,7 +11871,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/utils.ts#L13">src/utils.ts:13</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/utils.ts#L13">src/utils.ts:13</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -11877,7 +11894,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/utils.ts#L9">src/utils.ts:9</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/utils.ts#L9">src/utils.ts:9</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -13014,7 +13031,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/735eabe/src/bip44.ts#L33">src/bip44.ts:33</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/378591d/src/bip44.ts#L33">src/bip44.ts:33</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>

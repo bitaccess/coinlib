@@ -111,7 +111,6 @@
 
     var TRX_FEE_FOR_TRANSFER = Number.parseInt(process.env.TRX_FEE_FOR_TRANSFER || '1000');
     var TRX_FEE_FOR_TRANSFER_SUN = TRX_FEE_FOR_TRANSFER * 100;
-    var BROADCAST_SUCCESS_CODES = ['SUCCESS', 'DUP_TRANSACTION_ERROR'];
     var DEFAULT_FULL_NODE = process.env.TRX_FULL_NODE_URL || 'http://54.236.37.243:8090';
     var DEFAULT_SOLIDITY_NODE = process.env.TRX_SOLIDITY_NODE_URL || 'http://47.89.187.247:8091';
     var DEFAULT_EVENT_SERVER = process.env.TRX_EVENT_SERVER_URL || 'https://api.trongrid.io';
@@ -222,11 +221,11 @@
         BaseTronPayments.prototype.createSweepTransaction = function (from, to, options) {
             if (options === void 0) { options = {}; }
             return __awaiter(this, void 0, void 0, function () {
-                var _a, fromAddress, fromIndex, fromPrivateKey, toAddress, toIndex, feeSun, feeTrx, balanceSun, balanceTrx, amountSun, amountTrx, tx, signedTx, e_4;
+                var _a, fromAddress, fromIndex, fromPrivateKey, toAddress, toIndex, feeSun, feeTrx, balanceSun, balanceTrx, amountSun, amountTrx, tx, e_4;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
-                            _b.trys.push([0, 5, , 6]);
+                            _b.trys.push([0, 4, , 5]);
                             return [4, this.resolveFromTo(from, to)];
                         case 1:
                             _a = _b.sent(), fromAddress = _a.fromAddress, fromIndex = _a.fromIndex, fromPrivateKey = _a.fromPrivateKey, toAddress = _a.toAddress, toIndex = _a.toIndex;
@@ -244,11 +243,8 @@
                             return [4, this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)];
                         case 3:
                             tx = _b.sent();
-                            return [4, this.tronweb.trx.sign(tx, fromPrivateKey)];
-                        case 4:
-                            signedTx = _b.sent();
                             return [2, {
-                                    id: signedTx.txID,
+                                    id: tx.txID,
                                     from: fromAddress,
                                     to: toAddress,
                                     toExtraId: null,
@@ -256,13 +252,13 @@
                                     toIndex: toIndex,
                                     amount: amountTrx,
                                     fee: feeTrx,
-                                    status: 'pending',
-                                    raw: signedTx,
+                                    status: 'unsigned',
+                                    rawUnsigned: tx,
                                 }];
-                        case 5:
+                        case 4:
                             e_4 = _b.sent();
                             throw toError(e_4);
-                        case 6: return [2];
+                        case 5: return [2];
                     }
                 });
             });
@@ -270,14 +266,14 @@
         BaseTronPayments.prototype.createTransaction = function (from, to, amountTrx, options) {
             if (options === void 0) { options = {}; }
             return __awaiter(this, void 0, void 0, function () {
-                var _a, fromAddress, fromIndex, fromPrivateKey, toAddress, toIndex, feeSun, feeTrx, balanceSun, balanceTrx, amountSun, tx, signedTx, e_5;
+                var _a, fromAddress, fromIndex, toAddress, toIndex, feeSun, feeTrx, balanceSun, balanceTrx, amountSun, tx, e_5;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
-                            _b.trys.push([0, 5, , 6]);
+                            _b.trys.push([0, 4, , 5]);
                             return [4, this.resolveFromTo(from, to)];
                         case 1:
-                            _a = _b.sent(), fromAddress = _a.fromAddress, fromIndex = _a.fromIndex, fromPrivateKey = _a.fromPrivateKey, toAddress = _a.toAddress, toIndex = _a.toIndex;
+                            _a = _b.sent(), fromAddress = _a.fromAddress, fromIndex = _a.fromIndex, toAddress = _a.toAddress, toIndex = _a.toIndex;
                             feeSun = options.fee || TRX_FEE_FOR_TRANSFER_SUN;
                             feeTrx = toMainDenomination(feeSun);
                             return [4, this.tronweb.trx.getBalance(fromAddress)];
@@ -291,11 +287,8 @@
                             return [4, this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)];
                         case 3:
                             tx = _b.sent();
-                            return [4, this.tronweb.trx.sign(tx, fromPrivateKey)];
-                        case 4:
-                            signedTx = _b.sent();
                             return [2, {
-                                    id: signedTx.txID,
+                                    id: tx.txID,
                                     from: fromAddress,
                                     to: toAddress,
                                     toExtraId: null,
@@ -303,44 +296,89 @@
                                     toIndex: toIndex,
                                     amount: amountTrx,
                                     fee: feeTrx,
-                                    status: 'pending',
-                                    raw: signedTx,
+                                    status: 'unsigned',
+                                    rawUnsigned: tx,
                                 }];
-                        case 5:
+                        case 4:
                             e_5 = _b.sent();
                             throw toError(e_5);
-                        case 6: return [2];
+                        case 5: return [2];
+                    }
+                });
+            });
+        };
+        BaseTronPayments.prototype.signTransaction = function (unsignedTx) {
+            return __awaiter(this, void 0, void 0, function () {
+                var fromPrivateKey, unsignedRaw, signedTx, e_6;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 3, , 4]);
+                            return [4, this.getPrivateKey(unsignedTx.fromIndex)];
+                        case 1:
+                            fromPrivateKey = _a.sent();
+                            unsignedRaw = lodash.cloneDeep(unsignedTx.rawUnsigned);
+                            return [4, this.tronweb.trx.sign(unsignedRaw, fromPrivateKey)];
+                        case 2:
+                            signedTx = _a.sent();
+                            return [2, __assign({}, unsignedTx, { status: 'signed', rawSigned: signedTx })];
+                        case 3:
+                            e_6 = _a.sent();
+                            throw toError(e_6);
+                        case 4: return [2];
                     }
                 });
             });
         };
         BaseTronPayments.prototype.broadcastTransaction = function (tx) {
             return __awaiter(this, void 0, void 0, function () {
-                var status, e_6;
+                var status, success, result, e_7, statusCode, e_8;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            _a.trys.push([0, 2, , 3]);
-                            return [4, this.tronweb.trx.sendRawTransaction(tx.raw || tx)];
+                            _a.trys.push([0, 6, , 7]);
+                            return [4, this.tronweb.trx.sendRawTransaction(tx.rawSigned)];
                         case 1:
                             status = _a.sent();
-                            if (status.result || status.code && BROADCAST_SUCCESS_CODES.includes(status.code)) {
+                            success = false;
+                            if (!(status.result || status.code === 'SUCCESS')) return [3, 2];
+                            success = true;
+                            return [3, 5];
+                        case 2:
+                            _a.trys.push([2, 4, , 5]);
+                            return [4, this.tronweb.trx.getTransaction(tx.id)];
+                        case 3:
+                            result = _a.sent();
+                            success = true;
+                            return [3, 5];
+                        case 4:
+                            e_7 = _a.sent();
+                            return [3, 5];
+                        case 5:
+                            if (success) {
                                 return [2, {
-                                        id: tx.id,
+                                        id: tx.id
                                     }];
                             }
-                            throw new Error("Failed to broadcast transaction: " + status.code);
-                        case 2:
-                            e_6 = _a.sent();
-                            throw toError(e_6);
-                        case 3: return [2];
+                            else {
+                                statusCode = status.code;
+                                if (status.code === 'DUP_TRANSACTION_ERROR') {
+                                    statusCode = 'DUP_TX_BUT_TX_NOT_FOUND_SO_PROBABLY_INVALID_TX_ERROR';
+                                }
+                                throw new Error("Failed to broadcast transaction: " + status.code);
+                            }
+                            return [3, 7];
+                        case 6:
+                            e_8 = _a.sent();
+                            throw toError(e_8);
+                        case 7: return [2];
                     }
                 });
             });
         };
         BaseTronPayments.prototype.getTransactionInfo = function (txid) {
             return __awaiter(this, void 0, void 0, function () {
-                var _a, tx, txInfo, currentBlock, _b, amountTrx, from, to, _c, fromIndex, toIndex, contractRet, executed, block, feeTrx, currentBlockNumber, confirmations, confirmed, date, status, e_7;
+                var _a, tx, txInfo, currentBlock, _b, amountTrx, from, to, _c, fromIndex, toIndex, contractRet, isExecuted, block, feeTrx, currentBlockNumber, confirmations, isConfirmed, date, status, e_9;
                 return __generator(this, function (_d) {
                     switch (_d.label) {
                         case 0:
@@ -360,16 +398,16 @@
                         case 2:
                             _c = _d.sent(), fromIndex = _c[0], toIndex = _c[1];
                             contractRet = lodash.get(tx, 'ret[0].contractRet');
-                            executed = contractRet === 'SUCCESS';
+                            isExecuted = contractRet === 'SUCCESS';
                             block = txInfo.blockNumber;
                             feeTrx = toMainDenomination(txInfo.fee || 0);
                             currentBlockNumber = lodash.get(currentBlock, 'block_header.raw_data.number', 0);
                             confirmations = currentBlockNumber && block ? currentBlockNumber - block : 0;
-                            confirmed = confirmations > 0;
+                            isConfirmed = confirmations > 0;
                             date = new Date(tx.raw_data.timestamp);
                             status = 'pending';
-                            if (confirmed) {
-                                if (!executed) {
+                            if (isConfirmed) {
+                                if (!isExecuted) {
                                     status = 'failed';
                                 }
                                 status = 'confirmed';
@@ -384,16 +422,16 @@
                                     toIndex: toIndex,
                                     block: block,
                                     fee: feeTrx,
-                                    executed: executed,
-                                    confirmed: confirmed,
+                                    isExecuted: isExecuted,
+                                    isConfirmed: isConfirmed,
                                     confirmations: confirmations,
                                     date: date,
                                     status: status,
-                                    raw: __assign({}, tx, txInfo, { currentBlock: lodash.pick(currentBlock, 'block_header', 'blockID') })
+                                    rawInfo: __assign({}, tx, txInfo, { currentBlock: lodash.pick(currentBlock, 'block_header', 'blockID') })
                                 }];
                         case 3:
-                            e_7 = _d.sent();
-                            throw toError(e_7);
+                            e_9 = _d.sent();
+                            throw toError(e_9);
                         case 4: return [2];
                     }
                 });
@@ -863,7 +901,6 @@
     exports.decode58 = decode58;
     exports.TRX_FEE_FOR_TRANSFER = TRX_FEE_FOR_TRANSFER;
     exports.TRX_FEE_FOR_TRANSFER_SUN = TRX_FEE_FOR_TRANSFER_SUN;
-    exports.BROADCAST_SUCCESS_CODES = BROADCAST_SUCCESS_CODES;
     exports.DEFAULT_FULL_NODE = DEFAULT_FULL_NODE;
     exports.DEFAULT_SOLIDITY_NODE = DEFAULT_SOLIDITY_NODE;
     exports.DEFAULT_EVENT_SERVER = DEFAULT_EVENT_SERVER;

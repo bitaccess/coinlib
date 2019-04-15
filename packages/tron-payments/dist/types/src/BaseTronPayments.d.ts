@@ -1,13 +1,13 @@
 import TronWeb from 'tronweb';
-import { Balance, PaymentsInterface, BroadcastResult } from 'payments-common';
-import { TransactionInfo, SignedTransaction, CreateTransactionOptions, GetAddressOptions } from './types';
+import { BalanceResult, PaymentsInterface, BroadcastResult } from 'payments-common';
+import { TransactionInfo, UnsignedTransaction, SignedTransaction, CreateTransactionOptions, GetAddressOptions } from './types';
 import { toMainDenomination, toBaseDenomination } from './utils';
 export interface BaseTronPaymentsConfig {
     fullNode?: string;
     solidityNode?: string;
     eventServer?: string;
 }
-export declare abstract class BaseTronPayments implements PaymentsInterface<TransactionInfo, SignedTransaction> {
+export declare abstract class BaseTronPayments implements PaymentsInterface<UnsignedTransaction, SignedTransaction, TransactionInfo> {
     fullNode: string;
     solidityNode: string;
     eventServer: string;
@@ -25,10 +25,11 @@ export declare abstract class BaseTronPayments implements PaymentsInterface<Tran
     abstract getPrivateKey(index: number): Promise<string>;
     getAddressOrNull(index: number, options?: GetAddressOptions): Promise<string | null>;
     getAddressIndexOrNull(address: string): Promise<number | null>;
-    getBalance(addressOrIndex: string | number): Promise<Balance>;
+    getBalance(addressOrIndex: string | number): Promise<BalanceResult>;
     canSweep(addressOrIndex: string | number): Promise<boolean>;
-    createSweepTransaction(from: string | number, to: string | number, options?: CreateTransactionOptions): Promise<SignedTransaction>;
-    createTransaction(from: string | number, to: string | number, amountTrx: string, options?: CreateTransactionOptions): Promise<SignedTransaction>;
+    createSweepTransaction(from: string | number, to: string | number, options?: CreateTransactionOptions): Promise<UnsignedTransaction>;
+    createTransaction(from: string | number, to: string | number, amountTrx: string, options?: CreateTransactionOptions): Promise<UnsignedTransaction>;
+    signTransaction(unsignedTx: UnsignedTransaction): Promise<SignedTransaction>;
     broadcastTransaction(tx: SignedTransaction): Promise<BroadcastResult>;
     getTransactionInfo(txid: string): Promise<TransactionInfo>;
     private canSweepBalance;
