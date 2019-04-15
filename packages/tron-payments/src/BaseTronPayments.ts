@@ -1,12 +1,14 @@
 import TronWeb, { Transaction as TronTransaction } from 'tronweb'
-import { pick, get } from 'lodash'
-import { Balance, PaymentsInterface, TransactionStatus, BroadcastResult } from 'payments-common'
+import { pick, get, cloneDeep } from 'lodash'
+import { BalanceResult, PaymentsInterface, TransactionStatus, BroadcastResult } from 'payments-common'
 
-import { TransactionInfo, SignedTransaction, CreateTransactionOptions, GetAddressOptions } from './types'
+import {
+  TransactionInfo, UnsignedTransaction, SignedTransaction, CreateTransactionOptions, GetAddressOptions,
+} from './types'
 import { toMainDenomination, toBaseDenomination, toBaseDenominationNumber, toError } from './utils'
 import {
   TRX_FEE_FOR_TRANSFER_SUN,
-  DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE, BROADCAST_SUCCESS_CODES,
+  DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE,
 } from './constants'
 
 export interface BaseTronPaymentsConfig {
@@ -15,7 +17,8 @@ export interface BaseTronPaymentsConfig {
   eventServer?: string
 }
 
-export abstract class BaseTronPayments implements PaymentsInterface<TransactionInfo, SignedTransaction> {
+export abstract class BaseTronPayments
+  implements PaymentsInterface<UnsignedTransaction, SignedTransaction, TransactionInfo> {
   // You may notice that many function blocks are enclosed in a try/catch.
   // I had to do this because tronweb thinks it's a good idea to throw
   // strings instead of Errors and now we need to convert them all ourselves
@@ -85,7 +88,7 @@ export abstract class BaseTronPayments implements PaymentsInterface<TransactionI
     }
   }
 
-  async getBalance(addressOrIndex: string | number): Promise<Balance> {
+  async getBalance(addressOrIndex: string | number): Promise<BalanceResult> {
     try {
       const address = await this.resolveAddress(addressOrIndex)
       const balanceSun = await this.tronweb.trx.getBalance(address)
@@ -105,7 +108,7 @@ export abstract class BaseTronPayments implements PaymentsInterface<TransactionI
 
   async createSweepTransaction(
     from: string | number, to: string | number, options: CreateTransactionOptions = {}
-  ): Promise<SignedTransaction> {
+  ): Promise<UnsignedTransaction> {
     try {
       const {
         fromAddress, fromIndex, fromPrivateKey, toAddress, toIndex
@@ -120,9 +123,8 @@ export abstract class BaseTronPayments implements PaymentsInterface<TransactionI
       const amountSun = balanceSun - feeSun
       const amountTrx = toMainDenomination(amountSun)
       const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)
-      const signedTx = await this.tronweb.trx.sign(tx, fromPrivateKey)
       return {
-        id: signedTx.txID,
+        id: tx.txID,
         from: fromAddress,
         to: toAddress,
         toExtraId: null,
@@ -130,8 +132,8 @@ export abstract class BaseTronPayments implements PaymentsInterface<TransactionI
         toIndex,
         amount: amountTrx,
         fee: feeTrx,
-        status: 'pending',
-        raw: signedTx,
+        status: 'unsigned',
+        rawUnsigned: tx,
       }
     } catch (e) {
       throw toError(e)
@@ -140,10 +142,10 @@ export abstract class BaseTronPayments implements PaymentsInterface<TransactionI
 
   async createTransaction(
     from: string | number, to: string | number, amountTrx: string, options: CreateTransactionOptions = {}
-  ): Promise<SignedTransaction> {
+  ): Promise<UnsignedTransaction> {
     try {
       const {
-        fromAddress, fromIndex, fromPrivateKey, toAddress, toIndex
+        fromAddress, fromIndex, toAddress, toIndex
       } = await this.resolveFromTo(from, to)
       const feeSun = options.fee || TRX_FEE_FOR_TRANSFER_SUN
       const feeTrx = toMainDenomination(feeSun)
@@ -154,9 +156,8 @@ export abstract class BaseTronPayments implements PaymentsInterface<TransactionI
         throw new Error(`Insufficient balance (${balanceTrx}) to send including fee of ${feeTrx}`)
       }
       const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)
-      const signedTx = await this.tronweb.trx.sign(tx, fromPrivateKey)
       return {
-        id: signedTx.txID,
+        id: tx.txID,
         from: fromAddress,
         to: toAddress,
         toExtraId: null,
@@ -164,23 +165,67 @@ export abstract class BaseTronPayments implements PaymentsInterface<TransactionI
         toIndex,
         amount: amountTrx,
         fee: feeTrx,
-        status: 'pending',
-        raw: signedTx,
+        status: 'unsigned',
+        rawUnsigned: tx,
       }
     } catch (e) {
       throw toError(e)
     }
   }
 
-  async broadcastTransaction(tx: SignedTransaction): Promise<BroadcastResult> {
+  async signTransaction(
+    unsignedTx: UnsignedTransaction,
+  ): Promise<SignedTransaction> {
     try {
-      const status = await this.tronweb.trx.sendRawTransaction(tx.raw || tx)
-      if (status.result || status.code && BROADCAST_SUCCESS_CODES.includes(status.code)) {
-        return {
-          id: tx.id,
-        }
+      const fromPrivateKey = await this.getPrivateKey(unsignedTx.fromIndex)
+      const unsignedRaw = cloneDeep(unsignedTx.rawUnsigned) // tron modifies unsigned object
+      const signedTx = await this.tronweb.trx.sign(unsignedRaw, fromPrivateKey)
+      return {
+        ...unsignedTx,
+        status: 'signed',
+        rawSigned: signedTx,
       }
-      throw new Error(`Failed to broadcast transaction: ${status.code}`)
+    } catch(e) {
+      throw toError(e)
+    }
+  }
+
+  async broadcastTransaction(tx: SignedTransaction): Promise<BroadcastResult> {
+    /*
+     * I’ve discovered that tron nodes like to “remember” every transaction you give it.
+     * If you try broadcasting an invalid TX the first time you’ll get a `SIGERROR` but
+     * every subsequent broadcast gives a `DUP_TRANSACTION_ERROR`. Which is the exact same
+     * error you get after rebroadcasting a valid transaction. And to make things worse,
+     * if you try to look up the invalid transaction by ID it tells you `Transaction not found`.
+     * So in order to actually determine the status of a broadcast the logic becomes:
+     * `success status` -> broadcast succeeded
+     * `error status` -> broadcast failed
+     * `(DUP_TRANSACTION_ERROR && Transaction found)` -> tx already broadcast
+     * `(DUP_TRANASCTION_ERROR && Transaction not found)` -> tx was probably invalid? Maybe? Who knows…
+     */
+    try {
+      const status = await this.tronweb.trx.sendRawTransaction(tx.rawSigned)
+      let success = false
+      if (status.result || status.code === 'SUCCESS') {
+        success = true
+      } else {
+        try {
+          const result = await this.tronweb.trx.getTransaction(tx.id)
+          // Already broadcast
+          success = true
+        } catch (e) {}
+      }
+      if (success) {
+        return {
+          id: tx.id
+        }
+      } else {
+        let statusCode: string | undefined = status.code
+        if (status.code === 'DUP_TRANSACTION_ERROR') {
+          statusCode = 'DUP_TX_BUT_TX_NOT_FOUND_SO_PROBABLY_INVALID_TX_ERROR'
+        }
+        throw new Error(`Failed to broadcast transaction: ${status.code}`)
+      }
     } catch (e) {
       throw toError(e)
     }
@@ -202,20 +247,20 @@ export abstract class BaseTronPayments implements PaymentsInterface<TransactionI
       ])
 
       const contractRet = get(tx, 'ret[0].contractRet')
-      const executed = contractRet === 'SUCCESS'
+      const isExecuted = contractRet === 'SUCCESS'
 
       const block = txInfo.blockNumber
       const feeTrx = toMainDenomination(txInfo.fee || 0)
 
       const currentBlockNumber = get(currentBlock, 'block_header.raw_data.number', 0)
       const confirmations = currentBlockNumber && block ? currentBlockNumber - block : 0
-      const confirmed = confirmations > 0
+      const isConfirmed = confirmations > 0
 
       const date = new Date(tx.raw_data.timestamp)
 
       let status: TransactionStatus = 'pending'
-      if (confirmed) {
-        if (!executed) {
+      if (isConfirmed) {
+        if (!isExecuted) {
           status = 'failed'
         }
         status = 'confirmed'
@@ -231,12 +276,12 @@ export abstract class BaseTronPayments implements PaymentsInterface<TransactionI
         toIndex,
         block,
         fee: feeTrx,
-        executed,
-        confirmed,
+        isExecuted,
+        isConfirmed,
         confirmations,
         date,
         status,
-        raw: {
+        rawInfo: {
           ...tx,
           ...txInfo,
           currentBlock: pick(currentBlock, 'block_header', 'blockID'),

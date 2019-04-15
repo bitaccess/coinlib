@@ -5,7 +5,7 @@ import { omit } from 'lodash'
 import { HdTronPayments } from '#/HdTronPayments'
 import { TransactionInfo } from '#/types'
 
-import { txInfo_209F8, signedTx_78f92, txInfo_a0787 } from './fixtures/transactions'
+import { txInfo_209F8, signedTx_valid, txInfo_a0787, signedTx_invalid } from './fixtures/transactions'
 import { hdAccount } from './fixtures/accounts'
 
 const { XPRV, XPUB, PRIVATE_KEYS, ADDRESSES } = hdAccount
@@ -22,7 +22,7 @@ if (fs.existsSync(secretXprvFilePath)) {
   console.log(`File ${SECRET_XPRV_FILE} missing. Send and sweep tests will be skipped. To enable all tests ask Dylan to share the file with you on Lastpass.`)
 }
 
-const txInfoOmitEquality = ['raw.currentBlock', 'confirmations']
+const txInfoOmitEquality = ['rawInfo.currentBlock', 'confirmations']
 function assertTxInfo(actual: TransactionInfo, expected: TransactionInfo): void {
   expect(omit(actual, txInfoOmitEquality)).toEqual(omit(expected, txInfoOmitEquality))
 }
@@ -37,9 +37,12 @@ describe('HdTronPayments', () => {
   })
 
   describe('hardcoded xprv', () => {
-    const tp = new HdTronPayments({
-      hdKey: XPRV,
-      maxAddressScan: 12,
+    let tp: HdTronPayments
+    beforeEach(() => {
+      tp = new HdTronPayments({
+        hdKey: XPRV,
+        maxAddressScan: 12,
+      })
     })
 
     it('getXpub', async () => {
@@ -115,10 +118,14 @@ describe('HdTronPayments', () => {
       })
     })
     it('broadcast an existing sweep transaction', async () => {
-      const result = await tp.broadcastTransaction(signedTx_78f92)
+      const result = await tp.broadcastTransaction(signedTx_valid)
       expect(result).toEqual({
-        id: signedTx_78f92.id
+        id: signedTx_valid.id
       })
+    })
+    it('broadcast should fail on invalid tx', async () => {
+      await expect(tp.broadcastTransaction(signedTx_invalid))
+        .rejects.toThrow('Failed to broadcast transaction: ')
     })
   })
 
@@ -201,11 +208,19 @@ describe('HdTronPayments', () => {
           return
         }
         const recipientIndex = indexToSweep === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
-        const signedTx = await tp.createSweepTransaction(indexToSweep, recipientIndex)
-        console.log(`Sweeping ${signedTx.amount} TRX from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
-        expect(await tp.broadcastTransaction(signedTx)).toEqual({
-          id: signedTx.id,
-        })
+        try {
+          const unsignedTx = await tp.createSweepTransaction(indexToSweep, recipientIndex)
+          const signedTx = await tp.signTransaction(unsignedTx)
+          console.log(`Sweeping ${signedTx.amount} TRX from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
+          expect(await tp.broadcastTransaction(signedTx)).toEqual({
+            id: signedTx.id,
+          })
+        } catch (e) {
+          if ((e.message || e as string).includes('Validate TransferContract error, balance is not sufficient')) {
+            console.log('Ran consecutive tests too soon, previous sweep not complete. Wait a minute and retry')
+          }
+          throw e
+        }
       })
     })
   }

@@ -10,13 +10,13 @@ export const txInfo_209F8: TransactionInfo = {
   'toIndex': null,
   'amount': '0.002323',
   'fee': '0.1',
-  'executed': true,
-  'confirmed': true,
+  'isExecuted': true,
+  'isConfirmed': true,
   'confirmations': 1234,
   'block': 3748106,
   'status': 'confirmed',
   'date': new Date(1541196195242),
-  'raw': {
+  'rawInfo': {
     'blockNumber': 3748106,
     'blockTimeStamp': 1541196198000,
     'contractResult': [
@@ -83,12 +83,12 @@ export const txInfo_a0787: TransactionInfo = {
   'toIndex': null,
   'block': 4093430,
   'fee': '0',
-  'executed': true,
-  'confirmed': true,
+  'isExecuted': true,
+  'isConfirmed': true,
   'confirmations': 4199517,
   'date': new Date('2018-11-14T22:20:58.986Z'),
   'status': 'confirmed',
-  'raw': {
+  'rawInfo': {
     'ret': [
       {
         'contractRet': 'SUCCESS'
@@ -144,40 +144,127 @@ export const txInfo_a0787: TransactionInfo = {
   }
 }
 
-export const signedTx_78f92: SignedTransaction = {
-  'id': '78f92a762df4c71d6c05873789c81a347604c810a7eda2a29757f70511ba1608',
-  'from': '41e25f64b88120d29fc9e4da668a2b818cf0a64809',
-  'to': '41e3f138a75016a33a64ba2ec14afa2f5c44f30797',
+export const signedTx_valid: SignedTransaction = {
+  'id': 'c7376e46f869a9cadfca43ca20bfdc3c1bfe856908a6a57de147fb881189c3a7',
+  'from': 'TWkTMxK5GZvnvQ3WjNQ6oNV5bNGHd13zov',
+  'to': 'TSKW3gHsWKnF62zs2XsMxFkXZ2fLY74CnA',
   'toExtraId': null,
-  'fromIndex': 0,
+  'fromIndex': 6,
   'toIndex': 5,
-  'amount': '0.3',
+  'amount': '74.262026',
   'fee': '0.1',
-  'status': 'pending',
-  'raw': {
-    'txID': '78f92a762df4c71d6c05873789c81a347604c810a7eda2a29757f70511ba1608',
+  'status': 'signed',
+  'rawUnsigned': {
+    'txID': 'c7376e46f869a9cadfca43ca20bfdc3c1bfe856908a6a57de147fb881189c3a7',
     'raw_data': {
       'contract': [
         {
           'parameter': {
             'value': {
-              'amount': 300000,
-              'owner_address': '41e25f64b88120d29fc9e4da668a2b818cf0a64809',
-              'to_address': '41e3f138a75016a33a64ba2ec14afa2f5c44f30797'
+              'amount': 74262026,
+              'owner_address': '41e3f138a75016a33a64ba2ec14afa2f5c44f30797',
+              'to_address': '41b3588f73abfb989d9a3488ccb1d01b7d42ed689e'
             },
             'type_url': 'type.googleapis.com/protocol.TransferContract'
           },
           'type': 'TransferContract'
         }
       ],
-      'ref_block_bytes': '75fe',
-      'ref_block_hash': '79d2a9f98ad1ad8a',
-      'expiration': 1555007175000,
-      'timestamp': 1555007116547
+      'ref_block_bytes': '4732',
+      'ref_block_hash': '263457a1c845be9f',
+      'expiration': 1555366179000,
+      'timestamp': 1555366122131
     },
-    'raw_data_hex': '0a0275fe220879d2a9f98ad1ad8a40d8f299eda02d5a67080112630a2d747970652e676f6f676c65617069732e636f6d2f70726f746f636f6c2e5472616e73666572436f6e747261637412320a1541e25f64b88120d29fc9e4da668a2b818cf0a64809121541e3f138a75016a33a64ba2ec14afa2f5c44f3079718e0a7127083aa96eda02d',
+    'raw_data_hex': '0a0247322208263457a1c845be9f40b8e1b198a22d5a68080112640a2d747970652e676f6f676c65617069732e636f6d2f70726f746f636f6c2e5472616e73666572436f6e747261637412330a1541e3f138a75016a33a64ba2ec14afa2f5c44f30797121541b3588f73abfb989d9a3488ccb1d01b7d42ed689e188accb4237093a5ae98a22d'
+  },
+  'rawSigned': {
+    'txID': 'c7376e46f869a9cadfca43ca20bfdc3c1bfe856908a6a57de147fb881189c3a7',
+    'raw_data': {
+      'contract': [
+        {
+          'parameter': {
+            'value': {
+              'amount': 74262026,
+              'owner_address': '41e3f138a75016a33a64ba2ec14afa2f5c44f30797',
+              'to_address': '41b3588f73abfb989d9a3488ccb1d01b7d42ed689e'
+            },
+            'type_url': 'type.googleapis.com/protocol.TransferContract'
+          },
+          'type': 'TransferContract'
+        }
+      ],
+      'ref_block_bytes': '4732',
+      'ref_block_hash': '263457a1c845be9f',
+      'expiration': 1555366179000,
+      'timestamp': 1555366122131
+    },
+    'raw_data_hex': '0a0247322208263457a1c845be9f40b8e1b198a22d5a68080112640a2d747970652e676f6f676c65617069732e636f6d2f70726f746f636f6c2e5472616e73666572436f6e747261637412330a1541e3f138a75016a33a64ba2ec14afa2f5c44f30797121541b3588f73abfb989d9a3488ccb1d01b7d42ed689e188accb4237093a5ae98a22d',
     'signature': [
-      '04e28605fa5abe0c5a43d9768b7ceaff524ec3a9f719bdade2f3290f35da6ed95c729a6f4126619b388264c03736ba1918b454e71634f6cdc04438d299cb866301'
+      '2a3a92f5809b47517dfabac8ed8f25e3075071588f2b9846c0eb588415e9f9c1ff37655d3fe2c5fc8ef0c004e52a8ff9e9f96b7dd365f58387da6c1037a828d000'
+    ]
+  }
+}
+
+export const signedTx_invalid: SignedTransaction = {
+  'id': '1234567890',
+  'from': '1234567890',
+  'to': '1234567890',
+  'toExtraId': null,
+  'fromIndex': 0,
+  'toIndex': 5,
+  'amount': '1234567890',
+  'fee': '1234567890',
+  'status': 'signed',
+  'rawUnsigned': {
+    'txID': '1234567890',
+    'raw_data': {
+      'contract': [
+        {
+          'parameter': {
+            'value': {
+              'amount': 1234567890,
+              'owner_address': '1234567890',
+              'to_address': '1234567890'
+            },
+            'type_url': '1234567890'
+          },
+          'type': '1234567890'
+        }
+      ],
+      'ref_block_bytes': '1234567890',
+      'ref_block_hash': '1234567890',
+      'expiration': 1234567890,
+      'timestamp': 1234567890
+    },
+    'raw_data_hex': '1234567890',
+    'signature': [
+      ''
+    ]
+  },
+  'rawSigned': {
+    'txID': '1234567890',
+    'raw_data': {
+      'contract': [
+        {
+          'parameter': {
+            'value': {
+              'amount': 1234567890,
+              'owner_address': '1234567890',
+              'to_address': '1234567890'
+            },
+            'type_url': '1234567890'
+          },
+          'type': '1234567890'
+        }
+      ],
+      'ref_block_bytes': '1234567890',
+      'ref_block_hash': '1234567890',
+      'expiration': 1234567890,
+      'timestamp': 1234567890
+    },
+    'raw_data_hex': '1234567890',
+    'signature': [
+      '1234567890'
     ]
   }
 }

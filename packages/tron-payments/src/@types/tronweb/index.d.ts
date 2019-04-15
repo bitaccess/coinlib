@@ -49,8 +49,6 @@ declare module 'tronweb' {
   }
 
   export interface Transaction {
-    ret?: Array<{ contractRet: string }>
-    signature: string[]
     txID: string
     raw_data: {
       contract: Array<{
@@ -71,6 +69,8 @@ declare module 'tronweb' {
       fee_limit?: number
     }
     raw_data_hex: string
+    signature?: string[]
+    ret?: Array<{ contractRet: string }>
   }
 
   export interface TransactionInfoLog {
@@ -184,8 +184,8 @@ declare module 'tronweb' {
         address: string, direction: 'all' | 'from' | 'to', limit: number, offset: number
       ): Promise<Transaction[]>
       sendTransaction(to: string, amountInSun: number, privateKey: string): Promise<Transaction>
-      sendRawTransaction(signedTransaction: any): Promise<Broadcast>
-      sign(tx: any, privateKey: string): Promise<Transaction>
+      sendRawTransaction(signedTransaction: Transaction): Promise<Broadcast>
+      sign(tx: Transaction, privateKey: string): Promise<Transaction>
 
       // Query Network
       getBlock(block: number | string): Promise<Block>
