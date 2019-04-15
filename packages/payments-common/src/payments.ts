@@ -1,13 +1,14 @@
 import {
-  Balance, BasePendingTransaction, BaseTransactionInfo, BroadcastResult,
+  BalanceResult, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BroadcastResult,
 } from './types'
 
 /**
  * An interface that provides the necessary tools for accepting and sending payments for a currency.
  */
 export interface PaymentsInterface<
+  UnsignedTransaction extends BaseUnsignedTransaction<any>,
+  SignedTransaction extends BaseSignedTransaction<any>,
   TransactionInfo extends BaseTransactionInfo<any>,
-  PendingTransaction extends BasePendingTransaction<any>
 > {
 
   // The following static methods should also be implemented
@@ -60,7 +61,7 @@ export interface PaymentsInterface<
 
   /** Same as getAddress but returns null instead of throwing */
   getAddressOrNull<O extends object>(
-    accountIndex: number, options?: O
+    index: number, options?: O
   ): Promise<string | null>
 
   /**
@@ -69,12 +70,18 @@ export interface PaymentsInterface<
    * @param addressOrIndex - The address or address index to get the balance of
    * @return The balance and unconfirmed balance formatted as a string in the main denomination (eg "0.125" XMR)
    */
-  getBalance<O extends object>(addressOrIndex: string | number, options?: O): Promise<Balance>
+  getBalance<O extends object>(addressOrIndex: string | number, options?: O): Promise<BalanceResult>
 
   /**
    * Get the info and status of a transaction.
+   * 
+   * @param txId - The transaction ID to lookup
+   * @param addressOrIndex - The address, or the index of an address, that is associated with this transaction.
+   * This is necessary to allow for looking up XMR txs but can be ignored for conventional coins like BTC/ETH.
+   * @returns Info about the transaction
+   * @throws Error if transaction is not found
    */
-  getTransactionInfo<O extends object>(txId: string, accountIndex: number, options?: O): Promise<TransactionInfo>
+  getTransactionInfo<O extends object>(txId: string, addressOrIndex: string | number, options?: O): Promise<TransactionInfo>
 
   /**
    * Creates and signs a new payment transaction sending `amount` from address `from` to address `to`.
@@ -86,20 +93,32 @@ export interface PaymentsInterface<
    */
   createTransaction<O extends object>(
     from: string | number, to: string | number, amount: string, options?: O,
-  ): Promise<PendingTransaction>
+  ): Promise<UnsignedTransaction>
 
   /**
-   * Creates and signs a new payment transaction sending the entire balance of address `from` to address `to`.
+   * Creates a new payment transaction sending the entire balance of address `from` to address `to`.
    */
   createSweepTransaction<O extends object>(
     from: string | number, to: string | number, options?: O,
-  ): Promise<PendingTransaction>
+  ): Promise<UnsignedTransaction>
 
   /**
-   * Broadcasts the transaction specified by `pendingTx`. Allows rebroadcasting already sent transactions.
+   * Signs and returns unsigned transaction.
    *
-   * @return The transaction id
+   * @param from - The address to send from, or the address index.
+   * @param to - The address of the recipient, or the address index.
+   * @param amount - The amount to send in the main denomination (eg "0.125" XMR)
+   * @returns An object representing the signed transaction
+   */
+  signTransaction<O extends object>(
+    unsignedTx: UnsignedTransaction, options?: O,
+  ): Promise<SignedTransaction>
+
+  /**
+   * Broadcasts the transaction specified by `signedTx`. Allows rebroadcasting prior transactions.
+   *
+   * @return An object containing the transaction id
    * @throws Error if the transaction is invalid, not signed, or fails to broadcast
    */
-  broadcastTransaction<O extends object>(pendingTx: PendingTransaction, options?: O): Promise<BroadcastResult>
+  broadcastTransaction<O extends object>(signedTx: SignedTransaction, options?: O): Promise<BroadcastResult>
 }
