@@ -897,4 +897,4 @@ var TronPaymentsFactory = (function () {
 }());
 
 export { BaseTronPayments, HdTronPayments, KeyPairTronPayments, TronPaymentsFactory, toError, toMainDenominationNumber, toMainDenomination, toBaseDenominationNumber, toBaseDenomination, isValidXprv, isValidXpub, derivationPath, deriveAddress, derivePrivateKey, xprvToXpub, encode58, decode58, TRX_FEE_FOR_TRANSFER, TRX_FEE_FOR_TRANSFER_SUN, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, DEFAULT_EVENT_SERVER, DEFAULT_MAX_ADDRESS_SCAN };
-//# sourceMappingURL=monero-payments.es5.js.map
+//# sourceMappingURL=index.es5.js.map

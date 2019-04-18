@@ -1,7 +1,7 @@
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('tronweb'), require('lodash'), require('bitcore-lib'), require('js-sha3'), require('jssha'), require('elliptic')) :
     typeof define === 'function' && define.amd ? define(['exports', 'tronweb', 'lodash', 'bitcore-lib', 'js-sha3', 'jssha', 'elliptic'], factory) :
-    (factory((global.moneroPayments = {}),global.TronWeb,global.lodash,global.bitcoreLib,global.jsSha3,global.jsSHA,global.elliptic));
+    (factory((global.faast_tron_payments = {}),global.TronWeb,global.lodash,global.bitcoreLib,global.jsSha3,global.jsSHA,global.elliptic));
 }(this, (function (exports,TronWeb,lodash,bitcoreLib,jsSha3,jsSHA,elliptic) { 'use strict';
 
     TronWeb = TronWeb && TronWeb.hasOwnProperty('default') ? TronWeb['default'] : TronWeb;
@@ -925,4 +925,4 @@
     Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
-//# sourceMappingURL=monero-payments.umd.js.map
+//# sourceMappingURL=index.umd.js.map
