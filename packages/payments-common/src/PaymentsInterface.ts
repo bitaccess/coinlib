@@ -36,6 +36,13 @@ export interface PaymentsInterface<
    */
   isValidAddress<O extends object>(address: string, options?: O): boolean
 
+  resolveAddress<O extends object>(addressOrIndex: string | number, options?: O): Promise<string>
+
+  resolveFromTo<O extends object>(from: string | number, to: string | number, options?: O): Promise<{
+    fromIndex: number, fromAddress: string, fromPrivateKey: string,
+    toIndex: number | null, toAddress: string,
+  }>
+
   /**
    * Get the index of the provided address.
    *
