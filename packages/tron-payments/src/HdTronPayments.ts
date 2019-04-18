@@ -47,7 +47,8 @@ export class HdTronPayments extends BaseTronPayments {
     const xpub = this.getXpub()
     const address = deriveAddress(xpub, index)
     if (!this.isValidAddress(address)) {
-      throw new Error(`Cannot get address ${index} - validation failed`)
+      // This should never happen
+      throw new Error(`Cannot get address ${index} - validation failed for derived address`)
     }
     if (cacheIndex) {
       xpubCache.put(xpub, index, address)

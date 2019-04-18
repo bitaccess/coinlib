@@ -10,6 +10,8 @@ import { hdAccount } from './fixtures/accounts'
 
 const { XPRV, XPUB, PRIVATE_KEYS, ADDRESSES } = hdAccount
 
+const EXTERNAL_ADDRESS = 'TW22XzVixyFZU5DxQJwxqXuKfNKFNMLqJ2'
+
 const SECRET_XPRV_FILE = 'test/keys/mainnet.key'
 
 const rootDir = path.resolve(__dirname, '..')
@@ -27,6 +29,140 @@ function assertTxInfo(actual: TransactionInfo, expected: TransactionInfo): void 
   expect(omit(actual, txInfoOmitEquality)).toEqual(omit(expected, txInfoOmitEquality))
 }
 
+function runHardcodedPublicKeyTests(tp: HdTronPayments) {
+  it('getXpub', async () => {
+    expect(tp.getXpub()).toBe(XPUB)
+  })
+  it('getAddress for index 1', async () => {
+    expect(await tp.getAddress(1)).toBe(ADDRESSES[1])
+  })
+  it('getAddress for high index', async () => {
+    expect(await tp.getAddress(10000)).toBe(ADDRESSES[10000])
+  })
+  it('getAddressIndex for address at index 1', async () => {
+    expect(await tp.getAddressIndex(ADDRESSES[1])).toBe(1)
+  })
+  it('getAddressIndex for address that is uncached but scannable', async () => {
+    expect(await tp.getAddressIndex(ADDRESSES[10])).toBe(10)
+  })
+  it('getAddressIndex for address that was cached by getAddress', async () => {
+    expect(await tp.getAddressIndex(ADDRESSES[10000])).toBe(10000)
+  })
+  it('getAddressIndexOrNull returns address at index 1', async () => {
+    expect(await tp.getAddressIndexOrNull(ADDRESSES[1])).toBe(1)
+  })
+  it('getAddressIndexOrNull returns null for external address', async () => {
+    expect(await tp.getAddressIndexOrNull(EXTERNAL_ADDRESS)).toBe(null)
+  })
+  it('throw on getAddressIndex for address that is uncached and unscannable', async () => {
+    await expect(tp.getAddressIndex(ADDRESSES[20000]))
+      .rejects.toThrowError()
+  })
+  it('throw on getAddressIndex for external address', async () => {
+    await expect(tp.getAddressIndex(EXTERNAL_ADDRESS))
+      .rejects.toThrowError()
+  })
+  it('resolveAddress resolves for index 1', async () => {
+    expect(await tp.resolveAddress(1)).toBe(ADDRESSES[1])
+  })
+  it('resolveAddress resolves for address 1', async () => {
+    expect(await tp.resolveAddress(ADDRESSES[1])).toBe(ADDRESSES[1])
+  })
+  it('resolveAddress resolves for external address', async () => {
+    expect(await tp.resolveAddress(EXTERNAL_ADDRESS)).toBe(EXTERNAL_ADDRESS)
+  })
+  it('resolveAddress throws for invalid address', async () => {
+    await expect(tp.resolveAddress('invalid')).rejects.toThrow()
+  })
+  it('resolveFromTo is correct for (index, index)', async () => {
+    expect(await tp.resolveFromTo(0, 2)).toEqual({
+      fromAddress: ADDRESSES[0],
+      fromIndex: 0,
+      toAddress: ADDRESSES[2],
+      toIndex: 2,
+    })
+  })
+  it('resolveFromTo is correct for (index, internal address)', async () => {
+    expect(await tp.resolveFromTo(0, ADDRESSES[2])).toEqual({
+      fromAddress: ADDRESSES[0],
+      fromIndex: 0,
+      toAddress: ADDRESSES[2],
+      toIndex: 2,
+    })
+  })
+  it('resolveFromTo is correct for (index, external address)', async () => {
+    expect(await tp.resolveFromTo(0, EXTERNAL_ADDRESS)).toEqual({
+      fromAddress: ADDRESSES[0],
+      fromIndex: 0,
+      toAddress: EXTERNAL_ADDRESS,
+      toIndex: null,
+    })
+  })
+  it('resolveFromTo is correct for (internal address, index)', async () => {
+    expect(await tp.resolveFromTo(ADDRESSES[0], 2)).toEqual({
+      fromAddress: ADDRESSES[0],
+      fromIndex: 0,
+      toAddress: ADDRESSES[2],
+      toIndex: 2,
+    })
+  })
+  it('resolveFromTo is correct for (internal address, internal address)', async () => {
+    expect(await tp.resolveFromTo(ADDRESSES[0], ADDRESSES[2])).toEqual({
+      fromAddress: ADDRESSES[0],
+      fromIndex: 0,
+      toAddress: ADDRESSES[2],
+      toIndex: 2,
+    })
+  })
+  it('resolveFromTo is correct for (internal address, external address)', async () => {
+    expect(await tp.resolveFromTo(ADDRESSES[0], EXTERNAL_ADDRESS)).toEqual({
+      fromAddress: ADDRESSES[0],
+      fromIndex: 0,
+      toAddress: EXTERNAL_ADDRESS,
+      toIndex: null,
+    })
+  })
+  it('resolveFromTo throws for external address as from', async () => {
+    await expect(tp.resolveFromTo(EXTERNAL_ADDRESS, 0)).rejects.toThrow()
+  })
+
+  it('get transaction by hash with a fee', async () => {
+    const tx = await tp.getTransactionInfo('209f8dbefe6bbb9395f1be76dfb581b7bb53197d27cb28fbfe6c819b914c140c')
+    assertTxInfo(tx, txInfo_209F8)
+  })
+  it('get transaction by hash without a fee', async () => {
+    const tx = await tp.getTransactionInfo('a078736ab768b34dc06ca9048dddfa73383947aed0d93f1eff2adde4b7254f39')
+    assertTxInfo(tx, txInfo_a0787)
+  })
+  it('fail to get an invalid transaction hash', async () => {
+    await expect(tp.getTransactionInfo('123456abcdef'))
+      .rejects.toThrow('Transaction not found')
+  })
+
+  it('get a balance using xpub and index', async () => {
+    expect(await tp.getBalance(1)).toEqual({
+      balance: '0',
+      unconfirmedBalance: '0',
+    })
+  })
+  it('get a balance using an address', async () => {
+    expect(await tp.getBalance('TBR4KDPrN9BrnyjienckS2xixcTpJ9aP26')).toEqual({
+      balance: '0',
+      unconfirmedBalance: '0',
+    })
+  })
+  it('broadcast an existing sweep transaction', async () => {
+    const result = await tp.broadcastTransaction(signedTx_valid)
+    expect(result).toEqual({
+      id: signedTx_valid.id
+    })
+  })
+  it('broadcast should fail on invalid tx', async () => {
+    await expect(tp.broadcastTransaction(signedTx_invalid))
+      .rejects.toThrow('Failed to broadcast transaction: ')
+  })
+}
+
 describe('HdTronPayments', () => {
   describe('static', () => {
     it('generateNewKeys should return xprv and xpub', async () => {
@@ -34,98 +170,34 @@ describe('HdTronPayments', () => {
       expect(keys.xpub).toMatch(/^xpub\w{107}/)
       expect(keys.xprv).toMatch(/^xprv\w{107}/)
     })
+    it('should throw on invalid hdKey', () => {
+      expect(() => new HdTronPayments({ hdKey: 'invalid' })).toThrow()
+    })
+  })
+
+  describe('hardcoded xpub', () => {
+    const tp = new HdTronPayments({
+      hdKey: XPUB,
+      maxAddressScan: 12,
+    })
+
+    runHardcodedPublicKeyTests(tp)
+
+    it('getPrivateKey throws', async () => {
+      await expect(tp.getPrivateKey(1)).rejects.toThrow()
+    })
   })
 
   describe('hardcoded xprv', () => {
-    let tp: HdTronPayments
-    beforeEach(() => {
-      tp = new HdTronPayments({
-        hdKey: XPRV,
-        maxAddressScan: 12,
-      })
+    const tp = new HdTronPayments({
+      hdKey: XPRV,
+      maxAddressScan: 12,
     })
 
-    it('getXpub', async () => {
-      expect(tp.getXpub()).toBe(XPUB)
-    })
-    it('privateKeyToAddress', async () => {
-      expect(tp.privateKeyToAddress(PRIVATE_KEYS[1])).toBe(ADDRESSES[1])
-    })
-    it('getPrivateKey for index 1', async () => {
+    runHardcodedPublicKeyTests(tp)
+
+    it('getPrivateKey returns private key 1', async () => {
       expect(await tp.getPrivateKey(1)).toBe(PRIVATE_KEYS[1])
-    })
-    it('getAddress for index 1', async () => {
-      expect(await tp.getAddress(1)).toBe(ADDRESSES[1])
-    })
-    it('getAddress for high index', async () => {
-      expect(await tp.getAddress(10000)).toBe(ADDRESSES[10000])
-    })
-    it('getAddressIndex for address at index 1', async () => {
-      expect(await tp.getAddressIndex(ADDRESSES[1])).toBe(1)
-    })
-    it('getAddressIndex for address that is uncached but scannable', async () => {
-      expect(await tp.getAddressIndex(ADDRESSES[10])).toBe(10)
-    })
-    it('getAddressIndex for address that was cached by getAddress', async () => {
-      expect(await tp.getAddressIndex(ADDRESSES[10000])).toBe(10000)
-    })
-    it('throw on getAddressIndex for address that is uncached and unscannable', async () => {
-      await expect(tp.getAddressIndex(ADDRESSES[20000]))
-        .rejects.toThrowError()
-    })
-    it('throw on getAddressIndex for unknown address', async () => {
-      await expect(tp.getAddressIndex('TFY4gcYj8Mftd3HHRBwV1DgJHQEFuG8S7v'))
-        .rejects.toThrowError()
-    })
-
-    // This test takes a long time. It really just makes sure we don't have padding
-    // issues in a brute force way.
-    it.skip('generate 1000 addresses and private keys, make sure they match', async () => {
-      let tasks = []
-      for (let i = 4000; i < 5000; i++) {
-        let address = await tp.getAddress(i)
-        let privateKey = await tp.getPrivateKey(i)
-        let addressFromPkey = tp.privateKeyToAddress(privateKey)
-        if (address !== addressFromPkey) {
-          throw new Error(`key mismatch: ${address}, ${privateKey}, ${addressFromPkey}`)
-        }
-      }
-    })
-
-    it('get transaction by hash with a fee', async () => {
-      const tx = await tp.getTransactionInfo('209f8dbefe6bbb9395f1be76dfb581b7bb53197d27cb28fbfe6c819b914c140c')
-      assertTxInfo(tx, txInfo_209F8)
-    })
-    it('get transaction by hash without a fee', async () => {
-      const tx = await tp.getTransactionInfo('a078736ab768b34dc06ca9048dddfa73383947aed0d93f1eff2adde4b7254f39')
-      assertTxInfo(tx, txInfo_a0787)
-    })
-    it('fail to get an invalid transaction hash', async () => {
-      await expect(tp.getTransactionInfo('123456abcdef'))
-        .rejects.toThrow('Transaction not found')
-    })
-
-    it('get a balance using xpub and index', async () => {
-      expect(await tp.getBalance(1)).toEqual({
-        balance: '0',
-        unconfirmedBalance: '0',
-      })
-    })
-    it('get a balance using an address', async () => {
-      expect(await tp.getBalance('TBR4KDPrN9BrnyjienckS2xixcTpJ9aP26')).toEqual({
-        balance: '0',
-        unconfirmedBalance: '0',
-      })
-    })
-    it('broadcast an existing sweep transaction', async () => {
-      const result = await tp.broadcastTransaction(signedTx_valid)
-      expect(result).toEqual({
-        id: signedTx_valid.id
-      })
-    })
-    it('broadcast should fail on invalid tx', async () => {
-      await expect(tp.broadcastTransaction(signedTx_invalid))
-        .rejects.toThrow('Failed to broadcast transaction: ')
     })
   })
 
@@ -154,6 +226,7 @@ describe('HdTronPayments', () => {
           unconfirmedBalance: '0',
         })
       })
+
       it('generate a sweep transaction using indices', async () => {
         const signedTx = await tp.createSweepTransaction(0, 3)
         expect(signedTx).toBeDefined()
@@ -163,6 +236,25 @@ describe('HdTronPayments', () => {
         expect(signedTx.fromIndex).toBe(0)
         expect(signedTx.toIndex).toBe(3)
       })
+      it('generate a sweep transaction using internal addresses', async () => {
+        const signedTx = await tp.createSweepTransaction(address0, address3)
+        expect(signedTx).toBeDefined()
+        expect(signedTx.amount).toBe('0.5')
+        expect(signedTx.from).toBe(address0)
+        expect(signedTx.to).toBe(address3)
+        expect(signedTx.fromIndex).toBe(0)
+        expect(signedTx.toIndex).toBe(3)
+      })
+      it('generate a sweep transaction to an external address', async () => {
+        const signedTx = await tp.createSweepTransaction(0, EXTERNAL_ADDRESS)
+        expect(signedTx).toBeDefined()
+        expect(signedTx.amount).toBe('0.5')
+        expect(signedTx.from).toBe(address0)
+        expect(signedTx.to).toBe(EXTERNAL_ADDRESS)
+        expect(signedTx.fromIndex).toBe(0)
+        expect(signedTx.toIndex).toBe(null)
+      })
+
       it('generate a send transaction using indices', async () => {
         const amount = '0.3'
         const signedTx = await tp.createTransaction(0, 3, amount)
@@ -173,16 +265,7 @@ describe('HdTronPayments', () => {
         expect(signedTx.fromIndex).toBe(0)
         expect(signedTx.toIndex).toBe(3)
       })
-      it('generate a sweep transaction using indices', async () => {
-        const signedTx = await tp.createSweepTransaction(address0, address3)
-        expect(signedTx).toBeDefined()
-        expect(signedTx.amount).toBe('0.5')
-        expect(signedTx.from).toBe(address0)
-        expect(signedTx.to).toBe(address3)
-        expect(signedTx.fromIndex).toBe(0)
-        expect(signedTx.toIndex).toBe(3)
-      })
-      it('generate a send transaction using indices', async () => {
+      it('generate a send transaction using internal addresses', async () => {
         const amount = '0.3'
         const signedTx = await tp.createTransaction(address0, address3, amount)
         expect(signedTx).toBeDefined()
@@ -191,6 +274,16 @@ describe('HdTronPayments', () => {
         expect(signedTx.to).toBe(address3)
         expect(signedTx.fromIndex).toBe(0)
         expect(signedTx.toIndex).toBe(3)
+      })
+      it('generate a sweep transaction to an external address', async () => {
+        const amount = '0.3'
+        const signedTx = await tp.createTransaction(0, EXTERNAL_ADDRESS, amount)
+        expect(signedTx).toBeDefined()
+        expect(signedTx.amount).toBe(amount)
+        expect(signedTx.from).toBe(address0)
+        expect(signedTx.to).toBe(EXTERNAL_ADDRESS)
+        expect(signedTx.fromIndex).toBe(0)
+        expect(signedTx.toIndex).toBe(null)
       })
 
       it('end to end sweep', async () => {
