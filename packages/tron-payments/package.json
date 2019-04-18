@@ -55,7 +55,7 @@
     "js-sha3": "^0.8.0",
     "jssha": "^2.3.1",
     "lodash": "^4.17.11",
-    "payments-common": "github:go-faast/payments-common#v0.3.0",
+    "payments-common": "github:go-faast/payments-common#v0.3.1",
     "tronweb": "^2.0.24"
   },
   "devDependencies": {
