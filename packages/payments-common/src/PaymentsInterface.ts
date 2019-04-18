@@ -2,6 +2,8 @@ import {
   BalanceResult, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BroadcastResult,
 } from './types'
 
+export type AnyPayments = PaymentsInterface<any, any, any>
+
 /**
  * An interface that provides the necessary tools for accepting and sending payments for a currency.
  */

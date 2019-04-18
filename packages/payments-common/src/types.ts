@@ -1,4 +1,3 @@
-type Nullable<T> = { [P in keyof T]: T[P] | null }
 
 export interface BalanceResult {
   balance: string, // balance with at least 1 confirmation
