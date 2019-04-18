@@ -106,7 +106,7 @@ export abstract class BaseTronPayments
   ): Promise<UnsignedTransaction> {
     try {
       const {
-        fromAddress, fromIndex, fromPrivateKey, toAddress, toIndex
+        fromAddress, fromIndex, toAddress, toIndex
       } = await this.resolveFromTo(from, to)
       const feeSun = options.fee || TRX_FEE_FOR_TRANSFER_SUN
       const feeTrx = toMainDenomination(feeSun)
@@ -323,7 +323,7 @@ export abstract class BaseTronPayments
   }
 
   async resolveFromTo(from: string | number, to: string | number): Promise<{
-    fromIndex: number, fromAddress: string, fromPrivateKey: string,
+    fromIndex: number, fromAddress: string,
     toIndex: number | null, toAddress: string,
   }> {
     const fromIndex = typeof from === 'string'
@@ -332,7 +332,6 @@ export abstract class BaseTronPayments
     return {
       fromAddress: await this.resolveAddress(from),
       fromIndex,
-      fromPrivateKey: await this.getPrivateKey(fromIndex),
       toAddress: await this.resolveAddress(to),
       toIndex: typeof to === 'string'
         ? await this.getAddressIndexOrNull(to)
