@@ -22,5 +22,9 @@
   "homepage": "https://github.com/go-faast/payments-common#readme",
   "dependencies": {
     "faast-ts-config": "github:go-faast/faast-ts-config"
+  },
+  "devDependencies": {
+    "tslint": "^5.16.0",
+    "typescript": "^3.4.3"
   }
 }
