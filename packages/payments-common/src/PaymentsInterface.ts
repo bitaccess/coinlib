@@ -39,7 +39,7 @@ export interface PaymentsInterface<
   resolveAddress<O extends object>(addressOrIndex: string | number, options?: O): Promise<string>
 
   resolveFromTo<O extends object>(from: string | number, to: string | number, options?: O): Promise<{
-    fromIndex: number, fromAddress: string, fromPrivateKey: string,
+    fromIndex: number, fromAddress: string,
     toIndex: number | null, toAddress: string,
   }>
 
