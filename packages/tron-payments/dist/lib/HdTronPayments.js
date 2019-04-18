@@ -87,7 +87,7 @@ var HdTronPayments = (function (_super) {
                 xpub = this.getXpub();
                 address = deriveAddress(xpub, index);
                 if (!this.isValidAddress(address)) {
-                    throw new Error("Cannot get address " + index + " - validation failed");
+                    throw new Error("Cannot get address " + index + " - validation failed for derived address");
                 }
                 if (cacheIndex) {
                     xpubCache.put(xpub, index, address);

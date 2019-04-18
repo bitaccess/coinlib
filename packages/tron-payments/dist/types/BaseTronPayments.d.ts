@@ -33,7 +33,6 @@ export declare abstract class BaseTronPayments implements PaymentsInterface<Unsi
     resolveFromTo(from: string | number, to: string | number): Promise<{
         fromIndex: number;
         fromAddress: string;
-        fromPrivateKey: string;
         toIndex: number | null;
         toAddress: string;
     }>;

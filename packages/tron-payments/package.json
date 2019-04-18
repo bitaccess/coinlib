@@ -1,6 +1,6 @@
 {
   "name": "@faast/tron-payments",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Library to assist in processing tron payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.umd.js",
   "module": "dist/index.es5.js",

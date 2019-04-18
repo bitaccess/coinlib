@@ -221,14 +221,14 @@
         BaseTronPayments.prototype.createSweepTransaction = function (from, to, options) {
             if (options === void 0) { options = {}; }
             return __awaiter(this, void 0, void 0, function () {
-                var _a, fromAddress, fromIndex, fromPrivateKey, toAddress, toIndex, feeSun, feeTrx, balanceSun, balanceTrx, amountSun, amountTrx, tx, e_4;
+                var _a, fromAddress, fromIndex, toAddress, toIndex, feeSun, feeTrx, balanceSun, balanceTrx, amountSun, amountTrx, tx, e_4;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
                             _b.trys.push([0, 4, , 5]);
                             return [4, this.resolveFromTo(from, to)];
                         case 1:
-                            _a = _b.sent(), fromAddress = _a.fromAddress, fromIndex = _a.fromIndex, fromPrivateKey = _a.fromPrivateKey, toAddress = _a.toAddress, toIndex = _a.toIndex;
+                            _a = _b.sent(), fromAddress = _a.fromAddress, fromIndex = _a.fromIndex, toAddress = _a.toAddress, toIndex = _a.toIndex;
                             feeSun = options.fee || TRX_FEE_FOR_TRANSFER_SUN;
                             feeTrx = toMainDenomination(feeSun);
                             return [4, this.tronweb.trx.getBalance(fromAddress)];
@@ -493,21 +493,18 @@
                         case 4:
                             _b.fromAddress = _d.sent(),
                                 _b.fromIndex = fromIndex;
-                            return [4, this.getPrivateKey(fromIndex)];
-                        case 5:
-                            _b.fromPrivateKey = _d.sent();
                             return [4, this.resolveAddress(to)];
-                        case 6:
+                        case 5:
                             _b.toAddress = _d.sent();
-                            if (!(typeof to === 'string')) return [3, 8];
+                            if (!(typeof to === 'string')) return [3, 7];
                             return [4, this.getAddressIndexOrNull(to)];
-                        case 7:
+                        case 6:
                             _c = _d.sent();
-                            return [3, 9];
-                        case 8:
+                            return [3, 8];
+                        case 7:
                             _c = to;
-                            _d.label = 9;
-                        case 9: return [2, (_b.toIndex = _c,
+                            _d.label = 8;
+                        case 8: return [2, (_b.toIndex = _c,
                                 _b)];
                     }
                 });
@@ -769,7 +766,7 @@
                     xpub = this.getXpub();
                     address = deriveAddress(xpub, index);
                     if (!this.isValidAddress(address)) {
-                        throw new Error("Cannot get address " + index + " - validation failed");
+                        throw new Error("Cannot get address " + index + " - validation failed for derived address");
                     }
                     if (cacheIndex) {
                         xpubCache.put(xpub, index, address);
