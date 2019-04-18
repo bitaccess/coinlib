@@ -8,7 +8,7 @@ import { set, get } from 'lodash'
  * 2 entries * (34 chars in address * 2 bytes per char + 8 bytes per number) = 152 bytes per address
  * 1000000 addresses * 152 bytes = 152 MB
  */
-export default class Bip44Cache {
+export class Bip44Cache {
   store: {
     [xpub: string]: {
       addresses: { [index: number]: string },
@@ -29,3 +29,5 @@ export default class Bip44Cache {
     return get(this.store, [xpub, 'addresses', index])
   }
 }
+
+export default Bip44Cache

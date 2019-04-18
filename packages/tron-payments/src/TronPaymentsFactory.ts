@@ -18,3 +18,5 @@ export class TronPaymentsFactory implements PaymentsFactory<BaseTronPayments> {
   }
 
 }
+
+export default TronPaymentsFactory

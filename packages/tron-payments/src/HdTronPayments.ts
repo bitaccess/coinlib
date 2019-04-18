@@ -79,3 +79,5 @@ export class HdTronPayments extends BaseTronPayments {
   }
 
 }
+
+export default HdTronPayments
