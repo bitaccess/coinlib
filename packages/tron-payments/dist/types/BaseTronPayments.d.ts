@@ -29,7 +29,13 @@ export declare abstract class BaseTronPayments implements PaymentsInterface<Unsi
     getTransactionInfo(txid: string): Promise<TransactionInfo>;
     private canSweepBalance;
     private extractTxFields;
-    private resolveAddress;
-    private resolveFromTo;
+    resolveAddress(addressOrIndex: string | number): Promise<string>;
+    resolveFromTo(from: string | number, to: string | number): Promise<{
+        fromIndex: number;
+        fromAddress: string;
+        fromPrivateKey: string;
+        toIndex: number | null;
+        toAddress: string;
+    }>;
 }
 export default BaseTronPayments;
