@@ -83,7 +83,9 @@ export interface PaymentsInterface<
    * @returns Info about the transaction
    * @throws Error if transaction is not found
    */
-  getTransactionInfo<O extends object>(txId: string, addressOrIndex: string | number, options?: O): Promise<TransactionInfo>
+  getTransactionInfo<O extends object>(
+    txId: string, addressOrIndex: string | number, options?: O,
+  ): Promise<TransactionInfo>
 
   /**
    * Creates and signs a new payment transaction sending `amount` from address `from` to address `to`.
