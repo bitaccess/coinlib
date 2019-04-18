@@ -3,6 +3,7 @@ import commonjs from 'rollup-plugin-commonjs'
 import sourceMaps from 'rollup-plugin-sourcemaps'
 import typescript from 'rollup-plugin-typescript2'
 import json from 'rollup-plugin-json'
+import { snakeCase } from 'lodash'
 
 const pkg = require('./package.json')
 const external = Object.keys(pkg.dependencies || {})
@@ -10,7 +11,7 @@ const external = Object.keys(pkg.dependencies || {})
 export default {
   input: 'src/index.ts',
   output: [
-    { file: pkg.main, name: 'moneroPayments', format: 'umd', sourcemap: true },
+    { file: pkg.main, name: snakeCase(pkg.name), format: 'umd', sourcemap: true },
     { file: pkg.module, format: 'es', sourcemap: true },
   ],
   // Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash')
