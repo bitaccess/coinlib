@@ -881,5 +881,20 @@ var KeyPairTronPayments = (function (_super) {
     return KeyPairTronPayments;
 }(BaseTronPayments));
 
-export { BaseTronPayments, HdTronPayments, KeyPairTronPayments, toError, toMainDenominationNumber, toMainDenomination, toBaseDenominationNumber, toBaseDenomination, isValidXprv, isValidXpub, derivationPath, deriveAddress, derivePrivateKey, xprvToXpub, encode58, decode58, TRX_FEE_FOR_TRANSFER, TRX_FEE_FOR_TRANSFER_SUN, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, DEFAULT_EVENT_SERVER, DEFAULT_MAX_ADDRESS_SCAN };
+var TronPaymentsFactory = (function () {
+    function TronPaymentsFactory() {
+    }
+    TronPaymentsFactory.prototype.forConfig = function (config) {
+        if (config.hdKey) {
+            return new HdTronPayments(config);
+        }
+        if (config.keyPairs) {
+            return new KeyPairTronPayments(config);
+        }
+        throw new Error('Cannot instantiate tron payments for unsupported config');
+    };
+    return TronPaymentsFactory;
+}());
+
+export { BaseTronPayments, HdTronPayments, KeyPairTronPayments, TronPaymentsFactory, toError, toMainDenominationNumber, toMainDenomination, toBaseDenominationNumber, toBaseDenomination, isValidXprv, isValidXpub, derivationPath, deriveAddress, derivePrivateKey, xprvToXpub, encode58, decode58, TRX_FEE_FOR_TRANSFER, TRX_FEE_FOR_TRANSFER_SUN, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, DEFAULT_EVENT_SERVER, DEFAULT_MAX_ADDRESS_SCAN };
 //# sourceMappingURL=monero-payments.es5.js.map

@@ -1,9 +1,5 @@
-import { BaseTronPayments, BaseTronPaymentsConfig } from './BaseTronPayments';
-import { GetAddressOptions } from './types';
-export interface HdTronPaymentsConfig extends BaseTronPaymentsConfig {
-    hdKey: string;
-    maxAddressScan?: number;
-}
+import { BaseTronPayments } from './BaseTronPayments';
+import { GetAddressOptions, HdTronPaymentsConfig } from './types';
 export declare class HdTronPayments extends BaseTronPayments {
     hdKey: string;
     maxAddressScan: number;
@@ -17,3 +13,4 @@ export declare class HdTronPayments extends BaseTronPayments {
     getAddressIndex(address: string): Promise<number>;
     getPrivateKey(index: number): Promise<string>;
 }
+export default HdTronPayments;

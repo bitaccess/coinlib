@@ -1,4 +1,4 @@
-export default class Bip44Cache {
+export declare class Bip44Cache {
     store: {
         [xpub: string]: {
             addresses: {
@@ -13,3 +13,4 @@ export default class Bip44Cache {
     lookupIndex(xpub: string, address: string): number | undefined;
     lookupAddress(xpub: string, index: number): string | undefined;
 }
+export default Bip44Cache;

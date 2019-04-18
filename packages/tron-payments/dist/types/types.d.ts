@@ -1,5 +1,20 @@
 import { BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction } from 'payments-common';
 import { Transaction as TronTransaction, TransactionInfo as TronTransactionInfo, Block as TronBlock } from 'tronweb';
+export interface BaseTronPaymentsConfig {
+    fullNode?: string;
+    solidityNode?: string;
+    eventServer?: string;
+}
+export interface HdTronPaymentsConfig extends BaseTronPaymentsConfig {
+    hdKey: string;
+    maxAddressScan?: number;
+}
+export interface KeyPairTronPaymentsConfig extends BaseTronPaymentsConfig {
+    keyPairs: Array<string | null | undefined> | {
+        [index: number]: string;
+    };
+}
+export declare type TronPaymentsConfig = HdTronPaymentsConfig | KeyPairTronPaymentsConfig;
 export declare type TransactionInfoRaw = TronTransaction & TronTransactionInfo & {
     currentBlock: Pick<TronBlock, 'blockID' | 'block_header'>;
 };

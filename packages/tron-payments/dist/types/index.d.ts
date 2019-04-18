@@ -1,6 +1,7 @@
 export * from './BaseTronPayments';
 export * from './HdTronPayments';
 export * from './KeyPairTronPayments';
+export * from './TronPaymentsFactory';
 export * from './types';
 export * from './utils';
 export * from './bip44';

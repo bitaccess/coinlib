@@ -1,9 +1,5 @@
-import { BaseTronPayments, BaseTronPaymentsConfig } from './BaseTronPayments';
-export interface KeyPairTronPaymentsConfig extends BaseTronPaymentsConfig {
-    keyPairs: Array<string | null | undefined> | {
-        [index: number]: string;
-    };
-}
+import { BaseTronPayments } from './BaseTronPayments';
+import { KeyPairTronPaymentsConfig } from './types';
 export declare class KeyPairTronPayments extends BaseTronPayments {
     addresses: {
         [index: number]: string | undefined;

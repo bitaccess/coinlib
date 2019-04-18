@@ -1,12 +1,7 @@
 import TronWeb from 'tronweb';
 import { BalanceResult, PaymentsInterface, BroadcastResult } from 'payments-common';
-import { TransactionInfo, UnsignedTransaction, SignedTransaction, CreateTransactionOptions, GetAddressOptions } from './types';
+import { TransactionInfo, UnsignedTransaction, SignedTransaction, CreateTransactionOptions, GetAddressOptions, BaseTronPaymentsConfig } from './types';
 import { toMainDenomination, toBaseDenomination } from './utils';
-export interface BaseTronPaymentsConfig {
-    fullNode?: string;
-    solidityNode?: string;
-    eventServer?: string;
-}
 export declare abstract class BaseTronPayments implements PaymentsInterface<UnsignedTransaction, SignedTransaction, TransactionInfo> {
     fullNode: string;
     solidityNode: string;

@@ -15,5 +15,6 @@ var Bip44Cache = (function () {
     };
     return Bip44Cache;
 }());
+export { Bip44Cache };
 export default Bip44Cache;
 //# sourceMappingURL=Bip44Cache.js.map

@@ -129,4 +129,5 @@ var HdTronPayments = (function (_super) {
     return HdTronPayments;
 }(BaseTronPayments));
 export { HdTronPayments };
+export default HdTronPayments;
 //# sourceMappingURL=HdTronPayments.js.map
