@@ -4,18 +4,13 @@ import { BalanceResult, PaymentsInterface, TransactionStatus, BroadcastResult } 
 
 import {
   TransactionInfo, UnsignedTransaction, SignedTransaction, CreateTransactionOptions, GetAddressOptions,
+  BaseTronPaymentsConfig,
 } from './types'
 import { toMainDenomination, toBaseDenomination, toBaseDenominationNumber, toError } from './utils'
 import {
   TRX_FEE_FOR_TRANSFER_SUN,
   DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE,
 } from './constants'
-
-export interface BaseTronPaymentsConfig {
-  fullNode?: string
-  solidityNode?: string
-  eventServer?: string
-}
 
 export abstract class BaseTronPayments
   implements PaymentsInterface<UnsignedTransaction, SignedTransaction, TransactionInfo> {

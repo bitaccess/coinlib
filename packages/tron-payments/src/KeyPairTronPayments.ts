@@ -1,11 +1,7 @@
 import { set, get } from 'lodash'
 
-import { BaseTronPayments, BaseTronPaymentsConfig } from './BaseTronPayments'
-import { GetAddressOptions } from './types'
-
-export interface KeyPairTronPaymentsConfig extends BaseTronPaymentsConfig {
-  keyPairs: Array<string | null | undefined> | { [index: number]: string } // private keys or addresses
-}
+import { BaseTronPayments } from './BaseTronPayments'
+import { KeyPairTronPaymentsConfig } from './types'
 
 export class KeyPairTronPayments extends BaseTronPayments {
 

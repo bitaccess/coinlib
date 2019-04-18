@@ -1,17 +1,12 @@
 import { set, get } from 'lodash'
 import { HDPrivateKey } from 'bitcore-lib'
 
-import { BaseTronPayments, BaseTronPaymentsConfig } from './BaseTronPayments'
+import { BaseTronPayments } from './BaseTronPayments'
 import Bip44Cache from './Bip44Cache'
-import { GetAddressOptions } from './types'
+import { GetAddressOptions, HdTronPaymentsConfig } from './types'
 import { deriveAddress, derivePrivateKey, xprvToXpub } from './bip44'
 import { DEFAULT_MAX_ADDRESS_SCAN } from './constants'
 import { isValidXpub, isValidXprv } from './utils'
-
-export interface HdTronPaymentsConfig extends BaseTronPaymentsConfig {
-  hdKey: string // xprv or xpub
-  maxAddressScan?: number // max address scan to find address index in getAddressIndex
-}
 
 const xpubCache = new Bip44Cache()
 
