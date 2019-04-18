@@ -311,7 +311,7 @@ export abstract class BaseTronPayments
     }
   }
 
-  private async resolveAddress(addressOrIndex: string | number): Promise<string> {
+  async resolveAddress(addressOrIndex: string | number): Promise<string> {
     if (typeof addressOrIndex === 'number') {
       return this.getAddress(addressOrIndex)
     } else {
@@ -322,7 +322,7 @@ export abstract class BaseTronPayments
     }
   }
 
-  private async resolveFromTo(from: string | number, to: string | number): Promise<{
+  async resolveFromTo(from: string | number, to: string | number): Promise<{
     fromIndex: number, fromAddress: string, fromPrivateKey: string,
     toIndex: number | null, toAddress: string,
   }> {
