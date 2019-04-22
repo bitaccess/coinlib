@@ -38,7 +38,7 @@
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
     "precommit": "lint-staged",
     "preversion": "bin/preversion.sh",
-    "version": "git checkout master && npm run build && git add -Af dist docs",
+    "version": "npm run build && git add -Af dist docs",
     "postversion": "git push && git push --tags"
   },
   "dependencies": {
