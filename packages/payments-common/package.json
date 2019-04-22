@@ -1,6 +1,6 @@
 {
   "name": "payments-common",
-  "version": "0.4.0-1",
+  "version": "0.4.0-0",
   "description": "Common modules used by payments libs",
   "main": "dist/index.umd.js",
   "module": "dist/index.es5.js",
@@ -29,7 +29,7 @@
   },
   "scripts": {
     "lint": "tslint --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
-    "docs": "typedoc --out docs --target es6 --theme minimal --mode file --includeDeclarations src",
+    "docs": "typedoc --options typedoc.json",
     "prebuild": "rimraf dist",
     "build": "tsc --build ./tsconfig.build.json && rollup -c rollup.config.ts && npm run docs",
     "start": "rollup -c rollup.config.ts -w",
