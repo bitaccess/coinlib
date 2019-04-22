@@ -46,6 +46,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import TronWeb from 'tronweb';
 import { pick, get, cloneDeep } from 'lodash';
+import { TransactionStatus } from 'payments-common';
 import { toMainDenomination, toBaseDenomination, toBaseDenominationNumber, toError } from './utils';
 import { TRX_FEE_FOR_TRANSFER_SUN, DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE, } from './constants';
 var BaseTronPayments = (function () {
@@ -264,7 +265,7 @@ var BaseTronPayments = (function () {
     };
     BaseTronPayments.prototype.broadcastTransaction = function (tx) {
         return __awaiter(this, void 0, void 0, function () {
-            var status, success, result, e_7, statusCode, e_8;
+            var status, success, rebroadcast, e_7, statusCode, e_8;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -273,6 +274,7 @@ var BaseTronPayments = (function () {
                     case 1:
                         status = _a.sent();
                         success = false;
+                        rebroadcast = false;
                         if (!(status.result || status.code === 'SUCCESS')) return [3, 2];
                         success = true;
                         return [3, 5];
@@ -280,8 +282,9 @@ var BaseTronPayments = (function () {
                         _a.trys.push([2, 4, , 5]);
                         return [4, this.tronweb.trx.getTransaction(tx.id)];
                     case 3:
-                        result = _a.sent();
+                        _a.sent();
                         success = true;
+                        rebroadcast = true;
                         return [3, 5];
                     case 4:
                         e_7 = _a.sent();
@@ -289,7 +292,8 @@ var BaseTronPayments = (function () {
                     case 5:
                         if (success) {
                             return [2, {
-                                    id: tx.id
+                                    id: tx.id,
+                                    rebroadcast: rebroadcast,
                                 }];
                         }
                         else {
@@ -337,12 +341,12 @@ var BaseTronPayments = (function () {
                         confirmations = currentBlockNumber && block ? currentBlockNumber - block : 0;
                         isConfirmed = confirmations > 0;
                         date = new Date(tx.raw_data.timestamp);
-                        status = 'pending';
+                        status = TransactionStatus.Pending;
                         if (isConfirmed) {
                             if (!isExecuted) {
-                                status = 'failed';
+                                status = TransactionStatus.Failed;
                             }
-                            status = 'confirmed';
+                            status = TransactionStatus.Confirmed;
                         }
                         return [2, {
                                 id: tx.txID,

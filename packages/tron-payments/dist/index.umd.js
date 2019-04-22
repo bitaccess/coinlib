@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('tronweb'), require('lodash'), require('bitcore-lib'), require('js-sha3'), require('jssha'), require('elliptic')) :
-    typeof define === 'function' && define.amd ? define(['exports', 'tronweb', 'lodash', 'bitcore-lib', 'js-sha3', 'jssha', 'elliptic'], factory) :
-    (factory((global.faast_tron_payments = {}),global.TronWeb,global.lodash,global.bitcoreLib,global.jsSha3,global.jsSHA,global.elliptic));
-}(this, (function (exports,TronWeb,lodash,bitcoreLib,jsSha3,jsSHA,elliptic) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('tronweb'), require('lodash'), require('bitcore-lib'), require('js-sha3'), require('jssha'), require('elliptic'), require('io-ts'), require('payments-common')) :
+    typeof define === 'function' && define.amd ? define(['exports', 'tronweb', 'lodash', 'bitcore-lib', 'js-sha3', 'jssha', 'elliptic', 'io-ts', 'payments-common'], factory) :
+    (factory((global.faast_tron_payments = {}),global.TronWeb,global.lodash,global.bitcoreLib,global.jsSha3,global.jsSHA,global.elliptic,global.t,global.paymentsCommon));
+}(this, (function (exports,TronWeb,lodash,bitcoreLib,jsSha3,jsSHA,elliptic,t,paymentsCommon) { 'use strict';
 
     TronWeb = TronWeb && TronWeb.hasOwnProperty('default') ? TronWeb['default'] : TronWeb;
     jsSHA = jsSHA && jsSHA.hasOwnProperty('default') ? jsSHA['default'] : jsSHA;
@@ -37,12 +37,12 @@
     }
 
     var __assign = function() {
-        __assign = Object.assign || function __assign(t) {
+        __assign = Object.assign || function __assign(t$$1) {
             for (var s, i = 1, n = arguments.length; i < n; i++) {
                 s = arguments[i];
-                for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+                for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t$$1[p] = s[p];
             }
-            return t;
+            return t$$1;
         };
         return __assign.apply(this, arguments);
     };
@@ -57,29 +57,29 @@
     }
 
     function __generator(thisArg, body) {
-        var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+        var _ = { label: 0, sent: function() { if (t$$1[0] & 1) throw t$$1[1]; return t$$1[1]; }, trys: [], ops: [] }, f, y, t$$1, g;
         return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
         function verb(n) { return function (v) { return step([n, v]); }; }
         function step(op) {
             if (f) throw new TypeError("Generator is already executing.");
             while (_) try {
-                if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-                if (y = 0, t) op = [op[0] & 2, t.value];
+                if (f = 1, y && (t$$1 = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t$$1 = y["return"]) && t$$1.call(y), 0) : y.next) && !(t$$1 = t$$1.call(y, op[1])).done) return t$$1;
+                if (y = 0, t$$1) op = [op[0] & 2, t$$1.value];
                 switch (op[0]) {
-                    case 0: case 1: t = op; break;
+                    case 0: case 1: t$$1 = op; break;
                     case 4: _.label++; return { value: op[1], done: false };
                     case 5: _.label++; y = op[1]; op = [0]; continue;
                     case 7: op = _.ops.pop(); _.trys.pop(); continue;
                     default:
-                        if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                        if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                        if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                        if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                        if (t[2]) _.ops.pop();
+                        if (!(t$$1 = _.trys, t$$1 = t$$1.length > 0 && t$$1[t$$1.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                        if (op[0] === 3 && (!t$$1 || (op[1] > t$$1[0] && op[1] < t$$1[3]))) { _.label = op[1]; break; }
+                        if (op[0] === 6 && _.label < t$$1[1]) { _.label = t$$1[1]; t$$1 = op; break; }
+                        if (t$$1 && _.label < t$$1[2]) { _.label = t$$1[2]; _.ops.push(op); break; }
+                        if (t$$1[2]) _.ops.pop();
                         _.trys.pop(); continue;
                 }
                 op = body.call(thisArg, _);
-            } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+            } catch (e) { op = [6, e]; y = 0; } finally { f = t$$1 = 0; }
             if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
         }
     }
@@ -332,7 +332,7 @@
         };
         BaseTronPayments.prototype.broadcastTransaction = function (tx) {
             return __awaiter(this, void 0, void 0, function () {
-                var status, success, result, e_7, statusCode, e_8;
+                var status, success, rebroadcast, e_7, statusCode, e_8;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -341,6 +341,7 @@
                         case 1:
                             status = _a.sent();
                             success = false;
+                            rebroadcast = false;
                             if (!(status.result || status.code === 'SUCCESS')) return [3, 2];
                             success = true;
                             return [3, 5];
@@ -348,8 +349,9 @@
                             _a.trys.push([2, 4, , 5]);
                             return [4, this.tronweb.trx.getTransaction(tx.id)];
                         case 3:
-                            result = _a.sent();
+                            _a.sent();
                             success = true;
+                            rebroadcast = true;
                             return [3, 5];
                         case 4:
                             e_7 = _a.sent();
@@ -357,7 +359,8 @@
                         case 5:
                             if (success) {
                                 return [2, {
-                                        id: tx.id
+                                        id: tx.id,
+                                        rebroadcast: rebroadcast,
                                     }];
                             }
                             else {
@@ -405,12 +408,12 @@
                             confirmations = currentBlockNumber && block ? currentBlockNumber - block : 0;
                             isConfirmed = confirmations > 0;
                             date = new Date(tx.raw_data.timestamp);
-                            status = 'pending';
+                            status = paymentsCommon.TransactionStatus.Pending;
                             if (isConfirmed) {
                                 if (!isExecuted) {
-                                    status = 'failed';
+                                    status = paymentsCommon.TransactionStatus.Failed;
                                 }
-                                status = 'confirmed';
+                                status = paymentsCommon.TransactionStatus.Confirmed;
                             }
                             return [2, {
                                     id: tx.txID,
@@ -895,10 +898,57 @@
         return TronPaymentsFactory;
     }());
 
+    var BaseTronPaymentsConfig = t.partial({
+        fullNode: t.string,
+        solidityNode: t.string,
+        eventServer: t.string,
+    }, 'BaseTronPaymentsConfig');
+    var HdTronPaymentsConfig = paymentsCommon.extend(BaseTronPaymentsConfig, {
+        hdKey: t.string,
+    }, {
+        maxAddressScan: t.number,
+    }, 'HdTronPaymentsConfig');
+    var KeyPairTronPaymentsConfig = paymentsCommon.extend(BaseTronPaymentsConfig, {
+        keyPairs: t.union([
+            t.array(t.union([t.string, t.null, t.undefined])),
+            t.record(t.number, t.string),
+        ]),
+    }, {}, 'KeyPairTronPaymentsConfig');
+    var TronPaymentsConfig = t.union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig]);
+    var TronUnsignedTransaction = paymentsCommon.extend(paymentsCommon.BaseUnsignedTransaction, {
+        id: t.string,
+        amount: t.string,
+        fee: t.string,
+    }, {}, 'TronUnsignedTransaction');
+    var TronSignedTransaction = paymentsCommon.extend(paymentsCommon.BaseSignedTransaction, {}, {}, 'TronSignedTransaction');
+    var TronTransactionInfo = paymentsCommon.extend(paymentsCommon.BaseTransactionInfo, {
+        from: t.string,
+        to: t.string,
+    }, {}, 'TronTransactionInfo');
+    var TronBroadcastResult = paymentsCommon.extend(paymentsCommon.BaseBroadcastResult, {
+        rebroadcast: t.boolean,
+    }, {}, 'TronBroadcastResult');
+    var CreateTransactionOptions = t.partial({
+        fee: t.number,
+    });
+    var GetAddressOptions = t.partial({
+        cacheIndex: t.boolean,
+    });
+
     exports.BaseTronPayments = BaseTronPayments;
     exports.HdTronPayments = HdTronPayments;
     exports.KeyPairTronPayments = KeyPairTronPayments;
     exports.TronPaymentsFactory = TronPaymentsFactory;
+    exports.BaseTronPaymentsConfig = BaseTronPaymentsConfig;
+    exports.HdTronPaymentsConfig = HdTronPaymentsConfig;
+    exports.KeyPairTronPaymentsConfig = KeyPairTronPaymentsConfig;
+    exports.TronPaymentsConfig = TronPaymentsConfig;
+    exports.TronUnsignedTransaction = TronUnsignedTransaction;
+    exports.TronSignedTransaction = TronSignedTransaction;
+    exports.TronTransactionInfo = TronTransactionInfo;
+    exports.TronBroadcastResult = TronBroadcastResult;
+    exports.CreateTransactionOptions = CreateTransactionOptions;
+    exports.GetAddressOptions = GetAddressOptions;
     exports.toError = toError;
     exports.toMainDenominationNumber = toMainDenominationNumber;
     exports.toMainDenomination = toMainDenomination;

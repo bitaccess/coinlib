@@ -4,6 +4,8 @@ import { HDPrivateKey, HDPublicKey } from 'bitcore-lib';
 import { keccak256 } from 'js-sha3';
 import jsSHA from 'jssha';
 import { ec } from 'elliptic';
+import { partial, string, number, union, array, null, undefined as undefined$1, record, boolean } from 'io-ts';
+import { TransactionStatus, BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, extend } from 'payments-common';
 
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
@@ -330,7 +332,7 @@ var BaseTronPayments = (function () {
     };
     BaseTronPayments.prototype.broadcastTransaction = function (tx) {
         return __awaiter(this, void 0, void 0, function () {
-            var status, success, result, e_7, statusCode, e_8;
+            var status, success, rebroadcast, e_7, statusCode, e_8;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -339,6 +341,7 @@ var BaseTronPayments = (function () {
                     case 1:
                         status = _a.sent();
                         success = false;
+                        rebroadcast = false;
                         if (!(status.result || status.code === 'SUCCESS')) return [3, 2];
                         success = true;
                         return [3, 5];
@@ -346,8 +349,9 @@ var BaseTronPayments = (function () {
                         _a.trys.push([2, 4, , 5]);
                         return [4, this.tronweb.trx.getTransaction(tx.id)];
                     case 3:
-                        result = _a.sent();
+                        _a.sent();
                         success = true;
+                        rebroadcast = true;
                         return [3, 5];
                     case 4:
                         e_7 = _a.sent();
@@ -355,7 +359,8 @@ var BaseTronPayments = (function () {
                     case 5:
                         if (success) {
                             return [2, {
-                                    id: tx.id
+                                    id: tx.id,
+                                    rebroadcast: rebroadcast,
                                 }];
                         }
                         else {
@@ -403,12 +408,12 @@ var BaseTronPayments = (function () {
                         confirmations = currentBlockNumber && block ? currentBlockNumber - block : 0;
                         isConfirmed = confirmations > 0;
                         date = new Date(tx.raw_data.timestamp);
-                        status = 'pending';
+                        status = TransactionStatus.Pending;
                         if (isConfirmed) {
                             if (!isExecuted) {
-                                status = 'failed';
+                                status = TransactionStatus.Failed;
                             }
-                            status = 'confirmed';
+                            status = TransactionStatus.Confirmed;
                         }
                         return [2, {
                                 id: tx.txID,
@@ -893,5 +898,42 @@ var TronPaymentsFactory = (function () {
     return TronPaymentsFactory;
 }());
 
-export { BaseTronPayments, HdTronPayments, KeyPairTronPayments, TronPaymentsFactory, toError, toMainDenominationNumber, toMainDenomination, toBaseDenominationNumber, toBaseDenomination, isValidXprv, isValidXpub, derivationPath, deriveAddress, derivePrivateKey, xprvToXpub, encode58, decode58, TRX_FEE_FOR_TRANSFER, TRX_FEE_FOR_TRANSFER_SUN, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, DEFAULT_EVENT_SERVER, DEFAULT_MAX_ADDRESS_SCAN };
+var BaseTronPaymentsConfig = partial({
+    fullNode: string,
+    solidityNode: string,
+    eventServer: string,
+}, 'BaseTronPaymentsConfig');
+var HdTronPaymentsConfig = extend(BaseTronPaymentsConfig, {
+    hdKey: string,
+}, {
+    maxAddressScan: number,
+}, 'HdTronPaymentsConfig');
+var KeyPairTronPaymentsConfig = extend(BaseTronPaymentsConfig, {
+    keyPairs: union([
+        array(union([string, null, undefined$1])),
+        record(number, string),
+    ]),
+}, {}, 'KeyPairTronPaymentsConfig');
+var TronPaymentsConfig = union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig]);
+var TronUnsignedTransaction = extend(BaseUnsignedTransaction, {
+    id: string,
+    amount: string,
+    fee: string,
+}, {}, 'TronUnsignedTransaction');
+var TronSignedTransaction = extend(BaseSignedTransaction, {}, {}, 'TronSignedTransaction');
+var TronTransactionInfo = extend(BaseTransactionInfo, {
+    from: string,
+    to: string,
+}, {}, 'TronTransactionInfo');
+var TronBroadcastResult = extend(BaseBroadcastResult, {
+    rebroadcast: boolean,
+}, {}, 'TronBroadcastResult');
+var CreateTransactionOptions = partial({
+    fee: number,
+});
+var GetAddressOptions = partial({
+    cacheIndex: boolean,
+});
+
+export { BaseTronPayments, HdTronPayments, KeyPairTronPayments, TronPaymentsFactory, BaseTronPaymentsConfig, HdTronPaymentsConfig, KeyPairTronPaymentsConfig, TronPaymentsConfig, TronUnsignedTransaction, TronSignedTransaction, TronTransactionInfo, TronBroadcastResult, CreateTransactionOptions, GetAddressOptions, toError, toMainDenominationNumber, toMainDenomination, toBaseDenominationNumber, toBaseDenomination, isValidXprv, isValidXpub, derivationPath, deriveAddress, derivePrivateKey, xprvToXpub, encode58, decode58, TRX_FEE_FOR_TRANSFER, TRX_FEE_FOR_TRANSFER_SUN, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, DEFAULT_EVENT_SERVER, DEFAULT_MAX_ADDRESS_SCAN };
 //# sourceMappingURL=index.es5.js.map
