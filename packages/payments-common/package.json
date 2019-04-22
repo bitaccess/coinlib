@@ -21,7 +21,9 @@
   "license": "MIT",
   "homepage": "https://github.com/go-faast/payments-common#readme",
   "dependencies": {
-    "faast-ts-config": "github:go-faast/faast-ts-config"
+    "faast-ts-config": "github:go-faast/faast-ts-config",
+    "io-ts": "^1.8.5",
+    "io-ts-types": "^0.4.7"
   },
   "devDependencies": {
     "tslint": "^5.16.0",
