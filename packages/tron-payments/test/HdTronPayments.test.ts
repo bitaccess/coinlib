@@ -3,7 +3,7 @@ import path from 'path'
 import { omit } from 'lodash'
 
 import { HdTronPayments } from '#/HdTronPayments'
-import { TransactionInfo } from '#/types'
+import { TronTransactionInfo } from '#/types'
 
 import { txInfo_209F8, signedTx_valid, txInfo_a0787, signedTx_invalid } from './fixtures/transactions'
 import { hdAccount } from './fixtures/accounts'
@@ -25,7 +25,7 @@ if (fs.existsSync(secretXprvFilePath)) {
 }
 
 const txInfoOmitEquality = ['rawInfo.currentBlock', 'confirmations']
-function assertTxInfo(actual: TransactionInfo, expected: TransactionInfo): void {
+function assertTxInfo(actual: TronTransactionInfo, expected: TronTransactionInfo): void {
   expect(omit(actual, txInfoOmitEquality)).toEqual(omit(expected, txInfoOmitEquality))
 }
 
@@ -154,7 +154,8 @@ function runHardcodedPublicKeyTests(tp: HdTronPayments) {
   it('broadcast an existing sweep transaction', async () => {
     const result = await tp.broadcastTransaction(signedTx_valid)
     expect(result).toEqual({
-      id: signedTx_valid.id
+      id: signedTx_valid.id,
+      rebroadcast: true,
     })
   })
   it('broadcast should fail on invalid tx', async () => {
@@ -307,6 +308,7 @@ describe('HdTronPayments', () => {
           console.log(`Sweeping ${signedTx.amount} TRX from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
           expect(await tp.broadcastTransaction(signedTx)).toEqual({
             id: signedTx.id,
+            rebroadcast: false,
           })
         } catch (e) {
           if ((e.message || e as string).includes('Validate TransferContract error, balance is not sufficient')) {

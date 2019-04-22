@@ -1,46 +1,102 @@
-import { BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction } from 'payments-common'
+import * as t from 'io-ts'
 import {
-  Transaction as TronTransaction,
-  TransactionInfo as TronTransactionInfo,
-  Block as TronBlock
+  BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, extend,
+} from 'payments-common'
+import {
+  Transaction as TronWebTransaction,
+  TransactionInfo as TronWebTransactionInfo,
+  Block as TronWebBlock
 } from 'tronweb'
 
-export interface BaseTronPaymentsConfig {
-  fullNode?: string
-  solidityNode?: string
-  eventServer?: string
+export { TronWebTransaction, TronWebTransactionInfo, TronWebBlock }
+
+export type TransactionInfoRaw = TronWebTransaction & TronWebTransactionInfo & {
+  currentBlock: Pick<TronWebBlock, 'blockID' | 'block_header'>
 }
 
-export interface HdTronPaymentsConfig extends BaseTronPaymentsConfig {
-  hdKey: string // xprv or xpub
-  maxAddressScan?: number // max address scan to find address index in getAddressIndex
-}
+export const BaseTronPaymentsConfig = t.partial({
+  fullNode: t.string,
+  solidityNode: t.string,
+  eventServer: t.string,
+}, 'BaseTronPaymentsConfig')
+export type BaseTronPaymentsConfig = t.TypeOf<typeof BaseTronPaymentsConfig>
 
-export interface KeyPairTronPaymentsConfig extends BaseTronPaymentsConfig {
-  keyPairs: Array<string | null | undefined> | { [index: number]: string } // private keys or addresses
-}
+export const HdTronPaymentsConfig = extend(
+  BaseTronPaymentsConfig,
+  { // required
+    hdKey: t.string, // xprv or xpub
+  },
+  { // optional
+    maxAddressScan: t.number, // max address scan to find address index in getAddressIndex
+  },
+  'HdTronPaymentsConfig',
+)
+export type HdTronPaymentsConfig = t.TypeOf<typeof HdTronPaymentsConfig>
 
-export type TronPaymentsConfig = HdTronPaymentsConfig | KeyPairTronPaymentsConfig
+export const KeyPairTronPaymentsConfig = extend(
+  BaseTronPaymentsConfig,
+  {
+    // can be private keys or addresses
+    keyPairs: t.union([
+      t.array(t.union([t.string, t.null, t.undefined])),
+      t.record(t.number, t.string),
+    ]),
+  },
+  {},
+  'KeyPairTronPaymentsConfig',
+)
+export type KeyPairTronPaymentsConfig = t.TypeOf<typeof KeyPairTronPaymentsConfig>
 
-export type TransactionInfoRaw = TronTransaction & TronTransactionInfo & {
-  currentBlock: Pick<TronBlock, 'blockID' | 'block_header'>
-}
+export const TronPaymentsConfig = t.union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig])
+export type TronPaymentsConfig = t.TypeOf<typeof TronPaymentsConfig>
 
-export interface UnsignedTransaction extends BaseUnsignedTransaction<TronTransaction> {
-  id: string
-  amount: string
-  fee: string
-}
-export interface SignedTransaction extends BaseSignedTransaction<TronTransaction> {}
-export interface TransactionInfo extends BaseTransactionInfo<TransactionInfoRaw> {
-  from: string
-  to: string
-}
+export const TronUnsignedTransaction = extend(
+  BaseUnsignedTransaction,
+  {
+    id: t.string,
+    amount: t.string,
+    fee: t.string,
+  },
+  {},
+  'TronUnsignedTransaction',
+)
+export type TronUnsignedTransaction = t.TypeOf<typeof TronUnsignedTransaction>
 
-export interface CreateTransactionOptions {
-  fee?: number // in sun
-}
+export const TronSignedTransaction = extend(
+  BaseSignedTransaction,
+  {},
+  {},
+  'TronSignedTransaction',
+)
+export type TronSignedTransaction = t.TypeOf<typeof TronSignedTransaction>
 
-export interface GetAddressOptions {
-  cacheIndex?: boolean
-}
+export const TronTransactionInfo = extend(
+  BaseTransactionInfo,
+  {
+    from: t.string,
+    to: t.string,
+  },
+  {},
+  'TronTransactionInfo',
+)
+export type TronTransactionInfo = t.TypeOf<typeof TronTransactionInfo>
+
+export const TronBroadcastResult = extend(
+  BaseBroadcastResult,
+  {
+    rebroadcast: t.boolean,
+  },
+  {},
+  'TronBroadcastResult',
+)
+export type TronBroadcastResult = t.TypeOf<typeof TronBroadcastResult>
+
+export const CreateTransactionOptions = t.partial({
+  fee: t.number, // in sun
+})
+export type CreateTransactionOptions = t.TypeOf<typeof CreateTransactionOptions>
+
+export const GetAddressOptions = t.partial({
+  cacheIndex: t.boolean,
+})
+export type GetAddressOptions = t.TypeOf<typeof GetAddressOptions>

@@ -1,7 +1,7 @@
 /* tslint:disable: max-line-length variable-name */
-import { TransactionInfo, SignedTransaction } from '#/types'
+import { TronTransactionInfo, TronSignedTransaction } from '#/types'
 
-export const txInfo_209F8: TransactionInfo = {
+export const txInfo_209F8: TronTransactionInfo = {
   'id': '209f8dbefe6bbb9395f1be76dfb581b7bb53197d27cb28fbfe6c819b914c140c',
   'to': 'TYehHt29ynSogYoxp9653hMFmxCV3gCZqg',
   'from': 'TBR4KDPrN9BrnyjienckS2xixcTpJ9aP26',
@@ -73,7 +73,7 @@ export const txInfo_209F8: TransactionInfo = {
   }
 }
 
-export const txInfo_a0787: TransactionInfo = {
+export const txInfo_a0787: TronTransactionInfo = {
   'id': 'a078736ab768b34dc06ca9048dddfa73383947aed0d93f1eff2adde4b7254f39',
   'amount': '10.27',
   'to': 'TVqbYNCpGBxTXP84zRuLk3iS4TXGo1verg',
@@ -144,7 +144,7 @@ export const txInfo_a0787: TransactionInfo = {
   }
 }
 
-export const signedTx_valid: SignedTransaction = {
+export const signedTx_valid: TronSignedTransaction = {
   'id': 'c7376e46f869a9cadfca43ca20bfdc3c1bfe856908a6a57de147fb881189c3a7',
   'from': 'TWkTMxK5GZvnvQ3WjNQ6oNV5bNGHd13zov',
   'to': 'TSKW3gHsWKnF62zs2XsMxFkXZ2fLY74CnA',
@@ -205,7 +205,7 @@ export const signedTx_valid: SignedTransaction = {
   }
 }
 
-export const signedTx_invalid: SignedTransaction = {
+export const signedTx_invalid: TronSignedTransaction = {
   'id': '1234567890',
   'from': '1234567890',
   'to': '1234567890',

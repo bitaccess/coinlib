@@ -1,10 +1,10 @@
 import TronWeb, { Transaction as TronTransaction } from 'tronweb'
 import { pick, get, cloneDeep } from 'lodash'
-import { BalanceResult, PaymentsInterface, TransactionStatus, BroadcastResult } from 'payments-common'
+import { BalanceResult, PaymentsInterface, TransactionStatus } from 'payments-common'
 
 import {
-  TransactionInfo, UnsignedTransaction, SignedTransaction, CreateTransactionOptions, GetAddressOptions,
-  BaseTronPaymentsConfig,
+  TronTransactionInfo, TronUnsignedTransaction, TronSignedTransaction, TronBroadcastResult,
+  CreateTransactionOptions, GetAddressOptions, BaseTronPaymentsConfig, TronWebTransaction,
 } from './types'
 import { toMainDenomination, toBaseDenomination, toBaseDenominationNumber, toError } from './utils'
 import {
@@ -12,8 +12,9 @@ import {
   DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE,
 } from './constants'
 
-export abstract class BaseTronPayments
-  implements PaymentsInterface<UnsignedTransaction, SignedTransaction, TransactionInfo> {
+export abstract class BaseTronPayments implements PaymentsInterface<
+  TronUnsignedTransaction, TronSignedTransaction, TronBroadcastResult, TronTransactionInfo
+> {
   // You may notice that many function blocks are enclosed in a try/catch.
   // I had to do this because tronweb thinks it's a good idea to throw
   // strings instead of Errors and now we need to convert them all ourselves
@@ -103,7 +104,7 @@ export abstract class BaseTronPayments
 
   async createSweepTransaction(
     from: string | number, to: string | number, options: CreateTransactionOptions = {}
-  ): Promise<UnsignedTransaction> {
+  ): Promise<TronUnsignedTransaction> {
     try {
       const {
         fromAddress, fromIndex, toAddress, toIndex
@@ -137,7 +138,7 @@ export abstract class BaseTronPayments
 
   async createTransaction(
     from: string | number, to: string | number, amountTrx: string, options: CreateTransactionOptions = {}
-  ): Promise<UnsignedTransaction> {
+  ): Promise<TronUnsignedTransaction> {
     try {
       const {
         fromAddress, fromIndex, toAddress, toIndex
@@ -169,11 +170,11 @@ export abstract class BaseTronPayments
   }
 
   async signTransaction(
-    unsignedTx: UnsignedTransaction,
-  ): Promise<SignedTransaction> {
+    unsignedTx: TronUnsignedTransaction,
+  ): Promise<TronSignedTransaction> {
     try {
       const fromPrivateKey = await this.getPrivateKey(unsignedTx.fromIndex)
-      const unsignedRaw = cloneDeep(unsignedTx.rawUnsigned) // tron modifies unsigned object
+      const unsignedRaw = cloneDeep(unsignedTx.rawUnsigned) as TronWebTransaction // tron modifies unsigned object
       const signedTx = await this.tronweb.trx.sign(unsignedRaw, fromPrivateKey)
       return {
         ...unsignedTx,
@@ -185,7 +186,7 @@ export abstract class BaseTronPayments
     }
   }
 
-  async broadcastTransaction(tx: SignedTransaction): Promise<BroadcastResult> {
+  async broadcastTransaction(tx: TronSignedTransaction): Promise<TronBroadcastResult> {
     /*
      * I’ve discovered that tron nodes like to “remember” every transaction you give it.
      * If you try broadcasting an invalid TX the first time you’ll get a `SIGERROR` but
@@ -199,20 +200,22 @@ export abstract class BaseTronPayments
      * `(DUP_TRANASCTION_ERROR && Transaction not found)` -> tx was probably invalid? Maybe? Who knows…
      */
     try {
-      const status = await this.tronweb.trx.sendRawTransaction(tx.rawSigned)
+      const status = await this.tronweb.trx.sendRawTransaction(tx.rawSigned as TronWebTransaction)
       let success = false
+      let rebroadcast = false
       if (status.result || status.code === 'SUCCESS') {
         success = true
       } else {
         try {
-          const result = await this.tronweb.trx.getTransaction(tx.id)
-          // Already broadcast
+          await this.tronweb.trx.getTransaction(tx.id)
           success = true
+          rebroadcast = true
         } catch (e) {}
       }
       if (success) {
         return {
-          id: tx.id
+          id: tx.id,
+          rebroadcast,
         }
       } else {
         let statusCode: string | undefined = status.code
@@ -226,7 +229,7 @@ export abstract class BaseTronPayments
     }
   }
 
-  async getTransactionInfo(txid: string): Promise<TransactionInfo> {
+  async getTransactionInfo(txid: string): Promise<TronTransactionInfo> {
     try {
       const [tx, txInfo, currentBlock] = await Promise.all([
         this.tronweb.trx.getTransaction(txid),
@@ -253,12 +256,12 @@ export abstract class BaseTronPayments
 
       const date = new Date(tx.raw_data.timestamp)
 
-      let status: TransactionStatus = 'pending'
+      let status: TransactionStatus = TransactionStatus.Pending
       if (isConfirmed) {
         if (!isExecuted) {
-          status = 'failed'
+          status = TransactionStatus.Failed
         }
-        status = 'confirmed'
+        status = TransactionStatus.Confirmed
       }
 
       return {
