@@ -1,5 +1,5 @@
 import { Reporter } from 'io-ts/lib/Reporter'
-import { Context, getFunctionName, ValidationError, UnionType, IntersectionType, string } from 'io-ts'
+import { Context, getFunctionName, ValidationError, UnionType, IntersectionType, Type } from 'io-ts'
 
 export { PathReporter } from 'io-ts/lib/PathReporter'
 
@@ -46,7 +46,7 @@ export const SimpleReporter: Reporter<Array<string>> = {
  * @returns The decoded value
  * @throws TypeError when assertion fails
  */
-export function assertType<T>(typeCodec: t.Type<T>, value: unknown, description: string = 'type'): T {
+export function assertType<T>(typeCodec: Type<T>, value: unknown, description: string = 'type'): T {
   const validation = typeCodec.decode(value)
   if (validation.isLeft()) {
     throw new TypeError(`Invalid ${description} - ${SimpleReporter.report(validation)[0]}`)

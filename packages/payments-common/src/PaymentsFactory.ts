@@ -1,5 +1,5 @@
-import { PaymentsInterface } from './PaymentsInterface'
+import { AnyPayments } from './PaymentsInterface'
 
-export interface PaymentsFactory<P extends PaymentsInterface<any, any, any>> {
+export interface PaymentsFactory<P extends AnyPayments> {
   forConfig(config: any): P
 }
