@@ -1,54 +1,123 @@
+import * as t from 'io-ts'
+import { date as DateT } from 'io-ts-types'
 
-export interface BalanceResult {
-  balance: string, // balance with at least 1 confirmation
-  unconfirmedBalance: string // balance that is pending confirmation on the blockchain
+/**
+ * Creates an io-ts runtime type based off a typescript enum `e`
+ */
+export function enumCodec<E>(e: Object, name: string): t.Type<E> {
+  const keyed: { [k: string]: null } = {}
+  Object.values(e).forEach(v => {
+    keyed[v] = null
+  })
+  return t.keyof(keyed, name) as any
 }
 
-export type TransactionStatus = 'unsigned' | 'signed' | 'pending' | 'confirmed' | 'failed'
-
-interface TransactionCommon {
-  id: string | null // txid
-  from: string | null // sender address
-  to: string | null // recipient address
-  toExtraId: string | null // eg Monero payment ID
-  fromIndex: number | null // sender address index
-  toIndex: number | null // recipient address index, null if not ours
-  amount: string | null // main denomination (eg "0.125")
-  fee: string | null // total fee in main denomination
-  status: TransactionStatus
+/**
+ * Extends a codec with additional required and optional attributes
+ *
+ * @param parent The type to extend
+ * @param required The required props to add
+ * @param optional The optional props to add
+ * @param name The name of the type
+ */
+export function extend<P extends t.Mixed, R extends t.Props, O extends t.Props>(
+  parent: P, required: R, optional: O, name: string,
+) {
+  return t.intersection(
+    [
+      parent,
+      t.type(required, `${name}Req`),
+      t.partial(optional, `${name}Opt`),
+    ],
+    name,
+  )
 }
 
-interface UnsignedCommon<Raw> extends TransactionCommon {
-  from: string
-  to: string
-  fromIndex: number
-  rawUnsigned: Raw
-}
+export const nullable = <T extends t.Mixed>(codec: T) => t.union([codec, t.null], `${codec.name}Nullable`)
 
-export interface BaseUnsignedTransaction<Raw> extends UnsignedCommon<Raw> {
-  status: 'unsigned'
-}
+export const BalanceResult = t.type({
+  balance: t.string, // balance with at least 1 confirmation
+  unconfirmedBalance: t.string, // balance that is pending confirmation on the blockchain
+})
+export type BalanceResult = t.TypeOf<typeof BalanceResult>
 
-export interface BaseSignedTransaction<Raw> extends UnsignedCommon<Raw> {
-  status: 'signed'
-  id: string
-  amount: string
-  fee: string
-  rawSigned: Raw
+export enum TransactionStatus {
+  Unsigned = 'unsigned',
+  Signed = 'signed',
+  Pending = 'pending',
+  Confirmed = 'confirmed',
+  Failed = 'failed',
 }
+export const TransactionStatusT = enumCodec(TransactionStatus, 'TransactionStatus')
 
-export interface BaseTransactionInfo<Raw> extends TransactionCommon {
-  id: string
-  amount: string
-  fee: string
-  isExecuted: boolean // true if transaction didn't fail (eg TRX/ETH contract succeeded)
-  isConfirmed: boolean
-  confirmations: number // 0 if not confirmed
-  block: number | null // null if not confirmed
-  date: Date | null // null if timestamp unavailable
-  rawInfo: Raw
-}
+export const TransactionCommon = t.type({
+  id: nullable(t.string), // txid
+  from: nullable(t.string), // sender address
+  to: nullable(t.string), // recipient address
+  toExtraId: nullable(t.string), // eg Monero payment ID
+  fromIndex: nullable(t.number), // sender address index
+  toIndex: nullable(t.number), // recipient address index, null if not ours
+  amount: nullable(t.string), // main denomination (eg "0.125")
+  fee: nullable(t.string), // total fee in main denomination
+  status: TransactionStatusT,
+})
+export type TransactionCommon = t.TypeOf<typeof TransactionCommon>
 
-export interface BroadcastResult {
-  id: string
-}
+const UnsignedCommon = extend(
+  TransactionCommon,
+  {
+    from: t.string,
+    to: t.string,
+    fromIndex: t.number,
+    rawUnsigned: t.UnknownRecord,
+  },
+  {},
+  'UnsignedCommon',
+)
+
+export const BaseUnsignedTransaction = extend(
+  UnsignedCommon,
+  {
+    status: t.literal('unsigned'),
+  },
+  {},
+  'BaseUnsignedTransaction',
+)
+export type BaseUnsignedTransaction = t.TypeOf<typeof BaseUnsignedTransaction>
+
+export const BaseSignedTransaction = extend(
+  UnsignedCommon,
+  {
+    status: t.literal('signed'),
+    id: t.string,
+    amount: t.string,
+    fee: t.string,
+    rawSigned: t.UnknownRecord,
+  },
+  {},
+  'BaseSignedTransaction',
+)
+export type BaseSignedTransaction = t.TypeOf<typeof BaseSignedTransaction>
+
+export const BaseTransactionInfo = extend(
+  TransactionCommon,
+  {
+    id: t.string,
+    amount: t.string,
+    fee: t.string,
+    isExecuted: t.boolean, // true if transaction didn't fail (eg TRX/ETH contract succeeded)
+    isConfirmed: t.boolean,
+    confirmations: t.number, // 0 if not confirmed
+    block: nullable(t.number), // null if not confirmed
+    date: nullable(DateT), // null if timestamp unavailable
+    rawInfo: t.UnknownRecord,
+  },
+  {},
+  'BaseTransactionInfo',
+)
+export type BaseTransactionInfo = t.TypeOf<typeof BaseTransactionInfo>
+
+export const BaseBroadcastResult = t.type({
+  id: t.string,
+}, 'BaseBroadcastResult')
+export type BaseBroadcastResult = t.TypeOf<typeof BaseBroadcastResult>

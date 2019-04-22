@@ -1,16 +1,22 @@
 import {
-  BalanceResult, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BroadcastResult,
+  BalanceResult, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult,
 } from './types'
 
-export type AnyPayments = PaymentsInterface<any, any, any>
+export type AnyPayments = PaymentsInterface<
+  BaseUnsignedTransaction,
+  BaseSignedTransaction,
+  BaseBroadcastResult,
+  BaseTransactionInfo
+>
 
 /**
  * An interface that provides the necessary tools for accepting and sending payments for a currency.
  */
 export interface PaymentsInterface<
-  UnsignedTransaction extends BaseUnsignedTransaction<any>,
-  SignedTransaction extends BaseSignedTransaction<any>,
-  TransactionInfo extends BaseTransactionInfo<any>,
+  UnsignedTransaction extends BaseUnsignedTransaction,
+  SignedTransaction extends BaseSignedTransaction,
+  BroadcastResult extends BaseBroadcastResult,
+  TransactionInfo extends BaseTransactionInfo,
 > {
 
   // The following static methods should also be implemented
