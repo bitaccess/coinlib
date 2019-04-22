@@ -8,10 +8,12 @@ if [ "$GIT_CHANGES" ]; then
   exit 1
 fi
 
-CURRENT_TAG=$(git tag --points-at HEAD)
-if [ "$CURRENT_TAG" ]; then
-  echo "HEAD has already been tagged as version $CURRENT_TAG"
-  exit 1
+if [ "$ALLOW_RETAG" != "1" ]; then
+  CURRENT_TAG=$(git tag --points-at HEAD)
+  if [ "$CURRENT_TAG" ]; then
+    echo "HEAD has already been tagged as version $CURRENT_TAG"
+    exit 1
+  fi
 fi
 
 if [ "$SKIP_TESTS" != "1" ]; then
