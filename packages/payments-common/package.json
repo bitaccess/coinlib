@@ -41,7 +41,7 @@
     "version": "npm run build && git add -Af dist docs",
     "postversion": "git push && git push --tags"
   },
-  "dependencies": {
+  "peerDependencies": {
     "io-ts": "^1.8.5"
   },
   "devDependencies": {
@@ -51,6 +51,7 @@
     "@types/rollup-plugin-sourcemaps": "^0.4.1",
     "coveralls": "^3.0.2",
     "faast-ts-config": "github:go-faast/faast-ts-config",
+    "io-ts": "^1.8.5",
     "jest": "^23.6.0",
     "jest-config": "^23.6.0",
     "lint-staged": "^8.0.0",
