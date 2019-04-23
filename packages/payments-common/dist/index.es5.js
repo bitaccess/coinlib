@@ -1,3 +1,116 @@
+import { getFunctionName, UnionType, IntersectionType, type, string, number, UnknownRecord, literal, boolean, success, failure, identity, Type, keyof, intersection, partial, union, null } from 'io-ts';
+
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache Version 2.0 License for specific language governing permissions
+and limitations under the License.
+***************************************************************************** */
+/* global Reflect, Promise */
+
+var extendStatics = function(d, b) {
+    extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return extendStatics(d, b);
+};
+
+function __extends(d, b) {
+    extendStatics(d, b);
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+}
+
+var DateType = (function (_super) {
+    __extends(DateType, _super);
+    function DateType() {
+        var _this = _super.call(this, 'Date', function (u) { return u instanceof Date; }, function (u, c) { return (_this.is(u) ? success(u) : failure(u, c)); }, identity) || this;
+        _this._tag = 'DateType';
+        return _this;
+    }
+    return DateType;
+}(Type));
+var DateT = new DateType();
+
+function enumCodec(e, name) {
+    var keyed = {};
+    Object.values(e).forEach(function (v) {
+        keyed[v] = null;
+    });
+    return keyof(keyed, name);
+}
+function extend(parent, required, optional, name) {
+    return intersection([
+        parent,
+        type(required, name + "Req"),
+        partial(optional, name + "Opt"),
+    ], name);
+}
+var nullable = function (codec) { return union([codec, null], codec.name + "Nullable"); };
+
+var BalanceResult = type({
+    balance: string,
+    unconfirmedBalance: string,
+});
+var TransactionStatus;
+(function (TransactionStatus) {
+    TransactionStatus["Unsigned"] = "unsigned";
+    TransactionStatus["Signed"] = "signed";
+    TransactionStatus["Pending"] = "pending";
+    TransactionStatus["Confirmed"] = "confirmed";
+    TransactionStatus["Failed"] = "failed";
+})(TransactionStatus || (TransactionStatus = {}));
+var TransactionStatusT = enumCodec(TransactionStatus, 'TransactionStatus');
+var TransactionCommon = type({
+    id: nullable(string),
+    from: nullable(string),
+    to: nullable(string),
+    toExtraId: nullable(string),
+    fromIndex: nullable(number),
+    toIndex: nullable(number),
+    amount: nullable(string),
+    fee: nullable(string),
+    status: TransactionStatusT,
+});
+var UnsignedCommon = extend(TransactionCommon, {
+    from: string,
+    to: string,
+    fromIndex: number,
+    rawUnsigned: UnknownRecord,
+}, {}, 'UnsignedCommon');
+var BaseUnsignedTransaction = extend(UnsignedCommon, {
+    status: literal('unsigned'),
+}, {}, 'BaseUnsignedTransaction');
+var BaseSignedTransaction = extend(UnsignedCommon, {
+    status: literal('signed'),
+    id: string,
+    amount: string,
+    fee: string,
+    rawSigned: UnknownRecord,
+}, {}, 'BaseSignedTransaction');
+var BaseTransactionInfo = extend(TransactionCommon, {
+    id: string,
+    amount: string,
+    fee: string,
+    isExecuted: boolean,
+    isConfirmed: boolean,
+    confirmations: number,
+    block: nullable(number),
+    date: nullable(DateT),
+    rawInfo: UnknownRecord,
+}, {}, 'BaseTransactionInfo');
+var BaseBroadcastResult = type({
+    id: string,
+}, 'BaseBroadcastResult');
+
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 function unwrapExports (x) {
@@ -175,7 +288,7 @@ function curry(f) {
 }
 exports.curry = curry;
 /* tslint:disable-next-line */
-var getFunctionName = function (f) { return f.displayName || f.name || "<function" + f.length + ">"; };
+var getFunctionName$$1 = function (f) { return f.displayName || f.name || "<function" + f.length + ">"; };
 /**
  * @since 1.0.0
  */
@@ -190,7 +303,7 @@ exports.toString = function (x) {
         return "[" + x.map(exports.toString).join(', ') + "]";
     }
     if (typeof x === 'function') {
-        return getFunctionName(x);
+        return getFunctionName$$1(x);
     }
     if (x == null) {
         return String(x);
@@ -1129,8 +1242,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * @since 1.0.0
  */
-var Type = /** @class */ (function () {
-    function Type(
+var Type$$1 = /** @class */ (function () {
+    function Type$$1(
     /** a unique name for this codec */
     name, 
     /** a custom type guard */
@@ -1145,10 +1258,10 @@ var Type = /** @class */ (function () {
         this.encode = encode;
         this.decode = this.decode.bind(this);
     }
-    Type.prototype.pipe = function (ab, name) {
+    Type$$1.prototype.pipe = function (ab, name) {
         var _this = this;
         if (name === void 0) { name = "pipe(" + this.name + ", " + ab.name + ")"; }
-        return new Type(name, ab.is, function (i, c) {
+        return new Type$$1(name, ab.is, function (i, c) {
             var validation = _this.validate(i, c);
             if (validation.isLeft()) {
                 return validation;
@@ -1156,19 +1269,19 @@ var Type = /** @class */ (function () {
             return ab.validate(validation.value, c);
         }, this.encode === exports.identity && ab.encode === exports.identity ? exports.identity : function (b) { return _this.encode(ab.encode(b)); });
     };
-    Type.prototype.asDecoder = function () {
+    Type$$1.prototype.asDecoder = function () {
         return this;
     };
-    Type.prototype.asEncoder = function () {
+    Type$$1.prototype.asEncoder = function () {
         return this;
     };
     /** a version of `validate` with a default context */
-    Type.prototype.decode = function (i) {
+    Type$$1.prototype.decode = function (i) {
         return this.validate(i, [{ key: '', type: this, actual: i }]);
     };
-    return Type;
+    return Type$$1;
 }());
-exports.Type = Type;
+exports.Type = Type$$1;
 /**
  * @since 1.0.0
  */
@@ -1241,7 +1354,7 @@ var NullType = /** @class */ (function (_super) {
         return _this;
     }
     return NullType;
-}(Type));
+}(Type$$1));
 exports.NullType = NullType;
 /**
  * @alias `null`
@@ -1260,7 +1373,7 @@ var UndefinedType = /** @class */ (function (_super) {
         return _this;
     }
     return UndefinedType;
-}(Type));
+}(Type$$1));
 exports.UndefinedType = UndefinedType;
 var undefinedType = new UndefinedType();
 exports.undefined = undefinedType;
@@ -1275,7 +1388,7 @@ var VoidType = /** @class */ (function (_super) {
         return _this;
     }
     return VoidType;
-}(Type));
+}(Type$$1));
 exports.VoidType = VoidType;
 /**
  * @alias `void`
@@ -1294,7 +1407,7 @@ var UnknownType = /** @class */ (function (_super) {
         return _this;
     }
     return UnknownType;
-}(Type));
+}(Type$$1));
 exports.UnknownType = UnknownType;
 /**
  * @since 1.5.0
@@ -1311,7 +1424,7 @@ var StringType = /** @class */ (function (_super) {
         return _this;
     }
     return StringType;
-}(Type));
+}(Type$$1));
 exports.StringType = StringType;
 /**
  * @since 1.0.0
@@ -1328,7 +1441,7 @@ var NumberType = /** @class */ (function (_super) {
         return _this;
     }
     return NumberType;
-}(Type));
+}(Type$$1));
 exports.NumberType = NumberType;
 /**
  * @since 1.0.0
@@ -1345,7 +1458,7 @@ var BooleanType = /** @class */ (function (_super) {
         return _this;
     }
     return BooleanType;
-}(Type));
+}(Type$$1));
 exports.BooleanType = BooleanType;
 /**
  * @since 1.0.0
@@ -1362,7 +1475,7 @@ var AnyArrayType = /** @class */ (function (_super) {
         return _this;
     }
     return AnyArrayType;
-}(Type));
+}(Type$$1));
 exports.AnyArrayType = AnyArrayType;
 /**
  * @since 1.7.1
@@ -1380,7 +1493,7 @@ var AnyDictionaryType = /** @class */ (function (_super) {
         return _this;
     }
     return AnyDictionaryType;
-}(Type));
+}(Type$$1));
 exports.AnyDictionaryType = AnyDictionaryType;
 /**
  * @since 1.7.1
@@ -1400,7 +1513,7 @@ var FunctionType = /** @class */ (function (_super) {
         return _this;
     }
     return FunctionType;
-}(Type));
+}(Type$$1));
 exports.FunctionType = FunctionType;
 /**
  * @since 1.0.0
@@ -1412,15 +1525,15 @@ exports.Function = new FunctionType();
  */
 var RefinementType = /** @class */ (function (_super) {
     __extends(RefinementType, _super);
-    function RefinementType(name, is, validate, encode, type, predicate) {
+    function RefinementType(name, is, validate, encode, type$$1, predicate) {
         var _this = _super.call(this, name, is, validate, encode) || this;
-        _this.type = type;
+        _this.type = type$$1;
         _this.predicate = predicate;
         _this._tag = 'RefinementType';
         return _this;
     }
     return RefinementType;
-}(Type));
+}(Type$$1));
 exports.RefinementType = RefinementType;
 /**
  * @since 1.8.1
@@ -1445,7 +1558,7 @@ var LiteralType = /** @class */ (function (_super) {
         return _this;
     }
     return LiteralType;
-}(Type));
+}(Type$$1));
 exports.LiteralType = LiteralType;
 /**
  * @since 1.0.0
@@ -1467,7 +1580,7 @@ var KeyofType = /** @class */ (function (_super) {
         return _this;
     }
     return KeyofType;
-}(Type));
+}(Type$$1));
 exports.KeyofType = KeyofType;
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 /**
@@ -1499,7 +1612,7 @@ var RecursiveType = /** @class */ (function (_super) {
         configurable: true
     });
     return RecursiveType;
-}(Type));
+}(Type$$1));
 exports.RecursiveType = RecursiveType;
 /**
  * @since 1.0.0
@@ -1530,14 +1643,14 @@ exports.recursion = function (name, definition) {
  */
 var ArrayType = /** @class */ (function (_super) {
     __extends(ArrayType, _super);
-    function ArrayType(name, is, validate, encode, type) {
+    function ArrayType(name, is, validate, encode, type$$1) {
         var _this = _super.call(this, name, is, validate, encode) || this;
-        _this.type = type;
+        _this.type = type$$1;
         _this._tag = 'ArrayType';
         return _this;
     }
     return ArrayType;
-}(Type));
+}(Type$$1));
 exports.ArrayType = ArrayType;
 /**
  * @since 1.0.0
@@ -1584,7 +1697,7 @@ var InterfaceType = /** @class */ (function (_super) {
         return _this;
     }
     return InterfaceType;
-}(Type));
+}(Type$$1));
 exports.InterfaceType = InterfaceType;
 var getNameFromProps = function (props) {
     return Object.keys(props)
@@ -1683,7 +1796,7 @@ var PartialType = /** @class */ (function (_super) {
         return _this;
     }
     return PartialType;
-}(Type));
+}(Type$$1));
 exports.PartialType = PartialType;
 var getPartialTypeName = function (inner) {
     return "Partial<" + inner + ">";
@@ -1763,7 +1876,7 @@ var DictionaryType = /** @class */ (function (_super) {
         return _this;
     }
     return DictionaryType;
-}(Type));
+}(Type$$1));
 exports.DictionaryType = DictionaryType;
 var isObject = function (r) { return Object.prototype.toString.call(r) === '[object Object]'; };
 /**
@@ -1832,19 +1945,19 @@ exports.record = function (domain, codomain, name) {
 /**
  * @since 1.0.0
  */
-var UnionType = /** @class */ (function (_super) {
-    __extends(UnionType, _super);
-    function UnionType(name, is, validate, encode, types) {
+var UnionType$$1 = /** @class */ (function (_super) {
+    __extends(UnionType$$1, _super);
+    function UnionType$$1(name, is, validate, encode, types) {
         var _this = _super.call(this, name, is, validate, encode) || this;
         _this.types = types;
         _this._tag = 'UnionType';
         return _this;
     }
-    return UnionType;
-}(Type));
-exports.UnionType = UnionType;
+    return UnionType$$1;
+}(Type$$1));
+exports.UnionType = UnionType$$1;
 var getUnionName = function (codecs) {
-    return '(' + codecs.map(function (type) { return type.name; }).join(' | ') + ')';
+    return '(' + codecs.map(function (type$$1) { return type$$1.name; }).join(' | ') + ')';
 };
 /**
  * @since 1.0.0
@@ -1852,7 +1965,7 @@ var getUnionName = function (codecs) {
 exports.union = function (codecs, name) {
     if (name === void 0) { name = getUnionName(codecs); }
     var len = codecs.length;
-    return new UnionType(name, function (u) { return codecs.some(function (type) { return type.is(u); }); }, function (u, c) {
+    return new UnionType$$1(name, function (u) { return codecs.some(function (type$$1) { return type$$1.is(u); }); }, function (u, c) {
         var errors = [];
         for (var i = 0; i < len; i++) {
             var type_3 = codecs[i];
@@ -1879,17 +1992,17 @@ exports.union = function (codecs, name) {
 /**
  * @since 1.0.0
  */
-var IntersectionType = /** @class */ (function (_super) {
-    __extends(IntersectionType, _super);
-    function IntersectionType(name, is, validate, encode, types) {
+var IntersectionType$$1 = /** @class */ (function (_super) {
+    __extends(IntersectionType$$1, _super);
+    function IntersectionType$$1(name, is, validate, encode, types) {
         var _this = _super.call(this, name, is, validate, encode) || this;
         _this.types = types;
         _this._tag = 'IntersectionType';
         return _this;
     }
-    return IntersectionType;
-}(Type));
-exports.IntersectionType = IntersectionType;
+    return IntersectionType$$1;
+}(Type$$1));
+exports.IntersectionType = IntersectionType$$1;
 var mergeAll = function (base, us) {
     var r = base;
     for (var i = 0; i < us.length; i++) {
@@ -1909,10 +2022,10 @@ var mergeAll = function (base, us) {
     }
     return r;
 };
-function intersection(codecs, name) {
-    if (name === void 0) { name = "(" + codecs.map(function (type) { return type.name; }).join(' & ') + ")"; }
+function intersection$$1(codecs, name) {
+    if (name === void 0) { name = "(" + codecs.map(function (type$$1) { return type$$1.name; }).join(' & ') + ")"; }
     var len = codecs.length;
-    return new IntersectionType(name, function (u) { return codecs.every(function (type) { return type.is(u); }); }, codecs.length === 0
+    return new IntersectionType$$1(name, function (u) { return codecs.every(function (type$$1) { return type$$1.is(u); }); }, codecs.length === 0
         ? exports.success
         : function (u, c) {
             var us = [];
@@ -1930,7 +2043,7 @@ function intersection(codecs, name) {
             return errors.length > 0 ? exports.failures(errors) : exports.success(mergeAll(u, us));
         }, codecs.length === 0 ? exports.identity : function (a) { return mergeAll(a, codecs.map(function (codec) { return codec.encode(a); })); }, codecs);
 }
-exports.intersection = intersection;
+exports.intersection = intersection$$1;
 /**
  * @since 1.0.0
  */
@@ -1943,12 +2056,12 @@ var TupleType = /** @class */ (function (_super) {
         return _this;
     }
     return TupleType;
-}(Type));
+}(Type$$1));
 exports.TupleType = TupleType;
 function tuple(codecs, name) {
-    if (name === void 0) { name = "[" + codecs.map(function (type) { return type.name; }).join(', ') + "]"; }
+    if (name === void 0) { name = "[" + codecs.map(function (type$$1) { return type$$1.name; }).join(', ') + "]"; }
     var len = codecs.length;
-    return new TupleType(name, function (u) { return exports.UnknownArray.is(u) && u.length === len && codecs.every(function (type, i) { return type.is(u[i]); }); }, function (u, c) {
+    return new TupleType(name, function (u) { return exports.UnknownArray.is(u) && u.length === len && codecs.every(function (type$$1, i) { return type$$1.is(u[i]); }); }, function (u, c) {
         var unknownArrayValidation = exports.UnknownArray.validate(u, c);
         if (unknownArrayValidation.isLeft()) {
             return unknownArrayValidation;
@@ -1975,7 +2088,7 @@ function tuple(codecs, name) {
             }
         }
         return errors.length > 0 ? exports.failures(errors) : exports.success(as);
-    }, useIdentity(codecs, len) ? exports.identity : function (a) { return codecs.map(function (type, i) { return type.encode(a[i]); }); }, codecs);
+    }, useIdentity(codecs, len) ? exports.identity : function (a) { return codecs.map(function (type$$1, i) { return type$$1.encode(a[i]); }); }, codecs);
 }
 exports.tuple = tuple;
 /**
@@ -1983,14 +2096,14 @@ exports.tuple = tuple;
  */
 var ReadonlyType = /** @class */ (function (_super) {
     __extends(ReadonlyType, _super);
-    function ReadonlyType(name, is, validate, encode, type) {
+    function ReadonlyType(name, is, validate, encode, type$$1) {
         var _this = _super.call(this, name, is, validate, encode) || this;
-        _this.type = type;
+        _this.type = type$$1;
         _this._tag = 'ReadonlyType';
         return _this;
     }
     return ReadonlyType;
-}(Type));
+}(Type$$1));
 exports.ReadonlyType = ReadonlyType;
 /**
  * @since 1.0.0
@@ -2011,14 +2124,14 @@ exports.readonly = function (codec, name) {
  */
 var ReadonlyArrayType = /** @class */ (function (_super) {
     __extends(ReadonlyArrayType, _super);
-    function ReadonlyArrayType(name, is, validate, encode, type) {
+    function ReadonlyArrayType(name, is, validate, encode, type$$1) {
         var _this = _super.call(this, name, is, validate, encode) || this;
-        _this.type = type;
+        _this.type = type$$1;
         _this._tag = 'ReadonlyArrayType';
         return _this;
     }
     return ReadonlyArrayType;
-}(Type));
+}(Type$$1));
 exports.ReadonlyArrayType = ReadonlyArrayType;
 /**
  * @since 1.0.0
@@ -2105,10 +2218,10 @@ var getCodecIndexRecord = function (codec, origin, id) {
         return interfaceIndex;
     }
     if (isIntersectionCodec(codec)) {
-        return foldMapIndexRecord(codec.types, function (type) { return getCodecIndexRecord(type, origin, codec); });
+        return foldMapIndexRecord(codec.types, function (type$$1) { return getCodecIndexRecord(type$$1, origin, codec); });
     }
     if (isUnionCodec(codec)) {
-        return foldMapIndexRecord(codec.types, function (type) { return getCodecIndexRecord(type, origin, type); });
+        return foldMapIndexRecord(codec.types, function (type$$1) { return getCodecIndexRecord(type$$1, origin, type$$1); });
     }
     if (isExactCodec(codec) || isRefinementCodec(codec)) {
         return getCodecIndexRecord(codec.type, origin, codec);
@@ -2227,7 +2340,7 @@ var TaggedUnionType = /** @class */ (function (_super) {
         return _this;
     }
     return TaggedUnionType;
-}(UnionType));
+}(UnionType$$1));
 exports.TaggedUnionType = TaggedUnionType;
 /**
  * @since 1.3.0
@@ -2249,14 +2362,14 @@ exports.taggedUnion = function (tag, codecs, name) {
  */
 var ExactType = /** @class */ (function (_super) {
     __extends(ExactType, _super);
-    function ExactType(name, is, validate, encode, type) {
+    function ExactType(name, is, validate, encode, type$$1) {
         var _this = _super.call(this, name, is, validate, encode) || this;
-        _this.type = type;
+        _this.type = type$$1;
         _this._tag = 'ExactType';
         return _this;
     }
     return ExactType;
-}(Type));
+}(Type$$1));
 exports.ExactType = ExactType;
 var getProps = function (codec) {
     switch (codec._tag) {
@@ -2268,7 +2381,7 @@ var getProps = function (codec) {
         case 'PartialType':
             return codec.props;
         case 'IntersectionType':
-            return codec.types.reduce(function (props, type) { return Object.assign(props, getProps(type)); }, {});
+            return codec.types.reduce(function (props, type$$1) { return Object.assign(props, getProps(type$$1)); }, {});
     }
 };
 var stripKeys = function (o, props) {
@@ -2345,7 +2458,7 @@ var NeverType = /** @class */ (function (_super) {
         return _this;
     }
     return NeverType;
-}(Type));
+}(Type$$1));
 exports.NeverType = NeverType;
 /**
  * @since 1.0.0
@@ -2364,7 +2477,7 @@ var AnyType = /** @class */ (function (_super) {
         return _this;
     }
     return AnyType;
-}(Type));
+}(Type$$1));
 exports.AnyType = AnyType;
 /**
  * Use `unknown` instead
@@ -2390,7 +2503,7 @@ var ObjectType = /** @class */ (function (_super) {
         return _this;
     }
     return ObjectType;
-}(Type));
+}(Type$$1));
 exports.ObjectType = ObjectType;
 /**
  * Use `UnknownRecord` instead
@@ -2440,7 +2553,7 @@ var StrictType = /** @class */ (function (_super) {
         return _this;
     }
     return StrictType;
-}(Type));
+}(Type$$1));
 exports.StrictType = StrictType;
 /**
  * Drops the codec "kind"
@@ -2457,7 +2570,7 @@ function alias(codec) {
 exports.alias = alias;
 });
 
-var index = unwrapExports(lib);
+unwrapExports(lib);
 var lib_1 = lib.Type;
 var lib_2 = lib.identity;
 var lib_3 = lib.getFunctionName;
@@ -2536,199 +2649,6 @@ var lib_75 = lib.StrictType;
 var lib_76 = lib.clean;
 var lib_77 = lib.alias;
 
-var t = /*#__PURE__*/Object.freeze({
-	default: index,
-	__moduleExports: lib,
-	Type: lib_1,
-	identity: lib_2,
-	getFunctionName: lib_3,
-	getContextEntry: lib_4,
-	appendContext: lib_5,
-	failures: lib_6,
-	failure: lib_7,
-	success: lib_8,
-	NullType: lib_9,
-	nullType: lib_10,
-	UndefinedType: lib_11,
-	undefined: lib_12,
-	VoidType: lib_13,
-	voidType: lib_14,
-	UnknownType: lib_15,
-	unknown: lib_16,
-	StringType: lib_17,
-	string: lib_18,
-	NumberType: lib_19,
-	number: lib_20,
-	BooleanType: lib_21,
-	AnyArrayType: lib_22,
-	UnknownArray: lib_23,
-	Array: lib_24,
-	AnyDictionaryType: lib_25,
-	UnknownRecord: lib_26,
-	FunctionType: lib_27,
-	Function: lib_28,
-	RefinementType: lib_29,
-	brand: lib_30,
-	Int: lib_31,
-	LiteralType: lib_32,
-	literal: lib_33,
-	KeyofType: lib_34,
-	keyof: lib_35,
-	RecursiveType: lib_36,
-	recursion: lib_37,
-	ArrayType: lib_38,
-	array: lib_39,
-	InterfaceType: lib_40,
-	type: lib_41,
-	PartialType: lib_42,
-	partial: lib_43,
-	DictionaryType: lib_44,
-	record: lib_45,
-	UnionType: lib_46,
-	union: lib_47,
-	IntersectionType: lib_48,
-	intersection: lib_49,
-	TupleType: lib_50,
-	tuple: lib_51,
-	ReadonlyType: lib_52,
-	readonly: lib_53,
-	ReadonlyArrayType: lib_54,
-	readonlyArray: lib_55,
-	strict: lib_56,
-	emptyIndexRecord: lib_57,
-	getIndexRecord: lib_58,
-	TaggedUnionType: lib_59,
-	taggedUnion: lib_60,
-	ExactType: lib_61,
-	exact: lib_62,
-	getValidationError: lib_63,
-	getDefaultContext: lib_64,
-	NeverType: lib_65,
-	never: lib_66,
-	AnyType: lib_67,
-	any: lib_68,
-	Dictionary: lib_69,
-	ObjectType: lib_70,
-	object: lib_71,
-	refinement: lib_72,
-	Integer: lib_73,
-	dictionary: lib_74,
-	StrictType: lib_75,
-	clean: lib_76,
-	alias: lib_77
-});
-
-/*! *****************************************************************************
-Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at http://www.apache.org/licenses/LICENSE-2.0
-
-THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-MERCHANTABLITY OR NON-INFRINGEMENT.
-
-See the Apache Version 2.0 License for specific language governing permissions
-and limitations under the License.
-***************************************************************************** */
-/* global Reflect, Promise */
-
-var extendStatics = function(d, b) {
-    extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return extendStatics(d, b);
-};
-
-function __extends(d, b) {
-    extendStatics(d, b);
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-}
-
-var DateType = (function (_super) {
-    __extends(DateType, _super);
-    function DateType() {
-        var _this = _super.call(this, 'Date', function (u) { return u instanceof Date; }, function (u, c) { return (_this.is(u) ? lib_8(u) : lib_7(u, c)); }, lib_2) || this;
-        _this._tag = 'DateType';
-        return _this;
-    }
-    return DateType;
-}(lib_1));
-var DateT = new DateType();
-
-function enumCodec(e, name) {
-    var keyed = {};
-    Object.values(e).forEach(function (v) {
-        keyed[v] = null;
-    });
-    return lib_35(keyed, name);
-}
-function extend(parent, required, optional, name) {
-    return lib_49([
-        parent,
-        lib_41(required, name + "Req"),
-        lib_43(optional, name + "Opt"),
-    ], name);
-}
-var nullable = function (codec) { return lib_47([codec, undefined], codec.name + "Nullable"); };
-
-var BalanceResult = lib_41({
-    balance: lib_18,
-    unconfirmedBalance: lib_18,
-});
-var TransactionStatus;
-(function (TransactionStatus) {
-    TransactionStatus["Unsigned"] = "unsigned";
-    TransactionStatus["Signed"] = "signed";
-    TransactionStatus["Pending"] = "pending";
-    TransactionStatus["Confirmed"] = "confirmed";
-    TransactionStatus["Failed"] = "failed";
-})(TransactionStatus || (TransactionStatus = {}));
-var TransactionStatusT = enumCodec(TransactionStatus, 'TransactionStatus');
-var TransactionCommon = lib_41({
-    id: nullable(lib_18),
-    from: nullable(lib_18),
-    to: nullable(lib_18),
-    toExtraId: nullable(lib_18),
-    fromIndex: nullable(lib_20),
-    toIndex: nullable(lib_20),
-    amount: nullable(lib_18),
-    fee: nullable(lib_18),
-    status: TransactionStatusT,
-});
-var UnsignedCommon = extend(TransactionCommon, {
-    from: lib_18,
-    to: lib_18,
-    fromIndex: lib_20,
-    rawUnsigned: lib_26,
-}, {}, 'UnsignedCommon');
-var BaseUnsignedTransaction = extend(UnsignedCommon, {
-    status: lib_33('unsigned'),
-}, {}, 'BaseUnsignedTransaction');
-var BaseSignedTransaction = extend(UnsignedCommon, {
-    status: lib_33('signed'),
-    id: lib_18,
-    amount: lib_18,
-    fee: lib_18,
-    rawSigned: lib_26,
-}, {}, 'BaseSignedTransaction');
-var BaseTransactionInfo = extend(TransactionCommon, {
-    id: lib_18,
-    amount: lib_18,
-    fee: lib_18,
-    isExecuted: undefined,
-    isConfirmed: undefined,
-    confirmations: lib_20,
-    block: nullable(lib_20),
-    date: nullable(DateT),
-    rawInfo: lib_26,
-}, {}, 'BaseTransactionInfo');
-var BaseBroadcastResult = lib_41({
-    id: lib_18,
-}, 'BaseBroadcastResult');
-
 var PathReporter = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, "__esModule", { value: true });
 
@@ -2746,8 +2666,8 @@ function stringify(v) {
 }
 function getContextPath(context) {
     return context.map(function (_a) {
-        var key = _a.key, type = _a.type;
-        return key + ": " + type.name;
+        var key = _a.key, type$$1 = _a.type;
+        return key + ": " + type$$1.name;
     }).join('/');
 }
 function getMessage(e) {
@@ -2758,22 +2678,22 @@ function getMessage(e) {
 /**
  * @since 1.0.0
  */
-function failure(es) {
+function failure$$1(es) {
     return es.map(getMessage);
 }
-exports.failure = failure;
+exports.failure = failure$$1;
 /**
  * @since 1.0.0
  */
-function success() {
+function success$$1() {
     return ['No errors!'];
 }
-exports.success = success;
+exports.success = success$$1;
 /**
  * @since 1.0.0
  */
 exports.PathReporter = {
-    report: function (validation) { return validation.fold(failure, success); }
+    report: function (validation) { return validation.fold(failure$$1, success$$1); }
 };
 });
 
@@ -2784,7 +2704,7 @@ var PathReporter_3 = PathReporter.PathReporter;
 
 function stringify(v) {
     if (typeof v === 'function') {
-        return lib_3(v);
+        return getFunctionName(v);
     }
     if (typeof v === 'number' && !isFinite(v)) {
         if (isNaN(v)) {
@@ -2797,15 +2717,15 @@ function stringify(v) {
 function getContextPath(context) {
     return context
         .filter(function (_a, i) {
-        var type = _a.type;
+        var type$$1 = _a.type;
         if (i === 0)
             return true;
         var previousType = context[i - 1].type;
-        return !(previousType instanceof lib_46 || previousType instanceof lib_48);
+        return !(previousType instanceof UnionType || previousType instanceof IntersectionType);
     })
         .map(function (_a) {
-        var key = _a.key, type = _a.type;
-        return (key ? key : type.name);
+        var key = _a.key, type$$1 = _a.type;
+        return (key ? key : type$$1.name);
     })
         .join('.');
 }
