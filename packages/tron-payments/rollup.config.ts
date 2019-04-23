@@ -6,7 +6,11 @@ import json from 'rollup-plugin-json'
 import { snakeCase } from 'lodash'
 
 const pkg = require('./package.json')
-const external = Object.keys(pkg.dependencies || {})
+const external = Object.keys({
+  ...pkg.dependencies,
+  ...pkg.peerDependencies,
+  ...pkg.devDependencies,
+})
 
 export default {
   input: 'src/index.ts',
