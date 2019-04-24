@@ -7,7 +7,14 @@ export function toError(e: any): any {
 }
 
 export function toMainDenominationNumber(amountSun: number | string): number {
-  return (typeof amountSun === 'number' ? amountSun : Number.parseInt(amountSun)) / 1e6
+  const baseUnits = typeof amountSun === 'number' ? amountSun : Number.parseInt(amountSun)
+  if (Number.isNaN(baseUnits)) {
+    throw new Error('Cannot convert to main denomination - not a number')
+  }
+  if (!Number.isFinite(baseUnits)) {
+    throw new Error('Cannot convert to main denomination - not finite')
+  }
+  return baseUnits / 1e6
 }
 
 export function toMainDenomination(amountSun: number | string): string {
@@ -15,7 +22,14 @@ export function toMainDenomination(amountSun: number | string): string {
 }
 
 export function toBaseDenominationNumber(amountTrx: number | string): number {
-  return (typeof amountTrx === 'number' ? amountTrx : Number.parseFloat(amountTrx)) * 1e6
+  const mainUnits = typeof amountTrx === 'number' ? amountTrx : Number.parseFloat(amountTrx)
+  if (Number.isNaN(mainUnits)) {
+    throw new Error('Cannot convert to base denomination - not a number')
+  }
+  if (!Number.isFinite(mainUnits)) {
+    throw new Error('Cannot convert to base denomination - not finite')
+  }
+  return Math.floor(mainUnits * 1e6)
 }
 
 export function toBaseDenomination(amountTrx: number | string): string {
