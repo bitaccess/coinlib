@@ -30,15 +30,18 @@ describe('types', () => {
   test('BaseUnsignedTransaction validates successfully', () => {
     assertType(BaseUnsignedTransaction, {
       id: null,
-      from: 'address',
-      to: 'address',
+      fromAddress: 'address',
+      toAddress: 'address',
       toExtraId: null,
       fromIndex: 0,
       toIndex: null,
       amount: null,
       fee: null,
+      targetFeeLevel: 'high',
+      targetFeeRate: null,
+      targetFeeRateType: null,
       status: 'unsigned',
-      rawUnsigned: {},
+      data: {},
     })
   })
   test('BaseUnsignedTransaction throws on invalid', () => {
@@ -47,16 +50,18 @@ describe('types', () => {
   test('BaseSignedTransaction validates successfully', () => {
     assertType(BaseSignedTransaction, {
       id: 'id',
-      from: 'address',
-      to: 'address',
+      fromAddress: 'address',
+      toAddress: 'address',
       toExtraId: null,
       fromIndex: 0,
       toIndex: null,
       amount: '0.1234',
       fee: '0.1234',
+      targetFeeLevel: 'high',
+      targetFeeRate: '0.1234',
+      targetFeeRateType: 'main',
       status: 'signed',
-      rawUnsigned: {},
-      rawSigned: {},
+      data: {},
     })
   })
   test('BaseSignedTransaction throws on invalid', () => {
@@ -65,8 +70,8 @@ describe('types', () => {
   test('BaseTransactionInfo validates successfully', () => {
     assertType(BaseTransactionInfo, {
       id: 'id',
-      from: 'address',
-      to: 'address',
+      fromAddress: 'address',
+      toAddress: 'address',
       toExtraId: null,
       fromIndex: 0,
       toIndex: 1,
@@ -78,7 +83,7 @@ describe('types', () => {
       confirmations: 0,
       block: 0,
       date: new Date(),
-      rawInfo: {},
+      data: {},
     })
   })
   test('BaseTransactionInfo throws on invalid', () => {
