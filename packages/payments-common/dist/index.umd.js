@@ -18,22 +18,31 @@
       FeeRateType["BasePerWeight"] = "base/weight";
   })(exports.FeeRateType || (exports.FeeRateType = {}));
   var FeeRateTypeT = tsCommon.enumCodec(exports.FeeRateType, 'FeeRateType');
+  var FeeOptionCustom = tsCommon.requiredOptionalCodec({
+      feeRate: t.string,
+      feeRateType: FeeRateTypeT,
+  }, {
+      feeLevel: t.literal(exports.FeeLevel.Custom),
+  }, 'FeeOptionCustom');
+  var FeeOptionLevel = t.type({
+      feeLevel: t.union([
+          t.literal(exports.FeeLevel.High),
+          t.literal(exports.FeeLevel.Medium),
+          t.literal(exports.FeeLevel.Low),
+      ])
+  }, 'FeeOptionLevel');
   var FeeOption = t.union([
-      tsCommon.requiredOptionalCodec({
-          feeRate: t.string,
-          feeRateType: FeeRateTypeT,
-      }, {
-          feeLevel: t.literal(exports.FeeLevel.Custom),
-      }, 'FeeOptionCustom'),
-      t.type({
-          feeLevel: t.union([
-              t.literal(exports.FeeLevel.High),
-              t.literal(exports.FeeLevel.Medium),
-              t.literal(exports.FeeLevel.Low),
-          ])
-      }, 'FeeOptionLevel'),
+      FeeOptionCustom,
+      FeeOptionLevel,
   ], 'FeeOption');
   var CreateTransactionOptions = FeeOption;
+  var ResolvedFeeOption = t.type({
+      targetFeeLevel: FeeLevelT,
+      targetFeeRate: t.string,
+      targetFeeRateType: FeeRateTypeT,
+      feeBase: t.string,
+      feeMain: t.string,
+  });
   var BalanceResult = t.type({
       balance: t.string,
       unconfirmedBalance: t.string,
@@ -94,8 +103,11 @@
   exports.AddressOrIndex = AddressOrIndex;
   exports.FeeLevelT = FeeLevelT;
   exports.FeeRateTypeT = FeeRateTypeT;
+  exports.FeeOptionCustom = FeeOptionCustom;
+  exports.FeeOptionLevel = FeeOptionLevel;
   exports.FeeOption = FeeOption;
   exports.CreateTransactionOptions = CreateTransactionOptions;
+  exports.ResolvedFeeOption = ResolvedFeeOption;
   exports.BalanceResult = BalanceResult;
   exports.TransactionStatusT = TransactionStatusT;
   exports.TransactionCommon = TransactionCommon;

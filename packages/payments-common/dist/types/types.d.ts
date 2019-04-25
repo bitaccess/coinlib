@@ -14,6 +14,15 @@ export declare enum FeeRateType {
     BasePerWeight = "base/weight"
 }
 export declare const FeeRateTypeT: t.Type<FeeRateType, FeeRateType, unknown>;
+export declare const FeeOptionCustom: t.IntersectionC<[t.TypeC<{
+    feeRate: t.StringC;
+    feeRateType: t.Type<FeeRateType, FeeRateType, unknown>;
+}>, t.PartialC<{
+    feeLevel: t.LiteralC<FeeLevel.Custom>;
+}>]>;
+export declare const FeeOptionLevel: t.TypeC<{
+    feeLevel: t.UnionC<[t.LiteralC<FeeLevel.High>, t.LiteralC<FeeLevel.Medium>, t.LiteralC<FeeLevel.Low>]>;
+}>;
 export declare const FeeOption: t.UnionC<[t.IntersectionC<[t.TypeC<{
     feeRate: t.StringC;
     feeRateType: t.Type<FeeRateType, FeeRateType, unknown>;
@@ -32,6 +41,14 @@ export declare const CreateTransactionOptions: t.UnionC<[t.IntersectionC<[t.Type
     feeLevel: t.UnionC<[t.LiteralC<FeeLevel.High>, t.LiteralC<FeeLevel.Medium>, t.LiteralC<FeeLevel.Low>]>;
 }>]>;
 export declare type CreateTransactionOptions = t.TypeOf<typeof CreateTransactionOptions>;
+export declare const ResolvedFeeOption: t.TypeC<{
+    targetFeeLevel: t.Type<FeeLevel, FeeLevel, unknown>;
+    targetFeeRate: t.StringC;
+    targetFeeRateType: t.Type<FeeRateType, FeeRateType, unknown>;
+    feeBase: t.StringC;
+    feeMain: t.StringC;
+}>;
+export declare type ResolvedFeeOption = t.TypeOf<typeof ResolvedFeeOption>;
 export declare const BalanceResult: t.TypeC<{
     balance: t.StringC;
     unconfirmedBalance: t.StringC;

@@ -1,4 +1,4 @@
-import { BalanceResult, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, CreateTransactionOptions } from './types';
+import { BalanceResult, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, CreateTransactionOptions, FeeOption, ResolvedFeeOption } from './types';
 export declare type AnyPayments = PaymentsInterface<BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, BaseTransactionInfo>;
 export interface PaymentsInterface<UnsignedTransaction extends BaseUnsignedTransaction, SignedTransaction extends BaseSignedTransaction, BroadcastResult extends BaseBroadcastResult, TransactionInfo extends BaseTransactionInfo> {
     toMainDenomination<O extends object>(amount: number | string, options?: O): string;
@@ -17,6 +17,7 @@ export interface PaymentsInterface<UnsignedTransaction extends BaseUnsignedTrans
     getAddressOrNull<O extends object>(index: number, options?: O): Promise<string | null>;
     getBalance<O extends object>(addressOrIndex: string | number, options?: O): Promise<BalanceResult>;
     getTransactionInfo<O extends object>(txId: string, addressOrIndex: string | number, options?: O): Promise<TransactionInfo>;
+    resolveFeeOption<O extends FeeOption>(feeOption: O): Promise<ResolvedFeeOption>;
     createTransaction<O extends CreateTransactionOptions>(from: string | number, to: string | number, amount: string, options?: O): Promise<UnsignedTransaction>;
     createSweepTransaction<O extends CreateTransactionOptions>(from: string | number, to: string | number, options?: O): Promise<UnsignedTransaction>;
     signTransaction<O extends object>(unsignedTx: UnsignedTransaction, options?: O): Promise<SignedTransaction>;

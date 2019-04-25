@@ -16,22 +16,31 @@ export var FeeRateType;
     FeeRateType["BasePerWeight"] = "base/weight";
 })(FeeRateType || (FeeRateType = {}));
 export var FeeRateTypeT = enumCodec(FeeRateType, 'FeeRateType');
+export var FeeOptionCustom = requiredOptionalCodec({
+    feeRate: t.string,
+    feeRateType: FeeRateTypeT,
+}, {
+    feeLevel: t.literal(FeeLevel.Custom),
+}, 'FeeOptionCustom');
+export var FeeOptionLevel = t.type({
+    feeLevel: t.union([
+        t.literal(FeeLevel.High),
+        t.literal(FeeLevel.Medium),
+        t.literal(FeeLevel.Low),
+    ])
+}, 'FeeOptionLevel');
 export var FeeOption = t.union([
-    requiredOptionalCodec({
-        feeRate: t.string,
-        feeRateType: FeeRateTypeT,
-    }, {
-        feeLevel: t.literal(FeeLevel.Custom),
-    }, 'FeeOptionCustom'),
-    t.type({
-        feeLevel: t.union([
-            t.literal(FeeLevel.High),
-            t.literal(FeeLevel.Medium),
-            t.literal(FeeLevel.Low),
-        ])
-    }, 'FeeOptionLevel'),
+    FeeOptionCustom,
+    FeeOptionLevel,
 ], 'FeeOption');
 export var CreateTransactionOptions = FeeOption;
+export var ResolvedFeeOption = t.type({
+    targetFeeLevel: FeeLevelT,
+    targetFeeRate: t.string,
+    targetFeeRateType: FeeRateTypeT,
+    feeBase: t.string,
+    feeMain: t.string,
+});
 export var BalanceResult = t.type({
     balance: t.string,
     unconfirmedBalance: t.string,
