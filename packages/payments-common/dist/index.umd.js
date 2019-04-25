@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('io-ts'), require('@faast/ts-common')) :
   typeof define === 'function' && define.amd ? define(['exports', 'io-ts', '@faast/ts-common'], factory) :
-  (factory((global.payments_common = {}),global.t,global.tsCommon));
+  (factory((global.paymentsCommon = {}),global.t,global.tsCommon));
 }(this, (function (exports,t,tsCommon) { 'use strict';
 
   var AddressOrIndex = t.union([t.string, t.number], 'AddressOrIndex');
