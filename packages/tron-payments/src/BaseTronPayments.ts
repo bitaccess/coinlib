@@ -1,6 +1,10 @@
 import TronWeb, { Transaction as TronTransaction } from 'tronweb'
 import { pick, get, cloneDeep } from 'lodash'
-import { BalanceResult, PaymentsInterface, TransactionStatus } from 'payments-common'
+import {
+  BalanceResult, PaymentsInterface, TransactionStatus, FeeLevel, FeeOption, FeeRateType, FeeOptionCustom,
+  ResolvedFeeOption,
+} from 'payments-common'
+import { isType } from '@faast/ts-common'
 
 import {
   TronTransactionInfo, TronUnsignedTransaction, TronSignedTransaction, TronBroadcastResult,
@@ -8,8 +12,7 @@ import {
 } from './types'
 import { toMainDenomination, toBaseDenomination, toBaseDenominationNumber, toError } from './utils'
 import {
-  TRX_FEE_FOR_TRANSFER_SUN,
-  DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE,
+  FEE_LEVEL_TRANSFER_SUN, DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE, FEE_FOR_TRANSFER_SUN,
 } from './constants'
 
 export abstract class BaseTronPayments implements PaymentsInterface<
@@ -102,34 +105,72 @@ export abstract class BaseTronPayments implements PaymentsInterface<
     return this.canSweepBalance(toBaseDenominationNumber(balance))
   }
 
+  async resolveFeeOption(feeOption: FeeOption): Promise<ResolvedFeeOption> {
+    let targetFeeLevel: FeeLevel
+    let targetFeeRate: string
+    let targetFeeRateType: FeeRateType
+    let feeBase: string
+    if (isType(FeeOptionCustom, feeOption)) {
+      targetFeeLevel = FeeLevel.Custom
+      targetFeeRate = feeOption.feeRate
+      targetFeeRateType = feeOption.feeRateType
+      if (feeOption.feeRateType === FeeRateType.Base) {
+        feeBase = feeOption.feeRate
+      } else if (feeOption.feeRateType === FeeRateType.Main) {
+        feeBase = toBaseDenomination(feeOption.feeRate)
+      } else {
+        throw new Error(`Unsupported feeRateType for TRX: ${feeOption.feeRateType}`)
+      }
+    } else {
+      feeBase = FEE_LEVEL_TRANSFER_SUN[feeOption.feeLevel].toString()
+      targetFeeLevel = feeOption.feeLevel
+      targetFeeRate = feeBase
+      targetFeeRateType = FeeRateType.Base
+    }
+    const feeMain = toMainDenomination(feeBase)
+    return {
+      targetFeeLevel,
+      targetFeeRate,
+      targetFeeRateType,
+      feeBase,
+      feeMain,
+    }
+  }
+
   async createSweepTransaction(
-    from: string | number, to: string | number, options: CreateTransactionOptions = {}
+    from: string | number, to: string | number,
+    options: CreateTransactionOptions = { feeLevel: FeeLevel.Medium }
   ): Promise<TronUnsignedTransaction> {
     try {
       const {
         fromAddress, fromIndex, toAddress, toIndex
       } = await this.resolveFromTo(from, to)
-      const feeSun = options.fee || TRX_FEE_FOR_TRANSFER_SUN
-      const feeTrx = toMainDenomination(feeSun)
+      const {
+        targetFeeLevel, targetFeeRate, targetFeeRateType, feeBase, feeMain,
+      } = await this.resolveFeeOption(options)
+      const feeSun = Number.parseInt(feeBase)
       const balanceSun = await this.tronweb.trx.getBalance(fromAddress)
       const balanceTrx = toMainDenomination(balanceSun)
       if (!this.canSweepBalance(balanceSun)) {
-        throw new Error(`Insufficient balance (${balanceTrx}) to sweep with fee of ${feeTrx}`)
+        throw new Error(`Insufficient balance (${balanceTrx}) to sweep with fee of ${feeMain}`)
       }
       const amountSun = balanceSun - feeSun
       const amountTrx = toMainDenomination(amountSun)
       const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)
       return {
         id: tx.txID,
-        from: fromAddress,
-        to: toAddress,
+        fromAddress,
+        toAddress,
         toExtraId: null,
         fromIndex,
         toIndex,
         amount: amountTrx,
-        fee: feeTrx,
+        fee: feeMain,
+        targetFeeLevel,
+        targetFeeRate,
+        targetFeeRateType,
         status: 'unsigned',
-        rawUnsigned: tx,
+        data: tx,
       }
     } catch (e) {
       throw toError(e)
@@ -137,32 +178,38 @@ export abstract class BaseTronPayments implements PaymentsInterface<
   }
 
   async createTransaction(
-    from: string | number, to: string | number, amountTrx: string, options: CreateTransactionOptions = {}
+    from: string | number, to: string | number, amountTrx: string,
+    options: CreateTransactionOptions = { feeLevel: FeeLevel.Medium }
   ): Promise<TronUnsignedTransaction> {
     try {
       const {
         fromAddress, fromIndex, toAddress, toIndex
       } = await this.resolveFromTo(from, to)
-      const feeSun = options.fee || TRX_FEE_FOR_TRANSFER_SUN
-      const feeTrx = toMainDenomination(feeSun)
+      const {
+        targetFeeLevel, targetFeeRate, targetFeeRateType, feeBase, feeMain,
+      } = await this.resolveFeeOption(options)
+      const feeSun = Number.parseInt(feeBase)
       const balanceSun = await this.tronweb.trx.getBalance(fromAddress)
       const balanceTrx = toMainDenomination(balanceSun)
       const amountSun = toBaseDenominationNumber(amountTrx)
       if ((balanceSun - feeSun) < amountSun) {
-        throw new Error(`Insufficient balance (${balanceTrx}) to send including fee of ${feeTrx}`)
+        throw new Error(`Insufficient balance (${balanceTrx}) to send including fee of ${feeMain}`)
       }
       const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)
       return {
         id: tx.txID,
-        from: fromAddress,
-        to: toAddress,
+        fromAddress,
+        toAddress,
         toExtraId: null,
         fromIndex,
         toIndex,
         amount: amountTrx,
-        fee: feeTrx,
+        fee: feeMain,
+        targetFeeLevel,
+        targetFeeRate,
+        targetFeeRateType,
         status: 'unsigned',
-        rawUnsigned: tx,
+        data: tx,
       }
     } catch (e) {
       throw toError(e)
@@ -174,12 +221,12 @@ export abstract class BaseTronPayments implements PaymentsInterface<
   ): Promise<TronSignedTransaction> {
     try {
       const fromPrivateKey = await this.getPrivateKey(unsignedTx.fromIndex)
-      const unsignedRaw = cloneDeep(unsignedTx.rawUnsigned) as TronWebTransaction // tron modifies unsigned object
+      const unsignedRaw = cloneDeep(unsignedTx.data) as TronWebTransaction // tron modifies unsigned object
       const signedTx = await this.tronweb.trx.sign(unsignedRaw, fromPrivateKey)
       return {
         ...unsignedTx,
         status: 'signed',
-        rawSigned: signedTx,
+        data: signedTx,
       }
     } catch(e) {
       throw toError(e)
@@ -200,7 +247,7 @@ export abstract class BaseTronPayments implements PaymentsInterface<
      * `(DUP_TRANASCTION_ERROR && Transaction not found)` -> tx was probably invalid? Maybe? Who knows…
      */
     try {
-      const status = await this.tronweb.trx.sendRawTransaction(tx.rawSigned as TronWebTransaction)
+      const status = await this.tronweb.trx.sendRawTransaction(tx.data as TronWebTransaction)
       let success = false
       let rebroadcast = false
       if (status.result || status.code === 'SUCCESS') {
@@ -237,11 +284,11 @@ export abstract class BaseTronPayments implements PaymentsInterface<
         this.tronweb.trx.getCurrentBlock(),
       ])
 
-      const { amountTrx, from, to } = this.extractTxFields(tx)
+      const { amountTrx, fromAddress, toAddress } = this.extractTxFields(tx)
 
       const [fromIndex, toIndex] = await Promise.all([
-        this.getAddressIndexOrNull(from),
-        this.getAddressIndexOrNull(to),
+        this.getAddressIndexOrNull(fromAddress),
+        this.getAddressIndexOrNull(toAddress),
       ])
 
       const contractRet = get(tx, 'ret[0].contractRet')
@@ -267,8 +314,8 @@ export abstract class BaseTronPayments implements PaymentsInterface<
       return {
         id: tx.txID,
         amount: amountTrx,
-        to,
-        from,
+        toAddress,
+        fromAddress,
         toExtraId: null,
         fromIndex,
         toIndex,
@@ -279,7 +326,7 @@ export abstract class BaseTronPayments implements PaymentsInterface<
         confirmations,
         date,
         status,
-        rawInfo: {
+        data: {
           ...tx,
           ...txInfo,
           currentBlock: pick(currentBlock, 'block_header', 'blockID'),
@@ -293,7 +340,7 @@ export abstract class BaseTronPayments implements PaymentsInterface<
   // HELPERS
 
   private canSweepBalance(balanceSun: number): boolean {
-    return (balanceSun - TRX_FEE_FOR_TRANSFER_SUN) > 0
+    return (balanceSun - FEE_FOR_TRANSFER_SUN) > 0
   }
 
   private extractTxFields(tx: TronTransaction) {
@@ -304,13 +351,13 @@ export abstract class BaseTronPayments implements PaymentsInterface<
 
     const amountSun = contractParam.amount || 0
     const amountTrx = toMainDenomination(amountSun)
-    const to = this.tronweb.address.fromHex(contractParam.to_address)
-    const from = this.tronweb.address.fromHex(contractParam.owner_address)
+    const toAddress = this.tronweb.address.fromHex(contractParam.to_address)
+    const fromAddress = this.tronweb.address.fromHex(contractParam.owner_address)
     return {
       amountTrx,
       amountSun,
-      to,
-      from,
+      toAddress,
+      fromAddress,
     }
   }
 

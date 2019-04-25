@@ -1,10 +1,11 @@
 /* tslint:disable: max-line-length variable-name */
 import { TronTransactionInfo, TronSignedTransaction } from '#/types'
+import { FeeLevel, FeeRateType } from 'payments-common';
 
 export const txInfo_209F8: TronTransactionInfo = {
   'id': '209f8dbefe6bbb9395f1be76dfb581b7bb53197d27cb28fbfe6c819b914c140c',
-  'to': 'TYehHt29ynSogYoxp9653hMFmxCV3gCZqg',
-  'from': 'TBR4KDPrN9BrnyjienckS2xixcTpJ9aP26',
+  'toAddress': 'TYehHt29ynSogYoxp9653hMFmxCV3gCZqg',
+  'fromAddress': 'TBR4KDPrN9BrnyjienckS2xixcTpJ9aP26',
   'toExtraId': null,
   'fromIndex': null,
   'toIndex': null,
@@ -16,7 +17,7 @@ export const txInfo_209F8: TronTransactionInfo = {
   'block': 3748106,
   'status': 'confirmed',
   'date': new Date(1541196195242),
-  'rawInfo': {
+  'data': {
     'blockNumber': 3748106,
     'blockTimeStamp': 1541196198000,
     'contractResult': [
@@ -76,8 +77,8 @@ export const txInfo_209F8: TronTransactionInfo = {
 export const txInfo_a0787: TronTransactionInfo = {
   'id': 'a078736ab768b34dc06ca9048dddfa73383947aed0d93f1eff2adde4b7254f39',
   'amount': '10.27',
-  'to': 'TVqbYNCpGBxTXP84zRuLk3iS4TXGo1verg',
-  'from': 'TBScvVdiX5Yob2XBLWUfUfTiTLabm2RsB8',
+  'toAddress': 'TVqbYNCpGBxTXP84zRuLk3iS4TXGo1verg',
+  'fromAddress': 'TBScvVdiX5Yob2XBLWUfUfTiTLabm2RsB8',
   'toExtraId': null,
   'fromIndex': null,
   'toIndex': null,
@@ -88,7 +89,7 @@ export const txInfo_a0787: TronTransactionInfo = {
   'confirmations': 4199517,
   'date': new Date('2018-11-14T22:20:58.986Z'),
   'status': 'confirmed',
-  'rawInfo': {
+  'data': {
     'ret': [
       {
         'contractRet': 'SUCCESS'
@@ -146,38 +147,18 @@ export const txInfo_a0787: TronTransactionInfo = {
 
 export const signedTx_valid: TronSignedTransaction = {
   'id': 'c7376e46f869a9cadfca43ca20bfdc3c1bfe856908a6a57de147fb881189c3a7',
-  'from': 'TWkTMxK5GZvnvQ3WjNQ6oNV5bNGHd13zov',
-  'to': 'TSKW3gHsWKnF62zs2XsMxFkXZ2fLY74CnA',
+  'fromAddress': 'TWkTMxK5GZvnvQ3WjNQ6oNV5bNGHd13zov',
+  'toAddress': 'TSKW3gHsWKnF62zs2XsMxFkXZ2fLY74CnA',
   'toExtraId': null,
   'fromIndex': 6,
   'toIndex': 5,
   'amount': '74.262026',
   'fee': '0.1',
+  'targetFeeLevel': FeeLevel.Medium,
+  'targetFeeRate': '100000',
+  'targetFeeRateType': FeeRateType.BasePerWeight,
   'status': 'signed',
-  'rawUnsigned': {
-    'txID': 'c7376e46f869a9cadfca43ca20bfdc3c1bfe856908a6a57de147fb881189c3a7',
-    'raw_data': {
-      'contract': [
-        {
-          'parameter': {
-            'value': {
-              'amount': 74262026,
-              'owner_address': '41e3f138a75016a33a64ba2ec14afa2f5c44f30797',
-              'to_address': '41b3588f73abfb989d9a3488ccb1d01b7d42ed689e'
-            },
-            'type_url': 'type.googleapis.com/protocol.TransferContract'
-          },
-          'type': 'TransferContract'
-        }
-      ],
-      'ref_block_bytes': '4732',
-      'ref_block_hash': '263457a1c845be9f',
-      'expiration': 1555366179000,
-      'timestamp': 1555366122131
-    },
-    'raw_data_hex': '0a0247322208263457a1c845be9f40b8e1b198a22d5a68080112640a2d747970652e676f6f676c65617069732e636f6d2f70726f746f636f6c2e5472616e73666572436f6e747261637412330a1541e3f138a75016a33a64ba2ec14afa2f5c44f30797121541b3588f73abfb989d9a3488ccb1d01b7d42ed689e188accb4237093a5ae98a22d'
-  },
-  'rawSigned': {
+  'data': {
     'txID': 'c7376e46f869a9cadfca43ca20bfdc3c1bfe856908a6a57de147fb881189c3a7',
     'raw_data': {
       'contract': [
@@ -207,41 +188,18 @@ export const signedTx_valid: TronSignedTransaction = {
 
 export const signedTx_invalid: TronSignedTransaction = {
   'id': '1234567890',
-  'from': '1234567890',
-  'to': '1234567890',
+  'fromAddress': '1234567890',
+  'toAddress': '1234567890',
   'toExtraId': null,
   'fromIndex': 0,
   'toIndex': 5,
   'amount': '1234567890',
   'fee': '1234567890',
+  'targetFeeLevel': FeeLevel.Medium,
+  'targetFeeRate': '100000',
+  'targetFeeRateType': FeeRateType.BasePerWeight,
   'status': 'signed',
-  'rawUnsigned': {
-    'txID': '1234567890',
-    'raw_data': {
-      'contract': [
-        {
-          'parameter': {
-            'value': {
-              'amount': 1234567890,
-              'owner_address': '1234567890',
-              'to_address': '1234567890'
-            },
-            'type_url': '1234567890'
-          },
-          'type': '1234567890'
-        }
-      ],
-      'ref_block_bytes': '1234567890',
-      'ref_block_hash': '1234567890',
-      'expiration': 1234567890,
-      'timestamp': 1234567890
-    },
-    'raw_data_hex': '1234567890',
-    'signature': [
-      ''
-    ]
-  },
-  'rawSigned': {
+  'data': {
     'txID': '1234567890',
     'raw_data': {
       'contract': [

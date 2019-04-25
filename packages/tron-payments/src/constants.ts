@@ -1,5 +1,11 @@
-export const TRX_FEE_FOR_TRANSFER = Number.parseInt(process.env.TRX_FEE_FOR_TRANSFER || '1000')
-export const TRX_FEE_FOR_TRANSFER_SUN = TRX_FEE_FOR_TRANSFER * 100
+import { FeeLevel } from 'payments-common'
+
+export const FEE_FOR_TRANSFER_SUN = 100000
+export const FEE_LEVEL_TRANSFER_SUN = {
+  [FeeLevel.Low]: FEE_FOR_TRANSFER_SUN,
+  [FeeLevel.Medium]: FEE_FOR_TRANSFER_SUN,
+  [FeeLevel.High]: FEE_FOR_TRANSFER_SUN,
+}
 
 export const DEFAULT_FULL_NODE = process.env.TRX_FULL_NODE_URL || 'http://54.236.37.243:8090'
 export const DEFAULT_SOLIDITY_NODE = process.env.TRX_SOLIDITY_NODE_URL || 'http://47.89.187.247:8091'

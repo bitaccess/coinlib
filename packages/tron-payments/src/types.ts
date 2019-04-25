@@ -2,6 +2,7 @@ import * as t from 'io-ts'
 import { extendCodec } from '@faast/ts-common'
 import {
   BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult,
+  CreateTransactionOptions,
 } from 'payments-common'
 import {
   Transaction as TronWebTransaction,
@@ -9,7 +10,7 @@ import {
   Block as TronWebBlock
 } from 'tronweb'
 
-export { TronWebTransaction, TronWebTransactionInfo, TronWebBlock }
+export { TronWebTransaction, TronWebTransactionInfo, TronWebBlock, CreateTransactionOptions }
 
 export type TransactionInfoRaw = TronWebTransaction & TronWebTransactionInfo & {
   currentBlock: Pick<TronWebBlock, 'blockID' | 'block_header'>
@@ -73,10 +74,7 @@ export type TronSignedTransaction = t.TypeOf<typeof TronSignedTransaction>
 
 export const TronTransactionInfo = extendCodec(
   BaseTransactionInfo,
-  {
-    from: t.string,
-    to: t.string,
-  },
+  {},
   {},
   'TronTransactionInfo',
 )
@@ -91,11 +89,6 @@ export const TronBroadcastResult = extendCodec(
   'TronBroadcastResult',
 )
 export type TronBroadcastResult = t.TypeOf<typeof TronBroadcastResult>
-
-export const CreateTransactionOptions = t.partial({
-  fee: t.number, // in sun
-})
-export type CreateTransactionOptions = t.TypeOf<typeof CreateTransactionOptions>
 
 export const GetAddressOptions = t.partial({
   cacheIndex: t.boolean,
