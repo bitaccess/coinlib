@@ -22,26 +22,22 @@ export const FeeRateTypeT = enumCodec<FeeRateType>(FeeRateType, 'FeeRateType')
 export const FeeOptionCustom = requiredOptionalCodec(
   {
     feeRate: t.string,
-    feeRateType: FeeRateTypeT,
+    feeRateType: FeeRateTypeT
   },
   {
-    feeLevel: t.literal(FeeLevel.Custom),
+    feeLevel: t.literal(FeeLevel.Custom)
   },
   'FeeOptionCustom'
 )
 
-export const FeeOptionLevel = t.type({
-  feeLevel: t.union([
-    t.literal(FeeLevel.High),
-    t.literal(FeeLevel.Medium),
-    t.literal(FeeLevel.Low),
-  ])
-}, 'FeeOptionLevel')
+export const FeeOptionLevel = t.type(
+  {
+    feeLevel: t.union([t.literal(FeeLevel.High), t.literal(FeeLevel.Medium), t.literal(FeeLevel.Low)])
+  },
+  'FeeOptionLevel'
+)
 
-export const FeeOption = t.union([
-  FeeOptionCustom,
-  FeeOptionLevel,
-], 'FeeOption')
+export const FeeOption = t.union([FeeOptionCustom, FeeOptionLevel], 'FeeOption')
 export type FeeOption = t.TypeOf<typeof FeeOption>
 
 export const CreateTransactionOptions = FeeOption
@@ -52,14 +48,17 @@ export const ResolvedFeeOption = t.type({
   targetFeeRate: t.string,
   targetFeeRateType: FeeRateTypeT,
   feeBase: t.string,
-  feeMain: t.string,
+  feeMain: t.string
 })
 export type ResolvedFeeOption = t.TypeOf<typeof ResolvedFeeOption>
 
-export const BalanceResult = t.type({
-  balance: t.string, // balance with at least 1 confirmation
-  unconfirmedBalance: t.string, // balance that is pending confirmation on the blockchain
-}, 'BalanceResult')
+export const BalanceResult = t.type(
+  {
+    balance: t.string, // balance with at least 1 confirmation
+    unconfirmedBalance: t.string // balance that is pending confirmation on the blockchain
+  },
+  'BalanceResult'
+)
 export type BalanceResult = t.TypeOf<typeof BalanceResult>
 
 export enum TransactionStatus {
@@ -67,21 +66,24 @@ export enum TransactionStatus {
   Signed = 'signed',
   Pending = 'pending',
   Confirmed = 'confirmed',
-  Failed = 'failed',
+  Failed = 'failed'
 }
 export const TransactionStatusT = enumCodec(TransactionStatus, 'TransactionStatus')
 
-export const TransactionCommon = t.type({
-  id: nullable(t.string), // network txid
-  fromAddress: nullable(t.string), // sender address
-  toAddress: nullable(t.string), // recipient address
-  toExtraId: nullable(t.string), // eg Monero payment ID
-  fromIndex: nullable(t.number), // sender address index
-  toIndex: nullable(t.number), // recipient address index, null if not ours
-  amount: nullable(t.string), // main denomination (eg "0.125")
-  fee: nullable(t.string), // total fee in main denomination
-  status: TransactionStatusT,
-}, 'TransactionCommon')
+export const TransactionCommon = t.type(
+  {
+    id: nullable(t.string), // network txid
+    fromAddress: nullable(t.string), // sender address
+    toAddress: nullable(t.string), // recipient address
+    toExtraId: nullable(t.string), // eg Monero payment ID
+    fromIndex: nullable(t.number), // sender address index
+    toIndex: nullable(t.number), // recipient address index, null if not ours
+    amount: nullable(t.string), // main denomination (eg "0.125")
+    fee: nullable(t.string), // total fee in main denomination
+    status: TransactionStatusT
+  },
+  'TransactionCommon'
+)
 export type TransactionCommon = t.TypeOf<typeof TransactionCommon>
 
 const UnsignedCommon = extendCodec(
@@ -92,18 +94,18 @@ const UnsignedCommon = extendCodec(
     fromIndex: t.number,
     targetFeeLevel: FeeLevelT,
     targetFeeRate: nullable(t.string),
-    targetFeeRateType: nullable(FeeRateTypeT),
+    targetFeeRateType: nullable(FeeRateTypeT)
   },
-  'UnsignedCommon',
+  'UnsignedCommon'
 )
 
 export const BaseUnsignedTransaction = extendCodec(
   UnsignedCommon,
   {
     status: t.literal('unsigned'),
-    data: t.UnknownRecord,
+    data: t.UnknownRecord
   },
-  'BaseUnsignedTransaction',
+  'BaseUnsignedTransaction'
 )
 export type BaseUnsignedTransaction = t.TypeOf<typeof BaseUnsignedTransaction>
 
@@ -114,9 +116,9 @@ export const BaseSignedTransaction = extendCodec(
     id: t.string,
     amount: t.string,
     fee: t.string,
-    data: t.UnknownRecord,
+    data: t.UnknownRecord
   },
-  'BaseSignedTransaction',
+  'BaseSignedTransaction'
 )
 export type BaseSignedTransaction = t.TypeOf<typeof BaseSignedTransaction>
 
@@ -131,13 +133,16 @@ export const BaseTransactionInfo = extendCodec(
     confirmations: t.number, // 0 if not confirmed
     block: nullable(t.number), // null if not confirmed
     date: nullable(DateT), // null if timestamp unavailable
-    data: t.UnknownRecord,
+    data: t.UnknownRecord
   },
-  'BaseTransactionInfo',
+  'BaseTransactionInfo'
 )
 export type BaseTransactionInfo = t.TypeOf<typeof BaseTransactionInfo>
 
-export const BaseBroadcastResult = t.type({
-  id: t.string,
-}, 'BaseBroadcastResult')
+export const BaseBroadcastResult = t.type(
+  {
+    id: t.string
+  },
+  'BaseBroadcastResult'
+)
 export type BaseBroadcastResult = t.TypeOf<typeof BaseBroadcastResult>

@@ -1,8 +1,12 @@
 import {
-  BalanceResult, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult,
+  BalanceResult,
+  BaseUnsignedTransaction,
+  BaseSignedTransaction,
+  BaseTransactionInfo,
+  BaseBroadcastResult,
   CreateTransactionOptions,
   FeeOption,
-  ResolvedFeeOption,
+  ResolvedFeeOption
 } from './types'
 
 export type AnyPayments = PaymentsInterface<
@@ -19,9 +23,8 @@ export interface PaymentsInterface<
   UnsignedTransaction extends BaseUnsignedTransaction,
   SignedTransaction extends BaseSignedTransaction,
   BroadcastResult extends BaseBroadcastResult,
-  TransactionInfo extends BaseTransactionInfo,
+  TransactionInfo extends BaseTransactionInfo
 > {
-
   // The following static methods should also be implemented
   //
   // static toMainDenomination<O extends object>(amount: number | string, options?: O): string
@@ -47,9 +50,15 @@ export interface PaymentsInterface<
 
   resolveAddress<O extends object>(addressOrIndex: string | number, options?: O): Promise<string>
 
-  resolveFromTo<O extends object>(from: string | number, to: string | number, options?: O): Promise<{
-    fromIndex: number, fromAddress: string,
-    toIndex: number | null, toAddress: string,
+  resolveFromTo<O extends object>(
+    from: string | number,
+    to: string | number,
+    options?: O
+  ): Promise<{
+    fromIndex: number
+    fromAddress: string
+    toIndex: number | null
+    toAddress: string
   }>
 
   /**
@@ -58,14 +67,10 @@ export interface PaymentsInterface<
    * @return Promise resolving to address index
    * @throws if not a valid address or not owned by the wallet
    */
-  getAddressIndex<O extends object>(
-    address: string, options?: O
-  ): Promise<number>
+  getAddressIndex<O extends object>(address: string, options?: O): Promise<number>
 
   /** Same as getAddressIndex but returns null instead of throwing */
-  getAddressIndexOrNull<O extends object>(
-    address: string, options?: O
-  ): Promise<number | null>
+  getAddressIndexOrNull<O extends object>(address: string, options?: O): Promise<number | null>
 
   /**
    * Get the address for the specified index.
@@ -73,14 +78,10 @@ export interface PaymentsInterface<
    * @return Promise resolving to the address at that index
    * @throws if index < 0 or address cannot be returned for any reason
    */
-  getAddress<O extends object>(
-    index: number, options?: O
-  ): Promise<string>
+  getAddress<O extends object>(index: number, options?: O): Promise<string>
 
   /** Same as getAddress but returns null instead of throwing */
-  getAddressOrNull<O extends object>(
-    index: number, options?: O
-  ): Promise<string | null>
+  getAddressOrNull<O extends object>(index: number, options?: O): Promise<string | null>
 
   /**
    * Get the balance of an address (or address at `index`).
@@ -100,7 +101,9 @@ export interface PaymentsInterface<
    * @throws Error if transaction is not found
    */
   getTransactionInfo<O extends object>(
-    txId: string, addressOrIndex: string | number, options?: O,
+    txId: string,
+    addressOrIndex: string | number,
+    options?: O
   ): Promise<TransactionInfo>
 
   resolveFeeOption<O extends FeeOption>(feeOption: O): Promise<ResolvedFeeOption>
@@ -114,14 +117,19 @@ export interface PaymentsInterface<
    * @returns An object representing the signed transaction
    */
   createTransaction<O extends CreateTransactionOptions>(
-    from: string | number, to: string | number, amount: string, options?: O,
+    from: string | number,
+    to: string | number,
+    amount: string,
+    options?: O
   ): Promise<UnsignedTransaction>
 
   /**
    * Creates a new payment transaction sending the entire balance of address `from` to address `to`.
    */
   createSweepTransaction<O extends CreateTransactionOptions>(
-    from: string | number, to: string | number, options?: O,
+    from: string | number,
+    to: string | number,
+    options?: O
   ): Promise<UnsignedTransaction>
 
   /**
@@ -132,9 +140,7 @@ export interface PaymentsInterface<
    * @param amount - The amount to send in the main denomination (eg "0.125" XMR)
    * @returns An object representing the signed transaction
    */
-  signTransaction<O extends object>(
-    unsignedTx: UnsignedTransaction, options?: O,
-  ): Promise<SignedTransaction>
+  signTransaction<O extends object>(unsignedTx: UnsignedTransaction, options?: O): Promise<SignedTransaction>
 
   /**
    * Broadcasts the transaction specified by `signedTx`. Allows rebroadcasting prior transactions.

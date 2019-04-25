@@ -6,14 +6,14 @@ import {
   BaseUnsignedTransaction,
   BaseSignedTransaction,
   BaseBroadcastResult,
-  BaseTransactionInfo,
+  BaseTransactionInfo
 } from '#/types'
 
 describe('types', () => {
   test('BalanceResult validates successfully', () => {
     assertType(BalanceResult, {
       balance: '0',
-      unconfirmedBalance: '0',
+      unconfirmedBalance: '0'
     })
   })
   test('BalanceResult throws on invalid', () => {
@@ -41,7 +41,7 @@ describe('types', () => {
       targetFeeRate: null,
       targetFeeRateType: null,
       status: 'unsigned',
-      data: {},
+      data: {}
     })
   })
   test('BaseUnsignedTransaction throws on invalid', () => {
@@ -61,7 +61,7 @@ describe('types', () => {
       targetFeeRate: '0.1234',
       targetFeeRateType: 'main',
       status: 'signed',
-      data: {},
+      data: {}
     })
   })
   test('BaseSignedTransaction throws on invalid', () => {
@@ -83,7 +83,7 @@ describe('types', () => {
       confirmations: 0,
       block: 0,
       date: new Date(),
-      data: {},
+      data: {}
     })
   })
   test('BaseTransactionInfo throws on invalid', () => {
