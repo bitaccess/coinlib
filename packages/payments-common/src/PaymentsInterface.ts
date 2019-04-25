@@ -6,7 +6,7 @@ import {
   BaseBroadcastResult,
   CreateTransactionOptions,
   FeeOption,
-  ResolvedFeeOption
+  ResolvedFeeOption,
 } from './types'
 
 export type AnyPayments = PaymentsInterface<
@@ -53,7 +53,7 @@ export interface PaymentsInterface<
   resolveFromTo<O extends object>(
     from: string | number,
     to: string | number,
-    options?: O
+    options?: O,
   ): Promise<{
     fromIndex: number
     fromAddress: string
@@ -103,7 +103,7 @@ export interface PaymentsInterface<
   getTransactionInfo<O extends object>(
     txId: string,
     addressOrIndex: string | number,
-    options?: O
+    options?: O,
   ): Promise<TransactionInfo>
 
   resolveFeeOption<O extends FeeOption>(feeOption: O): Promise<ResolvedFeeOption>
@@ -120,7 +120,7 @@ export interface PaymentsInterface<
     from: string | number,
     to: string | number,
     amount: string,
-    options?: O
+    options?: O,
   ): Promise<UnsignedTransaction>
 
   /**
@@ -129,7 +129,7 @@ export interface PaymentsInterface<
   createSweepTransaction<O extends CreateTransactionOptions>(
     from: string | number,
     to: string | number,
-    options?: O
+    options?: O,
   ): Promise<UnsignedTransaction>
 
   /**

@@ -8,33 +8,33 @@ export enum FeeLevel {
   Custom = 'custom',
   Low = 'low',
   Medium = 'medium',
-  High = 'high'
+  High = 'high',
 }
 export const FeeLevelT = enumCodec<FeeLevel>(FeeLevel, 'FeeLevel')
 
 export enum FeeRateType {
   Main = 'main', // ie bitcoins, ethers
   Base = 'base', // ie satoshis, wei
-  BasePerWeight = 'base/weight' // ie satoshis per byte, gas price (wei per gas)
+  BasePerWeight = 'base/weight', // ie satoshis per byte, gas price (wei per gas)
 }
 export const FeeRateTypeT = enumCodec<FeeRateType>(FeeRateType, 'FeeRateType')
 
 export const FeeOptionCustom = requiredOptionalCodec(
   {
     feeRate: t.string,
-    feeRateType: FeeRateTypeT
+    feeRateType: FeeRateTypeT,
   },
   {
-    feeLevel: t.literal(FeeLevel.Custom)
+    feeLevel: t.literal(FeeLevel.Custom),
   },
-  'FeeOptionCustom'
+  'FeeOptionCustom',
 )
 
 export const FeeOptionLevel = t.type(
   {
-    feeLevel: t.union([t.literal(FeeLevel.High), t.literal(FeeLevel.Medium), t.literal(FeeLevel.Low)])
+    feeLevel: t.union([t.literal(FeeLevel.High), t.literal(FeeLevel.Medium), t.literal(FeeLevel.Low)]),
   },
-  'FeeOptionLevel'
+  'FeeOptionLevel',
 )
 
 export const FeeOption = t.union([FeeOptionCustom, FeeOptionLevel], 'FeeOption')
@@ -48,16 +48,16 @@ export const ResolvedFeeOption = t.type({
   targetFeeRate: t.string,
   targetFeeRateType: FeeRateTypeT,
   feeBase: t.string,
-  feeMain: t.string
+  feeMain: t.string,
 })
 export type ResolvedFeeOption = t.TypeOf<typeof ResolvedFeeOption>
 
 export const BalanceResult = t.type(
   {
     balance: t.string, // balance with at least 1 confirmation
-    unconfirmedBalance: t.string // balance that is pending confirmation on the blockchain
+    unconfirmedBalance: t.string, // balance that is pending confirmation on the blockchain
   },
-  'BalanceResult'
+  'BalanceResult',
 )
 export type BalanceResult = t.TypeOf<typeof BalanceResult>
 
@@ -66,7 +66,7 @@ export enum TransactionStatus {
   Signed = 'signed',
   Pending = 'pending',
   Confirmed = 'confirmed',
-  Failed = 'failed'
+  Failed = 'failed',
 }
 export const TransactionStatusT = enumCodec(TransactionStatus, 'TransactionStatus')
 
@@ -80,9 +80,9 @@ export const TransactionCommon = t.type(
     toIndex: nullable(t.number), // recipient address index, null if not ours
     amount: nullable(t.string), // main denomination (eg "0.125")
     fee: nullable(t.string), // total fee in main denomination
-    status: TransactionStatusT
+    status: TransactionStatusT,
   },
-  'TransactionCommon'
+  'TransactionCommon',
 )
 export type TransactionCommon = t.TypeOf<typeof TransactionCommon>
 
@@ -94,18 +94,18 @@ const UnsignedCommon = extendCodec(
     fromIndex: t.number,
     targetFeeLevel: FeeLevelT,
     targetFeeRate: nullable(t.string),
-    targetFeeRateType: nullable(FeeRateTypeT)
+    targetFeeRateType: nullable(FeeRateTypeT),
   },
-  'UnsignedCommon'
+  'UnsignedCommon',
 )
 
 export const BaseUnsignedTransaction = extendCodec(
   UnsignedCommon,
   {
     status: t.literal('unsigned'),
-    data: t.UnknownRecord
+    data: t.UnknownRecord,
   },
-  'BaseUnsignedTransaction'
+  'BaseUnsignedTransaction',
 )
 export type BaseUnsignedTransaction = t.TypeOf<typeof BaseUnsignedTransaction>
 
@@ -116,9 +116,9 @@ export const BaseSignedTransaction = extendCodec(
     id: t.string,
     amount: t.string,
     fee: t.string,
-    data: t.UnknownRecord
+    data: t.UnknownRecord,
   },
-  'BaseSignedTransaction'
+  'BaseSignedTransaction',
 )
 export type BaseSignedTransaction = t.TypeOf<typeof BaseSignedTransaction>
 
@@ -133,16 +133,16 @@ export const BaseTransactionInfo = extendCodec(
     confirmations: t.number, // 0 if not confirmed
     block: nullable(t.number), // null if not confirmed
     date: nullable(DateT), // null if timestamp unavailable
-    data: t.UnknownRecord
+    data: t.UnknownRecord,
   },
-  'BaseTransactionInfo'
+  'BaseTransactionInfo',
 )
 export type BaseTransactionInfo = t.TypeOf<typeof BaseTransactionInfo>
 
 export const BaseBroadcastResult = t.type(
   {
-    id: t.string
+    id: t.string,
   },
-  'BaseBroadcastResult'
+  'BaseBroadcastResult',
 )
 export type BaseBroadcastResult = t.TypeOf<typeof BaseBroadcastResult>
