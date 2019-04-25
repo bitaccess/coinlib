@@ -75,6 +75,7 @@
     "chai": "^4.2.0",
     "coveralls": "^3.0.2",
     "faast-ts-config": "github:go-faast/faast-ts-config",
+    "husky": "^2.1.0",
     "io-ts": "^1.8.5",
     "jest": "^23.6.0",
     "jest-config": "^23.6.0",
