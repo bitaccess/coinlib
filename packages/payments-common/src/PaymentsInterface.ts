@@ -1,5 +1,6 @@
 import {
   BalanceResult, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult,
+  CreateTransactionOptions,
 } from './types'
 
 export type AnyPayments = PaymentsInterface<
@@ -108,14 +109,14 @@ export interface PaymentsInterface<
    * @param amount - The amount to send in the main denomination (eg "0.125" XMR)
    * @returns An object representing the signed transaction
    */
-  createTransaction<O extends object>(
+  createTransaction<O extends CreateTransactionOptions>(
     from: string | number, to: string | number, amount: string, options?: O,
   ): Promise<UnsignedTransaction>
 
   /**
    * Creates a new payment transaction sending the entire balance of address `from` to address `to`.
    */
-  createSweepTransaction<O extends object>(
+  createSweepTransaction<O extends CreateTransactionOptions>(
     from: string | number, to: string | number, options?: O,
   ): Promise<UnsignedTransaction>
 
