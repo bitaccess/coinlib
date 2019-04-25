@@ -36,16 +36,16 @@
   },
   "scripts": {
     "lint": "tslint --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
-    "docs": "typedoc --options typedoc.json",
+    "docs": "typedoc --options typedoc.js",
     "prebuild": "rimraf dist",
-    "build": "tsc --build ./tsconfig.build.json && rollup -c rollup.config.ts && npm run docs",
-    "start": "rollup -c rollup.config.ts -w",
+    "build": "tsc --build ./tsconfig.build.json && rollup -c rollup.config.js && npm run docs",
+    "start": "rollup -c rollup.config.js -w",
     "pretest": "npm run lint",
     "test": "jest --runInBand --detectOpenHandles",
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
     "precommit": "lint-staged",
     "preversion": "bin/preversion.sh",
-    "version": "git checkout master && npm run build && git add -Af dist docs",
+    "version": "npm run build && git add -Af dist docs",
     "postversion": "git push && git push --tags"
   },
   "peerDependencies": {

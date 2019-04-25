@@ -1,5 +1,5 @@
 {
-  "extends": "faast-ts-config/tsconfig.library.json",
+  "extends": "@faast/ts-config/library/tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
     "outDir": "dist/lib",
