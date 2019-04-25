@@ -89,7 +89,7 @@ export interface PaymentsInterface<
 
   /**
    * Get the info and status of a transaction.
-   * 
+   *
    * @param txId - The transaction ID to lookup
    * @param addressOrIndex - The address, or the index of an address, that is associated with this transaction.
    * This is necessary to allow for looking up XMR txs but can be ignored for conventional coins like BTC/ETH.
