@@ -1,6 +1,7 @@
 import * as t from 'io-ts'
+import { extendCodec } from '@faast/ts-common'
 import {
-  BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, extend,
+  BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult,
 } from 'payments-common'
 import {
   Transaction as TronWebTransaction,
@@ -21,7 +22,7 @@ export const BaseTronPaymentsConfig = t.partial({
 }, 'BaseTronPaymentsConfig')
 export type BaseTronPaymentsConfig = t.TypeOf<typeof BaseTronPaymentsConfig>
 
-export const HdTronPaymentsConfig = extend(
+export const HdTronPaymentsConfig = extendCodec(
   BaseTronPaymentsConfig,
   { // required
     hdKey: t.string, // xprv or xpub
@@ -33,7 +34,7 @@ export const HdTronPaymentsConfig = extend(
 )
 export type HdTronPaymentsConfig = t.TypeOf<typeof HdTronPaymentsConfig>
 
-export const KeyPairTronPaymentsConfig = extend(
+export const KeyPairTronPaymentsConfig = extendCodec(
   BaseTronPaymentsConfig,
   {
     // can be private keys or addresses
@@ -50,7 +51,7 @@ export type KeyPairTronPaymentsConfig = t.TypeOf<typeof KeyPairTronPaymentsConfi
 export const TronPaymentsConfig = t.union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig])
 export type TronPaymentsConfig = t.TypeOf<typeof TronPaymentsConfig>
 
-export const TronUnsignedTransaction = extend(
+export const TronUnsignedTransaction = extendCodec(
   BaseUnsignedTransaction,
   {
     id: t.string,
@@ -62,7 +63,7 @@ export const TronUnsignedTransaction = extend(
 )
 export type TronUnsignedTransaction = t.TypeOf<typeof TronUnsignedTransaction>
 
-export const TronSignedTransaction = extend(
+export const TronSignedTransaction = extendCodec(
   BaseSignedTransaction,
   {},
   {},
@@ -70,7 +71,7 @@ export const TronSignedTransaction = extend(
 )
 export type TronSignedTransaction = t.TypeOf<typeof TronSignedTransaction>
 
-export const TronTransactionInfo = extend(
+export const TronTransactionInfo = extendCodec(
   BaseTransactionInfo,
   {
     from: t.string,
@@ -81,7 +82,7 @@ export const TronTransactionInfo = extend(
 )
 export type TronTransactionInfo = t.TypeOf<typeof TronTransactionInfo>
 
-export const TronBroadcastResult = extend(
+export const TronBroadcastResult = extendCodec(
   BaseBroadcastResult,
   {
     rebroadcast: t.boolean,
