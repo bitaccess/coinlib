@@ -64,7 +64,7 @@
     "tronweb": "^2.0.24"
   },
   "devDependencies": {
-    "@faast/ts-config": "github:go-faast/faast-ts-config#v1.1.5",
+    "@faast/ts-config": "github:go-faast/faast-ts-config#v1.1.6",
     "@types/elliptic": "^6.4.6",
     "@types/jest": "^23.3.2",
     "@types/jssha": "^2.0.0",
