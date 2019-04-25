@@ -29,10 +29,10 @@
   },
   "scripts": {
     "lint": "tslint --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
-    "docs": "typedoc --options typedoc.json",
+    "docs": "typedoc --options typedoc.js",
     "prebuild": "rimraf dist",
-    "build": "tsc --build ./tsconfig.build.json && rollup -c rollup.config.ts && npm run docs",
-    "start": "rollup -c rollup.config.ts -w",
+    "build": "tsc --build ./tsconfig.build.json && rollup -c rollup.config.js && npm run docs",
+    "start": "rollup -c rollup.config.js -w",
     "pretest": "npm run lint",
     "test": "jest --runInBand --detectOpenHandles",
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
@@ -47,10 +47,7 @@
   "devDependencies": {
     "@faast/ts-config": "github:go-faast/faast-ts-config#v1.1.4",
     "@types/jest": "^24.0.11",
-    "@types/rollup-plugin-json": "^3.0.2",
-    "@types/rollup-plugin-sourcemaps": "^0.4.1",
     "coveralls": "^3.0.2",
-    "faast-ts-config": "github:go-faast/faast-ts-config",
     "io-ts": "^1.8.5",
     "jest": "^23.6.0",
     "jest-config": "^23.6.0",
@@ -58,11 +55,6 @@
     "prettier": "^1.14.3",
     "rimraf": "^2.6.2",
     "rollup": "^0.67.0",
-    "rollup-plugin-commonjs": "^9.1.8",
-    "rollup-plugin-json": "^3.1.0",
-    "rollup-plugin-node-resolve": "^4.2.3",
-    "rollup-plugin-sourcemaps": "^0.4.2",
-    "rollup-plugin-typescript2": "^0.18.0",
     "ts-jest": "^23.10.2",
     "ts-lint": "^4.5.1",
     "ts-node": "^7.0.1",
@@ -71,7 +63,6 @@
     "typescript": "^3.4.3"
   },
   "dependencies": {
-    "@faast/ts-common": "github:go-faast/faast-ts-common#v0.1.1",
-    "faast-ts-config-library-template": "github:go-faast/faast-ts-common"
+    "@faast/ts-common": "github:go-faast/faast-ts-common#v0.1.1"
   }
 }
