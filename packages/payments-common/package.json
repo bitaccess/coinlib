@@ -63,6 +63,6 @@
     "typescript": "^3.4.3"
   },
   "dependencies": {
-    "@faast/ts-common": "github:go-faast/faast-ts-common#v0.1.1"
+    "@faast/ts-common": "github:go-faast/faast-ts-common#v0.1.2"
   }
 }
