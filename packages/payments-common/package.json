@@ -29,6 +29,7 @@
   },
   "scripts": {
     "lint": "tslint --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "docs": "typedoc --options typedoc.js",
     "prebuild": "rimraf dist",
     "build": "tsc --build ./tsconfig.build.json && rollup -c rollup.config.js && npm run docs",
