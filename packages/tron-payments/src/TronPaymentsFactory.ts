@@ -6,7 +6,6 @@ import { KeyPairTronPayments } from './KeyPairTronPayments'
 import BaseTronPayments from './BaseTronPayments'
 
 export class TronPaymentsFactory implements PaymentsFactory<BaseTronPayments> {
-
   forConfig(config: TronPaymentsConfig) {
     if ((config as HdTronPaymentsConfig).hdKey) {
       return new HdTronPayments(config as HdTronPaymentsConfig)
@@ -16,7 +15,6 @@ export class TronPaymentsFactory implements PaymentsFactory<BaseTronPayments> {
     }
     throw new Error('Cannot instantiate tron payments for unsupported config')
   }
-
 }
 
 export default TronPaymentsFactory

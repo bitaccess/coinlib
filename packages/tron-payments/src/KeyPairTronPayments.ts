@@ -4,7 +4,6 @@ import { BaseTronPayments } from './BaseTronPayments'
 import { KeyPairTronPaymentsConfig } from './types'
 
 export class KeyPairTronPayments extends BaseTronPayments {
-
   addresses: { [index: number]: string | undefined } = {}
   privateKeys: { [index: number]: string | null | undefined } = {}
   addressIndices: { [address: string]: number | undefined } = {}

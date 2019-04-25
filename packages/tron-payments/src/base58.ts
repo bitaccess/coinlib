@@ -44,7 +44,10 @@ export function encode58(buffer: Buffer | number[]) {
     digits.push(0)
   }
 
-  return digits.reverse().map(digit => ALPHABET[digit]).join('')
+  return digits
+    .reverse()
+    .map(digit => ALPHABET[digit])
+    .join('')
 }
 
 export function decode58(s: string): number[] {

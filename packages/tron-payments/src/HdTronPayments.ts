@@ -11,7 +11,6 @@ import { isValidXpub, isValidXprv } from './utils'
 const xpubCache = new Bip44Cache()
 
 export class HdTronPayments extends BaseTronPayments {
-
   hdKey: string
   maxAddressScan: number
 
@@ -22,7 +21,6 @@ export class HdTronPayments extends BaseTronPayments {
     if (!(isValidXprv(this.hdKey) || isValidXpub(this.hdKey))) {
       throw new Error('Account must be a valid xprv or xpub')
     }
-
   }
 
   static generateNewKeys() {
@@ -36,9 +34,7 @@ export class HdTronPayments extends BaseTronPayments {
   }
 
   getXpub(): string {
-    return isValidXprv(this.hdKey)
-      ? xprvToXpub(this.hdKey)
-      : this.hdKey
+    return isValidXprv(this.hdKey) ? xprvToXpub(this.hdKey) : this.hdKey
   }
 
   async getAddress(index: number, options: GetAddressOptions = {}): Promise<string> {
@@ -68,8 +64,10 @@ export class HdTronPayments extends BaseTronPayments {
         return i
       }
     }
-    throw new Error('Cannot get index of address after checking cache and scanning addresses'
-      + ` from 0 to ${this.maxAddressScan - 1} (address=${address})`)
+    throw new Error(
+      'Cannot get index of address after checking cache and scanning addresses' +
+        ` from 0 to ${this.maxAddressScan - 1} (address=${address})`,
+    )
   }
 
   async getPrivateKey(index: number): Promise<string> {
@@ -78,7 +76,6 @@ export class HdTronPayments extends BaseTronPayments {
     }
     return derivePrivateKey(this.hdKey, index)
   }
-
 }
 
 export default HdTronPayments

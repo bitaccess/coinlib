@@ -1,7 +1,6 @@
 // Based on documentation from https://developers.tron.network/v3.0.0/reference
 
 declare module 'tronweb' {
-
   export interface GetEventResultOptions {
     sinceTimestamp?: number
     eventName?: string
@@ -121,7 +120,8 @@ declare module 'tronweb' {
     transactions: Transaction[]
   }
 
-  export type BroadcastCode = 'SUCCESS'
+  export type BroadcastCode =
+    | 'SUCCESS'
     | 'SIGERROR'
     | 'CONTRACT_VALIDATE_ERROR'
     | 'CONTRACT_EXE_ERROR'
@@ -140,7 +140,6 @@ declare module 'tronweb' {
   }
 
   export default class TronWeb {
-
     constructor(fullNode: string, solidityNode: string, eventServer: string, privateKey?: string)
 
     setDefaultBlock(blockID?: 'earliest' | 'latest'): 'earliest' | 'latest' | false
@@ -181,7 +180,10 @@ declare module 'tronweb' {
       getTransactionInfo(txId: string): Promise<TransactionInfo>
       getTransactionsToAddress(address: string, limit: number, offset: number): Promise<Transaction[]>
       getTransactionsRelated(
-        address: string, direction: 'all' | 'from' | 'to', limit: number, offset: number
+        address: string,
+        direction: 'all' | 'from' | 'to',
+        limit: number,
+        offset: number,
       ): Promise<Transaction[]>
       sendTransaction(to: string, amountInSun: number, privateKey: string): Promise<Transaction>
       sendRawTransaction(signedTransaction: Transaction): Promise<Broadcast>
@@ -192,7 +194,7 @@ declare module 'tronweb' {
       getBlockByHash(blockHash: string): Promise<Block>
       getBlockByNumber(blockNumber: number): Promise<Block>
       getBlockTransactionCount(blockNumber: number): Promise<Block>
-      getChainParameters(): Array<{ key: string, value: string }>
+      getChainParameters(): Array<{ key: string; value: string }>
       getCurrentBlock(): Promise<Block>
       getNodeInfo(): any
       listNodes(): Promise<string[]>

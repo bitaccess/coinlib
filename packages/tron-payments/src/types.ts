@@ -1,34 +1,43 @@
 import * as t from 'io-ts'
 import { extendCodec } from '@faast/ts-common'
 import {
-  BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult,
+  BaseTransactionInfo,
+  BaseUnsignedTransaction,
+  BaseSignedTransaction,
+  BaseBroadcastResult,
   CreateTransactionOptions,
 } from 'payments-common'
 import {
   Transaction as TronWebTransaction,
   TransactionInfo as TronWebTransactionInfo,
-  Block as TronWebBlock
+  Block as TronWebBlock,
 } from 'tronweb'
 
 export { TronWebTransaction, TronWebTransactionInfo, TronWebBlock, CreateTransactionOptions }
 
-export type TransactionInfoRaw = TronWebTransaction & TronWebTransactionInfo & {
-  currentBlock: Pick<TronWebBlock, 'blockID' | 'block_header'>
-}
+export type TransactionInfoRaw = TronWebTransaction &
+  TronWebTransactionInfo & {
+    currentBlock: Pick<TronWebBlock, 'blockID' | 'block_header'>
+  }
 
-export const BaseTronPaymentsConfig = t.partial({
-  fullNode: t.string,
-  solidityNode: t.string,
-  eventServer: t.string,
-}, 'BaseTronPaymentsConfig')
+export const BaseTronPaymentsConfig = t.partial(
+  {
+    fullNode: t.string,
+    solidityNode: t.string,
+    eventServer: t.string,
+  },
+  'BaseTronPaymentsConfig',
+)
 export type BaseTronPaymentsConfig = t.TypeOf<typeof BaseTronPaymentsConfig>
 
 export const HdTronPaymentsConfig = extendCodec(
   BaseTronPaymentsConfig,
-  { // required
+  {
+    // required
     hdKey: t.string, // xprv or xpub
   },
-  { // optional
+  {
+    // optional
     maxAddressScan: t.number, // max address scan to find address index in getAddressIndex
   },
   'HdTronPaymentsConfig',
@@ -39,10 +48,7 @@ export const KeyPairTronPaymentsConfig = extendCodec(
   BaseTronPaymentsConfig,
   {
     // can be private keys or addresses
-    keyPairs: t.union([
-      t.array(t.union([t.string, t.null, t.undefined])),
-      t.record(t.number, t.string),
-    ]),
+    keyPairs: t.union([t.array(t.union([t.string, t.null, t.undefined])), t.record(t.number, t.string)]),
   },
   {},
   'KeyPairTronPaymentsConfig',
@@ -64,20 +70,10 @@ export const TronUnsignedTransaction = extendCodec(
 )
 export type TronUnsignedTransaction = t.TypeOf<typeof TronUnsignedTransaction>
 
-export const TronSignedTransaction = extendCodec(
-  BaseSignedTransaction,
-  {},
-  {},
-  'TronSignedTransaction',
-)
+export const TronSignedTransaction = extendCodec(BaseSignedTransaction, {}, {}, 'TronSignedTransaction')
 export type TronSignedTransaction = t.TypeOf<typeof TronSignedTransaction>
 
-export const TronTransactionInfo = extendCodec(
-  BaseTransactionInfo,
-  {},
-  {},
-  'TronTransactionInfo',
-)
+export const TronTransactionInfo = extendCodec(BaseTransactionInfo, {}, {}, 'TronTransactionInfo')
 export type TronTransactionInfo = t.TypeOf<typeof TronTransactionInfo>
 
 export const TronBroadcastResult = extendCodec(

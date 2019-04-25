@@ -11,8 +11,8 @@ import { set, get } from 'lodash'
 export class Bip44Cache {
   store: {
     [xpub: string]: {
-      addresses: { [index: number]: string },
-      indices: { [address: string]: number },
+      addresses: { [index: number]: string }
+      indices: { [address: string]: number }
     }
   } = {}
 

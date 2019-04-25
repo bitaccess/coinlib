@@ -14,8 +14,8 @@ export const derivationPath = "m/44'/195'/0"
 const derivationPathParts = derivationPath.split('/').slice(1)
 
 type HDKey<K> = {
-  depth: number,
-  derive: (path: string | number, hardened?: boolean) => K,
+  depth: number
+  derive: (path: string | number, hardened?: boolean) => K
 }
 
 export function deriveAddress(xpub: string, index: number): string {
@@ -54,7 +54,7 @@ function hdPrivateKeyToPrivateKey(key: HDPrivateKey): string {
   return bip32PrivateToTronPrivate(key.privateKey.toBuffer())
 }
 
-function bip32PublicToTronPublic (pubKey: any): number[] {
+function bip32PublicToTronPublic(pubKey: any): number[] {
   const pubkey = ec.keyFromPublic(pubKey).getPublic()
   const x = pubkey.x
   const y = pubkey.y
@@ -90,7 +90,7 @@ function bip32PrivateToTronPrivate(priKeyBytes: Buffer): string {
 
 // Borrowed from tronweb:  https://github.com/tronprotocol/tron-web/blob/master/src/utils/code.js
 const ADDRESS_PREFIX = '41'
-function byte2hexStr (byte: number): string {
+function byte2hexStr(byte: number): string {
   const hexByteMap = '0123456789ABCDEF'
 
   let str = ''
@@ -100,7 +100,7 @@ function byte2hexStr (byte: number): string {
   return str
 }
 
-function hexStr2byteArray (str: string): number[] {
+function hexStr2byteArray(str: string): number[] {
   const byteArray = Array()
   let d = 0
   let j = 0
@@ -114,7 +114,7 @@ function hexStr2byteArray (str: string): number[] {
       d += hexChar2byte(c)
       j++
 
-      if (0 === (j % 2)) {
+      if (0 === j % 2) {
         byteArray[k++] = d
         d = 0
       }
@@ -124,13 +124,11 @@ function hexStr2byteArray (str: string): number[] {
   return byteArray
 }
 
-function isHexChar (c: string): boolean {
-  return ((c >= 'A' && c <= 'F') ||
-    (c >= 'a' && c <= 'f') ||
-    (c >= '0' && c <= '9'))
+function isHexChar(c: string): boolean {
+  return (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f') || (c >= '0' && c <= '9')
 }
 
-function hexChar2byte (c: string): number {
+function hexChar2byte(c: string): number {
   let d = 0
 
   if (c >= 'A' && c <= 'F') {
@@ -144,16 +142,16 @@ function hexChar2byte (c: string): number {
   return d
 }
 
-function byteArray2hexStr (byteArray: number[]): string {
+function byteArray2hexStr(byteArray: number[]): string {
   let str = ''
 
-  for (let i = 0; i < (byteArray.length); i++) {
+  for (let i = 0; i < byteArray.length; i++) {
     str += byte2hexStr(byteArray[i])
   }
   return str
 }
 
-function pubBytesToTronBytes (pubBytes: number[]): number[] {
+function pubBytesToTronBytes(pubBytes: number[]): number[] {
   if (pubBytes.length === 65) {
     pubBytes = pubBytes.slice(1)
   }
@@ -164,7 +162,7 @@ function pubBytesToTronBytes (pubBytes: number[]): number[] {
   return hexStr2byteArray(addressHex)
 }
 
-function addressBytesToB58CheckAddress (addressBytes: number[]) {
+function addressBytesToB58CheckAddress(addressBytes: number[]) {
   const hash0 = SHA256(addressBytes)
   const hash1 = SHA256(hash0)
   let checkSum = hash1.slice(0, 4)
@@ -172,7 +170,7 @@ function addressBytesToB58CheckAddress (addressBytes: number[]) {
   return encode58(checkSum)
 }
 
-function SHA256 (msgBytes: number[]): number[] {
+function SHA256(msgBytes: number[]): number[] {
   const shaObj = new jsSHA('SHA-256', 'HEX')
   const msgHex = byteArray2hexStr(msgBytes)
   shaObj.update(msgHex)

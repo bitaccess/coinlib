@@ -2,7 +2,7 @@ import { TronPaymentsFactory } from '#/TronPaymentsFactory'
 import { HdTronPayments } from '#/HdTronPayments'
 import { KeyPairTronPayments } from '#/KeyPairTronPayments'
 import { HdTronPaymentsConfig, KeyPairTronPaymentsConfig } from '#/types'
-import { TronPaymentsConfig } from '../src/types';
+import { TronPaymentsConfig } from '../src/types'
 
 describe('TronPaymentsFactory', () => {
   const factory = new TronPaymentsFactory()

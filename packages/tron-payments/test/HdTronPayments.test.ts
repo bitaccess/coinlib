@@ -18,10 +18,15 @@ const rootDir = path.resolve(__dirname, '..')
 const secretXprvFilePath = path.resolve(rootDir, SECRET_XPRV_FILE)
 let secretXprv = ''
 if (fs.existsSync(secretXprvFilePath)) {
-  secretXprv = fs.readFileSync(secretXprvFilePath).toString('utf8').trim()
+  secretXprv = fs
+    .readFileSync(secretXprvFilePath)
+    .toString('utf8')
+    .trim()
   console.log(`Loaded ${SECRET_XPRV_FILE}. Send and sweep tests enabled.`)
 } else {
-  console.log(`File ${SECRET_XPRV_FILE} missing. Send and sweep tests will be skipped. To enable all tests ask Dylan to share the file with you on Lastpass.`)
+  console.log(
+    `File ${SECRET_XPRV_FILE} missing. Send and sweep tests will be skipped. To enable all tests ask Dylan to share the file with you on Lastpass.`,
+  )
 }
 
 const txInfoOmitEquality = ['data.currentBlock', 'confirmations']
@@ -55,12 +60,10 @@ function runHardcodedPublicKeyTests(tp: HdTronPayments) {
     expect(await tp.getAddressIndexOrNull(EXTERNAL_ADDRESS)).toBe(null)
   })
   it('throw on getAddressIndex for address that is uncached and unscannable', async () => {
-    await expect(tp.getAddressIndex(ADDRESSES[20000]))
-      .rejects.toThrowError()
+    await expect(tp.getAddressIndex(ADDRESSES[20000])).rejects.toThrowError()
   })
   it('throw on getAddressIndex for external address', async () => {
-    await expect(tp.getAddressIndex(EXTERNAL_ADDRESS))
-      .rejects.toThrowError()
+    await expect(tp.getAddressIndex(EXTERNAL_ADDRESS)).rejects.toThrowError()
   })
   it('resolveAddress resolves for index 1', async () => {
     expect(await tp.resolveAddress(1)).toBe(ADDRESSES[1])
@@ -135,8 +138,7 @@ function runHardcodedPublicKeyTests(tp: HdTronPayments) {
     assertTxInfo(tx, txInfo_a0787)
   })
   it('fail to get an invalid transaction hash', async () => {
-    await expect(tp.getTransactionInfo('123456abcdef'))
-      .rejects.toThrow('Transaction not found')
+    await expect(tp.getTransactionInfo('123456abcdef')).rejects.toThrow('Transaction not found')
   })
 
   it('get a balance using xpub and index', async () => {
@@ -159,8 +161,7 @@ function runHardcodedPublicKeyTests(tp: HdTronPayments) {
     })
   })
   it('broadcast should fail on invalid tx', async () => {
-    await expect(tp.broadcastTransaction(signedTx_invalid))
-      .rejects.toThrow('Failed to broadcast transaction: ')
+    await expect(tp.broadcastTransaction(signedTx_invalid)).rejects.toThrow('Failed to broadcast transaction: ')
   })
 }
 
@@ -297,8 +298,11 @@ describe('HdTronPayments', () => {
           }
         }
         if (indexToSweep < 0) {
-          const allAddresses = await Promise.all(indicesToTry.map((i) => tp.getAddress(i)))
-          console.log('Cannot end to end test sweeping due to lack of funds. Send TRX to any of the following addresses and try again.', allAddresses)
+          const allAddresses = await Promise.all(indicesToTry.map(i => tp.getAddress(i)))
+          console.log(
+            'Cannot end to end test sweeping due to lack of funds. Send TRX to any of the following addresses and try again.',
+            allAddresses,
+          )
           return
         }
         const recipientIndex = indexToSweep === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
@@ -311,7 +315,7 @@ describe('HdTronPayments', () => {
             rebroadcast: false,
           })
         } catch (e) {
-          if ((e.message || e as string).includes('Validate TransferContract error, balance is not sufficient')) {
+          if ((e.message || (e as string)).includes('Validate TransferContract error, balance is not sufficient')) {
             console.log('Ran consecutive tests too soon, previous sweep not complete. Wait a minute and retry')
           }
           throw e
