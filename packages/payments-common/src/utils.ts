@@ -53,3 +53,7 @@ export function assertType<T>(typeCodec: Type<T>, value: unknown, description: s
   }
   return validation.value
 }
+
+export function isEmptyObject(obj: object): obj is {} {
+  return Object.entries(obj).length === 0 && obj.constructor === Object
+}
