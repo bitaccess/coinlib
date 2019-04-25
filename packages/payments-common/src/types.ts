@@ -19,24 +19,28 @@ export enum FeeRateType {
 }
 export const FeeRateTypeT = enumCodec<FeeRateType>(FeeRateType, 'FeeRateType')
 
+export const FeeOptionCustom = requiredOptionalCodec(
+  {
+    feeRate: t.string,
+    feeRateType: FeeRateTypeT,
+  },
+  {
+    feeLevel: t.literal(FeeLevel.Custom),
+  },
+  'FeeOptionCustom'
+)
+
+export const FeeOptionLevel = t.type({
+  feeLevel: t.union([
+    t.literal(FeeLevel.High),
+    t.literal(FeeLevel.Medium),
+    t.literal(FeeLevel.Low),
+  ])
+}, 'FeeOptionLevel')
+
 export const FeeOption = t.union([
-  requiredOptionalCodec(
-    {
-      feeRate: t.string,
-      feeRateType: FeeRateTypeT,
-    },
-    {
-      feeLevel: t.literal(FeeLevel.Custom),
-    },
-    'FeeOptionCustom'
-  ),
-  t.type({
-    feeLevel: t.union([
-      t.literal(FeeLevel.High),
-      t.literal(FeeLevel.Medium),
-      t.literal(FeeLevel.Low),
-    ])
-  }, 'FeeOptionLevel'),
+  FeeOptionCustom,
+  FeeOptionLevel,
 ], 'FeeOption')
 export type FeeOption = t.TypeOf<typeof FeeOption>
 
