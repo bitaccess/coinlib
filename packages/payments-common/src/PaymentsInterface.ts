@@ -1,6 +1,8 @@
 import {
   BalanceResult, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult,
   CreateTransactionOptions,
+  FeeOption,
+  ResolvedFeeOption,
 } from './types'
 
 export type AnyPayments = PaymentsInterface<
@@ -100,6 +102,8 @@ export interface PaymentsInterface<
   getTransactionInfo<O extends object>(
     txId: string, addressOrIndex: string | number, options?: O,
   ): Promise<TransactionInfo>
+
+  resolveFeeOption<O extends FeeOption>(feeOption: O): Promise<ResolvedFeeOption>
 
   /**
    * Creates and signs a new payment transaction sending `amount` from address `from` to address `to`.

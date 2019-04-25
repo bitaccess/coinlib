@@ -47,6 +47,15 @@ export type FeeOption = t.TypeOf<typeof FeeOption>
 export const CreateTransactionOptions = FeeOption
 export type CreateTransactionOptions = t.TypeOf<typeof CreateTransactionOptions>
 
+export const ResolvedFeeOption = t.type({
+  targetFeeLevel: FeeLevelT,
+  targetFeeRate: t.string,
+  targetFeeRateType: FeeRateTypeT,
+  feeBase: t.string,
+  feeMain: t.string,
+})
+export type ResolvedFeeOption = t.TypeOf<typeof ResolvedFeeOption>
+
 export const BalanceResult = t.type({
   balance: t.string, // balance with at least 1 confirmation
   unconfirmedBalance: t.string, // balance that is pending confirmation on the blockchain
