@@ -1,5 +1,5 @@
 {
   "extends": [
-    "faast-ts-config/tslint.library.json"
+    "@faast/ts-config/library/tslint.json"
   ]
 }
