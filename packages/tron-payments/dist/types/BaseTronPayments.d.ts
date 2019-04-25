@@ -1,5 +1,5 @@
 import TronWeb from 'tronweb';
-import { BalanceResult, PaymentsInterface } from 'payments-common';
+import { BalanceResult, PaymentsInterface, FeeOption, ResolvedFeeOption } from 'payments-common';
 import { TronTransactionInfo, TronUnsignedTransaction, TronSignedTransaction, TronBroadcastResult, CreateTransactionOptions, GetAddressOptions, BaseTronPaymentsConfig } from './types';
 import { toMainDenomination, toBaseDenomination } from './utils';
 export declare abstract class BaseTronPayments implements PaymentsInterface<TronUnsignedTransaction, TronSignedTransaction, TronBroadcastResult, TronTransactionInfo> {
@@ -22,6 +22,7 @@ export declare abstract class BaseTronPayments implements PaymentsInterface<Tron
     getAddressIndexOrNull(address: string): Promise<number | null>;
     getBalance(addressOrIndex: string | number): Promise<BalanceResult>;
     canSweep(addressOrIndex: string | number): Promise<boolean>;
+    resolveFeeOption(feeOption: FeeOption): Promise<ResolvedFeeOption>;
     createSweepTransaction(from: string | number, to: string | number, options?: CreateTransactionOptions): Promise<TronUnsignedTransaction>;
     createTransaction(from: string | number, to: string | number, amountTrx: string, options?: CreateTransactionOptions): Promise<TronUnsignedTransaction>;
     signTransaction(unsignedTx: TronUnsignedTransaction): Promise<TronSignedTransaction>;

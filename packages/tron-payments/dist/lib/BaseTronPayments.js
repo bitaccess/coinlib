@@ -46,9 +46,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import TronWeb from 'tronweb';
 import { pick, get, cloneDeep } from 'lodash';
-import { TransactionStatus } from 'payments-common';
+import { TransactionStatus, FeeLevel, FeeRateType, FeeOptionCustom, } from 'payments-common';
+import { isType } from '@faast/ts-common';
 import { toMainDenomination, toBaseDenomination, toBaseDenominationNumber, toError } from './utils';
-import { TRX_FEE_FOR_TRANSFER_SUN, DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE, } from './constants';
+import { FEE_LEVEL_TRANSFER_SUN, DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE, FEE_FOR_TRANSFER_SUN, } from './constants';
 var BaseTronPayments = (function () {
     function BaseTronPayments(config) {
         this.toMainDenomination = toMainDenomination;
@@ -151,91 +152,136 @@ var BaseTronPayments = (function () {
             });
         });
     };
-    BaseTronPayments.prototype.createSweepTransaction = function (from, to, options) {
-        if (options === void 0) { options = {}; }
+    BaseTronPayments.prototype.resolveFeeOption = function (feeOption) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, fromAddress, fromIndex, toAddress, toIndex, feeSun, feeTrx, balanceSun, balanceTrx, amountSun, amountTrx, tx, e_4;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var targetFeeLevel, targetFeeRate, targetFeeRateType, feeBase, feeMain;
+            return __generator(this, function (_a) {
+                if (isType(FeeOptionCustom, feeOption)) {
+                    targetFeeLevel = FeeLevel.Custom;
+                    targetFeeRate = feeOption.feeRate;
+                    targetFeeRateType = feeOption.feeRateType;
+                    if (feeOption.feeRateType === FeeRateType.Base) {
+                        feeBase = feeOption.feeRate;
+                    }
+                    else if (feeOption.feeRateType === FeeRateType.Main) {
+                        feeBase = toBaseDenomination(feeOption.feeRate);
+                    }
+                    else {
+                        throw new Error("Unsupported feeRateType for TRX: " + feeOption.feeRateType);
+                    }
+                }
+                else {
+                    feeBase = FEE_LEVEL_TRANSFER_SUN[feeOption.feeLevel].toString();
+                    targetFeeLevel = feeOption.feeLevel;
+                    targetFeeRate = feeBase;
+                    targetFeeRateType = FeeRateType.Base;
+                }
+                feeMain = toMainDenomination(feeBase);
+                return [2, {
+                        targetFeeLevel: targetFeeLevel,
+                        targetFeeRate: targetFeeRate,
+                        targetFeeRateType: targetFeeRateType,
+                        feeBase: feeBase,
+                        feeMain: feeMain,
+                    }];
+            });
+        });
+    };
+    BaseTronPayments.prototype.createSweepTransaction = function (from, to, options) {
+        if (options === void 0) { options = { feeLevel: FeeLevel.Medium }; }
+        return __awaiter(this, void 0, void 0, function () {
+            var _a, fromAddress, fromIndex, toAddress, toIndex, _b, targetFeeLevel, targetFeeRate, targetFeeRateType, feeBase, feeMain, feeSun, balanceSun, balanceTrx, amountSun, amountTrx, tx, e_4;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
-                        _b.trys.push([0, 4, , 5]);
+                        _c.trys.push([0, 5, , 6]);
                         return [4, this.resolveFromTo(from, to)];
                     case 1:
-                        _a = _b.sent(), fromAddress = _a.fromAddress, fromIndex = _a.fromIndex, toAddress = _a.toAddress, toIndex = _a.toIndex;
-                        feeSun = options.fee || TRX_FEE_FOR_TRANSFER_SUN;
-                        feeTrx = toMainDenomination(feeSun);
-                        return [4, this.tronweb.trx.getBalance(fromAddress)];
+                        _a = _c.sent(), fromAddress = _a.fromAddress, fromIndex = _a.fromIndex, toAddress = _a.toAddress, toIndex = _a.toIndex;
+                        return [4, this.resolveFeeOption(options)];
                     case 2:
-                        balanceSun = _b.sent();
+                        _b = _c.sent(), targetFeeLevel = _b.targetFeeLevel, targetFeeRate = _b.targetFeeRate, targetFeeRateType = _b.targetFeeRateType, feeBase = _b.feeBase, feeMain = _b.feeMain;
+                        feeSun = Number.parseInt(feeBase);
+                        return [4, this.tronweb.trx.getBalance(fromAddress)];
+                    case 3:
+                        balanceSun = _c.sent();
                         balanceTrx = toMainDenomination(balanceSun);
                         if (!this.canSweepBalance(balanceSun)) {
-                            throw new Error("Insufficient balance (" + balanceTrx + ") to sweep with fee of " + feeTrx);
+                            throw new Error("Insufficient balance (" + balanceTrx + ") to sweep with fee of " + feeMain);
                         }
                         amountSun = balanceSun - feeSun;
                         amountTrx = toMainDenomination(amountSun);
                         return [4, this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)];
-                    case 3:
-                        tx = _b.sent();
+                    case 4:
+                        tx = _c.sent();
                         return [2, {
                                 id: tx.txID,
-                                from: fromAddress,
-                                to: toAddress,
+                                fromAddress: fromAddress,
+                                toAddress: toAddress,
                                 toExtraId: null,
                                 fromIndex: fromIndex,
                                 toIndex: toIndex,
                                 amount: amountTrx,
-                                fee: feeTrx,
+                                fee: feeMain,
+                                targetFeeLevel: targetFeeLevel,
+                                targetFeeRate: targetFeeRate,
+                                targetFeeRateType: targetFeeRateType,
                                 status: 'unsigned',
-                                rawUnsigned: tx,
+                                data: tx,
                             }];
-                    case 4:
-                        e_4 = _b.sent();
+                    case 5:
+                        e_4 = _c.sent();
                         throw toError(e_4);
-                    case 5: return [2];
+                    case 6: return [2];
                 }
             });
         });
     };
     BaseTronPayments.prototype.createTransaction = function (from, to, amountTrx, options) {
-        if (options === void 0) { options = {}; }
+        if (options === void 0) { options = { feeLevel: FeeLevel.Medium }; }
         return __awaiter(this, void 0, void 0, function () {
-            var _a, fromAddress, fromIndex, toAddress, toIndex, feeSun, feeTrx, balanceSun, balanceTrx, amountSun, tx, e_5;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var _a, fromAddress, fromIndex, toAddress, toIndex, _b, targetFeeLevel, targetFeeRate, targetFeeRateType, feeBase, feeMain, feeSun, balanceSun, balanceTrx, amountSun, tx, e_5;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
-                        _b.trys.push([0, 4, , 5]);
+                        _c.trys.push([0, 5, , 6]);
                         return [4, this.resolveFromTo(from, to)];
                     case 1:
-                        _a = _b.sent(), fromAddress = _a.fromAddress, fromIndex = _a.fromIndex, toAddress = _a.toAddress, toIndex = _a.toIndex;
-                        feeSun = options.fee || TRX_FEE_FOR_TRANSFER_SUN;
-                        feeTrx = toMainDenomination(feeSun);
-                        return [4, this.tronweb.trx.getBalance(fromAddress)];
+                        _a = _c.sent(), fromAddress = _a.fromAddress, fromIndex = _a.fromIndex, toAddress = _a.toAddress, toIndex = _a.toIndex;
+                        return [4, this.resolveFeeOption(options)];
                     case 2:
-                        balanceSun = _b.sent();
+                        _b = _c.sent(), targetFeeLevel = _b.targetFeeLevel, targetFeeRate = _b.targetFeeRate, targetFeeRateType = _b.targetFeeRateType, feeBase = _b.feeBase, feeMain = _b.feeMain;
+                        feeSun = Number.parseInt(feeBase);
+                        return [4, this.tronweb.trx.getBalance(fromAddress)];
+                    case 3:
+                        balanceSun = _c.sent();
                         balanceTrx = toMainDenomination(balanceSun);
                         amountSun = toBaseDenominationNumber(amountTrx);
                         if ((balanceSun - feeSun) < amountSun) {
-                            throw new Error("Insufficient balance (" + balanceTrx + ") to send including fee of " + feeTrx);
+                            throw new Error("Insufficient balance (" + balanceTrx + ") to send including fee of " + feeMain);
                         }
                         return [4, this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)];
-                    case 3:
-                        tx = _b.sent();
+                    case 4:
+                        tx = _c.sent();
                         return [2, {
                                 id: tx.txID,
-                                from: fromAddress,
-                                to: toAddress,
+                                fromAddress: fromAddress,
+                                toAddress: toAddress,
                                 toExtraId: null,
                                 fromIndex: fromIndex,
                                 toIndex: toIndex,
                                 amount: amountTrx,
-                                fee: feeTrx,
+                                fee: feeMain,
+                                targetFeeLevel: targetFeeLevel,
+                                targetFeeRate: targetFeeRate,
+                                targetFeeRateType: targetFeeRateType,
                                 status: 'unsigned',
-                                rawUnsigned: tx,
+                                data: tx,
                             }];
-                    case 4:
-                        e_5 = _b.sent();
+                    case 5:
+                        e_5 = _c.sent();
                         throw toError(e_5);
-                    case 5: return [2];
+                    case 6: return [2];
                 }
             });
         });
@@ -250,11 +296,11 @@ var BaseTronPayments = (function () {
                         return [4, this.getPrivateKey(unsignedTx.fromIndex)];
                     case 1:
                         fromPrivateKey = _a.sent();
-                        unsignedRaw = cloneDeep(unsignedTx.rawUnsigned);
+                        unsignedRaw = cloneDeep(unsignedTx.data);
                         return [4, this.tronweb.trx.sign(unsignedRaw, fromPrivateKey)];
                     case 2:
                         signedTx = _a.sent();
-                        return [2, __assign({}, unsignedTx, { status: 'signed', rawSigned: signedTx })];
+                        return [2, __assign({}, unsignedTx, { status: 'signed', data: signedTx })];
                     case 3:
                         e_6 = _a.sent();
                         throw toError(e_6);
@@ -270,7 +316,7 @@ var BaseTronPayments = (function () {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 6, , 7]);
-                        return [4, this.tronweb.trx.sendRawTransaction(tx.rawSigned)];
+                        return [4, this.tronweb.trx.sendRawTransaction(tx.data)];
                     case 1:
                         status = _a.sent();
                         success = false;
@@ -314,7 +360,7 @@ var BaseTronPayments = (function () {
     };
     BaseTronPayments.prototype.getTransactionInfo = function (txid) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, tx, txInfo, currentBlock, _b, amountTrx, from, to, _c, fromIndex, toIndex, contractRet, isExecuted, block, feeTrx, currentBlockNumber, confirmations, isConfirmed, date, status, e_9;
+            var _a, tx, txInfo, currentBlock, _b, amountTrx, fromAddress, toAddress, _c, fromIndex, toIndex, contractRet, isExecuted, block, feeTrx, currentBlockNumber, confirmations, isConfirmed, date, status, e_9;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -326,10 +372,10 @@ var BaseTronPayments = (function () {
                             ])];
                     case 1:
                         _a = _d.sent(), tx = _a[0], txInfo = _a[1], currentBlock = _a[2];
-                        _b = this.extractTxFields(tx), amountTrx = _b.amountTrx, from = _b.from, to = _b.to;
+                        _b = this.extractTxFields(tx), amountTrx = _b.amountTrx, fromAddress = _b.fromAddress, toAddress = _b.toAddress;
                         return [4, Promise.all([
-                                this.getAddressIndexOrNull(from),
-                                this.getAddressIndexOrNull(to),
+                                this.getAddressIndexOrNull(fromAddress),
+                                this.getAddressIndexOrNull(toAddress),
                             ])];
                     case 2:
                         _c = _d.sent(), fromIndex = _c[0], toIndex = _c[1];
@@ -351,8 +397,8 @@ var BaseTronPayments = (function () {
                         return [2, {
                                 id: tx.txID,
                                 amount: amountTrx,
-                                to: to,
-                                from: from,
+                                toAddress: toAddress,
+                                fromAddress: fromAddress,
                                 toExtraId: null,
                                 fromIndex: fromIndex,
                                 toIndex: toIndex,
@@ -363,7 +409,7 @@ var BaseTronPayments = (function () {
                                 confirmations: confirmations,
                                 date: date,
                                 status: status,
-                                rawInfo: __assign({}, tx, txInfo, { currentBlock: pick(currentBlock, 'block_header', 'blockID') })
+                                data: __assign({}, tx, txInfo, { currentBlock: pick(currentBlock, 'block_header', 'blockID') })
                             }];
                     case 3:
                         e_9 = _d.sent();
@@ -374,7 +420,7 @@ var BaseTronPayments = (function () {
         });
     };
     BaseTronPayments.prototype.canSweepBalance = function (balanceSun) {
-        return (balanceSun - TRX_FEE_FOR_TRANSFER_SUN) > 0;
+        return (balanceSun - FEE_FOR_TRANSFER_SUN) > 0;
     };
     BaseTronPayments.prototype.extractTxFields = function (tx) {
         var contractParam = get(tx, 'raw_data.contract[0].parameter.value');
@@ -383,13 +429,13 @@ var BaseTronPayments = (function () {
         }
         var amountSun = contractParam.amount || 0;
         var amountTrx = toMainDenomination(amountSun);
-        var to = this.tronweb.address.fromHex(contractParam.to_address);
-        var from = this.tronweb.address.fromHex(contractParam.owner_address);
+        var toAddress = this.tronweb.address.fromHex(contractParam.to_address);
+        var fromAddress = this.tronweb.address.fromHex(contractParam.owner_address);
         return {
             amountTrx: amountTrx,
             amountSun: amountSun,
-            to: to,
-            from: from,
+            toAddress: toAddress,
+            fromAddress: fromAddress,
         };
     };
     BaseTronPayments.prototype.resolveAddress = function (addressOrIndex) {
