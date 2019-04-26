@@ -139,7 +139,20 @@ declare module 'tronweb' {
     message?: string
   }
 
+  export type TronWebConfig = {
+    privateKey?: string
+  } & (
+    | {
+        fullHost: string
+      }
+    | {
+        fullNode: string
+        solidityNode: string
+        eventServer: string
+      })
+
   export default class TronWeb {
+    constructor(config: TronWebConfig)
     constructor(fullNode: string, solidityNode: string, eventServer: string, privateKey?: string)
 
     setDefaultBlock(blockID?: 'earliest' | 'latest'): 'earliest' | 'latest' | false
