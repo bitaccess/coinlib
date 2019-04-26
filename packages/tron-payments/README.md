@@ -1,5 +1,4 @@
-tron-payments
-=================
+# tron-payments
 
 Library to assist in payment processing on tron. It first allows for generation
 of address according to the [BIP44 standard](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki).
@@ -14,13 +13,14 @@ Coming soon: tools to sign transactions passed down from the server connected to
 ## Getting Started
 
 ```bash
-npm install --save tron-payments
+npm install --save go-faast/tron-payments
 ```
 
 Create a new wallet (DON'T DO THIS ON PRODUCTION):
+
 ```js
-let tronPayments = require('@faast/tron-payments')()
-let keys = tronPayments.generateNewKeys()
+let { HdTronPayments } = require('@faast/tron-payments')
+let keys = HdTronPayments.generateNewKeys()
 console.log(keys.xpub)
 console.log(keys.xprv)
 ```
@@ -28,19 +28,27 @@ console.log(keys.xprv)
 Generate an tron deposit address from a public seed (xpub).
 This is useful if you are a hot wallet and don't store the private key. You will need
 to keep track of which path node you are on (increasing INT):
+
 ```js
-let depositAddress = tronPayments.bip44(keys.xpub, 1234) // for path m/44'/195'/0/1234
-console.log(depositAddress)
+let tronPayments = new HdTronPayments({ hdKey: keys.xprv }) // xpub or xprv can be used
+ // for path m/44'/195'/0/1234
+let depositAddress = tronPayments.getAddress(1234)
+let privateKey = tronPayments.getPrivateKey(1234) // will throw Error if xpub was provided as hdKey
 ```
 
-Get the private key for an address on a specific path:
+or, if you'd rather not us bip44 and have existing private keys or addresses:
+
 ```js
-let privateKey = tronPayments.getPrivateKey(keys.xprv, 1234) // for path m/44'/195'/0/1234
+let { KeyPairTronPayments } = require('@faast/tron-payments')
+let kpTronPayments = new KeyPairTronPayments({ keyPairs: [privateKey0, address1, privateKey2] })
+let depositAddress = tronPayments.getAddress(2) // address for privateKey2
+tronpayments.getPrivateKey(1) // will throw error because keyPair[1] is not a private key
 ```
 
 Get the public key from a private key:
+
 ```js
-let address = tronPayments.privateToPublic(privateKey) // for path m/44'/195'/0/1234
+let address = tronPayments.privateKeyToAddress(privateKey) // for path m/44'/195'/0/1234
 if(address === depositAddress){
   console.log('this library works')
 } else {
@@ -49,45 +57,45 @@ if(address === depositAddress){
 ```
 
 Get the derived xpub key from a hardened private key:
+
 ```js
-let xpub = tronPayments.getXpubFromXprv(xprv) // for path m/44'/195'/0'/0/1234
+let { xprvToXpub } = require('@faast/tron-payments')
+let xpub = xprvToXpub(xprv) // for path m/44'/195'/0'/0/1234
 ```
 
 Get the balance of an address:
-```js
-tronPayments.getBalanceFromPath(xpubOnPath, 3, function (err, balance) {
 
-})
+```js
+let { balance, unconfirmedBalance = await tronPayments.getBalance(1234)
 ```
 
 Generate a sweep transaction for a deposit address, then broadcast it:
-```js
-tronPayments.getSweepTransaction(xprv, 3, to, function (err, signedtx) {
-  tronPayments.broadcastTransaction(signedtx, function (err, txHash) {
 
-  })
-})
+```js
+let unsignedTx = await tronPayments.createSweepTransaction(1234, to)
+let signedTx = await tronPayments.signTransaction(unsignedTx)
+let { id: txHash } = await tronPayments.broadcastTransaction(signedtx)
 ```
 
 Generate a simple send transaction
+
 ```js
-tronPayments.getSendTransaction(privateKey, amountInSun, to, function (err, signedtx) {
-  // You still need to broadcast the transaction
-})
+let unsignedTx = await tronPayments.getSendTransaction(1234, to, amountInTrx)
+// You still need to sign and broadcast the transaction
 ```
 
 Get a transaction and check if it is confirmed based on a number of blocks:
-```js
-// 2 blocks is considered confirmed
-tronPayments.getTransaction(txHash, 2, function (err, tx) {
 
-})
+```js
+let txInfo = await tronPayments.getTransactionInfo(txHash)
+if (txInfo.isConfirmed) {
+  // txInfo.confirmations > 0
+}
 ```
 
 *See test/test.js for more utilities*
 
-
-**Note:** It is suggested to generate your Private key offline with FAR more entropy than the default function, then use getXpubFromXprv.
+**Note:** It is suggested to generate your Private key offline with FAR more entropy than the default function, then use xprvToXpub.
 You have been warned!
 
 ## License
