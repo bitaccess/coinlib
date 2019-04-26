@@ -4,17 +4,21 @@ import { KeyPairTronPayments } from '#/KeyPairTronPayments'
 import { HdTronPaymentsConfig, KeyPairTronPaymentsConfig } from '#/types'
 import { TronPaymentsConfig } from '../src/types'
 
+import { hdAccount } from './fixtures/accounts'
+
+const { XPRV, PRIVATE_KEYS, ADDRESSES } = hdAccount
+
 describe('TronPaymentsFactory', () => {
   const factory = new TronPaymentsFactory()
   it('should instantiate HdTronPayments', () => {
     const config: HdTronPaymentsConfig = {
-      hdKey: 'xprv1234',
+      hdKey: XPRV,
     }
     expect(factory.forConfig(config)).toBeInstanceOf(HdTronPayments)
   })
   it('should instantiate KeyPairTronPayments', () => {
     const config: KeyPairTronPaymentsConfig = {
-      keyPairs: ['pkey1234', 'address1234'],
+      keyPairs: [PRIVATE_KEYS[0], ADDRESSES[0]],
     }
     expect(factory.forConfig(config)).toBeInstanceOf(KeyPairTronPayments)
   })
