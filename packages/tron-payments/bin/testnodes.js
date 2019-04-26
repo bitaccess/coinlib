@@ -1,12 +1,13 @@
 #!/usr/bin/env node
-const { KeyPairTronPayments } = require('../dist/index.umd.js')
+const TronWeb = require('tronweb')
 const fetch = require('node-fetch')
 
 const ADDRESS = process.env.ADDRESS || 'TFnVxk2EAWYCPtEjiMfF1zZwJgP3PzHgdR'
 
 // see https://github.com/tronprotocol/Documentation/blob/master/TRX_CN/Official_Public_Node.md
+const TRON_GRID = 'https://api.trongrid.io'
 const nodes = [
-  'https://api.trongrid.io',
+  TRON_GRID,
   'http://54.236.37.243:8090',
   'http://52.53.189.99:8090',
   'http://18.196.99.16:8090',
@@ -50,9 +51,9 @@ tronScanGetBalance(ADDRESS)
   .then((tronScanBalance) => {
     console.log(`tronscan.org API -> ${tronScanBalance} TRX`)
     nodes.map((node) => {
-      const p = new KeyPairTronPayments({ fullNode: node, keyPairs: [ADDRESS] })
-      p.getBalance(0)
-        .then((b) => console.log(`${node} -> ${b.balance} TRX`))
+      const tw = new TronWeb({ fullHost: node, eventServer: TRON_GRID, solidityNode: TRON_GRID })
+      tw.trx.getBalance(ADDRESS)
+        .then((b) => console.log(`${node} -> ${b / 1e6} TRX`))
         .catch((e) => console.log(`${node} -> ${e.message}`))
     })
   })
