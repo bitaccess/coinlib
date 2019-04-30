@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-import { CreateTransactionOptions } from 'payments-common';
+import { CreateTransactionOptions } from '@faast/payments-common';
 import { Transaction as TronWebTransaction, TransactionInfo as TronWebTransactionInfo, Block as TronWebBlock } from 'tronweb';
 export { TronWebTransaction, TronWebTransactionInfo, TronWebBlock, CreateTransactionOptions };
 export declare type TransactionInfoRaw = TronWebTransaction & TronWebTransactionInfo & {
@@ -59,9 +59,9 @@ export declare const TronUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
     fromAddress: t.StringC;
     toAddress: t.StringC;
     fromIndex: t.NumberC;
-    targetFeeLevel: t.Type<import("payments-common").FeeLevel, import("payments-common").FeeLevel, unknown>;
+    targetFeeLevel: t.Type<import("@faast/payments-common").FeeLevel, import("@faast/payments-common").FeeLevel, unknown>;
     targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
-    targetFeeRateType: t.UnionC<[t.Type<import("payments-common").FeeRateType, import("payments-common").FeeRateType, unknown>, t.NullC]>;
+    targetFeeRateType: t.UnionC<[t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>, t.NullC]>;
 }>]>, t.TypeC<{
     status: t.LiteralC<"unsigned">;
     data: t.UnknownRecordC;
@@ -85,9 +85,9 @@ export declare const TronSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
     fromAddress: t.StringC;
     toAddress: t.StringC;
     fromIndex: t.NumberC;
-    targetFeeLevel: t.Type<import("payments-common").FeeLevel, import("payments-common").FeeLevel, unknown>;
+    targetFeeLevel: t.Type<import("@faast/payments-common").FeeLevel, import("@faast/payments-common").FeeLevel, unknown>;
     targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
-    targetFeeRateType: t.UnionC<[t.Type<import("payments-common").FeeRateType, import("payments-common").FeeRateType, unknown>, t.NullC]>;
+    targetFeeRateType: t.UnionC<[t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>, t.NullC]>;
 }>]>, t.TypeC<{
     status: t.LiteralC<"signed">;
     id: t.StringC;

@@ -74,9 +74,7 @@ var HdTronPayments = (function (_super) {
         };
     };
     HdTronPayments.prototype.getXpub = function () {
-        return isValidXprv(this.hdKey)
-            ? xprvToXpub(this.hdKey)
-            : this.hdKey;
+        return isValidXprv(this.hdKey) ? xprvToXpub(this.hdKey) : this.hdKey;
     };
     HdTronPayments.prototype.getAddress = function (index, options) {
         if (options === void 0) { options = {}; }
@@ -111,8 +109,8 @@ var HdTronPayments = (function (_super) {
                         return [2, i];
                     }
                 }
-                throw new Error('Cannot get index of address after checking cache and scanning addresses'
-                    + (" from 0 to " + (this.maxAddressScan - 1) + " (address=" + address + ")"));
+                throw new Error('Cannot get index of address after checking cache and scanning addresses' +
+                    (" from 0 to " + (this.maxAddressScan - 1) + " (address=" + address + ")"));
             });
         });
     };

@@ -79,7 +79,7 @@ function hexStr2byteArray(str) {
             d <<= 4;
             d += hexChar2byte(c);
             j++;
-            if (0 === (j % 2)) {
+            if (0 === j % 2) {
                 byteArray[k++] = d;
                 d = 0;
             }
@@ -88,9 +88,7 @@ function hexStr2byteArray(str) {
     return byteArray;
 }
 function isHexChar(c) {
-    return ((c >= 'A' && c <= 'F') ||
-        (c >= 'a' && c <= 'f') ||
-        (c >= '0' && c <= '9'));
+    return (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f') || (c >= '0' && c <= '9');
 }
 function hexChar2byte(c) {
     var d = 0;
@@ -107,7 +105,7 @@ function hexChar2byte(c) {
 }
 function byteArray2hexStr(byteArray) {
     var str = '';
-    for (var i = 0; i < (byteArray.length); i++) {
+    for (var i = 0; i < byteArray.length; i++) {
         str += byte2hexStr(byteArray[i]);
     }
     return str;

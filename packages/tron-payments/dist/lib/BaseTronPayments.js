@@ -46,7 +46,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import TronWeb from 'tronweb';
 import { pick, get, cloneDeep } from 'lodash';
-import { TransactionStatus, FeeLevel, FeeRateType, FeeOptionCustom, } from 'payments-common';
+import { TransactionStatus, FeeLevel, FeeRateType, FeeOptionCustom, } from '@faast/payments-common';
 import { isType } from '@faast/ts-common';
 import { toMainDenomination, toBaseDenomination, toBaseDenominationNumber, toError } from './utils';
 import { FEE_LEVEL_TRANSFER_SUN, DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE, FEE_FOR_TRANSFER_SUN, } from './constants';
@@ -257,7 +257,7 @@ var BaseTronPayments = (function () {
                         balanceSun = _c.sent();
                         balanceTrx = toMainDenomination(balanceSun);
                         amountSun = toBaseDenominationNumber(amountTrx);
-                        if ((balanceSun - feeSun) < amountSun) {
+                        if (balanceSun - feeSun < amountSun) {
                             throw new Error("Insufficient balance (" + balanceTrx + ") to send including fee of " + feeMain);
                         }
                         return [4, this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)];
@@ -409,7 +409,7 @@ var BaseTronPayments = (function () {
                                 confirmations: confirmations,
                                 date: date,
                                 status: status,
-                                data: __assign({}, tx, txInfo, { currentBlock: pick(currentBlock, 'block_header', 'blockID') })
+                                data: __assign({}, tx, txInfo, { currentBlock: pick(currentBlock, 'block_header', 'blockID') }),
                             }];
                     case 3:
                         e_9 = _d.sent();
@@ -420,7 +420,7 @@ var BaseTronPayments = (function () {
         });
     };
     BaseTronPayments.prototype.canSweepBalance = function (balanceSun) {
-        return (balanceSun - FEE_FOR_TRANSFER_SUN) > 0;
+        return balanceSun - FEE_FOR_TRANSFER_SUN > 0;
     };
     BaseTronPayments.prototype.extractTxFields = function (tx) {
         var contractParam = get(tx, 'raw_data.contract[0].parameter.value');

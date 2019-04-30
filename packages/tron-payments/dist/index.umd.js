@@ -1,6 +1,6 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('tronweb'), require('lodash'), require('bitcore-lib'), require('js-sha3'), require('jssha'), require('elliptic'), require('io-ts'), require('@faast/ts-common'), require('payments-common')) :
-    typeof define === 'function' && define.amd ? define(['exports', 'tronweb', 'lodash', 'bitcore-lib', 'js-sha3', 'jssha', 'elliptic', 'io-ts', '@faast/ts-common', 'payments-common'], factory) :
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('tronweb'), require('lodash'), require('bitcore-lib'), require('js-sha3'), require('jssha'), require('elliptic'), require('io-ts'), require('@faast/ts-common'), require('@faast/payments-common')) :
+    typeof define === 'function' && define.amd ? define(['exports', 'tronweb', 'lodash', 'bitcore-lib', 'js-sha3', 'jssha', 'elliptic', 'io-ts', '@faast/ts-common', '@faast/payments-common'], factory) :
     (factory((global.faastTronPayments = {}),global.TronWeb,global.lodash,global.bitcoreLib,global.jsSha3,global.jsSHA,global.elliptic,global.t,global.tsCommon,global.paymentsCommon));
 }(this, (function (exports,TronWeb,lodash,bitcoreLib,jsSha3,jsSHA,elliptic,t,tsCommon,paymentsCommon) { 'use strict';
 
@@ -342,7 +342,7 @@
                             balanceSun = _c.sent();
                             balanceTrx = toMainDenomination(balanceSun);
                             amountSun = toBaseDenominationNumber(amountTrx);
-                            if ((balanceSun - feeSun) < amountSun) {
+                            if (balanceSun - feeSun < amountSun) {
                                 throw new Error("Insufficient balance (" + balanceTrx + ") to send including fee of " + feeMain);
                             }
                             return [4, this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)];
@@ -494,7 +494,7 @@
                                     confirmations: confirmations,
                                     date: date,
                                     status: status,
-                                    data: __assign({}, tx, txInfo, { currentBlock: lodash.pick(currentBlock, 'block_header', 'blockID') })
+                                    data: __assign({}, tx, txInfo, { currentBlock: lodash.pick(currentBlock, 'block_header', 'blockID') }),
                                 }];
                         case 3:
                             e_9 = _d.sent();
@@ -505,7 +505,7 @@
             });
         };
         BaseTronPayments.prototype.canSweepBalance = function (balanceSun) {
-            return (balanceSun - FEE_FOR_TRANSFER_SUN) > 0;
+            return balanceSun - FEE_FOR_TRANSFER_SUN > 0;
         };
         BaseTronPayments.prototype.extractTxFields = function (tx) {
             var contractParam = lodash.get(tx, 'raw_data.contract[0].parameter.value');
@@ -631,7 +631,10 @@
         for (i = 0; buffer[i] === 0 && i < buffer.length - 1; i++) {
             digits.push(0);
         }
-        return digits.reverse().map(function (digit) { return ALPHABET[digit]; }).join('');
+        return digits
+            .reverse()
+            .map(function (digit) { return ALPHABET[digit]; })
+            .join('');
     }
     function decode58(s) {
         if (s.length === 0) {
@@ -742,7 +745,7 @@
                 d <<= 4;
                 d += hexChar2byte(c);
                 j++;
-                if (0 === (j % 2)) {
+                if (0 === j % 2) {
                     byteArray[k++] = d;
                     d = 0;
                 }
@@ -751,9 +754,7 @@
         return byteArray;
     }
     function isHexChar(c) {
-        return ((c >= 'A' && c <= 'F') ||
-            (c >= 'a' && c <= 'f') ||
-            (c >= '0' && c <= '9'));
+        return (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f') || (c >= '0' && c <= '9');
     }
     function hexChar2byte(c) {
         var d = 0;
@@ -770,7 +771,7 @@
     }
     function byteArray2hexStr(byteArray) {
         var str = '';
-        for (var i = 0; i < (byteArray.length); i++) {
+        for (var i = 0; i < byteArray.length; i++) {
             str += byte2hexStr(byteArray[i]);
         }
         return str;
@@ -820,9 +821,7 @@
             };
         };
         HdTronPayments.prototype.getXpub = function () {
-            return isValidXprv(this.hdKey)
-                ? xprvToXpub(this.hdKey)
-                : this.hdKey;
+            return isValidXprv(this.hdKey) ? xprvToXpub(this.hdKey) : this.hdKey;
         };
         HdTronPayments.prototype.getAddress = function (index, options) {
             if (options === void 0) { options = {}; }
@@ -857,8 +856,8 @@
                             return [2, i];
                         }
                     }
-                    throw new Error('Cannot get index of address after checking cache and scanning addresses'
-                        + (" from 0 to " + (this.maxAddressScan - 1) + " (address=" + address + ")"));
+                    throw new Error('Cannot get index of address after checking cache and scanning addresses' +
+                        (" from 0 to " + (this.maxAddressScan - 1) + " (address=" + address + ")"));
                 });
             });
         };
@@ -973,10 +972,7 @@
         maxAddressScan: t.number,
     }, 'HdTronPaymentsConfig');
     var KeyPairTronPaymentsConfig = tsCommon.extendCodec(BaseTronPaymentsConfig, {
-        keyPairs: t.union([
-            t.array(t.union([t.string, t.null, t.undefined])),
-            t.record(t.number, t.string),
-        ]),
+        keyPairs: t.union([t.array(t.union([t.string, t.null, t.undefined])), t.record(t.number, t.string)]),
     }, {}, 'KeyPairTronPaymentsConfig');
     var TronPaymentsConfig = t.union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig]);
     var TronUnsignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseUnsignedTransaction, {

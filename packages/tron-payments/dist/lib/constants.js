@@ -1,5 +1,5 @@
 var _a;
-import { FeeLevel } from 'payments-common';
+import { FeeLevel } from '@faast/payments-common';
 export var FEE_FOR_TRANSFER_SUN = 100000;
 export var FEE_LEVEL_TRANSFER_SUN = (_a = {},
     _a[FeeLevel.Low] = FEE_FOR_TRANSFER_SUN,

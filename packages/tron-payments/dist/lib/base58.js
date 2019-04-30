@@ -30,7 +30,10 @@ export function encode58(buffer) {
     for (i = 0; buffer[i] === 0 && i < buffer.length - 1; i++) {
         digits.push(0);
     }
-    return digits.reverse().map(function (digit) { return ALPHABET[digit]; }).join('');
+    return digits
+        .reverse()
+        .map(function (digit) { return ALPHABET[digit]; })
+        .join('');
 }
 export function decode58(s) {
     if (s.length === 0) {

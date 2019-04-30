@@ -1,4 +1,4 @@
-import { PaymentsFactory } from 'payments-common';
+import { PaymentsFactory } from '@faast/payments-common';
 import { TronPaymentsConfig } from './types';
 import { HdTronPayments } from './HdTronPayments';
 import { KeyPairTronPayments } from './KeyPairTronPayments';

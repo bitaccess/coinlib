@@ -1,5 +1,5 @@
 import TronWeb from 'tronweb';
-import { BalanceResult, PaymentsInterface, FeeOption, ResolvedFeeOption } from 'payments-common';
+import { BalanceResult, PaymentsInterface, FeeOption, ResolvedFeeOption } from '@faast/payments-common';
 import { TronTransactionInfo, TronUnsignedTransaction, TronSignedTransaction, TronBroadcastResult, CreateTransactionOptions, GetAddressOptions, BaseTronPaymentsConfig } from './types';
 import { toMainDenomination, toBaseDenomination } from './utils';
 export declare abstract class BaseTronPayments implements PaymentsInterface<TronUnsignedTransaction, TronSignedTransaction, TronBroadcastResult, TronTransactionInfo> {

@@ -6,8 +6,8 @@ import jsSHA from 'jssha';
 import { ec } from 'elliptic';
 import { partial, string, number, union, array, null, undefined as undefined$1, record, boolean } from 'io-ts';
 import { isType, extendCodec } from '@faast/ts-common';
-import { FeeLevel, TransactionStatus, FeeRateType, FeeOptionCustom, BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult } from 'payments-common';
-export { CreateTransactionOptions } from 'payments-common';
+import { FeeLevel, TransactionStatus, FeeRateType, FeeOptionCustom, BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult } from '@faast/payments-common';
+export { CreateTransactionOptions } from '@faast/payments-common';
 
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
@@ -344,7 +344,7 @@ var BaseTronPayments = (function () {
                         balanceSun = _c.sent();
                         balanceTrx = toMainDenomination(balanceSun);
                         amountSun = toBaseDenominationNumber(amountTrx);
-                        if ((balanceSun - feeSun) < amountSun) {
+                        if (balanceSun - feeSun < amountSun) {
                             throw new Error("Insufficient balance (" + balanceTrx + ") to send including fee of " + feeMain);
                         }
                         return [4, this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)];
@@ -496,7 +496,7 @@ var BaseTronPayments = (function () {
                                 confirmations: confirmations,
                                 date: date,
                                 status: status,
-                                data: __assign({}, tx, txInfo, { currentBlock: pick(currentBlock, 'block_header', 'blockID') })
+                                data: __assign({}, tx, txInfo, { currentBlock: pick(currentBlock, 'block_header', 'blockID') }),
                             }];
                     case 3:
                         e_9 = _d.sent();
@@ -507,7 +507,7 @@ var BaseTronPayments = (function () {
         });
     };
     BaseTronPayments.prototype.canSweepBalance = function (balanceSun) {
-        return (balanceSun - FEE_FOR_TRANSFER_SUN) > 0;
+        return balanceSun - FEE_FOR_TRANSFER_SUN > 0;
     };
     BaseTronPayments.prototype.extractTxFields = function (tx) {
         var contractParam = get(tx, 'raw_data.contract[0].parameter.value');
@@ -633,7 +633,10 @@ function encode58(buffer) {
     for (i = 0; buffer[i] === 0 && i < buffer.length - 1; i++) {
         digits.push(0);
     }
-    return digits.reverse().map(function (digit) { return ALPHABET[digit]; }).join('');
+    return digits
+        .reverse()
+        .map(function (digit) { return ALPHABET[digit]; })
+        .join('');
 }
 function decode58(s) {
     if (s.length === 0) {
@@ -744,7 +747,7 @@ function hexStr2byteArray(str) {
             d <<= 4;
             d += hexChar2byte(c);
             j++;
-            if (0 === (j % 2)) {
+            if (0 === j % 2) {
                 byteArray[k++] = d;
                 d = 0;
             }
@@ -753,9 +756,7 @@ function hexStr2byteArray(str) {
     return byteArray;
 }
 function isHexChar(c) {
-    return ((c >= 'A' && c <= 'F') ||
-        (c >= 'a' && c <= 'f') ||
-        (c >= '0' && c <= '9'));
+    return (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f') || (c >= '0' && c <= '9');
 }
 function hexChar2byte(c) {
     var d = 0;
@@ -772,7 +773,7 @@ function hexChar2byte(c) {
 }
 function byteArray2hexStr(byteArray) {
     var str = '';
-    for (var i = 0; i < (byteArray.length); i++) {
+    for (var i = 0; i < byteArray.length; i++) {
         str += byte2hexStr(byteArray[i]);
     }
     return str;
@@ -822,9 +823,7 @@ var HdTronPayments = (function (_super) {
         };
     };
     HdTronPayments.prototype.getXpub = function () {
-        return isValidXprv(this.hdKey)
-            ? xprvToXpub(this.hdKey)
-            : this.hdKey;
+        return isValidXprv(this.hdKey) ? xprvToXpub(this.hdKey) : this.hdKey;
     };
     HdTronPayments.prototype.getAddress = function (index, options) {
         if (options === void 0) { options = {}; }
@@ -859,8 +858,8 @@ var HdTronPayments = (function (_super) {
                         return [2, i];
                     }
                 }
-                throw new Error('Cannot get index of address after checking cache and scanning addresses'
-                    + (" from 0 to " + (this.maxAddressScan - 1) + " (address=" + address + ")"));
+                throw new Error('Cannot get index of address after checking cache and scanning addresses' +
+                    (" from 0 to " + (this.maxAddressScan - 1) + " (address=" + address + ")"));
             });
         });
     };
@@ -975,10 +974,7 @@ var HdTronPaymentsConfig = extendCodec(BaseTronPaymentsConfig, {
     maxAddressScan: number,
 }, 'HdTronPaymentsConfig');
 var KeyPairTronPaymentsConfig = extendCodec(BaseTronPaymentsConfig, {
-    keyPairs: union([
-        array(union([string, null, undefined$1])),
-        record(number, string),
-    ]),
+    keyPairs: union([array(union([string, null, undefined$1])), record(number, string)]),
 }, {}, 'KeyPairTronPaymentsConfig');
 var TronPaymentsConfig = union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig]);
 var TronUnsignedTransaction = extendCodec(BaseUnsignedTransaction, {
