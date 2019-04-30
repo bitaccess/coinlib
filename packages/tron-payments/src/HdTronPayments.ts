@@ -1,4 +1,3 @@
-import { set, get } from 'lodash'
 import { HDPrivateKey } from 'bitcore-lib'
 
 import { BaseTronPayments } from './BaseTronPayments'

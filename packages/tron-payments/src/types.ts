@@ -6,7 +6,7 @@ import {
   BaseSignedTransaction,
   BaseBroadcastResult,
   CreateTransactionOptions,
-} from 'payments-common'
+} from '@faast/payments-common'
 import {
   Transaction as TronWebTransaction,
   TransactionInfo as TronWebTransactionInfo,

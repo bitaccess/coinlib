@@ -1,4 +1,4 @@
-import { FeeLevel } from 'payments-common'
+import { FeeLevel } from '@faast/payments-common'
 
 export const FEE_FOR_TRANSFER_SUN = 100000
 export const FEE_LEVEL_TRANSFER_SUN = {

@@ -9,7 +9,7 @@ import {
   FeeRateType,
   FeeOptionCustom,
   ResolvedFeeOption,
-} from 'payments-common'
+} from '@faast/payments-common'
 import { isType } from '@faast/ts-common'
 
 import {
