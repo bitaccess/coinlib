@@ -24,16 +24,9 @@ var FeeOptionCustom = requiredOptionalCodec({
     feeLevel: literal(FeeLevel.Custom),
 }, 'FeeOptionCustom');
 var FeeOptionLevel = type({
-    feeLevel: union([
-        literal(FeeLevel.High),
-        literal(FeeLevel.Medium),
-        literal(FeeLevel.Low),
-    ])
+    feeLevel: union([literal(FeeLevel.High), literal(FeeLevel.Medium), literal(FeeLevel.Low)]),
 }, 'FeeOptionLevel');
-var FeeOption = union([
-    FeeOptionCustom,
-    FeeOptionLevel,
-], 'FeeOption');
+var FeeOption = union([FeeOptionCustom, FeeOptionLevel], 'FeeOption');
 var CreateTransactionOptions = FeeOption;
 var ResolvedFeeOption = type({
     targetFeeLevel: FeeLevelT,

@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('io-ts'), require('@faast/ts-common')) :
   typeof define === 'function' && define.amd ? define(['exports', 'io-ts', '@faast/ts-common'], factory) :
-  (factory((global.paymentsCommon = {}),global.t,global.tsCommon));
+  (factory((global.faastPaymentsCommon = {}),global.t,global.tsCommon));
 }(this, (function (exports,t,tsCommon) { 'use strict';
 
   var AddressOrIndex = t.union([t.string, t.number], 'AddressOrIndex');
@@ -25,16 +25,9 @@
       feeLevel: t.literal(exports.FeeLevel.Custom),
   }, 'FeeOptionCustom');
   var FeeOptionLevel = t.type({
-      feeLevel: t.union([
-          t.literal(exports.FeeLevel.High),
-          t.literal(exports.FeeLevel.Medium),
-          t.literal(exports.FeeLevel.Low),
-      ])
+      feeLevel: t.union([t.literal(exports.FeeLevel.High), t.literal(exports.FeeLevel.Medium), t.literal(exports.FeeLevel.Low)]),
   }, 'FeeOptionLevel');
-  var FeeOption = t.union([
-      FeeOptionCustom,
-      FeeOptionLevel,
-  ], 'FeeOption');
+  var FeeOption = t.union([FeeOptionCustom, FeeOptionLevel], 'FeeOption');
   var CreateTransactionOptions = FeeOption;
   var ResolvedFeeOption = t.type({
       targetFeeLevel: FeeLevelT,

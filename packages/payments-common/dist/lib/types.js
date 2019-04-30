@@ -23,16 +23,9 @@ export var FeeOptionCustom = requiredOptionalCodec({
     feeLevel: t.literal(FeeLevel.Custom),
 }, 'FeeOptionCustom');
 export var FeeOptionLevel = t.type({
-    feeLevel: t.union([
-        t.literal(FeeLevel.High),
-        t.literal(FeeLevel.Medium),
-        t.literal(FeeLevel.Low),
-    ])
+    feeLevel: t.union([t.literal(FeeLevel.High), t.literal(FeeLevel.Medium), t.literal(FeeLevel.Low)]),
 }, 'FeeOptionLevel');
-export var FeeOption = t.union([
-    FeeOptionCustom,
-    FeeOptionLevel,
-], 'FeeOption');
+export var FeeOption = t.union([FeeOptionCustom, FeeOptionLevel], 'FeeOption');
 export var CreateTransactionOptions = FeeOption;
 export var ResolvedFeeOption = t.type({
     targetFeeLevel: FeeLevelT,
