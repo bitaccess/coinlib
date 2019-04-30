@@ -1,6 +1,6 @@
 {
   "name": "@faast/payments-common",
-  "version": "0.4.9",
+  "version": "0.4.10",
   "description": "Common modules used by payments libs",
   "main": "dist/index.umd.js",
   "module": "dist/index.es5.js",
