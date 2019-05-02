@@ -1,24 +1,22 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-var ALPHABET_MAP = {};
-for (var i = 0; i < ALPHABET.length; i++) {
+const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+const ALPHABET_MAP = {};
+for (let i = 0; i < ALPHABET.length; i++) {
     ALPHABET_MAP[ALPHABET.charAt(i)] = i;
 }
-var BASE = 58;
-function encode58(buffer) {
+const BASE = 58;
+export function encode58(buffer) {
     if (buffer.length === 0) {
         return '';
     }
-    var i;
-    var j;
-    var digits = [0];
+    let i;
+    let j;
+    const digits = [0];
     for (i = 0; i < buffer.length; i++) {
         for (j = 0; j < digits.length; j++) {
             digits[j] <<= 8;
         }
         digits[0] += buffer[i];
-        var carry = 0;
+        let carry = 0;
         for (j = 0; j < digits.length; ++j) {
             digits[j] += carry;
             carry = (digits[j] / BASE) | 0;
@@ -34,19 +32,18 @@ function encode58(buffer) {
     }
     return digits
         .reverse()
-        .map(function (digit) { return ALPHABET[digit]; })
+        .map(digit => ALPHABET[digit])
         .join('');
 }
-exports.encode58 = encode58;
-function decode58(s) {
+export function decode58(s) {
     if (s.length === 0) {
         return [];
     }
-    var i;
-    var j;
-    var bytes = [0];
+    let i;
+    let j;
+    const bytes = [0];
     for (i = 0; i < s.length; i++) {
-        var c = s[i];
+        const c = s[i];
         if (!(c in ALPHABET_MAP)) {
             throw new Error('Non-base58 character');
         }
@@ -54,7 +51,7 @@ function decode58(s) {
             bytes[j] *= BASE;
         }
         bytes[0] += ALPHABET_MAP[c];
-        var carry = 0;
+        let carry = 0;
         for (j = 0; j < bytes.length; ++j) {
             bytes[j] += carry;
             carry = bytes[j] >> 8;
@@ -70,5 +67,4 @@ function decode58(s) {
     }
     return bytes.reverse();
 }
-exports.decode58 = decode58;
 //# sourceMappingURL=base58.js.map
