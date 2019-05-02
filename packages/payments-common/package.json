@@ -41,7 +41,8 @@
     "precommit": "lint-staged",
     "preversion": "bin/preversion.sh",
     "version": "npm run build && git add -Af dist docs",
-    "postversion": "git push && git push --tags"
+    "postversion": "git push && git push --tags",
+    "release": "npm publish --access=public"
   },
   "peerDependencies": {
     "@faast/ts-common": "^0.1.4",
