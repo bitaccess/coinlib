@@ -94,4 +94,4 @@ var BaseBroadcastResult = type({
 }, 'BaseBroadcastResult');
 
 export { AddressOrIndex, FeeLevel, FeeLevelT, FeeRateType, FeeRateTypeT, FeeOptionCustom, FeeOptionLevel, FeeOption, CreateTransactionOptions, ResolvedFeeOption, BalanceResult, TransactionStatus, TransactionStatusT, TransactionCommon, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult };
-//# sourceMappingURL=index.es5.js.map
+//# sourceMappingURL=index.es.js.map
