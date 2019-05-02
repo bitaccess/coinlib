@@ -60,7 +60,7 @@
     "tronweb": "^2.5.0"
   },
   "devDependencies": {
-    "@faast/ts-config": "^1.1.10",
+    "@faast/ts-config": "^1.2.0",
     "@types/elliptic": "^6.4.6",
     "@types/jest": "^23.3.2",
     "@types/jssha": "^2.0.0",
