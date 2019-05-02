@@ -2,8 +2,8 @@
   "extends": "@faast/ts-config/library/tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "outDir": "dist/lib",
-    "declarationDir": "dist/types",
+    "outDir": "dist",
+    "declarationDir": "dist",
     "paths": {
       "#/*": ["./src/*"],
     }
