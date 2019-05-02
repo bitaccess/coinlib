@@ -4,39 +4,39 @@
   (factory((global.faastPaymentsCommon = {}),global.t,global.tsCommon));
 }(this, (function (exports,t,tsCommon) { 'use strict';
 
-  var AddressOrIndex = t.union([t.string, t.number], 'AddressOrIndex');
+  const AddressOrIndex = t.union([t.string, t.number], 'AddressOrIndex');
   (function (FeeLevel) {
       FeeLevel["Custom"] = "custom";
       FeeLevel["Low"] = "low";
       FeeLevel["Medium"] = "medium";
       FeeLevel["High"] = "high";
   })(exports.FeeLevel || (exports.FeeLevel = {}));
-  var FeeLevelT = tsCommon.enumCodec(exports.FeeLevel, 'FeeLevel');
+  const FeeLevelT = tsCommon.enumCodec(exports.FeeLevel, 'FeeLevel');
   (function (FeeRateType) {
       FeeRateType["Main"] = "main";
       FeeRateType["Base"] = "base";
       FeeRateType["BasePerWeight"] = "base/weight";
   })(exports.FeeRateType || (exports.FeeRateType = {}));
-  var FeeRateTypeT = tsCommon.enumCodec(exports.FeeRateType, 'FeeRateType');
-  var FeeOptionCustom = tsCommon.requiredOptionalCodec({
+  const FeeRateTypeT = tsCommon.enumCodec(exports.FeeRateType, 'FeeRateType');
+  const FeeOptionCustom = tsCommon.requiredOptionalCodec({
       feeRate: t.string,
       feeRateType: FeeRateTypeT,
   }, {
       feeLevel: t.literal(exports.FeeLevel.Custom),
   }, 'FeeOptionCustom');
-  var FeeOptionLevel = t.type({
+  const FeeOptionLevel = t.type({
       feeLevel: t.union([t.literal(exports.FeeLevel.High), t.literal(exports.FeeLevel.Medium), t.literal(exports.FeeLevel.Low)]),
   }, 'FeeOptionLevel');
-  var FeeOption = t.union([FeeOptionCustom, FeeOptionLevel], 'FeeOption');
-  var CreateTransactionOptions = FeeOption;
-  var ResolvedFeeOption = t.type({
+  const FeeOption = t.union([FeeOptionCustom, FeeOptionLevel], 'FeeOption');
+  const CreateTransactionOptions = FeeOption;
+  const ResolvedFeeOption = t.type({
       targetFeeLevel: FeeLevelT,
       targetFeeRate: t.string,
       targetFeeRateType: FeeRateTypeT,
       feeBase: t.string,
       feeMain: t.string,
   });
-  var BalanceResult = t.type({
+  const BalanceResult = t.type({
       balance: t.string,
       unconfirmedBalance: t.string,
   }, 'BalanceResult');
@@ -47,8 +47,8 @@
       TransactionStatus["Confirmed"] = "confirmed";
       TransactionStatus["Failed"] = "failed";
   })(exports.TransactionStatus || (exports.TransactionStatus = {}));
-  var TransactionStatusT = tsCommon.enumCodec(exports.TransactionStatus, 'TransactionStatus');
-  var TransactionCommon = t.type({
+  const TransactionStatusT = tsCommon.enumCodec(exports.TransactionStatus, 'TransactionStatus');
+  const TransactionCommon = t.type({
       id: tsCommon.nullable(t.string),
       fromAddress: tsCommon.nullable(t.string),
       toAddress: tsCommon.nullable(t.string),
@@ -59,7 +59,7 @@
       fee: tsCommon.nullable(t.string),
       status: TransactionStatusT,
   }, 'TransactionCommon');
-  var UnsignedCommon = tsCommon.extendCodec(TransactionCommon, {
+  const UnsignedCommon = tsCommon.extendCodec(TransactionCommon, {
       fromAddress: t.string,
       toAddress: t.string,
       fromIndex: t.number,
@@ -67,18 +67,18 @@
       targetFeeRate: tsCommon.nullable(t.string),
       targetFeeRateType: tsCommon.nullable(FeeRateTypeT),
   }, 'UnsignedCommon');
-  var BaseUnsignedTransaction = tsCommon.extendCodec(UnsignedCommon, {
+  const BaseUnsignedTransaction = tsCommon.extendCodec(UnsignedCommon, {
       status: t.literal('unsigned'),
       data: t.UnknownRecord,
   }, 'BaseUnsignedTransaction');
-  var BaseSignedTransaction = tsCommon.extendCodec(UnsignedCommon, {
+  const BaseSignedTransaction = tsCommon.extendCodec(UnsignedCommon, {
       status: t.literal('signed'),
       id: t.string,
       amount: t.string,
       fee: t.string,
       data: t.UnknownRecord,
   }, 'BaseSignedTransaction');
-  var BaseTransactionInfo = tsCommon.extendCodec(TransactionCommon, {
+  const BaseTransactionInfo = tsCommon.extendCodec(TransactionCommon, {
       id: t.string,
       amount: t.string,
       fee: t.string,
@@ -89,7 +89,7 @@
       date: tsCommon.nullable(tsCommon.DateT),
       data: t.UnknownRecord,
   }, 'BaseTransactionInfo');
-  var BaseBroadcastResult = t.type({
+  const BaseBroadcastResult = t.type({
       id: t.string,
   }, 'BaseBroadcastResult');
 

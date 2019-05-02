@@ -1,7 +1,7 @@
 import { union, string, number, literal, type, UnknownRecord, boolean } from 'io-ts';
 import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT } from '@faast/ts-common';
 
-var AddressOrIndex = union([string, number], 'AddressOrIndex');
+const AddressOrIndex = union([string, number], 'AddressOrIndex');
 var FeeLevel;
 (function (FeeLevel) {
     FeeLevel["Custom"] = "custom";
@@ -9,33 +9,33 @@ var FeeLevel;
     FeeLevel["Medium"] = "medium";
     FeeLevel["High"] = "high";
 })(FeeLevel || (FeeLevel = {}));
-var FeeLevelT = enumCodec(FeeLevel, 'FeeLevel');
+const FeeLevelT = enumCodec(FeeLevel, 'FeeLevel');
 var FeeRateType;
 (function (FeeRateType) {
     FeeRateType["Main"] = "main";
     FeeRateType["Base"] = "base";
     FeeRateType["BasePerWeight"] = "base/weight";
 })(FeeRateType || (FeeRateType = {}));
-var FeeRateTypeT = enumCodec(FeeRateType, 'FeeRateType');
-var FeeOptionCustom = requiredOptionalCodec({
+const FeeRateTypeT = enumCodec(FeeRateType, 'FeeRateType');
+const FeeOptionCustom = requiredOptionalCodec({
     feeRate: string,
     feeRateType: FeeRateTypeT,
 }, {
     feeLevel: literal(FeeLevel.Custom),
 }, 'FeeOptionCustom');
-var FeeOptionLevel = type({
+const FeeOptionLevel = type({
     feeLevel: union([literal(FeeLevel.High), literal(FeeLevel.Medium), literal(FeeLevel.Low)]),
 }, 'FeeOptionLevel');
-var FeeOption = union([FeeOptionCustom, FeeOptionLevel], 'FeeOption');
-var CreateTransactionOptions = FeeOption;
-var ResolvedFeeOption = type({
+const FeeOption = union([FeeOptionCustom, FeeOptionLevel], 'FeeOption');
+const CreateTransactionOptions = FeeOption;
+const ResolvedFeeOption = type({
     targetFeeLevel: FeeLevelT,
     targetFeeRate: string,
     targetFeeRateType: FeeRateTypeT,
     feeBase: string,
     feeMain: string,
 });
-var BalanceResult = type({
+const BalanceResult = type({
     balance: string,
     unconfirmedBalance: string,
 }, 'BalanceResult');
@@ -47,8 +47,8 @@ var TransactionStatus;
     TransactionStatus["Confirmed"] = "confirmed";
     TransactionStatus["Failed"] = "failed";
 })(TransactionStatus || (TransactionStatus = {}));
-var TransactionStatusT = enumCodec(TransactionStatus, 'TransactionStatus');
-var TransactionCommon = type({
+const TransactionStatusT = enumCodec(TransactionStatus, 'TransactionStatus');
+const TransactionCommon = type({
     id: nullable(string),
     fromAddress: nullable(string),
     toAddress: nullable(string),
@@ -59,7 +59,7 @@ var TransactionCommon = type({
     fee: nullable(string),
     status: TransactionStatusT,
 }, 'TransactionCommon');
-var UnsignedCommon = extendCodec(TransactionCommon, {
+const UnsignedCommon = extendCodec(TransactionCommon, {
     fromAddress: string,
     toAddress: string,
     fromIndex: number,
@@ -67,18 +67,18 @@ var UnsignedCommon = extendCodec(TransactionCommon, {
     targetFeeRate: nullable(string),
     targetFeeRateType: nullable(FeeRateTypeT),
 }, 'UnsignedCommon');
-var BaseUnsignedTransaction = extendCodec(UnsignedCommon, {
+const BaseUnsignedTransaction = extendCodec(UnsignedCommon, {
     status: literal('unsigned'),
     data: UnknownRecord,
 }, 'BaseUnsignedTransaction');
-var BaseSignedTransaction = extendCodec(UnsignedCommon, {
+const BaseSignedTransaction = extendCodec(UnsignedCommon, {
     status: literal('signed'),
     id: string,
     amount: string,
     fee: string,
     data: UnknownRecord,
 }, 'BaseSignedTransaction');
-var BaseTransactionInfo = extendCodec(TransactionCommon, {
+const BaseTransactionInfo = extendCodec(TransactionCommon, {
     id: string,
     amount: string,
     fee: string,
@@ -89,7 +89,7 @@ var BaseTransactionInfo = extendCodec(TransactionCommon, {
     date: nullable(DateT),
     data: UnknownRecord,
 }, 'BaseTransactionInfo');
-var BaseBroadcastResult = type({
+const BaseBroadcastResult = type({
     id: string,
 }, 'BaseBroadcastResult');
 
