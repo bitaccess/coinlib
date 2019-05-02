@@ -1,26 +1,34 @@
-import { HDPrivateKey, HDPublicKey } from 'bitcore-lib';
-import { keccak256 } from 'js-sha3';
-import jsSHA from 'jssha';
-import { ec as EC } from 'elliptic';
-import { encode58 } from './base58';
-var ec = new EC('secp256k1');
-export var derivationPath = "m/44'/195'/0";
-var derivationPathParts = derivationPath.split('/').slice(1);
-export function deriveAddress(xpub, index) {
-    var key = new HDPublicKey(xpub);
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+var bitcore_lib_1 = require("bitcore-lib");
+var js_sha3_1 = require("js-sha3");
+var jssha_1 = __importDefault(require("jssha"));
+var elliptic_1 = require("elliptic");
+var base58_1 = require("./base58");
+var ec = new elliptic_1.ec('secp256k1');
+exports.derivationPath = "m/44'/195'/0";
+var derivationPathParts = exports.derivationPath.split('/').slice(1);
+function deriveAddress(xpub, index) {
+    var key = new bitcore_lib_1.HDPublicKey(xpub);
     var derived = deriveBasePath(key).derive(index);
     return hdPublicKeyToAddress(derived);
 }
-export function derivePrivateKey(xprv, index) {
-    var key = new HDPrivateKey(xprv);
+exports.deriveAddress = deriveAddress;
+function derivePrivateKey(xprv, index) {
+    var key = new bitcore_lib_1.HDPrivateKey(xprv);
     var derived = deriveBasePath(key).derive(index);
     return hdPrivateKeyToPrivateKey(derived);
 }
-export function xprvToXpub(xprv) {
-    var key = xprv instanceof HDPrivateKey ? xprv : new HDPrivateKey(xprv);
+exports.derivePrivateKey = derivePrivateKey;
+function xprvToXpub(xprv) {
+    var key = xprv instanceof bitcore_lib_1.HDPrivateKey ? xprv : new bitcore_lib_1.HDPrivateKey(xprv);
     var derivedPubKey = deriveBasePath(key).hdPublicKey;
     return derivedPubKey.toString();
 }
+exports.xprvToXpub = xprvToXpub;
 function deriveBasePath(key) {
     var parts = derivationPathParts.slice(key.depth);
     if (parts.length > 0) {
@@ -114,7 +122,7 @@ function pubBytesToTronBytes(pubBytes) {
     if (pubBytes.length === 65) {
         pubBytes = pubBytes.slice(1);
     }
-    var hash = keccak256(pubBytes).toString();
+    var hash = js_sha3_1.keccak256(pubBytes).toString();
     var addressHex = ADDRESS_PREFIX + hash.substring(24);
     return hexStr2byteArray(addressHex);
 }
@@ -123,10 +131,10 @@ function addressBytesToB58CheckAddress(addressBytes) {
     var hash1 = SHA256(hash0);
     var checkSum = hash1.slice(0, 4);
     checkSum = addressBytes.concat(checkSum);
-    return encode58(checkSum);
+    return base58_1.encode58(checkSum);
 }
 function SHA256(msgBytes) {
-    var shaObj = new jsSHA('SHA-256', 'HEX');
+    var shaObj = new jssha_1.default('SHA-256', 'HEX');
     var msgHex = byteArray2hexStr(msgBytes);
     shaObj.update(msgHex);
     var hashHex = shaObj.getHash('HEX');

@@ -1,3 +1,4 @@
+"use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -44,20 +45,24 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-import TronWeb from 'tronweb';
-import { pick, get, cloneDeep } from 'lodash';
-import { TransactionStatus, FeeLevel, FeeRateType, FeeOptionCustom, } from '@faast/payments-common';
-import { isType } from '@faast/ts-common';
-import { toMainDenomination, toBaseDenomination, toBaseDenominationNumber, toError } from './utils';
-import { FEE_LEVEL_TRANSFER_SUN, DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE, FEE_FOR_TRANSFER_SUN, } from './constants';
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+var tronweb_1 = __importDefault(require("tronweb"));
+var lodash_1 = require("lodash");
+var payments_common_1 = require("@faast/payments-common");
+var ts_common_1 = require("@faast/ts-common");
+var utils_1 = require("./utils");
+var constants_1 = require("./constants");
 var BaseTronPayments = (function () {
     function BaseTronPayments(config) {
-        this.toMainDenomination = toMainDenomination;
-        this.toBaseDenomination = toBaseDenomination;
-        this.fullNode = config.fullNode || DEFAULT_FULL_NODE;
-        this.solidityNode = config.solidityNode || DEFAULT_SOLIDITY_NODE;
-        this.eventServer = config.eventServer || DEFAULT_EVENT_SERVER;
-        this.tronweb = new TronWeb(this.fullNode, this.solidityNode, this.eventServer);
+        this.toMainDenomination = utils_1.toMainDenomination;
+        this.toBaseDenomination = utils_1.toBaseDenomination;
+        this.fullNode = config.fullNode || constants_1.DEFAULT_FULL_NODE;
+        this.solidityNode = config.solidityNode || constants_1.DEFAULT_SOLIDITY_NODE;
+        this.eventServer = config.eventServer || constants_1.DEFAULT_EVENT_SERVER;
+        this.tronweb = new tronweb_1.default(this.fullNode, this.solidityNode, this.eventServer);
     }
     BaseTronPayments.prototype.isValidAddress = function (address) {
         return this.tronweb.isAddress(address);
@@ -128,12 +133,12 @@ var BaseTronPayments = (function () {
                     case 2:
                         balanceSun = _a.sent();
                         return [2, {
-                                balance: toMainDenomination(balanceSun).toString(),
+                                balance: utils_1.toMainDenomination(balanceSun).toString(),
                                 unconfirmedBalance: '0',
                             }];
                     case 3:
                         e_3 = _a.sent();
-                        throw toError(e_3);
+                        throw utils_1.toError(e_3);
                     case 4: return [2];
                 }
             });
@@ -147,7 +152,7 @@ var BaseTronPayments = (function () {
                     case 0: return [4, this.getBalance(addressOrIndex)];
                     case 1:
                         balance = (_a.sent()).balance;
-                        return [2, this.canSweepBalance(toBaseDenominationNumber(balance))];
+                        return [2, this.canSweepBalance(utils_1.toBaseDenominationNumber(balance))];
                 }
             });
         });
@@ -156,27 +161,27 @@ var BaseTronPayments = (function () {
         return __awaiter(this, void 0, void 0, function () {
             var targetFeeLevel, targetFeeRate, targetFeeRateType, feeBase, feeMain;
             return __generator(this, function (_a) {
-                if (isType(FeeOptionCustom, feeOption)) {
-                    targetFeeLevel = FeeLevel.Custom;
+                if (ts_common_1.isType(payments_common_1.FeeOptionCustom, feeOption)) {
+                    targetFeeLevel = payments_common_1.FeeLevel.Custom;
                     targetFeeRate = feeOption.feeRate;
                     targetFeeRateType = feeOption.feeRateType;
-                    if (feeOption.feeRateType === FeeRateType.Base) {
+                    if (feeOption.feeRateType === payments_common_1.FeeRateType.Base) {
                         feeBase = feeOption.feeRate;
                     }
-                    else if (feeOption.feeRateType === FeeRateType.Main) {
-                        feeBase = toBaseDenomination(feeOption.feeRate);
+                    else if (feeOption.feeRateType === payments_common_1.FeeRateType.Main) {
+                        feeBase = utils_1.toBaseDenomination(feeOption.feeRate);
                     }
                     else {
                         throw new Error("Unsupported feeRateType for TRX: " + feeOption.feeRateType);
                     }
                 }
                 else {
-                    feeBase = FEE_LEVEL_TRANSFER_SUN[feeOption.feeLevel].toString();
+                    feeBase = constants_1.FEE_LEVEL_TRANSFER_SUN[feeOption.feeLevel].toString();
                     targetFeeLevel = feeOption.feeLevel;
                     targetFeeRate = feeBase;
-                    targetFeeRateType = FeeRateType.Base;
+                    targetFeeRateType = payments_common_1.FeeRateType.Base;
                 }
-                feeMain = toMainDenomination(feeBase);
+                feeMain = utils_1.toMainDenomination(feeBase);
                 return [2, {
                         targetFeeLevel: targetFeeLevel,
                         targetFeeRate: targetFeeRate,
@@ -188,7 +193,7 @@ var BaseTronPayments = (function () {
         });
     };
     BaseTronPayments.prototype.createSweepTransaction = function (from, to, options) {
-        if (options === void 0) { options = { feeLevel: FeeLevel.Medium }; }
+        if (options === void 0) { options = { feeLevel: payments_common_1.FeeLevel.Medium }; }
         return __awaiter(this, void 0, void 0, function () {
             var _a, fromAddress, fromIndex, toAddress, toIndex, _b, targetFeeLevel, targetFeeRate, targetFeeRateType, feeBase, feeMain, feeSun, balanceSun, balanceTrx, amountSun, amountTrx, tx, e_4;
             return __generator(this, function (_c) {
@@ -205,12 +210,12 @@ var BaseTronPayments = (function () {
                         return [4, this.tronweb.trx.getBalance(fromAddress)];
                     case 3:
                         balanceSun = _c.sent();
-                        balanceTrx = toMainDenomination(balanceSun);
+                        balanceTrx = utils_1.toMainDenomination(balanceSun);
                         if (!this.canSweepBalance(balanceSun)) {
                             throw new Error("Insufficient balance (" + balanceTrx + ") to sweep with fee of " + feeMain);
                         }
                         amountSun = balanceSun - feeSun;
-                        amountTrx = toMainDenomination(amountSun);
+                        amountTrx = utils_1.toMainDenomination(amountSun);
                         return [4, this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)];
                     case 4:
                         tx = _c.sent();
@@ -231,14 +236,14 @@ var BaseTronPayments = (function () {
                             }];
                     case 5:
                         e_4 = _c.sent();
-                        throw toError(e_4);
+                        throw utils_1.toError(e_4);
                     case 6: return [2];
                 }
             });
         });
     };
     BaseTronPayments.prototype.createTransaction = function (from, to, amountTrx, options) {
-        if (options === void 0) { options = { feeLevel: FeeLevel.Medium }; }
+        if (options === void 0) { options = { feeLevel: payments_common_1.FeeLevel.Medium }; }
         return __awaiter(this, void 0, void 0, function () {
             var _a, fromAddress, fromIndex, toAddress, toIndex, _b, targetFeeLevel, targetFeeRate, targetFeeRateType, feeBase, feeMain, feeSun, balanceSun, balanceTrx, amountSun, tx, e_5;
             return __generator(this, function (_c) {
@@ -255,8 +260,8 @@ var BaseTronPayments = (function () {
                         return [4, this.tronweb.trx.getBalance(fromAddress)];
                     case 3:
                         balanceSun = _c.sent();
-                        balanceTrx = toMainDenomination(balanceSun);
-                        amountSun = toBaseDenominationNumber(amountTrx);
+                        balanceTrx = utils_1.toMainDenomination(balanceSun);
+                        amountSun = utils_1.toBaseDenominationNumber(amountTrx);
                         if (balanceSun - feeSun < amountSun) {
                             throw new Error("Insufficient balance (" + balanceTrx + ") to send including fee of " + feeMain);
                         }
@@ -280,7 +285,7 @@ var BaseTronPayments = (function () {
                             }];
                     case 5:
                         e_5 = _c.sent();
-                        throw toError(e_5);
+                        throw utils_1.toError(e_5);
                     case 6: return [2];
                 }
             });
@@ -296,14 +301,14 @@ var BaseTronPayments = (function () {
                         return [4, this.getPrivateKey(unsignedTx.fromIndex)];
                     case 1:
                         fromPrivateKey = _a.sent();
-                        unsignedRaw = cloneDeep(unsignedTx.data);
+                        unsignedRaw = lodash_1.cloneDeep(unsignedTx.data);
                         return [4, this.tronweb.trx.sign(unsignedRaw, fromPrivateKey)];
                     case 2:
                         signedTx = _a.sent();
                         return [2, __assign({}, unsignedTx, { status: 'signed', data: signedTx })];
                     case 3:
                         e_6 = _a.sent();
-                        throw toError(e_6);
+                        throw utils_1.toError(e_6);
                     case 4: return [2];
                 }
             });
@@ -352,7 +357,7 @@ var BaseTronPayments = (function () {
                         return [3, 7];
                     case 6:
                         e_8 = _a.sent();
-                        throw toError(e_8);
+                        throw utils_1.toError(e_8);
                     case 7: return [2];
                 }
             });
@@ -379,20 +384,20 @@ var BaseTronPayments = (function () {
                             ])];
                     case 2:
                         _c = _d.sent(), fromIndex = _c[0], toIndex = _c[1];
-                        contractRet = get(tx, 'ret[0].contractRet');
+                        contractRet = lodash_1.get(tx, 'ret[0].contractRet');
                         isExecuted = contractRet === 'SUCCESS';
                         block = txInfo.blockNumber;
-                        feeTrx = toMainDenomination(txInfo.fee || 0);
-                        currentBlockNumber = get(currentBlock, 'block_header.raw_data.number', 0);
+                        feeTrx = utils_1.toMainDenomination(txInfo.fee || 0);
+                        currentBlockNumber = lodash_1.get(currentBlock, 'block_header.raw_data.number', 0);
                         confirmations = currentBlockNumber && block ? currentBlockNumber - block : 0;
                         isConfirmed = confirmations > 0;
                         date = new Date(tx.raw_data.timestamp);
-                        status = TransactionStatus.Pending;
+                        status = payments_common_1.TransactionStatus.Pending;
                         if (isConfirmed) {
                             if (!isExecuted) {
-                                status = TransactionStatus.Failed;
+                                status = payments_common_1.TransactionStatus.Failed;
                             }
-                            status = TransactionStatus.Confirmed;
+                            status = payments_common_1.TransactionStatus.Confirmed;
                         }
                         return [2, {
                                 id: tx.txID,
@@ -409,26 +414,26 @@ var BaseTronPayments = (function () {
                                 confirmations: confirmations,
                                 date: date,
                                 status: status,
-                                data: __assign({}, tx, txInfo, { currentBlock: pick(currentBlock, 'block_header', 'blockID') }),
+                                data: __assign({}, tx, txInfo, { currentBlock: lodash_1.pick(currentBlock, 'block_header', 'blockID') }),
                             }];
                     case 3:
                         e_9 = _d.sent();
-                        throw toError(e_9);
+                        throw utils_1.toError(e_9);
                     case 4: return [2];
                 }
             });
         });
     };
     BaseTronPayments.prototype.canSweepBalance = function (balanceSun) {
-        return balanceSun - FEE_FOR_TRANSFER_SUN > 0;
+        return balanceSun - constants_1.FEE_FOR_TRANSFER_SUN > 0;
     };
     BaseTronPayments.prototype.extractTxFields = function (tx) {
-        var contractParam = get(tx, 'raw_data.contract[0].parameter.value');
+        var contractParam = lodash_1.get(tx, 'raw_data.contract[0].parameter.value');
         if (!(contractParam && typeof contractParam.amount === 'number')) {
             throw new Error('Unable to get transaction');
         }
         var amountSun = contractParam.amount || 0;
-        var amountTrx = toMainDenomination(amountSun);
+        var amountTrx = utils_1.toMainDenomination(amountSun);
         var toAddress = this.tronweb.address.fromHex(contractParam.to_address);
         var fromAddress = this.tronweb.address.fromHex(contractParam.owner_address);
         return {
@@ -492,10 +497,10 @@ var BaseTronPayments = (function () {
             });
         });
     };
-    BaseTronPayments.toMainDenomination = toMainDenomination;
-    BaseTronPayments.toBaseDenomination = toBaseDenomination;
+    BaseTronPayments.toMainDenomination = utils_1.toMainDenomination;
+    BaseTronPayments.toBaseDenomination = utils_1.toBaseDenomination;
     return BaseTronPayments;
 }());
-export { BaseTronPayments };
-export default BaseTronPayments;
+exports.BaseTronPayments = BaseTronPayments;
+exports.default = BaseTronPayments;
 //# sourceMappingURL=BaseTronPayments.js.map

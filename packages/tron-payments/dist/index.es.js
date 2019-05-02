@@ -992,4 +992,4 @@ var GetAddressOptions = partial({
 });
 
 export { BaseTronPayments, HdTronPayments, KeyPairTronPayments, TronPaymentsFactory, BaseTronPaymentsConfig, HdTronPaymentsConfig, KeyPairTronPaymentsConfig, TronPaymentsConfig, TronUnsignedTransaction, TronSignedTransaction, TronTransactionInfo, TronBroadcastResult, GetAddressOptions, toError, toMainDenominationNumber, toMainDenomination, toBaseDenominationNumber, toBaseDenomination, isValidXprv, isValidXpub, derivationPath, deriveAddress, derivePrivateKey, xprvToXpub, encode58, decode58, FEE_FOR_TRANSFER_SUN, FEE_LEVEL_TRANSFER_SUN, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, DEFAULT_EVENT_SERVER, DEFAULT_MAX_ADDRESS_SCAN };
-//# sourceMappingURL=index.es5.js.map
+//# sourceMappingURL=index.es.js.map

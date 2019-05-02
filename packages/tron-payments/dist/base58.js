@@ -1,10 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 var ALPHABET_MAP = {};
 for (var i = 0; i < ALPHABET.length; i++) {
     ALPHABET_MAP[ALPHABET.charAt(i)] = i;
 }
 var BASE = 58;
-export function encode58(buffer) {
+function encode58(buffer) {
     if (buffer.length === 0) {
         return '';
     }
@@ -35,7 +37,8 @@ export function encode58(buffer) {
         .map(function (digit) { return ALPHABET[digit]; })
         .join('');
 }
-export function decode58(s) {
+exports.encode58 = encode58;
+function decode58(s) {
     if (s.length === 0) {
         return [];
     }
@@ -67,4 +70,5 @@ export function decode58(s) {
     }
     return bytes.reverse();
 }
+exports.decode58 = decode58;
 //# sourceMappingURL=base58.js.map

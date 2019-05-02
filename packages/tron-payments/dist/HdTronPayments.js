@@ -1,3 +1,4 @@
+"use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -46,78 +47,90 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-import { BaseTronPayments } from './BaseTronPayments';
-var KeyPairTronPayments = (function (_super) {
-    __extends(KeyPairTronPayments, _super);
-    function KeyPairTronPayments(config) {
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+var bitcore_lib_1 = require("bitcore-lib");
+var BaseTronPayments_1 = require("./BaseTronPayments");
+var Bip44Cache_1 = __importDefault(require("./Bip44Cache"));
+var bip44_1 = require("./bip44");
+var constants_1 = require("./constants");
+var utils_1 = require("./utils");
+var xpubCache = new Bip44Cache_1.default();
+var HdTronPayments = (function (_super) {
+    __extends(HdTronPayments, _super);
+    function HdTronPayments(config) {
         var _this = _super.call(this, config) || this;
-        _this.addresses = {};
-        _this.privateKeys = {};
-        _this.addressIndices = {};
-        Object.entries(config.keyPairs).forEach(function (_a) {
-            var iString = _a[0], addressOrKey = _a[1];
-            if (typeof addressOrKey === 'undefined' || addressOrKey === null) {
-                return;
-            }
-            var i = Number.parseInt(iString);
-            if (_this.isValidAddress(addressOrKey)) {
-                _this.addresses[i] = addressOrKey;
-                _this.privateKeys[i] = null;
-                _this.addressIndices[addressOrKey] = i;
-                return;
-            }
-            if (_this.isValidPrivateKey(addressOrKey)) {
-                var address = _this.privateKeyToAddress(addressOrKey);
-                _this.addresses[i] = address;
-                _this.privateKeys[i] = addressOrKey;
-                _this.addressIndices[address] = i;
-                return;
-            }
-            throw new Error("keyPairs[" + i + "] is not a valid private key or address");
-        });
+        _this.hdKey = config.hdKey;
+        _this.maxAddressScan = config.maxAddressScan || constants_1.DEFAULT_MAX_ADDRESS_SCAN;
+        if (!(utils_1.isValidXprv(_this.hdKey) || utils_1.isValidXpub(_this.hdKey))) {
+            throw new Error('Account must be a valid xprv or xpub');
+        }
         return _this;
     }
-    KeyPairTronPayments.prototype.getAddress = function (index) {
+    HdTronPayments.generateNewKeys = function () {
+        var key = new bitcore_lib_1.HDPrivateKey();
+        var xprv = key.toString();
+        var xpub = bip44_1.xprvToXpub(xprv);
+        return {
+            xprv: xprv,
+            xpub: xpub,
+        };
+    };
+    HdTronPayments.prototype.getXpub = function () {
+        return utils_1.isValidXprv(this.hdKey) ? bip44_1.xprvToXpub(this.hdKey) : this.hdKey;
+    };
+    HdTronPayments.prototype.getAddress = function (index, options) {
+        if (options === void 0) { options = {}; }
         return __awaiter(this, void 0, void 0, function () {
-            var address;
+            var cacheIndex, xpub, address;
             return __generator(this, function (_a) {
-                address = this.addresses[index];
-                if (typeof address === 'undefined') {
-                    throw new Error("Cannot get address " + index + " - keyPair[" + index + "] is undefined");
+                cacheIndex = options.cacheIndex || true;
+                xpub = this.getXpub();
+                address = bip44_1.deriveAddress(xpub, index);
+                if (!this.isValidAddress(address)) {
+                    throw new Error("Cannot get address " + index + " - validation failed for derived address");
+                }
+                if (cacheIndex) {
+                    xpubCache.put(xpub, index, address);
                 }
                 return [2, address];
             });
         });
     };
-    KeyPairTronPayments.prototype.getAddressIndex = function (address) {
+    HdTronPayments.prototype.getAddressIndex = function (address) {
         return __awaiter(this, void 0, void 0, function () {
-            var index;
+            var xpub, cachedIndex, i;
             return __generator(this, function (_a) {
-                index = this.addressIndices[address];
-                if (typeof index === 'undefined') {
-                    throw new Error("Cannot get index of address " + address);
+                xpub = this.getXpub();
+                cachedIndex = xpubCache.lookupIndex(xpub, address);
+                if (cachedIndex) {
+                    return [2, cachedIndex];
                 }
-                return [2, index];
+                for (i = 0; i < this.maxAddressScan; i++) {
+                    if (address === bip44_1.deriveAddress(xpub, i)) {
+                        xpubCache.put(xpub, i, address);
+                        return [2, i];
+                    }
+                }
+                throw new Error('Cannot get index of address after checking cache and scanning addresses' +
+                    (" from 0 to " + (this.maxAddressScan - 1) + " (address=" + address + ")"));
             });
         });
     };
-    KeyPairTronPayments.prototype.getPrivateKey = function (index) {
+    HdTronPayments.prototype.getPrivateKey = function (index) {
         return __awaiter(this, void 0, void 0, function () {
-            var privateKey;
             return __generator(this, function (_a) {
-                privateKey = this.privateKeys[index];
-                if (typeof privateKey === 'undefined') {
-                    throw new Error("Cannot get private key " + index + " - keyPair[" + index + "] is undefined");
+                if (!utils_1.isValidXprv(this.hdKey)) {
+                    throw new Error("Cannot get private key " + index + " - account is not a valid xprv)");
                 }
-                if (privateKey === null) {
-                    throw new Error("Cannot get private key " + index + " - keyPair[" + index + "] is a public address");
-                }
-                return [2, privateKey];
+                return [2, bip44_1.derivePrivateKey(this.hdKey, index)];
             });
         });
     };
-    return KeyPairTronPayments;
-}(BaseTronPayments));
-export { KeyPairTronPayments };
-export default KeyPairTronPayments;
-//# sourceMappingURL=KeyPairTronPayments.js.map
+    return HdTronPayments;
+}(BaseTronPayments_1.BaseTronPayments));
+exports.HdTronPayments = HdTronPayments;
+exports.default = HdTronPayments;
+//# sourceMappingURL=HdTronPayments.js.map
