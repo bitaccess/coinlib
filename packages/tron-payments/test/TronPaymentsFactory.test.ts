@@ -23,6 +23,6 @@ describe('TronPaymentsFactory', () => {
     expect(factory.forConfig(config)).toBeInstanceOf(KeyPairTronPayments)
   })
   it('should fail to instantiate unrecognized config', () => {
-    expect(() => factory.forConfig({} as TronPaymentsConfig)).toThrow()
+    expect(() => factory.forConfig({} as any)).toThrow()
   })
 })
