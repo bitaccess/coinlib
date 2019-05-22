@@ -919,7 +919,7 @@ img { max-width: 100%; }
 		<li class="current tsd-kind-interface tsd-has-type-parameter">
 			<a href="paymentsfactory.html" class="tsd-kind-icon">Payments<wbr>Factory</a>
 			<ul>
-				<li class=" tsd-kind-method tsd-parent-kind-interface">
+				<li class=" tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
 					<a href="paymentsfactory.html#forconfig" class="tsd-kind-icon">for<wbr>Config</a>
 				</li>
 			</ul>
@@ -986,7 +986,7 @@ img { max-width: 100%; }
 			<h3>Type parameters</h3>
 			<ul class="tsd-type-parameters">
 				<li>
-					<h4>P<span class="tsd-signature-symbol">: </span><a href="../globals.html#anypayments" class="tsd-signature-type">AnyPayments</a></h4>
+					<h4>C<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h4>
 				</li>
 			</ul>
 		</section>
@@ -1005,7 +1005,7 @@ img { max-width: 100%; }
 					<section class="tsd-index-section ">
 						<h3>Methods</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-method tsd-parent-kind-interface"><a href="paymentsfactory.html#forconfig" class="tsd-kind-icon">for<wbr>Config</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="paymentsfactory.html#forconfig" class="tsd-kind-icon">for<wbr>Config</a></li>
 						</ul>
 					</section>
 				</div>
@@ -1013,23 +1013,29 @@ img { max-width: 100%; }
 		</section>
 		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Methods</h2>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
 				<a name="forconfig" class="tsd-anchor"></a>
 				<h3>for<wbr>Config</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
-					<li class="tsd-signature tsd-kind-icon">for<wbr>Config<span class="tsd-signature-symbol">(</span>config<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">P</span></li>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
+					<li class="tsd-signature tsd-kind-icon">for<wbr>Config&lt;P&gt;<span class="tsd-signature-symbol">(</span>config<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">C</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">P</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/5327145/src/PaymentsFactory.ts#L4">src/PaymentsFactory.ts:4</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/PaymentsFactory.ts#L4">src/PaymentsFactory.ts:4</a></li>
 							</ul>
 						</aside>
+						<h4 class="tsd-type-parameters-title">Type parameters</h4>
+						<ul class="tsd-type-parameters">
+							<li>
+								<h4>P<span class="tsd-signature-symbol">: </span><a href="../globals.html#anypayments" class="tsd-signature-type">AnyPayments</a></h4>
+							</li>
+						</ul>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>config: <span class="tsd-signature-type">any</span></h5>
+								<h5>config: <span class="tsd-signature-type">C</span></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">P</span></h4>
