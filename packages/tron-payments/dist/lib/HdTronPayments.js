@@ -8,6 +8,7 @@ const xpubCache = new Bip44Cache();
 export class HdTronPayments extends BaseTronPayments {
     constructor(config) {
         super(config);
+        this.config = config;
         this.hdKey = config.hdKey;
         this.maxAddressScan = config.maxAddressScan || DEFAULT_MAX_ADDRESS_SCAN;
         if (!(isValidXprv(this.hdKey) || isValidXpub(this.hdKey))) {
@@ -27,13 +28,16 @@ export class HdTronPayments extends BaseTronPayments {
         return isValidXprv(this.hdKey) ? xprvToXpub(this.hdKey) : this.hdKey;
     }
     getFullConfig() {
-        return this._config;
+        return this.config;
     }
     getPublicConfig() {
         return {
-            ...this._config,
+            ...this.config,
             hdKey: this.getXpub(),
         };
+    }
+    getAccountIds() {
+        return [this.getXpub()];
     }
     async getAddress(index, options = {}) {
         const cacheIndex = options.cacheIndex || true;

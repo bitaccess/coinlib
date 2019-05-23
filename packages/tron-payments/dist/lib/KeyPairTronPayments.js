@@ -2,10 +2,10 @@ import { BaseTronPayments } from './BaseTronPayments';
 export class KeyPairTronPayments extends BaseTronPayments {
     constructor(config) {
         super(config);
+        this.config = config;
         this.addresses = {};
         this.privateKeys = {};
         this.addressIndices = {};
-        this._config = config;
         Object.entries(config.keyPairs).forEach(([iString, addressOrKey]) => {
             if (typeof addressOrKey === 'undefined' || addressOrKey === null) {
                 return;
@@ -28,13 +28,16 @@ export class KeyPairTronPayments extends BaseTronPayments {
         });
     }
     getFullConfig() {
-        return this._config;
+        return this.config;
     }
     getPublicConfig() {
         return {
-            ...this._config,
+            ...this.config,
             keyPairs: this.addresses,
         };
+    }
+    getAccountIds() {
+        return Object.keys(this.addressIndices);
     }
     async getAddress(index) {
         const address = this.addresses[index];

@@ -591,6 +591,7 @@ const xpubCache = new Bip44Cache();
 class HdTronPayments extends BaseTronPayments {
     constructor(config) {
         super(config);
+        this.config = config;
         this.hdKey = config.hdKey;
         this.maxAddressScan = config.maxAddressScan || DEFAULT_MAX_ADDRESS_SCAN;
         if (!(isValidXprv(this.hdKey) || isValidXpub(this.hdKey))) {
@@ -610,13 +611,16 @@ class HdTronPayments extends BaseTronPayments {
         return isValidXprv(this.hdKey) ? xprvToXpub(this.hdKey) : this.hdKey;
     }
     getFullConfig() {
-        return this._config;
+        return this.config;
     }
     getPublicConfig() {
         return {
-            ...this._config,
+            ...this.config,
             hdKey: this.getXpub(),
         };
+    }
+    getAccountIds() {
+        return [this.getXpub()];
     }
     async getAddress(index, options = {}) {
         const cacheIndex = options.cacheIndex || true;
@@ -656,10 +660,10 @@ class HdTronPayments extends BaseTronPayments {
 class KeyPairTronPayments extends BaseTronPayments {
     constructor(config) {
         super(config);
+        this.config = config;
         this.addresses = {};
         this.privateKeys = {};
         this.addressIndices = {};
-        this._config = config;
         Object.entries(config.keyPairs).forEach(([iString, addressOrKey]) => {
             if (typeof addressOrKey === 'undefined' || addressOrKey === null) {
                 return;
@@ -682,13 +686,16 @@ class KeyPairTronPayments extends BaseTronPayments {
         });
     }
     getFullConfig() {
-        return this._config;
+        return this.config;
     }
     getPublicConfig() {
         return {
-            ...this._config,
+            ...this.config,
             keyPairs: this.addresses,
         };
+    }
+    getAccountIds() {
+        return Object.keys(this.addressIndices);
     }
     async getAddress(index) {
         const address = this.addresses[index];
