@@ -2,14 +2,12 @@ import { BaseTronPayments } from './BaseTronPayments'
 import { KeyPairTronPaymentsConfig } from './types'
 
 export class KeyPairTronPayments extends BaseTronPayments {
-  _config: KeyPairTronPaymentsConfig
-  addresses: { [index: number]: string | undefined } = {}
-  privateKeys: { [index: number]: string | null | undefined } = {}
-  addressIndices: { [address: string]: number | undefined } = {}
+  readonly addresses: { [index: number]: string | undefined } = {}
+  readonly privateKeys: { [index: number]: string | null | undefined } = {}
+  readonly addressIndices: { [address: string]: number | undefined } = {}
 
-  constructor(config: KeyPairTronPaymentsConfig) {
+  constructor(private readonly config: KeyPairTronPaymentsConfig) {
     super(config)
-    this._config = config
     Object.entries(config.keyPairs).forEach(([iString, addressOrKey]) => {
       if (typeof addressOrKey === 'undefined' || addressOrKey === null) {
         return
@@ -33,14 +31,18 @@ export class KeyPairTronPayments extends BaseTronPayments {
   }
 
   getFullConfig(): KeyPairTronPaymentsConfig {
-    return this._config
+    return this.config
   }
 
   getPublicConfig(): KeyPairTronPaymentsConfig {
     return {
-      ...this._config,
+      ...this.config,
       keyPairs: this.addresses,
     }
+  }
+
+  getAccountIds(): string[] {
+    return Object.keys(this.addressIndices)
   }
 
   async getAddress(index: number): Promise<string> {

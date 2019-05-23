@@ -1,12 +1,28 @@
 import KeyPairTronPayments from '#/KeyPairTronPayments'
 
 import { hdAccount } from './fixtures/accounts'
+import { KeyPairTronPaymentsConfig } from '../src/types'
 
 const EXTERNAL_ADDRESS = 'TW22XzVixyFZU5DxQJwxqXuKfNKFNMLqJ2'
 
 const { PRIVATE_KEYS, ADDRESSES } = hdAccount
 
-function runTests(tp: KeyPairTronPayments) {
+function runTests(tp: KeyPairTronPayments, config: KeyPairTronPaymentsConfig) {
+  it('getFullConfig', () => {
+    expect(tp.getFullConfig()).toBe(config)
+  })
+  it('getPublicConfig', () => {
+    expect(tp.getPublicConfig()).toEqual({
+      ...config,
+      keyPairs: {
+        1: ADDRESSES[1],
+        2: ADDRESSES[2],
+      },
+    })
+  })
+  it('getAccountIds', () => {
+    expect(new Set(tp.getAccountIds())).toEqual(new Set([ADDRESSES[1], ADDRESSES[2]]))
+  })
   it('getAddress for private keyPair', async () => {
     expect(await tp.getAddress(1)).toBe(ADDRESSES[1])
   })
@@ -51,10 +67,11 @@ describe('KeyPairTronPayments', () => {
 
   describe('array of key pairs', () => {
     const keyPairs = [undefined, PRIVATE_KEYS[1], ADDRESSES[2]]
-    const tp = new KeyPairTronPayments({
+    const config = {
       keyPairs,
-    })
-    runTests(tp)
+    }
+    const tp = new KeyPairTronPayments(config)
+    runTests(tp, config)
   })
 
   describe('object of key pairs', () => {
@@ -62,9 +79,10 @@ describe('KeyPairTronPayments', () => {
       1: PRIVATE_KEYS[1],
       2: ADDRESSES[2],
     }
-    const tp = new KeyPairTronPayments({
+    const config = {
       keyPairs,
-    })
-    runTests(tp)
+    }
+    const tp = new KeyPairTronPayments(config)
+    runTests(tp, config)
   })
 })

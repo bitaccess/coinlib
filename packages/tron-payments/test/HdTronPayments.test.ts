@@ -7,6 +7,7 @@ import { TronTransactionInfo } from '#/types'
 
 import { txInfo_209F8, signedTx_valid, txInfo_a0787, signedTx_invalid } from './fixtures/transactions'
 import { hdAccount } from './fixtures/accounts'
+import { HdTronPaymentsConfig } from '../src/types'
 
 const { XPRV, XPUB, PRIVATE_KEYS, ADDRESSES } = hdAccount
 
@@ -34,7 +35,19 @@ function assertTxInfo(actual: TronTransactionInfo, expected: TronTransactionInfo
   expect(omit(actual, txInfoOmitEquality)).toEqual(omit(expected, txInfoOmitEquality))
 }
 
-function runHardcodedPublicKeyTests(tp: HdTronPayments) {
+function runHardcodedPublicKeyTests(tp: HdTronPayments, config: HdTronPaymentsConfig) {
+  it('getFullConfig', () => {
+    expect(tp.getFullConfig()).toBe(config)
+  })
+  it('getPublicConfig', () => {
+    expect(tp.getPublicConfig()).toEqual({
+      ...config,
+      hdKey: XPUB,
+    })
+  })
+  it('getAccountIds', () => {
+    expect(tp.getAccountIds()).toEqual([XPUB])
+  })
   it('getXpub', async () => {
     expect(tp.getXpub()).toBe(XPUB)
   })
@@ -178,12 +191,13 @@ describe('HdTronPayments', () => {
   })
 
   describe('hardcoded xpub', () => {
-    const tp = new HdTronPayments({
+    const config = {
       hdKey: XPUB,
       maxAddressScan: 12,
-    })
+    }
+    const tp = new HdTronPayments(config)
 
-    runHardcodedPublicKeyTests(tp)
+    runHardcodedPublicKeyTests(tp, config)
 
     it('getPrivateKey throws', async () => {
       await expect(tp.getPrivateKey(1)).rejects.toThrow()
@@ -191,12 +205,13 @@ describe('HdTronPayments', () => {
   })
 
   describe('hardcoded xprv', () => {
-    const tp = new HdTronPayments({
+    const config = {
       hdKey: XPRV,
       maxAddressScan: 12,
-    })
+    }
+    const tp = new HdTronPayments(config)
 
-    runHardcodedPublicKeyTests(tp)
+    runHardcodedPublicKeyTests(tp, config)
 
     it('getPrivateKey returns private key 1', async () => {
       expect(await tp.getPrivateKey(1)).toBe(PRIVATE_KEYS[1])

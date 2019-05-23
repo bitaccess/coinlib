@@ -87,6 +87,7 @@ export abstract class BaseTronPayments
 
   abstract getFullConfig(): BaseTronPaymentsConfig
   abstract getPublicConfig(): BaseTronPaymentsConfig
+  abstract getAccountIds(): string[]
   abstract async getAddress(index: number, options?: GetAddressOptions): Promise<string>
   abstract async getAddressIndex(address: string): Promise<number>
   abstract async getPrivateKey(index: number): Promise<string>
