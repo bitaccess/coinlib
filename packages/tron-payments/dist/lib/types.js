@@ -12,8 +12,9 @@ export const HdTronPaymentsConfig = extendCodec(BaseTronPaymentsConfig, {
 }, {
     maxAddressScan: t.number,
 }, 'HdTronPaymentsConfig');
+const NullableOptionalString = t.union([t.string, t.null, t.undefined]);
 export const KeyPairTronPaymentsConfig = extendCodec(BaseTronPaymentsConfig, {
-    keyPairs: t.union([t.array(t.union([t.string, t.null, t.undefined])), t.record(t.number, t.string)]),
+    keyPairs: t.union([t.array(NullableOptionalString), t.record(t.number, NullableOptionalString)]),
 }, {}, 'KeyPairTronPaymentsConfig');
 export const TronPaymentsConfig = t.union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig]);
 export const TronUnsignedTransaction = extendCodec(BaseUnsignedTransaction, {

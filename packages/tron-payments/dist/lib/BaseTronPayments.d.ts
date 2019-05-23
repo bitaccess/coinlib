@@ -2,7 +2,7 @@ import TronWeb from 'tronweb';
 import { BalanceResult, PaymentsInterface, FeeOption, ResolvedFeeOption } from '@faast/payments-common';
 import { TronTransactionInfo, TronUnsignedTransaction, TronSignedTransaction, TronBroadcastResult, CreateTransactionOptions, GetAddressOptions, BaseTronPaymentsConfig } from './types';
 import { toMainDenomination, toBaseDenomination } from './utils';
-export declare abstract class BaseTronPayments implements PaymentsInterface<TronUnsignedTransaction, TronSignedTransaction, TronBroadcastResult, TronTransactionInfo> {
+export declare abstract class BaseTronPayments implements PaymentsInterface<BaseTronPaymentsConfig, TronUnsignedTransaction, TronSignedTransaction, TronBroadcastResult, TronTransactionInfo> {
     fullNode: string;
     solidityNode: string;
     eventServer: string;
@@ -15,6 +15,8 @@ export declare abstract class BaseTronPayments implements PaymentsInterface<Tron
     isValidAddress(address: string): boolean;
     isValidPrivateKey(privateKey: string): boolean;
     privateKeyToAddress(privateKey: string): string;
+    abstract getFullConfig(): BaseTronPaymentsConfig;
+    abstract getPublicConfig(): BaseTronPaymentsConfig;
     abstract getAddress(index: number, options?: GetAddressOptions): Promise<string>;
     abstract getAddressIndex(address: string): Promise<number>;
     abstract getPrivateKey(index: number): Promise<string>;

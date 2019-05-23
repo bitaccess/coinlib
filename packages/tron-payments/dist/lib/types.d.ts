@@ -26,7 +26,7 @@ export declare const KeyPairTronPaymentsConfig: t.IntersectionC<[t.PartialC<{
     solidityNode: t.StringC;
     eventServer: t.StringC;
 }>, t.TypeC<{
-    keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.StringC>]>;
+    keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>]>;
 }>]>;
 export declare type KeyPairTronPaymentsConfig = t.TypeOf<typeof KeyPairTronPaymentsConfig>;
 export declare const TronPaymentsConfig: t.UnionC<[t.IntersectionC<[t.PartialC<{
@@ -42,7 +42,7 @@ export declare const TronPaymentsConfig: t.UnionC<[t.IntersectionC<[t.PartialC<{
     solidityNode: t.StringC;
     eventServer: t.StringC;
 }>, t.TypeC<{
-    keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.StringC>]>;
+    keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>]>;
 }>]>]>;
 export declare type TronPaymentsConfig = t.TypeOf<typeof TronPaymentsConfig>;
 export declare const TronUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.TypeC<{

@@ -5,6 +5,7 @@ export class KeyPairTronPayments extends BaseTronPayments {
         this.addresses = {};
         this.privateKeys = {};
         this.addressIndices = {};
+        this._config = config;
         Object.entries(config.keyPairs).forEach(([iString, addressOrKey]) => {
             if (typeof addressOrKey === 'undefined' || addressOrKey === null) {
                 return;
@@ -25,6 +26,15 @@ export class KeyPairTronPayments extends BaseTronPayments {
             }
             throw new Error(`keyPairs[${i}] is not a valid private key or address`);
         });
+    }
+    getFullConfig() {
+        return this._config;
+    }
+    getPublicConfig() {
+        return {
+            ...this._config,
+            keyPairs: this.addresses,
+        };
     }
     async getAddress(index) {
         const address = this.addresses[index];

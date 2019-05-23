@@ -602,6 +602,15 @@
       getXpub() {
           return isValidXprv(this.hdKey) ? xprvToXpub(this.hdKey) : this.hdKey;
       }
+      getFullConfig() {
+          return this._config;
+      }
+      getPublicConfig() {
+          return {
+              ...this._config,
+              hdKey: this.getXpub(),
+          };
+      }
       async getAddress(index, options = {}) {
           const cacheIndex = options.cacheIndex || true;
           const xpub = this.getXpub();
@@ -643,6 +652,7 @@
           this.addresses = {};
           this.privateKeys = {};
           this.addressIndices = {};
+          this._config = config;
           Object.entries(config.keyPairs).forEach(([iString, addressOrKey]) => {
               if (typeof addressOrKey === 'undefined' || addressOrKey === null) {
                   return;
@@ -663,6 +673,15 @@
               }
               throw new Error(`keyPairs[${i}] is not a valid private key or address`);
           });
+      }
+      getFullConfig() {
+          return this._config;
+      }
+      getPublicConfig() {
+          return {
+              ...this._config,
+              keyPairs: this.addresses,
+          };
       }
       async getAddress(index) {
           const address = this.addresses[index];
@@ -712,8 +731,9 @@
   }, {
       maxAddressScan: t.number,
   }, 'HdTronPaymentsConfig');
+  const NullableOptionalString = t.union([t.string, t.null, t.undefined]);
   const KeyPairTronPaymentsConfig = tsCommon.extendCodec(BaseTronPaymentsConfig, {
-      keyPairs: t.union([t.array(t.union([t.string, t.null, t.undefined])), t.record(t.number, t.string)]),
+      keyPairs: t.union([t.array(NullableOptionalString), t.record(t.number, NullableOptionalString)]),
   }, {}, 'KeyPairTronPaymentsConfig');
   const TronPaymentsConfig = t.union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig]);
   const TronUnsignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseUnsignedTransaction, {

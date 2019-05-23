@@ -26,6 +26,15 @@ export class HdTronPayments extends BaseTronPayments {
     getXpub() {
         return isValidXprv(this.hdKey) ? xprvToXpub(this.hdKey) : this.hdKey;
     }
+    getFullConfig() {
+        return this._config;
+    }
+    getPublicConfig() {
+        return {
+            ...this._config,
+            hdKey: this.getXpub(),
+        };
+    }
     async getAddress(index, options = {}) {
         const cacheIndex = options.cacheIndex || true;
         const xpub = this.getXpub();

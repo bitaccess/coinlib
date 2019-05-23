@@ -4,7 +4,7 @@ import { HDPrivateKey, HDPublicKey } from 'bitcore-lib';
 import { keccak256 } from 'js-sha3';
 import jsSHA from 'jssha';
 import { ec } from 'elliptic';
-import { partial, string, number, union, array, null, undefined as undefined$1, record, boolean } from 'io-ts';
+import { partial, string, number, union, null, undefined as undefined$1, array, record, boolean } from 'io-ts';
 import { isType, extendCodec } from '@faast/ts-common';
 import { FeeLevel, TransactionStatus, FeeRateType, FeeOptionCustom, BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult } from '@faast/payments-common';
 export { CreateTransactionOptions } from '@faast/payments-common';
@@ -604,6 +604,15 @@ class HdTronPayments extends BaseTronPayments {
     getXpub() {
         return isValidXprv(this.hdKey) ? xprvToXpub(this.hdKey) : this.hdKey;
     }
+    getFullConfig() {
+        return this._config;
+    }
+    getPublicConfig() {
+        return {
+            ...this._config,
+            hdKey: this.getXpub(),
+        };
+    }
     async getAddress(index, options = {}) {
         const cacheIndex = options.cacheIndex || true;
         const xpub = this.getXpub();
@@ -645,6 +654,7 @@ class KeyPairTronPayments extends BaseTronPayments {
         this.addresses = {};
         this.privateKeys = {};
         this.addressIndices = {};
+        this._config = config;
         Object.entries(config.keyPairs).forEach(([iString, addressOrKey]) => {
             if (typeof addressOrKey === 'undefined' || addressOrKey === null) {
                 return;
@@ -665,6 +675,15 @@ class KeyPairTronPayments extends BaseTronPayments {
             }
             throw new Error(`keyPairs[${i}] is not a valid private key or address`);
         });
+    }
+    getFullConfig() {
+        return this._config;
+    }
+    getPublicConfig() {
+        return {
+            ...this._config,
+            keyPairs: this.addresses,
+        };
     }
     async getAddress(index) {
         const address = this.addresses[index];
@@ -714,8 +733,9 @@ const HdTronPaymentsConfig = extendCodec(BaseTronPaymentsConfig, {
 }, {
     maxAddressScan: number,
 }, 'HdTronPaymentsConfig');
+const NullableOptionalString = union([string, null, undefined$1]);
 const KeyPairTronPaymentsConfig = extendCodec(BaseTronPaymentsConfig, {
-    keyPairs: union([array(union([string, null, undefined$1])), record(number, string)]),
+    keyPairs: union([array(NullableOptionalString), record(number, NullableOptionalString)]),
 }, {}, 'KeyPairTronPaymentsConfig');
 const TronPaymentsConfig = union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig]);
 const TronUnsignedTransaction = extendCodec(BaseUnsignedTransaction, {
