@@ -75,6 +75,11 @@ export interface PaymentsInterface<
   getPublicConfig(): Config
 
   /**
+   * Return identifiers for all accounts configured. (e.g. an xpub, or list of addresses)
+   */
+  getAccountIds(): string[]
+
+  /**
    * Get the index of the provided address.
    *
    * @return Promise resolving to address index
