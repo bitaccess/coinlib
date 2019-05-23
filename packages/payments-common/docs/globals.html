@@ -922,7 +922,7 @@ img { max-width: 100%; }
 		<li class=" tsd-kind-interface tsd-has-type-parameter">
 			<a href="interfaces/paymentsinterface.html" class="tsd-kind-icon">Payments<wbr>Interface</a>
 		</li>
-		<li class=" tsd-kind-type-alias">
+		<li class=" tsd-kind-type-alias tsd-has-type-parameter">
 			<a href="globals.html#anypayments" class="tsd-kind-icon">Any<wbr>Payments</a>
 		</li>
 		<li class=" tsd-kind-variable">
@@ -999,7 +999,7 @@ img { max-width: 100%; }
 					<section class="tsd-index-section ">
 						<h3>Type aliases</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-type-alias"><a href="globals.html#anypayments" class="tsd-kind-icon">Any<wbr>Payments</a></li>
+							<li class="tsd-kind-type-alias tsd-has-type-parameter"><a href="globals.html#anypayments" class="tsd-kind-icon">Any<wbr>Payments</a></li>
 						</ul>
 					</section>
 					<section class="tsd-index-section ">
@@ -1028,13 +1028,13 @@ img { max-width: 100%; }
 		</section>
 		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Type aliases</h2>
-			<section class="tsd-panel tsd-member tsd-kind-type-alias">
+			<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-has-type-parameter">
 				<a name="anypayments" class="tsd-anchor"></a>
 				<h3>Any<wbr>Payments</h3>
-				<div class="tsd-signature tsd-kind-icon">Any<wbr>Payments<span class="tsd-signature-symbol">:</span> <a href="interfaces/paymentsinterface.html" class="tsd-signature-type">PaymentsInterface</a><span class="tsd-signature-symbol">&lt;</span><a href="globals.html#baseunsignedtransaction" class="tsd-signature-type">BaseUnsignedTransaction</a><span class="tsd-signature-symbol">, </span><a href="globals.html#basesignedtransaction" class="tsd-signature-type">BaseSignedTransaction</a><span class="tsd-signature-symbol">, </span><a href="globals.html#basebroadcastresult" class="tsd-signature-type">BaseBroadcastResult</a><span class="tsd-signature-symbol">, </span><a href="globals.html#basetransactioninfo" class="tsd-signature-type">BaseTransactionInfo</a><span class="tsd-signature-symbol">&gt;</span></div>
+				<div class="tsd-signature tsd-kind-icon">Any<wbr>Payments<span class="tsd-signature-symbol">:</span> <a href="interfaces/paymentsinterface.html" class="tsd-signature-type">PaymentsInterface</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">C</span><span class="tsd-signature-symbol">, </span><a href="globals.html#baseunsignedtransaction" class="tsd-signature-type">BaseUnsignedTransaction</a><span class="tsd-signature-symbol">, </span><a href="globals.html#basesignedtransaction" class="tsd-signature-type">BaseSignedTransaction</a><span class="tsd-signature-symbol">, </span><a href="globals.html#basebroadcastresult" class="tsd-signature-type">BaseBroadcastResult</a><span class="tsd-signature-symbol">, </span><a href="globals.html#basetransactioninfo" class="tsd-signature-type">BaseTransactionInfo</a><span class="tsd-signature-symbol">&gt;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/PaymentsInterface.ts#L12">src/PaymentsInterface.ts:12</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/PaymentsInterface.ts#L12">src/PaymentsInterface.ts:12</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1047,8 +1047,8 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">Address<wbr>OrIndex<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">UnionC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;t.union([t.string, t.number], &#x27;AddressOrIndex&#x27;)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L4">src/types.ts:4</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L5">src/types.ts:5</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L4">src/types.ts:4</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L5">src/types.ts:5</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1058,8 +1058,8 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">Balance<wbr>Result<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TypeC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;t.type({balance: t.string, // balance with at least 1 confirmationunconfirmedBalance: t.string, // balance that is pending confirmation on the blockchain},&#x27;BalanceResult&#x27;,)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L55">src/types.ts:55</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L62">src/types.ts:62</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L55">src/types.ts:55</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L62">src/types.ts:62</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1069,8 +1069,8 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">Base<wbr>Broadcast<wbr>Result<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TypeC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;t.type({id: t.string,},&#x27;BaseBroadcastResult&#x27;,)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L142">src/types.ts:142</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L148">src/types.ts:148</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L142">src/types.ts:142</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L148">src/types.ts:148</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1080,8 +1080,8 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">Base<wbr>Signed<wbr>Transaction<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">IntersectionC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;extendCodec(UnsignedCommon,{status: t.literal(&#x27;signed&#x27;),id: t.string,amount: t.string,fee: t.string,data: t.UnknownRecord,},&#x27;BaseSignedTransaction&#x27;,)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L112">src/types.ts:112</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L123">src/types.ts:123</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L112">src/types.ts:112</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L123">src/types.ts:123</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1091,8 +1091,8 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">Base<wbr>Transaction<wbr>Info<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">IntersectionC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;extendCodec(TransactionCommon,{id: t.string,amount: t.string,fee: t.string,isExecuted: t.boolean, // true if transaction didn&#x27;t fail (eg TRX/ETH contract succeeded)isConfirmed: t.boolean,confirmations: t.number, // 0 if not confirmedblock: nullable(t.number), // null if not confirmeddate: nullable(DateT), // null if timestamp unavailabledata: t.UnknownRecord,},&#x27;BaseTransactionInfo&#x27;,)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L125">src/types.ts:125</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L140">src/types.ts:140</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L125">src/types.ts:125</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L140">src/types.ts:140</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1102,8 +1102,8 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">Base<wbr>Unsigned<wbr>Transaction<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">IntersectionC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;extendCodec(UnsignedCommon,{status: t.literal(&#x27;unsigned&#x27;),data: t.UnknownRecord,},&#x27;BaseUnsignedTransaction&#x27;,)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L102">src/types.ts:102</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L110">src/types.ts:110</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L102">src/types.ts:102</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L110">src/types.ts:110</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1113,8 +1113,8 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">Create<wbr>Transaction<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">UnionC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;FeeOption</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L43">src/types.ts:43</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L44">src/types.ts:44</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L43">src/types.ts:43</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L44">src/types.ts:44</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1124,7 +1124,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">Fee<wbr>LevelT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Type</span><span class="tsd-signature-symbol">&lt;</span><a href="enums/feelevel.html" class="tsd-signature-type">FeeLevel</a><span class="tsd-signature-symbol">, </span><a href="enums/feelevel.html" class="tsd-signature-type">FeeLevel</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;enumCodec&lt;FeeLevel&gt;(FeeLevel, &#x27;FeeLevel&#x27;)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L13">src/types.ts:13</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L13">src/types.ts:13</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1134,8 +1134,8 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">Fee<wbr>Option<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">UnionC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;t.union([FeeOptionCustom, FeeOptionLevel], &#x27;FeeOption&#x27;)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L40">src/types.ts:40</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L41">src/types.ts:41</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L40">src/types.ts:40</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L41">src/types.ts:41</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1145,7 +1145,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">Fee<wbr>Option<wbr>Custom<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">IntersectionC</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">TypeC</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">PartialC</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;requiredOptionalCodec({feeRate: t.string,feeRateType: FeeRateTypeT,},{feeLevel: t.literal(FeeLevel.Custom),},&#x27;FeeOptionCustom&#x27;,)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L22">src/types.ts:22</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L22">src/types.ts:22</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1155,7 +1155,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">Fee<wbr>Option<wbr>Level<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">TypeC</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;t.type({feeLevel: t.union([t.literal(FeeLevel.High), t.literal(FeeLevel.Medium), t.literal(FeeLevel.Low)]),},&#x27;FeeOptionLevel&#x27;,)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L33">src/types.ts:33</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L33">src/types.ts:33</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1165,7 +1165,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">Fee<wbr>Rate<wbr>TypeT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Type</span><span class="tsd-signature-symbol">&lt;</span><a href="enums/feeratetype.html" class="tsd-signature-type">FeeRateType</a><span class="tsd-signature-symbol">, </span><a href="enums/feeratetype.html" class="tsd-signature-type">FeeRateType</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;enumCodec&lt;FeeRateType&gt;(FeeRateType, &#x27;FeeRateType&#x27;)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L20">src/types.ts:20</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L20">src/types.ts:20</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1175,8 +1175,8 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">Resolved<wbr>Fee<wbr>Option<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TypeC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;t.type({targetFeeLevel: FeeLevelT,targetFeeRate: t.string,targetFeeRateType: FeeRateTypeT,feeBase: t.string,feeMain: t.string,})</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L46">src/types.ts:46</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L53">src/types.ts:53</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L46">src/types.ts:46</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L53">src/types.ts:53</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1186,8 +1186,8 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">Transaction<wbr>Common<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TypeC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;t.type({id: nullable(t.string), // network txidfromAddress: nullable(t.string), // sender addresstoAddress: nullable(t.string), // recipient addresstoExtraId: nullable(t.string), // eg Monero payment IDfromIndex: nullable(t.number), // sender address indextoIndex: nullable(t.number), // recipient address index, null if not oursamount: nullable(t.string), // main denomination (eg &quot;0.125&quot;)fee: nullable(t.string), // total fee in main denominationstatus: TransactionStatusT,},&#x27;TransactionCommon&#x27;,)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L73">src/types.ts:73</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L87">src/types.ts:87</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L73">src/types.ts:73</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L87">src/types.ts:87</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1197,7 +1197,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">Transaction<wbr>StatusT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Type</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Object</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">Object</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;enumCodec(TransactionStatus, &#x27;TransactionStatus&#x27;)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L71">src/types.ts:71</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L71">src/types.ts:71</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1207,7 +1207,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">Unsigned<wbr>Common<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">IntersectionC</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">TypeC</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">TypeC</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;extendCodec(TransactionCommon,{fromAddress: t.string,toAddress: t.string,fromIndex: t.number,targetFeeLevel: FeeLevelT,targetFeeRate: nullable(t.string),targetFeeRateType: nullable(FeeRateTypeT),},&#x27;UnsignedCommon&#x27;,)</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/c6b0cff/src/types.ts#L89">src/types.ts:89</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/3c1df20/src/types.ts#L89">src/types.ts:89</a></li>
 					</ul>
 				</aside>
 			</section>

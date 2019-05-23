@@ -1,6 +1,6 @@
 import { BalanceResult, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, CreateTransactionOptions, FeeOption, ResolvedFeeOption } from './types';
-export declare type AnyPayments = PaymentsInterface<BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, BaseTransactionInfo>;
-export interface PaymentsInterface<UnsignedTransaction extends BaseUnsignedTransaction, SignedTransaction extends BaseSignedTransaction, BroadcastResult extends BaseBroadcastResult, TransactionInfo extends BaseTransactionInfo> {
+export declare type AnyPayments<C extends object = any> = PaymentsInterface<C, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, BaseTransactionInfo>;
+export interface PaymentsInterface<Config extends object, UnsignedTransaction extends BaseUnsignedTransaction, SignedTransaction extends BaseSignedTransaction, BroadcastResult extends BaseBroadcastResult, TransactionInfo extends BaseTransactionInfo> {
     toMainDenomination<O extends object>(amount: number | string, options?: O): string;
     toBaseDenomination<O extends object>(amount: number | string, options?: O): string;
     isValidAddress<O extends object>(address: string, options?: O): boolean;
@@ -11,6 +11,8 @@ export interface PaymentsInterface<UnsignedTransaction extends BaseUnsignedTrans
         toIndex: number | null;
         toAddress: string;
     }>;
+    getFullConfig(): Config;
+    getPublicConfig(): Config;
     getAddressIndex<O extends object>(address: string, options?: O): Promise<number>;
     getAddressIndexOrNull<O extends object>(address: string, options?: O): Promise<number | null>;
     getAddress<O extends object>(index: number, options?: O): Promise<string>;
