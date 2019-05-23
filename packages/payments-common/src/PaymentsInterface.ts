@@ -9,7 +9,8 @@ import {
   ResolvedFeeOption,
 } from './types'
 
-export type AnyPayments = PaymentsInterface<
+export type AnyPayments<C extends object = any> = PaymentsInterface<
+  C,
   BaseUnsignedTransaction,
   BaseSignedTransaction,
   BaseBroadcastResult,
@@ -20,6 +21,7 @@ export type AnyPayments = PaymentsInterface<
  * An interface that provides the necessary tools for accepting and sending payments for a currency.
  */
 export interface PaymentsInterface<
+  Config extends object,
   UnsignedTransaction extends BaseUnsignedTransaction,
   SignedTransaction extends BaseSignedTransaction,
   BroadcastResult extends BaseBroadcastResult,
@@ -60,6 +62,17 @@ export interface PaymentsInterface<
     toIndex: number | null
     toAddress: string
   }>
+
+  /**
+   * Returns the full config used to instantiate this payments instance as is.
+   */
+  getFullConfig(): Config
+
+  /**
+   * Returns the full config with private keys substituted with their public equivalent.
+   * (e.g. xpub/addresses instead of xprv/private keys)
+   */
+  getPublicConfig(): Config
 
   /**
    * Get the index of the provided address.
