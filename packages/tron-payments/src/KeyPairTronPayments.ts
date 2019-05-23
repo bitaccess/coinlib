@@ -1,15 +1,15 @@
-import { set, get } from 'lodash'
-
 import { BaseTronPayments } from './BaseTronPayments'
 import { KeyPairTronPaymentsConfig } from './types'
 
 export class KeyPairTronPayments extends BaseTronPayments {
+  _config: KeyPairTronPaymentsConfig
   addresses: { [index: number]: string | undefined } = {}
   privateKeys: { [index: number]: string | null | undefined } = {}
   addressIndices: { [address: string]: number | undefined } = {}
 
   constructor(config: KeyPairTronPaymentsConfig) {
     super(config)
+    this._config = config
     Object.entries(config.keyPairs).forEach(([iString, addressOrKey]) => {
       if (typeof addressOrKey === 'undefined' || addressOrKey === null) {
         return
@@ -30,6 +30,17 @@ export class KeyPairTronPayments extends BaseTronPayments {
       }
       throw new Error(`keyPairs[${i}] is not a valid private key or address`)
     })
+  }
+
+  getFullConfig(): KeyPairTronPaymentsConfig {
+    return this._config
+  }
+
+  getPublicConfig(): KeyPairTronPaymentsConfig {
+    return {
+      ...this._config,
+      keyPairs: this.addresses,
+    }
   }
 
   async getAddress(index: number): Promise<string> {

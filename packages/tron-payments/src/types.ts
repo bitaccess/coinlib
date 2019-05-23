@@ -44,11 +44,13 @@ export const HdTronPaymentsConfig = extendCodec(
 )
 export type HdTronPaymentsConfig = t.TypeOf<typeof HdTronPaymentsConfig>
 
+const NullableOptionalString = t.union([t.string, t.null, t.undefined])
+
 export const KeyPairTronPaymentsConfig = extendCodec(
   BaseTronPaymentsConfig,
   {
     // can be private keys or addresses
-    keyPairs: t.union([t.array(t.union([t.string, t.null, t.undefined])), t.record(t.number, t.string)]),
+    keyPairs: t.union([t.array(NullableOptionalString), t.record(t.number, NullableOptionalString)]),
   },
   {},
   'KeyPairTronPaymentsConfig',

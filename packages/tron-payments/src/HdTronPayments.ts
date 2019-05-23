@@ -10,6 +10,7 @@ import { isValidXpub, isValidXprv } from './utils'
 const xpubCache = new Bip44Cache()
 
 export class HdTronPayments extends BaseTronPayments {
+  _config: HdTronPaymentsConfig
   hdKey: string
   maxAddressScan: number
 
@@ -34,6 +35,17 @@ export class HdTronPayments extends BaseTronPayments {
 
   getXpub(): string {
     return isValidXprv(this.hdKey) ? xprvToXpub(this.hdKey) : this.hdKey
+  }
+
+  getFullConfig(): HdTronPaymentsConfig {
+    return this._config
+  }
+
+  getPublicConfig(): HdTronPaymentsConfig {
+    return {
+      ...this._config,
+      hdKey: this.getXpub(),
+    }
   }
 
   async getAddress(index: number, options: GetAddressOptions = {}): Promise<string> {

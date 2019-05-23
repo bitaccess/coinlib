@@ -33,7 +33,13 @@ import {
 
 export abstract class BaseTronPayments
   implements
-    PaymentsInterface<TronUnsignedTransaction, TronSignedTransaction, TronBroadcastResult, TronTransactionInfo> {
+    PaymentsInterface<
+      BaseTronPaymentsConfig,
+      TronUnsignedTransaction,
+      TronSignedTransaction,
+      TronBroadcastResult,
+      TronTransactionInfo
+    > {
   // You may notice that many function blocks are enclosed in a try/catch.
   // I had to do this because tronweb thinks it's a good idea to throw
   // strings instead of Errors and now we need to convert them all ourselves
@@ -79,6 +85,8 @@ export abstract class BaseTronPayments
     }
   }
 
+  abstract getFullConfig(): BaseTronPaymentsConfig
+  abstract getPublicConfig(): BaseTronPaymentsConfig
   abstract async getAddress(index: number, options?: GetAddressOptions): Promise<string>
   abstract async getAddressIndex(address: string): Promise<number>
   abstract async getPrivateKey(index: number): Promise<string>
