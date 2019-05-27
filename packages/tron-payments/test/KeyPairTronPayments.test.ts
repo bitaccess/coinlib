@@ -23,6 +23,15 @@ function runTests(tp: KeyPairTronPayments, config: KeyPairTronPaymentsConfig) {
   it('getAccountIds', () => {
     expect(new Set(tp.getAccountIds())).toEqual(new Set([ADDRESSES[1], ADDRESSES[2]]))
   })
+  it('getAccountId for private keyPair', () => {
+    expect(tp.getAccountId(1)).toBe(ADDRESSES[1])
+  })
+  it('getAccountId for public keyPair', () => {
+    expect(tp.getAccountId(2)).toBe(ADDRESSES[2])
+  })
+  it('getAccountId fails for undefined keyPair', () => {
+    expect(() => tp.getAccountId(0)).toThrow()
+  })
   it('getAddress for private keyPair', async () => {
     expect(await tp.getAddress(1)).toBe(ADDRESSES[1])
   })

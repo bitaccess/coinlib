@@ -48,6 +48,12 @@ function runHardcodedPublicKeyTests(tp: HdTronPayments, config: HdTronPaymentsCo
   it('getAccountIds', () => {
     expect(tp.getAccountIds()).toEqual([XPUB])
   })
+  it('getAccountId for index 0', () => {
+    expect(tp.getAccountId(0)).toEqual(XPUB)
+  })
+  it('getAccountId for index 10', () => {
+    expect(tp.getAccountId(10)).toEqual(XPUB)
+  })
   it('getXpub', async () => {
     expect(tp.getXpub()).toBe(XPUB)
   })

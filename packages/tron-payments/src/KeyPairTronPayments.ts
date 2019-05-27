@@ -26,7 +26,7 @@ export class KeyPairTronPayments extends BaseTronPayments {
         this.addressIndices[address] = i
         return
       }
-      throw new Error(`keyPairs[${i}] is not a valid private key or address`)
+      throw new Error(`KeyPairTronPaymentsConfig.keyPairs[${i}] is not a valid private key or address`)
     })
   }
 
@@ -39,6 +39,14 @@ export class KeyPairTronPayments extends BaseTronPayments {
       ...this.config,
       keyPairs: this.addresses,
     }
+  }
+
+  getAccountId(index: number): string {
+    const accountId = this.addresses[index]
+    if (!accountId) {
+      throw new Error(`No KeyPairTronPayments account configured at index ${index}`)
+    }
+    return accountId
   }
 
   getAccountIds(): string[] {
