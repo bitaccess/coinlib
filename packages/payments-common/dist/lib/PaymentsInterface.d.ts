@@ -14,6 +14,7 @@ export interface PaymentsInterface<Config extends object, UnsignedTransaction ex
     getFullConfig(): Config;
     getPublicConfig(): Config;
     getAccountIds(): string[];
+    getAccountId(index: number): string;
     getAddressIndex<O extends object>(address: string, options?: O): Promise<number>;
     getAddressIndexOrNull<O extends object>(address: string, options?: O): Promise<number | null>;
     getAddress<O extends object>(index: number, options?: O): Promise<string>;
