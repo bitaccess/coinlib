@@ -2,7 +2,8 @@ import { BaseTronPayments } from './BaseTronPayments';
 import { GetAddressOptions, HdTronPaymentsConfig } from './types';
 export declare class HdTronPayments extends BaseTronPayments {
     private readonly config;
-    readonly hdKey: string;
+    readonly xprv: string | null;
+    readonly xpub: string;
     maxAddressScan: number;
     constructor(config: HdTronPaymentsConfig);
     static generateNewKeys(): {
@@ -12,6 +13,7 @@ export declare class HdTronPayments extends BaseTronPayments {
     getXpub(): string;
     getFullConfig(): HdTronPaymentsConfig;
     getPublicConfig(): HdTronPaymentsConfig;
+    getAccountId(index: number): string;
     getAccountIds(): string[];
     getAddress(index: number, options?: GetAddressOptions): Promise<string>;
     getAddressIndex(address: string): Promise<number>;

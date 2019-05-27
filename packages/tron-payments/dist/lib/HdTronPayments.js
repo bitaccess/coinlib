@@ -9,9 +9,16 @@ export class HdTronPayments extends BaseTronPayments {
     constructor(config) {
         super(config);
         this.config = config;
-        this.hdKey = config.hdKey;
         this.maxAddressScan = config.maxAddressScan || DEFAULT_MAX_ADDRESS_SCAN;
-        if (!(isValidXprv(this.hdKey) || isValidXpub(this.hdKey))) {
+        if (isValidXprv(config.hdKey)) {
+            this.xprv = config.hdKey;
+            this.xpub = xprvToXpub(this.xprv);
+        }
+        else if (isValidXpub(config.hdKey)) {
+            this.xprv = null;
+            this.xpub = config.hdKey;
+        }
+        else {
             throw new Error('Account must be a valid xprv or xpub');
         }
     }
@@ -25,7 +32,7 @@ export class HdTronPayments extends BaseTronPayments {
         };
     }
     getXpub() {
-        return isValidXprv(this.hdKey) ? xprvToXpub(this.hdKey) : this.hdKey;
+        return this.xpub;
     }
     getFullConfig() {
         return this.config;
@@ -35,6 +42,9 @@ export class HdTronPayments extends BaseTronPayments {
             ...this.config,
             hdKey: this.getXpub(),
         };
+    }
+    getAccountId(index) {
+        return this.getXpub();
     }
     getAccountIds() {
         return [this.getXpub()];
@@ -67,10 +77,10 @@ export class HdTronPayments extends BaseTronPayments {
             ` from 0 to ${this.maxAddressScan - 1} (address=${address})`);
     }
     async getPrivateKey(index) {
-        if (!isValidXprv(this.hdKey)) {
-            throw new Error(`Cannot get private key ${index} - account is not a valid xprv)`);
+        if (!this.xprv) {
+            throw new Error(`Cannot get private key ${index} - HdTronPayments was created with an xpub`);
         }
-        return derivePrivateKey(this.hdKey, index);
+        return derivePrivateKey(this.xprv, index);
     }
 }
 export default HdTronPayments;

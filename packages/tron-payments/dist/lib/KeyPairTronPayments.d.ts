@@ -14,6 +14,7 @@ export declare class KeyPairTronPayments extends BaseTronPayments {
     constructor(config: KeyPairTronPaymentsConfig);
     getFullConfig(): KeyPairTronPaymentsConfig;
     getPublicConfig(): KeyPairTronPaymentsConfig;
+    getAccountId(index: number): string;
     getAccountIds(): string[];
     getAddress(index: number): Promise<string>;
     getAddressIndex(address: string): Promise<number>;

@@ -17,6 +17,7 @@ export declare abstract class BaseTronPayments implements PaymentsInterface<Base
     privateKeyToAddress(privateKey: string): string;
     abstract getFullConfig(): BaseTronPaymentsConfig;
     abstract getPublicConfig(): BaseTronPaymentsConfig;
+    abstract getAccountId(index: number): string;
     abstract getAccountIds(): string[];
     abstract getAddress(index: number, options?: GetAddressOptions): Promise<string>;
     abstract getAddressIndex(address: string): Promise<number>;

@@ -585,9 +585,16 @@
       constructor(config) {
           super(config);
           this.config = config;
-          this.hdKey = config.hdKey;
           this.maxAddressScan = config.maxAddressScan || DEFAULT_MAX_ADDRESS_SCAN;
-          if (!(isValidXprv(this.hdKey) || isValidXpub(this.hdKey))) {
+          if (isValidXprv(config.hdKey)) {
+              this.xprv = config.hdKey;
+              this.xpub = xprvToXpub(this.xprv);
+          }
+          else if (isValidXpub(config.hdKey)) {
+              this.xprv = null;
+              this.xpub = config.hdKey;
+          }
+          else {
               throw new Error('Account must be a valid xprv or xpub');
           }
       }
@@ -601,7 +608,7 @@
           };
       }
       getXpub() {
-          return isValidXprv(this.hdKey) ? xprvToXpub(this.hdKey) : this.hdKey;
+          return this.xpub;
       }
       getFullConfig() {
           return this.config;
@@ -611,6 +618,9 @@
               ...this.config,
               hdKey: this.getXpub(),
           };
+      }
+      getAccountId(index) {
+          return this.getXpub();
       }
       getAccountIds() {
           return [this.getXpub()];
@@ -643,10 +653,10 @@
               ` from 0 to ${this.maxAddressScan - 1} (address=${address})`);
       }
       async getPrivateKey(index) {
-          if (!isValidXprv(this.hdKey)) {
-              throw new Error(`Cannot get private key ${index} - account is not a valid xprv)`);
+          if (!this.xprv) {
+              throw new Error(`Cannot get private key ${index} - HdTronPayments was created with an xpub`);
           }
-          return derivePrivateKey(this.hdKey, index);
+          return derivePrivateKey(this.xprv, index);
       }
   }
 
@@ -675,7 +685,7 @@
                   this.addressIndices[address] = i;
                   return;
               }
-              throw new Error(`keyPairs[${i}] is not a valid private key or address`);
+              throw new Error(`KeyPairTronPaymentsConfig.keyPairs[${i}] is not a valid private key or address`);
           });
       }
       getFullConfig() {
@@ -686,6 +696,13 @@
               ...this.config,
               keyPairs: this.addresses,
           };
+      }
+      getAccountId(index) {
+          const accountId = this.addresses[index];
+          if (!accountId) {
+              throw new Error(`No KeyPairTronPayments account configured at index ${index}`);
+          }
+          return accountId;
       }
       getAccountIds() {
           return Object.keys(this.addressIndices);
