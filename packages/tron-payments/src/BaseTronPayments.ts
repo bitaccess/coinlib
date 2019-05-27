@@ -31,10 +31,10 @@ import {
   FEE_FOR_TRANSFER_SUN,
 } from './constants'
 
-export abstract class BaseTronPayments
+export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
   implements
     PaymentsInterface<
-      BaseTronPaymentsConfig,
+      Config,
       TronUnsignedTransaction,
       TronSignedTransaction,
       TronBroadcastResult,
@@ -50,7 +50,7 @@ export abstract class BaseTronPayments
   eventServer: string
   tronweb: TronWeb
 
-  constructor(config: BaseTronPaymentsConfig) {
+  constructor(config: Config) {
     this.fullNode = config.fullNode || DEFAULT_FULL_NODE
     this.solidityNode = config.solidityNode || DEFAULT_SOLIDITY_NODE
     this.eventServer = config.eventServer || DEFAULT_EVENT_SERVER
@@ -85,8 +85,8 @@ export abstract class BaseTronPayments
     }
   }
 
-  abstract getFullConfig(): BaseTronPaymentsConfig
-  abstract getPublicConfig(): BaseTronPaymentsConfig
+  abstract getFullConfig(): Config
+  abstract getPublicConfig(): Config
   abstract getAccountId(index: number): string
   abstract getAccountIds(): string[]
   abstract async getAddress(index: number, options?: GetAddressOptions): Promise<string>

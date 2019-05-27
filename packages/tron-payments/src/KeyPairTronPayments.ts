@@ -1,7 +1,7 @@
 import { BaseTronPayments } from './BaseTronPayments'
 import { KeyPairTronPaymentsConfig } from './types'
 
-export class KeyPairTronPayments extends BaseTronPayments {
+export class KeyPairTronPayments extends BaseTronPayments<KeyPairTronPaymentsConfig> {
   readonly addresses: { [index: number]: string | undefined } = {}
   readonly privateKeys: { [index: number]: string | null | undefined } = {}
   readonly addressIndices: { [address: string]: number | undefined } = {}

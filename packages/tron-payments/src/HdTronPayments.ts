@@ -9,7 +9,7 @@ import { isValidXpub, isValidXprv } from './utils'
 
 const xpubCache = new Bip44Cache()
 
-export class HdTronPayments extends BaseTronPayments {
+export class HdTronPayments extends BaseTronPayments<HdTronPaymentsConfig> {
   readonly xprv: string | null
   readonly xpub: string
   maxAddressScan: number
