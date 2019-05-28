@@ -15,18 +15,18 @@ export const HdTronPaymentsConfig = extendCodec(BaseTronPaymentsConfig, {
 const NullableOptionalString = t.union([t.string, t.null, t.undefined]);
 export const KeyPairTronPaymentsConfig = extendCodec(BaseTronPaymentsConfig, {
     keyPairs: t.union([t.array(NullableOptionalString), t.record(t.number, NullableOptionalString)]),
-}, {}, 'KeyPairTronPaymentsConfig');
-export const TronPaymentsConfig = t.union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig]);
+}, 'KeyPairTronPaymentsConfig');
+export const TronPaymentsConfig = t.union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig], 'TronPaymentsConfig');
 export const TronUnsignedTransaction = extendCodec(BaseUnsignedTransaction, {
     id: t.string,
     amount: t.string,
     fee: t.string,
-}, {}, 'TronUnsignedTransaction');
+}, 'TronUnsignedTransaction');
 export const TronSignedTransaction = extendCodec(BaseSignedTransaction, {}, {}, 'TronSignedTransaction');
 export const TronTransactionInfo = extendCodec(BaseTransactionInfo, {}, {}, 'TronTransactionInfo');
 export const TronBroadcastResult = extendCodec(BaseBroadcastResult, {
     rebroadcast: t.boolean,
-}, {}, 'TronBroadcastResult');
+}, 'TronBroadcastResult');
 export const GetAddressOptions = t.partial({
     cacheIndex: t.boolean,
 });

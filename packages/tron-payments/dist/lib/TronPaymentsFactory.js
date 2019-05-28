@@ -1,11 +1,12 @@
+import { HdTronPaymentsConfig, KeyPairTronPaymentsConfig } from './types';
 import { HdTronPayments } from './HdTronPayments';
 import { KeyPairTronPayments } from './KeyPairTronPayments';
 export class TronPaymentsFactory {
     forConfig(config) {
-        if (config.hdKey) {
+        if (HdTronPaymentsConfig.is(config)) {
             return new HdTronPayments(config);
         }
-        if (config.keyPairs) {
+        if (KeyPairTronPaymentsConfig.is(config)) {
             return new KeyPairTronPayments(config);
         }
         throw new Error('Cannot instantiate tron payments for unsupported config');

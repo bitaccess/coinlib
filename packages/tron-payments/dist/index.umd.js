@@ -733,18 +733,6 @@
       }
   }
 
-  class TronPaymentsFactory {
-      forConfig(config) {
-          if (config.hdKey) {
-              return new HdTronPayments(config);
-          }
-          if (config.keyPairs) {
-              return new KeyPairTronPayments(config);
-          }
-          throw new Error('Cannot instantiate tron payments for unsupported config');
-      }
-  }
-
   const BaseTronPaymentsConfig = t.partial({
       fullNode: t.string,
       solidityNode: t.string,
@@ -758,21 +746,33 @@
   const NullableOptionalString = t.union([t.string, t.null, t.undefined]);
   const KeyPairTronPaymentsConfig = tsCommon.extendCodec(BaseTronPaymentsConfig, {
       keyPairs: t.union([t.array(NullableOptionalString), t.record(t.number, NullableOptionalString)]),
-  }, {}, 'KeyPairTronPaymentsConfig');
-  const TronPaymentsConfig = t.union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig]);
+  }, 'KeyPairTronPaymentsConfig');
+  const TronPaymentsConfig = t.union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig], 'TronPaymentsConfig');
   const TronUnsignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseUnsignedTransaction, {
       id: t.string,
       amount: t.string,
       fee: t.string,
-  }, {}, 'TronUnsignedTransaction');
+  }, 'TronUnsignedTransaction');
   const TronSignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseSignedTransaction, {}, {}, 'TronSignedTransaction');
   const TronTransactionInfo = tsCommon.extendCodec(paymentsCommon.BaseTransactionInfo, {}, {}, 'TronTransactionInfo');
   const TronBroadcastResult = tsCommon.extendCodec(paymentsCommon.BaseBroadcastResult, {
       rebroadcast: t.boolean,
-  }, {}, 'TronBroadcastResult');
+  }, 'TronBroadcastResult');
   const GetAddressOptions = t.partial({
       cacheIndex: t.boolean,
   });
+
+  class TronPaymentsFactory {
+      forConfig(config) {
+          if (HdTronPaymentsConfig.is(config)) {
+              return new HdTronPayments(config);
+          }
+          if (KeyPairTronPaymentsConfig.is(config)) {
+              return new KeyPairTronPayments(config);
+          }
+          throw new Error('Cannot instantiate tron payments for unsupported config');
+      }
+  }
 
   exports.CreateTransactionOptions = paymentsCommon.CreateTransactionOptions;
   exports.BaseTronPayments = BaseTronPayments;

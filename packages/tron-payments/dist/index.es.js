@@ -735,18 +735,6 @@ class KeyPairTronPayments extends BaseTronPayments {
     }
 }
 
-class TronPaymentsFactory {
-    forConfig(config) {
-        if (config.hdKey) {
-            return new HdTronPayments(config);
-        }
-        if (config.keyPairs) {
-            return new KeyPairTronPayments(config);
-        }
-        throw new Error('Cannot instantiate tron payments for unsupported config');
-    }
-}
-
 const BaseTronPaymentsConfig = partial({
     fullNode: string,
     solidityNode: string,
@@ -760,21 +748,33 @@ const HdTronPaymentsConfig = extendCodec(BaseTronPaymentsConfig, {
 const NullableOptionalString = union([string, null, undefined$1]);
 const KeyPairTronPaymentsConfig = extendCodec(BaseTronPaymentsConfig, {
     keyPairs: union([array(NullableOptionalString), record(number, NullableOptionalString)]),
-}, {}, 'KeyPairTronPaymentsConfig');
-const TronPaymentsConfig = union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig]);
+}, 'KeyPairTronPaymentsConfig');
+const TronPaymentsConfig = union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig], 'TronPaymentsConfig');
 const TronUnsignedTransaction = extendCodec(BaseUnsignedTransaction, {
     id: string,
     amount: string,
     fee: string,
-}, {}, 'TronUnsignedTransaction');
+}, 'TronUnsignedTransaction');
 const TronSignedTransaction = extendCodec(BaseSignedTransaction, {}, {}, 'TronSignedTransaction');
 const TronTransactionInfo = extendCodec(BaseTransactionInfo, {}, {}, 'TronTransactionInfo');
 const TronBroadcastResult = extendCodec(BaseBroadcastResult, {
     rebroadcast: boolean,
-}, {}, 'TronBroadcastResult');
+}, 'TronBroadcastResult');
 const GetAddressOptions = partial({
     cacheIndex: boolean,
 });
+
+class TronPaymentsFactory {
+    forConfig(config) {
+        if (HdTronPaymentsConfig.is(config)) {
+            return new HdTronPayments(config);
+        }
+        if (KeyPairTronPaymentsConfig.is(config)) {
+            return new KeyPairTronPayments(config);
+        }
+        throw new Error('Cannot instantiate tron payments for unsupported config');
+    }
+}
 
 export { BaseTronPayments, HdTronPayments, KeyPairTronPayments, TronPaymentsFactory, BaseTronPaymentsConfig, HdTronPaymentsConfig, KeyPairTronPaymentsConfig, TronPaymentsConfig, TronUnsignedTransaction, TronSignedTransaction, TronTransactionInfo, TronBroadcastResult, GetAddressOptions, toError, toMainDenominationNumber, toMainDenomination, toBaseDenominationNumber, toBaseDenomination, isValidXprv, isValidXpub, derivationPath, deriveAddress, derivePrivateKey, xprvToXpub, encode58, decode58, FEE_FOR_TRANSFER_SUN, FEE_LEVEL_TRANSFER_SUN, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, DEFAULT_EVENT_SERVER, DEFAULT_MAX_ADDRESS_SCAN };
 //# sourceMappingURL=index.es.js.map

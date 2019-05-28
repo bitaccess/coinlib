@@ -1,8 +1,8 @@
 import { PaymentsFactory } from '@faast/payments-common';
-import { TronPaymentsConfig, HdTronPaymentsConfig, KeyPairTronPaymentsConfig } from './types';
+import { HdTronPaymentsConfig, KeyPairTronPaymentsConfig } from './types';
 import { HdTronPayments } from './HdTronPayments';
 import { KeyPairTronPayments } from './KeyPairTronPayments';
-export declare class TronPaymentsFactory implements PaymentsFactory<TronPaymentsConfig> {
+export declare class TronPaymentsFactory implements PaymentsFactory {
     forConfig(config: HdTronPaymentsConfig): HdTronPayments;
     forConfig(config: KeyPairTronPaymentsConfig): KeyPairTronPayments;
 }
