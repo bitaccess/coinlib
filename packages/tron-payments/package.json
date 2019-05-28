@@ -53,7 +53,7 @@
     "release": "npm publish --access=public"
   },
   "dependencies": {
-    "@faast/payments-common": "^0.5.2",
+    "@faast/payments-common": "^0.5.3",
     "@faast/ts-common": "^0.1.8",
     "bitcore-lib": "^0.14.0",
     "elliptic": "^6.4.0",
