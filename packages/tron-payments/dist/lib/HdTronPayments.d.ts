@@ -1,6 +1,6 @@
 import { BaseTronPayments } from './BaseTronPayments';
 import { GetAddressOptions, HdTronPaymentsConfig } from './types';
-export declare class HdTronPayments extends BaseTronPayments {
+export declare class HdTronPayments extends BaseTronPayments<HdTronPaymentsConfig> {
     private readonly config;
     readonly xprv: string | null;
     readonly xpub: string;

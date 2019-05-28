@@ -1,6 +1,6 @@
 import { BaseTronPayments } from './BaseTronPayments';
 import { KeyPairTronPaymentsConfig } from './types';
-export declare class KeyPairTronPayments extends BaseTronPayments {
+export declare class KeyPairTronPayments extends BaseTronPayments<KeyPairTronPaymentsConfig> {
     private readonly config;
     readonly addresses: {
         [index: number]: string | undefined;
