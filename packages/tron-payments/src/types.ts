@@ -52,12 +52,11 @@ export const KeyPairTronPaymentsConfig = extendCodec(
     // can be private keys or addresses
     keyPairs: t.union([t.array(NullableOptionalString), t.record(t.number, NullableOptionalString)]),
   },
-  {},
   'KeyPairTronPaymentsConfig',
 )
 export type KeyPairTronPaymentsConfig = t.TypeOf<typeof KeyPairTronPaymentsConfig>
 
-export const TronPaymentsConfig = t.union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig])
+export const TronPaymentsConfig = t.union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig], 'TronPaymentsConfig')
 export type TronPaymentsConfig = t.TypeOf<typeof TronPaymentsConfig>
 
 export const TronUnsignedTransaction = extendCodec(
@@ -67,7 +66,6 @@ export const TronUnsignedTransaction = extendCodec(
     amount: t.string,
     fee: t.string,
   },
-  {},
   'TronUnsignedTransaction',
 )
 export type TronUnsignedTransaction = t.TypeOf<typeof TronUnsignedTransaction>
@@ -83,7 +81,6 @@ export const TronBroadcastResult = extendCodec(
   {
     rebroadcast: t.boolean,
   },
-  {},
   'TronBroadcastResult',
 )
 export type TronBroadcastResult = t.TypeOf<typeof TronBroadcastResult>

@@ -4,15 +4,15 @@ import { TronPaymentsConfig, HdTronPaymentsConfig, KeyPairTronPaymentsConfig } f
 import { HdTronPayments } from './HdTronPayments'
 import { KeyPairTronPayments } from './KeyPairTronPayments'
 
-export class TronPaymentsFactory implements PaymentsFactory<TronPaymentsConfig> {
+export class TronPaymentsFactory implements PaymentsFactory {
   forConfig(config: HdTronPaymentsConfig): HdTronPayments
   forConfig(config: KeyPairTronPaymentsConfig): KeyPairTronPayments
   forConfig(config: TronPaymentsConfig) {
-    if ((config as HdTronPaymentsConfig).hdKey) {
-      return new HdTronPayments(config as HdTronPaymentsConfig)
+    if (HdTronPaymentsConfig.is(config)) {
+      return new HdTronPayments(config)
     }
-    if ((config as KeyPairTronPaymentsConfig).keyPairs) {
-      return new KeyPairTronPayments(config as KeyPairTronPaymentsConfig)
+    if (KeyPairTronPaymentsConfig.is(config)) {
+      return new KeyPairTronPayments(config)
     }
     throw new Error('Cannot instantiate tron payments for unsupported config')
   }
