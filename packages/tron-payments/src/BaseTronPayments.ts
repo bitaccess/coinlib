@@ -214,7 +214,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
       const balanceTrx = toMainDenomination(balanceSun)
       const amountSun = toBaseDenominationNumber(amountTrx)
       if (balanceSun - feeSun < amountSun) {
-        throw new Error(`Insufficient balance (${balanceTrx}) to send including fee of ${feeMain}`)
+        throw new Error(`Insufficient balance (${balanceTrx}) to send ${amountTrx} including fee of ${feeMain}`)
       }
       const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)
       return {
