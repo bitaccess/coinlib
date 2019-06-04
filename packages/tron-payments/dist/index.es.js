@@ -198,7 +198,7 @@ class BaseTronPayments {
             const balanceTrx = toMainDenomination(balanceSun);
             const amountSun = toBaseDenominationNumber(amountTrx);
             if (balanceSun - feeSun < amountSun) {
-                throw new Error(`Insufficient balance (${balanceTrx}) to send including fee of ${feeMain}`);
+                throw new Error(`Insufficient balance (${balanceTrx}) to send ${amountTrx} including fee of ${feeMain}`);
             }
             const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress);
             return {
@@ -284,12 +284,12 @@ class BaseTronPayments {
             ]);
             const contractRet = get(tx, 'ret[0].contractRet');
             const isExecuted = contractRet === 'SUCCESS';
-            const block = txInfo.blockNumber;
+            const block = txInfo.blockNumber || null;
             const feeTrx = toMainDenomination(txInfo.fee || 0);
             const currentBlockNumber = get(currentBlock, 'block_header.raw_data.number', 0);
             const confirmations = currentBlockNumber && block ? currentBlockNumber - block : 0;
             const isConfirmed = confirmations > 0;
-            const date = new Date(tx.raw_data.timestamp);
+            const date = txInfo.blockTimeStamp ? new Date(txInfo.blockTimeStamp) : null;
             let status = TransactionStatus.Pending;
             if (isConfirmed) {
                 if (!isExecuted) {
