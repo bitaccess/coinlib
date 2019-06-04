@@ -231,6 +231,12 @@ describe('HdTronPayments', () => {
       })
       const address0 = 'TWc9zTvsBwZB2nLBNjuUiNSTyaNtDo53vi'
       const address3 = 'TVjvkL65TGV7Lp3Dit2kPCigHVd1aSVyVw'
+      const xpub =
+        'xpub6CGU5e4iDEBeFaeRU9AqFkaPcu8R4uJ2po2yvmEWaGsCzjBkw3PyivDXw2oZERairTNUN6C726UQSkr8f9tDe2UC88LQRBerTcw86zxZJHf'
+
+      it('get correct xpub', async () => {
+        expect(tp.getXpub()).toBe(xpub)
+      })
       it('get correct address for index 0', async () => {
         expect(await tp.getAddress(0)).toBe(address0)
       })
