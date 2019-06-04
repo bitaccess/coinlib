@@ -16,7 +16,7 @@ export const txInfo_209F8: TronTransactionInfo = {
   confirmations: 1234,
   block: 3748106,
   status: 'confirmed',
-  date: new Date(1541196195242),
+  date: new Date(1541196198000),
   data: {
     blockNumber: 3748106,
     blockTimeStamp: 1541196198000,
@@ -87,7 +87,7 @@ export const txInfo_a0787: TronTransactionInfo = {
   isExecuted: true,
   isConfirmed: true,
   confirmations: 4199517,
-  date: new Date('2018-11-14T22:20:58.986Z'),
+  date: new Date(1542234063000),
   status: 'confirmed',
   data: {
     ret: [

@@ -89,8 +89,8 @@ declare module 'tronweb' {
   export interface TransactionInfo {
     id: string
     fee?: number
-    blockNumber: number
-    blockTimeStamp: number
+    blockNumber?: number
+    blockTimeStamp?: number
     contractResult: string[]
     contract_address?: string
     receipt: {
