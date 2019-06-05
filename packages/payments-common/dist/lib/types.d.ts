@@ -50,7 +50,7 @@ export declare const ResolvedFeeOption: t.TypeC<{
 }>;
 export declare type ResolvedFeeOption = t.TypeOf<typeof ResolvedFeeOption>;
 export declare const BalanceResult: t.TypeC<{
-    balance: t.StringC;
+    confirmedBalance: t.StringC;
     unconfirmedBalance: t.StringC;
 }>;
 export declare type BalanceResult = t.TypeOf<typeof BalanceResult>;
@@ -138,8 +138,8 @@ export declare const BaseTransactionInfo: t.IntersectionC<[t.TypeC<{
     isExecuted: t.BooleanC;
     isConfirmed: t.BooleanC;
     confirmations: t.NumberC;
-    block: t.UnionC<[t.NumberC, t.NullC]>;
-    date: t.UnionC<[import("@faast/ts-common").DateC, t.NullC]>;
+    confirmationId: t.UnionC<[t.StringC, t.NullC]>;
+    confirmationTimestamp: t.UnionC<[import("@faast/ts-common").DateC, t.NullC]>;
     data: t.UnknownRecordC;
 }>]>;
 export declare type BaseTransactionInfo = t.TypeOf<typeof BaseTransactionInfo>;

@@ -36,7 +36,7 @@ const ResolvedFeeOption = type({
     feeMain: string,
 });
 const BalanceResult = type({
-    balance: string,
+    confirmedBalance: string,
     unconfirmedBalance: string,
 }, 'BalanceResult');
 var TransactionStatus;
@@ -85,8 +85,8 @@ const BaseTransactionInfo = extendCodec(TransactionCommon, {
     isExecuted: boolean,
     isConfirmed: boolean,
     confirmations: number,
-    block: nullable(number),
-    date: nullable(DateT),
+    confirmationId: nullable(string),
+    confirmationTimestamp: nullable(DateT),
     data: UnknownRecord,
 }, 'BaseTransactionInfo');
 const BaseBroadcastResult = type({

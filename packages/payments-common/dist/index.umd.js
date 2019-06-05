@@ -37,7 +37,7 @@
       feeMain: t.string,
   });
   const BalanceResult = t.type({
-      balance: t.string,
+      confirmedBalance: t.string,
       unconfirmedBalance: t.string,
   }, 'BalanceResult');
   (function (TransactionStatus) {
@@ -85,8 +85,8 @@
       isExecuted: t.boolean,
       isConfirmed: t.boolean,
       confirmations: t.number,
-      block: tsCommon.nullable(t.number),
-      date: tsCommon.nullable(tsCommon.DateT),
+      confirmationId: tsCommon.nullable(t.string),
+      confirmationTimestamp: tsCommon.nullable(tsCommon.DateT),
       data: t.UnknownRecord,
   }, 'BaseTransactionInfo');
   const BaseBroadcastResult = t.type({
