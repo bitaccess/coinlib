@@ -52,9 +52,12 @@
     "postversion": "git push && git push --tags",
     "release": "npm publish --access=public"
   },
+  "peerDependencies": {
+    "io-ts": "^1.8.5"
+  },
   "dependencies": {
     "@faast/payments-common": "^0.6.0",
-    "@faast/ts-common": "^0.1.8",
+    "@faast/ts-common": "^0.2.1",
     "bitcore-lib": "^0.14.0",
     "elliptic": "^6.4.0",
     "js-sha3": "^0.8.0",
