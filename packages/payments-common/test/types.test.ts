@@ -12,7 +12,7 @@ import {
 describe('types', () => {
   test('BalanceResult validates successfully', () => {
     assertType(BalanceResult, {
-      balance: '0',
+      confirmedBalance: '0',
       unconfirmedBalance: '0',
     })
   })
@@ -81,8 +81,8 @@ describe('types', () => {
       isExecuted: false,
       isConfirmed: false,
       confirmations: 0,
-      block: 0,
-      date: new Date(),
+      confirmationId: '0',
+      confirmationTimestamp: new Date(),
       data: {},
     })
   })
