@@ -53,12 +53,8 @@ function isValidXpub(xpub) {
     return xpub.startsWith('xpub');
 }
 
-const FEE_FOR_TRANSFER_SUN = 100000;
-const FEE_LEVEL_TRANSFER_SUN = {
-    [paymentsCommon.FeeLevel.Low]: FEE_FOR_TRANSFER_SUN,
-    [paymentsCommon.FeeLevel.Medium]: FEE_FOR_TRANSFER_SUN,
-    [paymentsCommon.FeeLevel.High]: FEE_FOR_TRANSFER_SUN,
-};
+const MIN_BALANCE_SUN = 100000;
+const MIN_BALANCE_TRX = MIN_BALANCE_SUN / 1e6;
 const DEFAULT_FULL_NODE = process.env.TRX_FULL_NODE_URL || 'http://54.236.37.243:8090';
 const DEFAULT_SOLIDITY_NODE = process.env.TRX_SOLIDITY_NODE_URL || 'http://47.89.187.247:8091';
 const DEFAULT_EVENT_SERVER = process.env.TRX_EVENT_SERVER_URL || 'https://api.trongrid.io';
@@ -115,7 +111,7 @@ class BaseTronPayments {
             const address = await this.resolveAddress(addressOrIndex);
             const balanceSun = await this.tronweb.trx.getBalance(address);
             return {
-                balance: toMainDenomination(balanceSun).toString(),
+                confirmedBalance: toMainDenomination(balanceSun).toString(),
                 unconfirmedBalance: '0',
             };
         }
@@ -124,41 +120,26 @@ class BaseTronPayments {
         }
     }
     async canSweep(addressOrIndex) {
-        const { balance } = await this.getBalance(addressOrIndex);
-        return this.canSweepBalance(toBaseDenominationNumber(balance));
+        const { confirmedBalance } = await this.getBalance(addressOrIndex);
+        return this.canSweepBalance(toBaseDenominationNumber(confirmedBalance));
     }
     async resolveFeeOption(feeOption) {
         let targetFeeLevel;
-        let targetFeeRate;
-        let targetFeeRateType;
-        let feeBase;
         if (tsCommon.isType(paymentsCommon.FeeOptionCustom, feeOption)) {
+            if (feeOption.feeRate !== '0') {
+                throw new Error('tron-payments custom fees are unsupported');
+            }
             targetFeeLevel = paymentsCommon.FeeLevel.Custom;
-            targetFeeRate = feeOption.feeRate;
-            targetFeeRateType = feeOption.feeRateType;
-            if (feeOption.feeRateType === paymentsCommon.FeeRateType.Base) {
-                feeBase = feeOption.feeRate;
-            }
-            else if (feeOption.feeRateType === paymentsCommon.FeeRateType.Main) {
-                feeBase = toBaseDenomination(feeOption.feeRate);
-            }
-            else {
-                throw new Error(`Unsupported feeRateType for TRX: ${feeOption.feeRateType}`);
-            }
         }
         else {
-            feeBase = FEE_LEVEL_TRANSFER_SUN[feeOption.feeLevel].toString();
             targetFeeLevel = feeOption.feeLevel;
-            targetFeeRate = feeBase;
-            targetFeeRateType = paymentsCommon.FeeRateType.Base;
         }
-        const feeMain = toMainDenomination(feeBase);
         return {
             targetFeeLevel,
-            targetFeeRate,
-            targetFeeRateType,
-            feeBase,
-            feeMain,
+            targetFeeRate: '0',
+            targetFeeRateType: paymentsCommon.FeeRateType.Base,
+            feeBase: '0',
+            feeMain: '0',
         };
     }
     async createSweepTransaction(from, to, options = { feeLevel: paymentsCommon.FeeLevel.Medium }) {
@@ -169,9 +150,10 @@ class BaseTronPayments {
             const balanceSun = await this.tronweb.trx.getBalance(fromAddress);
             const balanceTrx = toMainDenomination(balanceSun);
             if (!this.canSweepBalance(balanceSun)) {
-                throw new Error(`Insufficient balance (${balanceTrx}) to sweep with fee of ${feeMain}`);
+                throw new Error(`Insufficient balance (${balanceTrx}) to sweep with fee of ${feeMain} ` +
+                    `while maintaining a minimum required balance of ${MIN_BALANCE_TRX}`);
             }
-            const amountSun = balanceSun - feeSun;
+            const amountSun = balanceSun - feeSun - MIN_BALANCE_SUN;
             const amountTrx = toMainDenomination(amountSun);
             const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress);
             return {
@@ -202,8 +184,9 @@ class BaseTronPayments {
             const balanceSun = await this.tronweb.trx.getBalance(fromAddress);
             const balanceTrx = toMainDenomination(balanceSun);
             const amountSun = toBaseDenominationNumber(amountTrx);
-            if (balanceSun - feeSun < amountSun) {
-                throw new Error(`Insufficient balance (${balanceTrx}) to send ${amountTrx} including fee of ${feeMain}`);
+            if (balanceSun - feeSun - MIN_BALANCE_SUN < amountSun) {
+                throw new Error(`Insufficient balance (${balanceTrx}) to send ${amountTrx} including fee of ${feeMain} ` +
+                    `while maintaining a minimum required balance of ${MIN_BALANCE_TRX}`);
             }
             const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress);
             return {
@@ -294,7 +277,7 @@ class BaseTronPayments {
             const currentBlockNumber = lodash.get(currentBlock, 'block_header.raw_data.number', 0);
             const confirmations = currentBlockNumber && block ? currentBlockNumber - block : 0;
             const isConfirmed = confirmations > 0;
-            const date = txInfo.blockTimeStamp ? new Date(txInfo.blockTimeStamp) : null;
+            const confirmationTimestamp = txInfo.blockTimeStamp ? new Date(txInfo.blockTimeStamp) : null;
             let status = paymentsCommon.TransactionStatus.Pending;
             if (isConfirmed) {
                 if (!isExecuted) {
@@ -310,12 +293,12 @@ class BaseTronPayments {
                 toExtraId: null,
                 fromIndex,
                 toIndex,
-                block,
                 fee: feeTrx,
                 isExecuted,
                 isConfirmed,
                 confirmations,
-                date,
+                confirmationId: block ? String(block) : null,
+                confirmationTimestamp,
                 status,
                 data: {
                     ...tx,
@@ -329,7 +312,7 @@ class BaseTronPayments {
         }
     }
     canSweepBalance(balanceSun) {
-        return balanceSun - FEE_FOR_TRANSFER_SUN > 0;
+        return balanceSun - MIN_BALANCE_SUN > 0;
     }
     extractTxFields(tx) {
         const contractParam = lodash.get(tx, 'raw_data.contract[0].parameter.value');
@@ -808,8 +791,8 @@ exports.derivePrivateKey = derivePrivateKey;
 exports.xprvToXpub = xprvToXpub;
 exports.encode58 = encode58;
 exports.decode58 = decode58;
-exports.FEE_FOR_TRANSFER_SUN = FEE_FOR_TRANSFER_SUN;
-exports.FEE_LEVEL_TRANSFER_SUN = FEE_LEVEL_TRANSFER_SUN;
+exports.MIN_BALANCE_SUN = MIN_BALANCE_SUN;
+exports.MIN_BALANCE_TRX = MIN_BALANCE_TRX;
 exports.DEFAULT_FULL_NODE = DEFAULT_FULL_NODE;
 exports.DEFAULT_SOLIDITY_NODE = DEFAULT_SOLIDITY_NODE;
 exports.DEFAULT_EVENT_SERVER = DEFAULT_EVENT_SERVER;

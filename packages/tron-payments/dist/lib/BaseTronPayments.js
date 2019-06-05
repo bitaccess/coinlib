@@ -3,7 +3,7 @@ import { pick, get, cloneDeep } from 'lodash';
 import { TransactionStatus, FeeLevel, FeeRateType, FeeOptionCustom, } from '@faast/payments-common';
 import { isType } from '@faast/ts-common';
 import { toMainDenomination, toBaseDenomination, toBaseDenominationNumber, toError } from './utils';
-import { FEE_LEVEL_TRANSFER_SUN, DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE, FEE_FOR_TRANSFER_SUN, } from './constants';
+import { DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE, MIN_BALANCE_SUN, MIN_BALANCE_TRX, } from './constants';
 export class BaseTronPayments {
     constructor(config) {
         this.toMainDenomination = toMainDenomination;
@@ -55,7 +55,7 @@ export class BaseTronPayments {
             const address = await this.resolveAddress(addressOrIndex);
             const balanceSun = await this.tronweb.trx.getBalance(address);
             return {
-                balance: toMainDenomination(balanceSun).toString(),
+                confirmedBalance: toMainDenomination(balanceSun).toString(),
                 unconfirmedBalance: '0',
             };
         }
@@ -64,41 +64,26 @@ export class BaseTronPayments {
         }
     }
     async canSweep(addressOrIndex) {
-        const { balance } = await this.getBalance(addressOrIndex);
-        return this.canSweepBalance(toBaseDenominationNumber(balance));
+        const { confirmedBalance } = await this.getBalance(addressOrIndex);
+        return this.canSweepBalance(toBaseDenominationNumber(confirmedBalance));
     }
     async resolveFeeOption(feeOption) {
         let targetFeeLevel;
-        let targetFeeRate;
-        let targetFeeRateType;
-        let feeBase;
         if (isType(FeeOptionCustom, feeOption)) {
+            if (feeOption.feeRate !== '0') {
+                throw new Error('tron-payments custom fees are unsupported');
+            }
             targetFeeLevel = FeeLevel.Custom;
-            targetFeeRate = feeOption.feeRate;
-            targetFeeRateType = feeOption.feeRateType;
-            if (feeOption.feeRateType === FeeRateType.Base) {
-                feeBase = feeOption.feeRate;
-            }
-            else if (feeOption.feeRateType === FeeRateType.Main) {
-                feeBase = toBaseDenomination(feeOption.feeRate);
-            }
-            else {
-                throw new Error(`Unsupported feeRateType for TRX: ${feeOption.feeRateType}`);
-            }
         }
         else {
-            feeBase = FEE_LEVEL_TRANSFER_SUN[feeOption.feeLevel].toString();
             targetFeeLevel = feeOption.feeLevel;
-            targetFeeRate = feeBase;
-            targetFeeRateType = FeeRateType.Base;
         }
-        const feeMain = toMainDenomination(feeBase);
         return {
             targetFeeLevel,
-            targetFeeRate,
-            targetFeeRateType,
-            feeBase,
-            feeMain,
+            targetFeeRate: '0',
+            targetFeeRateType: FeeRateType.Base,
+            feeBase: '0',
+            feeMain: '0',
         };
     }
     async createSweepTransaction(from, to, options = { feeLevel: FeeLevel.Medium }) {
@@ -109,9 +94,10 @@ export class BaseTronPayments {
             const balanceSun = await this.tronweb.trx.getBalance(fromAddress);
             const balanceTrx = toMainDenomination(balanceSun);
             if (!this.canSweepBalance(balanceSun)) {
-                throw new Error(`Insufficient balance (${balanceTrx}) to sweep with fee of ${feeMain}`);
+                throw new Error(`Insufficient balance (${balanceTrx}) to sweep with fee of ${feeMain} ` +
+                    `while maintaining a minimum required balance of ${MIN_BALANCE_TRX}`);
             }
-            const amountSun = balanceSun - feeSun;
+            const amountSun = balanceSun - feeSun - MIN_BALANCE_SUN;
             const amountTrx = toMainDenomination(amountSun);
             const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress);
             return {
@@ -142,8 +128,9 @@ export class BaseTronPayments {
             const balanceSun = await this.tronweb.trx.getBalance(fromAddress);
             const balanceTrx = toMainDenomination(balanceSun);
             const amountSun = toBaseDenominationNumber(amountTrx);
-            if (balanceSun - feeSun < amountSun) {
-                throw new Error(`Insufficient balance (${balanceTrx}) to send ${amountTrx} including fee of ${feeMain}`);
+            if (balanceSun - feeSun - MIN_BALANCE_SUN < amountSun) {
+                throw new Error(`Insufficient balance (${balanceTrx}) to send ${amountTrx} including fee of ${feeMain} ` +
+                    `while maintaining a minimum required balance of ${MIN_BALANCE_TRX}`);
             }
             const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress);
             return {
@@ -234,7 +221,7 @@ export class BaseTronPayments {
             const currentBlockNumber = get(currentBlock, 'block_header.raw_data.number', 0);
             const confirmations = currentBlockNumber && block ? currentBlockNumber - block : 0;
             const isConfirmed = confirmations > 0;
-            const date = txInfo.blockTimeStamp ? new Date(txInfo.blockTimeStamp) : null;
+            const confirmationTimestamp = txInfo.blockTimeStamp ? new Date(txInfo.blockTimeStamp) : null;
             let status = TransactionStatus.Pending;
             if (isConfirmed) {
                 if (!isExecuted) {
@@ -250,12 +237,12 @@ export class BaseTronPayments {
                 toExtraId: null,
                 fromIndex,
                 toIndex,
-                block,
                 fee: feeTrx,
                 isExecuted,
                 isConfirmed,
                 confirmations,
-                date,
+                confirmationId: block ? String(block) : null,
+                confirmationTimestamp,
                 status,
                 data: {
                     ...tx,
@@ -269,7 +256,7 @@ export class BaseTronPayments {
         }
     }
     canSweepBalance(balanceSun) {
-        return balanceSun - FEE_FOR_TRANSFER_SUN > 0;
+        return balanceSun - MIN_BALANCE_SUN > 0;
     }
     extractTxFields(tx) {
         const contractParam = get(tx, 'raw_data.contract[0].parameter.value');
