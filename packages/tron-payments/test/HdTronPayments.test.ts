@@ -8,6 +8,8 @@ import { TronTransactionInfo } from '#/types'
 import { txInfo_209F8, signedTx_valid, txInfo_a0787, signedTx_invalid } from './fixtures/transactions'
 import { hdAccount } from './fixtures/accounts'
 import { HdTronPaymentsConfig } from '../src/types'
+import { resolveSoa } from 'dns'
+import { FeeRateType } from '@faast/payments-common'
 
 const { XPRV, XPUB, PRIVATE_KEYS, ADDRESSES } = hdAccount
 
@@ -162,13 +164,13 @@ function runHardcodedPublicKeyTests(tp: HdTronPayments, config: HdTronPaymentsCo
 
   it('get a balance using xpub and index', async () => {
     expect(await tp.getBalance(1)).toEqual({
-      balance: '0',
+      confirmedBalance: '0',
       unconfirmedBalance: '0',
     })
   })
   it('get a balance using an address', async () => {
     expect(await tp.getBalance('TBR4KDPrN9BrnyjienckS2xixcTpJ9aP26')).toEqual({
-      balance: '0',
+      confirmedBalance: '0',
       unconfirmedBalance: '0',
     })
   })
@@ -245,18 +247,23 @@ describe('HdTronPayments', () => {
       })
       it('get correct balance for index 0', async () => {
         expect(await tp.getBalance(0)).toEqual({
-          balance: '0.6',
+          confirmedBalance: '0.6',
           unconfirmedBalance: '0',
         })
       })
       it('get correct balance for address 0', async () => {
         expect(await tp.getBalance(address0)).toEqual({
-          balance: '0.6',
+          confirmedBalance: '0.6',
           unconfirmedBalance: '0',
         })
       })
 
-      it('generate a sweep transaction using indices', async () => {
+      it('create transaction fails with custom fee', async () => {
+        await expect(
+          tp.createSweepTransaction(0, 3, { feeRate: '0.1', feeRateType: FeeRateType.Main }),
+        ).rejects.toThrow('tron-payments custom fees are unsupported')
+      })
+      it('create sweep transaction using indices', async () => {
         const signedTx = await tp.createSweepTransaction(0, 3)
         expect(signedTx).toBeDefined()
         expect(signedTx.amount).toBe('0.5')
@@ -265,7 +272,7 @@ describe('HdTronPayments', () => {
         expect(signedTx.fromIndex).toBe(0)
         expect(signedTx.toIndex).toBe(3)
       })
-      it('generate a sweep transaction using internal addresses', async () => {
+      it('create sweep transaction using internal addresses', async () => {
         const signedTx = await tp.createSweepTransaction(address0, address3)
         expect(signedTx).toBeDefined()
         expect(signedTx.amount).toBe('0.5')
@@ -274,7 +281,7 @@ describe('HdTronPayments', () => {
         expect(signedTx.fromIndex).toBe(0)
         expect(signedTx.toIndex).toBe(3)
       })
-      it('generate a sweep transaction to an external address', async () => {
+      it('create sweep transaction to an external address', async () => {
         const signedTx = await tp.createSweepTransaction(0, EXTERNAL_ADDRESS)
         expect(signedTx).toBeDefined()
         expect(signedTx.amount).toBe('0.5')
@@ -284,7 +291,7 @@ describe('HdTronPayments', () => {
         expect(signedTx.toIndex).toBe(null)
       })
 
-      it('generate a send transaction using indices', async () => {
+      it('create send transaction using indices', async () => {
         const amount = '0.3'
         const signedTx = await tp.createTransaction(0, 3, amount)
         expect(signedTx).toBeDefined()
@@ -294,7 +301,7 @@ describe('HdTronPayments', () => {
         expect(signedTx.fromIndex).toBe(0)
         expect(signedTx.toIndex).toBe(3)
       })
-      it('generate a send transaction using internal addresses', async () => {
+      it('create send transaction using internal addresses', async () => {
         const amount = '0.3'
         const signedTx = await tp.createTransaction(address0, address3, amount)
         expect(signedTx).toBeDefined()
@@ -304,7 +311,7 @@ describe('HdTronPayments', () => {
         expect(signedTx.fromIndex).toBe(0)
         expect(signedTx.toIndex).toBe(3)
       })
-      it('generate a sweep transaction to an external address', async () => {
+      it('create sweep transaction to an external address', async () => {
         const amount = '0.3'
         const signedTx = await tp.createTransaction(0, EXTERNAL_ADDRESS, amount)
         expect(signedTx).toBeDefined()

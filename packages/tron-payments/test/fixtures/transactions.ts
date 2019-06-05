@@ -14,9 +14,9 @@ export const txInfo_209F8: TronTransactionInfo = {
   isExecuted: true,
   isConfirmed: true,
   confirmations: 1234,
-  block: 3748106,
+  confirmationId: '3748106',
+  confirmationTimestamp: new Date(1541196198000),
   status: 'confirmed',
-  date: new Date(1541196198000),
   data: {
     blockNumber: 3748106,
     blockTimeStamp: 1541196198000,
@@ -82,12 +82,12 @@ export const txInfo_a0787: TronTransactionInfo = {
   toExtraId: null,
   fromIndex: null,
   toIndex: null,
-  block: 4093430,
   fee: '0',
   isExecuted: true,
   isConfirmed: true,
   confirmations: 4199517,
-  date: new Date(1542234063000),
+  confirmationId: '4093430',
+  confirmationTimestamp: new Date(1542234063000),
   status: 'confirmed',
   data: {
     ret: [
@@ -153,9 +153,9 @@ export const signedTx_valid: TronSignedTransaction = {
   fromIndex: 6,
   toIndex: 5,
   amount: '74.262026',
-  fee: '0.1',
+  fee: '0',
   targetFeeLevel: FeeLevel.Medium,
-  targetFeeRate: '100000',
+  targetFeeRate: '0',
   targetFeeRateType: FeeRateType.BasePerWeight,
   status: 'signed',
   data: {
@@ -197,7 +197,7 @@ export const signedTx_invalid: TronSignedTransaction = {
   amount: '1234567890',
   fee: '1234567890',
   targetFeeLevel: FeeLevel.Medium,
-  targetFeeRate: '100000',
+  targetFeeRate: '0',
   targetFeeRateType: FeeRateType.BasePerWeight,
   status: 'signed',
   data: {
