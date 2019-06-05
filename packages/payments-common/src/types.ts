@@ -54,8 +54,8 @@ export type ResolvedFeeOption = t.TypeOf<typeof ResolvedFeeOption>
 
 export const BalanceResult = t.type(
   {
-    balance: t.string, // balance with at least 1 confirmation
-    unconfirmedBalance: t.string, // balance that is pending confirmation on the blockchain
+    confirmedBalance: t.string, // balance with at least 1 confirmation
+    unconfirmedBalance: t.string, // balance that is pending confirmation
   },
   'BalanceResult',
 )
