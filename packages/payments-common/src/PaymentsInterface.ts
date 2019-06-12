@@ -49,7 +49,7 @@ export interface PaymentsInterface<
   /**
    * Return true if it's a valid address.
    */
-  isValidAddress<O extends object>(address: string, options?: O): boolean
+  isValidAddress<O extends object>(address: string, options?: O): Promise<boolean>
 
   resolveAddress<O extends object>(addressOrIndex: string | number, options?: O): Promise<string>
 
