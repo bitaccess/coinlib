@@ -764,5 +764,11 @@ class TronPaymentsFactory {
     }
 }
 
-export { BaseTronPayments, HdTronPayments, KeyPairTronPayments, TronPaymentsFactory, BaseTronPaymentsConfig, HdTronPaymentsConfig, KeyPairTronPaymentsConfig, TronPaymentsConfig, TronUnsignedTransaction, TronSignedTransaction, TronTransactionInfo, TronBroadcastResult, GetAddressOptions, toError, toMainDenominationNumber, toMainDenomination, toBaseDenominationNumber, toBaseDenomination, isValidXprv, isValidXpub, isValidAddress, isValidPrivateKey, privateKeyToAddress, derivationPath, deriveAddress, derivePrivateKey, xprvToXpub, encode58, decode58, MIN_BALANCE_SUN, MIN_BALANCE_TRX, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, DEFAULT_EVENT_SERVER, DEFAULT_MAX_ADDRESS_SCAN };
+class TronAddressValidator {
+    constructor() {
+        this.validate = isValidAddress;
+    }
+}
+
+export { BaseTronPayments, HdTronPayments, KeyPairTronPayments, TronPaymentsFactory, TronAddressValidator, BaseTronPaymentsConfig, HdTronPaymentsConfig, KeyPairTronPaymentsConfig, TronPaymentsConfig, TronUnsignedTransaction, TronSignedTransaction, TronTransactionInfo, TronBroadcastResult, GetAddressOptions, toError, toMainDenominationNumber, toMainDenomination, toBaseDenominationNumber, toBaseDenomination, isValidXprv, isValidXpub, isValidAddress, isValidPrivateKey, privateKeyToAddress, derivationPath, deriveAddress, derivePrivateKey, xprvToXpub, encode58, decode58, MIN_BALANCE_SUN, MIN_BALANCE_TRX, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, DEFAULT_EVENT_SERVER, DEFAULT_MAX_ADDRESS_SCAN };
 //# sourceMappingURL=index.es.js.map

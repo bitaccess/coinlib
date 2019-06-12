@@ -762,11 +762,18 @@
       }
   }
 
+  class TronAddressValidator {
+      constructor() {
+          this.validate = isValidAddress;
+      }
+  }
+
   exports.CreateTransactionOptions = paymentsCommon.CreateTransactionOptions;
   exports.BaseTronPayments = BaseTronPayments;
   exports.HdTronPayments = HdTronPayments;
   exports.KeyPairTronPayments = KeyPairTronPayments;
   exports.TronPaymentsFactory = TronPaymentsFactory;
+  exports.TronAddressValidator = TronAddressValidator;
   exports.BaseTronPaymentsConfig = BaseTronPaymentsConfig;
   exports.HdTronPaymentsConfig = HdTronPaymentsConfig;
   exports.KeyPairTronPaymentsConfig = KeyPairTronPaymentsConfig;
