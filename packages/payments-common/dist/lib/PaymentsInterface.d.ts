@@ -3,7 +3,7 @@ export declare type AnyPayments<C extends object = any> = PaymentsInterface<C, B
 export interface PaymentsInterface<Config extends BaseConfig, UnsignedTransaction extends BaseUnsignedTransaction, SignedTransaction extends BaseSignedTransaction, BroadcastResult extends BaseBroadcastResult, TransactionInfo extends BaseTransactionInfo> {
     toMainDenomination<O extends object>(amount: number | string, options?: O): string;
     toBaseDenomination<O extends object>(amount: number | string, options?: O): string;
-    isValidAddress<O extends object>(address: string, options?: O): Promise<boolean>;
+    isValidAddress<O extends object>(address: string, options?: O): boolean | Promise<boolean>;
     resolveAddress<O extends object>(addressOrIndex: string | number, options?: O): Promise<string>;
     resolveFromTo<O extends object>(from: string | number, to: string | number, options?: O): Promise<{
         fromIndex: number;
