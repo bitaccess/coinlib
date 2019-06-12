@@ -10,7 +10,7 @@ import { encode58 } from './base58'
 
 const ec = new EC('secp256k1')
 
-export const derivationPath = "m/44'/195'/0"
+export const derivationPath = "m/44'/195'/0'"
 const derivationPathParts = derivationPath.split('/').slice(1)
 
 type HDKey<K> = {
@@ -20,13 +20,17 @@ type HDKey<K> = {
 
 export function deriveAddress(xpub: string, index: number): string {
   const key = new HDPublicKey(xpub)
-  const derived = deriveBasePath(key).derive(index)
+  const derived = deriveBasePath(key)
+    .derive(0)
+    .derive(index)
   return hdPublicKeyToAddress(derived)
 }
 
 export function derivePrivateKey(xprv: string, index: number): string {
   const key = new HDPrivateKey(xprv)
-  const derived = deriveBasePath(key).derive(index)
+  const derived = deriveBasePath(key)
+    .derive(0)
+    .derive(index)
   return hdPrivateKeyToPrivateKey(derived)
 }
 

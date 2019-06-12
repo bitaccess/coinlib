@@ -31,7 +31,7 @@ to keep track of which path node you are on (increasing INT):
 
 ```js
 let tronPayments = new HdTronPayments({ hdKey: keys.xprv }) // xpub or xprv can be used
- // for path m/44'/195'/0/1234
+// for path m/44'/195'/0'/0/1234
 let depositAddress = tronPayments.getAddress(1234)
 let privateKey = tronPayments.getPrivateKey(1234) // will throw Error if xpub was provided as hdKey
 ```

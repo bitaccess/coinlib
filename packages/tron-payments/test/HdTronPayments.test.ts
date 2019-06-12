@@ -231,10 +231,10 @@ describe('HdTronPayments', () => {
       const tp = new HdTronPayments({
         hdKey: secretXprv,
       })
-      const address0 = 'TWc9zTvsBwZB2nLBNjuUiNSTyaNtDo53vi'
-      const address3 = 'TVjvkL65TGV7Lp3Dit2kPCigHVd1aSVyVw'
+      const address0 = 'TGykLnoEQWYh6Mj6XWk9dWU5L6SXez2AWj'
+      const address3 = 'TJGHeNADuV24au6bscVSfiynZmcpTMN8UK'
       const xpub =
-        'xpub6CGU5e4iDEBeFaeRU9AqFkaPcu8R4uJ2po2yvmEWaGsCzjBkw3PyivDXw2oZERairTNUN6C726UQSkr8f9tDe2UC88LQRBerTcw86zxZJHf'
+        'xpub6CGU5e4rYticTKsvfMuqwDwTWfHefspTdgvkf9gcuVcvCxsCfBZnbRkhJw4CM5Vtcxefov4wteUT2Tr4LJZnJitqVVN9BekupBFupySNs5J'
 
       it('get correct xpub', async () => {
         expect(tp.getXpub()).toBe(xpub)
@@ -247,13 +247,13 @@ describe('HdTronPayments', () => {
       })
       it('get correct balance for index 0', async () => {
         expect(await tp.getBalance(0)).toEqual({
-          confirmedBalance: '0.6',
+          confirmedBalance: '2.4',
           unconfirmedBalance: '0',
         })
       })
       it('get correct balance for address 0', async () => {
         expect(await tp.getBalance(address0)).toEqual({
-          confirmedBalance: '0.6',
+          confirmedBalance: '2.4',
           unconfirmedBalance: '0',
         })
       })
@@ -266,7 +266,7 @@ describe('HdTronPayments', () => {
       it('create sweep transaction using indices', async () => {
         const signedTx = await tp.createSweepTransaction(0, 3)
         expect(signedTx).toBeDefined()
-        expect(signedTx.amount).toBe('0.5')
+        expect(signedTx.amount).toBe('2.3')
         expect(signedTx.fromAddress).toBe(address0)
         expect(signedTx.toAddress).toBe(address3)
         expect(signedTx.fromIndex).toBe(0)
@@ -275,7 +275,7 @@ describe('HdTronPayments', () => {
       it('create sweep transaction using internal addresses', async () => {
         const signedTx = await tp.createSweepTransaction(address0, address3)
         expect(signedTx).toBeDefined()
-        expect(signedTx.amount).toBe('0.5')
+        expect(signedTx.amount).toBe('2.3')
         expect(signedTx.fromAddress).toBe(address0)
         expect(signedTx.toAddress).toBe(address3)
         expect(signedTx.fromIndex).toBe(0)
@@ -284,7 +284,7 @@ describe('HdTronPayments', () => {
       it('create sweep transaction to an external address', async () => {
         const signedTx = await tp.createSweepTransaction(0, EXTERNAL_ADDRESS)
         expect(signedTx).toBeDefined()
-        expect(signedTx.amount).toBe('0.5')
+        expect(signedTx.amount).toBe('2.3')
         expect(signedTx.fromAddress).toBe(address0)
         expect(signedTx.toAddress).toBe(EXTERNAL_ADDRESS)
         expect(signedTx.fromIndex).toBe(0)
@@ -292,7 +292,7 @@ describe('HdTronPayments', () => {
       })
 
       it('create send transaction using indices', async () => {
-        const amount = '0.3'
+        const amount = '0.5'
         const signedTx = await tp.createTransaction(0, 3, amount)
         expect(signedTx).toBeDefined()
         expect(signedTx.amount).toBe(amount)
@@ -302,7 +302,7 @@ describe('HdTronPayments', () => {
         expect(signedTx.toIndex).toBe(3)
       })
       it('create send transaction using internal addresses', async () => {
-        const amount = '0.3'
+        const amount = '0.5'
         const signedTx = await tp.createTransaction(address0, address3, amount)
         expect(signedTx).toBeDefined()
         expect(signedTx.amount).toBe(amount)
@@ -310,16 +310,6 @@ describe('HdTronPayments', () => {
         expect(signedTx.toAddress).toBe(address3)
         expect(signedTx.fromIndex).toBe(0)
         expect(signedTx.toIndex).toBe(3)
-      })
-      it('create sweep transaction to an external address', async () => {
-        const amount = '0.3'
-        const signedTx = await tp.createTransaction(0, EXTERNAL_ADDRESS, amount)
-        expect(signedTx).toBeDefined()
-        expect(signedTx.amount).toBe(amount)
-        expect(signedTx.fromAddress).toBe(address0)
-        expect(signedTx.toAddress).toBe(EXTERNAL_ADDRESS)
-        expect(signedTx.fromIndex).toBe(0)
-        expect(signedTx.toIndex).toBe(null)
       })
 
       it('end to end sweep', async () => {
