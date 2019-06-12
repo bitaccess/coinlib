@@ -4,6 +4,14 @@
   (factory((global.faastPaymentsCommon = {}),global.t,global.tsCommon));
 }(this, (function (exports,t,tsCommon) { 'use strict';
 
+  (function (NetworkType) {
+      NetworkType["Mainnet"] = "mainnet";
+      NetworkType["Testnet"] = "testnet";
+  })(exports.NetworkType || (exports.NetworkType = {}));
+  const NetworkTypeT = tsCommon.enumCodec(exports.NetworkType, 'NetworkType');
+  const BaseConfig = t.partial({
+      network: NetworkTypeT,
+  }, 'BaseConfig');
   const AddressOrIndex = t.union([t.string, t.number], 'AddressOrIndex');
   (function (FeeLevel) {
       FeeLevel["Custom"] = "custom";
@@ -69,14 +77,14 @@
   }, 'UnsignedCommon');
   const BaseUnsignedTransaction = tsCommon.extendCodec(UnsignedCommon, {
       status: t.literal('unsigned'),
-      data: t.UnknownRecord,
+      data: t.object,
   }, 'BaseUnsignedTransaction');
   const BaseSignedTransaction = tsCommon.extendCodec(UnsignedCommon, {
       status: t.literal('signed'),
       id: t.string,
       amount: t.string,
       fee: t.string,
-      data: t.UnknownRecord,
+      data: t.object,
   }, 'BaseSignedTransaction');
   const BaseTransactionInfo = tsCommon.extendCodec(TransactionCommon, {
       id: t.string,
@@ -87,12 +95,14 @@
       confirmations: t.number,
       confirmationId: tsCommon.nullable(t.string),
       confirmationTimestamp: tsCommon.nullable(tsCommon.DateT),
-      data: t.UnknownRecord,
+      data: t.object,
   }, 'BaseTransactionInfo');
   const BaseBroadcastResult = t.type({
       id: t.string,
   }, 'BaseBroadcastResult');
 
+  exports.NetworkTypeT = NetworkTypeT;
+  exports.BaseConfig = BaseConfig;
   exports.AddressOrIndex = AddressOrIndex;
   exports.FeeLevelT = FeeLevelT;
   exports.FeeRateTypeT = FeeRateTypeT;

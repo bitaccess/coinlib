@@ -1,6 +1,15 @@
-import { union, string, number, literal, type, UnknownRecord, boolean } from 'io-ts';
+import { partial, union, string, number, literal, type, object, boolean } from 'io-ts';
 import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT } from '@faast/ts-common';
 
+var NetworkType;
+(function (NetworkType) {
+    NetworkType["Mainnet"] = "mainnet";
+    NetworkType["Testnet"] = "testnet";
+})(NetworkType || (NetworkType = {}));
+const NetworkTypeT = enumCodec(NetworkType, 'NetworkType');
+const BaseConfig = partial({
+    network: NetworkTypeT,
+}, 'BaseConfig');
 const AddressOrIndex = union([string, number], 'AddressOrIndex');
 var FeeLevel;
 (function (FeeLevel) {
@@ -69,14 +78,14 @@ const UnsignedCommon = extendCodec(TransactionCommon, {
 }, 'UnsignedCommon');
 const BaseUnsignedTransaction = extendCodec(UnsignedCommon, {
     status: literal('unsigned'),
-    data: UnknownRecord,
+    data: object,
 }, 'BaseUnsignedTransaction');
 const BaseSignedTransaction = extendCodec(UnsignedCommon, {
     status: literal('signed'),
     id: string,
     amount: string,
     fee: string,
-    data: UnknownRecord,
+    data: object,
 }, 'BaseSignedTransaction');
 const BaseTransactionInfo = extendCodec(TransactionCommon, {
     id: string,
@@ -87,11 +96,11 @@ const BaseTransactionInfo = extendCodec(TransactionCommon, {
     confirmations: number,
     confirmationId: nullable(string),
     confirmationTimestamp: nullable(DateT),
-    data: UnknownRecord,
+    data: object,
 }, 'BaseTransactionInfo');
 const BaseBroadcastResult = type({
     id: string,
 }, 'BaseBroadcastResult');
 
-export { AddressOrIndex, FeeLevel, FeeLevelT, FeeRateType, FeeRateTypeT, FeeOptionCustom, FeeOptionLevel, FeeOption, CreateTransactionOptions, ResolvedFeeOption, BalanceResult, TransactionStatus, TransactionStatusT, TransactionCommon, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult };
+export { NetworkType, NetworkTypeT, BaseConfig, AddressOrIndex, FeeLevel, FeeLevelT, FeeRateType, FeeRateTypeT, FeeOptionCustom, FeeOptionLevel, FeeOption, CreateTransactionOptions, ResolvedFeeOption, BalanceResult, TransactionStatus, TransactionStatusT, TransactionCommon, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult };
 //# sourceMappingURL=index.es.js.map

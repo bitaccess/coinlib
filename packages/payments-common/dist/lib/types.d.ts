@@ -1,4 +1,13 @@
 import * as t from 'io-ts';
+export declare enum NetworkType {
+    Mainnet = "mainnet",
+    Testnet = "testnet"
+}
+export declare const NetworkTypeT: t.Type<NetworkType, NetworkType, unknown>;
+export declare const BaseConfig: t.PartialC<{
+    network: t.Type<NetworkType, NetworkType, unknown>;
+}>;
+export declare type BaseConfig = t.TypeOf<typeof BaseConfig>;
 export declare const AddressOrIndex: t.UnionC<[t.StringC, t.NumberC]>;
 export declare type AddressOrIndex = t.TypeOf<typeof AddressOrIndex>;
 export declare enum FeeLevel {
@@ -93,7 +102,7 @@ export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
     targetFeeRateType: t.UnionC<[t.Type<FeeRateType, FeeRateType, unknown>, t.NullC]>;
 }>]>, t.TypeC<{
     status: t.LiteralC<"unsigned">;
-    data: t.UnknownRecordC;
+    data: t.ObjectC;
 }>]>;
 export declare type BaseUnsignedTransaction = t.TypeOf<typeof BaseUnsignedTransaction>;
 export declare const BaseSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.TypeC<{
@@ -118,7 +127,7 @@ export declare const BaseSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
     id: t.StringC;
     amount: t.StringC;
     fee: t.StringC;
-    data: t.UnknownRecordC;
+    data: t.ObjectC;
 }>]>;
 export declare type BaseSignedTransaction = t.TypeOf<typeof BaseSignedTransaction>;
 export declare const BaseTransactionInfo: t.IntersectionC<[t.TypeC<{
@@ -140,7 +149,7 @@ export declare const BaseTransactionInfo: t.IntersectionC<[t.TypeC<{
     confirmations: t.NumberC;
     confirmationId: t.UnionC<[t.StringC, t.NullC]>;
     confirmationTimestamp: t.UnionC<[import("@faast/ts-common").DateC, t.NullC]>;
-    data: t.UnknownRecordC;
+    data: t.ObjectC;
 }>]>;
 export declare type BaseTransactionInfo = t.TypeOf<typeof BaseTransactionInfo>;
 export declare const BaseBroadcastResult: t.TypeC<{

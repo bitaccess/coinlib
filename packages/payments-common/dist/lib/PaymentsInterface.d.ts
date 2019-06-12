@@ -1,6 +1,6 @@
-import { BalanceResult, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, CreateTransactionOptions, FeeOption, ResolvedFeeOption } from './types';
+import { BalanceResult, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, CreateTransactionOptions, FeeOption, ResolvedFeeOption, BaseConfig } from './types';
 export declare type AnyPayments<C extends object = any> = PaymentsInterface<C, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, BaseTransactionInfo>;
-export interface PaymentsInterface<Config extends object, UnsignedTransaction extends BaseUnsignedTransaction, SignedTransaction extends BaseSignedTransaction, BroadcastResult extends BaseBroadcastResult, TransactionInfo extends BaseTransactionInfo> {
+export interface PaymentsInterface<Config extends BaseConfig, UnsignedTransaction extends BaseUnsignedTransaction, SignedTransaction extends BaseSignedTransaction, BroadcastResult extends BaseBroadcastResult, TransactionInfo extends BaseTransactionInfo> {
     toMainDenomination<O extends object>(amount: number | string, options?: O): string;
     toBaseDenomination<O extends object>(amount: number | string, options?: O): string;
     isValidAddress<O extends object>(address: string, options?: O): boolean;

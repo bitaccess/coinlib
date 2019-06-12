@@ -1,5 +1,14 @@
 import * as t from 'io-ts';
 import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT } from '@faast/ts-common';
+export var NetworkType;
+(function (NetworkType) {
+    NetworkType["Mainnet"] = "mainnet";
+    NetworkType["Testnet"] = "testnet";
+})(NetworkType || (NetworkType = {}));
+export const NetworkTypeT = enumCodec(NetworkType, 'NetworkType');
+export const BaseConfig = t.partial({
+    network: NetworkTypeT,
+}, 'BaseConfig');
 export const AddressOrIndex = t.union([t.string, t.number], 'AddressOrIndex');
 export var FeeLevel;
 (function (FeeLevel) {
@@ -68,14 +77,14 @@ const UnsignedCommon = extendCodec(TransactionCommon, {
 }, 'UnsignedCommon');
 export const BaseUnsignedTransaction = extendCodec(UnsignedCommon, {
     status: t.literal('unsigned'),
-    data: t.UnknownRecord,
+    data: t.object,
 }, 'BaseUnsignedTransaction');
 export const BaseSignedTransaction = extendCodec(UnsignedCommon, {
     status: t.literal('signed'),
     id: t.string,
     amount: t.string,
     fee: t.string,
-    data: t.UnknownRecord,
+    data: t.object,
 }, 'BaseSignedTransaction');
 export const BaseTransactionInfo = extendCodec(TransactionCommon, {
     id: t.string,
@@ -86,7 +95,7 @@ export const BaseTransactionInfo = extendCodec(TransactionCommon, {
     confirmations: t.number,
     confirmationId: nullable(t.string),
     confirmationTimestamp: nullable(DateT),
-    data: t.UnknownRecord,
+    data: t.object,
 }, 'BaseTransactionInfo');
 export const BaseBroadcastResult = t.type({
     id: t.string,
