@@ -7,9 +7,19 @@ import {
   BaseSignedTransaction,
   BaseBroadcastResult,
   BaseTransactionInfo,
+  BaseConfig,
+  NetworkType,
 } from '#/types'
 
 describe('types', () => {
+  test('BaseConfig validates successfully', () => {
+    assertType(BaseConfig, {
+      network: NetworkType.Mainnet,
+    })
+  })
+  test('BaseConfig throws on invalid', () => {
+    expect(() => assertType(BaseConfig, '')).toThrow()
+  })
   test('BalanceResult validates successfully', () => {
     assertType(BalanceResult, {
       confirmedBalance: '0',

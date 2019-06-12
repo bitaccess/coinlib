@@ -7,6 +7,7 @@ import {
   CreateTransactionOptions,
   FeeOption,
   ResolvedFeeOption,
+  BaseConfig,
 } from './types'
 
 export type AnyPayments<C extends object = any> = PaymentsInterface<
@@ -21,7 +22,7 @@ export type AnyPayments<C extends object = any> = PaymentsInterface<
  * An interface that provides the necessary tools for accepting and sending payments for a currency.
  */
 export interface PaymentsInterface<
-  Config extends object,
+  Config extends BaseConfig,
   UnsignedTransaction extends BaseUnsignedTransaction,
   SignedTransaction extends BaseSignedTransaction,
   BroadcastResult extends BaseBroadcastResult,

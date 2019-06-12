@@ -1,6 +1,20 @@
 import * as t from 'io-ts'
 import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT } from '@faast/ts-common'
 
+export enum NetworkType {
+  Mainnet = 'mainnet',
+  Testnet = 'testnet',
+}
+export const NetworkTypeT = enumCodec<NetworkType>(NetworkType, 'NetworkType')
+
+export const BaseConfig = t.partial(
+  {
+    network: NetworkTypeT,
+  },
+  'BaseConfig',
+)
+export type BaseConfig = t.TypeOf<typeof BaseConfig>
+
 export const AddressOrIndex = t.union([t.string, t.number], 'AddressOrIndex')
 export type AddressOrIndex = t.TypeOf<typeof AddressOrIndex>
 
@@ -103,7 +117,7 @@ export const BaseUnsignedTransaction = extendCodec(
   UnsignedCommon,
   {
     status: t.literal('unsigned'),
-    data: t.UnknownRecord,
+    data: t.object,
   },
   'BaseUnsignedTransaction',
 )
@@ -116,7 +130,7 @@ export const BaseSignedTransaction = extendCodec(
     id: t.string,
     amount: t.string,
     fee: t.string,
-    data: t.UnknownRecord,
+    data: t.object,
   },
   'BaseSignedTransaction',
 )
@@ -133,7 +147,7 @@ export const BaseTransactionInfo = extendCodec(
     confirmations: t.number, // 0 if not confirmed
     confirmationId: nullable(t.string), // eg block number or hash. null if not confirmed
     confirmationTimestamp: nullable(DateT), // block timestamp. null if timestamp unavailable or unconfirmed
-    data: t.UnknownRecord,
+    data: t.object,
   },
   'BaseTransactionInfo',
 )
