@@ -5,7 +5,7 @@ import Bip44Cache from './Bip44Cache'
 import { GetAddressOptions, HdTronPaymentsConfig } from './types'
 import { deriveAddress, derivePrivateKey, xprvToXpub } from './bip44'
 import { DEFAULT_MAX_ADDRESS_SCAN } from './constants'
-import { isValidXpub, isValidXprv } from './utils'
+import { isValidXpub, isValidXprv, isValidAddress } from './utils'
 
 const xpubCache = new Bip44Cache()
 
@@ -66,7 +66,7 @@ export class HdTronPayments extends BaseTronPayments<HdTronPaymentsConfig> {
     // this.account is an xprv or xpub
     const xpub = this.getXpub()
     const address = deriveAddress(xpub, index)
-    if (!this.isValidAddress(address)) {
+    if (!isValidAddress(address)) {
       // This should never happen
       throw new Error(`Cannot get address ${index} - validation failed for derived address`)
     }

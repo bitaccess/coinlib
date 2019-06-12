@@ -161,6 +161,27 @@ declare module 'tronweb' {
     getEventResult(contractAddress: string, options: GetEventResultOptions, callback: (result: any) => void)
     getEventByTransactionID(txId: string): any
     contract(): any
+
+    static version: string
+    static address: {
+      toHex(address: string): string
+      fromHex(address: string): string
+      fromPrivateKey(privateKey: string): string
+    }
+    static sha3(value: string, add0x: boolean): string
+    static toHex(value: string): string
+    static toUtf8(value: string): string
+    static fromUtf8(value: string): string
+    static toAscii(value: string): string
+    static fromAscii(value: string): string
+    static toDecimal(value: string): number
+    static fromDecimal(value: string): string
+    static fromSun(amount: number): number
+    static toSun(amount: number): number
+    static isAddress(address: string): boolean
+    static createAccount(): CreateAccountResult
+
+    version: string
     address: {
       toHex(address: string): string
       fromHex(address: string): string
@@ -178,7 +199,8 @@ declare module 'tronweb' {
     toSun(amount: number): number
     isAddress(address: string): boolean
     createAccount(): CreateAccountResult
-    isConnected(): boolean
+
+    async isConnected(): Promise<boolean>
 
     trx: {
       // Addresses & Accounts

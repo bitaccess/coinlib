@@ -1,7 +1,7 @@
-import { toMainDenomination, toBaseDenomination, isValidXpub, isValidXprv } from '#/utils'
+import { toMainDenomination, toBaseDenomination, isValidXpub, isValidXprv, isValidAddress } from '#/utils'
 import { hdAccount } from './fixtures/accounts'
 
-const { XPRV, XPUB } = hdAccount
+const { XPRV, XPUB, ADDRESSES } = hdAccount
 
 describe('utils', () => {
   test('toMainDenomination from string', () => {
@@ -27,5 +27,11 @@ describe('utils', () => {
   })
   test('isValidXrv should return false for invalid', () => {
     expect(isValidXprv('xpat1234')).toBe(false)
+  })
+  test('isValidAddress shoudl return true for valid', async () => {
+    expect(isValidAddress(ADDRESSES[0])).toBe(true)
+  })
+  test('isValidAddress shoudl return true for valid', async () => {
+    expect(isValidAddress('fake')).toBe(false)
   })
 })

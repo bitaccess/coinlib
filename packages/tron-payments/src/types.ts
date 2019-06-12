@@ -6,6 +6,7 @@ import {
   BaseSignedTransaction,
   BaseBroadcastResult,
   CreateTransactionOptions,
+  BaseConfig,
 } from '@faast/payments-common'
 import {
   Transaction as TronWebTransaction,
@@ -20,7 +21,9 @@ export type TransactionInfoRaw = TronWebTransaction &
     currentBlock: Pick<TronWebBlock, 'blockID' | 'block_header'>
   }
 
-export const BaseTronPaymentsConfig = t.partial(
+export const BaseTronPaymentsConfig = extendCodec(
+  BaseConfig,
+  {},
   {
     fullNode: t.string,
     solidityNode: t.string,

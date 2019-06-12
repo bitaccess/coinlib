@@ -22,7 +22,15 @@ import {
   BaseTronPaymentsConfig,
   TronWebTransaction,
 } from './types'
-import { toMainDenomination, toBaseDenomination, toBaseDenominationNumber, toError } from './utils'
+import {
+  toMainDenomination,
+  toBaseDenomination,
+  toBaseDenominationNumber,
+  toError,
+  isValidAddress,
+  isValidPrivateKey,
+  privateKeyToAddress,
+} from './utils'
 import {
   DEFAULT_FULL_NODE,
   DEFAULT_EVENT_SERVER,
@@ -58,32 +66,11 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
     this.tronweb = new TronWeb(this.fullNode, this.solidityNode, this.eventServer)
   }
 
-  static toMainDenomination = toMainDenomination
-  static toBaseDenomination = toBaseDenomination
   toMainDenomination = toMainDenomination
   toBaseDenomination = toBaseDenomination
-
-  isValidAddress(address: string): boolean {
-    return this.tronweb.isAddress(address)
-  }
-
-  isValidPrivateKey(privateKey: string): boolean {
-    try {
-      this.privateKeyToAddress(privateKey)
-      return true
-    } catch (e) {
-      return false
-    }
-  }
-
-  privateKeyToAddress(privateKey: string): string {
-    const address = this.tronweb.address.fromPrivateKey(privateKey)
-    if (this.isValidAddress(address)) {
-      return address
-    } else {
-      throw new Error('Validation failed for address derived from private key')
-    }
-  }
+  isValidAddress = isValidAddress
+  isValidPrivateKey = isValidPrivateKey
+  privateKeyToAddress = privateKeyToAddress
 
   abstract getFullConfig(): Config
   abstract getPublicConfig(): Config

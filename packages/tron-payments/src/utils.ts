@@ -1,3 +1,5 @@
+import TronWeb from 'tronweb'
+
 /** Converts strings to Error */
 export function toError(e: any): any {
   if (typeof e === 'string') {
@@ -42,4 +44,26 @@ export function isValidXprv(xprv: string): boolean {
 
 export function isValidXpub(xpub: string): boolean {
   return xpub.startsWith('xpub')
+}
+
+export function isValidAddress(address: string): boolean {
+  return TronWeb.isAddress(address)
+}
+
+export function isValidPrivateKey(privateKey: string): boolean {
+  try {
+    privateKeyToAddress(privateKey)
+    return true
+  } catch (e) {
+    return false
+  }
+}
+
+export function privateKeyToAddress(privateKey: string): string {
+  const address = TronWeb.address.fromPrivateKey(privateKey)
+  if (isValidAddress(address)) {
+    return address
+  } else {
+    throw new Error('Validation failed for address derived from private key')
+  }
 }

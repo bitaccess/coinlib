@@ -1,5 +1,6 @@
 import { BaseTronPayments } from './BaseTronPayments'
 import { KeyPairTronPaymentsConfig } from './types'
+import { isValidAddress, isValidPrivateKey, privateKeyToAddress } from './utils'
 
 export class KeyPairTronPayments extends BaseTronPayments<KeyPairTronPaymentsConfig> {
   readonly addresses: { [index: number]: string | undefined } = {}
@@ -13,14 +14,14 @@ export class KeyPairTronPayments extends BaseTronPayments<KeyPairTronPaymentsCon
         return
       }
       const i = Number.parseInt(iString)
-      if (this.isValidAddress(addressOrKey)) {
+      if (isValidAddress(addressOrKey)) {
         this.addresses[i] = addressOrKey
         this.privateKeys[i] = null
         this.addressIndices[addressOrKey] = i
         return
       }
-      if (this.isValidPrivateKey(addressOrKey)) {
-        const address = this.privateKeyToAddress(addressOrKey)
+      if (isValidPrivateKey(addressOrKey)) {
+        const address = privateKeyToAddress(addressOrKey)
         this.addresses[i] = address
         this.privateKeys[i] = addressOrKey
         this.addressIndices[address] = i

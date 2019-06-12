@@ -40,9 +40,17 @@ or, if you'd rather not us bip44 and have existing private keys or addresses:
 
 ```js
 let { KeyPairTronPayments } = require('@faast/tron-payments')
-let kpTronPayments = new KeyPairTronPayments({ keyPairs: [privateKey0, address1, privateKey2] })
-let depositAddress = tronPayments.getAddress(2) // address for privateKey2
-tronpayments.getPrivateKey(1) // will throw error because keyPair[1] is not a private key
+let tronPayments = new KeyPairTronPayments({ keyPairs: [privateKey0, address1, privateKey2] })
+let depositAddress = await tronPayments.getAddress(1234) // address for privateKey2
+await tronpayments.getPrivateKey(1234) // will throw error because keyPair[1] is not a private key
+```
+
+Validate an address:
+
+```js
+if (tronPayments.isValidAddress(depositAddress)) {
+  // do something
+}
 ```
 
 Get the public key from a private key:
@@ -56,20 +64,20 @@ if(address === depositAddress){
 }
 ```
 
-Get the derived xpub key from a hardened private key:
+Get the derived xpub key from a root xprv:
 
 ```js
 let { xprvToXpub } = require('@faast/tron-payments')
-let xpub = xprvToXpub(xprv) // for path m/44'/195'/0'/0/1234
+let xpub = xprvToXpub(xprv) // derives path m/44'/195'/0'
 ```
 
 Get the balance of an address:
 
 ```js
-let { balance, unconfirmedBalance = await tronPayments.getBalance(1234)
+let { confirmedBalance, unconfirmedBalance } = await tronPayments.getBalance(1234)
 ```
 
-Generate a sweep transaction for a deposit address, then broadcast it:
+Generate a sweep transaction for an address, then broadcast it:
 
 ```js
 let unsignedTx = await tronPayments.createSweepTransaction(1234, to)
@@ -80,11 +88,11 @@ let { id: txHash } = await tronPayments.broadcastTransaction(signedtx)
 Generate a simple send transaction
 
 ```js
-let unsignedTx = await tronPayments.getSendTransaction(1234, to, amountInTrx)
+let unsignedTx = await tronPayments.createTransaction(1234, to, amountInTrx)
 // You still need to sign and broadcast the transaction
 ```
 
-Get a transaction and check if it is confirmed based on a number of blocks:
+Get a transaction and check if it is confirmed:
 
 ```js
 let txInfo = await tronPayments.getTransactionInfo(txHash)
@@ -93,7 +101,7 @@ if (txInfo.isConfirmed) {
 }
 ```
 
-*See test/test.js for more utilities*
+*See tests for more utilities*
 
 **Note:** It is suggested to generate your Private key offline with FAR more entropy than the default function, then use xprvToXpub.
 You have been warned!
