@@ -5,43 +5,53 @@ export { TronWebTransaction, TronWebTransactionInfo, TronWebBlock, CreateTransac
 export declare type TransactionInfoRaw = TronWebTransaction & TronWebTransactionInfo & {
     currentBlock: Pick<TronWebBlock, 'blockID' | 'block_header'>;
 };
-export declare const BaseTronPaymentsConfig: t.PartialC<{
+export declare const BaseTronPaymentsConfig: t.IntersectionC<[t.PartialC<{
+    network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+}>, t.PartialC<{
     fullNode: t.StringC;
     solidityNode: t.StringC;
     eventServer: t.StringC;
-}>;
+}>]>;
 export declare type BaseTronPaymentsConfig = t.TypeOf<typeof BaseTronPaymentsConfig>;
-export declare const HdTronPaymentsConfig: t.IntersectionC<[t.PartialC<{
+export declare const HdTronPaymentsConfig: t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+    network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+}>, t.PartialC<{
     fullNode: t.StringC;
     solidityNode: t.StringC;
     eventServer: t.StringC;
-}>, t.TypeC<{
+}>]>, t.TypeC<{
     hdKey: t.StringC;
 }>, t.PartialC<{
     maxAddressScan: t.NumberC;
 }>]>;
 export declare type HdTronPaymentsConfig = t.TypeOf<typeof HdTronPaymentsConfig>;
-export declare const KeyPairTronPaymentsConfig: t.IntersectionC<[t.PartialC<{
+export declare const KeyPairTronPaymentsConfig: t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+    network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+}>, t.PartialC<{
     fullNode: t.StringC;
     solidityNode: t.StringC;
     eventServer: t.StringC;
-}>, t.TypeC<{
+}>]>, t.TypeC<{
     keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>]>;
 }>]>;
 export declare type KeyPairTronPaymentsConfig = t.TypeOf<typeof KeyPairTronPaymentsConfig>;
-export declare const TronPaymentsConfig: t.UnionC<[t.IntersectionC<[t.PartialC<{
+export declare const TronPaymentsConfig: t.UnionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+    network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+}>, t.PartialC<{
     fullNode: t.StringC;
     solidityNode: t.StringC;
     eventServer: t.StringC;
-}>, t.TypeC<{
+}>]>, t.TypeC<{
     hdKey: t.StringC;
 }>, t.PartialC<{
     maxAddressScan: t.NumberC;
-}>]>, t.IntersectionC<[t.PartialC<{
+}>]>, t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+    network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+}>, t.PartialC<{
     fullNode: t.StringC;
     solidityNode: t.StringC;
     eventServer: t.StringC;
-}>, t.TypeC<{
+}>]>, t.TypeC<{
     keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>]>;
 }>]>]>;
 export declare type TronPaymentsConfig = t.TypeOf<typeof TronPaymentsConfig>;
@@ -64,7 +74,7 @@ export declare const TronUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
     targetFeeRateType: t.UnionC<[t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>, t.NullC]>;
 }>]>, t.TypeC<{
     status: t.LiteralC<"unsigned">;
-    data: t.UnknownRecordC;
+    data: t.ObjectC;
 }>]>, t.TypeC<{
     id: t.StringC;
     amount: t.StringC;
@@ -93,7 +103,7 @@ export declare const TronSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
     id: t.StringC;
     amount: t.StringC;
     fee: t.StringC;
-    data: t.UnknownRecordC;
+    data: t.ObjectC;
 }>]>;
 export declare type TronSignedTransaction = t.TypeOf<typeof TronSignedTransaction>;
 export declare const TronTransactionInfo: t.IntersectionC<[t.TypeC<{
@@ -115,7 +125,7 @@ export declare const TronTransactionInfo: t.IntersectionC<[t.TypeC<{
     confirmations: t.NumberC;
     confirmationId: t.UnionC<[t.StringC, t.NullC]>;
     confirmationTimestamp: t.UnionC<[import("@faast/ts-common").DateC, t.NullC]>;
-    data: t.UnknownRecordC;
+    data: t.ObjectC;
 }>]>;
 export declare type TronTransactionInfo = t.TypeOf<typeof TronTransactionInfo>;
 export declare const TronBroadcastResult: t.IntersectionC<[t.TypeC<{

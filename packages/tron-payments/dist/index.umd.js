@@ -45,6 +45,27 @@
   function isValidXpub(xpub) {
       return xpub.startsWith('xpub');
   }
+  function isValidAddress(address) {
+      return TronWeb.isAddress(address);
+  }
+  function isValidPrivateKey(privateKey) {
+      try {
+          privateKeyToAddress(privateKey);
+          return true;
+      }
+      catch (e) {
+          return false;
+      }
+  }
+  function privateKeyToAddress(privateKey) {
+      const address = TronWeb.address.fromPrivateKey(privateKey);
+      if (isValidAddress(address)) {
+          return address;
+      }
+      else {
+          throw new Error('Validation failed for address derived from private key');
+      }
+  }
 
   const MIN_BALANCE_SUN = 100000;
   const MIN_BALANCE_TRX = MIN_BALANCE_SUN / 1e6;
@@ -57,31 +78,13 @@
       constructor(config) {
           this.toMainDenomination = toMainDenomination;
           this.toBaseDenomination = toBaseDenomination;
+          this.isValidAddress = isValidAddress;
+          this.isValidPrivateKey = isValidPrivateKey;
+          this.privateKeyToAddress = privateKeyToAddress;
           this.fullNode = config.fullNode || DEFAULT_FULL_NODE;
           this.solidityNode = config.solidityNode || DEFAULT_SOLIDITY_NODE;
           this.eventServer = config.eventServer || DEFAULT_EVENT_SERVER;
           this.tronweb = new TronWeb(this.fullNode, this.solidityNode, this.eventServer);
-      }
-      isValidAddress(address) {
-          return this.tronweb.isAddress(address);
-      }
-      isValidPrivateKey(privateKey) {
-          try {
-              this.privateKeyToAddress(privateKey);
-              return true;
-          }
-          catch (e) {
-              return false;
-          }
-      }
-      privateKeyToAddress(privateKey) {
-          const address = this.tronweb.address.fromPrivateKey(privateKey);
-          if (this.isValidAddress(address)) {
-              return address;
-          }
-          else {
-              throw new Error('Validation failed for address derived from private key');
-          }
       }
       async getAddressOrNull(index, options) {
           try {
@@ -344,8 +347,6 @@
           };
       }
   }
-  BaseTronPayments.toMainDenomination = toMainDenomination;
-  BaseTronPayments.toBaseDenomination = toBaseDenomination;
 
   class Bip44Cache {
       constructor() {
@@ -434,16 +435,20 @@
   }
 
   const ec = new elliptic.ec('secp256k1');
-  const derivationPath = "m/44'/195'/0";
+  const derivationPath = "m/44'/195'/0'";
   const derivationPathParts = derivationPath.split('/').slice(1);
   function deriveAddress(xpub, index) {
       const key = new bitcoreLib.HDPublicKey(xpub);
-      const derived = deriveBasePath(key).derive(index);
+      const derived = deriveBasePath(key)
+          .derive(0)
+          .derive(index);
       return hdPublicKeyToAddress(derived);
   }
   function derivePrivateKey(xprv, index) {
       const key = new bitcoreLib.HDPrivateKey(xprv);
-      const derived = deriveBasePath(key).derive(index);
+      const derived = deriveBasePath(key)
+          .derive(0)
+          .derive(index);
       return hdPrivateKeyToPrivateKey(derived);
   }
   function xprvToXpub(xprv) {
@@ -612,7 +617,7 @@
           const cacheIndex = options.cacheIndex || true;
           const xpub = this.getXpub();
           const address = deriveAddress(xpub, index);
-          if (!this.isValidAddress(address)) {
+          if (!isValidAddress(address)) {
               throw new Error(`Cannot get address ${index} - validation failed for derived address`);
           }
           if (cacheIndex) {
@@ -655,14 +660,14 @@
                   return;
               }
               const i = Number.parseInt(iString);
-              if (this.isValidAddress(addressOrKey)) {
+              if (isValidAddress(addressOrKey)) {
                   this.addresses[i] = addressOrKey;
                   this.privateKeys[i] = null;
                   this.addressIndices[addressOrKey] = i;
                   return;
               }
-              if (this.isValidPrivateKey(addressOrKey)) {
-                  const address = this.privateKeyToAddress(addressOrKey);
+              if (isValidPrivateKey(addressOrKey)) {
+                  const address = privateKeyToAddress(addressOrKey);
                   this.addresses[i] = address;
                   this.privateKeys[i] = addressOrKey;
                   this.addressIndices[address] = i;
@@ -716,7 +721,7 @@
       }
   }
 
-  const BaseTronPaymentsConfig = t.partial({
+  const BaseTronPaymentsConfig = tsCommon.extendCodec(paymentsCommon.BaseConfig, {}, {
       fullNode: t.string,
       solidityNode: t.string,
       eventServer: t.string,
@@ -778,6 +783,9 @@
   exports.toBaseDenomination = toBaseDenomination;
   exports.isValidXprv = isValidXprv;
   exports.isValidXpub = isValidXpub;
+  exports.isValidAddress = isValidAddress;
+  exports.isValidPrivateKey = isValidPrivateKey;
+  exports.privateKeyToAddress = privateKeyToAddress;
   exports.derivationPath = derivationPath;
   exports.deriveAddress = deriveAddress;
   exports.derivePrivateKey = derivePrivateKey;

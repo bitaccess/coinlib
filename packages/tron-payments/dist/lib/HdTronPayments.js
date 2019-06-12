@@ -3,7 +3,7 @@ import { BaseTronPayments } from './BaseTronPayments';
 import Bip44Cache from './Bip44Cache';
 import { deriveAddress, derivePrivateKey, xprvToXpub } from './bip44';
 import { DEFAULT_MAX_ADDRESS_SCAN } from './constants';
-import { isValidXpub, isValidXprv } from './utils';
+import { isValidXpub, isValidXprv, isValidAddress } from './utils';
 const xpubCache = new Bip44Cache();
 export class HdTronPayments extends BaseTronPayments {
     constructor(config) {
@@ -53,7 +53,7 @@ export class HdTronPayments extends BaseTronPayments {
         const cacheIndex = options.cacheIndex || true;
         const xpub = this.getXpub();
         const address = deriveAddress(xpub, index);
-        if (!this.isValidAddress(address)) {
+        if (!isValidAddress(address)) {
             throw new Error(`Cannot get address ${index} - validation failed for derived address`);
         }
         if (cacheIndex) {

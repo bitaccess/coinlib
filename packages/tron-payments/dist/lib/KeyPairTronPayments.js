@@ -1,4 +1,5 @@
 import { BaseTronPayments } from './BaseTronPayments';
+import { isValidAddress, isValidPrivateKey, privateKeyToAddress } from './utils';
 export class KeyPairTronPayments extends BaseTronPayments {
     constructor(config) {
         super(config);
@@ -11,14 +12,14 @@ export class KeyPairTronPayments extends BaseTronPayments {
                 return;
             }
             const i = Number.parseInt(iString);
-            if (this.isValidAddress(addressOrKey)) {
+            if (isValidAddress(addressOrKey)) {
                 this.addresses[i] = addressOrKey;
                 this.privateKeys[i] = null;
                 this.addressIndices[addressOrKey] = i;
                 return;
             }
-            if (this.isValidPrivateKey(addressOrKey)) {
-                const address = this.privateKeyToAddress(addressOrKey);
+            if (isValidPrivateKey(addressOrKey)) {
+                const address = privateKeyToAddress(addressOrKey);
                 this.addresses[i] = address;
                 this.privateKeys[i] = addressOrKey;
                 this.addressIndices[address] = i;

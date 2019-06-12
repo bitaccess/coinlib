@@ -2,37 +2,19 @@ import TronWeb from 'tronweb';
 import { pick, get, cloneDeep } from 'lodash';
 import { TransactionStatus, FeeLevel, FeeRateType, FeeOptionCustom, } from '@faast/payments-common';
 import { isType } from '@faast/ts-common';
-import { toMainDenomination, toBaseDenomination, toBaseDenominationNumber, toError } from './utils';
+import { toMainDenomination, toBaseDenomination, toBaseDenominationNumber, toError, isValidAddress, isValidPrivateKey, privateKeyToAddress, } from './utils';
 import { DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE, MIN_BALANCE_SUN, MIN_BALANCE_TRX, } from './constants';
 export class BaseTronPayments {
     constructor(config) {
         this.toMainDenomination = toMainDenomination;
         this.toBaseDenomination = toBaseDenomination;
+        this.isValidAddress = isValidAddress;
+        this.isValidPrivateKey = isValidPrivateKey;
+        this.privateKeyToAddress = privateKeyToAddress;
         this.fullNode = config.fullNode || DEFAULT_FULL_NODE;
         this.solidityNode = config.solidityNode || DEFAULT_SOLIDITY_NODE;
         this.eventServer = config.eventServer || DEFAULT_EVENT_SERVER;
         this.tronweb = new TronWeb(this.fullNode, this.solidityNode, this.eventServer);
-    }
-    isValidAddress(address) {
-        return this.tronweb.isAddress(address);
-    }
-    isValidPrivateKey(privateKey) {
-        try {
-            this.privateKeyToAddress(privateKey);
-            return true;
-        }
-        catch (e) {
-            return false;
-        }
-    }
-    privateKeyToAddress(privateKey) {
-        const address = this.tronweb.address.fromPrivateKey(privateKey);
-        if (this.isValidAddress(address)) {
-            return address;
-        }
-        else {
-            throw new Error('Validation failed for address derived from private key');
-        }
     }
     async getAddressOrNull(index, options) {
         try {
@@ -295,7 +277,5 @@ export class BaseTronPayments {
         };
     }
 }
-BaseTronPayments.toMainDenomination = toMainDenomination;
-BaseTronPayments.toBaseDenomination = toBaseDenomination;
 export default BaseTronPayments;
 //# sourceMappingURL=BaseTronPayments.js.map

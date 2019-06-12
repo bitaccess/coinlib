@@ -4,9 +4,9 @@ import { HDPrivateKey, HDPublicKey } from 'bitcore-lib';
 import { keccak256 } from 'js-sha3';
 import jsSHA from 'jssha';
 import { ec } from 'elliptic';
-import { partial, string, number, union, null, undefined as undefined$1, array, record, boolean } from 'io-ts';
+import { string, number, union, null, undefined as undefined$1, array, record, boolean, partial } from 'io-ts';
 import { isType, extendCodec } from '@faast/ts-common';
-import { TransactionStatus, FeeLevel, FeeRateType, FeeOptionCustom, BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult } from '@faast/payments-common';
+import { TransactionStatus, FeeLevel, FeeRateType, FeeOptionCustom, BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, BaseConfig } from '@faast/payments-common';
 export { CreateTransactionOptions } from '@faast/payments-common';
 
 function toError(e) {
@@ -47,6 +47,27 @@ function isValidXprv(xprv) {
 function isValidXpub(xpub) {
     return xpub.startsWith('xpub');
 }
+function isValidAddress(address) {
+    return TronWeb.isAddress(address);
+}
+function isValidPrivateKey(privateKey) {
+    try {
+        privateKeyToAddress(privateKey);
+        return true;
+    }
+    catch (e) {
+        return false;
+    }
+}
+function privateKeyToAddress(privateKey) {
+    const address = TronWeb.address.fromPrivateKey(privateKey);
+    if (isValidAddress(address)) {
+        return address;
+    }
+    else {
+        throw new Error('Validation failed for address derived from private key');
+    }
+}
 
 const MIN_BALANCE_SUN = 100000;
 const MIN_BALANCE_TRX = MIN_BALANCE_SUN / 1e6;
@@ -59,31 +80,13 @@ class BaseTronPayments {
     constructor(config) {
         this.toMainDenomination = toMainDenomination;
         this.toBaseDenomination = toBaseDenomination;
+        this.isValidAddress = isValidAddress;
+        this.isValidPrivateKey = isValidPrivateKey;
+        this.privateKeyToAddress = privateKeyToAddress;
         this.fullNode = config.fullNode || DEFAULT_FULL_NODE;
         this.solidityNode = config.solidityNode || DEFAULT_SOLIDITY_NODE;
         this.eventServer = config.eventServer || DEFAULT_EVENT_SERVER;
         this.tronweb = new TronWeb(this.fullNode, this.solidityNode, this.eventServer);
-    }
-    isValidAddress(address) {
-        return this.tronweb.isAddress(address);
-    }
-    isValidPrivateKey(privateKey) {
-        try {
-            this.privateKeyToAddress(privateKey);
-            return true;
-        }
-        catch (e) {
-            return false;
-        }
-    }
-    privateKeyToAddress(privateKey) {
-        const address = this.tronweb.address.fromPrivateKey(privateKey);
-        if (this.isValidAddress(address)) {
-            return address;
-        }
-        else {
-            throw new Error('Validation failed for address derived from private key');
-        }
     }
     async getAddressOrNull(index, options) {
         try {
@@ -346,8 +349,6 @@ class BaseTronPayments {
         };
     }
 }
-BaseTronPayments.toMainDenomination = toMainDenomination;
-BaseTronPayments.toBaseDenomination = toBaseDenomination;
 
 class Bip44Cache {
     constructor() {
@@ -436,16 +437,20 @@ function decode58(s) {
 }
 
 const ec$1 = new ec('secp256k1');
-const derivationPath = "m/44'/195'/0";
+const derivationPath = "m/44'/195'/0'";
 const derivationPathParts = derivationPath.split('/').slice(1);
 function deriveAddress(xpub, index) {
     const key = new HDPublicKey(xpub);
-    const derived = deriveBasePath(key).derive(index);
+    const derived = deriveBasePath(key)
+        .derive(0)
+        .derive(index);
     return hdPublicKeyToAddress(derived);
 }
 function derivePrivateKey(xprv, index) {
     const key = new HDPrivateKey(xprv);
-    const derived = deriveBasePath(key).derive(index);
+    const derived = deriveBasePath(key)
+        .derive(0)
+        .derive(index);
     return hdPrivateKeyToPrivateKey(derived);
 }
 function xprvToXpub(xprv) {
@@ -614,7 +619,7 @@ class HdTronPayments extends BaseTronPayments {
         const cacheIndex = options.cacheIndex || true;
         const xpub = this.getXpub();
         const address = deriveAddress(xpub, index);
-        if (!this.isValidAddress(address)) {
+        if (!isValidAddress(address)) {
             throw new Error(`Cannot get address ${index} - validation failed for derived address`);
         }
         if (cacheIndex) {
@@ -657,14 +662,14 @@ class KeyPairTronPayments extends BaseTronPayments {
                 return;
             }
             const i = Number.parseInt(iString);
-            if (this.isValidAddress(addressOrKey)) {
+            if (isValidAddress(addressOrKey)) {
                 this.addresses[i] = addressOrKey;
                 this.privateKeys[i] = null;
                 this.addressIndices[addressOrKey] = i;
                 return;
             }
-            if (this.isValidPrivateKey(addressOrKey)) {
-                const address = this.privateKeyToAddress(addressOrKey);
+            if (isValidPrivateKey(addressOrKey)) {
+                const address = privateKeyToAddress(addressOrKey);
                 this.addresses[i] = address;
                 this.privateKeys[i] = addressOrKey;
                 this.addressIndices[address] = i;
@@ -718,7 +723,7 @@ class KeyPairTronPayments extends BaseTronPayments {
     }
 }
 
-const BaseTronPaymentsConfig = partial({
+const BaseTronPaymentsConfig = extendCodec(BaseConfig, {}, {
     fullNode: string,
     solidityNode: string,
     eventServer: string,
@@ -759,5 +764,5 @@ class TronPaymentsFactory {
     }
 }
 
-export { BaseTronPayments, HdTronPayments, KeyPairTronPayments, TronPaymentsFactory, BaseTronPaymentsConfig, HdTronPaymentsConfig, KeyPairTronPaymentsConfig, TronPaymentsConfig, TronUnsignedTransaction, TronSignedTransaction, TronTransactionInfo, TronBroadcastResult, GetAddressOptions, toError, toMainDenominationNumber, toMainDenomination, toBaseDenominationNumber, toBaseDenomination, isValidXprv, isValidXpub, derivationPath, deriveAddress, derivePrivateKey, xprvToXpub, encode58, decode58, MIN_BALANCE_SUN, MIN_BALANCE_TRX, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, DEFAULT_EVENT_SERVER, DEFAULT_MAX_ADDRESS_SCAN };
+export { BaseTronPayments, HdTronPayments, KeyPairTronPayments, TronPaymentsFactory, BaseTronPaymentsConfig, HdTronPaymentsConfig, KeyPairTronPaymentsConfig, TronPaymentsConfig, TronUnsignedTransaction, TronSignedTransaction, TronTransactionInfo, TronBroadcastResult, GetAddressOptions, toError, toMainDenominationNumber, toMainDenomination, toBaseDenominationNumber, toBaseDenomination, isValidXprv, isValidXpub, isValidAddress, isValidPrivateKey, privateKeyToAddress, derivationPath, deriveAddress, derivePrivateKey, xprvToXpub, encode58, decode58, MIN_BALANCE_SUN, MIN_BALANCE_TRX, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, DEFAULT_EVENT_SERVER, DEFAULT_MAX_ADDRESS_SCAN };
 //# sourceMappingURL=index.es.js.map

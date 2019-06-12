@@ -1,8 +1,8 @@
 import * as t from 'io-ts';
 import { extendCodec } from '@faast/ts-common';
-import { BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, CreateTransactionOptions, } from '@faast/payments-common';
+import { BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, CreateTransactionOptions, BaseConfig, } from '@faast/payments-common';
 export { CreateTransactionOptions };
-export const BaseTronPaymentsConfig = t.partial({
+export const BaseTronPaymentsConfig = extendCodec(BaseConfig, {}, {
     fullNode: t.string,
     solidityNode: t.string,
     eventServer: t.string,
