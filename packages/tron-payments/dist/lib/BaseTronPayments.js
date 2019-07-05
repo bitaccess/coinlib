@@ -174,10 +174,10 @@ export class BaseTronPayments {
             }
             else {
                 let statusCode = status.code;
-                if (status.code === 'DUP_TRANSACTION_ERROR') {
+                if (statusCode === 'DUP_TRANSACTION_ERROR') {
                     statusCode = 'DUP_TX_BUT_TX_NOT_FOUND_SO_PROBABLY_INVALID_TX_ERROR';
                 }
-                throw new Error(`Failed to broadcast transaction: ${status.code}`);
+                throw new Error(`Failed to broadcast transaction: ${statusCode}`);
             }
         }
         catch (e) {
