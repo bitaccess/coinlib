@@ -44,7 +44,7 @@
     "build": "bin/build.sh",
     "start": "rollup -c rollup.config.js -w",
     "pretest": "npm run lint",
-    "test": "jest --runInBand --detectOpenHandles",
+    "test": "jest --runInBand --detectOpenHandles --bail",
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
     "precommit": "lint-staged",
     "preversion": "bin/preversion.sh",
