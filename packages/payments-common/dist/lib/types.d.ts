@@ -61,6 +61,7 @@ export declare type ResolvedFeeOption = t.TypeOf<typeof ResolvedFeeOption>;
 export declare const BalanceResult: t.TypeC<{
     confirmedBalance: t.StringC;
     unconfirmedBalance: t.StringC;
+    sweepable: t.BooleanC;
 }>;
 export declare type BalanceResult = t.TypeOf<typeof BalanceResult>;
 export declare enum TransactionStatus {

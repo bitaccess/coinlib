@@ -46,6 +46,7 @@ export const ResolvedFeeOption = t.type({
 export const BalanceResult = t.type({
     confirmedBalance: t.string,
     unconfirmedBalance: t.string,
+    sweepable: t.boolean,
 }, 'BalanceResult');
 export var TransactionStatus;
 (function (TransactionStatus) {

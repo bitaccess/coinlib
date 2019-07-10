@@ -47,6 +47,7 @@
   const BalanceResult = t.type({
       confirmedBalance: t.string,
       unconfirmedBalance: t.string,
+      sweepable: t.boolean,
   }, 'BalanceResult');
   (function (TransactionStatus) {
       TransactionStatus["Unsigned"] = "unsigned";

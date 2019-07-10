@@ -1,4 +1,4 @@
-import { partial, union, string, number, literal, type, object, boolean } from 'io-ts';
+import { partial, union, string, number, literal, type, boolean, object } from 'io-ts';
 import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT } from '@faast/ts-common';
 
 var NetworkType;
@@ -47,6 +47,7 @@ const ResolvedFeeOption = type({
 const BalanceResult = type({
     confirmedBalance: string,
     unconfirmedBalance: string,
+    sweepable: boolean,
 }, 'BalanceResult');
 var TransactionStatus;
 (function (TransactionStatus) {
