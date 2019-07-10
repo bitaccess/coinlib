@@ -9,7 +9,7 @@ import { txInfo_209F8, signedTx_valid, txInfo_a0787, signedTx_invalid } from './
 import { hdAccount } from './fixtures/accounts'
 import { HdTronPaymentsConfig } from '../src/types'
 import { resolveSoa } from 'dns'
-import { FeeRateType } from '@faast/payments-common'
+import { FeeRateType, BalanceResult } from '@faast/payments-common'
 
 const { XPRV, XPUB, PRIVATE_KEYS, ADDRESSES } = hdAccount
 
@@ -166,12 +166,14 @@ function runHardcodedPublicKeyTests(tp: HdTronPayments, config: HdTronPaymentsCo
     expect(await tp.getBalance(1)).toEqual({
       confirmedBalance: '0',
       unconfirmedBalance: '0',
+      sweepable: false,
     })
   })
   it('get a balance using an address', async () => {
     expect(await tp.getBalance('TBR4KDPrN9BrnyjienckS2xixcTpJ9aP26')).toEqual({
       confirmedBalance: '0',
       unconfirmedBalance: '0',
+      sweepable: false,
     })
   })
   it('broadcast an existing sweep transaction', async () => {
@@ -249,12 +251,14 @@ describe('HdTronPayments', () => {
         expect(await tp.getBalance(0)).toEqual({
           confirmedBalance: '2.4',
           unconfirmedBalance: '0',
+          sweepable: true,
         })
       })
       it('get correct balance for address 0', async () => {
         expect(await tp.getBalance(address0)).toEqual({
           confirmedBalance: '2.4',
           unconfirmedBalance: '0',
+          sweepable: true,
         })
       })
 
@@ -314,9 +318,12 @@ describe('HdTronPayments', () => {
 
       it('end to end sweep', async () => {
         const indicesToTry = [5, 6]
+        const balances: { [i: number]: BalanceResult } = {}
         let indexToSweep: number = -1
         for (const index of indicesToTry) {
-          if (await tp.canSweep(index)) {
+          const balanceResult = await tp.getBalance(index)
+          balances[index] = balanceResult
+          if (balanceResult.sweepable) {
             indexToSweep = index
             break
           }

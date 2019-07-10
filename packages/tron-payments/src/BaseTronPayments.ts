@@ -100,18 +100,15 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
     try {
       const address = await this.resolveAddress(addressOrIndex)
       const balanceSun = await this.tronweb.trx.getBalance(address)
+      const sweepable = this.canSweepBalance(balanceSun)
       return {
         confirmedBalance: toMainDenomination(balanceSun).toString(),
         unconfirmedBalance: '0',
+        sweepable,
       }
     } catch (e) {
       throw toError(e)
     }
-  }
-
-  async canSweep(addressOrIndex: string | number): Promise<boolean> {
-    const { confirmedBalance } = await this.getBalance(addressOrIndex)
-    return this.canSweepBalance(toBaseDenominationNumber(confirmedBalance))
   }
 
   async resolveFeeOption(feeOption: FeeOption): Promise<ResolvedFeeOption> {
@@ -339,7 +336,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
   // HELPERS
 
   private canSweepBalance(balanceSun: number): boolean {
-    return balanceSun - MIN_BALANCE_SUN > 0
+    return balanceSun > MIN_BALANCE_SUN
   }
 
   private extractTxFields(tx: TronTransaction) {
