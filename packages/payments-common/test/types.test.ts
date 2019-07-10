@@ -24,6 +24,7 @@ describe('types', () => {
     assertType(BalanceResult, {
       confirmedBalance: '0',
       unconfirmedBalance: '0',
+      sweepable: false,
     })
   })
   test('BalanceResult throws on invalid', () => {
