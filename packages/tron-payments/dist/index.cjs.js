@@ -113,18 +113,16 @@ class BaseTronPayments {
         try {
             const address = await this.resolveAddress(addressOrIndex);
             const balanceSun = await this.tronweb.trx.getBalance(address);
+            const sweepable = this.canSweepBalance(balanceSun);
             return {
                 confirmedBalance: toMainDenomination(balanceSun).toString(),
                 unconfirmedBalance: '0',
+                sweepable,
             };
         }
         catch (e) {
             throw toError(e);
         }
-    }
-    async canSweep(addressOrIndex) {
-        const { confirmedBalance } = await this.getBalance(addressOrIndex);
-        return this.canSweepBalance(toBaseDenominationNumber(confirmedBalance));
     }
     async resolveFeeOption(feeOption) {
         let targetFeeLevel;
@@ -315,7 +313,7 @@ class BaseTronPayments {
         }
     }
     canSweepBalance(balanceSun) {
-        return balanceSun - MIN_BALANCE_SUN > 0;
+        return balanceSun > MIN_BALANCE_SUN;
     }
     extractTxFields(tx) {
         const contractParam = lodash.get(tx, 'raw_data.contract[0].parameter.value');

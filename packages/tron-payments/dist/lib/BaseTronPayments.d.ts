@@ -23,7 +23,6 @@ export declare abstract class BaseTronPayments<Config extends BaseTronPaymentsCo
     getAddressOrNull(index: number, options?: GetAddressOptions): Promise<string | null>;
     getAddressIndexOrNull(address: string): Promise<number | null>;
     getBalance(addressOrIndex: string | number): Promise<BalanceResult>;
-    canSweep(addressOrIndex: string | number): Promise<boolean>;
     resolveFeeOption(feeOption: FeeOption): Promise<ResolvedFeeOption>;
     createSweepTransaction(from: string | number, to: string | number, options?: CreateTransactionOptions): Promise<TronUnsignedTransaction>;
     createTransaction(from: string | number, to: string | number, amountTrx: string, options?: CreateTransactionOptions): Promise<TronUnsignedTransaction>;
