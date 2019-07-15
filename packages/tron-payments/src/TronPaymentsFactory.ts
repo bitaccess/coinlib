@@ -4,7 +4,7 @@ import { TronPaymentsConfig, HdTronPaymentsConfig, KeyPairTronPaymentsConfig } f
 import { HdTronPayments } from './HdTronPayments'
 import { KeyPairTronPayments } from './KeyPairTronPayments'
 
-export class TronPaymentsFactory implements PaymentsFactory {
+export class TronPaymentsFactory implements PaymentsFactory<TronPaymentsConfig> {
   forConfig(config: HdTronPaymentsConfig): HdTronPayments
   forConfig(config: KeyPairTronPaymentsConfig): KeyPairTronPayments
   forConfig(config: TronPaymentsConfig) {
