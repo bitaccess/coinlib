@@ -64,7 +64,7 @@ export declare const TronUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    status: t.Type<{}, {}, unknown>;
+    status: t.Type<string, string, unknown>;
 }>, t.TypeC<{
     fromAddress: t.StringC;
     toAddress: t.StringC;
@@ -90,7 +90,7 @@ export declare const TronSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    status: t.Type<{}, {}, unknown>;
+    status: t.Type<string, string, unknown>;
 }>, t.TypeC<{
     fromAddress: t.StringC;
     toAddress: t.StringC;
@@ -115,7 +115,7 @@ export declare const TronTransactionInfo: t.IntersectionC<[t.TypeC<{
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    status: t.Type<{}, {}, unknown>;
+    status: t.Type<string, string, unknown>;
 }>, t.TypeC<{
     id: t.StringC;
     amount: t.StringC;
