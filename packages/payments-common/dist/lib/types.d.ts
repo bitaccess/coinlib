@@ -71,7 +71,7 @@ export declare enum TransactionStatus {
     Confirmed = "confirmed",
     Failed = "failed"
 }
-export declare const TransactionStatusT: t.Type<{}, {}, unknown>;
+export declare const TransactionStatusT: t.Type<string, string, unknown>;
 export declare const TransactionCommon: t.TypeC<{
     id: t.UnionC<[t.StringC, t.NullC]>;
     fromAddress: t.UnionC<[t.StringC, t.NullC]>;
@@ -81,7 +81,7 @@ export declare const TransactionCommon: t.TypeC<{
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    status: t.Type<{}, {}, unknown>;
+    status: t.Type<string, string, unknown>;
 }>;
 export declare type TransactionCommon = t.TypeOf<typeof TransactionCommon>;
 export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[t.TypeC<{
@@ -93,7 +93,7 @@ export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    status: t.Type<{}, {}, unknown>;
+    status: t.Type<string, string, unknown>;
 }>, t.TypeC<{
     fromAddress: t.StringC;
     toAddress: t.StringC;
@@ -115,7 +115,7 @@ export declare const BaseSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    status: t.Type<{}, {}, unknown>;
+    status: t.Type<string, string, unknown>;
 }>, t.TypeC<{
     fromAddress: t.StringC;
     toAddress: t.StringC;
@@ -140,7 +140,7 @@ export declare const BaseTransactionInfo: t.IntersectionC<[t.TypeC<{
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    status: t.Type<{}, {}, unknown>;
+    status: t.Type<string, string, unknown>;
 }>, t.TypeC<{
     id: t.StringC;
     amount: t.StringC;
