@@ -1,0 +1,10 @@
+{
+  "extends": [
+    "../tslint.json"
+  ],
+  "rules": {
+    "max-line-length": false,
+    "no-console": false,
+    "no-constant-condition": false
+  }
+}
