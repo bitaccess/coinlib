@@ -1,224 +1,131 @@
 import {
-  Transaction, TransactionStatus,
+  PaymentsInterface,
+  BalanceResult,
+  CreateTransactionOptions,
+  FeeOption,
+  ResolvedFeeOption,
+} from '@faast/payments-common'
+import { RippleAPI } from 'ripple-lib'
+
+import {
+  RipplePaymentsConfig,
+  RippleUnsignedTransaction,
+  RippleSignedTransaction,
+  RippleBroadcastResult,
+  RippleTransactionInfo,
 } from './types'
-import axios from 'axios'
-import { isValidAddress } from './utils/address'
+import { isValidXprv, isValidXpub } from './utils'
+import { xprvToXpub } from './bip44'
+import { SignOptions } from 'ripple-lib/dist/npm/transaction/types'
 
-export * from './types'
+export class RipplePayments
+  implements
+    PaymentsInterface<
+      RipplePaymentsConfig,
+      RippleUnsignedTransaction,
+      RippleSignedTransaction,
+      RippleBroadcastResult,
+      RippleTransactionInfo
+    > {
+  readonly rippleApi: RippleAPI
+  readonly xprv: string | null
+  readonly xpub: string
 
-export interface RipplePaymentsOptions {
-  apiUrl: string // required
-}
-
-export interface CreateTransactionOptions {
-  feeRate?: number // base denomination per byte (ie sat/byte)
-}
-
-export default class RipplePayments {
-
-  options: RipplePaymentsOptions
-
-  constructor(options: RipplePaymentsOptions) {
-    this.options = Object.assign({}, options)
-    if (!this.options) {
-      this.options.apiUrl = 'http://s1.ripple.com:51234' 
+  constructor(public readonly config: RipplePaymentsConfig) {
+    if (config.server) {
+      if (isValidXprv(config.hdKey)) {
+        this.xprv = config.hdKey
+        this.xpub = xprvToXpub(this.xprv)
+      } else if (isValidXpub(config.hdKey)) {
+        this.xprv = null
+        this.xpub = config.hdKey
+      } else {
+        throw new Error('Account must be a valid xprv or xpub')
+      }
+      this.rippleApi = new RippleAPI({
+        server: config.server,
+      })
+    } else {
+      this.rippleApi = new RippleAPI()
     }
   }
 
-  /**
-   * Generate a ripple wallet/keys using the key type 'secp256k1'
-   */
-  async generateKeys() {
-    try {
-      const newAccount = await axios.post(this.options.apiUrl, {
-        'method': 'wallet_propose',
-        'params': [
-            {
-                'key_type': 'secp256k1'
-            }
-          ]
-        }
-      )
-      return newAccount.data.result
-    } catch(err) {
-      throw err
+  getFullConfig() {
+    return this.config
+  }
+
+  getPublicConfig() {
+    return {
+      ...this.config,
+      hdKey: xprvToXpub(this.config.hdKey),
     }
   }
 
-  /**
-   * Determine if an address is a valid xrp address
-   */
-  static isValidAddress(address: string): boolean {
-    return isValidAddress(address)
+  toMainDenomination<O extends object>(amount: string | number, options?: O | undefined): string {
+    throw new Error('Method not implemented.')
   }
-
-  /**
-   * Get an address for the specified index. If `index === 0` the base monero address will be returned.
-   * If `index > 0` an integrated address will be returned with `index` used as the payment ID.
-   */
-  getAddress(index = 0): string {
-    // TODO
-    return ''
+  toBaseDenomination<O extends object>(amount: string | number, options?: O | undefined): string {
+    throw new Error('Method not implemented.')
   }
-
-  /**
-   * Get the balance of an address. If address is not provided get the balance of the entire
-   * account (ie every address).
-   *
-   * @return The balance formatted as a string in the main denomination (eg "0.125" XRP)
-   */
-  async getBalance(address: string): Promise<string> {
-    try {
-      const account = await axios.post(this.options.apiUrl, {
-        'method': 'account_info',
-        'params': [
-            {
-                'account': address,
-                'strict': true,
-                'ledger_index': 'validated'
-            }
-          ]
-        }
-      )
-      return account.data.result.account_data.Balance
-    } catch(err) {
-      throw err
-    }
+  isValidAddress<O extends object>(address: string, options?: O | undefined): boolean | Promise<boolean> {
+    throw new Error('Method not implemented.')
   }
-
-  /**
-   * Get the status of a transaction.
-   */
-  async getTransactionStatus(txHash: string): Promise<object> {
-    try {
-      const tx = await axios.post(this.options.apiUrl, {
-        'method': 'tx',
-        'params': [
-            {
-                'transaction': txHash,
-                'binary': false
-            }
-          ]
-        }
-      )
-      return tx.data
-    } catch(err) {
-      throw err
-    }
+  resolveAddress<O extends object>(addressOrIndex: string | number, options?: O | undefined): Promise<string> {
+    throw new Error('Method not implemented.')
   }
-
-  /**
-   * fetch previous history of an addresses' tx.
-   */
-  async getAccountTransactions(address: string): Promise<object> {
-    try {
-      const txs = await axios.post(this.options.apiUrl, {
-        'method': 'tx',
-        'params': [
-          {
-            'method': 'account_tx',
-            'params': [
-                {
-                  'account': address,
-                  'binary': false,
-                  'forward': false,
-                  'ledger_index_max': -1,
-                  'ledger_index_min': -1,
-                }
-              ]
-            }
-          ]
-        }
-      )
-      return txs.data
-    } catch(err) {
-      throw err
-    }
+  resolveFromTo<O extends object>(
+    from: string | number,
+    to: string | number,
+    options?: O | undefined,
+  ): Promise<{ fromIndex: number; fromAddress: string; toIndex: number | null; toAddress: string }> {
+    throw new Error('Method not implemented.')
   }
-
-  /**
-   * signs a new payment transaction with address `from` to address `to`.
-   */
-  async signTransaction(
-    from: string, to: string, amount: string, secret: string
-  ): Promise<string> {
-    try {
-      const signedTx = await axios.post(this.options.apiUrl, {
-        'method': 'sign',
-        'params': [
-            {
-                'offline': false,
-                'secret': secret,
-                'tx_json': {
-                    'Account': from,
-                    'Amount': {
-                        'currency': 'USD',
-                        'issuer': from,
-                        'value': amount
-                    },
-                    'Destination': to,
-                    'TransactionType': 'Payment'
-                },
-                'fee_mult_max': 1000
-            }
-          ]
-        }
-      )
-      return signedTx.data.result.tx_blob
-    } catch (err) {
-      throw err
-    }
+  getAccountIds(): string[] {
+    throw new Error('Method not implemented.')
   }
-
-  /**
-   * Submits the signed tx
-   */
-  async submitTransaction (
-    txBlob: string
-  ) : Promise<any> {
-    try {
-      const submittedTx = await axios.post(this.options.apiUrl, {
-        'method': 'submit',
-        'params': [
-            {
-              'tx_blob': txBlob
-            }
-          ]
-        }
-      )
-      return submittedTx
-    } catch(err) {
-      throw err
-    }
+  getAccountId(index: number): string {
+    throw new Error('Method not implemented.')
   }
-
-  /**
-   * Creates and signs a new payment transaction sending the entire balance of address `from` to address `to`.
-   */
-  async createTransaction(
-    from: string, to: string, amount: string, secret: string,
-  ): Promise<any> {
-    try {
-      const signedTxBlob = await this.signTransaction(from, to, amount, secret)
-      const submittedTx = await this.submitTransaction(signedTxBlob)
-      return submittedTx
-    } catch (err) {
-      throw err
-    }
+  getAddressIndex<O extends object>(address: string, options?: O | undefined): Promise<number> {
+    throw new Error('Method not implemented.')
   }
-
-  /**
-   * Creates and signs a new payment transaction sending the entire balance of address `from` to address `to`.
-   */
-  async createSweepTransaction(
-    from: string, to: string, secret: string,
-  ): Promise<any> {
-    try {
-      const balance = await this.getBalance(from)
-      const tx = await this.createTransaction(from, to, balance, secret)
-      return tx
-    } catch(err) {
-      throw err
-    }
+  getAddressIndexOrNull<O extends object>(address: string, options?: O | undefined): Promise<number | null> {
+    throw new Error('Method not implemented.')
+  }
+  getAddress<O extends object>(index: number, options?: O | undefined): Promise<string> {
+    throw new Error('Method not implemented.')
+  }
+  getAddressOrNull<O extends object>(index: number, options?: O | undefined): Promise<string | null> {
+    throw new Error('Method not implemented.')
+  }
+  getBalance<O extends object>(addressOrIndex: string | number, options?: O | undefined): Promise<BalanceResult> {
+    throw new Error('Method not implemented.')
+  }
+  getTransactionInfo(txId: string, addressOrIndex: string | number): Promise<RippleTransactionInfo> {
+    throw new Error('Method not implemented.')
+  }
+  resolveFeeOption(feeOption: FeeOption): Promise<ResolvedFeeOption> {
+    throw new Error('Method not implemented.')
+  }
+  createTransaction(
+    from: string | number,
+    to: string | number,
+    amount: string,
+    options?: CreateTransactionOptions,
+  ): Promise<RippleUnsignedTransaction> {
+    throw new Error('Method not implemented.')
+  }
+  createSweepTransaction(
+    from: string | number,
+    to: string | number,
+    options?: CreateTransactionOptions,
+  ): Promise<RippleUnsignedTransaction> {
+    throw new Error('Method not implemented.')
+  }
+  signTransaction(unsignedTx: RippleUnsignedTransaction): Promise<RippleSignedTransaction> {
+    throw new Error('Method not implemented.')
+  }
+  broadcastTransaction(signedTx: RippleSignedTransaction): Promise<RippleBroadcastResult> {
+    throw new Error('Method not implemented.')
   }
 }
