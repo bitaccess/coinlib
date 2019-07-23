@@ -52,5 +52,10 @@
     "tslint": "^5.14.0",
     "typedoc": "^0.14.2",
     "typescript": "^3.4.3"
+  },
+  "dependencies": {
+    "@faast/payments-common": "^0.8.2",
+    "@faast/ts-common": "^0.3.0",
+    "ripple-lib": "^1.2.4"
   }
 }
