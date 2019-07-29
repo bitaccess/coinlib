@@ -1,5 +1,13 @@
 import * as t from 'io-ts'
-import { extendCodec } from '@faast/ts-common'
+import {
+  extendCodec,
+  Logger,
+  requiredOptionalCodec,
+  instanceofCodec,
+  nullable,
+  DateT,
+  functionT,
+} from '@faast/ts-common'
 import {
   BaseTransactionInfo,
   BaseUnsignedTransaction,
@@ -7,6 +15,8 @@ import {
   BaseBroadcastResult,
   CreateTransactionOptions,
   BaseConfig,
+  NetworkType,
+  NetworkTypeT,
 } from '@faast/payments-common'
 import { FormattedTransactionType as RippleTransaction, RippleAPI } from 'ripple-lib'
 
@@ -26,6 +36,7 @@ export const RipplePaymentsConfig = extendCodec(
   },
   {
     server: t.string,
+    logger: Logger,
   },
   'RipplePaymentsConfig',
 )
@@ -56,3 +67,49 @@ export const RippleBroadcastResult = extendCodec(
   'RippleBroadcastResult',
 )
 export type RippleBroadcastResult = t.TypeOf<typeof RippleBroadcastResult>
+
+export const BalanceActivityType = t.union([t.literal('in'), t.literal('out')], 'BalanceActivityType')
+export type BalanceActivityType = t.TypeOf<typeof BalanceActivityType>
+
+export const BalanceActivity = t.type(
+  {
+    type: BalanceActivityType,
+    networkType: NetworkTypeT,
+    networkSymbol: t.string,
+    assetSymbol: t.string,
+    address: t.string,
+    extraId: nullable(t.string),
+    amount: t.string,
+    externalId: t.string,
+    activitySequence: t.string,
+    confirmationId: t.string,
+    confirmationNumber: t.number,
+    timestamp: DateT,
+  },
+  'BalanceActivity',
+)
+export type BalanceActivity = t.TypeOf<typeof BalanceActivity>
+
+export const RippleBalanceMonitorConfig = requiredOptionalCodec(
+  {
+    network: NetworkTypeT,
+  },
+  {
+    server: t.union([t.string, instanceofCodec(RippleAPI)]),
+    logger: Logger,
+  },
+  'RippleBalanceMonitorConfig',
+)
+export type RippleBalanceMonitorConfig = t.TypeOf<typeof RippleBalanceMonitorConfig>
+
+export const GetBalanceActivityOptions = t.partial(
+  {
+    from: BalanceActivity,
+    to: BalanceActivity,
+  },
+  'GetBalanceActivityOptions',
+)
+export type GetBalanceActivityOptions = t.TypeOf<typeof GetBalanceActivityOptions>
+
+export type BalanceActivityCallback = (ba: BalanceActivity) => Promise<void> | void
+export const BalanceActivityCallback = functionT<BalanceActivityCallback>('BalanceActivityCallback')
