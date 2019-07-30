@@ -33,23 +33,18 @@ export class RippleBalanceMonitor {
     if (!this.rippleApi.isConnected()) {
       await this.rippleApi.connect()
     }
-    this.rippleApi.connection.on('transaction', t => {
-      this.logger.log(t)
-    })
   }
 
   async subscribeAddresses(addresses: string[]) {
-    await this.rippleApi
-      .request('subscribe', { accounts: addresses })
-      .then(res => {
-        if (res.status === 'success') {
-          this.logger.log('Successfully subscribed', res)
-        }
-      })
-      .catch(e => {
-        this.logger.error('failed to subscribe to ripple addresses', e.toString())
-        throw e
-      })
+    try {
+      const res = await this.rippleApi.request('subscribe', { accounts: addresses })
+      if (res.status === 'success') {
+        this.logger.log('Successfully subscribed', res)
+      }
+    } catch (e) {
+      this.logger.error('failed to subscribe to ripple addresses', e.toString())
+      throw e
+    }
   }
 
   onBalanceActivity(callbackFn: BalanceActivityCallback) {
