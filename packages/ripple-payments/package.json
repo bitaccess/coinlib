@@ -59,9 +59,10 @@
     "typescript": "^3.4.3"
   },
   "dependencies": {
-    "@faast/payments-common": "^0.8.2",
+    "@faast/payments-common": "^0.9.2",
     "@faast/ts-common": "^0.3.1",
     "base-x": "^3.0.6",
+    "bignumber.js": "^9.0.0",
     "bip32": "^2.0.3",
     "io-ts": "^1.10.4",
     "ripple-lib": "^1.2.4"
