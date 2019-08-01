@@ -1,3 +1,4 @@
+import { Numeric } from '@faast/ts-common'
 import {
   BalanceResult,
   BaseUnsignedTransaction,
@@ -8,6 +9,8 @@ import {
   FeeOption,
   ResolvedFeeOption,
   BaseConfig,
+  Payport,
+  FromTo,
 } from './types'
 
 export type AnyPayments<C extends object = any> = PaymentsInterface<
@@ -32,37 +35,28 @@ export interface PaymentsInterface<
   //
   // static toMainDenomination<O extends object>(amount: number | string, options?: O): string
   // static toBaseDenomination<O extends object>(amount: number | string, options?: O): string
-  // static isValidAddress<O extends object>(address: string, options?: O): boolean
+  // static isValidAddress<O extends object>(payport: string, options?: O): boolean
 
   /**
    * Converts to main denomination units
    * Example: convert "125000000000" moneroj to "0.125" XMR
    */
-  toMainDenomination<O extends object>(amount: number | string, options?: O): string
+  toMainDenomination<O extends object>(amount: Numeric, options?: O): string
 
   /**
    * Converts to base atomic units
    * Example: convert "0.125" XMR to "125000000000" moneroj
    */
-  toBaseDenomination<O extends object>(amount: number | string, options?: O): string
+  toBaseDenomination<O extends object>(amount: Numeric, options?: O): string
 
   /**
-   * Return true if it's a valid address.
+   * Return true if it's a valid payport.
    */
-  isValidAddress<O extends object>(address: string, options?: O): boolean | Promise<boolean>
+  isValidPayport<O extends object>(payport: Payport, options?: O): boolean | Promise<boolean>
 
-  resolveAddress<O extends object>(addressOrIndex: string | number, options?: O): Promise<string>
+  resolvePayport<O extends object>(payportOrIndex: Payport | number, options?: O): Promise<Payport>
 
-  resolveFromTo<O extends object>(
-    from: string | number,
-    to: string | number,
-    options?: O,
-  ): Promise<{
-    fromIndex: number
-    fromAddress: string
-    toIndex: number | null
-    toAddress: string
-  }>
+  resolveFromTo<O extends object>(from: Payport | number, to: Payport | number, options?: O): Promise<FromTo>
 
   /**
    * Returns the full config used to instantiate this payments instance as is.
@@ -81,88 +75,80 @@ export interface PaymentsInterface<
   getAccountIds(): string[]
 
   /**
-   * Return identifier for account configured at specific address `index` (an xpub or address works).
+   * Return identifier for account used for payport at `index` (an xpub or address works).
    *
-   * @param index - The index to get account ID for
+   * @param index - The payport index to get account ID for
    */
   getAccountId(index: number): string
 
   /**
-   * Get the index of the provided address.
+   * Get a payport by index for receiving deposits. index === 0 often refers to the hotwallet
    *
-   * @return Promise resolving to address index
-   * @throws if not a valid address or not owned by the wallet
+   * @param index An index of the payport to retrieve
+   * @return Promise resolving to a payport at that index
+   * @throws if index < 0 or payport cannot be returned for any reason
    */
-  getAddressIndex<O extends object>(address: string, options?: O): Promise<number>
-
-  /** Same as getAddressIndex but returns null instead of throwing */
-  getAddressIndexOrNull<O extends object>(address: string, options?: O): Promise<number | null>
+  getPayport<O extends object>(index: number, options?: O): Promise<Payport>
 
   /**
-   * Get the address for the specified index.
-   *
-   * @return Promise resolving to the address at that index
-   * @throws if index < 0 or address cannot be returned for any reason
+   * Return true if external balance tracking is required for payports with an extraId
    */
-  getAddress<O extends object>(index: number, options?: O): Promise<string>
-
-  /** Same as getAddress but returns null instead of throwing */
-  getAddressOrNull<O extends object>(index: number, options?: O): Promise<string | null>
+  requiresBalanceTracker(): boolean
 
   /**
-   * Get the balance of an address (or address at `index`).
+   * Get the balance of a payport (or payport at `index`).
    *
-   * @param addressOrIndex - The address or address index to get the balance of
+   * @param payportOrIndex - The payport or payport index to get the balance of
    * @return The balance and unconfirmed balance formatted as a string in the main denomination (eg "0.125" XMR)
    */
-  getBalance<O extends object>(addressOrIndex: string | number, options?: O): Promise<BalanceResult>
+  getBalance<O extends object>(payportOrIndex: Payport | number, options?: O): Promise<BalanceResult>
 
   /**
    * Get the info and status of a transaction.
    *
    * @param txId - The transaction ID to lookup
-   * @param addressOrIndex - The address, or the index of an address, that is associated with this transaction.
+   * @param payportOrIndex - The payport, or the index of a payport, that is associated with this transaction.
    * This is necessary to allow for looking up XMR txs but can be ignored for conventional coins like BTC/ETH.
    * @returns Info about the transaction
    * @throws Error if transaction is not found
    */
   getTransactionInfo<O extends object>(
     txId: string,
-    addressOrIndex: string | number,
+    payportOrIndex?: Payport | number,
     options?: O,
   ): Promise<TransactionInfo>
 
   resolveFeeOption<O extends FeeOption>(feeOption: O): Promise<ResolvedFeeOption>
 
   /**
-   * Creates and signs a new payment transaction sending `amount` from address `from` to address `to`.
+   * Creates and signs a new payment transaction sending `amount` from payport `from` to payport `to`.
    *
-   * @param from - The address to send from, or the address index.
-   * @param to - The address of the recipient, or the address index.
+   * @param from - The payport to send from, or the payport index.
+   * @param to - The payport of the recipient, or the payport index.
    * @param amount - The amount to send in the main denomination (eg "0.125" XMR)
    * @returns An object representing the signed transaction
    */
   createTransaction<O extends CreateTransactionOptions>(
-    from: string | number,
-    to: string | number,
+    from: Payport | number,
+    to: Payport | number,
     amount: string,
     options?: O,
   ): Promise<UnsignedTransaction>
 
   /**
-   * Creates a new payment transaction sending the entire balance of address `from` to address `to`.
+   * Creates a new payment transaction sending the entire balance of payport `from` to payport `to`.
    */
   createSweepTransaction<O extends CreateTransactionOptions>(
-    from: string | number,
-    to: string | number,
+    from: Payport | number,
+    to: Payport | number,
     options?: O,
   ): Promise<UnsignedTransaction>
 
   /**
    * Signs and returns unsigned transaction.
    *
-   * @param from - The address to send from, or the address index.
-   * @param to - The address of the recipient, or the address index.
+   * @param from - The payport to send from, or the payport index.
+   * @param to - The payport of the recipient, or the payport index.
    * @param amount - The amount to send in the main denomination (eg "0.125" XMR)
    * @returns An object representing the signed transaction
    */

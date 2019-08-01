@@ -1,5 +1,5 @@
 import * as t from 'io-ts'
-import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT } from '@faast/ts-common'
+import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT, Logger, functionT } from '@faast/ts-common'
 
 export enum NetworkType {
   Mainnet = 'mainnet',
@@ -85,17 +85,20 @@ export enum TransactionStatus {
 }
 export const TransactionStatusT = enumCodec(TransactionStatus, 'TransactionStatus')
 
-export const TransactionCommon = t.type(
+export const TransactionCommon = requiredOptionalCodec(
   {
     id: nullable(t.string), // network txid
     fromAddress: nullable(t.string), // sender address
     toAddress: nullable(t.string), // recipient address
-    toExtraId: nullable(t.string), // eg Monero payment ID
     fromIndex: nullable(t.number), // sender address index
     toIndex: nullable(t.number), // recipient address index, null if not ours
     amount: nullable(t.string), // main denomination (eg "0.125")
     fee: nullable(t.string), // total fee in main denomination
     status: TransactionStatusT,
+  },
+  {
+    fromExtraId: nullable(t.string), // eg ripple sender tag
+    toExtraId: nullable(t.string), // eg Monero payment ID or ripple destination tag
   },
   'TransactionCommon',
 )
@@ -113,6 +116,12 @@ const UnsignedCommon = extendCodec(
   },
   'UnsignedCommon',
 )
+type UnsignedCommon = t.TypeOf<typeof UnsignedCommon>
+
+export type FromTo = Pick<
+  BaseUnsignedTransaction,
+  'fromAddress' | 'fromIndex' | 'fromExtraId' | 'toAddress' | 'toIndex' | 'toExtraId'
+>
 
 export const BaseUnsignedTransaction = extendCodec(
   UnsignedCommon,
@@ -161,3 +170,59 @@ export const BaseBroadcastResult = t.type(
   'BaseBroadcastResult',
 )
 export type BaseBroadcastResult = t.TypeOf<typeof BaseBroadcastResult>
+
+export const Payport = requiredOptionalCodec(
+  {
+    address: t.string,
+  },
+  {
+    extraId: nullable(t.string),
+  },
+  'Payport',
+)
+export type Payport = t.TypeOf<typeof Payport>
+
+export const BalanceActivityType = t.union([t.literal('in'), t.literal('out')], 'BalanceActivityType')
+export type BalanceActivityType = t.TypeOf<typeof BalanceActivityType>
+
+export const BalanceActivity = t.type(
+  {
+    type: BalanceActivityType,
+    networkType: NetworkTypeT,
+    networkSymbol: t.string,
+    assetSymbol: t.string,
+    address: t.string,
+    extraId: nullable(t.string),
+    amount: t.string,
+    externalId: t.string,
+    activitySequence: t.string,
+    confirmationId: t.string,
+    confirmationNumber: t.number,
+    timestamp: DateT,
+  },
+  'BalanceActivity',
+)
+export type BalanceActivity = t.TypeOf<typeof BalanceActivity>
+
+export const BalanceMonitorConfig = requiredOptionalCodec(
+  {
+    network: NetworkTypeT,
+  },
+  {
+    logger: Logger,
+  },
+  'BalanceMonitorConfig',
+)
+export type BalanceMonitorConfig = t.TypeOf<typeof BalanceMonitorConfig>
+
+export const GetBalanceActivityOptions = t.partial(
+  {
+    from: BalanceActivity,
+    to: BalanceActivity,
+  },
+  'GetBalanceActivityOptions',
+)
+export type GetBalanceActivityOptions = t.TypeOf<typeof GetBalanceActivityOptions>
+
+export type BalanceActivityCallback = (ba: BalanceActivity) => Promise<void> | void
+export const BalanceActivityCallback = functionT<BalanceActivityCallback>('BalanceActivityCallback')
