@@ -183,45 +183,6 @@ function createUnitConverters(decimals) {
     };
 }
 
-class PaymentsUtils {
-    constructor(config) {
-        this.networkType = config.network || exports.NetworkType.Mainnet;
-    }
-    async isValidPayport(payport, options) {
-        const { address, extraId } = payport;
-        return ((await this.isValidAddress(address, options)) &&
-            (typeof extraId === 'string' ? this.isValidExtraId(extraId, options) : true));
-    }
-}
-
-class BasePayments extends PaymentsUtils {
-    constructor(config) {
-        super(config);
-        this.config = config;
-    }
-    getFullConfig() {
-        return this.config;
-    }
-    async resolvePayport(payportOrIndex, options) {
-        if (typeof payportOrIndex === 'number') {
-            return this.getPayport(payportOrIndex, options);
-        }
-        return payportOrIndex;
-    }
-    async resolveFromTo(from, to, options) {
-        const fromPayport = await this.getPayport(from);
-        const toPayport = await this.resolvePayport(to);
-        return {
-            fromAddress: fromPayport.address,
-            fromIndex: from,
-            fromExtraId: fromPayport.extraId,
-            toAddress: toPayport.address,
-            toIndex: typeof to === 'number' ? to : null,
-            toExtraId: toPayport.extraId,
-        };
-    }
-}
-
 class BalanceMonitor {
     constructor(config) {
         this.networkType = config.network;
@@ -253,7 +214,5 @@ exports.BalanceMonitorConfig = BalanceMonitorConfig;
 exports.GetBalanceActivityOptions = GetBalanceActivityOptions;
 exports.BalanceActivityCallback = BalanceActivityCallback;
 exports.createUnitConverters = createUnitConverters;
-exports.BasePayments = BasePayments;
-exports.PaymentsUtils = PaymentsUtils;
 exports.BalanceMonitor = BalanceMonitor;
 //# sourceMappingURL=index.cjs.js.map
