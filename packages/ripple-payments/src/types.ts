@@ -17,6 +17,7 @@ import {
   BaseConfig,
   NetworkType,
   NetworkTypeT,
+  BalanceMonitorConfig,
 } from '@faast/payments-common'
 import { FormattedTransactionType as RippleTransaction, RippleAPI } from 'ripple-lib'
 
@@ -37,6 +38,7 @@ export const RipplePaymentsConfig = extendCodec(
   {
     server: t.string,
     logger: Logger,
+    maxLedgerVersionOffset: t.number, // number of ledgers until a tx expires
   },
   'RipplePaymentsConfig',
 )
@@ -45,7 +47,6 @@ export type RipplePaymentsConfig = t.TypeOf<typeof RipplePaymentsConfig>
 export const RippleUnsignedTransaction = extendCodec(
   BaseUnsignedTransaction,
   {
-    id: t.string,
     amount: t.string,
     fee: t.string,
   },
@@ -53,7 +54,13 @@ export const RippleUnsignedTransaction = extendCodec(
 )
 export type RippleUnsignedTransaction = t.TypeOf<typeof RippleUnsignedTransaction>
 
-export const RippleSignedTransaction = extendCodec(BaseSignedTransaction, {}, {}, 'RippleSignedTransaction')
+export const RippleSignedTransaction = extendCodec(
+  BaseSignedTransaction,
+  {
+    id: t.string,
+  },
+  'RippleSignedTransaction',
+)
 export type RippleSignedTransaction = t.TypeOf<typeof RippleSignedTransaction>
 
 export const RippleTransactionInfo = extendCodec(BaseTransactionInfo, {}, {}, 'RippleTransactionInfo')
@@ -63,53 +70,28 @@ export const RippleBroadcastResult = extendCodec(
   BaseBroadcastResult,
   {
     rebroadcast: t.boolean,
+    data: t.object,
   },
   'RippleBroadcastResult',
 )
 export type RippleBroadcastResult = t.TypeOf<typeof RippleBroadcastResult>
 
-export const BalanceActivityType = t.union([t.literal('in'), t.literal('out')], 'BalanceActivityType')
-export type BalanceActivityType = t.TypeOf<typeof BalanceActivityType>
-
-export const BalanceActivity = t.type(
-  {
-    type: BalanceActivityType,
-    networkType: NetworkTypeT,
-    networkSymbol: t.string,
-    assetSymbol: t.string,
-    address: t.string,
-    extraId: nullable(t.string),
-    amount: t.string,
-    externalId: t.string,
-    activitySequence: t.string,
-    confirmationId: t.string,
-    confirmationNumber: t.number,
-    timestamp: DateT,
-  },
-  'BalanceActivity',
-)
-export type BalanceActivity = t.TypeOf<typeof BalanceActivity>
-
-export const RippleBalanceMonitorConfig = requiredOptionalCodec(
-  {
-    network: NetworkTypeT,
-  },
+export const RippleBalanceMonitorConfig = extendCodec(
+  BalanceMonitorConfig,
   {
     server: t.union([t.string, instanceofCodec(RippleAPI)]),
-    logger: Logger,
   },
   'RippleBalanceMonitorConfig',
 )
 export type RippleBalanceMonitorConfig = t.TypeOf<typeof RippleBalanceMonitorConfig>
 
-export const GetBalanceActivityOptions = t.partial(
+export const RippleCreateTransactionOptions = extendCodec(
+  CreateTransactionOptions,
+  {},
   {
-    from: BalanceActivity,
-    to: BalanceActivity,
+    maxLedgerVersionOffset: t.number,
+    sequence: t.number,
   },
-  'GetBalanceActivityOptions',
+  'RippleCreateTransactionOptions',
 )
-export type GetBalanceActivityOptions = t.TypeOf<typeof GetBalanceActivityOptions>
-
-export type BalanceActivityCallback = (ba: BalanceActivity) => Promise<void> | void
-export const BalanceActivityCallback = functionT<BalanceActivityCallback>('BalanceActivityCallback')
+export type RippleCreateTransactionOptions = t.TypeOf<typeof RippleCreateTransactionOptions>

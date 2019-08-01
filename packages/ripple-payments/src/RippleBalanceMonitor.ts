@@ -1,32 +1,27 @@
-import { NetworkType } from '@faast/payments-common'
-import { RippleAPI } from 'ripple-lib'
-import { FormattedPaymentTransaction, FormattedTransactionType } from 'ripple-lib/dist/npm/transaction/types'
-import { TransactionsOptions } from 'ripple-lib/dist/npm/ledger/transactions'
-import { Logger, DelegateLogger } from '@faast/ts-common'
-
-import { padLeft } from './utils'
 import {
-  RippleBalanceMonitorConfig,
   BalanceActivityCallback,
   GetBalanceActivityOptions,
   BalanceActivity,
   BalanceActivityType,
-} from './types'
-import { PACKAGE_NAME } from './constants'
+  BalanceMonitor,
+} from '@faast/payments-common'
+import { RippleAPI } from 'ripple-lib'
+import { FormattedPaymentTransaction, FormattedTransactionType } from 'ripple-lib/dist/npm/transaction/types'
+import { TransactionsOptions } from 'ripple-lib/dist/npm/ledger/transactions'
 
-export class RippleBalanceMonitor {
-  networkType: NetworkType
+import { padLeft } from './utils'
+import { RippleBalanceMonitorConfig } from './types'
+
+export class RippleBalanceMonitor extends BalanceMonitor {
   rippleApi: RippleAPI
-  logger: Logger
 
   constructor(config: RippleBalanceMonitorConfig) {
+    super(config)
     if (config.server instanceof RippleAPI) {
       this.rippleApi = config.server
     } else {
       this.rippleApi = new RippleAPI({ server: config.server })
     }
-    this.networkType = config.network
-    this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
   }
 
   async init() {
@@ -58,7 +53,7 @@ export class RippleBalanceMonitor {
     })
   }
 
-  async getBalanceActivities(
+  async retrieveBalanceActivities(
     address: string,
     callbackFn: BalanceActivityCallback,
     options: GetBalanceActivityOptions = {},
