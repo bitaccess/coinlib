@@ -5,4 +5,4 @@ export class BalanceMonitor {
         this.logger = new DelegateLogger(config.logger, BalanceMonitor.name);
     }
 }
-//# sourceMappingURL=BalanceTracker.js.map
+//# sourceMappingURL=BalanceMonitor.js.map

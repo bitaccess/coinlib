@@ -6,6 +6,7 @@ export declare enum NetworkType {
 export declare const NetworkTypeT: t.Type<NetworkType, NetworkType, unknown>;
 export declare const BaseConfig: t.PartialC<{
     network: t.Type<NetworkType, NetworkType, unknown>;
+    logger: import("@faast/ts-common").LoggerC;
 }>;
 export declare type BaseConfig = t.TypeOf<typeof BaseConfig>;
 export declare const AddressOrIndex: t.UnionC<[t.StringC, t.NumberC]>;

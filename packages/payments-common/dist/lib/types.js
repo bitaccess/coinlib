@@ -8,6 +8,7 @@ export var NetworkType;
 export const NetworkTypeT = enumCodec(NetworkType, 'NetworkType');
 export const BaseConfig = t.partial({
     network: NetworkTypeT,
+    logger: Logger,
 }, 'BaseConfig');
 export const AddressOrIndex = t.union([t.string, t.number], 'AddressOrIndex');
 export var FeeLevel;

@@ -10,6 +10,7 @@ var NetworkType;
 const NetworkTypeT = enumCodec(NetworkType, 'NetworkType');
 const BaseConfig = partial({
     network: NetworkTypeT,
+    logger: Logger,
 }, 'BaseConfig');
 const AddressOrIndex = union([string, number], 'AddressOrIndex');
 var FeeLevel;
@@ -180,6 +181,45 @@ function createUnitConverters(decimals) {
     };
 }
 
+class PaymentsUtils {
+    constructor(config) {
+        this.networkType = config.network || NetworkType.Mainnet;
+    }
+    async isValidPayport(payport, options) {
+        const { address, extraId } = payport;
+        return ((await this.isValidAddress(address, options)) &&
+            (typeof extraId === 'string' ? this.isValidExtraId(extraId, options) : true));
+    }
+}
+
+class BasePayments extends PaymentsUtils {
+    constructor(config) {
+        super(config);
+        this.config = config;
+    }
+    getFullConfig() {
+        return this.config;
+    }
+    async resolvePayport(payportOrIndex, options) {
+        if (typeof payportOrIndex === 'number') {
+            return this.getPayport(payportOrIndex, options);
+        }
+        return payportOrIndex;
+    }
+    async resolveFromTo(from, to, options) {
+        const fromPayport = await this.getPayport(from);
+        const toPayport = await this.resolvePayport(to);
+        return {
+            fromAddress: fromPayport.address,
+            fromIndex: from,
+            fromExtraId: fromPayport.extraId,
+            toAddress: toPayport.address,
+            toIndex: typeof to === 'number' ? to : null,
+            toExtraId: toPayport.extraId,
+        };
+    }
+}
+
 class BalanceMonitor {
     constructor(config) {
         this.networkType = config.network;
@@ -187,5 +227,5 @@ class BalanceMonitor {
     }
 }
 
-export { NetworkType, NetworkTypeT, BaseConfig, AddressOrIndex, FeeLevel, FeeLevelT, FeeRateType, FeeRateTypeT, FeeOptionCustom, FeeOptionLevel, FeeOption, CreateTransactionOptions, ResolvedFeeOption, BalanceResult, TransactionStatus, TransactionStatusT, TransactionCommon, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, Payport, BalanceActivityType, BalanceActivity, BalanceMonitorConfig, GetBalanceActivityOptions, BalanceActivityCallback, createUnitConverters, BalanceMonitor };
+export { NetworkType, NetworkTypeT, BaseConfig, AddressOrIndex, FeeLevel, FeeLevelT, FeeRateType, FeeRateTypeT, FeeOptionCustom, FeeOptionLevel, FeeOption, CreateTransactionOptions, ResolvedFeeOption, BalanceResult, TransactionStatus, TransactionStatusT, TransactionCommon, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, Payport, BalanceActivityType, BalanceActivity, BalanceMonitorConfig, GetBalanceActivityOptions, BalanceActivityCallback, createUnitConverters, BasePayments, PaymentsUtils, BalanceMonitor };
 //# sourceMappingURL=index.es.js.map
