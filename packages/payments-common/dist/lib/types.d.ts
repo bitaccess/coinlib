@@ -72,7 +72,7 @@ export declare enum TransactionStatus {
     Confirmed = "confirmed",
     Failed = "failed"
 }
-export declare const TransactionStatusT: t.Type<string, string, unknown>;
+export declare const TransactionStatusT: t.Type<TransactionStatus, TransactionStatus, unknown>;
 export declare const TransactionCommon: t.IntersectionC<[t.TypeC<{
     id: t.UnionC<[t.StringC, t.NullC]>;
     fromAddress: t.UnionC<[t.StringC, t.NullC]>;
@@ -81,7 +81,7 @@ export declare const TransactionCommon: t.IntersectionC<[t.TypeC<{
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    status: t.Type<string, string, unknown>;
+    status: t.Type<TransactionStatus, TransactionStatus, unknown>;
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
@@ -96,7 +96,7 @@ export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    status: t.Type<string, string, unknown>;
+    status: t.Type<TransactionStatus, TransactionStatus, unknown>;
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
@@ -120,7 +120,7 @@ export declare const BaseSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    status: t.Type<string, string, unknown>;
+    status: t.Type<TransactionStatus, TransactionStatus, unknown>;
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
@@ -147,7 +147,7 @@ export declare const BaseTransactionInfo: t.IntersectionC<[t.IntersectionC<[t.Ty
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    status: t.Type<string, string, unknown>;
+    status: t.Type<TransactionStatus, TransactionStatus, unknown>;
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
