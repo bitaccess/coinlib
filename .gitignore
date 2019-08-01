@@ -1,0 +1,16 @@
+node_modules/
+.DS_Store
+.env*
+coverage/
+.nyc_output
+*.log
+.vscode
+.idea
+compiled/
+.awcache
+.rpt2_cache
+*.password
+*.wallet
+dist/
+docs/
+*.key
