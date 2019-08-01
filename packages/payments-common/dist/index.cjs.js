@@ -5,8 +5,8 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var t = require('io-ts');
-var tsCommon = require('@faast/ts-common');
 var BigNumber = _interopDefault(require('bignumber.js'));
+var tsCommon = require('@faast/ts-common');
 
 (function (NetworkType) {
     NetworkType["Mainnet"] = "mainnet";
@@ -61,16 +61,18 @@ const BalanceResult = t.type({
     TransactionStatus["Failed"] = "failed";
 })(exports.TransactionStatus || (exports.TransactionStatus = {}));
 const TransactionStatusT = tsCommon.enumCodec(exports.TransactionStatus, 'TransactionStatus');
-const TransactionCommon = t.type({
+const TransactionCommon = tsCommon.requiredOptionalCodec({
     id: tsCommon.nullable(t.string),
     fromAddress: tsCommon.nullable(t.string),
     toAddress: tsCommon.nullable(t.string),
-    toExtraId: tsCommon.nullable(t.string),
     fromIndex: tsCommon.nullable(t.number),
     toIndex: tsCommon.nullable(t.number),
     amount: tsCommon.nullable(t.string),
     fee: tsCommon.nullable(t.string),
     status: TransactionStatusT,
+}, {
+    fromExtraId: tsCommon.nullable(t.string),
+    toExtraId: tsCommon.nullable(t.string),
 }, 'TransactionCommon');
 const UnsignedCommon = tsCommon.extendCodec(TransactionCommon, {
     fromAddress: t.string,
@@ -105,6 +107,36 @@ const BaseTransactionInfo = tsCommon.extendCodec(TransactionCommon, {
 const BaseBroadcastResult = t.type({
     id: t.string,
 }, 'BaseBroadcastResult');
+const Payport = tsCommon.requiredOptionalCodec({
+    address: t.string,
+}, {
+    extraId: tsCommon.nullable(t.string),
+}, 'Payport');
+const BalanceActivityType = t.union([t.literal('in'), t.literal('out')], 'BalanceActivityType');
+const BalanceActivity = t.type({
+    type: BalanceActivityType,
+    networkType: NetworkTypeT,
+    networkSymbol: t.string,
+    assetSymbol: t.string,
+    address: t.string,
+    extraId: tsCommon.nullable(t.string),
+    amount: t.string,
+    externalId: t.string,
+    activitySequence: t.string,
+    confirmationId: t.string,
+    confirmationNumber: t.number,
+    timestamp: tsCommon.DateT,
+}, 'BalanceActivity');
+const BalanceMonitorConfig = tsCommon.requiredOptionalCodec({
+    network: NetworkTypeT,
+}, {
+    logger: tsCommon.Logger,
+}, 'BalanceMonitorConfig');
+const GetBalanceActivityOptions = t.partial({
+    from: BalanceActivity,
+    to: BalanceActivity,
+}, 'GetBalanceActivityOptions');
+const BalanceActivityCallback = tsCommon.functionT('BalanceActivityCallback');
 
 function createUnitConverters(decimals) {
     const basePerMain = new BigNumber(10).pow(decimals);
@@ -150,6 +182,13 @@ function createUnitConverters(decimals) {
     };
 }
 
+class BalanceMonitor {
+    constructor(config) {
+        this.networkType = config.network;
+        this.logger = new tsCommon.DelegateLogger(config.logger, BalanceMonitor.name);
+    }
+}
+
 exports.NetworkTypeT = NetworkTypeT;
 exports.BaseConfig = BaseConfig;
 exports.AddressOrIndex = AddressOrIndex;
@@ -167,5 +206,12 @@ exports.BaseUnsignedTransaction = BaseUnsignedTransaction;
 exports.BaseSignedTransaction = BaseSignedTransaction;
 exports.BaseTransactionInfo = BaseTransactionInfo;
 exports.BaseBroadcastResult = BaseBroadcastResult;
+exports.Payport = Payport;
+exports.BalanceActivityType = BalanceActivityType;
+exports.BalanceActivity = BalanceActivity;
+exports.BalanceMonitorConfig = BalanceMonitorConfig;
+exports.GetBalanceActivityOptions = GetBalanceActivityOptions;
+exports.BalanceActivityCallback = BalanceActivityCallback;
 exports.createUnitConverters = createUnitConverters;
+exports.BalanceMonitor = BalanceMonitor;
 //# sourceMappingURL=index.cjs.js.map

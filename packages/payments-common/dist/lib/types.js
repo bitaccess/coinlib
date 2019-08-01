@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT } from '@faast/ts-common';
+import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT, Logger, functionT } from '@faast/ts-common';
 export var NetworkType;
 (function (NetworkType) {
     NetworkType["Mainnet"] = "mainnet";
@@ -57,16 +57,18 @@ export var TransactionStatus;
     TransactionStatus["Failed"] = "failed";
 })(TransactionStatus || (TransactionStatus = {}));
 export const TransactionStatusT = enumCodec(TransactionStatus, 'TransactionStatus');
-export const TransactionCommon = t.type({
+export const TransactionCommon = requiredOptionalCodec({
     id: nullable(t.string),
     fromAddress: nullable(t.string),
     toAddress: nullable(t.string),
-    toExtraId: nullable(t.string),
     fromIndex: nullable(t.number),
     toIndex: nullable(t.number),
     amount: nullable(t.string),
     fee: nullable(t.string),
     status: TransactionStatusT,
+}, {
+    fromExtraId: nullable(t.string),
+    toExtraId: nullable(t.string),
 }, 'TransactionCommon');
 const UnsignedCommon = extendCodec(TransactionCommon, {
     fromAddress: t.string,
@@ -101,4 +103,34 @@ export const BaseTransactionInfo = extendCodec(TransactionCommon, {
 export const BaseBroadcastResult = t.type({
     id: t.string,
 }, 'BaseBroadcastResult');
+export const Payport = requiredOptionalCodec({
+    address: t.string,
+}, {
+    extraId: nullable(t.string),
+}, 'Payport');
+export const BalanceActivityType = t.union([t.literal('in'), t.literal('out')], 'BalanceActivityType');
+export const BalanceActivity = t.type({
+    type: BalanceActivityType,
+    networkType: NetworkTypeT,
+    networkSymbol: t.string,
+    assetSymbol: t.string,
+    address: t.string,
+    extraId: nullable(t.string),
+    amount: t.string,
+    externalId: t.string,
+    activitySequence: t.string,
+    confirmationId: t.string,
+    confirmationNumber: t.number,
+    timestamp: DateT,
+}, 'BalanceActivity');
+export const BalanceMonitorConfig = requiredOptionalCodec({
+    network: NetworkTypeT,
+}, {
+    logger: Logger,
+}, 'BalanceMonitorConfig');
+export const GetBalanceActivityOptions = t.partial({
+    from: BalanceActivity,
+    to: BalanceActivity,
+}, 'GetBalanceActivityOptions');
+export const BalanceActivityCallback = functionT('BalanceActivityCallback');
 //# sourceMappingURL=types.js.map

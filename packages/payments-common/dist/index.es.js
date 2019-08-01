@@ -1,6 +1,6 @@
 import { partial, union, string, number, literal, type, boolean, object } from 'io-ts';
-import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT } from '@faast/ts-common';
 import BigNumber from 'bignumber.js';
+import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT, Logger, functionT, DelegateLogger } from '@faast/ts-common';
 
 var NetworkType;
 (function (NetworkType) {
@@ -59,16 +59,18 @@ var TransactionStatus;
     TransactionStatus["Failed"] = "failed";
 })(TransactionStatus || (TransactionStatus = {}));
 const TransactionStatusT = enumCodec(TransactionStatus, 'TransactionStatus');
-const TransactionCommon = type({
+const TransactionCommon = requiredOptionalCodec({
     id: nullable(string),
     fromAddress: nullable(string),
     toAddress: nullable(string),
-    toExtraId: nullable(string),
     fromIndex: nullable(number),
     toIndex: nullable(number),
     amount: nullable(string),
     fee: nullable(string),
     status: TransactionStatusT,
+}, {
+    fromExtraId: nullable(string),
+    toExtraId: nullable(string),
 }, 'TransactionCommon');
 const UnsignedCommon = extendCodec(TransactionCommon, {
     fromAddress: string,
@@ -103,6 +105,36 @@ const BaseTransactionInfo = extendCodec(TransactionCommon, {
 const BaseBroadcastResult = type({
     id: string,
 }, 'BaseBroadcastResult');
+const Payport = requiredOptionalCodec({
+    address: string,
+}, {
+    extraId: nullable(string),
+}, 'Payport');
+const BalanceActivityType = union([literal('in'), literal('out')], 'BalanceActivityType');
+const BalanceActivity = type({
+    type: BalanceActivityType,
+    networkType: NetworkTypeT,
+    networkSymbol: string,
+    assetSymbol: string,
+    address: string,
+    extraId: nullable(string),
+    amount: string,
+    externalId: string,
+    activitySequence: string,
+    confirmationId: string,
+    confirmationNumber: number,
+    timestamp: DateT,
+}, 'BalanceActivity');
+const BalanceMonitorConfig = requiredOptionalCodec({
+    network: NetworkTypeT,
+}, {
+    logger: Logger,
+}, 'BalanceMonitorConfig');
+const GetBalanceActivityOptions = partial({
+    from: BalanceActivity,
+    to: BalanceActivity,
+}, 'GetBalanceActivityOptions');
+const BalanceActivityCallback = functionT('BalanceActivityCallback');
 
 function createUnitConverters(decimals) {
     const basePerMain = new BigNumber(10).pow(decimals);
@@ -148,5 +180,12 @@ function createUnitConverters(decimals) {
     };
 }
 
-export { NetworkType, NetworkTypeT, BaseConfig, AddressOrIndex, FeeLevel, FeeLevelT, FeeRateType, FeeRateTypeT, FeeOptionCustom, FeeOptionLevel, FeeOption, CreateTransactionOptions, ResolvedFeeOption, BalanceResult, TransactionStatus, TransactionStatusT, TransactionCommon, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, createUnitConverters };
+class BalanceMonitor {
+    constructor(config) {
+        this.networkType = config.network;
+        this.logger = new DelegateLogger(config.logger, BalanceMonitor.name);
+    }
+}
+
+export { NetworkType, NetworkTypeT, BaseConfig, AddressOrIndex, FeeLevel, FeeLevelT, FeeRateType, FeeRateTypeT, FeeOptionCustom, FeeOptionLevel, FeeOption, CreateTransactionOptions, ResolvedFeeOption, BalanceResult, TransactionStatus, TransactionStatusT, TransactionCommon, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, Payport, BalanceActivityType, BalanceActivity, BalanceMonitorConfig, GetBalanceActivityOptions, BalanceActivityCallback, createUnitConverters, BalanceMonitor };
 //# sourceMappingURL=index.es.js.map

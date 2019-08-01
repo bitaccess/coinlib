@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>@faast/payments-common | @faast/payments-common</title>
+	<title>BalanceMonitor | @faast/payments-common</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -879,7 +879,7 @@ img { max-width: 100%; }
 		<div class="container">
 			<div class="table-wrap">
 				<div class="table-cell">
-					<strong><a href="index.html">@faast/payments-common</a></strong>
+					<strong><a href="../index.html">@faast/payments-common</a></strong>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -907,622 +907,213 @@ img { max-width: 100%; }
 </header>
 <nav class="tsd-navigation secondary">
 	<ul>
-		<li class=" tsd-kind-enum">
-			<a href="enums/feelevel.html" class="tsd-kind-icon">Fee<wbr>Level</a>
-		</li>
-		<li class=" tsd-kind-enum">
-			<a href="enums/feeratetype.html" class="tsd-kind-icon">Fee<wbr>Rate<wbr>Type</a>
-		</li>
-		<li class=" tsd-kind-enum">
-			<a href="enums/networktype.html" class="tsd-kind-icon">Network<wbr>Type</a>
-		</li>
-		<li class=" tsd-kind-enum">
-			<a href="enums/transactionstatus.html" class="tsd-kind-icon">Transaction<wbr>Status</a>
-		</li>
-		<li class=" tsd-kind-class">
-			<a href="classes/balancemonitor.html" class="tsd-kind-icon">Balance<wbr>Monitor</a>
-		</li>
-		<li class=" tsd-kind-interface">
-			<a href="interfaces/addressvalidator.html" class="tsd-kind-icon">Address<wbr>Validator</a>
-		</li>
-		<li class=" tsd-kind-interface tsd-has-type-parameter">
-			<a href="interfaces/paymentsfactory.html" class="tsd-kind-icon">Payments<wbr>Factory</a>
-		</li>
-		<li class=" tsd-kind-interface tsd-has-type-parameter">
-			<a href="interfaces/paymentsinterface.html" class="tsd-kind-icon">Payments<wbr>Interface</a>
-		</li>
-		<li class=" tsd-kind-type-alias tsd-has-type-parameter">
-			<a href="globals.html#anypayments" class="tsd-kind-icon">Any<wbr>Payments</a>
-		</li>
-		<li class=" tsd-kind-type-alias">
-			<a href="globals.html#balanceactivitycallback" class="tsd-kind-icon">Balance<wbr>Activity<wbr>Callback</a>
-		</li>
-		<li class=" tsd-kind-type-alias">
-			<a href="globals.html#fromto" class="tsd-kind-icon">From<wbr>To</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#addressorindex" class="tsd-kind-icon">Address<wbr>OrIndex</a>
-		</li>
-		<li class=" tsd-kind-variable tsd-is-not-exported">
-			<a href="globals.html#base_bignumber" class="tsd-kind-icon">BASE_<wbr>BIGNUMBER</a>
-		</li>
-		<li class=" tsd-kind-variable tsd-is-not-exported">
-			<a href="globals.html#base_number" class="tsd-kind-icon">BASE_<wbr>NUMBER</a>
-		</li>
-		<li class=" tsd-kind-variable tsd-is-not-exported">
-			<a href="globals.html#base_string" class="tsd-kind-icon">BASE_<wbr>STRING</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#balanceactivity" class="tsd-kind-icon">Balance<wbr>Activity</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#balanceactivitytype" class="tsd-kind-icon">Balance<wbr>Activity<wbr>Type</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#balancemonitorconfig" class="tsd-kind-icon">Balance<wbr>Monitor<wbr>Config</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#balanceresult" class="tsd-kind-icon">Balance<wbr>Result</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#basebroadcastresult" class="tsd-kind-icon">Base<wbr>Broadcast<wbr>Result</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#baseconfig" class="tsd-kind-icon">Base<wbr>Config</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#basesignedtransaction" class="tsd-kind-icon">Base<wbr>Signed<wbr>Transaction</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#basetransactioninfo" class="tsd-kind-icon">Base<wbr>Transaction<wbr>Info</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#baseunsignedtransaction" class="tsd-kind-icon">Base<wbr>Unsigned<wbr>Transaction</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#createtransactionoptions" class="tsd-kind-icon">Create<wbr>Transaction<wbr>Options</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#feelevelt" class="tsd-kind-icon">Fee<wbr>LevelT</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#feeoption" class="tsd-kind-icon">Fee<wbr>Option</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#feeoptioncustom" class="tsd-kind-icon">Fee<wbr>Option<wbr>Custom</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#feeoptionlevel" class="tsd-kind-icon">Fee<wbr>Option<wbr>Level</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#feeratetypet" class="tsd-kind-icon">Fee<wbr>Rate<wbr>TypeT</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#getbalanceactivityoptions" class="tsd-kind-icon">Get<wbr>Balance<wbr>Activity<wbr>Options</a>
-		</li>
-		<li class=" tsd-kind-variable tsd-is-not-exported">
-			<a href="globals.html#main_bignumber" class="tsd-kind-icon">MAIN_<wbr>BIGNUMBER</a>
-		</li>
-		<li class=" tsd-kind-variable tsd-is-not-exported">
-			<a href="globals.html#main_number" class="tsd-kind-icon">MAIN_<wbr>NUMBER</a>
-		</li>
-		<li class=" tsd-kind-variable tsd-is-not-exported">
-			<a href="globals.html#main_string" class="tsd-kind-icon">MAIN_<wbr>STRING</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#networktypet" class="tsd-kind-icon">Network<wbr>TypeT</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#payport" class="tsd-kind-icon">Payport</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#resolvedfeeoption" class="tsd-kind-icon">Resolved<wbr>Fee<wbr>Option</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#transactioncommon" class="tsd-kind-icon">Transaction<wbr>Common</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="globals.html#transactionstatust" class="tsd-kind-icon">Transaction<wbr>StatusT</a>
-		</li>
-		<li class=" tsd-kind-variable tsd-is-not-exported">
-			<a href="globals.html#unsignedcommon" class="tsd-kind-icon">Unsigned<wbr>Common</a>
-		</li>
-		<li class=" tsd-kind-function">
-			<a href="globals.html#createunitconverters" class="tsd-kind-icon">create<wbr>Unit<wbr>Converters</a>
+		<li class="current tsd-kind-class">
+			<a href="balancemonitor.html" class="tsd-kind-icon">Balance<wbr>Monitor</a>
+			<ul>
+				<li class=" tsd-kind-constructor tsd-parent-kind-class">
+					<a href="balancemonitor.html#constructor" class="tsd-kind-icon">constructor</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-class">
+					<a href="balancemonitor.html#logger" class="tsd-kind-icon">logger</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-class">
+					<a href="balancemonitor.html#networktype" class="tsd-kind-icon">network<wbr>Type</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="balancemonitor.html#init" class="tsd-kind-icon">init</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="balancemonitor.html#onbalanceactivity" class="tsd-kind-icon">on<wbr>Balance<wbr>Activity</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="balancemonitor.html#retrievebalanceactivities" class="tsd-kind-icon">retrieve<wbr>Balance<wbr>Activities</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="balancemonitor.html#subscribeaddresses" class="tsd-kind-icon">subscribe<wbr>Addresses</a>
+				</li>
+			</ul>
 		</li>
 	</ul>
 </nav>
 <div class="container container-main">
 	<div class="content-wrap">
-		<div style="position:relative;"><a name="typedoc-main-index" class="tsd-anchor"></a></div>
+		<section class="tsd-panel tsd-hierarchy">
+			<h3>Hierarchy</h3>
+			<ul class="tsd-hierarchy">
+				<li>
+					<span class="target">BalanceMonitor</span>
+				</li>
+			</ul>
+		</section>
 		<section class="tsd-panel-group tsd-index-group">
 			<h2>Index</h2>
 			<section class="tsd-panel tsd-index-panel">
 				<div class="tsd-index-content">
 					<section class="tsd-index-section ">
-						<h3>Enumerations</h3>
+						<h3>Constructors</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-enum"><a href="enums/feelevel.html" class="tsd-kind-icon">Fee<wbr>Level</a></li>
-							<li class="tsd-kind-enum"><a href="enums/feeratetype.html" class="tsd-kind-icon">Fee<wbr>Rate<wbr>Type</a></li>
-							<li class="tsd-kind-enum"><a href="enums/networktype.html" class="tsd-kind-icon">Network<wbr>Type</a></li>
-							<li class="tsd-kind-enum"><a href="enums/transactionstatus.html" class="tsd-kind-icon">Transaction<wbr>Status</a></li>
+							<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="balancemonitor.html#constructor" class="tsd-kind-icon">constructor</a></li>
 						</ul>
 					</section>
 					<section class="tsd-index-section ">
-						<h3>Classes</h3>
+						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-class"><a href="classes/balancemonitor.html" class="tsd-kind-icon">Balance<wbr>Monitor</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class"><a href="balancemonitor.html#logger" class="tsd-kind-icon">logger</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class"><a href="balancemonitor.html#networktype" class="tsd-kind-icon">network<wbr>Type</a></li>
 						</ul>
 					</section>
 					<section class="tsd-index-section ">
-						<h3>Interfaces</h3>
+						<h3>Methods</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-interface"><a href="interfaces/addressvalidator.html" class="tsd-kind-icon">Address<wbr>Validator</a></li>
-							<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/paymentsfactory.html" class="tsd-kind-icon">Payments<wbr>Factory</a></li>
-							<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/paymentsinterface.html" class="tsd-kind-icon">Payments<wbr>Interface</a></li>
-						</ul>
-					</section>
-					<section class="tsd-index-section ">
-						<h3>Type aliases</h3>
-						<ul class="tsd-index-list">
-							<li class="tsd-kind-type-alias tsd-has-type-parameter"><a href="globals.html#anypayments" class="tsd-kind-icon">Any<wbr>Payments</a></li>
-							<li class="tsd-kind-type-alias"><a href="globals.html#balanceactivitycallback" class="tsd-kind-icon">Balance<wbr>Activity<wbr>Callback</a></li>
-							<li class="tsd-kind-type-alias"><a href="globals.html#fromto" class="tsd-kind-icon">From<wbr>To</a></li>
-						</ul>
-					</section>
-					<section class="tsd-index-section ">
-						<h3>Variables</h3>
-						<ul class="tsd-index-list">
-							<li class="tsd-kind-variable"><a href="globals.html#addressorindex" class="tsd-kind-icon">Address<wbr>OrIndex</a></li>
-							<li class="tsd-kind-variable tsd-is-not-exported"><a href="globals.html#base_bignumber" class="tsd-kind-icon">BASE_<wbr>BIGNUMBER</a></li>
-							<li class="tsd-kind-variable tsd-is-not-exported"><a href="globals.html#base_number" class="tsd-kind-icon">BASE_<wbr>NUMBER</a></li>
-							<li class="tsd-kind-variable tsd-is-not-exported"><a href="globals.html#base_string" class="tsd-kind-icon">BASE_<wbr>STRING</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#balanceactivity" class="tsd-kind-icon">Balance<wbr>Activity</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#balanceactivitytype" class="tsd-kind-icon">Balance<wbr>Activity<wbr>Type</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#balancemonitorconfig" class="tsd-kind-icon">Balance<wbr>Monitor<wbr>Config</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#balanceresult" class="tsd-kind-icon">Balance<wbr>Result</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#basebroadcastresult" class="tsd-kind-icon">Base<wbr>Broadcast<wbr>Result</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#baseconfig" class="tsd-kind-icon">Base<wbr>Config</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#basesignedtransaction" class="tsd-kind-icon">Base<wbr>Signed<wbr>Transaction</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#basetransactioninfo" class="tsd-kind-icon">Base<wbr>Transaction<wbr>Info</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#baseunsignedtransaction" class="tsd-kind-icon">Base<wbr>Unsigned<wbr>Transaction</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#createtransactionoptions" class="tsd-kind-icon">Create<wbr>Transaction<wbr>Options</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#feelevelt" class="tsd-kind-icon">Fee<wbr>LevelT</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#feeoption" class="tsd-kind-icon">Fee<wbr>Option</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#feeoptioncustom" class="tsd-kind-icon">Fee<wbr>Option<wbr>Custom</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#feeoptionlevel" class="tsd-kind-icon">Fee<wbr>Option<wbr>Level</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#feeratetypet" class="tsd-kind-icon">Fee<wbr>Rate<wbr>TypeT</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#getbalanceactivityoptions" class="tsd-kind-icon">Get<wbr>Balance<wbr>Activity<wbr>Options</a></li>
-							<li class="tsd-kind-variable tsd-is-not-exported"><a href="globals.html#main_bignumber" class="tsd-kind-icon">MAIN_<wbr>BIGNUMBER</a></li>
-							<li class="tsd-kind-variable tsd-is-not-exported"><a href="globals.html#main_number" class="tsd-kind-icon">MAIN_<wbr>NUMBER</a></li>
-							<li class="tsd-kind-variable tsd-is-not-exported"><a href="globals.html#main_string" class="tsd-kind-icon">MAIN_<wbr>STRING</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#networktypet" class="tsd-kind-icon">Network<wbr>TypeT</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#payport" class="tsd-kind-icon">Payport</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#resolvedfeeoption" class="tsd-kind-icon">Resolved<wbr>Fee<wbr>Option</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#transactioncommon" class="tsd-kind-icon">Transaction<wbr>Common</a></li>
-							<li class="tsd-kind-variable"><a href="globals.html#transactionstatust" class="tsd-kind-icon">Transaction<wbr>StatusT</a></li>
-							<li class="tsd-kind-variable tsd-is-not-exported"><a href="globals.html#unsignedcommon" class="tsd-kind-icon">Unsigned<wbr>Common</a></li>
-						</ul>
-					</section>
-					<section class="tsd-index-section ">
-						<h3>Functions</h3>
-						<ul class="tsd-index-list">
-							<li class="tsd-kind-function"><a href="globals.html#createunitconverters" class="tsd-kind-icon">create<wbr>Unit<wbr>Converters</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="balancemonitor.html#init" class="tsd-kind-icon">init</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="balancemonitor.html#onbalanceactivity" class="tsd-kind-icon">on<wbr>Balance<wbr>Activity</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="balancemonitor.html#retrievebalanceactivities" class="tsd-kind-icon">retrieve<wbr>Balance<wbr>Activities</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="balancemonitor.html#subscribeaddresses" class="tsd-kind-icon">subscribe<wbr>Addresses</a></li>
 						</ul>
 					</section>
 				</div>
 			</section>
 		</section>
 		<section class="tsd-panel-group tsd-member-group ">
-			<h2>Type aliases</h2>
-			<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-has-type-parameter">
-				<a name="anypayments" class="tsd-anchor"></a>
-				<h3>Any<wbr>Payments</h3>
-				<div class="tsd-signature tsd-kind-icon">Any<wbr>Payments<span class="tsd-signature-symbol">:</span> <a href="interfaces/paymentsinterface.html" class="tsd-signature-type">PaymentsInterface</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">C</span><span class="tsd-signature-symbol">, </span><a href="globals.html#baseunsignedtransaction" class="tsd-signature-type">BaseUnsignedTransaction</a><span class="tsd-signature-symbol">, </span><a href="globals.html#basesignedtransaction" class="tsd-signature-type">BaseSignedTransaction</a><span class="tsd-signature-symbol">, </span><a href="globals.html#basebroadcastresult" class="tsd-signature-type">BaseBroadcastResult</a><span class="tsd-signature-symbol">, </span><a href="globals.html#basetransactioninfo" class="tsd-signature-type">BaseTransactionInfo</a><span class="tsd-signature-symbol">&gt;</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L16">src/PaymentsInterface.ts:16</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-type-alias">
-				<a name="balanceactivitycallback" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Balance<wbr>Activity<wbr>Callback</h3>
-				<div class="tsd-signature tsd-kind-icon">Balance<wbr>Activity<wbr>Callback<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span><span class="tsd-signature-symbol"> =&nbsp;functionT&lt;BalanceActivityCallback&gt;(&#x27;BalanceActivityCallback&#x27;)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L227">src/types.ts:227</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L228">src/types.ts:228</a></li>
-					</ul>
-				</aside>
-				<div class="tsd-type-declaration">
-					<h4>Type declaration</h4>
-					<ul class="tsd-parameters">
-						<li class="tsd-parameter-siganture">
-							<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-alias tsd-is-not-exported">
-								<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>ba<span class="tsd-signature-symbol">: </span><a href="globals.html#balanceactivity" class="tsd-signature-type">BalanceActivity</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">void</span></li>
-							</ul>
-							<ul class="tsd-descriptions">
-								<li class="tsd-description">
-									<h4 class="tsd-parameters-title">Parameters</h4>
-									<ul class="tsd-parameters">
-										<li>
-											<h5>ba: <a href="globals.html#balanceactivity" class="tsd-signature-type">BalanceActivity</a></h5>
-										</li>
-									</ul>
-									<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span>
-										<span class="tsd-signature-symbol"> | </span>
-										<span class="tsd-signature-type">void</span>
-									</h4>
-								</li>
-							</ul>
-						</li>
-					</ul>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-type-alias">
-				<a name="fromto" class="tsd-anchor"></a>
-				<h3>From<wbr>To</h3>
-				<div class="tsd-signature tsd-kind-icon">From<wbr>To<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Pick</span><span class="tsd-signature-symbol">&lt;</span><a href="globals.html#baseunsignedtransaction" class="tsd-signature-type">BaseUnsignedTransaction</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">"fromAddress"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"fromIndex"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"fromExtraId"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"toAddress"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"toIndex"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"toExtraId"</span><span class="tsd-signature-symbol">&gt;</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L121">src/types.ts:121</a></li>
-					</ul>
-				</aside>
-			</section>
-		</section>
-		<section class="tsd-panel-group tsd-member-group ">
-			<h2>Variables</h2>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="addressorindex" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Address<wbr>OrIndex</h3>
-				<div class="tsd-signature tsd-kind-icon">Address<wbr>OrIndex<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">UnionC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;t.union([t.string, t.number], &#x27;AddressOrIndex&#x27;)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L18">src/types.ts:18</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L19">src/types.ts:19</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable tsd-is-not-exported">
-				<a name="base_bignumber" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> BASE_<wbr>BIGNUMBER</h3>
-				<div class="tsd-signature tsd-kind-icon">BASE_<wbr>BIGNUMBER<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">BigNumber</span><span class="tsd-signature-symbol"> =&nbsp;new BigNumber(BASE_STRING)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/test/utils.test.ts#L10">test/utils.test.ts:10</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable tsd-is-not-exported">
-				<a name="base_number" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> BASE_<wbr>NUMBER</h3>
-				<div class="tsd-signature tsd-kind-icon">BASE_<wbr>NUMBER<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">123456712345670</span><span class="tsd-signature-symbol"> =&nbsp;123456712345670</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/test/utils.test.ts#L9">test/utils.test.ts:9</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable tsd-is-not-exported">
-				<a name="base_string" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> BASE_<wbr>STRING</h3>
-				<div class="tsd-signature tsd-kind-icon">BASE_<wbr>STRING<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"123456712345670"</span><span class="tsd-signature-symbol"> =&nbsp;&quot;123456712345670&quot;</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/test/utils.test.ts#L8">test/utils.test.ts:8</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="balanceactivity" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Balance<wbr>Activity</h3>
-				<div class="tsd-signature tsd-kind-icon">Balance<wbr>Activity<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TypeC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;t.type({type: BalanceActivityType,networkType: NetworkTypeT,networkSymbol: t.string,assetSymbol: t.string,address: t.string,extraId: nullable(t.string),amount: t.string,externalId: t.string,activitySequence: t.string,confirmationId: t.string,confirmationNumber: t.number,timestamp: DateT,},&#x27;BalanceActivity&#x27;,)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L188">src/types.ts:188</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L205">src/types.ts:205</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="balanceactivitytype" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Balance<wbr>Activity<wbr>Type</h3>
-				<div class="tsd-signature tsd-kind-icon">Balance<wbr>Activity<wbr>Type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">UnionC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;t.union([t.literal(&#x27;in&#x27;), t.literal(&#x27;out&#x27;)], &#x27;BalanceActivityType&#x27;)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L185">src/types.ts:185</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L186">src/types.ts:186</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="balancemonitorconfig" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Balance<wbr>Monitor<wbr>Config</h3>
-				<div class="tsd-signature tsd-kind-icon">Balance<wbr>Monitor<wbr>Config<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">IntersectionC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;requiredOptionalCodec({network: NetworkTypeT,},{logger: Logger,},&#x27;BalanceMonitorConfig&#x27;,)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L207">src/types.ts:207</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L216">src/types.ts:216</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="balanceresult" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Balance<wbr>Result</h3>
-				<div class="tsd-signature tsd-kind-icon">Balance<wbr>Result<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TypeC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;t.type({confirmedBalance: t.string, // balance with at least 1 confirmationunconfirmedBalance: t.string, // balance that is pending confirmationsweepable: t.boolean, // balance is high enough to be swept},&#x27;BalanceResult&#x27;,)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L69">src/types.ts:69</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L77">src/types.ts:77</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="basebroadcastresult" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Base<wbr>Broadcast<wbr>Result</h3>
-				<div class="tsd-signature tsd-kind-icon">Base<wbr>Broadcast<wbr>Result<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TypeC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;t.type({id: t.string,},&#x27;BaseBroadcastResult&#x27;,)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L166">src/types.ts:166</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L172">src/types.ts:172</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="baseconfig" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Base<wbr>Config</h3>
-				<div class="tsd-signature tsd-kind-icon">Base<wbr>Config<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">PartialC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;t.partial({network: NetworkTypeT,},&#x27;BaseConfig&#x27;,)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L10">src/types.ts:10</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L16">src/types.ts:16</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="basesignedtransaction" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Base<wbr>Signed<wbr>Transaction</h3>
-				<div class="tsd-signature tsd-kind-icon">Base<wbr>Signed<wbr>Transaction<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">IntersectionC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;extendCodec(UnsignedCommon,{status: t.literal(&#x27;signed&#x27;),id: t.string,amount: t.string,fee: t.string,data: t.object,},&#x27;BaseSignedTransaction&#x27;,)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L136">src/types.ts:136</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L147">src/types.ts:147</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="basetransactioninfo" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Base<wbr>Transaction<wbr>Info</h3>
-				<div class="tsd-signature tsd-kind-icon">Base<wbr>Transaction<wbr>Info<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">IntersectionC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;extendCodec(TransactionCommon,{id: t.string,amount: t.string,fee: t.string,isExecuted: t.boolean, // true if transaction didn&#x27;t fail (eg TRX/ETH contract succeeded)isConfirmed: t.boolean,confirmations: t.number, // 0 if not confirmedconfirmationId: nullable(t.string), // eg block number or hash. null if not confirmedconfirmationTimestamp: nullable(DateT), // block timestamp. null if timestamp unavailable or unconfirmeddata: t.object,},&#x27;BaseTransactionInfo&#x27;,)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L149">src/types.ts:149</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L164">src/types.ts:164</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="baseunsignedtransaction" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Base<wbr>Unsigned<wbr>Transaction</h3>
-				<div class="tsd-signature tsd-kind-icon">Base<wbr>Unsigned<wbr>Transaction<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">IntersectionC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;extendCodec(UnsignedCommon,{status: t.literal(&#x27;unsigned&#x27;),data: t.object,},&#x27;BaseUnsignedTransaction&#x27;,)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L126">src/types.ts:126</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L134">src/types.ts:134</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="createtransactionoptions" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Create<wbr>Transaction<wbr>Options</h3>
-				<div class="tsd-signature tsd-kind-icon">Create<wbr>Transaction<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">UnionC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;FeeOption</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L57">src/types.ts:57</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L58">src/types.ts:58</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="feelevelt" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Fee<wbr>LevelT</h3>
-				<div class="tsd-signature tsd-kind-icon">Fee<wbr>LevelT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Type</span><span class="tsd-signature-symbol">&lt;</span><a href="enums/feelevel.html" class="tsd-signature-type">FeeLevel</a><span class="tsd-signature-symbol">, </span><a href="enums/feelevel.html" class="tsd-signature-type">FeeLevel</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;enumCodec&lt;FeeLevel&gt;(FeeLevel, &#x27;FeeLevel&#x27;)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L27">src/types.ts:27</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="feeoption" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Fee<wbr>Option</h3>
-				<div class="tsd-signature tsd-kind-icon">Fee<wbr>Option<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">UnionC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;t.union([FeeOptionCustom, FeeOptionLevel], &#x27;FeeOption&#x27;)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L54">src/types.ts:54</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L55">src/types.ts:55</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="feeoptioncustom" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Fee<wbr>Option<wbr>Custom</h3>
-				<div class="tsd-signature tsd-kind-icon">Fee<wbr>Option<wbr>Custom<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">IntersectionC</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">TypeC</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">PartialC</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;requiredOptionalCodec({feeRate: t.string,feeRateType: FeeRateTypeT,},{feeLevel: t.literal(FeeLevel.Custom),},&#x27;FeeOptionCustom&#x27;,)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L36">src/types.ts:36</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="feeoptionlevel" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Fee<wbr>Option<wbr>Level</h3>
-				<div class="tsd-signature tsd-kind-icon">Fee<wbr>Option<wbr>Level<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">TypeC</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;t.type({feeLevel: t.union([t.literal(FeeLevel.High), t.literal(FeeLevel.Medium), t.literal(FeeLevel.Low)]),},&#x27;FeeOptionLevel&#x27;,)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L47">src/types.ts:47</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="feeratetypet" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Fee<wbr>Rate<wbr>TypeT</h3>
-				<div class="tsd-signature tsd-kind-icon">Fee<wbr>Rate<wbr>TypeT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Type</span><span class="tsd-signature-symbol">&lt;</span><a href="enums/feeratetype.html" class="tsd-signature-type">FeeRateType</a><span class="tsd-signature-symbol">, </span><a href="enums/feeratetype.html" class="tsd-signature-type">FeeRateType</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;enumCodec&lt;FeeRateType&gt;(FeeRateType, &#x27;FeeRateType&#x27;)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L34">src/types.ts:34</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="getbalanceactivityoptions" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Get<wbr>Balance<wbr>Activity<wbr>Options</h3>
-				<div class="tsd-signature tsd-kind-icon">Get<wbr>Balance<wbr>Activity<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">PartialC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;t.partial({from: BalanceActivity,to: BalanceActivity,},&#x27;GetBalanceActivityOptions&#x27;,)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L218">src/types.ts:218</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L225">src/types.ts:225</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable tsd-is-not-exported">
-				<a name="main_bignumber" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> MAIN_<wbr>BIGNUMBER</h3>
-				<div class="tsd-signature tsd-kind-icon">MAIN_<wbr>BIGNUMBER<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">BigNumber</span><span class="tsd-signature-symbol"> =&nbsp;new BigNumber(MAIN_STRING)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/test/utils.test.ts#L6">test/utils.test.ts:6</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable tsd-is-not-exported">
-				<a name="main_number" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> MAIN_<wbr>NUMBER</h3>
-				<div class="tsd-signature tsd-kind-icon">MAIN_<wbr>NUMBER<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">1234567.1234567</span><span class="tsd-signature-symbol"> =&nbsp;1234567.1234567</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/test/utils.test.ts#L5">test/utils.test.ts:5</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable tsd-is-not-exported">
-				<a name="main_string" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> MAIN_<wbr>STRING</h3>
-				<div class="tsd-signature tsd-kind-icon">MAIN_<wbr>STRING<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"1234567.1234567"</span><span class="tsd-signature-symbol"> =&nbsp;&quot;1234567.1234567&quot;</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/test/utils.test.ts#L4">test/utils.test.ts:4</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="networktypet" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Network<wbr>TypeT</h3>
-				<div class="tsd-signature tsd-kind-icon">Network<wbr>TypeT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Type</span><span class="tsd-signature-symbol">&lt;</span><a href="enums/networktype.html" class="tsd-signature-type">NetworkType</a><span class="tsd-signature-symbol">, </span><a href="enums/networktype.html" class="tsd-signature-type">NetworkType</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;enumCodec&lt;NetworkType&gt;(NetworkType, &#x27;NetworkType&#x27;)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L8">src/types.ts:8</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="payport" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Payport</h3>
-				<div class="tsd-signature tsd-kind-icon">Payport<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">IntersectionC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;requiredOptionalCodec({address: t.string,},{extraId: nullable(t.string),},&#x27;Payport&#x27;,)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L174">src/types.ts:174</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L183">src/types.ts:183</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="resolvedfeeoption" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Resolved<wbr>Fee<wbr>Option</h3>
-				<div class="tsd-signature tsd-kind-icon">Resolved<wbr>Fee<wbr>Option<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TypeC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;t.type({targetFeeLevel: FeeLevelT,targetFeeRate: t.string,targetFeeRateType: FeeRateTypeT,feeBase: t.string,feeMain: t.string,})</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L60">src/types.ts:60</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L67">src/types.ts:67</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="transactioncommon" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Transaction<wbr>Common</h3>
-				<div class="tsd-signature tsd-kind-icon">Transaction<wbr>Common<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">IntersectionC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;requiredOptionalCodec({id: nullable(t.string), // network txidfromAddress: nullable(t.string), // sender addresstoAddress: nullable(t.string), // recipient addressfromIndex: nullable(t.number), // sender address indextoIndex: nullable(t.number), // recipient address index, null if not oursamount: nullable(t.string), // main denomination (eg &quot;0.125&quot;)fee: nullable(t.string), // total fee in main denominationstatus: TransactionStatusT,},{fromExtraId: nullable(t.string), // eg ripple sender tagtoExtraId: nullable(t.string), // eg Monero payment ID or ripple destination tag},&#x27;TransactionCommon&#x27;,)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L88">src/types.ts:88</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L105">src/types.ts:105</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable">
-				<a name="transactionstatust" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Transaction<wbr>StatusT</h3>
-				<div class="tsd-signature tsd-kind-icon">Transaction<wbr>StatusT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Type</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;enumCodec(TransactionStatus, &#x27;TransactionStatus&#x27;)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L86">src/types.ts:86</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-variable tsd-is-not-exported">
-				<a name="unsignedcommon" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Unsigned<wbr>Common</h3>
-				<div class="tsd-signature tsd-kind-icon">Unsigned<wbr>Common<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">t.TypeOf</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">IntersectionC</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;extendCodec(TransactionCommon,{fromAddress: t.string,toAddress: t.string,fromIndex: t.number,targetFeeLevel: FeeLevelT,targetFeeRate: nullable(t.string),targetFeeRateType: nullable(FeeRateTypeT),},&#x27;UnsignedCommon&#x27;,)</span></div>
-				<aside class="tsd-sources">
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L107">src/types.ts:107</a></li>
-						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/types.ts#L119">src/types.ts:119</a></li>
-					</ul>
-				</aside>
-			</section>
-		</section>
-		<section class="tsd-panel-group tsd-member-group ">
-			<h2>Functions</h2>
-			<section class="tsd-panel tsd-member tsd-kind-function">
-				<a name="createunitconverters" class="tsd-anchor"></a>
-				<h3>create<wbr>Unit<wbr>Converters</h3>
-				<ul class="tsd-signatures tsd-kind-function">
-					<li class="tsd-signature tsd-kind-icon">create<wbr>Unit<wbr>Converters<span class="tsd-signature-symbol">(</span>decimals<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></li>
+			<h2>Constructors</h2>
+			<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
+				<a name="constructor" class="tsd-anchor"></a>
+				<h3>constructor</h3>
+				<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">new <wbr>Balance<wbr>Monitor<span class="tsd-signature-symbol">(</span>config<span class="tsd-signature-symbol">: </span><a href="../globals.html#balancemonitorconfig" class="tsd-signature-type">BalanceMonitorConfig</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="balancemonitor.html" class="tsd-signature-type">BalanceMonitor</a></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/utils.ts#L4">src/utils.ts:4</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/BalanceTracker.ts#L7">src/BalanceTracker.ts:7</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>decimals: <span class="tsd-signature-type">number</span></h5>
+								<h5>config: <a href="../globals.html#balancemonitorconfig" class="tsd-signature-type">BalanceMonitorConfig</a></h5>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">object</span></h4>
+						<h4 class="tsd-returns-title">Returns <a href="balancemonitor.html" class="tsd-signature-type">BalanceMonitor</a></h4>
+					</li>
+				</ul>
+			</section>
+		</section>
+		<section class="tsd-panel-group tsd-member-group ">
+			<h2>Properties</h2>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+				<a name="logger" class="tsd-anchor"></a>
+				<h3>logger</h3>
+				<div class="tsd-signature tsd-kind-icon">logger<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Logger</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/BalanceTracker.ts#L7">src/BalanceTracker.ts:7</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+				<a name="networktype" class="tsd-anchor"></a>
+				<h3>network<wbr>Type</h3>
+				<div class="tsd-signature tsd-kind-icon">network<wbr>Type<span class="tsd-signature-symbol">:</span> <a href="../enums/networktype.html" class="tsd-signature-type">NetworkType</a></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/BalanceTracker.ts#L6">src/BalanceTracker.ts:6</a></li>
+					</ul>
+				</aside>
+			</section>
+		</section>
+		<section class="tsd-panel-group tsd-member-group ">
+			<h2>Methods</h2>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="init" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagAbstract">Abstract</span> init</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">init<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/BalanceTracker.ts#L14">src/BalanceTracker.ts:14</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="onbalanceactivity" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagAbstract">Abstract</span> on<wbr>Balance<wbr>Activity</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">on<wbr>Balance<wbr>Activity<span class="tsd-signature-symbol">(</span>callbackFn<span class="tsd-signature-symbol">: </span><a href="../globals.html#balanceactivitycallback" class="tsd-signature-type">BalanceActivityCallback</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/BalanceTracker.ts#L18">src/BalanceTracker.ts:18</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
-							<li class="tsd-parameter">
-								<h5>to<wbr>Base<wbr>Denomination<wbr>Big<wbr>Number<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">toBaseDenominationBigNumber</span></h5>
-							</li>
-							<li class="tsd-parameter">
-								<h5>to<wbr>Base<wbr>Denomination<wbr>Number<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">toBaseDenominationNumber</span></h5>
-							</li>
-							<li class="tsd-parameter">
-								<h5>to<wbr>Base<wbr>Denomination<wbr>String<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">toBaseDenominationString</span></h5>
-							</li>
-							<li class="tsd-parameter">
-								<h5>to<wbr>Main<wbr>Denomination<wbr>Big<wbr>Number<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">toMainDenominationBigNumber</span></h5>
-							</li>
-							<li class="tsd-parameter">
-								<h5>to<wbr>Main<wbr>Denomination<wbr>Number<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">toMainDenominationNumber</span></h5>
-							</li>
-							<li class="tsd-parameter">
-								<h5>to<wbr>Main<wbr>Denomination<wbr>String<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">toMainDenominationString</span></h5>
+							<li>
+								<h5>callbackFn: <a href="../globals.html#balanceactivitycallback" class="tsd-signature-type">BalanceActivityCallback</a></h5>
 							</li>
 						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="retrievebalanceactivities" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagAbstract">Abstract</span> retrieve<wbr>Balance<wbr>Activities</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">retrieve<wbr>Balance<wbr>Activities<span class="tsd-signature-symbol">(</span>address<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, callbackFn<span class="tsd-signature-symbol">: </span><a href="../globals.html#balanceactivitycallback" class="tsd-signature-type">BalanceActivityCallback</a>, options<span class="tsd-signature-symbol">?: </span><a href="../globals.html#getbalanceactivityoptions" class="tsd-signature-type">GetBalanceActivityOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/BalanceTracker.ts#L20">src/BalanceTracker.ts:20</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>address: <span class="tsd-signature-type">string</span></h5>
+							</li>
+							<li>
+								<h5>callbackFn: <a href="../globals.html#balanceactivitycallback" class="tsd-signature-type">BalanceActivityCallback</a></h5>
+							</li>
+							<li>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="../globals.html#getbalanceactivityoptions" class="tsd-signature-type">GetBalanceActivityOptions</a></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="subscribeaddresses" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagAbstract">Abstract</span> subscribe<wbr>Addresses</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">subscribe<wbr>Addresses<span class="tsd-signature-symbol">(</span>addresses<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/BalanceTracker.ts#L16">src/BalanceTracker.ts:16</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>addresses: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 					</li>
 				</ul>
 			</section>

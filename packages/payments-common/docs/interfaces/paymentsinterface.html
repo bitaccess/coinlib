@@ -907,24 +907,6 @@ img { max-width: 100%; }
 </header>
 <nav class="tsd-navigation secondary">
 	<ul>
-		<li class=" tsd-kind-enum">
-			<a href="../enums/feelevel.html" class="tsd-kind-icon">Fee<wbr>Level</a>
-		</li>
-		<li class=" tsd-kind-enum">
-			<a href="../enums/feeratetype.html" class="tsd-kind-icon">Fee<wbr>Rate<wbr>Type</a>
-		</li>
-		<li class=" tsd-kind-enum">
-			<a href="../enums/networktype.html" class="tsd-kind-icon">Network<wbr>Type</a>
-		</li>
-		<li class=" tsd-kind-enum">
-			<a href="../enums/transactionstatus.html" class="tsd-kind-icon">Transaction<wbr>Status</a>
-		</li>
-		<li class=" tsd-kind-interface">
-			<a href="addressvalidator.html" class="tsd-kind-icon">Address<wbr>Validator</a>
-		</li>
-		<li class=" tsd-kind-interface tsd-has-type-parameter">
-			<a href="paymentsfactory.html" class="tsd-kind-icon">Payments<wbr>Factory</a>
-		</li>
 		<li class="current tsd-kind-interface tsd-has-type-parameter">
 			<a href="paymentsinterface.html" class="tsd-kind-icon">Payments<wbr>Interface</a>
 			<ul>
@@ -944,22 +926,13 @@ img { max-width: 100%; }
 					<a href="paymentsinterface.html#getaccountids" class="tsd-kind-icon">get<wbr>Account<wbr>Ids</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<a href="paymentsinterface.html#getaddress" class="tsd-kind-icon">get<wbr>Address</a>
-				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<a href="paymentsinterface.html#getaddressindex" class="tsd-kind-icon">get<wbr>Address<wbr>Index</a>
-				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<a href="paymentsinterface.html#getaddressindexornull" class="tsd-kind-icon">get<wbr>Address<wbr>Index<wbr>OrNull</a>
-				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<a href="paymentsinterface.html#getaddressornull" class="tsd-kind-icon">get<wbr>Address<wbr>OrNull</a>
-				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
 					<a href="paymentsinterface.html#getbalance" class="tsd-kind-icon">get<wbr>Balance</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-interface">
 					<a href="paymentsinterface.html#getfullconfig" class="tsd-kind-icon">get<wbr>Full<wbr>Config</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
+					<a href="paymentsinterface.html#getpayport" class="tsd-kind-icon">get<wbr>Payport</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-interface">
 					<a href="paymentsinterface.html#getpublicconfig" class="tsd-kind-icon">get<wbr>Public<wbr>Config</a>
@@ -968,16 +941,19 @@ img { max-width: 100%; }
 					<a href="paymentsinterface.html#gettransactioninfo" class="tsd-kind-icon">get<wbr>Transaction<wbr>Info</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<a href="paymentsinterface.html#isvalidaddress" class="tsd-kind-icon">is<wbr>Valid<wbr>Address</a>
+					<a href="paymentsinterface.html#isvalidpayport" class="tsd-kind-icon">is<wbr>Valid<wbr>Payport</a>
 				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<a href="paymentsinterface.html#resolveaddress" class="tsd-kind-icon">resolve<wbr>Address</a>
+				<li class=" tsd-kind-method tsd-parent-kind-interface">
+					<a href="paymentsinterface.html#requiresbalancetracker" class="tsd-kind-icon">requires<wbr>Balance<wbr>Tracker</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
 					<a href="paymentsinterface.html#resolvefeeoption" class="tsd-kind-icon">resolve<wbr>Fee<wbr>Option</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
 					<a href="paymentsinterface.html#resolvefromto" class="tsd-kind-icon">resolve<wbr>From<wbr>To</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
+					<a href="paymentsinterface.html#resolvepayport" class="tsd-kind-icon">resolve<wbr>Payport</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
 					<a href="paymentsinterface.html#signtransaction" class="tsd-kind-icon">sign<wbr>Transaction</a>
@@ -989,84 +965,6 @@ img { max-width: 100%; }
 					<a href="paymentsinterface.html#tomaindenomination" class="tsd-kind-icon">to<wbr>Main<wbr>Denomination</a>
 				</li>
 			</ul>
-		</li>
-		<li class=" tsd-kind-type-alias tsd-has-type-parameter">
-			<a href="../globals.html#anypayments" class="tsd-kind-icon">Any<wbr>Payments</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="../globals.html#addressorindex" class="tsd-kind-icon">Address<wbr>OrIndex</a>
-		</li>
-		<li class=" tsd-kind-variable tsd-is-not-exported">
-			<a href="../globals.html#base_bignumber" class="tsd-kind-icon">BASE_<wbr>BIGNUMBER</a>
-		</li>
-		<li class=" tsd-kind-variable tsd-is-not-exported">
-			<a href="../globals.html#base_number" class="tsd-kind-icon">BASE_<wbr>NUMBER</a>
-		</li>
-		<li class=" tsd-kind-variable tsd-is-not-exported">
-			<a href="../globals.html#base_string" class="tsd-kind-icon">BASE_<wbr>STRING</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="../globals.html#balanceresult" class="tsd-kind-icon">Balance<wbr>Result</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="../globals.html#basebroadcastresult" class="tsd-kind-icon">Base<wbr>Broadcast<wbr>Result</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="../globals.html#baseconfig" class="tsd-kind-icon">Base<wbr>Config</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="../globals.html#basesignedtransaction" class="tsd-kind-icon">Base<wbr>Signed<wbr>Transaction</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="../globals.html#basetransactioninfo" class="tsd-kind-icon">Base<wbr>Transaction<wbr>Info</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="../globals.html#baseunsignedtransaction" class="tsd-kind-icon">Base<wbr>Unsigned<wbr>Transaction</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="../globals.html#createtransactionoptions" class="tsd-kind-icon">Create<wbr>Transaction<wbr>Options</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="../globals.html#feelevelt" class="tsd-kind-icon">Fee<wbr>LevelT</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="../globals.html#feeoption" class="tsd-kind-icon">Fee<wbr>Option</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="../globals.html#feeoptioncustom" class="tsd-kind-icon">Fee<wbr>Option<wbr>Custom</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="../globals.html#feeoptionlevel" class="tsd-kind-icon">Fee<wbr>Option<wbr>Level</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="../globals.html#feeratetypet" class="tsd-kind-icon">Fee<wbr>Rate<wbr>TypeT</a>
-		</li>
-		<li class=" tsd-kind-variable tsd-is-not-exported">
-			<a href="../globals.html#main_bignumber" class="tsd-kind-icon">MAIN_<wbr>BIGNUMBER</a>
-		</li>
-		<li class=" tsd-kind-variable tsd-is-not-exported">
-			<a href="../globals.html#main_number" class="tsd-kind-icon">MAIN_<wbr>NUMBER</a>
-		</li>
-		<li class=" tsd-kind-variable tsd-is-not-exported">
-			<a href="../globals.html#main_string" class="tsd-kind-icon">MAIN_<wbr>STRING</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="../globals.html#networktypet" class="tsd-kind-icon">Network<wbr>TypeT</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="../globals.html#resolvedfeeoption" class="tsd-kind-icon">Resolved<wbr>Fee<wbr>Option</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="../globals.html#transactioncommon" class="tsd-kind-icon">Transaction<wbr>Common</a>
-		</li>
-		<li class=" tsd-kind-variable">
-			<a href="../globals.html#transactionstatust" class="tsd-kind-icon">Transaction<wbr>StatusT</a>
-		</li>
-		<li class=" tsd-kind-variable tsd-is-not-exported">
-			<a href="../globals.html#unsignedcommon" class="tsd-kind-icon">Unsigned<wbr>Common</a>
-		</li>
-		<li class=" tsd-kind-function">
-			<a href="../globals.html#createunitconverters" class="tsd-kind-icon">create<wbr>Unit<wbr>Converters</a>
 		</li>
 	</ul>
 </nav>
@@ -1119,18 +1017,16 @@ img { max-width: 100%; }
 							<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="paymentsinterface.html#createtransaction" class="tsd-kind-icon">create<wbr>Transaction</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-interface"><a href="paymentsinterface.html#getaccountid" class="tsd-kind-icon">get<wbr>Account<wbr>Id</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-interface"><a href="paymentsinterface.html#getaccountids" class="tsd-kind-icon">get<wbr>Account<wbr>Ids</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="paymentsinterface.html#getaddress" class="tsd-kind-icon">get<wbr>Address</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="paymentsinterface.html#getaddressindex" class="tsd-kind-icon">get<wbr>Address<wbr>Index</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="paymentsinterface.html#getaddressindexornull" class="tsd-kind-icon">get<wbr>Address<wbr>Index<wbr>OrNull</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="paymentsinterface.html#getaddressornull" class="tsd-kind-icon">get<wbr>Address<wbr>OrNull</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="paymentsinterface.html#getbalance" class="tsd-kind-icon">get<wbr>Balance</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-interface"><a href="paymentsinterface.html#getfullconfig" class="tsd-kind-icon">get<wbr>Full<wbr>Config</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="paymentsinterface.html#getpayport" class="tsd-kind-icon">get<wbr>Payport</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-interface"><a href="paymentsinterface.html#getpublicconfig" class="tsd-kind-icon">get<wbr>Public<wbr>Config</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="paymentsinterface.html#gettransactioninfo" class="tsd-kind-icon">get<wbr>Transaction<wbr>Info</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="paymentsinterface.html#isvalidaddress" class="tsd-kind-icon">is<wbr>Valid<wbr>Address</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="paymentsinterface.html#resolveaddress" class="tsd-kind-icon">resolve<wbr>Address</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="paymentsinterface.html#isvalidpayport" class="tsd-kind-icon">is<wbr>Valid<wbr>Payport</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-interface"><a href="paymentsinterface.html#requiresbalancetracker" class="tsd-kind-icon">requires<wbr>Balance<wbr>Tracker</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="paymentsinterface.html#resolvefeeoption" class="tsd-kind-icon">resolve<wbr>Fee<wbr>Option</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="paymentsinterface.html#resolvefromto" class="tsd-kind-icon">resolve<wbr>From<wbr>To</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="paymentsinterface.html#resolvepayport" class="tsd-kind-icon">resolve<wbr>Payport</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="paymentsinterface.html#signtransaction" class="tsd-kind-icon">sign<wbr>Transaction</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="paymentsinterface.html#tobasedenomination" class="tsd-kind-icon">to<wbr>Base<wbr>Denomination</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter"><a href="paymentsinterface.html#tomaindenomination" class="tsd-kind-icon">to<wbr>Main<wbr>Denomination</a></li>
@@ -1151,7 +1047,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L177">src/PaymentsInterface.ts:177</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L163">src/PaymentsInterface.ts:163</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1188,18 +1084,18 @@ img { max-width: 100%; }
 				<a name="createsweeptransaction" class="tsd-anchor"></a>
 				<h3>create<wbr>Sweep<wbr>Transaction</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<li class="tsd-signature tsd-kind-icon">create<wbr>Sweep<wbr>Transaction&lt;O&gt;<span class="tsd-signature-symbol">(</span>from<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, to<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">UnsignedTransaction</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">create<wbr>Sweep<wbr>Transaction&lt;O&gt;<span class="tsd-signature-symbol">(</span>from<span class="tsd-signature-symbol">: </span><a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, to<span class="tsd-signature-symbol">: </span><a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">UnsignedTransaction</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L155">src/PaymentsInterface.ts:155</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L141">src/PaymentsInterface.ts:141</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Creates a new payment transaction sending the entire balance of address <code>from</code> to address <code>to</code>.</p>
+								<p>Creates a new payment transaction sending the entire balance of payport <code>from</code> to payport <code>to</code>.</p>
 							</div>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -1211,10 +1107,10 @@ img { max-width: 100%; }
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>from: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
+								<h5>from: <a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
 							</li>
 							<li>
-								<h5>to: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
+								<h5>to: <a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="" class="tsd-signature-type">O</a></h5>
@@ -1228,18 +1124,18 @@ img { max-width: 100%; }
 				<a name="createtransaction" class="tsd-anchor"></a>
 				<h3>create<wbr>Transaction</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<li class="tsd-signature tsd-kind-icon">create<wbr>Transaction&lt;O&gt;<span class="tsd-signature-symbol">(</span>from<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, to<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, amount<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">UnsignedTransaction</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">create<wbr>Transaction&lt;O&gt;<span class="tsd-signature-symbol">(</span>from<span class="tsd-signature-symbol">: </span><a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, to<span class="tsd-signature-symbol">: </span><a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, amount<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">UnsignedTransaction</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L145">src/PaymentsInterface.ts:145</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L131">src/PaymentsInterface.ts:131</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Creates and signs a new payment transaction sending <code>amount</code> from address <code>from</code> to address <code>to</code>.</p>
+								<p>Creates and signs a new payment transaction sending <code>amount</code> from payport <code>from</code> to payport <code>to</code>.</p>
 							</div>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -1251,15 +1147,15 @@ img { max-width: 100%; }
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>from: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
+								<h5>from: <a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
 								<div class="tsd-comment tsd-typography">
-									<p>The address to send from, or the address index.</p>
+									<p>The payport to send from, or the payport index.</p>
 								</div>
 							</li>
 							<li>
-								<h5>to: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
+								<h5>to: <a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
 								<div class="tsd-comment tsd-typography">
-									<p>The address of the recipient, or the address index.</p>
+									<p>The payport of the recipient, or the payport index.</p>
 								</div>
 							</li>
 							<li>
@@ -1287,12 +1183,12 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L88">src/PaymentsInterface.ts:88</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L82">src/PaymentsInterface.ts:82</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Return identifier for account configured at specific address <code>index</code> (an xpub or address works).</p>
+								<p>Return identifier for account used for payport at <code>index</code> (an xpub or address works).</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1300,7 +1196,7 @@ img { max-width: 100%; }
 							<li>
 								<h5>index: <span class="tsd-signature-type">number</span></h5>
 								<div class="tsd-comment tsd-typography">
-									<p>The index to get account ID for</p>
+									<p>The payport index to get account ID for</p>
 								</div>
 							</li>
 						</ul>
@@ -1318,7 +1214,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L81">src/PaymentsInterface.ts:81</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L75">src/PaymentsInterface.ts:75</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1331,181 +1227,21 @@ img { max-width: 100%; }
 				</ul>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-				<a name="getaddress" class="tsd-anchor"></a>
-				<h3>get<wbr>Address</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Address&lt;O&gt;<span class="tsd-signature-symbol">(</span>index<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L107">src/PaymentsInterface.ts:107</a></li>
-							</ul>
-						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Get the address for the specified index.</p>
-							</div>
-							<dl class="tsd-comment-tags">
-								<dt>throws</dt>
-								<dd><p>if index &lt; 0 or address cannot be returned for any reason</p>
-								</dd>
-							</dl>
-						</div>
-						<h4 class="tsd-type-parameters-title">Type parameters</h4>
-						<ul class="tsd-type-parameters">
-							<li>
-								<h4>O<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h4>
-							</li>
-						</ul>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>index: <span class="tsd-signature-type">number</span></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="" class="tsd-signature-type">O</a></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
-						<p>Promise resolving to the address at that index</p>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-				<a name="getaddressindex" class="tsd-anchor"></a>
-				<h3>get<wbr>Address<wbr>Index</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Address<wbr>Index&lt;O&gt;<span class="tsd-signature-symbol">(</span>address<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L96">src/PaymentsInterface.ts:96</a></li>
-							</ul>
-						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Get the index of the provided address.</p>
-							</div>
-							<dl class="tsd-comment-tags">
-								<dt>throws</dt>
-								<dd><p>if not a valid address or not owned by the wallet</p>
-								</dd>
-							</dl>
-						</div>
-						<h4 class="tsd-type-parameters-title">Type parameters</h4>
-						<ul class="tsd-type-parameters">
-							<li>
-								<h4>O<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h4>
-							</li>
-						</ul>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>address: <span class="tsd-signature-type">string</span></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="" class="tsd-signature-type">O</a></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4>
-						<p>Promise resolving to address index</p>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-				<a name="getaddressindexornull" class="tsd-anchor"></a>
-				<h3>get<wbr>Address<wbr>Index<wbr>OrNull</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Address<wbr>Index<wbr>OrNull&lt;O&gt;<span class="tsd-signature-symbol">(</span>address<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">&gt;</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L99">src/PaymentsInterface.ts:99</a></li>
-							</ul>
-						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Same as getAddressIndex but returns null instead of throwing</p>
-							</div>
-						</div>
-						<h4 class="tsd-type-parameters-title">Type parameters</h4>
-						<ul class="tsd-type-parameters">
-							<li>
-								<h4>O<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h4>
-							</li>
-						</ul>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>address: <span class="tsd-signature-type">string</span></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="" class="tsd-signature-type">O</a></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">&gt;</span></h4>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-				<a name="getaddressornull" class="tsd-anchor"></a>
-				<h3>get<wbr>Address<wbr>OrNull</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Address<wbr>OrNull&lt;O&gt;<span class="tsd-signature-symbol">(</span>index<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">&gt;</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L110">src/PaymentsInterface.ts:110</a></li>
-							</ul>
-						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Same as getAddress but returns null instead of throwing</p>
-							</div>
-						</div>
-						<h4 class="tsd-type-parameters-title">Type parameters</h4>
-						<ul class="tsd-type-parameters">
-							<li>
-								<h4>O<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h4>
-							</li>
-						</ul>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>index: <span class="tsd-signature-type">number</span></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="" class="tsd-signature-type">O</a></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">&gt;</span></h4>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
 				<a name="getbalance" class="tsd-anchor"></a>
 				<h3>get<wbr>Balance</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Balance&lt;O&gt;<span class="tsd-signature-symbol">(</span>addressOrIndex<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../globals.html#balanceresult" class="tsd-signature-type">BalanceResult</a><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">get<wbr>Balance&lt;O&gt;<span class="tsd-signature-symbol">(</span>payportOrIndex<span class="tsd-signature-symbol">: </span><a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../globals.html#balanceresult" class="tsd-signature-type">BalanceResult</a><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L118">src/PaymentsInterface.ts:118</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L104">src/PaymentsInterface.ts:104</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Get the balance of an address (or address at <code>index</code>).</p>
+								<p>Get the balance of a payport (or payport at <code>index</code>).</p>
 							</div>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -1517,9 +1253,9 @@ img { max-width: 100%; }
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>addressOrIndex: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
+								<h5>payportOrIndex: <a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
 								<div class="tsd-comment tsd-typography">
-									<p>The address or address index to get the balance of</p>
+									<p>The payport or payport index to get the balance of</p>
 								</div>
 							</li>
 							<li>
@@ -1541,7 +1277,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L70">src/PaymentsInterface.ts:70</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L64">src/PaymentsInterface.ts:64</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1550,6 +1286,52 @@ img { max-width: 100%; }
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Config</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
+				<a name="getpayport" class="tsd-anchor"></a>
+				<h3>get<wbr>Payport</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
+					<li class="tsd-signature tsd-kind-icon">get<wbr>Payport&lt;O&gt;<span class="tsd-signature-symbol">(</span>index<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L91">src/PaymentsInterface.ts:91</a></li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Get a payport by index for receiving deposits. index === 0 often refers to the hotwallet</p>
+							</div>
+							<dl class="tsd-comment-tags">
+								<dt>throws</dt>
+								<dd><p>if index &lt; 0 or payport cannot be returned for any reason</p>
+								</dd>
+							</dl>
+						</div>
+						<h4 class="tsd-type-parameters-title">Type parameters</h4>
+						<ul class="tsd-type-parameters">
+							<li>
+								<h4>O<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h4>
+							</li>
+						</ul>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>index: <span class="tsd-signature-type">number</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>An index of the payport to retrieve</p>
+								</div>
+							</li>
+							<li>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="" class="tsd-signature-type">O</a></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						<p>Promise resolving to a payport at that index</p>
 					</li>
 				</ul>
 			</section>
@@ -1563,7 +1345,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L76">src/PaymentsInterface.ts:76</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L70">src/PaymentsInterface.ts:70</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1580,13 +1362,13 @@ img { max-width: 100%; }
 				<a name="gettransactioninfo" class="tsd-anchor"></a>
 				<h3>get<wbr>Transaction<wbr>Info</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Transaction<wbr>Info&lt;O&gt;<span class="tsd-signature-symbol">(</span>txId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, addressOrIndex<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TransactionInfo</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">get<wbr>Transaction<wbr>Info&lt;O&gt;<span class="tsd-signature-symbol">(</span>txId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, payportOrIndex<span class="tsd-signature-symbol">?: </span><a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TransactionInfo</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L129">src/PaymentsInterface.ts:129</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L115">src/PaymentsInterface.ts:115</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1614,9 +1396,9 @@ img { max-width: 100%; }
 								</div>
 							</li>
 							<li>
-								<h5>addressOrIndex: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> payportOrIndex: <a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
 								<div class="tsd-comment tsd-typography">
-									<p>The address, or the index of an address, that is associated with this transaction.
+									<p>The payport, or the index of a payport, that is associated with this transaction.
 									This is necessary to allow for looking up XMR txs but can be ignored for conventional coins like BTC/ETH.</p>
 								</div>
 							</li>
@@ -1630,21 +1412,21 @@ img { max-width: 100%; }
 				</ul>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-				<a name="isvalidaddress" class="tsd-anchor"></a>
-				<h3>is<wbr>Valid<wbr>Address</h3>
+				<a name="isvalidpayport" class="tsd-anchor"></a>
+				<h3>is<wbr>Valid<wbr>Payport</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<li class="tsd-signature tsd-kind-icon">is<wbr>Valid<wbr>Address&lt;O&gt;<span class="tsd-signature-symbol">(</span>address<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">is<wbr>Valid<wbr>Payport&lt;O&gt;<span class="tsd-signature-symbol">(</span>payport<span class="tsd-signature-symbol">: </span><a href="../globals.html#payport" class="tsd-signature-type">Payport</a>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L52">src/PaymentsInterface.ts:52</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L55">src/PaymentsInterface.ts:55</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Return true if it&#39;s a valid address.</p>
+								<p>Return true if it&#39;s a valid payport.</p>
 							</div>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -1656,7 +1438,7 @@ img { max-width: 100%; }
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>address: <span class="tsd-signature-type">string</span></h5>
+								<h5>payport: <a href="../globals.html#payport" class="tsd-signature-type">Payport</a></h5>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="" class="tsd-signature-type">O</a></h5>
@@ -1669,35 +1451,25 @@ img { max-width: 100%; }
 					</li>
 				</ul>
 			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-				<a name="resolveaddress" class="tsd-anchor"></a>
-				<h3>resolve<wbr>Address</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<li class="tsd-signature tsd-kind-icon">resolve<wbr>Address&lt;O&gt;<span class="tsd-signature-symbol">(</span>addressOrIndex<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+				<a name="requiresbalancetracker" class="tsd-anchor"></a>
+				<h3>requires<wbr>Balance<wbr>Tracker</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+					<li class="tsd-signature tsd-kind-icon">requires<wbr>Balance<wbr>Tracker<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L54">src/PaymentsInterface.ts:54</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L96">src/PaymentsInterface.ts:96</a></li>
 							</ul>
 						</aside>
-						<h4 class="tsd-type-parameters-title">Type parameters</h4>
-						<ul class="tsd-type-parameters">
-							<li>
-								<h4>O<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h4>
-							</li>
-						</ul>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>addressOrIndex: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="" class="tsd-signature-type">O</a></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Return true if external balance tracking is required for payports with an extraId</p>
+							</div>
+						</div>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -1711,7 +1483,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L135">src/PaymentsInterface.ts:135</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L121">src/PaymentsInterface.ts:121</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -1734,13 +1506,13 @@ img { max-width: 100%; }
 				<a name="resolvefromto" class="tsd-anchor"></a>
 				<h3>resolve<wbr>From<wbr>To</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<li class="tsd-signature tsd-kind-icon">resolve<wbr>From<wbr>To&lt;O&gt;<span class="tsd-signature-symbol">(</span>from<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, to<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">resolve<wbr>From<wbr>To&lt;O&gt;<span class="tsd-signature-symbol">(</span>from<span class="tsd-signature-symbol">: </span><a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, to<span class="tsd-signature-symbol">: </span><a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../globals.html#fromto" class="tsd-signature-type">FromTo</a><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L56">src/PaymentsInterface.ts:56</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L59">src/PaymentsInterface.ts:59</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -1752,16 +1524,48 @@ img { max-width: 100%; }
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>from: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
+								<h5>from: <a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
 							</li>
 							<li>
-								<h5>to: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
+								<h5>to: <a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="" class="tsd-signature-type">O</a></h5>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../globals.html#fromto" class="tsd-signature-type">FromTo</a><span class="tsd-signature-symbol">&gt;</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
+				<a name="resolvepayport" class="tsd-anchor"></a>
+				<h3>resolve<wbr>Payport</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
+					<li class="tsd-signature tsd-kind-icon">resolve<wbr>Payport&lt;O&gt;<span class="tsd-signature-symbol">(</span>payportOrIndex<span class="tsd-signature-symbol">: </span><a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L57">src/PaymentsInterface.ts:57</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-type-parameters-title">Type parameters</h4>
+						<ul class="tsd-type-parameters">
+							<li>
+								<h4>O<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h4>
+							</li>
+						</ul>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>payportOrIndex: <a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
+							</li>
+							<li>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="" class="tsd-signature-type">O</a></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../globals.html#payport" class="tsd-signature-type">Payport</a><span class="tsd-signature-symbol">&gt;</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -1775,7 +1579,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L169">src/PaymentsInterface.ts:169</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L155">src/PaymentsInterface.ts:155</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1807,13 +1611,13 @@ img { max-width: 100%; }
 				<a name="tobasedenomination" class="tsd-anchor"></a>
 				<h3>to<wbr>Base<wbr>Denomination</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<li class="tsd-signature tsd-kind-icon">to<wbr>Base<wbr>Denomination&lt;O&gt;<span class="tsd-signature-symbol">(</span>amount<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					<li class="tsd-signature tsd-kind-icon">to<wbr>Base<wbr>Denomination&lt;O&gt;<span class="tsd-signature-symbol">(</span>amount<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Numeric</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L47">src/PaymentsInterface.ts:47</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L50">src/PaymentsInterface.ts:50</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1831,7 +1635,7 @@ img { max-width: 100%; }
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>amount: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h5>
+								<h5>amount: <span class="tsd-signature-type">Numeric</span></h5>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="" class="tsd-signature-type">O</a></h5>
@@ -1845,13 +1649,13 @@ img { max-width: 100%; }
 				<a name="tomaindenomination" class="tsd-anchor"></a>
 				<h3>to<wbr>Main<wbr>Denomination</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-has-type-parameter">
-					<li class="tsd-signature tsd-kind-icon">to<wbr>Main<wbr>Denomination&lt;O&gt;<span class="tsd-signature-symbol">(</span>amount<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					<li class="tsd-signature tsd-kind-icon">to<wbr>Main<wbr>Denomination&lt;O&gt;<span class="tsd-signature-symbol">(</span>amount<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Numeric</span>, options<span class="tsd-signature-symbol">?: </span><a href="" class="tsd-signature-type">O</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/e7b7cd1/src/PaymentsInterface.ts#L41">src/PaymentsInterface.ts:41</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/d021f7f/src/PaymentsInterface.ts#L44">src/PaymentsInterface.ts:44</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1869,7 +1673,7 @@ img { max-width: 100%; }
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>amount: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h5>
+								<h5>amount: <span class="tsd-signature-type">Numeric</span></h5>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="" class="tsd-signature-type">O</a></h5>

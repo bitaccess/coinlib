@@ -72,29 +72,34 @@ export declare enum TransactionStatus {
     Failed = "failed"
 }
 export declare const TransactionStatusT: t.Type<string, string, unknown>;
-export declare const TransactionCommon: t.TypeC<{
+export declare const TransactionCommon: t.IntersectionC<[t.TypeC<{
     id: t.UnionC<[t.StringC, t.NullC]>;
     fromAddress: t.UnionC<[t.StringC, t.NullC]>;
     toAddress: t.UnionC<[t.StringC, t.NullC]>;
-    toExtraId: t.UnionC<[t.StringC, t.NullC]>;
     fromIndex: t.UnionC<[t.NumberC, t.NullC]>;
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
     status: t.Type<string, string, unknown>;
-}>;
+}>, t.PartialC<{
+    fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
+    toExtraId: t.UnionC<[t.StringC, t.NullC]>;
+}>]>;
 export declare type TransactionCommon = t.TypeOf<typeof TransactionCommon>;
-export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[t.TypeC<{
+export declare type FromTo = Pick<BaseUnsignedTransaction, 'fromAddress' | 'fromIndex' | 'fromExtraId' | 'toAddress' | 'toIndex' | 'toExtraId'>;
+export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.TypeC<{
     id: t.UnionC<[t.StringC, t.NullC]>;
     fromAddress: t.UnionC<[t.StringC, t.NullC]>;
     toAddress: t.UnionC<[t.StringC, t.NullC]>;
-    toExtraId: t.UnionC<[t.StringC, t.NullC]>;
     fromIndex: t.UnionC<[t.NumberC, t.NullC]>;
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
     status: t.Type<string, string, unknown>;
-}>, t.TypeC<{
+}>, t.PartialC<{
+    fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
+    toExtraId: t.UnionC<[t.StringC, t.NullC]>;
+}>]>, t.TypeC<{
     fromAddress: t.StringC;
     toAddress: t.StringC;
     fromIndex: t.NumberC;
@@ -106,17 +111,19 @@ export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
     data: t.ObjectC;
 }>]>;
 export declare type BaseUnsignedTransaction = t.TypeOf<typeof BaseUnsignedTransaction>;
-export declare const BaseSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.TypeC<{
+export declare const BaseSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.TypeC<{
     id: t.UnionC<[t.StringC, t.NullC]>;
     fromAddress: t.UnionC<[t.StringC, t.NullC]>;
     toAddress: t.UnionC<[t.StringC, t.NullC]>;
-    toExtraId: t.UnionC<[t.StringC, t.NullC]>;
     fromIndex: t.UnionC<[t.NumberC, t.NullC]>;
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
     status: t.Type<string, string, unknown>;
-}>, t.TypeC<{
+}>, t.PartialC<{
+    fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
+    toExtraId: t.UnionC<[t.StringC, t.NullC]>;
+}>]>, t.TypeC<{
     fromAddress: t.StringC;
     toAddress: t.StringC;
     fromIndex: t.NumberC;
@@ -131,17 +138,19 @@ export declare const BaseSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
     data: t.ObjectC;
 }>]>;
 export declare type BaseSignedTransaction = t.TypeOf<typeof BaseSignedTransaction>;
-export declare const BaseTransactionInfo: t.IntersectionC<[t.TypeC<{
+export declare const BaseTransactionInfo: t.IntersectionC<[t.IntersectionC<[t.TypeC<{
     id: t.UnionC<[t.StringC, t.NullC]>;
     fromAddress: t.UnionC<[t.StringC, t.NullC]>;
     toAddress: t.UnionC<[t.StringC, t.NullC]>;
-    toExtraId: t.UnionC<[t.StringC, t.NullC]>;
     fromIndex: t.UnionC<[t.NumberC, t.NullC]>;
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
     status: t.Type<string, string, unknown>;
-}>, t.TypeC<{
+}>, t.PartialC<{
+    fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
+    toExtraId: t.UnionC<[t.StringC, t.NullC]>;
+}>]>, t.TypeC<{
     id: t.StringC;
     amount: t.StringC;
     fee: t.StringC;
@@ -157,3 +166,65 @@ export declare const BaseBroadcastResult: t.TypeC<{
     id: t.StringC;
 }>;
 export declare type BaseBroadcastResult = t.TypeOf<typeof BaseBroadcastResult>;
+export declare const Payport: t.IntersectionC<[t.TypeC<{
+    address: t.StringC;
+}>, t.PartialC<{
+    extraId: t.UnionC<[t.StringC, t.NullC]>;
+}>]>;
+export declare type Payport = t.TypeOf<typeof Payport>;
+export declare const BalanceActivityType: t.UnionC<[t.LiteralC<"in">, t.LiteralC<"out">]>;
+export declare type BalanceActivityType = t.TypeOf<typeof BalanceActivityType>;
+export declare const BalanceActivity: t.TypeC<{
+    type: t.UnionC<[t.LiteralC<"in">, t.LiteralC<"out">]>;
+    networkType: t.Type<NetworkType, NetworkType, unknown>;
+    networkSymbol: t.StringC;
+    assetSymbol: t.StringC;
+    address: t.StringC;
+    extraId: t.UnionC<[t.StringC, t.NullC]>;
+    amount: t.StringC;
+    externalId: t.StringC;
+    activitySequence: t.StringC;
+    confirmationId: t.StringC;
+    confirmationNumber: t.NumberC;
+    timestamp: import("@faast/ts-common").DateC;
+}>;
+export declare type BalanceActivity = t.TypeOf<typeof BalanceActivity>;
+export declare const BalanceMonitorConfig: t.IntersectionC<[t.TypeC<{
+    network: t.Type<NetworkType, NetworkType, unknown>;
+}>, t.PartialC<{
+    logger: import("@faast/ts-common").LoggerC;
+}>]>;
+export declare type BalanceMonitorConfig = t.TypeOf<typeof BalanceMonitorConfig>;
+export declare const GetBalanceActivityOptions: t.PartialC<{
+    from: t.TypeC<{
+        type: t.UnionC<[t.LiteralC<"in">, t.LiteralC<"out">]>;
+        networkType: t.Type<NetworkType, NetworkType, unknown>;
+        networkSymbol: t.StringC;
+        assetSymbol: t.StringC;
+        address: t.StringC;
+        extraId: t.UnionC<[t.StringC, t.NullC]>;
+        amount: t.StringC;
+        externalId: t.StringC;
+        activitySequence: t.StringC;
+        confirmationId: t.StringC;
+        confirmationNumber: t.NumberC;
+        timestamp: import("@faast/ts-common").DateC;
+    }>;
+    to: t.TypeC<{
+        type: t.UnionC<[t.LiteralC<"in">, t.LiteralC<"out">]>;
+        networkType: t.Type<NetworkType, NetworkType, unknown>;
+        networkSymbol: t.StringC;
+        assetSymbol: t.StringC;
+        address: t.StringC;
+        extraId: t.UnionC<[t.StringC, t.NullC]>;
+        amount: t.StringC;
+        externalId: t.StringC;
+        activitySequence: t.StringC;
+        confirmationId: t.StringC;
+        confirmationNumber: t.NumberC;
+        timestamp: import("@faast/ts-common").DateC;
+    }>;
+}>;
+export declare type GetBalanceActivityOptions = t.TypeOf<typeof GetBalanceActivityOptions>;
+export declare type BalanceActivityCallback = (ba: BalanceActivity) => Promise<void> | void;
+export declare const BalanceActivityCallback: import("@faast/ts-common").FunctionC<BalanceActivityCallback>;

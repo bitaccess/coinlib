@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('io-ts'), require('@faast/ts-common'), require('bignumber.js')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'io-ts', '@faast/ts-common', 'bignumber.js'], factory) :
-  (factory((global.faastPaymentsCommon = {}),global.t,global.tsCommon,global.BigNumber));
-}(this, (function (exports,t,tsCommon,BigNumber) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('io-ts'), require('bignumber.js'), require('@faast/ts-common')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'io-ts', 'bignumber.js', '@faast/ts-common'], factory) :
+  (factory((global.faastPaymentsCommon = {}),global.t,global.BigNumber,global.tsCommon));
+}(this, (function (exports,t,BigNumber,tsCommon) { 'use strict';
 
   BigNumber = BigNumber && BigNumber.hasOwnProperty('default') ? BigNumber['default'] : BigNumber;
 
@@ -59,16 +59,18 @@
       TransactionStatus["Failed"] = "failed";
   })(exports.TransactionStatus || (exports.TransactionStatus = {}));
   const TransactionStatusT = tsCommon.enumCodec(exports.TransactionStatus, 'TransactionStatus');
-  const TransactionCommon = t.type({
+  const TransactionCommon = tsCommon.requiredOptionalCodec({
       id: tsCommon.nullable(t.string),
       fromAddress: tsCommon.nullable(t.string),
       toAddress: tsCommon.nullable(t.string),
-      toExtraId: tsCommon.nullable(t.string),
       fromIndex: tsCommon.nullable(t.number),
       toIndex: tsCommon.nullable(t.number),
       amount: tsCommon.nullable(t.string),
       fee: tsCommon.nullable(t.string),
       status: TransactionStatusT,
+  }, {
+      fromExtraId: tsCommon.nullable(t.string),
+      toExtraId: tsCommon.nullable(t.string),
   }, 'TransactionCommon');
   const UnsignedCommon = tsCommon.extendCodec(TransactionCommon, {
       fromAddress: t.string,
@@ -103,6 +105,36 @@
   const BaseBroadcastResult = t.type({
       id: t.string,
   }, 'BaseBroadcastResult');
+  const Payport = tsCommon.requiredOptionalCodec({
+      address: t.string,
+  }, {
+      extraId: tsCommon.nullable(t.string),
+  }, 'Payport');
+  const BalanceActivityType = t.union([t.literal('in'), t.literal('out')], 'BalanceActivityType');
+  const BalanceActivity = t.type({
+      type: BalanceActivityType,
+      networkType: NetworkTypeT,
+      networkSymbol: t.string,
+      assetSymbol: t.string,
+      address: t.string,
+      extraId: tsCommon.nullable(t.string),
+      amount: t.string,
+      externalId: t.string,
+      activitySequence: t.string,
+      confirmationId: t.string,
+      confirmationNumber: t.number,
+      timestamp: tsCommon.DateT,
+  }, 'BalanceActivity');
+  const BalanceMonitorConfig = tsCommon.requiredOptionalCodec({
+      network: NetworkTypeT,
+  }, {
+      logger: tsCommon.Logger,
+  }, 'BalanceMonitorConfig');
+  const GetBalanceActivityOptions = t.partial({
+      from: BalanceActivity,
+      to: BalanceActivity,
+  }, 'GetBalanceActivityOptions');
+  const BalanceActivityCallback = tsCommon.functionT('BalanceActivityCallback');
 
   function createUnitConverters(decimals) {
       const basePerMain = new BigNumber(10).pow(decimals);
@@ -148,6 +180,13 @@
       };
   }
 
+  class BalanceMonitor {
+      constructor(config) {
+          this.networkType = config.network;
+          this.logger = new tsCommon.DelegateLogger(config.logger, BalanceMonitor.name);
+      }
+  }
+
   exports.NetworkTypeT = NetworkTypeT;
   exports.BaseConfig = BaseConfig;
   exports.AddressOrIndex = AddressOrIndex;
@@ -165,7 +204,14 @@
   exports.BaseSignedTransaction = BaseSignedTransaction;
   exports.BaseTransactionInfo = BaseTransactionInfo;
   exports.BaseBroadcastResult = BaseBroadcastResult;
+  exports.Payport = Payport;
+  exports.BalanceActivityType = BalanceActivityType;
+  exports.BalanceActivity = BalanceActivity;
+  exports.BalanceMonitorConfig = BalanceMonitorConfig;
+  exports.GetBalanceActivityOptions = GetBalanceActivityOptions;
+  exports.BalanceActivityCallback = BalanceActivityCallback;
   exports.createUnitConverters = createUnitConverters;
+  exports.BalanceMonitor = BalanceMonitor;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
