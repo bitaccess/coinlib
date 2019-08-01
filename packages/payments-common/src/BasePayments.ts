@@ -1,4 +1,3 @@
-import { Numeric } from '@faast/ts-common'
 import {
   BalanceResult,
   BaseUnsignedTransaction,
@@ -12,8 +11,9 @@ import {
   Payport,
   FromTo,
 } from './types'
+import { PaymentsUtils } from './PaymentsUtils'
 
-export type AnyPayments<C extends object = any> = PaymentsInterface<
+export type AnyPayments<C extends object = any> = BasePayments<
   C,
   BaseUnsignedTransaction,
   BaseSignedTransaction,
@@ -24,62 +24,78 @@ export type AnyPayments<C extends object = any> = PaymentsInterface<
 /**
  * An interface that provides the necessary tools for accepting and sending payments for a currency.
  */
-export interface PaymentsInterface<
+export abstract class BasePayments<
   Config extends BaseConfig,
   UnsignedTransaction extends BaseUnsignedTransaction,
   SignedTransaction extends BaseSignedTransaction,
   BroadcastResult extends BaseBroadcastResult,
   TransactionInfo extends BaseTransactionInfo
-> {
-  // The following static methods should also be implemented
-  //
-  // static toMainDenomination<O extends object>(amount: number | string, options?: O): string
-  // static toBaseDenomination<O extends object>(amount: number | string, options?: O): string
-  // static isValidAddress<O extends object>(payport: string, options?: O): boolean
-
-  /**
-   * Converts to main denomination units
-   * Example: convert "125000000000" moneroj to "0.125" XMR
-   */
-  toMainDenomination<O extends object>(amount: Numeric, options?: O): string
-
-  /**
-   * Converts to base atomic units
-   * Example: convert "0.125" XMR to "125000000000" moneroj
-   */
-  toBaseDenomination<O extends object>(amount: Numeric, options?: O): string
-
-  /**
-   * Return true if it's a valid payport.
-   */
-  isValidPayport<O extends object>(payport: Payport, options?: O): boolean | Promise<boolean>
-
-  resolvePayport<O extends object>(payportOrIndex: Payport | number, options?: O): Promise<Payport>
-
-  resolveFromTo<O extends object>(from: Payport | number, to: Payport | number, options?: O): Promise<FromTo>
+> extends PaymentsUtils {
+  constructor(private readonly config: Config) {
+    super(config)
+  }
 
   /**
    * Returns the full config used to instantiate this payments instance as is.
    */
-  getFullConfig(): Config
+  getFullConfig(): Config {
+    return this.config
+  }
 
   /**
    * Returns the full config with private keys substituted with their public equivalent.
    * (e.g. xpub/addresses instead of xprv/private keys)
    */
-  getPublicConfig(): Config
+  abstract getPublicConfig(): Config
+
+  /**
+   * Return payport at index, or the payport itself.
+   */
+  async resolvePayport<O extends object>(payportOrIndex: Payport | number, options?: O): Promise<Payport> {
+    if (typeof payportOrIndex === 'number') {
+      return this.getPayport(payportOrIndex, options)
+    }
+    return payportOrIndex
+  }
+
+  /**
+   * Resolve the from/to params of a transaction for the given payports.
+   */
+  async resolveFromTo<O extends object>(from: number, to: Payport | number, options?: O): Promise<FromTo> {
+    const fromPayport = await this.getPayport(from)
+    const toPayport = await this.resolvePayport(to)
+    return {
+      fromAddress: fromPayport.address,
+      fromIndex: from,
+      fromExtraId: fromPayport.extraId,
+      toAddress: toPayport.address,
+      toIndex: typeof to === 'number' ? to : null,
+      toExtraId: toPayport.extraId,
+    }
+  }
+
+  /**
+   * Resolve the fee option to a defined fee amount. Used when creating a transaction. Usually
+   * involves looking up current blockchain fee averages with an external service.
+   */
+  abstract resolveFeeOption<O extends FeeOption>(feeOption: O): Promise<ResolvedFeeOption>
 
   /**
    * Return identifiers for all accounts configured.
    */
-  getAccountIds(): string[]
+  abstract getAccountIds(): string[]
 
   /**
    * Return identifier for account used for payport at `index` (an xpub or address works).
    *
    * @param index - The payport index to get account ID for
    */
-  getAccountId(index: number): string
+  abstract getAccountId(index: number): string
+
+  /**
+   * Return true if external balance tracking is required for payports with an extraId
+   */
+  abstract requiresBalanceMonitor(): boolean
 
   /**
    * Get a payport by index for receiving deposits. index === 0 often refers to the hotwallet
@@ -88,12 +104,7 @@ export interface PaymentsInterface<
    * @return Promise resolving to a payport at that index
    * @throws if index < 0 or payport cannot be returned for any reason
    */
-  getPayport<O extends object>(index: number, options?: O): Promise<Payport>
-
-  /**
-   * Return true if external balance tracking is required for payports with an extraId
-   */
-  requiresBalanceTracker(): boolean
+  abstract getPayport<O extends object>(index: number, options?: O): Promise<Payport>
 
   /**
    * Get the balance of a payport (or payport at `index`).
@@ -101,7 +112,7 @@ export interface PaymentsInterface<
    * @param payportOrIndex - The payport or payport index to get the balance of
    * @return The balance and unconfirmed balance formatted as a string in the main denomination (eg "0.125" XMR)
    */
-  getBalance<O extends object>(payportOrIndex: Payport | number, options?: O): Promise<BalanceResult>
+  abstract getBalance<O extends object>(payportOrIndex: Payport | number, options?: O): Promise<BalanceResult>
 
   /**
    * Get the info and status of a transaction.
@@ -112,13 +123,11 @@ export interface PaymentsInterface<
    * @returns Info about the transaction
    * @throws Error if transaction is not found
    */
-  getTransactionInfo<O extends object>(
+  abstract getTransactionInfo<O extends object>(
     txId: string,
     payportOrIndex?: Payport | number,
     options?: O,
   ): Promise<TransactionInfo>
-
-  resolveFeeOption<O extends FeeOption>(feeOption: O): Promise<ResolvedFeeOption>
 
   /**
    * Creates and signs a new payment transaction sending `amount` from payport `from` to payport `to`.
@@ -128,7 +137,7 @@ export interface PaymentsInterface<
    * @param amount - The amount to send in the main denomination (eg "0.125" XMR)
    * @returns An object representing the signed transaction
    */
-  createTransaction<O extends CreateTransactionOptions>(
+  abstract createTransaction<O extends CreateTransactionOptions>(
     from: Payport | number,
     to: Payport | number,
     amount: string,
@@ -138,7 +147,7 @@ export interface PaymentsInterface<
   /**
    * Creates a new payment transaction sending the entire balance of payport `from` to payport `to`.
    */
-  createSweepTransaction<O extends CreateTransactionOptions>(
+  abstract createSweepTransaction<O extends CreateTransactionOptions>(
     from: Payport | number,
     to: Payport | number,
     options?: O,
@@ -152,7 +161,7 @@ export interface PaymentsInterface<
    * @param amount - The amount to send in the main denomination (eg "0.125" XMR)
    * @returns An object representing the signed transaction
    */
-  signTransaction<O extends object>(unsignedTx: UnsignedTransaction, options?: O): Promise<SignedTransaction>
+  abstract signTransaction<O extends object>(unsignedTx: UnsignedTransaction, options?: O): Promise<SignedTransaction>
 
   /**
    * Broadcasts the transaction specified by `signedTx`. Allows rebroadcasting prior transactions.
@@ -160,5 +169,5 @@ export interface PaymentsInterface<
    * @return An object containing the transaction id
    * @throws Error if the transaction is invalid, not signed, or fails to broadcast
    */
-  broadcastTransaction<O extends object>(signedTx: SignedTransaction, options?: O): Promise<BroadcastResult>
+  abstract broadcastTransaction<O extends object>(signedTx: SignedTransaction, options?: O): Promise<BroadcastResult>
 }

@@ -10,6 +10,7 @@ export const NetworkTypeT = enumCodec<NetworkType>(NetworkType, 'NetworkType')
 export const BaseConfig = t.partial(
   {
     network: NetworkTypeT,
+    logger: Logger,
   },
   'BaseConfig',
 )
