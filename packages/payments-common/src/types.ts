@@ -84,7 +84,7 @@ export enum TransactionStatus {
   Confirmed = 'confirmed',
   Failed = 'failed',
 }
-export const TransactionStatusT = enumCodec(TransactionStatus, 'TransactionStatus')
+export const TransactionStatusT = enumCodec<TransactionStatus>(TransactionStatus, 'TransactionStatus')
 
 export const TransactionCommon = requiredOptionalCodec(
   {
