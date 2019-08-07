@@ -22,15 +22,20 @@ import {
   RippleBroadcastResult,
   RippleTransactionInfo,
   RippleCreateTransactionOptions,
+  FromToWithPayport,
 } from './types'
 import { xprvToXpub, deriveKeyPair, KeyPair } from './bip44'
 import { RipplePaymentsUtils } from './RipplePaymentsUtils'
+import { DEFAULT_CREATE_TRANSACTION_OPTIONS, MIN_BALANCE } from './constants'
 
 function tagToExtraId(tag: number | undefined): string | null {
   return typeof tag === 'number' ? String(tag) : null
 }
 function extraIdToTag(extraId: string | null | undefined): number | undefined {
   return typeof extraId === 'string' ? Number.parseInt(extraId) : undefined
+}
+function serializePayport(payport: Payport): string {
+  return typeof payport.extraId === 'string' ? `${payport.address}:${payport.extraId}` : payport.address
 }
 
 export class RipplePayments extends RipplePaymentsUtils
@@ -96,16 +101,18 @@ export class RipplePayments extends RipplePaymentsUtils
     }
     return payportOrIndex
   }
-  async resolveFromTo(from: number, to: Payport | number): Promise<FromTo> {
+  async resolveFromTo(from: number, to: Payport | number): Promise<FromToWithPayport> {
     const fromPayport = await this.getPayport(from)
     const toPayport = await this.resolvePayport(to)
     return {
       fromAddress: fromPayport.address,
       fromIndex: from,
       fromExtraId: fromPayport.extraId,
+      fromPayport,
       toAddress: toPayport.address,
       toIndex: typeof to === 'number' ? to : null,
       toExtraId: toPayport.extraId,
+      toPayport,
     }
   }
 
@@ -121,7 +128,7 @@ export class RipplePayments extends RipplePaymentsUtils
   }
 
   isSweepableAddressBalance(balance: string): boolean {
-    return new BigNumber(balance).gt(20)
+    return new BigNumber(balance).gt(MIN_BALANCE)
   }
 
   async getBalance(payportOrIndex: Payport | number): Promise<BalanceResult> {
@@ -232,19 +239,51 @@ export class RipplePayments extends RipplePaymentsUtils
     }
   }
 
-  async createTransaction(
-    from: number,
-    to: Payport | number,
-    amount: string,
-    options: RippleCreateTransactionOptions = { feeLevel: FeeLevel.Medium },
-  ): Promise<RippleUnsignedTransaction> {
-    const { fromIndex, fromAddress, fromExtraId, toIndex, toAddress, toExtraId } = await this.resolveFromTo(from, to)
-    const amountBn = new BigNumber(amount)
-    if (amountBn.isNaN()) {
-      throw new Error(`Invalid amount provided to ripple createTransaction: ${amount}`)
+  private async resolvePayportBalance(options: RippleCreateTransactionOptions): Promise<BigNumber> {
+    if (typeof options.payportBalance !== 'string') {
+      throw new Error('ripple-payments createSweepTransaction missing required payportBalance option')
     }
-    const { targetFeeLevel, targetFeeRate, targetFeeRateType, feeMain } = await this.resolveFeeOption(options)
+    const payportBalance = new BigNumber(options.payportBalance)
+    if (payportBalance.isNaN()) {
+      throw new Error(`Invalid NaN payportBalance option provided: ${options.payportBalance}`)
+    }
+    return payportBalance
+  }
+
+  private async doCreateTransaction(
+    fromTo: FromToWithPayport,
+    feeOption: ResolvedFeeOption,
+    amount: BigNumber,
+    payportBalance: BigNumber,
+    options: RippleCreateTransactionOptions,
+  ): Promise<RippleUnsignedTransaction> {
+    if (amount.isNaN() || amount.lte(0)) {
+      throw new Error(`Invalid amount provided to ripple-payments createTransaction: ${amount}`)
+    }
+    const { fromIndex, fromAddress, fromExtraId, fromPayport, toIndex, toAddress, toExtraId, toPayport } = fromTo
+    const { targetFeeLevel, targetFeeRate, targetFeeRateType, feeMain } = feeOption
     const { maxLedgerVersionOffset, sequence } = options
+    const amountString = amount.toString()
+    const addressBalances = await this.getBalance({ address: fromAddress })
+    const addressBalance = new BigNumber(addressBalances.confirmedBalance)
+    if (addressBalance.lt(MIN_BALANCE)) {
+      throw new Error(
+        `Cannot send from ripple address that has less than ${MIN_BALANCE} XRP: ${fromAddress} (${addressBalance} XRP)`,
+      )
+    }
+    const totalValue = amount.plus(feeMain)
+    if (addressBalance.minus(totalValue).lt(MIN_BALANCE)) {
+      throw new Error(
+        `Cannot send ${amountString} XRP with fee of ${feeMain} XRP because it would reduce the balance below ` +
+          `the minimum required balance of ${MIN_BALANCE} XRP: ${fromAddress} (${addressBalance} XRP)`,
+      )
+    }
+    if (typeof fromExtraId === 'string' && totalValue.gt(payportBalance)) {
+      throw new Error(
+        `Insufficient payport balance of ${payportBalance} XRP to send ${amountString} XRP ` +
+          `with fee of ${feeMain} XRP: ${serializePayport(fromPayport)}`,
+      )
+    }
     const preparedTx = this.rippleApi.preparePayment(
       fromAddress,
       {
@@ -253,7 +292,7 @@ export class RipplePayments extends RipplePaymentsUtils
           tag: extraIdToTag(fromExtraId),
           amount: {
             currency: 'XRP',
-            value: amount,
+            value: amountString,
           },
         },
         destination: {
@@ -261,7 +300,7 @@ export class RipplePayments extends RipplePaymentsUtils
           tag: extraIdToTag(toExtraId),
           amount: {
             currency: 'XRP',
-            value: amount,
+            value: amountString,
           },
         },
       },
@@ -278,7 +317,7 @@ export class RipplePayments extends RipplePaymentsUtils
       toIndex,
       toAddress,
       toExtraId,
-      amount,
+      amount: amountString,
       targetFeeLevel,
       targetFeeRate,
       targetFeeRateType,
@@ -288,12 +327,45 @@ export class RipplePayments extends RipplePaymentsUtils
     }
   }
 
+  async createTransaction(
+    from: number,
+    to: Payport | number,
+    amount: string,
+    options: RippleCreateTransactionOptions = DEFAULT_CREATE_TRANSACTION_OPTIONS,
+  ): Promise<RippleUnsignedTransaction> {
+    const fromTo = await this.resolveFromTo(from, to)
+    const feeOption = await this.resolveFeeOption(options)
+    const payportBalance = await this.resolvePayportBalance(options)
+    const amountBn = new BigNumber(amount)
+    return this.doCreateTransaction(fromTo, feeOption, amountBn, payportBalance, options)
+  }
+
   async createSweepTransaction(
     from: number,
     to: Payport | number,
-    options?: RippleCreateTransactionOptions,
+    options: RippleCreateTransactionOptions = DEFAULT_CREATE_TRANSACTION_OPTIONS,
   ): Promise<RippleUnsignedTransaction> {
-    throw new Error('Method not implemented.')
+    const fromTo = await this.resolveFromTo(from, to)
+    const feeOption = await this.resolveFeeOption(options)
+    const payportBalance = await this.resolvePayportBalance(options)
+    let amountBn = payportBalance.minus(feeOption.feeMain)
+    if (amountBn.lt(0)) {
+      const fromPayport = { address: fromTo.fromAddress, extraId: fromTo.fromExtraId }
+      throw new Error(
+        `Insufficient balance to sweep from ripple payport with fee of ${feeOption.feeMain} XRP: ` +
+          `${serializePayport(fromPayport)} (${payportBalance} XRP)`,
+      )
+    }
+    if (typeof fromTo.fromExtraId !== 'string') {
+      amountBn = amountBn.minus(MIN_BALANCE)
+      if (amountBn.lt(0)) {
+        throw new Error(
+          `Insufficient balance to sweep from ripple address with fee of ${feeOption.feeMain} XRP and ` +
+            `maintain the minimum required balance of ${MIN_BALANCE} XRP: ${fromTo.fromAddress} (${payportBalance} XRP)`,
+        )
+      }
+    }
+    return this.doCreateTransaction(fromTo, feeOption, amountBn, payportBalance, options)
   }
 
   async signTransaction(unsignedTx: RippleUnsignedTransaction): Promise<RippleSignedTransaction> {

@@ -1,13 +1,5 @@
 import * as t from 'io-ts'
-import {
-  extendCodec,
-  Logger,
-  requiredOptionalCodec,
-  instanceofCodec,
-  nullable,
-  DateT,
-  functionT,
-} from '@faast/ts-common'
+import { extendCodec, Logger, instanceofCodec } from '@faast/ts-common'
 import {
   BaseTransactionInfo,
   BaseUnsignedTransaction,
@@ -15,9 +7,9 @@ import {
   BaseBroadcastResult,
   CreateTransactionOptions,
   BaseConfig,
-  NetworkType,
-  NetworkTypeT,
   BalanceMonitorConfig,
+  Payport,
+  FromTo,
 } from '@faast/payments-common'
 import { FormattedTransactionType as RippleTransaction, RippleAPI } from 'ripple-lib'
 
@@ -91,7 +83,13 @@ export const RippleCreateTransactionOptions = extendCodec(
   {
     maxLedgerVersionOffset: t.number,
     sequence: t.number,
+    payportBalance: t.string,
   },
   'RippleCreateTransactionOptions',
 )
 export type RippleCreateTransactionOptions = t.TypeOf<typeof RippleCreateTransactionOptions>
+
+export type FromToWithPayport = FromTo & {
+  fromPayport: Payport
+  toPayport: Payport
+}
