@@ -1,3 +1,4 @@
+export declare const PACKAGE_NAME = "tron-payments";
 export declare const MIN_BALANCE_SUN = 100000;
 export declare const MIN_BALANCE_TRX: number;
 export declare const DEFAULT_FULL_NODE: string;

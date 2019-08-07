@@ -5,7 +5,7 @@ import { keccak256 } from 'js-sha3';
 import jsSHA from 'jssha';
 import { ec } from 'elliptic';
 import { string, number, union, null, undefined as undefined$1, array, record, boolean, partial } from 'io-ts';
-import { isType, extendCodec } from '@faast/ts-common';
+import { isType, DelegateLogger, extendCodec, Logger } from '@faast/ts-common';
 import { TransactionStatus, FeeLevel, FeeRateType, FeeOptionCustom, BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, BaseConfig } from '@faast/payments-common';
 export { CreateTransactionOptions } from '@faast/payments-common';
 
@@ -69,6 +69,7 @@ function privateKeyToAddress(privateKey) {
     }
 }
 
+const PACKAGE_NAME = 'tron-payments';
 const MIN_BALANCE_SUN = 100000;
 const MIN_BALANCE_TRX = MIN_BALANCE_SUN / 1e6;
 const DEFAULT_FULL_NODE = process.env.TRX_FULL_NODE_URL || 'https://api.trongrid.io';
@@ -86,6 +87,7 @@ class BaseTronPayments {
         this.fullNode = config.fullNode || DEFAULT_FULL_NODE;
         this.solidityNode = config.solidityNode || DEFAULT_SOLIDITY_NODE;
         this.eventServer = config.eventServer || DEFAULT_EVENT_SERVER;
+        this.logger = new DelegateLogger(config.logger, PACKAGE_NAME);
         this.tronweb = new TronWeb(this.fullNode, this.solidityNode, this.eventServer);
     }
     async getAddressOrNull(index, options) {
@@ -247,7 +249,8 @@ class BaseTronPayments {
                 if (statusCode === 'DUP_TRANSACTION_ERROR') {
                     statusCode = 'DUP_TX_BUT_TX_NOT_FOUND_SO_PROBABLY_INVALID_TX_ERROR';
                 }
-                throw new Error(`Failed to broadcast transaction: ${statusCode}`);
+                this.logger.warn(`Tron broadcast tx unsuccessful ${tx.id}`, status);
+                throw new Error(`Failed to broadcast transaction: ${statusCode} ${status.message}`);
             }
         }
         catch (e) {
@@ -725,6 +728,7 @@ const BaseTronPaymentsConfig = extendCodec(BaseConfig, {}, {
     fullNode: string,
     solidityNode: string,
     eventServer: string,
+    logger: Logger,
 }, 'BaseTronPaymentsConfig');
 const HdTronPaymentsConfig = extendCodec(BaseTronPaymentsConfig, {
     hdKey: string,
@@ -768,5 +772,5 @@ class TronAddressValidator {
     }
 }
 
-export { BaseTronPayments, HdTronPayments, KeyPairTronPayments, TronPaymentsFactory, TronAddressValidator, BaseTronPaymentsConfig, HdTronPaymentsConfig, KeyPairTronPaymentsConfig, TronPaymentsConfig, TronUnsignedTransaction, TronSignedTransaction, TronTransactionInfo, TronBroadcastResult, GetAddressOptions, toError, toMainDenominationNumber, toMainDenomination, toBaseDenominationNumber, toBaseDenomination, isValidXprv, isValidXpub, isValidAddress, isValidPrivateKey, privateKeyToAddress, derivationPath, deriveAddress, derivePrivateKey, xprvToXpub, encode58, decode58, MIN_BALANCE_SUN, MIN_BALANCE_TRX, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, DEFAULT_EVENT_SERVER, DEFAULT_MAX_ADDRESS_SCAN };
+export { BaseTronPayments, HdTronPayments, KeyPairTronPayments, TronPaymentsFactory, TronAddressValidator, BaseTronPaymentsConfig, HdTronPaymentsConfig, KeyPairTronPaymentsConfig, TronPaymentsConfig, TronUnsignedTransaction, TronSignedTransaction, TronTransactionInfo, TronBroadcastResult, GetAddressOptions, toError, toMainDenominationNumber, toMainDenomination, toBaseDenominationNumber, toBaseDenomination, isValidXprv, isValidXpub, isValidAddress, isValidPrivateKey, privateKeyToAddress, derivationPath, deriveAddress, derivePrivateKey, xprvToXpub, encode58, decode58, PACKAGE_NAME, MIN_BALANCE_SUN, MIN_BALANCE_TRX, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, DEFAULT_EVENT_SERVER, DEFAULT_MAX_ADDRESS_SCAN };
 //# sourceMappingURL=index.es.js.map

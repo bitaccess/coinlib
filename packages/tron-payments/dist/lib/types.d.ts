@@ -11,6 +11,7 @@ export declare const BaseTronPaymentsConfig: t.IntersectionC<[t.PartialC<{
     fullNode: t.StringC;
     solidityNode: t.StringC;
     eventServer: t.StringC;
+    logger: import("@faast/ts-common").LoggerC;
 }>]>;
 export declare type BaseTronPaymentsConfig = t.TypeOf<typeof BaseTronPaymentsConfig>;
 export declare const HdTronPaymentsConfig: t.IntersectionC<[t.IntersectionC<[t.PartialC<{
@@ -19,6 +20,7 @@ export declare const HdTronPaymentsConfig: t.IntersectionC<[t.IntersectionC<[t.P
     fullNode: t.StringC;
     solidityNode: t.StringC;
     eventServer: t.StringC;
+    logger: import("@faast/ts-common").LoggerC;
 }>]>, t.TypeC<{
     hdKey: t.StringC;
 }>, t.PartialC<{
@@ -31,6 +33,7 @@ export declare const KeyPairTronPaymentsConfig: t.IntersectionC<[t.IntersectionC
     fullNode: t.StringC;
     solidityNode: t.StringC;
     eventServer: t.StringC;
+    logger: import("@faast/ts-common").LoggerC;
 }>]>, t.TypeC<{
     keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>]>;
 }>]>;
@@ -41,6 +44,7 @@ export declare const TronPaymentsConfig: t.UnionC<[t.IntersectionC<[t.Intersecti
     fullNode: t.StringC;
     solidityNode: t.StringC;
     eventServer: t.StringC;
+    logger: import("@faast/ts-common").LoggerC;
 }>]>, t.TypeC<{
     hdKey: t.StringC;
 }>, t.PartialC<{
@@ -51,6 +55,7 @@ export declare const TronPaymentsConfig: t.UnionC<[t.IntersectionC<[t.Intersecti
     fullNode: t.StringC;
     solidityNode: t.StringC;
     eventServer: t.StringC;
+    logger: import("@faast/ts-common").LoggerC;
 }>]>, t.TypeC<{
     keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>]>;
 }>]>]>;

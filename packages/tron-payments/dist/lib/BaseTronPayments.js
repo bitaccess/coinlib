@@ -1,9 +1,9 @@
 import TronWeb from 'tronweb';
 import { pick, get, cloneDeep } from 'lodash';
 import { TransactionStatus, FeeLevel, FeeRateType, FeeOptionCustom, } from '@faast/payments-common';
-import { isType } from '@faast/ts-common';
+import { isType, DelegateLogger } from '@faast/ts-common';
 import { toMainDenomination, toBaseDenomination, toBaseDenominationNumber, toError, isValidAddress, isValidPrivateKey, privateKeyToAddress, } from './utils';
-import { DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE, MIN_BALANCE_SUN, MIN_BALANCE_TRX, } from './constants';
+import { DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE, MIN_BALANCE_SUN, MIN_BALANCE_TRX, PACKAGE_NAME, } from './constants';
 export class BaseTronPayments {
     constructor(config) {
         this.toMainDenomination = toMainDenomination;
@@ -14,6 +14,7 @@ export class BaseTronPayments {
         this.fullNode = config.fullNode || DEFAULT_FULL_NODE;
         this.solidityNode = config.solidityNode || DEFAULT_SOLIDITY_NODE;
         this.eventServer = config.eventServer || DEFAULT_EVENT_SERVER;
+        this.logger = new DelegateLogger(config.logger, PACKAGE_NAME);
         this.tronweb = new TronWeb(this.fullNode, this.solidityNode, this.eventServer);
     }
     async getAddressOrNull(index, options) {
@@ -175,7 +176,8 @@ export class BaseTronPayments {
                 if (statusCode === 'DUP_TRANSACTION_ERROR') {
                     statusCode = 'DUP_TX_BUT_TX_NOT_FOUND_SO_PROBABLY_INVALID_TX_ERROR';
                 }
-                throw new Error(`Failed to broadcast transaction: ${statusCode}`);
+                this.logger.warn(`Tron broadcast tx unsuccessful ${tx.id}`, status);
+                throw new Error(`Failed to broadcast transaction: ${statusCode} ${status.message}`);
             }
         }
         catch (e) {

@@ -67,6 +67,7 @@
       }
   }
 
+  const PACKAGE_NAME = 'tron-payments';
   const MIN_BALANCE_SUN = 100000;
   const MIN_BALANCE_TRX = MIN_BALANCE_SUN / 1e6;
   const DEFAULT_FULL_NODE = process.env.TRX_FULL_NODE_URL || 'https://api.trongrid.io';
@@ -84,6 +85,7 @@
           this.fullNode = config.fullNode || DEFAULT_FULL_NODE;
           this.solidityNode = config.solidityNode || DEFAULT_SOLIDITY_NODE;
           this.eventServer = config.eventServer || DEFAULT_EVENT_SERVER;
+          this.logger = new tsCommon.DelegateLogger(config.logger, PACKAGE_NAME);
           this.tronweb = new TronWeb(this.fullNode, this.solidityNode, this.eventServer);
       }
       async getAddressOrNull(index, options) {
@@ -245,7 +247,8 @@
                   if (statusCode === 'DUP_TRANSACTION_ERROR') {
                       statusCode = 'DUP_TX_BUT_TX_NOT_FOUND_SO_PROBABLY_INVALID_TX_ERROR';
                   }
-                  throw new Error(`Failed to broadcast transaction: ${statusCode}`);
+                  this.logger.warn(`Tron broadcast tx unsuccessful ${tx.id}`, status);
+                  throw new Error(`Failed to broadcast transaction: ${statusCode} ${status.message}`);
               }
           }
           catch (e) {
@@ -723,6 +726,7 @@
       fullNode: t.string,
       solidityNode: t.string,
       eventServer: t.string,
+      logger: tsCommon.Logger,
   }, 'BaseTronPaymentsConfig');
   const HdTronPaymentsConfig = tsCommon.extendCodec(BaseTronPaymentsConfig, {
       hdKey: t.string,
@@ -797,6 +801,7 @@
   exports.xprvToXpub = xprvToXpub;
   exports.encode58 = encode58;
   exports.decode58 = decode58;
+  exports.PACKAGE_NAME = PACKAGE_NAME;
   exports.MIN_BALANCE_SUN = MIN_BALANCE_SUN;
   exports.MIN_BALANCE_TRX = MIN_BALANCE_TRX;
   exports.DEFAULT_FULL_NODE = DEFAULT_FULL_NODE;

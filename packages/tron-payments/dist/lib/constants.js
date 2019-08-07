@@ -1,3 +1,4 @@
+export const PACKAGE_NAME = 'tron-payments';
 export const MIN_BALANCE_SUN = 100000;
 export const MIN_BALANCE_TRX = MIN_BALANCE_SUN / 1e6;
 export const DEFAULT_FULL_NODE = process.env.TRX_FULL_NODE_URL || 'https://api.trongrid.io';

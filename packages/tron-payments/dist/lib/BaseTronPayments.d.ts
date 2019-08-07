@@ -1,11 +1,13 @@
 import TronWeb from 'tronweb';
 import { BalanceResult, PaymentsInterface, FeeOption, ResolvedFeeOption } from '@faast/payments-common';
+import { Logger } from '@faast/ts-common';
 import { TronTransactionInfo, TronUnsignedTransaction, TronSignedTransaction, TronBroadcastResult, CreateTransactionOptions, GetAddressOptions, BaseTronPaymentsConfig } from './types';
 import { toMainDenomination, toBaseDenomination, isValidAddress, isValidPrivateKey, privateKeyToAddress } from './utils';
 export declare abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> implements PaymentsInterface<Config, TronUnsignedTransaction, TronSignedTransaction, TronBroadcastResult, TronTransactionInfo> {
     fullNode: string;
     solidityNode: string;
     eventServer: string;
+    logger: Logger;
     tronweb: TronWeb;
     constructor(config: Config);
     toMainDenomination: typeof toMainDenomination;
