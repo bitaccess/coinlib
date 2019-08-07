@@ -1,5 +1,5 @@
 import * as t from 'io-ts'
-import { extendCodec } from '@faast/ts-common'
+import { extendCodec, Logger } from '@faast/ts-common'
 import {
   BaseTransactionInfo,
   BaseUnsignedTransaction,
@@ -28,6 +28,7 @@ export const BaseTronPaymentsConfig = extendCodec(
     fullNode: t.string,
     solidityNode: t.string,
     eventServer: t.string,
+    logger: Logger,
   },
   'BaseTronPaymentsConfig',
 )

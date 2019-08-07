@@ -10,7 +10,7 @@ import {
   FeeOptionCustom,
   ResolvedFeeOption,
 } from '@faast/payments-common'
-import { isType } from '@faast/ts-common'
+import { isType, DelegateLogger, Logger } from '@faast/ts-common'
 
 import {
   TronTransactionInfo,
@@ -37,6 +37,7 @@ import {
   DEFAULT_SOLIDITY_NODE,
   MIN_BALANCE_SUN,
   MIN_BALANCE_TRX,
+  PACKAGE_NAME,
 } from './constants'
 
 export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
@@ -56,13 +57,14 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
   fullNode: string
   solidityNode: string
   eventServer: string
+  logger: Logger
   tronweb: TronWeb
 
   constructor(config: Config) {
     this.fullNode = config.fullNode || DEFAULT_FULL_NODE
     this.solidityNode = config.solidityNode || DEFAULT_SOLIDITY_NODE
     this.eventServer = config.eventServer || DEFAULT_EVENT_SERVER
-
+    this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
     this.tronweb = new TronWeb(this.fullNode, this.solidityNode, this.eventServer)
   }
 
@@ -265,7 +267,8 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
         if (statusCode === 'DUP_TRANSACTION_ERROR') {
           statusCode = 'DUP_TX_BUT_TX_NOT_FOUND_SO_PROBABLY_INVALID_TX_ERROR'
         }
-        throw new Error(`Failed to broadcast transaction: ${statusCode}`)
+        this.logger.warn(`Tron broadcast tx unsuccessful ${tx.id}`, status)
+        throw new Error(`Failed to broadcast transaction: ${statusCode} ${status.message}`)
       }
     } catch (e) {
       throw toError(e)

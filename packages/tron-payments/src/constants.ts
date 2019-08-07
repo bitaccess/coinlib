@@ -1,5 +1,6 @@
 import { FeeLevel } from '@faast/payments-common'
 
+export const PACKAGE_NAME = 'tron-payments'
 export const MIN_BALANCE_SUN = 100000
 export const MIN_BALANCE_TRX = MIN_BALANCE_SUN / 1e6
 
