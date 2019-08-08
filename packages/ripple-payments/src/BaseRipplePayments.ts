@@ -60,6 +60,18 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     }
   }
 
+  async setup(): Promise<void> {
+    if (!this.rippleApi.isConnected()) {
+      await this.rippleApi.connect()
+    }
+  }
+
+  async destroy(): Promise<void> {
+    if (this.rippleApi.isConnected()) {
+      await this.rippleApi.disconnect()
+    }
+  }
+
   getFullConfig() {
     return this.config
   }
@@ -227,7 +239,14 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     }
   }
 
-  private async resolvePayportBalance(options: RippleCreateTransactionOptions): Promise<BigNumber> {
+  private async resolvePayportBalance(
+    fromPayport: Payport,
+    options: RippleCreateTransactionOptions,
+  ): Promise<BigNumber> {
+    if (isNil(fromPayport.extraId)) {
+      const balances = await this.getBalance(fromPayport)
+      return new BigNumber(balances.confirmedBalance)
+    }
     if (typeof options.payportBalance !== 'string') {
       throw new Error('ripple-payments createSweepTransaction missing required payportBalance option')
     }
@@ -325,7 +344,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
   ): Promise<RippleUnsignedTransaction> {
     const fromTo = await this.resolveFromTo(from, to)
     const feeOption = await this.resolveFeeOption(options)
-    const payportBalance = await this.resolvePayportBalance(options)
+    const payportBalance = await this.resolvePayportBalance(fromTo.fromPayport, options)
     const amountBn = new BigNumber(amount)
     return this.doCreateTransaction(fromTo, feeOption, amountBn, payportBalance, options)
   }
@@ -337,7 +356,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
   ): Promise<RippleUnsignedTransaction> {
     const fromTo = await this.resolveFromTo(from, to)
     const feeOption = await this.resolveFeeOption(options)
-    const payportBalance = await this.resolvePayportBalance(options)
+    const payportBalance = await this.resolvePayportBalance(fromTo.fromPayport, options)
     let amountBn = payportBalance.minus(feeOption.feeMain)
     if (amountBn.lt(0)) {
       const fromPayport = { address: fromTo.fromAddress, extraId: fromTo.fromExtraId }
