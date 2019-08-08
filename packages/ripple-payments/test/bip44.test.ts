@@ -1,6 +1,6 @@
 import { RippleAPI } from 'ripple-lib'
 
-import { publicKeyToAddress, deriveKeyPair, xprvToXpub } from '../src/bip44'
+import { publicKeyToAddress, xprvToXpub, deriveSignatory } from '../src/bip44'
 import { hdAccount } from './fixtures/accounts'
 
 const { XPRV, XPUB, PRIVATE_KEYS, PUBLIC_KEYS, ADDRESSES } = hdAccount
@@ -21,18 +21,22 @@ describe('bip44', () => {
   })
 
   test('deriveKeyPair 0 from xprv', () => {
-    expect(deriveKeyPair(XPRV, 0)).toEqual({
-      privateKey: PRIVATE_KEYS[0],
-      publicKey: PUBLIC_KEYS[0],
+    expect(deriveSignatory(XPRV, 0)).toEqual({
       address: ADDRESSES[0],
+      secret: {
+        privateKey: PRIVATE_KEYS[0],
+        publicKey: PUBLIC_KEYS[0],
+      },
     })
   })
 
   test('deriveKeyPair 0 from xpub', () => {
-    expect(deriveKeyPair(XPUB, 0)).toEqual({
-      privateKey: '',
-      publicKey: PUBLIC_KEYS[0],
+    expect(deriveSignatory(XPUB, 0)).toEqual({
       address: ADDRESSES[0],
+      secret: {
+        privateKey: '',
+        publicKey: PUBLIC_KEYS[0],
+      },
     })
   })
 })
