@@ -361,7 +361,8 @@ export class RipplePayments extends RipplePaymentsUtils
       if (amountBn.lt(0)) {
         throw new Error(
           `Insufficient balance to sweep from ripple address with fee of ${feeOption.feeMain} XRP and ` +
-            `maintain the minimum required balance of ${MIN_BALANCE} XRP: ${fromTo.fromAddress} (${payportBalance} XRP)`,
+            `maintain the minimum required balance of ${MIN_BALANCE} XRP: ` +
+            `${fromTo.fromAddress} (${payportBalance} XRP)`,
         )
       }
     }
