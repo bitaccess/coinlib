@@ -7,7 +7,7 @@ import {
   isValidAddress,
   isValidExtraId,
 } from './helpers'
-import { Logger, DelegateLogger, isNil } from '@faast/ts-common'
+import { Logger, DelegateLogger, isNil, assertType } from '@faast/ts-common'
 import { PACKAGE_NAME } from './constants'
 
 export class RipplePaymentsUtils implements PaymentsUtils {
@@ -15,6 +15,7 @@ export class RipplePaymentsUtils implements PaymentsUtils {
   logger: Logger
 
   constructor(config: BaseConfig = {}) {
+    assertType(BaseConfig, config)
     this.networkType = config.network || NetworkType.Mainnet
     this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
   }

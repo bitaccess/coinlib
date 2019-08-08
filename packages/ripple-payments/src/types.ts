@@ -12,6 +12,7 @@ import {
   FromTo,
 } from '@faast/payments-common'
 import { FormattedTransactionType as RippleTransaction, RippleAPI } from 'ripple-lib'
+import { KeyPair } from 'ripple-lib/dist/npm/transaction/types'
 
 type PromiseValue<T> = T extends Promise<infer X> ? X : never
 type RippleLedger = PromiseValue<ReturnType<RippleAPI['getLedger']>>
@@ -22,19 +23,60 @@ export type TransactionInfoRaw = RippleTransaction & {
   currentLedger: RippleLedger
 }
 
-export const RipplePaymentsConfig = extendCodec(
+export const BaseRipplePaymentsConfig = extendCodec(
   BaseConfig,
-  {
-    hdKey: t.string, // xprv or xpub
-  },
+  {},
   {
     server: t.string,
     logger: Logger,
     maxLedgerVersionOffset: t.number, // number of ledgers until a tx expires
   },
-  'RipplePaymentsConfig',
+  'BaseRipplePaymentsConfig',
 )
-export type RipplePaymentsConfig = t.TypeOf<typeof RipplePaymentsConfig>
+export type BaseRipplePaymentsConfig = t.TypeOf<typeof BaseRipplePaymentsConfig>
+
+export const HdRipplePaymentsConfig = extendCodec(
+  BaseRipplePaymentsConfig,
+  {
+    hdKey: t.string, // xprv or xpub
+  },
+  'HdRipplePaymentsConfig',
+)
+export type HdRipplePaymentsConfig = t.TypeOf<typeof HdRipplePaymentsConfig>
+
+export const RippleKeyPair = t.type(
+  {
+    publicKey: t.string,
+    privateKey: t.string,
+  },
+  'RippleKeyPair',
+)
+export type RippleKeyPair = t.TypeOf<typeof RippleKeyPair>
+
+export const RippleSecretPair = t.type(
+  {
+    address: t.string,
+    secret: t.string,
+  },
+  'RippleSecretPair',
+)
+export type RippleSecretPair = t.TypeOf<typeof RippleSecretPair>
+
+/**
+ * address, or secret+address, or public+private key
+ */
+export const RippleAccountConfig = t.union([t.string, RippleSecretPair, RippleKeyPair], 'RippleAccountConfig')
+export type RippleAccountConfig = t.TypeOf<typeof RippleAccountConfig>
+
+export const AccountRipplePaymentsConfig = extendCodec(
+  BaseRipplePaymentsConfig,
+  {
+    hotAccount: RippleAccountConfig,
+    depositAccount: RippleAccountConfig,
+  },
+  'AccountRipplePaymentsConfig',
+)
+export type AccountRipplePaymentsConfig = t.TypeOf<typeof AccountRipplePaymentsConfig>
 
 export const RippleUnsignedTransaction = extendCodec(
   BaseUnsignedTransaction,
@@ -92,4 +134,9 @@ export type RippleCreateTransactionOptions = t.TypeOf<typeof RippleCreateTransac
 export type FromToWithPayport = FromTo & {
   fromPayport: Payport
   toPayport: Payport
+}
+
+export type RippleSignatory = {
+  address: string
+  secret: string | KeyPair
 }

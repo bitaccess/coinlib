@@ -16,17 +16,17 @@ import { FormattedPaymentTransaction, FormattedPayment, Prepare } from 'ripple-l
 import { Adjustment } from 'ripple-lib/dist/npm/common/types/objects'
 
 import {
-  RipplePaymentsConfig,
+  BaseRipplePaymentsConfig,
   RippleUnsignedTransaction,
   RippleSignedTransaction,
   RippleBroadcastResult,
   RippleTransactionInfo,
   RippleCreateTransactionOptions,
   FromToWithPayport,
+  RippleSignatory,
 } from './types'
-import { xprvToXpub, deriveKeyPair, KeyPair, generateNewKeys } from './bip44'
 import { RipplePaymentsUtils } from './RipplePaymentsUtils'
-import { DEFAULT_CREATE_TRANSACTION_OPTIONS, MIN_BALANCE } from './constants'
+import { DEFAULT_CREATE_TRANSACTION_OPTIONS, MIN_BALANCE, DEFAULT_MAX_LEDGER_VERSION_OFFSET } from './constants'
 import { assertValidAddress, assertValidExtraIdOrNil } from './helpers'
 
 function extraIdToTag(extraId: string | null | undefined): number | undefined {
@@ -36,36 +36,22 @@ function serializePayport(payport: Payport): string {
   return isNil(payport.extraId) ? payport.address : `${payport.address}:${payport.extraId}`
 }
 
-export class RipplePayments extends RipplePaymentsUtils
+export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig> extends RipplePaymentsUtils
   implements
     BasePayments<
-      RipplePaymentsConfig,
+      Config,
       RippleUnsignedTransaction,
       RippleSignedTransaction,
       RippleBroadcastResult,
       RippleTransactionInfo
     > {
   readonly rippleApi: RippleAPI
-  readonly xprv: string | null
-  readonly xpub: string
-  readonly hotwalletKeyPair: KeyPair
-  readonly depositKeyPair: KeyPair
   readonly logger: Logger
 
-  constructor(public readonly config: RipplePaymentsConfig) {
+  constructor(public readonly config: Config) {
     super(config)
+    assertType(BaseRipplePaymentsConfig, config)
     if (config.server) {
-      if (this.isValidXprv(config.hdKey)) {
-        this.xprv = config.hdKey
-        this.xpub = xprvToXpub(this.xprv)
-      } else if (this.isValidXpub(config.hdKey)) {
-        this.xprv = null
-        this.xpub = config.hdKey
-      } else {
-        throw new Error('Account must be a valid xprv or xpub')
-      }
-      this.hotwalletKeyPair = deriveKeyPair(config.hdKey, 0)
-      this.depositKeyPair = deriveKeyPair(config.hdKey, 1)
       this.rippleApi = new RippleAPI({
         server: config.server,
       })
@@ -74,26 +60,21 @@ export class RipplePayments extends RipplePaymentsUtils
     }
   }
 
-  static generateNewKeys = generateNewKeys
-
   getFullConfig() {
     return this.config
   }
 
-  getPublicConfig() {
-    return {
-      ...this.config,
-      hdKey: xprvToXpub(this.config.hdKey),
-    }
-  }
+  abstract getPublicConfig(): Config
 
-  getAccountIds(): string[] {
-    return [this.xpub]
-  }
+  abstract getAccountIds(): string[]
 
-  getAccountId(): string {
-    return this.xpub
-  }
+  abstract getAccountId(index: number): string
+
+  abstract getHotSignatory(): RippleSignatory
+
+  abstract getDepositSignatory(): RippleSignatory
+
+  abstract isReadOnly(): boolean
 
   async resolvePayport(payportOrIndex: Payport | number): Promise<Payport> {
     if (typeof payportOrIndex === 'number') {
@@ -122,9 +103,12 @@ export class RipplePayments extends RipplePaymentsUtils
 
   async getPayport(index: number): Promise<Payport> {
     if (index === 0) {
-      return { address: this.hotwalletKeyPair.address }
+      return { address: this.getHotSignatory().address }
     }
-    return { address: this.depositKeyPair.address, extraId: String(index) }
+    if (index === 1) {
+      return { address: this.getDepositSignatory().address }
+    }
+    return { address: this.getDepositSignatory().address, extraId: String(index) }
   }
 
   requiresBalanceMonitor() {
@@ -153,9 +137,9 @@ export class RipplePayments extends RipplePaymentsUtils
 
   resolveIndexFromAdjustment(adjustment: Adjustment): number | null {
     const { address, tag } = adjustment
-    if (address === this.hotwalletKeyPair.address) {
+    if (address === this.getHotSignatory().address) {
       return 0
-    } else if (address === this.depositKeyPair.address) {
+    } else if (address === this.getDepositSignatory().address) {
       return tag || 1
     }
     return null
@@ -266,7 +250,9 @@ export class RipplePayments extends RipplePaymentsUtils
     }
     const { fromIndex, fromAddress, fromExtraId, fromPayport, toIndex, toAddress, toExtraId, toPayport } = fromTo
     const { targetFeeLevel, targetFeeRate, targetFeeRateType, feeMain } = feeOption
-    const { maxLedgerVersionOffset, sequence } = options
+    const { sequence } = options
+    const maxLedgerVersionOffset =
+      options.maxLedgerVersionOffset || this.config.maxLedgerVersionOffset || DEFAULT_MAX_LEDGER_VERSION_OFFSET
     const amountString = amount.toString()
     const addressBalances = await this.getBalance({ address: fromAddress })
     const addressBalance = new BigNumber(addressBalances.confirmedBalance)
@@ -309,7 +295,7 @@ export class RipplePayments extends RipplePaymentsUtils
         },
       },
       {
-        maxLedgerVersionOffset: maxLedgerVersionOffset || this.config.maxLedgerVersionOffset,
+        maxLedgerVersionOffset,
         sequence,
       },
     )
@@ -375,16 +361,21 @@ export class RipplePayments extends RipplePaymentsUtils
 
   async signTransaction(unsignedTx: RippleUnsignedTransaction): Promise<RippleSignedTransaction> {
     assertType(RippleUnsignedTransaction, unsignedTx)
+    if (this.isReadOnly()) {
+      throw new Error('Cannot sign transaction with read only ripple payments (no xprv or secrets provided)')
+    }
     const { txJSON } = unsignedTx.data as Prepare
-    let keyPair
-    if (unsignedTx.fromAddress === this.hotwalletKeyPair.address) {
-      keyPair = this.hotwalletKeyPair
-    } else if (unsignedTx.fromAddress === this.depositKeyPair.address) {
-      keyPair = this.depositKeyPair
+    let secret
+    const hotSignatory = this.getHotSignatory()
+    const depositSignatory = this.getDepositSignatory()
+    if (unsignedTx.fromAddress === hotSignatory.address) {
+      secret = hotSignatory.secret
+    } else if (unsignedTx.fromAddress === depositSignatory.address) {
+      secret = depositSignatory.secret
     } else {
       throw new Error(`Cannot sign ripple transaction from address ${unsignedTx.fromAddress}`)
     }
-    const signResult = this.rippleApi.sign(txJSON, keyPair)
+    const signResult = this.rippleApi.sign(txJSON, secret)
     return {
       ...unsignedTx,
       id: signResult.id,

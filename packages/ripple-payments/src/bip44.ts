@@ -5,6 +5,7 @@ import { BIP32Interface as HDNode, fromBase58, fromSeed } from 'bip32'
 import baseX from 'base-x'
 import { padLeft } from './utils'
 import crypto from 'crypto'
+import { RippleSignatory } from './types'
 
 export const RIPPLE_B58_DICT = 'rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz'
 export const base58 = baseX(RIPPLE_B58_DICT)
@@ -12,9 +13,7 @@ export const base58 = baseX(RIPPLE_B58_DICT)
 export const derivationPath = "m/44'/144'/0'"
 const derivationPathParts = derivationPath.split('/').slice(1)
 
-export type KeyPair = { privateKey: string; publicKey: string; address: string }
-
-export function deriveKeyPair(hdKey: string, index: number): KeyPair {
+export function deriveSignatory(hdKey: string, index: number): RippleSignatory {
   const key = fromBase58(hdKey)
   const derived = deriveBasePath(key)
     .derive(0)
@@ -23,9 +22,11 @@ export function deriveKeyPair(hdKey: string, index: number): KeyPair {
   const publicKey = hdNodeToPublicKey(derived)
   const address = publicKeyToAddress(publicKey)
   return {
-    privateKey,
-    publicKey,
     address,
+    secret: {
+      privateKey,
+      publicKey,
+    },
   }
 }
 
@@ -37,7 +38,7 @@ export function xprvToXpub(xprv: string | HDNode): string {
 
 export function generateNewKeys(): { xpub: string; xprv: string } {
   const key = fromSeed(crypto.randomBytes(32))
-  const xprv = key.toString()
+  const xprv = key.toBase58()
   const xpub = xprvToXpub(xprv)
   return {
     xprv,

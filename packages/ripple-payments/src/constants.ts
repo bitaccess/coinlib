@@ -6,6 +6,7 @@ export const PACKAGE_NAME = 'ripple-payments'
 export const DECIMAL_PLACES = 6
 export const MIN_BALANCE = 20
 export const DEFAULT_CREATE_TRANSACTION_OPTIONS: RippleCreateTransactionOptions = { feeLevel: FeeLevel.Medium }
+export const DEFAULT_MAX_LEDGER_VERSION_OFFSET = 100 // ~6min
 
 /**
  * Source: https://github.com/ripple/ripple-lib/blob/develop/src/common/schemas/objects/address.json
