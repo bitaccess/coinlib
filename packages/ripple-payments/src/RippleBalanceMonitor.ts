@@ -11,6 +11,7 @@ import { TransactionsOptions } from 'ripple-lib/dist/npm/ledger/transactions'
 
 import { padLeft } from './utils'
 import { RippleBalanceMonitorConfig } from './types'
+import { assertValidAddress } from './helpers'
 
 export class RippleBalanceMonitor extends BalanceMonitor {
   rippleApi: RippleAPI
@@ -31,6 +32,9 @@ export class RippleBalanceMonitor extends BalanceMonitor {
   }
 
   async subscribeAddresses(addresses: string[]) {
+    for (let address of addresses) {
+      assertValidAddress(address)
+    }
     try {
       const res = await this.rippleApi.request('subscribe', { accounts: addresses })
       if (res.status === 'success') {
@@ -58,6 +62,7 @@ export class RippleBalanceMonitor extends BalanceMonitor {
     callbackFn: BalanceActivityCallback,
     options: GetBalanceActivityOptions = {},
   ): Promise<void> {
+    assertValidAddress(address)
     const { from, to } = options
     const limit = 10
     let lastTx: FormattedTransactionType | undefined

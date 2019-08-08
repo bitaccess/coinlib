@@ -1,7 +1,7 @@
 // Many parts of this code are snippets from tronWeb:
 // https://github.com/tronprotocol/tron-web/blob/master/src/index.js
 
-import { BIP32Interface as HDNode, fromBase58 } from 'bip32'
+import { BIP32Interface as HDNode, fromBase58, fromSeed } from 'bip32'
 import baseX from 'base-x'
 import { padLeft } from './utils'
 import crypto from 'crypto'
@@ -33,6 +33,16 @@ export function xprvToXpub(xprv: string | HDNode): string {
   const key = typeof xprv === 'string' ? fromBase58(xprv) : xprv
   const derivedPubKey = deriveBasePath(key)
   return derivedPubKey.neutered().toBase58()
+}
+
+export function generateNewKeys(): { xpub: string; xprv: string } {
+  const key = fromSeed(crypto.randomBytes(32))
+  const xprv = key.toString()
+  const xpub = xprvToXpub(xprv)
+  return {
+    xprv,
+    xpub,
+  }
 }
 
 // HELPER FUNCTIONS

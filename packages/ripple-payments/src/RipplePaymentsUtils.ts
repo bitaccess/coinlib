@@ -6,15 +6,15 @@ import {
   isValidXpub,
   isValidAddress,
   isValidExtraId,
-} from './utils'
-import { Logger, DelegateLogger } from '@faast/ts-common'
+} from './helpers'
+import { Logger, DelegateLogger, isNil } from '@faast/ts-common'
 import { PACKAGE_NAME } from './constants'
 
 export class RipplePaymentsUtils implements PaymentsUtils {
   networkType: NetworkType
   logger: Logger
 
-  constructor(config: BaseConfig) {
+  constructor(config: BaseConfig = {}) {
     this.networkType = config.network || NetworkType.Mainnet
     this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
   }
@@ -27,8 +27,12 @@ export class RipplePaymentsUtils implements PaymentsUtils {
     return isValidAddress(address)
   }
 
-  async isValidPayport({ address, extraId }: Payport): Promise<boolean> {
-    return (await this.isValidAddress(address)) && (typeof extraId === 'string' ? this.isValidExtraId(extraId) : true)
+  async isValidPayport(payport: Payport): Promise<boolean> {
+    if (!Payport.is(payport)) {
+      return false
+    }
+    const { address, extraId } = payport
+    return (await this.isValidAddress(address)) && (isNil(extraId) ? true : this.isValidExtraId(extraId))
   }
 
   toMainDenomination(amount: string | number): string {

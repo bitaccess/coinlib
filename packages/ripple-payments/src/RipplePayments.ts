@@ -9,7 +9,7 @@ import {
   FeeLevel,
   FeeRateType,
 } from '@faast/payments-common'
-import { Logger, assertType } from '@faast/ts-common'
+import { Logger, assertType, isNil } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
 import { RippleAPI } from 'ripple-lib'
 import { FormattedPaymentTransaction, FormattedPayment, Prepare } from 'ripple-lib/dist/npm/transaction/types'
@@ -24,18 +24,16 @@ import {
   RippleCreateTransactionOptions,
   FromToWithPayport,
 } from './types'
-import { xprvToXpub, deriveKeyPair, KeyPair } from './bip44'
+import { xprvToXpub, deriveKeyPair, KeyPair, generateNewKeys } from './bip44'
 import { RipplePaymentsUtils } from './RipplePaymentsUtils'
 import { DEFAULT_CREATE_TRANSACTION_OPTIONS, MIN_BALANCE } from './constants'
+import { assertValidAddress, assertValidExtraIdOrNil } from './helpers'
 
-function tagToExtraId(tag: number | undefined): string | null {
-  return typeof tag === 'number' ? String(tag) : null
-}
 function extraIdToTag(extraId: string | null | undefined): number | undefined {
-  return typeof extraId === 'string' ? Number.parseInt(extraId) : undefined
+  return isNil(extraId) ? undefined : Number.parseInt(extraId)
 }
 function serializePayport(payport: Payport): string {
-  return typeof payport.extraId === 'string' ? `${payport.address}:${payport.extraId}` : payport.address
+  return isNil(payport.extraId) ? payport.address : `${payport.address}:${payport.extraId}`
 }
 
 export class RipplePayments extends RipplePaymentsUtils
@@ -76,6 +74,8 @@ export class RipplePayments extends RipplePaymentsUtils
     }
   }
 
+  static generateNewKeys = generateNewKeys
+
   getFullConfig() {
     return this.config
   }
@@ -99,8 +99,12 @@ export class RipplePayments extends RipplePaymentsUtils
     if (typeof payportOrIndex === 'number') {
       return this.getPayport(payportOrIndex)
     }
-    return payportOrIndex
+    const payport = payportOrIndex
+    assertValidAddress(payport.address)
+    assertValidExtraIdOrNil(payport.extraId)
+    return payport
   }
+
   async resolveFromTo(from: number, to: Payport | number): Promise<FromToWithPayport> {
     const fromPayport = await this.getPayport(from)
     const toPayport = await this.resolvePayport(to)
@@ -134,7 +138,7 @@ export class RipplePayments extends RipplePaymentsUtils
   async getBalance(payportOrIndex: Payport | number): Promise<BalanceResult> {
     const payport = await this.resolvePayport(payportOrIndex)
     const { address, extraId } = payport
-    if (typeof extraId === 'string') {
+    if (!isNil(extraId)) {
       throw new Error(`Cannot getBalance of ripple payport with extraId ${extraId}, use BalanceMonitor instead`)
     }
     const balances = await this.rippleApi.getBalances(address)

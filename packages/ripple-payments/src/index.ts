@@ -1,3 +1,5 @@
 export * from './RipplePayments'
+export * from './RipplePaymentsUtils'
 export * from './RippleBalanceMonitor'
 export * from './types'
+export * from './helpers'
