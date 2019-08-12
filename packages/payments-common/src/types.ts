@@ -127,7 +127,7 @@ export type FromTo = Pick<
 export const BaseUnsignedTransaction = extendCodec(
   UnsignedCommon,
   {
-    status: t.literal('unsigned'),
+    status: t.literal(TransactionStatus.Unsigned),
     data: t.object,
   },
   'BaseUnsignedTransaction',
@@ -137,7 +137,7 @@ export type BaseUnsignedTransaction = t.TypeOf<typeof BaseUnsignedTransaction>
 export const BaseSignedTransaction = extendCodec(
   UnsignedCommon,
   {
-    status: t.literal('signed'),
+    status: t.literal(TransactionStatus.Signed),
     id: t.string,
     amount: t.string,
     fee: t.string,
