@@ -45,7 +45,7 @@ export const FeeOptionCustom = requiredOptionalCodec(
   'FeeOptionCustom',
 )
 
-export const FeeOptionLevel = t.type(
+export const FeeOptionLevel = t.partial(
   {
     feeLevel: t.union([t.literal(FeeLevel.High), t.literal(FeeLevel.Medium), t.literal(FeeLevel.Low)]),
   },
