@@ -30,7 +30,7 @@ export declare const FeeOptionCustom: t.IntersectionC<[t.TypeC<{
 }>, t.PartialC<{
     feeLevel: t.LiteralC<FeeLevel.Custom>;
 }>]>;
-export declare const FeeOptionLevel: t.TypeC<{
+export declare const FeeOptionLevel: t.PartialC<{
     feeLevel: t.UnionC<[t.LiteralC<FeeLevel.High>, t.LiteralC<FeeLevel.Medium>, t.LiteralC<FeeLevel.Low>]>;
 }>;
 export declare const FeeOption: t.UnionC<[t.IntersectionC<[t.TypeC<{
@@ -38,7 +38,7 @@ export declare const FeeOption: t.UnionC<[t.IntersectionC<[t.TypeC<{
     feeRateType: t.Type<FeeRateType, FeeRateType, unknown>;
 }>, t.PartialC<{
     feeLevel: t.LiteralC<FeeLevel.Custom>;
-}>]>, t.TypeC<{
+}>]>, t.PartialC<{
     feeLevel: t.UnionC<[t.LiteralC<FeeLevel.High>, t.LiteralC<FeeLevel.Medium>, t.LiteralC<FeeLevel.Low>]>;
 }>]>;
 export declare type FeeOption = t.TypeOf<typeof FeeOption>;
@@ -47,7 +47,7 @@ export declare const CreateTransactionOptions: t.UnionC<[t.IntersectionC<[t.Type
     feeRateType: t.Type<FeeRateType, FeeRateType, unknown>;
 }>, t.PartialC<{
     feeLevel: t.LiteralC<FeeLevel.Custom>;
-}>]>, t.TypeC<{
+}>]>, t.PartialC<{
     feeLevel: t.UnionC<[t.LiteralC<FeeLevel.High>, t.LiteralC<FeeLevel.Medium>, t.LiteralC<FeeLevel.Low>]>;
 }>]>;
 export declare type CreateTransactionOptions = t.TypeOf<typeof CreateTransactionOptions>;

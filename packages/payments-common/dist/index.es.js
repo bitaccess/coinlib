@@ -34,7 +34,7 @@ const FeeOptionCustom = requiredOptionalCodec({
 }, {
     feeLevel: literal(FeeLevel.Custom),
 }, 'FeeOptionCustom');
-const FeeOptionLevel = type({
+const FeeOptionLevel = partial({
     feeLevel: union([literal(FeeLevel.High), literal(FeeLevel.Medium), literal(FeeLevel.Low)]),
 }, 'FeeOptionLevel');
 const FeeOption = union([FeeOptionCustom, FeeOptionLevel], 'FeeOption');
