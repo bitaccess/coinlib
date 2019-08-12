@@ -108,7 +108,7 @@ export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
     targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
     targetFeeRateType: t.UnionC<[t.Type<FeeRateType, FeeRateType, unknown>, t.NullC]>;
 }>]>, t.TypeC<{
-    status: t.LiteralC<"unsigned">;
+    status: t.LiteralC<TransactionStatus.Unsigned>;
     data: t.ObjectC;
 }>]>;
 export declare type BaseUnsignedTransaction = t.TypeOf<typeof BaseUnsignedTransaction>;
@@ -132,7 +132,7 @@ export declare const BaseSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
     targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
     targetFeeRateType: t.UnionC<[t.Type<FeeRateType, FeeRateType, unknown>, t.NullC]>;
 }>]>, t.TypeC<{
-    status: t.LiteralC<"signed">;
+    status: t.LiteralC<TransactionStatus.Signed>;
     id: t.StringC;
     amount: t.StringC;
     fee: t.StringC;

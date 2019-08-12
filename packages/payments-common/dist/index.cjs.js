@@ -84,11 +84,11 @@ const UnsignedCommon = tsCommon.extendCodec(TransactionCommon, {
     targetFeeRateType: tsCommon.nullable(FeeRateTypeT),
 }, 'UnsignedCommon');
 const BaseUnsignedTransaction = tsCommon.extendCodec(UnsignedCommon, {
-    status: t.literal('unsigned'),
+    status: t.literal(exports.TransactionStatus.Unsigned),
     data: t.object,
 }, 'BaseUnsignedTransaction');
 const BaseSignedTransaction = tsCommon.extendCodec(UnsignedCommon, {
-    status: t.literal('signed'),
+    status: t.literal(exports.TransactionStatus.Signed),
     id: t.string,
     amount: t.string,
     fee: t.string,

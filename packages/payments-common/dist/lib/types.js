@@ -80,11 +80,11 @@ const UnsignedCommon = extendCodec(TransactionCommon, {
     targetFeeRateType: nullable(FeeRateTypeT),
 }, 'UnsignedCommon');
 export const BaseUnsignedTransaction = extendCodec(UnsignedCommon, {
-    status: t.literal('unsigned'),
+    status: t.literal(TransactionStatus.Unsigned),
     data: t.object,
 }, 'BaseUnsignedTransaction');
 export const BaseSignedTransaction = extendCodec(UnsignedCommon, {
-    status: t.literal('signed'),
+    status: t.literal(TransactionStatus.Signed),
     id: t.string,
     amount: t.string,
     fee: t.string,
