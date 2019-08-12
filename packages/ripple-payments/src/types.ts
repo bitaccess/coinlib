@@ -13,6 +13,7 @@ import {
 } from '@faast/payments-common'
 import { FormattedTransactionType as RippleTransaction, RippleAPI } from 'ripple-lib'
 import { KeyPair } from 'ripple-lib/dist/npm/transaction/types'
+import { AccountRipplePayments } from './AccountRipplePayments'
 
 type PromiseValue<T> = T extends Promise<infer X> ? X : never
 type RippleLedger = PromiseValue<ReturnType<RippleAPI['getLedger']>>
@@ -77,6 +78,12 @@ export const AccountRipplePaymentsConfig = extendCodec(
   'AccountRipplePaymentsConfig',
 )
 export type AccountRipplePaymentsConfig = t.TypeOf<typeof AccountRipplePaymentsConfig>
+
+export const RipplePaymentsConfig = t.union(
+  [HdRipplePaymentsConfig, AccountRipplePaymentsConfig],
+  'RipplePaymentsConfig',
+)
+export type RipplePaymentsConfig = t.TypeOf<typeof RipplePaymentsConfig>
 
 export const RippleUnsignedTransaction = extendCodec(
   BaseUnsignedTransaction,
