@@ -126,8 +126,8 @@ export const BalanceActivity = t.type({
 }, 'BalanceActivity');
 export const BalanceMonitorConfig = BaseConfig;
 export const GetBalanceActivityOptions = t.partial({
-    from: BalanceActivity,
-    to: BalanceActivity,
+    from: t.union([t.number, BalanceActivity]),
+    to: t.union([t.number, BalanceActivity]),
 }, 'GetBalanceActivityOptions');
 export const BalanceActivityCallback = functionT('BalanceActivityCallback');
 //# sourceMappingURL=types.js.map

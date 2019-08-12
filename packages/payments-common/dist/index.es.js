@@ -128,8 +128,8 @@ const BalanceActivity = type({
 }, 'BalanceActivity');
 const BalanceMonitorConfig = BaseConfig;
 const GetBalanceActivityOptions = partial({
-    from: BalanceActivity,
-    to: BalanceActivity,
+    from: union([number, BalanceActivity]),
+    to: union([number, BalanceActivity]),
 }, 'GetBalanceActivityOptions');
 const BalanceActivityCallback = functionT('BalanceActivityCallback');
 

@@ -196,7 +196,7 @@ export declare const BalanceMonitorConfig: t.PartialC<{
 }>;
 export declare type BalanceMonitorConfig = t.TypeOf<typeof BalanceMonitorConfig>;
 export declare const GetBalanceActivityOptions: t.PartialC<{
-    from: t.TypeC<{
+    from: t.UnionC<[t.NumberC, t.TypeC<{
         type: t.UnionC<[t.LiteralC<"in">, t.LiteralC<"out">]>;
         networkType: t.Type<NetworkType, NetworkType, unknown>;
         networkSymbol: t.StringC;
@@ -209,8 +209,8 @@ export declare const GetBalanceActivityOptions: t.PartialC<{
         confirmationId: t.StringC;
         confirmationNumber: t.NumberC;
         timestamp: import("@faast/ts-common").DateC;
-    }>;
-    to: t.TypeC<{
+    }>]>;
+    to: t.UnionC<[t.NumberC, t.TypeC<{
         type: t.UnionC<[t.LiteralC<"in">, t.LiteralC<"out">]>;
         networkType: t.Type<NetworkType, NetworkType, unknown>;
         networkSymbol: t.StringC;
@@ -223,7 +223,7 @@ export declare const GetBalanceActivityOptions: t.PartialC<{
         confirmationId: t.StringC;
         confirmationNumber: t.NumberC;
         timestamp: import("@faast/ts-common").DateC;
-    }>;
+    }>]>;
 }>;
 export declare type GetBalanceActivityOptions = t.TypeOf<typeof GetBalanceActivityOptions>;
 export declare type BalanceActivityCallback = (ba: BalanceActivity) => Promise<void> | void;
