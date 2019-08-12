@@ -126,11 +126,7 @@
       confirmationNumber: t.number,
       timestamp: tsCommon.DateT,
   }, 'BalanceActivity');
-  const BalanceMonitorConfig = tsCommon.requiredOptionalCodec({
-      network: NetworkTypeT,
-  }, {
-      logger: tsCommon.Logger,
-  }, 'BalanceMonitorConfig');
+  const BalanceMonitorConfig = BaseConfig;
   const GetBalanceActivityOptions = t.partial({
       from: BalanceActivity,
       to: BalanceActivity,
@@ -183,7 +179,7 @@
 
   class BalanceMonitor {
       constructor(config) {
-          this.networkType = config.network;
+          this.networkType = config.network || exports.NetworkType.Mainnet;
           this.logger = new tsCommon.DelegateLogger(config.logger, BalanceMonitor.name);
       }
   }

@@ -190,11 +190,10 @@ export declare const BalanceActivity: t.TypeC<{
     timestamp: import("@faast/ts-common").DateC;
 }>;
 export declare type BalanceActivity = t.TypeOf<typeof BalanceActivity>;
-export declare const BalanceMonitorConfig: t.IntersectionC<[t.TypeC<{
+export declare const BalanceMonitorConfig: t.PartialC<{
     network: t.Type<NetworkType, NetworkType, unknown>;
-}>, t.PartialC<{
     logger: import("@faast/ts-common").LoggerC;
-}>]>;
+}>;
 export declare type BalanceMonitorConfig = t.TypeOf<typeof BalanceMonitorConfig>;
 export declare const GetBalanceActivityOptions: t.PartialC<{
     from: t.TypeC<{

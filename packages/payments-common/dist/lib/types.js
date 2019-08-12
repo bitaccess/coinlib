@@ -124,11 +124,7 @@ export const BalanceActivity = t.type({
     confirmationNumber: t.number,
     timestamp: DateT,
 }, 'BalanceActivity');
-export const BalanceMonitorConfig = requiredOptionalCodec({
-    network: NetworkTypeT,
-}, {
-    logger: Logger,
-}, 'BalanceMonitorConfig');
+export const BalanceMonitorConfig = BaseConfig;
 export const GetBalanceActivityOptions = t.partial({
     from: BalanceActivity,
     to: BalanceActivity,

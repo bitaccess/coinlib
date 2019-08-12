@@ -126,11 +126,7 @@ const BalanceActivity = type({
     confirmationNumber: number,
     timestamp: DateT,
 }, 'BalanceActivity');
-const BalanceMonitorConfig = requiredOptionalCodec({
-    network: NetworkTypeT,
-}, {
-    logger: Logger,
-}, 'BalanceMonitorConfig');
+const BalanceMonitorConfig = BaseConfig;
 const GetBalanceActivityOptions = partial({
     from: BalanceActivity,
     to: BalanceActivity,
@@ -183,7 +179,7 @@ function createUnitConverters(decimals) {
 
 class BalanceMonitor {
     constructor(config) {
-        this.networkType = config.network;
+        this.networkType = config.network || NetworkType.Mainnet;
         this.logger = new DelegateLogger(config.logger, BalanceMonitor.name);
     }
 }
