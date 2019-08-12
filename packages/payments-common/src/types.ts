@@ -210,8 +210,8 @@ export type BalanceMonitorConfig = t.TypeOf<typeof BalanceMonitorConfig>
 
 export const GetBalanceActivityOptions = t.partial(
   {
-    from: BalanceActivity,
-    to: BalanceActivity,
+    from: t.union([t.number, BalanceActivity]),
+    to: t.union([t.number, BalanceActivity]),
   },
   'GetBalanceActivityOptions',
 )
