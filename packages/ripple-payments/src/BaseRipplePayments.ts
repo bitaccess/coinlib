@@ -8,12 +8,13 @@ import {
   Payport,
   FeeLevel,
   FeeRateType,
+  TransactionStatus,
 } from '@faast/payments-common'
 import { Logger, assertType, isNil } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
 import { RippleAPI } from 'ripple-lib'
 import { FormattedPaymentTransaction, FormattedPayment, Prepare } from 'ripple-lib/dist/npm/transaction/types'
-import { Adjustment } from 'ripple-lib/dist/npm/common/types/objects'
+import { Adjustment, Amount } from 'ripple-lib/dist/npm/common/types/objects'
 
 import {
   BaseRipplePaymentsConfig,
@@ -26,7 +27,12 @@ import {
   RippleSignatory,
 } from './types'
 import { RipplePaymentsUtils } from './RipplePaymentsUtils'
-import { DEFAULT_CREATE_TRANSACTION_OPTIONS, MIN_BALANCE, DEFAULT_MAX_LEDGER_VERSION_OFFSET } from './constants'
+import {
+  DEFAULT_CREATE_TRANSACTION_OPTIONS,
+  MIN_BALANCE,
+  DEFAULT_MAX_LEDGER_VERSION_OFFSET,
+  NOT_FOUND_ERRORS,
+} from './constants'
 import { assertValidAddress, assertValidExtraIdOrNil } from './helpers'
 
 function extraIdToTag(extraId: string | null | undefined): number | undefined {
@@ -158,19 +164,30 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
   }
 
   async getTransactionInfo(txId: string): Promise<RippleTransactionInfo> {
-    const tx = await this.rippleApi.getTransaction(txId)
+    let tx
+    try {
+      tx = await this.rippleApi.getTransaction(txId)
+    } catch (e) {
+      const eString = e.toString()
+      if (NOT_FOUND_ERRORS.some(type => eString.includes(type))) {
+        throw new Error(`Transaction not found: ${eString}`)
+      }
+      throw e
+    }
+    this.logger.debug('tx', JSON.stringify(tx, null, 2))
     if (tx.type !== 'payment') {
       throw new Error(`Unsupported ripple tx type ${tx.type}`)
     }
     const { specification, outcome } = tx as FormattedPaymentTransaction
     const { source, destination } = specification
-    if (source.amount.currency !== 'xrp') {
-      throw new Error(`Unsupported ripple tx currency ${source.amount.currency}`)
+    const amountObject = ((source as any).maxAmount || source.amount) as Amount
+    if (amountObject.currency !== 'XRP') {
+      throw new Error(`Unsupported ripple tx currency ${amountObject.currency}`)
     }
     const fromIndex = this.resolveIndexFromAdjustment(source)
     const toIndex = this.resolveIndexFromAdjustment(destination)
-    const amount = source.amount.value
-    const status = outcome.result.startsWith('tes') ? 'confirmed' : 'failed'
+    const amount = amountObject.value
+    const status = outcome.result.startsWith('tes') ? TransactionStatus.Confirmed : TransactionStatus.Failed
     const confirmationNumber = outcome.ledgerVersion
     const ledger = await this.rippleApi.getLedger({ ledgerVersion: confirmationNumber })
     const currentLedgerVersion = await this.rippleApi.getLedgerVersion()
@@ -293,13 +310,13 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
           `with fee of ${feeMain} XRP: ${serializePayport(fromPayport)}`,
       )
     }
-    const preparedTx = this.rippleApi.preparePayment(
+    const preparedTx = await this.rippleApi.preparePayment(
       fromAddress,
       {
         source: {
           address: fromAddress,
           tag: extraIdToTag(fromExtraId),
-          amount: {
+          maxAmount: {
             currency: 'XRP',
             value: amountString,
           },
@@ -331,7 +348,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       targetFeeRate,
       targetFeeRateType,
       fee: feeMain,
-      status: 'unsigned',
+      status: TransactionStatus.Unsigned,
       data: preparedTx,
     }
   }
@@ -383,6 +400,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     if (this.isReadOnly()) {
       throw new Error('Cannot sign transaction with read only ripple payments (no xprv or secrets provided)')
     }
+    this.logger.debug(unsignedTx.data)
     const { txJSON } = unsignedTx.data as Prepare
     let secret
     const hotSignatory = this.getHotSignatory()
@@ -399,7 +417,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       ...unsignedTx,
       id: signResult.id,
       data: signResult,
-      status: 'signed',
+      status: TransactionStatus.Signed,
     }
   }
 
@@ -412,12 +430,13 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       rebroadcast = existing.id === signedTx.id
     } catch (e) {}
     const result = (await this.rippleApi.submit(signedTxString)) as any
+    this.logger.debug('broadcasted', result)
     const resultCode = result.engine_result || result.resultCode || ''
     if (!resultCode.startsWith('tes')) {
       throw new Error(`Failed to broadcast ripple tx ${signedTx.id} with result code ${resultCode}`)
     }
     return {
-      id: result,
+      id: signedTx.id,
       rebroadcast,
       data: result,
     }

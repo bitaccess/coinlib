@@ -37,13 +37,13 @@ export function isValidExtraId(extraId: unknown): boolean {
 }
 
 export function assertValidAddress(address: string): void {
-  if (isValidAddress(address)) {
+  if (!isValidAddress(address)) {
     throw new Error(`Invalid ripple address: ${address}`)
   }
 }
 
 export function assertValidExtraId(extraId: string): void {
-  if (isValidExtraId(extraId)) {
+  if (!isValidExtraId(extraId)) {
     throw new Error(`Invalid ripple extraId: ${extraId}`)
   }
 }
