@@ -7,7 +7,7 @@ export abstract class BalanceMonitor {
   logger: Logger
 
   constructor(config: BalanceMonitorConfig) {
-    this.networkType = config.network
+    this.networkType = config.network || NetworkType.Mainnet
     this.logger = new DelegateLogger(config.logger, BalanceMonitor.name)
   }
 

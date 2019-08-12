@@ -205,15 +205,7 @@ export const BalanceActivity = t.type(
 )
 export type BalanceActivity = t.TypeOf<typeof BalanceActivity>
 
-export const BalanceMonitorConfig = requiredOptionalCodec(
-  {
-    network: NetworkTypeT,
-  },
-  {
-    logger: Logger,
-  },
-  'BalanceMonitorConfig',
-)
+export const BalanceMonitorConfig = BaseConfig
 export type BalanceMonitorConfig = t.TypeOf<typeof BalanceMonitorConfig>
 
 export const GetBalanceActivityOptions = t.partial(
