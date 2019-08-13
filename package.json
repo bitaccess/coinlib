@@ -1,7 +1,7 @@
 {
-  "name": "faast-ts-config-library-template",
-  "version": "0.0.1",
-  "description": "Template for typescript library",
+  "name": "@faast/coin-payments",
+  "version": "0.0.0",
+  "description": "Unified library for sending and receiving cryptocurrency payments",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "browser": "dist/index.umd.js",
@@ -13,6 +13,11 @@
   ],
   "engines": {
     "node": ">=6.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/go-faast/coin-payments.git"
   },
   "scripts": {
     "lint": "tslint --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
