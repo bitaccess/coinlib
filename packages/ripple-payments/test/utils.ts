@@ -5,7 +5,7 @@ import fs from 'fs'
 import { AccountRipplePayments } from '../src'
 import { AccountRipplePaymentsConfig, RippleAccountConfig } from '../src/types'
 import { Logger, assertType } from '@faast/ts-common'
-import { TransactionStatus } from '@faast/payments-common'
+import { TransactionStatus, NetworkType } from '@faast/payments-common'
 import { omit } from 'lodash'
 
 const TESTNET_SERVER = 'wss://s.altnet.rippletest.net:51233'
@@ -58,6 +58,7 @@ export async function setupTestnetPayments() {
   }
 
   const DEFAULT_CONFIG = {
+    network: NetworkType.Testnet,
     server: TESTNET_SERVER,
     logger: new TestLogger(),
   }
@@ -65,7 +66,7 @@ export async function setupTestnetPayments() {
     ...DEFAULT_CONFIG,
     ...config,
   })
-  await rp.setup()
+  await rp.init()
   // Make sure we still have a balance, testnet can be wiped
   const hotWalletBalances = await rp.getBalance(0)
   const depositWalletBalances = await rp.getBalance(1)

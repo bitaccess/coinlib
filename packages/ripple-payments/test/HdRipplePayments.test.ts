@@ -21,7 +21,7 @@ function commonTests(rp: HdRipplePayments) {
   })
 }
 
-describe('RipplePayments', () => {
+describe('HdRipplePayments', () => {
   describe('static', () => {
     it('generateNewKeys should return xprv and xpub', async () => {
       let keys = HdRipplePayments.generateNewKeys()

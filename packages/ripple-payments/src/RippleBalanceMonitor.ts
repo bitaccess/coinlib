@@ -12,6 +12,7 @@ import { TransactionsOptions } from 'ripple-lib/dist/npm/ledger/transactions'
 import { padLeft } from './utils'
 import { RippleBalanceMonitorConfig } from './types'
 import { assertValidAddress } from './helpers'
+import { isUndefined, isNumber } from 'util'
 
 export class RippleBalanceMonitor extends BalanceMonitor {
   rippleApi: RippleAPI
@@ -25,9 +26,15 @@ export class RippleBalanceMonitor extends BalanceMonitor {
     }
   }
 
-  async init() {
+  async init(): Promise<void> {
     if (!this.rippleApi.isConnected()) {
       await this.rippleApi.connect()
+    }
+  }
+
+  async destroy(): Promise<void> {
+    if (this.rippleApi.isConnected()) {
+      await this.rippleApi.disconnect()
     }
   }
 
@@ -38,10 +45,12 @@ export class RippleBalanceMonitor extends BalanceMonitor {
     try {
       const res = await this.rippleApi.request('subscribe', { accounts: addresses })
       if (res.status === 'success') {
-        this.logger.log('Successfully subscribed', res)
+        this.logger.log('Ripple successfully subscribed', res)
+      } else {
+        this.logger.warn('Ripple subscribe unsuccessful', res)
       }
     } catch (e) {
-      this.logger.error('failed to subscribe to ripple addresses', e.toString())
+      this.logger.error('Failed to subscribe to ripple addresses', e.toString())
       throw e
     }
   }
@@ -64,13 +73,15 @@ export class RippleBalanceMonitor extends BalanceMonitor {
   ): Promise<void> {
     assertValidAddress(address)
     const { from, to } = options
+    const fromLedgerVersion = isUndefined(from) ? undefined : isNumber(from) ? from : from.confirmationNumber
+    const toLedgerVersion = isUndefined(to) ? undefined : isNumber(to) ? to : to.confirmationNumber
     const limit = 10
     let lastTx: FormattedTransactionType | undefined
     let transactions: FormattedTransactionType[] | undefined
     while (
       !lastTx ||
       !transactions ||
-      (transactions.length === limit && (to ? lastTx.outcome.ledgerVersion <= to.confirmationNumber : true))
+      (transactions.length === limit && (toLedgerVersion ? lastTx.outcome.ledgerVersion <= toLedgerVersion : true))
     ) {
       const getTransactionOptions: TransactionsOptions = {
         types: ['payment'],
@@ -81,16 +92,16 @@ export class RippleBalanceMonitor extends BalanceMonitor {
       if (lastTx) {
         getTransactionOptions.startTx = lastTx
       } else {
-        getTransactionOptions.minLedgerVersion = from ? from.confirmationNumber : undefined
-        getTransactionOptions.maxLedgerVersion = to ? to.confirmationNumber : undefined
+        getTransactionOptions.minLedgerVersion = fromLedgerVersion
+        getTransactionOptions.maxLedgerVersion = toLedgerVersion
       }
       transactions = await this.rippleApi.getTransactions(address, getTransactionOptions)
       for (let tx of transactions) {
         if (
           tx.type !== 'payment' ||
           (lastTx && tx.id === lastTx.id) ||
-          (from && tx.outcome.ledgerVersion < from.confirmationNumber) ||
-          (to && tx.outcome.ledgerVersion > to.confirmationNumber)
+          (fromLedgerVersion && tx.outcome.ledgerVersion < fromLedgerVersion) ||
+          (toLedgerVersion && tx.outcome.ledgerVersion > toLedgerVersion)
         ) {
           continue
         }
@@ -132,10 +143,11 @@ export class RippleBalanceMonitor extends BalanceMonitor {
     const secondarySequence = padLeft(String(tx.outcome.indexInLedger), 8, '0')
     const ledger = await this.rippleApi.getLedger({ ledgerVersion: confirmationNumber })
     for (let type of types) {
-      const adjustment = type === 'out' ? tx.specification.source : tx.specification.destination
-      const tag = adjustment.tag
-      const amount = `${type === 'out' ? '-' : ''}${adjustment.amount.value}`
-      const assetSymbol = adjustment.amount.currency
+      const tag = (type === 'out' ? tx.specification.source : tx.specification.destination).tag
+      const amountObject =
+        tx.outcome.deliveredAmount || tx.specification.source.amount || (tx.specification.source as any).maxAmount
+      const amount = `${type === 'out' ? '-' : ''}${amountObject.value}`
+      const assetSymbol = amountObject.currency
       const tertiarySequence = type === 'out' ? '00' : '01'
       const activitySequence = `${primarySequence}.${secondarySequence}.${tertiarySequence}`
       result.push({

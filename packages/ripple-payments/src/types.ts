@@ -1,5 +1,5 @@
 import * as t from 'io-ts'
-import { extendCodec, Logger, instanceofCodec } from '@faast/ts-common'
+import { extendCodec, Logger, instanceofCodec, nullable } from '@faast/ts-common'
 import {
   BaseTransactionInfo,
   BaseUnsignedTransaction,
@@ -7,7 +7,6 @@ import {
   BaseBroadcastResult,
   CreateTransactionOptions,
   BaseConfig,
-  BalanceMonitorConfig,
   Payport,
   FromTo,
 } from '@faast/payments-common'
@@ -104,7 +103,14 @@ export const RippleSignedTransaction = extendCodec(
 )
 export type RippleSignedTransaction = t.TypeOf<typeof RippleSignedTransaction>
 
-export const RippleTransactionInfo = extendCodec(BaseTransactionInfo, {}, {}, 'RippleTransactionInfo')
+export const RippleTransactionInfo = extendCodec(
+  BaseTransactionInfo,
+  {
+    confirmationNumber: nullable(t.number),
+  },
+  {},
+  'RippleTransactionInfo',
+)
 export type RippleTransactionInfo = t.TypeOf<typeof RippleTransactionInfo>
 
 export const RippleBroadcastResult = extendCodec(
@@ -118,7 +124,7 @@ export const RippleBroadcastResult = extendCodec(
 export type RippleBroadcastResult = t.TypeOf<typeof RippleBroadcastResult>
 
 export const RippleBalanceMonitorConfig = extendCodec(
-  BalanceMonitorConfig,
+  BaseConfig,
   {
     server: t.union([t.string, instanceofCodec(RippleAPI)]),
   },

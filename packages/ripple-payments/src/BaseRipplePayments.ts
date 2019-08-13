@@ -66,7 +66,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     }
   }
 
-  async setup(): Promise<void> {
+  async init(): Promise<void> {
     if (!this.rippleApi.isConnected()) {
       await this.rippleApi.connect()
     }
@@ -131,6 +131,10 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
 
   requiresBalanceMonitor() {
     return true
+  }
+
+  getAddressesToMonitor(): string[] {
+    return [this.getHotSignatory().address, this.getDepositSignatory().address]
   }
 
   isSweepableAddressBalance(balance: string): boolean {
@@ -205,6 +209,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       fee: outcome.fee,
       status,
       confirmationId,
+      confirmationNumber: ledger.ledgerVersion,
       confirmationTimestamp,
       isExecuted: status === 'confirmed',
       isConfirmed: true,
