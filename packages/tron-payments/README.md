@@ -32,7 +32,7 @@ to keep track of which path node you are on (increasing INT):
 ```js
 let tronPayments = new HdTronPayments({ hdKey: keys.xprv }) // xpub or xprv can be used
 // for path m/44'/195'/0'/0/1234
-let depositAddress = tronPayments.getAddress(1234)
+let { address: depositAddress } = tronPayments.getPayport(1234)
 let privateKey = tronPayments.getPrivateKey(1234) // will throw Error if xpub was provided as hdKey
 ```
 
@@ -41,7 +41,7 @@ or, if you'd rather not us bip44 and have existing private keys or addresses:
 ```js
 let { KeyPairTronPayments } = require('@faast/tron-payments')
 let tronPayments = new KeyPairTronPayments({ keyPairs: [privateKey0, address1, privateKey2] })
-let depositAddress = await tronPayments.getAddress(1234) // address for privateKey2
+let { address: depositAddress } = tronPayments.getPayport(1234) // address for privateKey2
 await tronpayments.getPrivateKey(1234) // will throw error because keyPair[1] is not a private key
 ```
 
@@ -88,7 +88,7 @@ let { id: txHash } = await tronPayments.broadcastTransaction(signedtx)
 Generate a simple send transaction
 
 ```js
-let unsignedTx = await tronPayments.createTransaction(1234, to, amountInTrx)
+let unsignedTx = await tronPayments.createTransaction(1234, to, '1.234')
 // You still need to sign and broadcast the transaction
 ```
 
