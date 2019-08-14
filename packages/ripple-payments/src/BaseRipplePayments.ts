@@ -9,6 +9,7 @@ import {
   FeeLevel,
   FeeRateType,
   TransactionStatus,
+  ResolveablePayport,
 } from '@faast/payments-common'
 import { Logger, assertType, isNil } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
@@ -94,17 +95,19 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
 
   abstract isReadOnly(): boolean
 
-  async resolvePayport(payportOrIndex: Payport | number): Promise<Payport> {
-    if (typeof payportOrIndex === 'number') {
-      return this.getPayport(payportOrIndex)
+  async resolvePayport(payport: ResolveablePayport): Promise<Payport> {
+    if (typeof payport === 'number') {
+      return this.getPayport(payport)
+    } else if (typeof payport === 'string') {
+      assertValidAddress(payport)
+      return { address: payport }
     }
-    const payport = payportOrIndex
     assertValidAddress(payport.address)
     assertValidExtraIdOrNil(payport.extraId)
     return payport
   }
 
-  async resolveFromTo(from: number, to: Payport | number): Promise<FromToWithPayport> {
+  async resolveFromTo(from: number, to: ResolveablePayport): Promise<FromToWithPayport> {
     const fromPayport = await this.getPayport(from)
     const toPayport = await this.resolvePayport(to)
     return {
@@ -141,7 +144,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     return new BigNumber(balance).gt(MIN_BALANCE)
   }
 
-  async getBalance(payportOrIndex: Payport | number): Promise<BalanceResult> {
+  async getBalance(payportOrIndex: ResolveablePayport): Promise<BalanceResult> {
     const payport = await this.resolvePayport(payportOrIndex)
     const { address, extraId } = payport
     if (!isNil(extraId)) {
@@ -280,7 +283,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
   }
 
   private async doCreateTransaction(
-    fromTo: FromToWithPayport,
+    fromTo: FromTo,
     feeOption: ResolvedFeeOption,
     amount: BigNumber,
     payportBalance: BigNumber,
@@ -360,7 +363,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
 
   async createTransaction(
     from: number,
-    to: Payport | number,
+    to: ResolveablePayport,
     amount: string,
     options: RippleCreateTransactionOptions = DEFAULT_CREATE_TRANSACTION_OPTIONS,
   ): Promise<RippleUnsignedTransaction> {
@@ -373,7 +376,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
 
   async createSweepTransaction(
     from: number,
-    to: Payport | number,
+    to: ResolveablePayport,
     options: RippleCreateTransactionOptions = DEFAULT_CREATE_TRANSACTION_OPTIONS,
   ): Promise<RippleUnsignedTransaction> {
     const fromTo = await this.resolveFromTo(from, to)
