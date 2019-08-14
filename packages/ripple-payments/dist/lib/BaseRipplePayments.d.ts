@@ -1,4 +1,4 @@
-import { BasePayments, BalanceResult, FeeOption, ResolvedFeeOption, Payport } from '@faast/payments-common';
+import { BasePayments, BalanceResult, FeeOption, ResolvedFeeOption, Payport, ResolveablePayport } from '@faast/payments-common';
 import { Logger } from '@faast/ts-common';
 import { RippleAPI } from 'ripple-lib';
 import { Adjustment } from 'ripple-lib/dist/npm/common/types/objects';
@@ -18,20 +18,20 @@ export declare abstract class BaseRipplePayments<Config extends BaseRipplePaymen
     abstract getHotSignatory(): RippleSignatory;
     abstract getDepositSignatory(): RippleSignatory;
     abstract isReadOnly(): boolean;
-    resolvePayport(payportOrIndex: Payport | number): Promise<Payport>;
-    resolveFromTo(from: number, to: Payport | number): Promise<FromToWithPayport>;
+    resolvePayport(payport: ResolveablePayport): Promise<Payport>;
+    resolveFromTo(from: number, to: ResolveablePayport): Promise<FromToWithPayport>;
     getPayport(index: number): Promise<Payport>;
     requiresBalanceMonitor(): boolean;
     getAddressesToMonitor(): string[];
     isSweepableAddressBalance(balance: string): boolean;
-    getBalance(payportOrIndex: Payport | number): Promise<BalanceResult>;
+    getBalance(payportOrIndex: ResolveablePayport): Promise<BalanceResult>;
     resolveIndexFromAdjustment(adjustment: Adjustment): number | null;
     getTransactionInfo(txId: string): Promise<RippleTransactionInfo>;
     resolveFeeOption(feeOption: FeeOption): Promise<ResolvedFeeOption>;
     private resolvePayportBalance;
     private doCreateTransaction;
-    createTransaction(from: number, to: Payport | number, amount: string, options?: RippleCreateTransactionOptions): Promise<RippleUnsignedTransaction>;
-    createSweepTransaction(from: number, to: Payport | number, options?: RippleCreateTransactionOptions): Promise<RippleUnsignedTransaction>;
+    createTransaction(from: number, to: ResolveablePayport, amount: string, options?: RippleCreateTransactionOptions): Promise<RippleUnsignedTransaction>;
+    createSweepTransaction(from: number, to: ResolveablePayport, options?: RippleCreateTransactionOptions): Promise<RippleUnsignedTransaction>;
     signTransaction(unsignedTx: RippleUnsignedTransaction): Promise<RippleSignedTransaction>;
     broadcastTransaction(signedTx: RippleSignedTransaction): Promise<RippleBroadcastResult>;
 }

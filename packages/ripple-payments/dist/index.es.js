@@ -156,11 +156,14 @@ class BaseRipplePayments extends RipplePaymentsUtils {
     getFullConfig() {
         return this.config;
     }
-    async resolvePayport(payportOrIndex) {
-        if (typeof payportOrIndex === 'number') {
-            return this.getPayport(payportOrIndex);
+    async resolvePayport(payport) {
+        if (typeof payport === 'number') {
+            return this.getPayport(payport);
         }
-        const payport = payportOrIndex;
+        else if (typeof payport === 'string') {
+            assertValidAddress(payport);
+            return { address: payport };
+        }
         assertValidAddress(payport.address);
         assertValidExtraIdOrNil(payport.extraId);
         return payport;
