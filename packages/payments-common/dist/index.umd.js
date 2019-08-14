@@ -132,6 +132,7 @@
       to: t.union([t.number, BalanceActivity]),
   }, 'GetBalanceActivityOptions');
   const BalanceActivityCallback = tsCommon.functionT('BalanceActivityCallback');
+  const ResolveablePayport = t.union([Payport, t.string, t.number], 'ResolveablePayport');
 
   function createUnitConverters(decimals) {
       const basePerMain = new BigNumber(10).pow(decimals);
@@ -207,6 +208,7 @@
   exports.BalanceMonitorConfig = BalanceMonitorConfig;
   exports.GetBalanceActivityOptions = GetBalanceActivityOptions;
   exports.BalanceActivityCallback = BalanceActivityCallback;
+  exports.ResolveablePayport = ResolveablePayport;
   exports.createUnitConverters = createUnitConverters;
   exports.BalanceMonitor = BalanceMonitor;
 

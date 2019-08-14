@@ -130,4 +130,5 @@ export const GetBalanceActivityOptions = t.partial({
     to: t.union([t.number, BalanceActivity]),
 }, 'GetBalanceActivityOptions');
 export const BalanceActivityCallback = functionT('BalanceActivityCallback');
+export const ResolveablePayport = t.union([Payport, t.string, t.number], 'ResolveablePayport');
 //# sourceMappingURL=types.js.map

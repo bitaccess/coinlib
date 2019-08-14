@@ -87,7 +87,6 @@ export declare const TransactionCommon: t.IntersectionC<[t.TypeC<{
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
 }>]>;
 export declare type TransactionCommon = t.TypeOf<typeof TransactionCommon>;
-export declare type FromTo = Pick<BaseUnsignedTransaction, 'fromAddress' | 'fromIndex' | 'fromExtraId' | 'toAddress' | 'toIndex' | 'toExtraId'>;
 export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.TypeC<{
     id: t.UnionC<[t.StringC, t.NullC]>;
     fromAddress: t.UnionC<[t.StringC, t.NullC]>;
@@ -228,3 +227,13 @@ export declare const GetBalanceActivityOptions: t.PartialC<{
 export declare type GetBalanceActivityOptions = t.TypeOf<typeof GetBalanceActivityOptions>;
 export declare type BalanceActivityCallback = (ba: BalanceActivity) => Promise<void> | void;
 export declare const BalanceActivityCallback: import("@faast/ts-common").FunctionC<BalanceActivityCallback>;
+export declare type FromTo = Pick<BaseUnsignedTransaction, 'fromAddress' | 'fromIndex' | 'fromExtraId' | 'toAddress' | 'toIndex' | 'toExtraId'> & {
+    fromPayport: Payport;
+    toPayport: Payport;
+};
+export declare const ResolveablePayport: t.UnionC<[t.IntersectionC<[t.TypeC<{
+    address: t.StringC;
+}>, t.PartialC<{
+    extraId: t.UnionC<[t.StringC, t.NullC]>;
+}>]>, t.StringC, t.NumberC]>;
+export declare type ResolveablePayport = t.TypeOf<typeof ResolveablePayport>;
