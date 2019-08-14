@@ -59,7 +59,7 @@
     "@faast/payments-common": "^0.10.0",
     "@faast/ts-common": "^0.3.1",
     "bignumber.js": "^9.0.0",
-    "bitcore-lib": "^0.14.0",
+    "bip32": "^2.0.4",
     "elliptic": "^6.4.0",
     "js-sha3": "^0.8.0",
     "jssha": "^2.3.1",
