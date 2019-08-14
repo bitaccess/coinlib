@@ -119,11 +119,6 @@ const UnsignedCommon = extendCodec(
 )
 type UnsignedCommon = t.TypeOf<typeof UnsignedCommon>
 
-export type FromTo = Pick<
-  BaseUnsignedTransaction,
-  'fromAddress' | 'fromIndex' | 'fromExtraId' | 'toAddress' | 'toIndex' | 'toExtraId'
->
-
 export const BaseUnsignedTransaction = extendCodec(
   UnsignedCommon,
   {
@@ -219,3 +214,11 @@ export type GetBalanceActivityOptions = t.TypeOf<typeof GetBalanceActivityOption
 
 export type BalanceActivityCallback = (ba: BalanceActivity) => Promise<void> | void
 export const BalanceActivityCallback = functionT<BalanceActivityCallback>('BalanceActivityCallback')
+
+export type FromTo = Pick<
+  BaseUnsignedTransaction,
+  'fromAddress' | 'fromIndex' | 'fromExtraId' | 'toAddress' | 'toIndex' | 'toExtraId'
+> & { fromPayport: Payport; toPayport: Payport }
+
+export const ResolveablePayport = t.union([Payport, t.string, t.number], 'ResolveablePayport')
+export type ResolveablePayport = t.TypeOf<typeof ResolveablePayport>
