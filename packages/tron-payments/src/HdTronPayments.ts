@@ -1,10 +1,7 @@
-import { HDPrivateKey } from 'bitcore-lib'
-
 import { BaseTronPayments } from './BaseTronPayments'
 import Bip44Cache from './Bip44Cache'
 import { HdTronPaymentsConfig, GetPayportOptions } from './types'
-import { deriveAddress, derivePrivateKey, xprvToXpub } from './bip44'
-import { DEFAULT_MAX_ADDRESS_SCAN } from './constants'
+import { deriveAddress, derivePrivateKey, xprvToXpub, generateNewKeys } from './bip44'
 import { Payport } from '@faast/payments-common'
 import { isValidXprv, isValidXpub, isValidAddress } from './helpers'
 
@@ -27,15 +24,7 @@ export class HdTronPayments extends BaseTronPayments<HdTronPaymentsConfig> {
     }
   }
 
-  static generateNewKeys() {
-    const key = new HDPrivateKey()
-    const xprv = key.toString()
-    const xpub = xprvToXpub(xprv)
-    return {
-      xprv,
-      xpub,
-    }
-  }
+  static generateNewKeys = generateNewKeys
 
   getXpub(): string {
     return this.xpub
