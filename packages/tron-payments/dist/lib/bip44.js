@@ -1,42 +1,62 @@
-import { HDPrivateKey, HDPublicKey } from 'bitcore-lib';
+import { fromBase58, fromSeed } from 'bip32';
 import { keccak256 } from 'js-sha3';
 import jsSHA from 'jssha';
 import { ec as EC } from 'elliptic';
+import crypto from 'crypto';
 import { encode58 } from './base58';
+import { isValidXpub, isValidXprv } from './helpers';
 const ec = new EC('secp256k1');
 export const derivationPath = "m/44'/195'/0'";
 const derivationPathParts = derivationPath.split('/').slice(1);
 export function deriveAddress(xpub, index) {
-    const key = new HDPublicKey(xpub);
+    if (!isValidXpub(xpub)) {
+        throw new Error('Invalid xpub');
+    }
+    const key = fromBase58(xpub);
     const derived = deriveBasePath(key)
         .derive(0)
         .derive(index);
     return hdPublicKeyToAddress(derived);
 }
 export function derivePrivateKey(xprv, index) {
-    const key = new HDPrivateKey(xprv);
+    if (!isValidXprv(xprv)) {
+        throw new Error('Invalid xprv');
+    }
+    const key = fromBase58(xprv);
     const derived = deriveBasePath(key)
         .derive(0)
         .derive(index);
     return hdPrivateKeyToPrivateKey(derived);
 }
 export function xprvToXpub(xprv) {
-    const key = xprv instanceof HDPrivateKey ? xprv : new HDPrivateKey(xprv);
-    const derivedPubKey = deriveBasePath(key).hdPublicKey;
-    return derivedPubKey.toString();
+    const key = typeof xprv === 'string' ? fromBase58(xprv) : xprv;
+    const derivedPubKey = deriveBasePath(key);
+    return derivedPubKey.neutered().toBase58();
+}
+export function generateNewKeys() {
+    const key = fromSeed(crypto.randomBytes(32));
+    const xprv = key.toBase58();
+    const xpub = xprvToXpub(xprv);
+    return {
+        xprv,
+        xpub,
+    };
 }
 function deriveBasePath(key) {
     const parts = derivationPathParts.slice(key.depth);
     if (parts.length > 0) {
-        return key.derive(`m/${parts.join('/')}`);
+        return key.derivePath(`m/${parts.join('/')}`);
     }
     return key;
 }
 function hdPublicKeyToAddress(key) {
-    return addressBytesToB58CheckAddress(pubBytesToTronBytes(bip32PublicToTronPublic(key.publicKey.toBuffer())));
+    return addressBytesToB58CheckAddress(pubBytesToTronBytes(bip32PublicToTronPublic(key.publicKey)));
 }
 function hdPrivateKeyToPrivateKey(key) {
-    return bip32PrivateToTronPrivate(key.privateKey.toBuffer());
+    if (key.isNeutered() || typeof key.privateKey === 'undefined') {
+        throw new Error('Invalid HD private key, must not be neutered');
+    }
+    return bip32PrivateToTronPrivate(key.privateKey);
 }
 function bip32PublicToTronPublic(pubKey) {
     const pubkey = ec.keyFromPublic(pubKey).getPublic();

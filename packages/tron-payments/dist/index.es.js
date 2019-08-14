@@ -1,9 +1,10 @@
 import TronWeb from 'tronweb';
 import { pick, get, cloneDeep, set } from 'lodash';
-import { HDPrivateKey, HDPublicKey } from 'bitcore-lib';
+import { fromBase58, fromSeed } from 'bip32';
 import { keccak256 } from 'js-sha3';
 import jsSHA from 'jssha';
 import { ec } from 'elliptic';
+import crypto from 'crypto';
 import { string, union, null, undefined as undefined$1, array, record, number, boolean, partial } from 'io-ts';
 import { isNil, DelegateLogger, assertType, isType, extendCodec, Logger } from '@faast/ts-common';
 import { FeeLevel, createUnitConverters, Payport, BaseConfig, NetworkType, TransactionStatus, FeeRateType, FeeOptionCustom, BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult } from '@faast/payments-common';
@@ -16,7 +17,6 @@ const DECIMAL_PLACES = 6;
 const DEFAULT_FULL_NODE = process.env.TRX_FULL_NODE_URL || 'https://api.trongrid.io';
 const DEFAULT_SOLIDITY_NODE = process.env.TRX_SOLIDITY_NODE_URL || 'https://api.trongrid.io';
 const DEFAULT_EVENT_SERVER = process.env.TRX_EVENT_SERVER_URL || 'https://api.trongrid.io';
-const DEFAULT_MAX_ADDRESS_SCAN = 10;
 const DEFAULT_FEE_LEVEL = FeeLevel.Medium;
 
 const { toMainDenominationBigNumber, toMainDenominationString, toMainDenominationNumber, toBaseDenominationBigNumber, toBaseDenominationString, toBaseDenominationNumber, } = createUnitConverters(DECIMAL_PLACES);
@@ -447,36 +447,54 @@ const ec$1 = new ec('secp256k1');
 const derivationPath = "m/44'/195'/0'";
 const derivationPathParts = derivationPath.split('/').slice(1);
 function deriveAddress(xpub, index) {
-    const key = new HDPublicKey(xpub);
+    if (!isValidXpub(xpub)) {
+        throw new Error('Invalid xpub');
+    }
+    const key = fromBase58(xpub);
     const derived = deriveBasePath(key)
         .derive(0)
         .derive(index);
     return hdPublicKeyToAddress(derived);
 }
 function derivePrivateKey(xprv, index) {
-    const key = new HDPrivateKey(xprv);
+    if (!isValidXprv(xprv)) {
+        throw new Error('Invalid xprv');
+    }
+    const key = fromBase58(xprv);
     const derived = deriveBasePath(key)
         .derive(0)
         .derive(index);
     return hdPrivateKeyToPrivateKey(derived);
 }
 function xprvToXpub(xprv) {
-    const key = xprv instanceof HDPrivateKey ? xprv : new HDPrivateKey(xprv);
-    const derivedPubKey = deriveBasePath(key).hdPublicKey;
-    return derivedPubKey.toString();
+    const key = typeof xprv === 'string' ? fromBase58(xprv) : xprv;
+    const derivedPubKey = deriveBasePath(key);
+    return derivedPubKey.neutered().toBase58();
+}
+function generateNewKeys() {
+    const key = fromSeed(crypto.randomBytes(32));
+    const xprv = key.toBase58();
+    const xpub = xprvToXpub(xprv);
+    return {
+        xprv,
+        xpub,
+    };
 }
 function deriveBasePath(key) {
     const parts = derivationPathParts.slice(key.depth);
     if (parts.length > 0) {
-        return key.derive(`m/${parts.join('/')}`);
+        return key.derivePath(`m/${parts.join('/')}`);
     }
     return key;
 }
 function hdPublicKeyToAddress(key) {
-    return addressBytesToB58CheckAddress(pubBytesToTronBytes(bip32PublicToTronPublic(key.publicKey.toBuffer())));
+    return addressBytesToB58CheckAddress(pubBytesToTronBytes(bip32PublicToTronPublic(key.publicKey)));
 }
 function hdPrivateKeyToPrivateKey(key) {
-    return bip32PrivateToTronPrivate(key.privateKey.toBuffer());
+    if (key.isNeutered() || typeof key.privateKey === 'undefined') {
+        throw new Error('Invalid HD private key, must not be neutered');
+    }
+    return bip32PrivateToTronPrivate(key.privateKey);
 }
 function bip32PublicToTronPublic(pubKey) {
     const pubkey = ec$1.keyFromPublic(pubKey).getPublic();
@@ -594,15 +612,6 @@ class HdTronPayments extends BaseTronPayments {
             throw new Error('Account must be a valid xprv or xpub');
         }
     }
-    static generateNewKeys() {
-        const key = new HDPrivateKey();
-        const xprv = key.toString();
-        const xpub = xprvToXpub(xprv);
-        return {
-            xprv,
-            xpub,
-        };
-    }
     getXpub() {
         return this.xpub;
     }
@@ -640,6 +649,7 @@ class HdTronPayments extends BaseTronPayments {
         return derivePrivateKey(this.xprv, index);
     }
 }
+HdTronPayments.generateNewKeys = generateNewKeys;
 
 class KeyPairTronPayments extends BaseTronPayments {
     constructor(config) {
@@ -747,5 +757,5 @@ class TronPaymentsFactory {
     }
 }
 
-export { BaseTronPayments, HdTronPayments, KeyPairTronPayments, TronPaymentsFactory, TronPaymentsUtils, BaseTronPaymentsConfig, HdTronPaymentsConfig, KeyPairTronPaymentsConfig, TronPaymentsConfig, TronUnsignedTransaction, TronSignedTransaction, TronTransactionInfo, TronBroadcastResult, GetPayportOptions, toError, derivationPath, deriveAddress, derivePrivateKey, xprvToXpub, encode58, decode58, PACKAGE_NAME, MIN_BALANCE_SUN, MIN_BALANCE_TRX, DECIMAL_PLACES, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, DEFAULT_EVENT_SERVER, DEFAULT_MAX_ADDRESS_SCAN, DEFAULT_FEE_LEVEL };
+export { BaseTronPayments, HdTronPayments, KeyPairTronPayments, TronPaymentsFactory, TronPaymentsUtils, BaseTronPaymentsConfig, HdTronPaymentsConfig, KeyPairTronPaymentsConfig, TronPaymentsConfig, TronUnsignedTransaction, TronSignedTransaction, TronTransactionInfo, TronBroadcastResult, GetPayportOptions, toError, derivationPath, deriveAddress, derivePrivateKey, xprvToXpub, generateNewKeys, encode58, decode58, PACKAGE_NAME, MIN_BALANCE_SUN, MIN_BALANCE_TRX, DECIMAL_PLACES, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, DEFAULT_EVENT_SERVER, DEFAULT_FEE_LEVEL };
 //# sourceMappingURL=index.es.js.map

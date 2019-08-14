@@ -1,11 +1,12 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('tronweb'), require('lodash'), require('bitcore-lib'), require('js-sha3'), require('jssha'), require('elliptic'), require('io-ts'), require('@faast/ts-common'), require('@faast/payments-common')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'tronweb', 'lodash', 'bitcore-lib', 'js-sha3', 'jssha', 'elliptic', 'io-ts', '@faast/ts-common', '@faast/payments-common'], factory) :
-  (factory((global.faastTronPayments = {}),global.TronWeb,global.lodash,global.bitcoreLib,global.jsSha3,global.jsSHA,global.elliptic,global.t,global.tsCommon,global.paymentsCommon));
-}(this, (function (exports,TronWeb,lodash,bitcoreLib,jsSha3,jsSHA,elliptic,t,tsCommon,paymentsCommon) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('tronweb'), require('lodash'), require('bip32'), require('js-sha3'), require('jssha'), require('elliptic'), require('crypto'), require('io-ts'), require('@faast/ts-common'), require('@faast/payments-common')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'tronweb', 'lodash', 'bip32', 'js-sha3', 'jssha', 'elliptic', 'crypto', 'io-ts', '@faast/ts-common', '@faast/payments-common'], factory) :
+  (factory((global.faastTronPayments = {}),global.TronWeb,global.lodash,global.bip32,global.jsSha3,global.jsSHA,global.elliptic,global.crypto,global.t,global.tsCommon,global.paymentsCommon));
+}(this, (function (exports,TronWeb,lodash,bip32,jsSha3,jsSHA,elliptic,crypto,t,tsCommon,paymentsCommon) { 'use strict';
 
   TronWeb = TronWeb && TronWeb.hasOwnProperty('default') ? TronWeb['default'] : TronWeb;
   jsSHA = jsSHA && jsSHA.hasOwnProperty('default') ? jsSHA['default'] : jsSHA;
+  crypto = crypto && crypto.hasOwnProperty('default') ? crypto['default'] : crypto;
 
   const PACKAGE_NAME = 'tron-payments';
   const MIN_BALANCE_SUN = 100000;
@@ -14,7 +15,6 @@
   const DEFAULT_FULL_NODE = process.env.TRX_FULL_NODE_URL || 'https://api.trongrid.io';
   const DEFAULT_SOLIDITY_NODE = process.env.TRX_SOLIDITY_NODE_URL || 'https://api.trongrid.io';
   const DEFAULT_EVENT_SERVER = process.env.TRX_EVENT_SERVER_URL || 'https://api.trongrid.io';
-  const DEFAULT_MAX_ADDRESS_SCAN = 10;
   const DEFAULT_FEE_LEVEL = paymentsCommon.FeeLevel.Medium;
 
   const { toMainDenominationBigNumber, toMainDenominationString, toMainDenominationNumber, toBaseDenominationBigNumber, toBaseDenominationString, toBaseDenominationNumber, } = paymentsCommon.createUnitConverters(DECIMAL_PLACES);
@@ -445,36 +445,54 @@
   const derivationPath = "m/44'/195'/0'";
   const derivationPathParts = derivationPath.split('/').slice(1);
   function deriveAddress(xpub, index) {
-      const key = new bitcoreLib.HDPublicKey(xpub);
+      if (!isValidXpub(xpub)) {
+          throw new Error('Invalid xpub');
+      }
+      const key = bip32.fromBase58(xpub);
       const derived = deriveBasePath(key)
           .derive(0)
           .derive(index);
       return hdPublicKeyToAddress(derived);
   }
   function derivePrivateKey(xprv, index) {
-      const key = new bitcoreLib.HDPrivateKey(xprv);
+      if (!isValidXprv(xprv)) {
+          throw new Error('Invalid xprv');
+      }
+      const key = bip32.fromBase58(xprv);
       const derived = deriveBasePath(key)
           .derive(0)
           .derive(index);
       return hdPrivateKeyToPrivateKey(derived);
   }
   function xprvToXpub(xprv) {
-      const key = xprv instanceof bitcoreLib.HDPrivateKey ? xprv : new bitcoreLib.HDPrivateKey(xprv);
-      const derivedPubKey = deriveBasePath(key).hdPublicKey;
-      return derivedPubKey.toString();
+      const key = typeof xprv === 'string' ? bip32.fromBase58(xprv) : xprv;
+      const derivedPubKey = deriveBasePath(key);
+      return derivedPubKey.neutered().toBase58();
+  }
+  function generateNewKeys() {
+      const key = bip32.fromSeed(crypto.randomBytes(32));
+      const xprv = key.toBase58();
+      const xpub = xprvToXpub(xprv);
+      return {
+          xprv,
+          xpub,
+      };
   }
   function deriveBasePath(key) {
       const parts = derivationPathParts.slice(key.depth);
       if (parts.length > 0) {
-          return key.derive(`m/${parts.join('/')}`);
+          return key.derivePath(`m/${parts.join('/')}`);
       }
       return key;
   }
   function hdPublicKeyToAddress(key) {
-      return addressBytesToB58CheckAddress(pubBytesToTronBytes(bip32PublicToTronPublic(key.publicKey.toBuffer())));
+      return addressBytesToB58CheckAddress(pubBytesToTronBytes(bip32PublicToTronPublic(key.publicKey)));
   }
   function hdPrivateKeyToPrivateKey(key) {
-      return bip32PrivateToTronPrivate(key.privateKey.toBuffer());
+      if (key.isNeutered() || typeof key.privateKey === 'undefined') {
+          throw new Error('Invalid HD private key, must not be neutered');
+      }
+      return bip32PrivateToTronPrivate(key.privateKey);
   }
   function bip32PublicToTronPublic(pubKey) {
       const pubkey = ec.keyFromPublic(pubKey).getPublic();
@@ -592,15 +610,6 @@
               throw new Error('Account must be a valid xprv or xpub');
           }
       }
-      static generateNewKeys() {
-          const key = new bitcoreLib.HDPrivateKey();
-          const xprv = key.toString();
-          const xpub = xprvToXpub(xprv);
-          return {
-              xprv,
-              xpub,
-          };
-      }
       getXpub() {
           return this.xpub;
       }
@@ -638,6 +647,7 @@
           return derivePrivateKey(this.xprv, index);
       }
   }
+  HdTronPayments.generateNewKeys = generateNewKeys;
 
   class KeyPairTronPayments extends BaseTronPayments {
       constructor(config) {
@@ -765,6 +775,7 @@
   exports.deriveAddress = deriveAddress;
   exports.derivePrivateKey = derivePrivateKey;
   exports.xprvToXpub = xprvToXpub;
+  exports.generateNewKeys = generateNewKeys;
   exports.encode58 = encode58;
   exports.decode58 = decode58;
   exports.PACKAGE_NAME = PACKAGE_NAME;
@@ -774,7 +785,6 @@
   exports.DEFAULT_FULL_NODE = DEFAULT_FULL_NODE;
   exports.DEFAULT_SOLIDITY_NODE = DEFAULT_SOLIDITY_NODE;
   exports.DEFAULT_EVENT_SERVER = DEFAULT_EVENT_SERVER;
-  exports.DEFAULT_MAX_ADDRESS_SCAN = DEFAULT_MAX_ADDRESS_SCAN;
   exports.DEFAULT_FEE_LEVEL = DEFAULT_FEE_LEVEL;
 
   Object.defineProperty(exports, '__esModule', { value: true });

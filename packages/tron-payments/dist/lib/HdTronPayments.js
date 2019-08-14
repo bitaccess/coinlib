@@ -1,7 +1,6 @@
-import { HDPrivateKey } from 'bitcore-lib';
 import { BaseTronPayments } from './BaseTronPayments';
 import Bip44Cache from './Bip44Cache';
-import { deriveAddress, derivePrivateKey, xprvToXpub } from './bip44';
+import { deriveAddress, derivePrivateKey, xprvToXpub, generateNewKeys } from './bip44';
 import { isValidXprv, isValidXpub, isValidAddress } from './helpers';
 const xpubCache = new Bip44Cache();
 export class HdTronPayments extends BaseTronPayments {
@@ -19,15 +18,6 @@ export class HdTronPayments extends BaseTronPayments {
         else {
             throw new Error('Account must be a valid xprv or xpub');
         }
-    }
-    static generateNewKeys() {
-        const key = new HDPrivateKey();
-        const xprv = key.toString();
-        const xpub = xprvToXpub(xprv);
-        return {
-            xprv,
-            xpub,
-        };
     }
     getXpub() {
         return this.xpub;
@@ -66,5 +56,6 @@ export class HdTronPayments extends BaseTronPayments {
         return derivePrivateKey(this.xprv, index);
     }
 }
+HdTronPayments.generateNewKeys = generateNewKeys;
 export default HdTronPayments;
 //# sourceMappingURL=HdTronPayments.js.map
