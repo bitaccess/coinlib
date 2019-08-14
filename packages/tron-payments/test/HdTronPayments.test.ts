@@ -7,9 +7,12 @@ import { TronTransactionInfo } from '#/types'
 
 import { txInfo_209F8, signedTx_valid, txInfo_a0787, signedTx_invalid } from './fixtures/transactions'
 import { hdAccount } from './fixtures/accounts'
-import { HdTronPaymentsConfig } from '../src/types'
+import { HdTronPaymentsConfig, TronSignedTransaction, TronUnsignedTransaction } from '../src/types'
 import { resolveSoa } from 'dns'
-import { FeeRateType, BalanceResult } from '@faast/payments-common'
+import { FeeRateType, BalanceResult, TransactionStatus, NetworkType } from '@faast/payments-common'
+import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, TestLogger } from './utils'
+import BigNumber from 'bignumber.js'
+import { Transaction } from 'tronweb'
 
 const { XPRV, XPUB, PRIVATE_KEYS, ADDRESSES } = hdAccount
 
@@ -37,9 +40,14 @@ function assertTxInfo(actual: TronTransactionInfo, expected: TronTransactionInfo
   expect(omit(actual, txInfoOmitEquality)).toEqual(omit(expected, txInfoOmitEquality))
 }
 
+// Wait for the transaction to expire
+async function waitForExpiration(tx: TronUnsignedTransaction) {
+  await delay(Date.now() - (tx.data as Transaction).raw_data.expiration + 100)
+}
+
 function runHardcodedPublicKeyTests(tp: HdTronPayments, config: HdTronPaymentsConfig) {
   it('getFullConfig', () => {
-    expect(tp.getFullConfig()).toBe(config)
+    expect(tp.getFullConfig()).toEqual(config)
   })
   it('getPublicConfig', () => {
     expect(tp.getPublicConfig()).toEqual({
@@ -57,97 +65,68 @@ function runHardcodedPublicKeyTests(tp: HdTronPayments, config: HdTronPaymentsCo
     expect(tp.getAccountId(10)).toEqual(XPUB)
   })
   it('getXpub', async () => {
-    expect(tp.getXpub()).toBe(XPUB)
+    expect(tp.getXpub()).toEqual(XPUB)
   })
-  it('getAddress for index 1', async () => {
-    expect(await tp.getAddress(1)).toBe(ADDRESSES[1])
+  it('getPayport for index 1', async () => {
+    expect(await tp.getPayport(1)).toEqual({ address: ADDRESSES[1] })
   })
-  it('getAddress for high index', async () => {
-    expect(await tp.getAddress(10000)).toBe(ADDRESSES[10000])
+  it('getPayport for high index', async () => {
+    expect(await tp.getPayport(10000)).toEqual({ address: ADDRESSES[10000] })
   })
-  it('getAddressIndex for address at index 1', async () => {
-    expect(await tp.getAddressIndex(ADDRESSES[1])).toBe(1)
+  it('resolvePayport resolves for index 1', async () => {
+    expect(await tp.resolvePayport(1)).toEqual({ address: ADDRESSES[1] })
   })
-  it('getAddressIndex for address that is uncached but scannable', async () => {
-    expect(await tp.getAddressIndex(ADDRESSES[10])).toBe(10)
+  it('resolvePayport resolves for address', async () => {
+    expect(await tp.resolvePayport(ADDRESSES[1])).toEqual({ address: ADDRESSES[1] })
   })
-  it('getAddressIndex for address that was cached by getAddress', async () => {
-    expect(await tp.getAddressIndex(ADDRESSES[10000])).toBe(10000)
+  it('resolvePayport resolves for external address', async () => {
+    expect(await tp.resolvePayport(EXTERNAL_ADDRESS)).toEqual({ address: EXTERNAL_ADDRESS })
   })
-  it('getAddressIndexOrNull returns address at index 1', async () => {
-    expect(await tp.getAddressIndexOrNull(ADDRESSES[1])).toBe(1)
+  it('resolvePayport resolves for payport', async () => {
+    const payport = { address: ADDRESSES[1] }
+    expect(await tp.resolvePayport(payport)).toEqual(payport)
   })
-  it('getAddressIndexOrNull returns null for external address', async () => {
-    expect(await tp.getAddressIndexOrNull(EXTERNAL_ADDRESS)).toBe(null)
-  })
-  it('throw on getAddressIndex for address that is uncached and unscannable', async () => {
-    await expect(tp.getAddressIndex(ADDRESSES[20000])).rejects.toThrowError()
-  })
-  it('throw on getAddressIndex for external address', async () => {
-    await expect(tp.getAddressIndex(EXTERNAL_ADDRESS)).rejects.toThrowError()
-  })
-  it('resolveAddress resolves for index 1', async () => {
-    expect(await tp.resolveAddress(1)).toBe(ADDRESSES[1])
-  })
-  it('resolveAddress resolves for address 1', async () => {
-    expect(await tp.resolveAddress(ADDRESSES[1])).toBe(ADDRESSES[1])
-  })
-  it('resolveAddress resolves for external address', async () => {
-    expect(await tp.resolveAddress(EXTERNAL_ADDRESS)).toBe(EXTERNAL_ADDRESS)
-  })
-  it('resolveAddress throws for invalid address', async () => {
-    await expect(tp.resolveAddress('invalid')).rejects.toThrow()
+  it('resolvePayport throws for invalid address', async () => {
+    await expect(tp.resolvePayport('invalid')).rejects.toThrow()
   })
   it('resolveFromTo is correct for (index, index)', async () => {
     expect(await tp.resolveFromTo(0, 2)).toEqual({
       fromAddress: ADDRESSES[0],
       fromIndex: 0,
+      fromExtraId: undefined,
+      fromPayport: { address: ADDRESSES[0] },
       toAddress: ADDRESSES[2],
       toIndex: 2,
+      toExtraId: undefined,
+      toPayport: { address: ADDRESSES[2] },
     })
   })
-  it('resolveFromTo is correct for (index, internal address)', async () => {
-    expect(await tp.resolveFromTo(0, ADDRESSES[2])).toEqual({
-      fromAddress: ADDRESSES[0],
-      fromIndex: 0,
-      toAddress: ADDRESSES[2],
-      toIndex: 2,
-    })
-  })
-  it('resolveFromTo is correct for (index, external address)', async () => {
+  it('resolveFromTo is correct for external address', async () => {
     expect(await tp.resolveFromTo(0, EXTERNAL_ADDRESS)).toEqual({
       fromAddress: ADDRESSES[0],
       fromIndex: 0,
+      fromExtraId: undefined,
+      fromPayport: { address: ADDRESSES[0] },
       toAddress: EXTERNAL_ADDRESS,
       toIndex: null,
+      toExtraId: undefined,
+      toPayport: { address: EXTERNAL_ADDRESS },
     })
   })
-  it('resolveFromTo is correct for (internal address, index)', async () => {
-    expect(await tp.resolveFromTo(ADDRESSES[0], 2)).toEqual({
+  it('resolveFromTo is correct for internal address', async () => {
+    expect(await tp.resolveFromTo(0, ADDRESSES[2])).toEqual({
       fromAddress: ADDRESSES[0],
       fromIndex: 0,
+      fromExtraId: undefined,
+      fromPayport: { address: ADDRESSES[0] },
       toAddress: ADDRESSES[2],
-      toIndex: 2,
-    })
-  })
-  it('resolveFromTo is correct for (internal address, internal address)', async () => {
-    expect(await tp.resolveFromTo(ADDRESSES[0], ADDRESSES[2])).toEqual({
-      fromAddress: ADDRESSES[0],
-      fromIndex: 0,
-      toAddress: ADDRESSES[2],
-      toIndex: 2,
-    })
-  })
-  it('resolveFromTo is correct for (internal address, external address)', async () => {
-    expect(await tp.resolveFromTo(ADDRESSES[0], EXTERNAL_ADDRESS)).toEqual({
-      fromAddress: ADDRESSES[0],
-      fromIndex: 0,
-      toAddress: EXTERNAL_ADDRESS,
       toIndex: null,
+      toExtraId: undefined,
+      toPayport: { address: ADDRESSES[2] },
     })
   })
-  it('resolveFromTo throws for external address as from', async () => {
-    await expect(tp.resolveFromTo(EXTERNAL_ADDRESS, 0)).rejects.toThrow()
+  it('resolveFromTo throws for address as from', async () => {
+    await expect(tp.resolveFromTo(EXTERNAL_ADDRESS as any, 0)).rejects.toThrow()
   })
 
   it('get transaction by hash with a fee', async () => {
@@ -170,7 +149,7 @@ function runHardcodedPublicKeyTests(tp: HdTronPayments, config: HdTronPaymentsCo
     })
   })
   it('get a balance using an address', async () => {
-    expect(await tp.getBalance('TBR4KDPrN9BrnyjienckS2xixcTpJ9aP26')).toEqual({
+    expect(await tp.getBalance({ address: 'TBR4KDPrN9BrnyjienckS2xixcTpJ9aP26' })).toEqual({
       confirmedBalance: '0',
       unconfirmedBalance: '0',
       sweepable: false,
@@ -189,6 +168,12 @@ function runHardcodedPublicKeyTests(tp: HdTronPayments, config: HdTronPaymentsCo
 }
 
 describe('HdTronPayments', () => {
+  let testsComplete = false
+
+  afterAll(() => {
+    testsComplete = true
+  })
+
   describe('static', () => {
     it('generateNewKeys should return xprv and xpub', async () => {
       let keys = HdTronPayments.generateNewKeys()
@@ -203,7 +188,8 @@ describe('HdTronPayments', () => {
   describe('hardcoded xpub', () => {
     const config = {
       hdKey: XPUB,
-      maxAddressScan: 12,
+      network: NetworkType.Mainnet,
+      logger: new TestLogger(),
     }
     const tp = new HdTronPayments(config)
 
@@ -217,14 +203,15 @@ describe('HdTronPayments', () => {
   describe('hardcoded xprv', () => {
     const config = {
       hdKey: XPRV,
-      maxAddressScan: 12,
+      network: NetworkType.Mainnet,
+      logger: new TestLogger(),
     }
     const tp = new HdTronPayments(config)
 
     runHardcodedPublicKeyTests(tp, config)
 
     it('getPrivateKey returns private key 1', async () => {
-      expect(await tp.getPrivateKey(1)).toBe(PRIVATE_KEYS[1])
+      expect(await tp.getPrivateKey(1)).toEqual(PRIVATE_KEYS[1])
     })
   })
 
@@ -232,6 +219,8 @@ describe('HdTronPayments', () => {
     describe('secret xprv', () => {
       const tp = new HdTronPayments({
         hdKey: secretXprv,
+        network: NetworkType.Mainnet,
+        logger: new TestLogger(),
       })
       const address0 = 'TGykLnoEQWYh6Mj6XWk9dWU5L6SXez2AWj'
       const address3 = 'TJGHeNADuV24au6bscVSfiynZmcpTMN8UK'
@@ -239,13 +228,13 @@ describe('HdTronPayments', () => {
         'xpub6CGU5e4rYticTKsvfMuqwDwTWfHefspTdgvkf9gcuVcvCxsCfBZnbRkhJw4CM5Vtcxefov4wteUT2Tr4LJZnJitqVVN9BekupBFupySNs5J'
 
       it('get correct xpub', async () => {
-        expect(tp.getXpub()).toBe(xpub)
+        expect(tp.getXpub()).toEqual(xpub)
       })
       it('get correct address for index 0', async () => {
-        expect(await tp.getAddress(0)).toBe(address0)
+        expect(await tp.getPayport(0)).toEqual({ address: address0 })
       })
       it('get correct address for index 3', async () => {
-        expect(await tp.getAddress(3)).toBe(address3)
+        expect(await tp.getPayport(3)).toEqual({ address: address3 })
       })
       it('get correct balance for index 0', async () => {
         expect(await tp.getBalance(0)).toEqual({
@@ -255,7 +244,7 @@ describe('HdTronPayments', () => {
         })
       })
       it('get correct balance for address 0', async () => {
-        expect(await tp.getBalance(address0)).toEqual({
+        expect(await tp.getBalance({ address: address0 })).toEqual({
           confirmedBalance: '2.4',
           unconfirmedBalance: '0',
           sweepable: true,
@@ -267,54 +256,96 @@ describe('HdTronPayments', () => {
           tp.createSweepTransaction(0, 3, { feeRate: '0.1', feeRateType: FeeRateType.Main }),
         ).rejects.toThrow('tron-payments custom fees are unsupported')
       })
-      it('create sweep transaction using indices', async () => {
-        const signedTx = await tp.createSweepTransaction(0, 3)
-        expect(signedTx).toBeDefined()
-        expect(signedTx.amount).toBe('2.3')
-        expect(signedTx.fromAddress).toBe(address0)
-        expect(signedTx.toAddress).toBe(address3)
-        expect(signedTx.fromIndex).toBe(0)
-        expect(signedTx.toIndex).toBe(3)
+      it('create sweep transaction to an index', async () => {
+        const tx = await tp.createSweepTransaction(0, 3)
+        expect(tx).toBeDefined()
+        expect(tx.amount).toEqual('2.3')
+        expect(tx.fromAddress).toEqual(address0)
+        expect(tx.toAddress).toEqual(address3)
+        expect(tx.fromIndex).toEqual(0)
+        expect(tx.toIndex).toEqual(3)
+        await waitForExpiration(tx)
       })
-      it('create sweep transaction using internal addresses', async () => {
-        const signedTx = await tp.createSweepTransaction(address0, address3)
-        expect(signedTx).toBeDefined()
-        expect(signedTx.amount).toBe('2.3')
-        expect(signedTx.fromAddress).toBe(address0)
-        expect(signedTx.toAddress).toBe(address3)
-        expect(signedTx.fromIndex).toBe(0)
-        expect(signedTx.toIndex).toBe(3)
+      it('create sweep transaction to an internal address', async () => {
+        const tx = await tp.createSweepTransaction(0, { address: address3 })
+        expect(tx).toBeDefined()
+        expect(tx.amount).toEqual('2.3')
+        expect(tx.fromAddress).toEqual(address0)
+        expect(tx.toAddress).toEqual(address3)
+        expect(tx.fromIndex).toEqual(0)
+        expect(tx.toIndex).toEqual(null)
+        await waitForExpiration(tx)
       })
       it('create sweep transaction to an external address', async () => {
-        const signedTx = await tp.createSweepTransaction(0, EXTERNAL_ADDRESS)
-        expect(signedTx).toBeDefined()
-        expect(signedTx.amount).toBe('2.3')
-        expect(signedTx.fromAddress).toBe(address0)
-        expect(signedTx.toAddress).toBe(EXTERNAL_ADDRESS)
-        expect(signedTx.fromIndex).toBe(0)
-        expect(signedTx.toIndex).toBe(null)
+        const tx = await tp.createSweepTransaction(0, { address: EXTERNAL_ADDRESS })
+        expect(tx).toBeDefined()
+        expect(tx.amount).toEqual('2.3')
+        expect(tx.fromAddress).toEqual(address0)
+        expect(tx.toAddress).toEqual(EXTERNAL_ADDRESS)
+        expect(tx.fromIndex).toEqual(0)
+        expect(tx.toIndex).toEqual(null)
+        await waitForExpiration(tx)
       })
 
-      it('create send transaction using indices', async () => {
+      it('create send transaction to an index', async () => {
         const amount = '0.5'
-        const signedTx = await tp.createTransaction(0, 3, amount)
-        expect(signedTx).toBeDefined()
-        expect(signedTx.amount).toBe(amount)
-        expect(signedTx.fromAddress).toBe(address0)
-        expect(signedTx.toAddress).toBe(address3)
-        expect(signedTx.fromIndex).toBe(0)
-        expect(signedTx.toIndex).toBe(3)
+        const tx = await tp.createTransaction(0, 3, amount)
+        expect(tx).toBeDefined()
+        expect(tx.amount).toEqual(amount)
+        expect(tx.fromAddress).toEqual(address0)
+        expect(tx.toAddress).toEqual(address3)
+        expect(tx.fromIndex).toEqual(0)
+        expect(tx.toIndex).toEqual(3)
+        await waitForExpiration(tx)
       })
-      it('create send transaction using internal addresses', async () => {
+      it('create send transaction to an internal address', async () => {
         const amount = '0.5'
-        const signedTx = await tp.createTransaction(address0, address3, amount)
-        expect(signedTx).toBeDefined()
-        expect(signedTx.amount).toBe(amount)
-        expect(signedTx.fromAddress).toBe(address0)
-        expect(signedTx.toAddress).toBe(address3)
-        expect(signedTx.fromIndex).toBe(0)
-        expect(signedTx.toIndex).toBe(3)
+        const tx = await tp.createTransaction(0, { address: address3 }, amount)
+        expect(tx).toBeDefined()
+        expect(tx.amount).toEqual(amount)
+        expect(tx.fromAddress).toEqual(address0)
+        expect(tx.toAddress).toEqual(address3)
+        expect(tx.fromIndex).toEqual(0)
+        expect(tx.toIndex).toEqual(null)
+        await waitForExpiration(tx)
       })
+
+      async function pollUntilEnded(signedTx: TronSignedTransaction) {
+        const txId = signedTx.id
+        console.log('polling until ended', txId)
+        let tx: TronTransactionInfo | undefined
+        while (!testsComplete && (!tx || !END_TRANSACTION_STATES.includes(tx.status) || tx.confirmations === 0)) {
+          try {
+            tx = await tp.getTransactionInfo(txId)
+          } catch (e) {
+            if (e.message.includes('Transaction not found')) {
+              console.log('tx not found yet', txId, e.message)
+            } else {
+              throw e
+            }
+          }
+          await delay(5000)
+        }
+        if (!tx) {
+          throw new Error(`failed to poll until ended ${txId}`)
+        }
+        console.log(tx.status, tx)
+        expect(tx.id).toBe(signedTx.id)
+        expect(tx.fromAddress).toBe(signedTx.fromAddress)
+        expectEqualWhenTruthy(tx.fromExtraId, signedTx.fromExtraId)
+        expect(tx.toAddress).toBe(signedTx.toAddress)
+        expectEqualWhenTruthy(tx.toExtraId, signedTx.toExtraId)
+        expect(tx.data).toBeDefined()
+        expect(tx.status).toBe(TransactionStatus.Confirmed)
+        expect(tx.isConfirmed).toBe(true)
+        expect(tx.isExecuted).toBe(true)
+        expect(tx.confirmationId).toMatch(/^\w+$/)
+        expect(tx.confirmationTimestamp).toBeDefined()
+        expect(tx.confirmations).toBeGreaterThan(0)
+        return tx
+      }
+
+      jest.setTimeout(300 * 1000)
 
       it('end to end sweep', async () => {
         const indicesToTry = [5, 6]
@@ -329,7 +360,7 @@ describe('HdTronPayments', () => {
           }
         }
         if (indexToSweep < 0) {
-          const allAddresses = await Promise.all(indicesToTry.map(i => tp.getAddress(i)))
+          const allAddresses = await Promise.all(indicesToTry.map(i => tp.getPayport(i)))
           console.log(
             'Cannot end to end test sweeping due to lack of funds. Send TRX to any of the following addresses and try again.',
             allAddresses,
@@ -345,6 +376,9 @@ describe('HdTronPayments', () => {
             id: signedTx.id,
             rebroadcast: false,
           })
+          const tx = await pollUntilEnded(signedTx)
+          expect(tx.amount).toEqual(signedTx.amount)
+          expect(tx.fee).toEqual(signedTx.fee)
         } catch (e) {
           if ((e.message || (e as string)).includes('Validate TransferContract error, balance is not sufficient')) {
             console.log('Ran consecutive tests too soon, previous sweep not complete. Wait a minute and retry')

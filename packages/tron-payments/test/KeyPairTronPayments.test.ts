@@ -9,7 +9,7 @@ const { PRIVATE_KEYS, ADDRESSES } = hdAccount
 
 function runTests(tp: KeyPairTronPayments, config: KeyPairTronPaymentsConfig) {
   it('getFullConfig', () => {
-    expect(tp.getFullConfig()).toBe(config)
+    expect(tp.getFullConfig()).toEqual(config)
   })
   it('getPublicConfig', () => {
     expect(tp.getPublicConfig()).toEqual({
@@ -24,37 +24,28 @@ function runTests(tp: KeyPairTronPayments, config: KeyPairTronPaymentsConfig) {
     expect(new Set(tp.getAccountIds())).toEqual(new Set([ADDRESSES[1], ADDRESSES[2]]))
   })
   it('getAccountId for private keyPair', () => {
-    expect(tp.getAccountId(1)).toBe(ADDRESSES[1])
+    expect(tp.getAccountId(1)).toEqual(ADDRESSES[1])
   })
   it('getAccountId for public keyPair', () => {
-    expect(tp.getAccountId(2)).toBe(ADDRESSES[2])
+    expect(tp.getAccountId(2)).toEqual(ADDRESSES[2])
   })
   it('getAccountId fails for undefined keyPair', () => {
     expect(() => tp.getAccountId(0)).toThrow()
   })
-  it('getAddress for private keyPair', async () => {
-    expect(await tp.getAddress(1)).toBe(ADDRESSES[1])
+  it('getPayport for private keyPair', async () => {
+    expect(await tp.getPayport(1)).toEqual({ address: ADDRESSES[1] })
   })
-  it('getAddress for public keyPair', async () => {
-    expect(await tp.getAddress(2)).toBe(ADDRESSES[2])
+  it('getPayport for public keyPair', async () => {
+    expect(await tp.getPayport(2)).toEqual({ address: ADDRESSES[2] })
   })
-  it('getAddress fails for undefined keyPair', async () => {
-    await expect(tp.getAddress(0)).rejects.toThrow()
+  it('getPayport fails for undefined keyPair', async () => {
+    await expect(tp.getPayport(0)).rejects.toThrow()
   })
-  it('getAddress fails for unknown index', async () => {
-    await expect(tp.getAddress(8)).rejects.toThrow()
-  })
-  it('getAddressIndex for private keyPair', async () => {
-    expect(await tp.getAddressIndex(ADDRESSES[1])).toBe(1)
-  })
-  it('getAddressIndex for public keyPair', async () => {
-    expect(await tp.getAddressIndex(ADDRESSES[2])).toBe(2)
-  })
-  it('getAddressIndex fails for external address', async () => {
-    await expect(tp.getAddressIndex(EXTERNAL_ADDRESS)).rejects.toThrow()
+  it('getPayport fails for unknown index', async () => {
+    await expect(tp.getPayport(8)).rejects.toThrow()
   })
   it('getPrivateKey for private key keyPair', async () => {
-    expect(await tp.getPrivateKey(1)).toBe(PRIVATE_KEYS[1])
+    expect(await tp.getPrivateKey(1)).toEqual(PRIVATE_KEYS[1])
   })
   it('getPrivateKey fails for address keyPair', async () => {
     await expect(tp.getPrivateKey(2)).rejects.toThrow()

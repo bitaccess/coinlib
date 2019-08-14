@@ -1,20 +1,20 @@
-import { toMainDenomination, toBaseDenomination, isValidXpub, isValidXprv, isValidAddress } from '#/utils'
+import { toMainDenominationString, toBaseDenominationString, isValidXpub, isValidXprv, isValidAddress } from '#/helpers'
 import { hdAccount } from './fixtures/accounts'
 
 const { XPRV, XPUB, ADDRESSES } = hdAccount
 
 describe('utils', () => {
   test('toMainDenomination from string', () => {
-    expect(toMainDenomination('123456789')).toBe('123.456789')
+    expect(toMainDenominationString('123456789')).toBe('123.456789')
   })
   test('toMainDenomination from number', () => {
-    expect(toMainDenomination(123456789)).toBe('123.456789')
+    expect(toMainDenominationString(123456789)).toBe('123.456789')
   })
   test('toBaseDenomination from string', () => {
-    expect(toBaseDenomination('123.456789')).toBe('123456789')
+    expect(toBaseDenominationString('123.456789')).toBe('123456789')
   })
   test('toBaseDenomination from number', () => {
-    expect(toBaseDenomination(123.456789)).toBe('123456789')
+    expect(toBaseDenominationString(123.456789)).toBe('123456789')
   })
   test('isValidXpub should return true for valid', () => {
     expect(isValidXpub(XPUB)).toBe(true)

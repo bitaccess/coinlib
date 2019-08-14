@@ -2,13 +2,16 @@ import TronWeb, { Transaction as TronTransaction } from 'tronweb'
 import { pick, get, cloneDeep } from 'lodash'
 import {
   BalanceResult,
-  PaymentsInterface,
+  BasePayments,
   TransactionStatus,
   FeeLevel,
   FeeOption,
   FeeRateType,
   FeeOptionCustom,
   ResolvedFeeOption,
+  Payport,
+  FromTo,
+  ResolveablePayport,
 } from '@faast/payments-common'
 import { isType, DelegateLogger, Logger } from '@faast/ts-common'
 
@@ -18,19 +21,12 @@ import {
   TronSignedTransaction,
   TronBroadcastResult,
   CreateTransactionOptions,
-  GetAddressOptions,
+  GetPayportOptions,
   BaseTronPaymentsConfig,
   TronWebTransaction,
 } from './types'
-import {
-  toMainDenomination,
-  toBaseDenomination,
-  toBaseDenominationNumber,
-  toError,
-  isValidAddress,
-  isValidPrivateKey,
-  privateKeyToAddress,
-} from './utils'
+import { toBaseDenominationNumber, isValidAddress, isValidPayport } from './helpers'
+import { toError } from './utils'
 import {
   DEFAULT_FULL_NODE,
   DEFAULT_EVENT_SERVER,
@@ -38,17 +34,13 @@ import {
   MIN_BALANCE_SUN,
   MIN_BALANCE_TRX,
   PACKAGE_NAME,
+  DEFAULT_FEE_LEVEL,
 } from './constants'
+import { TronPaymentsUtils } from './TronPaymentsUtils'
 
-export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
+export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> extends TronPaymentsUtils
   implements
-    PaymentsInterface<
-      Config,
-      TronUnsignedTransaction,
-      TronSignedTransaction,
-      TronBroadcastResult,
-      TronTransactionInfo
-    > {
+    BasePayments<Config, TronUnsignedTransaction, TronSignedTransaction, TronBroadcastResult, TronTransactionInfo> {
   // You may notice that many function blocks are enclosed in a try/catch.
   // I had to do this because tronweb thinks it's a good idea to throw
   // strings instead of Errors and now we need to convert them all ourselves
@@ -57,10 +49,10 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
   fullNode: string
   solidityNode: string
   eventServer: string
-  logger: Logger
   tronweb: TronWeb
 
   constructor(config: Config) {
+    super(config)
     this.fullNode = config.fullNode || DEFAULT_FULL_NODE
     this.solidityNode = config.solidityNode || DEFAULT_SOLIDITY_NODE
     this.eventServer = config.eventServer || DEFAULT_EVENT_SERVER
@@ -68,43 +60,25 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
     this.tronweb = new TronWeb(this.fullNode, this.solidityNode, this.eventServer)
   }
 
-  toMainDenomination = toMainDenomination
-  toBaseDenomination = toBaseDenomination
-  isValidAddress = isValidAddress
-  isValidPrivateKey = isValidPrivateKey
-  privateKeyToAddress = privateKeyToAddress
-
   abstract getFullConfig(): Config
   abstract getPublicConfig(): Config
   abstract getAccountId(index: number): string
   abstract getAccountIds(): string[]
-  abstract async getAddress(index: number, options?: GetAddressOptions): Promise<string>
-  abstract async getAddressIndex(address: string): Promise<number>
+  abstract async getPayport(index: number, options?: GetPayportOptions): Promise<Payport>
   abstract async getPrivateKey(index: number): Promise<string>
 
-  async getAddressOrNull(index: number, options?: GetAddressOptions): Promise<string | null> {
-    try {
-      return await this.getAddress(index, options)
-    } catch (e) {
-      return null
-    }
+  requiresBalanceMonitor() {
+    return false
   }
 
-  async getAddressIndexOrNull(address: string): Promise<number | null> {
+  async getBalance(resolveablePayport: ResolveablePayport): Promise<BalanceResult> {
     try {
-      return await this.getAddressIndex(address)
-    } catch (e) {
-      return null
-    }
-  }
-
-  async getBalance(addressOrIndex: string | number): Promise<BalanceResult> {
-    try {
-      const address = await this.resolveAddress(addressOrIndex)
-      const balanceSun = await this.tronweb.trx.getBalance(address)
+      const payport = await this.resolvePayport(resolveablePayport)
+      const balanceSun = await this.tronweb.trx.getBalance(payport.address)
+      this.logger.debug(`trx.getBalance(${payport.address}) -> ${balanceSun}`)
       const sweepable = this.canSweepBalance(balanceSun)
       return {
-        confirmedBalance: toMainDenomination(balanceSun).toString(),
+        confirmedBalance: this.toMainDenomination(balanceSun).toString(),
         unconfirmedBalance: '0',
         sweepable,
       }
@@ -121,7 +95,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
       }
       targetFeeLevel = FeeLevel.Custom
     } else {
-      targetFeeLevel = feeOption.feeLevel
+      targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL
     }
     return {
       targetFeeLevel,
@@ -133,18 +107,19 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
   }
 
   async createSweepTransaction(
-    from: string | number,
-    to: string | number,
-    options: CreateTransactionOptions = { feeLevel: FeeLevel.Medium },
+    from: number,
+    to: ResolveablePayport,
+    options: CreateTransactionOptions = {},
   ): Promise<TronUnsignedTransaction> {
+    this.logger.debug('createSweepTransaction', from, to)
     try {
-      const { fromAddress, fromIndex, toAddress, toIndex } = await this.resolveFromTo(from, to)
+      const { fromAddress, fromIndex, fromPayport, toAddress, toIndex } = await this.resolveFromTo(from, to)
       const { targetFeeLevel, targetFeeRate, targetFeeRateType, feeBase, feeMain } = await this.resolveFeeOption(
         options,
       )
       const feeSun = Number.parseInt(feeBase)
-      const balanceSun = await this.tronweb.trx.getBalance(fromAddress)
-      const balanceTrx = toMainDenomination(balanceSun)
+      const { confirmedBalance: balanceTrx } = await this.getBalance(fromPayport)
+      const balanceSun = toBaseDenominationNumber(balanceTrx)
       if (!this.canSweepBalance(balanceSun)) {
         throw new Error(
           `Insufficient balance (${balanceTrx}) to sweep with fee of ${feeMain} ` +
@@ -152,7 +127,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
         )
       }
       const amountSun = balanceSun - feeSun - MIN_BALANCE_SUN
-      const amountTrx = toMainDenomination(amountSun)
+      const amountTrx = this.toMainDenomination(amountSun)
       const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)
       return {
         id: tx.txID,
@@ -166,7 +141,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
         targetFeeLevel,
         targetFeeRate,
         targetFeeRateType,
-        status: 'unsigned',
+        status: TransactionStatus.Unsigned,
         data: tx,
       }
     } catch (e) {
@@ -175,19 +150,20 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
   }
 
   async createTransaction(
-    from: string | number,
-    to: string | number,
+    from: number,
+    to: ResolveablePayport,
     amountTrx: string,
-    options: CreateTransactionOptions = { feeLevel: FeeLevel.Medium },
+    options: CreateTransactionOptions = {},
   ): Promise<TronUnsignedTransaction> {
+    this.logger.debug('createTransaction', from, to, amountTrx)
     try {
-      const { fromAddress, fromIndex, toAddress, toIndex } = await this.resolveFromTo(from, to)
+      const { fromAddress, fromIndex, fromPayport, toAddress, toIndex } = await this.resolveFromTo(from, to)
       const { targetFeeLevel, targetFeeRate, targetFeeRateType, feeBase, feeMain } = await this.resolveFeeOption(
         options,
       )
       const feeSun = Number.parseInt(feeBase)
-      const balanceSun = await this.tronweb.trx.getBalance(fromAddress)
-      const balanceTrx = toMainDenomination(balanceSun)
+      const { confirmedBalance: balanceTrx } = await this.getBalance(fromPayport)
+      const balanceSun = toBaseDenominationNumber(balanceTrx)
       const amountSun = toBaseDenominationNumber(amountTrx)
       if (balanceSun - feeSun - MIN_BALANCE_SUN < amountSun) {
         throw new Error(
@@ -208,7 +184,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
         targetFeeLevel,
         targetFeeRate,
         targetFeeRateType,
-        status: 'unsigned',
+        status: TransactionStatus.Unsigned,
         data: tx,
       }
     } catch (e) {
@@ -223,7 +199,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
       const signedTx = await this.tronweb.trx.sign(unsignedRaw, fromPrivateKey)
       return {
         ...unsignedTx,
-        status: 'signed',
+        status: TransactionStatus.Signed,
         data: signedTx,
       }
     } catch (e) {
@@ -285,16 +261,11 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
 
       const { amountTrx, fromAddress, toAddress } = this.extractTxFields(tx)
 
-      const [fromIndex, toIndex] = await Promise.all([
-        this.getAddressIndexOrNull(fromAddress),
-        this.getAddressIndexOrNull(toAddress),
-      ])
-
       const contractRet = get(tx, 'ret[0].contractRet')
       const isExecuted = contractRet === 'SUCCESS'
 
       const block = txInfo.blockNumber || null
-      const feeTrx = toMainDenomination(txInfo.fee || 0)
+      const feeTrx = this.toMainDenomination(txInfo.fee || 0)
 
       const currentBlockNumber = get(currentBlock, 'block_header.raw_data.number', 0)
       const confirmations = currentBlockNumber && block ? currentBlockNumber - block : 0
@@ -316,8 +287,8 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
         toAddress,
         fromAddress,
         toExtraId: null,
-        fromIndex,
-        toIndex,
+        fromIndex: null,
+        toIndex: null,
         fee: feeTrx,
         isExecuted,
         isConfirmed,
@@ -349,7 +320,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
     }
 
     const amountSun = contractParam.amount || 0
-    const amountTrx = toMainDenomination(amountSun)
+    const amountTrx = this.toMainDenomination(amountSun)
     const toAddress = this.tronweb.address.fromHex(contractParam.to_address)
     const fromAddress = this.tronweb.address.fromHex(contractParam.owner_address)
     return {
@@ -360,32 +331,33 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig>
     }
   }
 
-  async resolveAddress(addressOrIndex: string | number): Promise<string> {
-    if (typeof addressOrIndex === 'number') {
-      return this.getAddress(addressOrIndex)
-    } else {
-      if (!this.isValidAddress(addressOrIndex)) {
-        throw new Error(`Invalid TRON address: ${addressOrIndex}`)
+  async resolvePayport(payport: ResolveablePayport): Promise<Payport> {
+    if (typeof payport === 'number') {
+      return this.getPayport(payport)
+    } else if (typeof payport === 'string') {
+      if (!isValidAddress(payport)) {
+        throw new Error(`Invalid TRON address: ${payport}`)
       }
-      return addressOrIndex
+      return { address: payport }
     }
+    if (!isValidPayport(payport)) {
+      throw new Error(`Invalid TRON payport: ${JSON.stringify(payport)}`)
+    }
+    return payport
   }
 
-  async resolveFromTo(
-    from: string | number,
-    to: string | number,
-  ): Promise<{
-    fromIndex: number
-    fromAddress: string
-    toIndex: number | null
-    toAddress: string
-  }> {
-    const fromIndex = typeof from === 'string' ? await this.getAddressIndex(from) : from
+  async resolveFromTo(from: number, to: ResolveablePayport): Promise<FromTo> {
+    const fromPayport = await this.getPayport(from)
+    const toPayport = await this.resolvePayport(to)
     return {
-      fromAddress: await this.resolveAddress(from),
-      fromIndex,
-      toAddress: await this.resolveAddress(to),
-      toIndex: typeof to === 'string' ? await this.getAddressIndexOrNull(to) : to,
+      fromAddress: fromPayport.address,
+      fromIndex: from,
+      fromExtraId: fromPayport.extraId,
+      fromPayport,
+      toAddress: toPayport.address,
+      toIndex: typeof to === 'number' ? to : null,
+      toExtraId: toPayport.extraId,
+      toPayport,
     }
   }
 }

@@ -1,6 +1,7 @@
 import { BaseTronPayments } from './BaseTronPayments'
 import { KeyPairTronPaymentsConfig } from './types'
-import { isValidAddress, isValidPrivateKey, privateKeyToAddress } from './utils'
+import { isValidAddress, isValidPrivateKey, privateKeyToAddress } from './helpers'
+import { Payport } from '@faast/payments-common'
 
 export class KeyPairTronPayments extends BaseTronPayments<KeyPairTronPaymentsConfig> {
   readonly addresses: { [index: number]: string | undefined } = {}
@@ -54,20 +55,12 @@ export class KeyPairTronPayments extends BaseTronPayments<KeyPairTronPaymentsCon
     return Object.keys(this.addressIndices)
   }
 
-  async getAddress(index: number): Promise<string> {
+  async getPayport(index: number): Promise<Payport> {
     const address = this.addresses[index]
     if (typeof address === 'undefined') {
       throw new Error(`Cannot get address ${index} - keyPair[${index}] is undefined`)
     }
-    return address
-  }
-
-  async getAddressIndex(address: string): Promise<number> {
-    const index = this.addressIndices[address]
-    if (typeof index === 'undefined') {
-      throw new Error(`Cannot get index of address ${address}`)
-    }
-    return index
+    return { address }
   }
 
   async getPrivateKey(index: number): Promise<string> {

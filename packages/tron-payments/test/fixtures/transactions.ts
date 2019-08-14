@@ -1,6 +1,6 @@
 /* tslint:disable: max-line-length variable-name */
 import { TronTransactionInfo, TronSignedTransaction } from '#/types'
-import { FeeLevel, FeeRateType } from '@faast/payments-common'
+import { FeeLevel, FeeRateType, TransactionStatus } from '@faast/payments-common'
 
 export const txInfo_209F8: TronTransactionInfo = {
   id: '209f8dbefe6bbb9395f1be76dfb581b7bb53197d27cb28fbfe6c819b914c140c',
@@ -16,7 +16,7 @@ export const txInfo_209F8: TronTransactionInfo = {
   confirmations: 1234,
   confirmationId: '3748106',
   confirmationTimestamp: new Date(1541196198000),
-  status: 'confirmed',
+  status: TransactionStatus.Confirmed,
   data: {
     blockNumber: 3748106,
     blockTimeStamp: 1541196198000,
@@ -88,7 +88,7 @@ export const txInfo_a0787: TronTransactionInfo = {
   confirmations: 4199517,
   confirmationId: '4093430',
   confirmationTimestamp: new Date(1542234063000),
-  status: 'confirmed',
+  status: TransactionStatus.Confirmed,
   data: {
     ret: [
       {
@@ -157,7 +157,7 @@ export const signedTx_valid: TronSignedTransaction = {
   targetFeeLevel: FeeLevel.Medium,
   targetFeeRate: '0',
   targetFeeRateType: FeeRateType.BasePerWeight,
-  status: 'signed',
+  status: TransactionStatus.Signed,
   data: {
     txID: 'c7376e46f869a9cadfca43ca20bfdc3c1bfe856908a6a57de147fb881189c3a7',
     raw_data: {
@@ -199,7 +199,7 @@ export const signedTx_invalid: TronSignedTransaction = {
   targetFeeLevel: FeeLevel.Medium,
   targetFeeRate: '0',
   targetFeeRateType: FeeRateType.BasePerWeight,
-  status: 'signed',
+  status: TransactionStatus.Signed,
   data: {
     txID: '1234567890',
     raw_data: {

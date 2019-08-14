@@ -7,6 +7,8 @@ import {
   BaseBroadcastResult,
   CreateTransactionOptions,
   BaseConfig,
+  FromTo,
+  Payport,
 } from '@faast/payments-common'
 import {
   Transaction as TronWebTransaction,
@@ -39,10 +41,6 @@ export const HdTronPaymentsConfig = extendCodec(
   {
     // required
     hdKey: t.string, // xprv or xpub
-  },
-  {
-    // optional
-    maxAddressScan: t.number, // max address scan to find address index in getAddressIndex
   },
   'HdTronPaymentsConfig',
 )
@@ -89,7 +87,12 @@ export const TronBroadcastResult = extendCodec(
 )
 export type TronBroadcastResult = t.TypeOf<typeof TronBroadcastResult>
 
-export const GetAddressOptions = t.partial({
+export const GetPayportOptions = t.partial({
   cacheIndex: t.boolean,
 })
-export type GetAddressOptions = t.TypeOf<typeof GetAddressOptions>
+export type GetPayportOptions = t.TypeOf<typeof GetPayportOptions>
+
+export type FromToWithPayport = FromTo & {
+  fromPayport: Payport
+  toPayport: Payport
+}
