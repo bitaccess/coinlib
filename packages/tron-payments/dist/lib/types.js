@@ -10,8 +10,6 @@ export const BaseTronPaymentsConfig = extendCodec(BaseConfig, {}, {
 }, 'BaseTronPaymentsConfig');
 export const HdTronPaymentsConfig = extendCodec(BaseTronPaymentsConfig, {
     hdKey: t.string,
-}, {
-    maxAddressScan: t.number,
 }, 'HdTronPaymentsConfig');
 const NullableOptionalString = t.union([t.string, t.null, t.undefined]);
 export const KeyPairTronPaymentsConfig = extendCodec(BaseTronPaymentsConfig, {
@@ -28,7 +26,7 @@ export const TronTransactionInfo = extendCodec(BaseTransactionInfo, {}, {}, 'Tro
 export const TronBroadcastResult = extendCodec(BaseBroadcastResult, {
     rebroadcast: t.boolean,
 }, 'TronBroadcastResult');
-export const GetAddressOptions = t.partial({
+export const GetPayportOptions = t.partial({
     cacheIndex: t.boolean,
 });
 //# sourceMappingURL=types.js.map

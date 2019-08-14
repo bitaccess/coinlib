@@ -7,38 +7,17 @@
   TronWeb = TronWeb && TronWeb.hasOwnProperty('default') ? TronWeb['default'] : TronWeb;
   jsSHA = jsSHA && jsSHA.hasOwnProperty('default') ? jsSHA['default'] : jsSHA;
 
-  function toError(e) {
-      if (typeof e === 'string') {
-          return new Error(e);
-      }
-      return e;
-  }
-  function toMainDenominationNumber(amountSun) {
-      const baseUnits = typeof amountSun === 'number' ? amountSun : Number.parseInt(amountSun);
-      if (Number.isNaN(baseUnits)) {
-          throw new Error('Cannot convert to main denomination - not a number');
-      }
-      if (!Number.isFinite(baseUnits)) {
-          throw new Error('Cannot convert to main denomination - not finite');
-      }
-      return baseUnits / 1e6;
-  }
-  function toMainDenomination(amountSun) {
-      return toMainDenominationNumber(amountSun).toString();
-  }
-  function toBaseDenominationNumber(amountTrx) {
-      const mainUnits = typeof amountTrx === 'number' ? amountTrx : Number.parseFloat(amountTrx);
-      if (Number.isNaN(mainUnits)) {
-          throw new Error('Cannot convert to base denomination - not a number');
-      }
-      if (!Number.isFinite(mainUnits)) {
-          throw new Error('Cannot convert to base denomination - not finite');
-      }
-      return Math.floor(mainUnits * 1e6);
-  }
-  function toBaseDenomination(amountTrx) {
-      return toBaseDenominationNumber(amountTrx).toString();
-  }
+  const PACKAGE_NAME = 'tron-payments';
+  const MIN_BALANCE_SUN = 100000;
+  const MIN_BALANCE_TRX = MIN_BALANCE_SUN / 1e6;
+  const DECIMAL_PLACES = 6;
+  const DEFAULT_FULL_NODE = process.env.TRX_FULL_NODE_URL || 'https://api.trongrid.io';
+  const DEFAULT_SOLIDITY_NODE = process.env.TRX_SOLIDITY_NODE_URL || 'https://api.trongrid.io';
+  const DEFAULT_EVENT_SERVER = process.env.TRX_EVENT_SERVER_URL || 'https://api.trongrid.io';
+  const DEFAULT_MAX_ADDRESS_SCAN = 10;
+  const DEFAULT_FEE_LEVEL = paymentsCommon.FeeLevel.Medium;
+
+  const { toMainDenominationBigNumber, toMainDenominationString, toMainDenominationNumber, toBaseDenominationBigNumber, toBaseDenominationString, toBaseDenominationNumber, } = paymentsCommon.createUnitConverters(DECIMAL_PLACES);
   function isValidXprv(xprv) {
       return xprv.startsWith('xprv');
   }
@@ -47,6 +26,16 @@
   }
   function isValidAddress(address) {
       return TronWeb.isAddress(address);
+  }
+  function isValidExtraId(extraId) {
+      return false;
+  }
+  function isValidPayport(payport) {
+      if (!paymentsCommon.Payport.is(payport)) {
+          return false;
+      }
+      const { address, extraId } = payport;
+      return isValidAddress(address) && (tsCommon.isNil(extraId) ? true : isValidExtraId(extraId));
   }
   function isValidPrivateKey(privateKey) {
       try {
@@ -67,50 +56,60 @@
       }
   }
 
-  const PACKAGE_NAME = 'tron-payments';
-  const MIN_BALANCE_SUN = 100000;
-  const MIN_BALANCE_TRX = MIN_BALANCE_SUN / 1e6;
-  const DEFAULT_FULL_NODE = process.env.TRX_FULL_NODE_URL || 'https://api.trongrid.io';
-  const DEFAULT_SOLIDITY_NODE = process.env.TRX_SOLIDITY_NODE_URL || 'https://api.trongrid.io';
-  const DEFAULT_EVENT_SERVER = process.env.TRX_EVENT_SERVER_URL || 'https://api.trongrid.io';
-  const DEFAULT_MAX_ADDRESS_SCAN = 10;
+  function toError(e) {
+      if (typeof e === 'string') {
+          return new Error(e);
+      }
+      return e;
+  }
 
-  class BaseTronPayments {
-      constructor(config) {
-          this.toMainDenomination = toMainDenomination;
-          this.toBaseDenomination = toBaseDenomination;
-          this.isValidAddress = isValidAddress;
+  class TronPaymentsUtils {
+      constructor(config = {}) {
+          this.isValidXprv = isValidXprv;
+          this.isValidXpub = isValidXpub;
           this.isValidPrivateKey = isValidPrivateKey;
           this.privateKeyToAddress = privateKeyToAddress;
+          tsCommon.assertType(paymentsCommon.BaseConfig, config);
+          this.networkType = config.network || paymentsCommon.NetworkType.Mainnet;
+          this.logger = new tsCommon.DelegateLogger(config.logger, PACKAGE_NAME);
+      }
+      async isValidExtraId(extraId) {
+          return isValidExtraId(extraId);
+      }
+      async isValidAddress(address) {
+          return isValidAddress(address);
+      }
+      async isValidPayport(payport) {
+          return isValidPayport(payport);
+      }
+      toMainDenomination(amount) {
+          return toMainDenominationString(amount);
+      }
+      toBaseDenomination(amount) {
+          return toBaseDenominationString(amount);
+      }
+  }
+
+  class BaseTronPayments extends TronPaymentsUtils {
+      constructor(config) {
+          super(config);
           this.fullNode = config.fullNode || DEFAULT_FULL_NODE;
           this.solidityNode = config.solidityNode || DEFAULT_SOLIDITY_NODE;
           this.eventServer = config.eventServer || DEFAULT_EVENT_SERVER;
           this.logger = new tsCommon.DelegateLogger(config.logger, PACKAGE_NAME);
           this.tronweb = new TronWeb(this.fullNode, this.solidityNode, this.eventServer);
       }
-      async getAddressOrNull(index, options) {
-          try {
-              return await this.getAddress(index, options);
-          }
-          catch (e) {
-              return null;
-          }
+      requiresBalanceMonitor() {
+          return false;
       }
-      async getAddressIndexOrNull(address) {
+      async getBalance(resolveablePayport) {
           try {
-              return await this.getAddressIndex(address);
-          }
-          catch (e) {
-              return null;
-          }
-      }
-      async getBalance(addressOrIndex) {
-          try {
-              const address = await this.resolveAddress(addressOrIndex);
-              const balanceSun = await this.tronweb.trx.getBalance(address);
+              const payport = await this.resolvePayport(resolveablePayport);
+              const balanceSun = await this.tronweb.trx.getBalance(payport.address);
+              this.logger.debug(`trx.getBalance(${payport.address}) -> ${balanceSun}`);
               const sweepable = this.canSweepBalance(balanceSun);
               return {
-                  confirmedBalance: toMainDenomination(balanceSun).toString(),
+                  confirmedBalance: this.toMainDenomination(balanceSun).toString(),
                   unconfirmedBalance: '0',
                   sweepable,
               };
@@ -128,7 +127,7 @@
               targetFeeLevel = paymentsCommon.FeeLevel.Custom;
           }
           else {
-              targetFeeLevel = feeOption.feeLevel;
+              targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL;
           }
           return {
               targetFeeLevel,
@@ -138,19 +137,20 @@
               feeMain: '0',
           };
       }
-      async createSweepTransaction(from, to, options = { feeLevel: paymentsCommon.FeeLevel.Medium }) {
+      async createSweepTransaction(from, to, options = {}) {
+          this.logger.debug('createSweepTransaction', from, to);
           try {
-              const { fromAddress, fromIndex, toAddress, toIndex } = await this.resolveFromTo(from, to);
+              const { fromAddress, fromIndex, fromPayport, toAddress, toIndex } = await this.resolveFromTo(from, to);
               const { targetFeeLevel, targetFeeRate, targetFeeRateType, feeBase, feeMain } = await this.resolveFeeOption(options);
               const feeSun = Number.parseInt(feeBase);
-              const balanceSun = await this.tronweb.trx.getBalance(fromAddress);
-              const balanceTrx = toMainDenomination(balanceSun);
+              const { confirmedBalance: balanceTrx } = await this.getBalance(fromPayport);
+              const balanceSun = toBaseDenominationNumber(balanceTrx);
               if (!this.canSweepBalance(balanceSun)) {
                   throw new Error(`Insufficient balance (${balanceTrx}) to sweep with fee of ${feeMain} ` +
                       `while maintaining a minimum required balance of ${MIN_BALANCE_TRX}`);
               }
               const amountSun = balanceSun - feeSun - MIN_BALANCE_SUN;
-              const amountTrx = toMainDenomination(amountSun);
+              const amountTrx = this.toMainDenomination(amountSun);
               const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress);
               return {
                   id: tx.txID,
@@ -164,7 +164,7 @@
                   targetFeeLevel,
                   targetFeeRate,
                   targetFeeRateType,
-                  status: 'unsigned',
+                  status: paymentsCommon.TransactionStatus.Unsigned,
                   data: tx,
               };
           }
@@ -172,13 +172,14 @@
               throw toError(e);
           }
       }
-      async createTransaction(from, to, amountTrx, options = { feeLevel: paymentsCommon.FeeLevel.Medium }) {
+      async createTransaction(from, to, amountTrx, options = {}) {
+          this.logger.debug('createTransaction', from, to, amountTrx);
           try {
-              const { fromAddress, fromIndex, toAddress, toIndex } = await this.resolveFromTo(from, to);
+              const { fromAddress, fromIndex, fromPayport, toAddress, toIndex } = await this.resolveFromTo(from, to);
               const { targetFeeLevel, targetFeeRate, targetFeeRateType, feeBase, feeMain } = await this.resolveFeeOption(options);
               const feeSun = Number.parseInt(feeBase);
-              const balanceSun = await this.tronweb.trx.getBalance(fromAddress);
-              const balanceTrx = toMainDenomination(balanceSun);
+              const { confirmedBalance: balanceTrx } = await this.getBalance(fromPayport);
+              const balanceSun = toBaseDenominationNumber(balanceTrx);
               const amountSun = toBaseDenominationNumber(amountTrx);
               if (balanceSun - feeSun - MIN_BALANCE_SUN < amountSun) {
                   throw new Error(`Insufficient balance (${balanceTrx}) to send ${amountTrx} including fee of ${feeMain} ` +
@@ -197,7 +198,7 @@
                   targetFeeLevel,
                   targetFeeRate,
                   targetFeeRateType,
-                  status: 'unsigned',
+                  status: paymentsCommon.TransactionStatus.Unsigned,
                   data: tx,
               };
           }
@@ -212,7 +213,7 @@
               const signedTx = await this.tronweb.trx.sign(unsignedRaw, fromPrivateKey);
               return {
                   ...unsignedTx,
-                  status: 'signed',
+                  status: paymentsCommon.TransactionStatus.Signed,
                   data: signedTx,
               };
           }
@@ -263,14 +264,10 @@
                   this.tronweb.trx.getCurrentBlock(),
               ]);
               const { amountTrx, fromAddress, toAddress } = this.extractTxFields(tx);
-              const [fromIndex, toIndex] = await Promise.all([
-                  this.getAddressIndexOrNull(fromAddress),
-                  this.getAddressIndexOrNull(toAddress),
-              ]);
               const contractRet = lodash.get(tx, 'ret[0].contractRet');
               const isExecuted = contractRet === 'SUCCESS';
               const block = txInfo.blockNumber || null;
-              const feeTrx = toMainDenomination(txInfo.fee || 0);
+              const feeTrx = this.toMainDenomination(txInfo.fee || 0);
               const currentBlockNumber = lodash.get(currentBlock, 'block_header.raw_data.number', 0);
               const confirmations = currentBlockNumber && block ? currentBlockNumber - block : 0;
               const isConfirmed = confirmations > 0;
@@ -288,8 +285,8 @@
                   toAddress,
                   fromAddress,
                   toExtraId: null,
-                  fromIndex,
-                  toIndex,
+                  fromIndex: null,
+                  toIndex: null,
                   fee: feeTrx,
                   isExecuted,
                   isConfirmed,
@@ -317,7 +314,7 @@
               throw new Error('Unable to get transaction');
           }
           const amountSun = contractParam.amount || 0;
-          const amountTrx = toMainDenomination(amountSun);
+          const amountTrx = this.toMainDenomination(amountSun);
           const toAddress = this.tronweb.address.fromHex(contractParam.to_address);
           const fromAddress = this.tronweb.address.fromHex(contractParam.owner_address);
           return {
@@ -327,24 +324,33 @@
               fromAddress,
           };
       }
-      async resolveAddress(addressOrIndex) {
-          if (typeof addressOrIndex === 'number') {
-              return this.getAddress(addressOrIndex);
+      async resolvePayport(payport) {
+          if (typeof payport === 'number') {
+              return this.getPayport(payport);
           }
-          else {
-              if (!this.isValidAddress(addressOrIndex)) {
-                  throw new Error(`Invalid TRON address: ${addressOrIndex}`);
+          else if (typeof payport === 'string') {
+              if (!isValidAddress(payport)) {
+                  throw new Error(`Invalid TRON address: ${payport}`);
               }
-              return addressOrIndex;
+              return { address: payport };
           }
+          if (!isValidPayport(payport)) {
+              throw new Error(`Invalid TRON payport: ${JSON.stringify(payport)}`);
+          }
+          return payport;
       }
       async resolveFromTo(from, to) {
-          const fromIndex = typeof from === 'string' ? await this.getAddressIndex(from) : from;
+          const fromPayport = await this.getPayport(from);
+          const toPayport = await this.resolvePayport(to);
           return {
-              fromAddress: await this.resolveAddress(from),
-              fromIndex,
-              toAddress: await this.resolveAddress(to),
-              toIndex: typeof to === 'string' ? await this.getAddressIndexOrNull(to) : to,
+              fromAddress: fromPayport.address,
+              fromIndex: from,
+              fromExtraId: fromPayport.extraId,
+              fromPayport,
+              toAddress: toPayport.address,
+              toIndex: typeof to === 'number' ? to : null,
+              toExtraId: toPayport.extraId,
+              toPayport,
           };
       }
   }
@@ -574,7 +580,6 @@
       constructor(config) {
           super(config);
           this.config = config;
-          this.maxAddressScan = config.maxAddressScan || DEFAULT_MAX_ADDRESS_SCAN;
           if (isValidXprv(config.hdKey)) {
               this.xprv = config.hdKey;
               this.xpub = xprvToXpub(this.xprv);
@@ -614,7 +619,7 @@
       getAccountIds() {
           return [this.getXpub()];
       }
-      async getAddress(index, options = {}) {
+      async getPayport(index, options = {}) {
           const cacheIndex = options.cacheIndex || true;
           const xpub = this.getXpub();
           const address = deriveAddress(xpub, index);
@@ -624,22 +629,7 @@
           if (cacheIndex) {
               xpubCache.put(xpub, index, address);
           }
-          return address;
-      }
-      async getAddressIndex(address) {
-          const xpub = this.getXpub();
-          const cachedIndex = xpubCache.lookupIndex(xpub, address);
-          if (cachedIndex) {
-              return cachedIndex;
-          }
-          for (let i = 0; i < this.maxAddressScan; i++) {
-              if (address === deriveAddress(xpub, i)) {
-                  xpubCache.put(xpub, i, address);
-                  return i;
-              }
-          }
-          throw new Error('Cannot get index of address after checking cache and scanning addresses' +
-              ` from 0 to ${this.maxAddressScan - 1} (address=${address})`);
+          return { address };
       }
       async getPrivateKey(index) {
           if (!this.xprv) {
@@ -696,19 +686,12 @@
       getAccountIds() {
           return Object.keys(this.addressIndices);
       }
-      async getAddress(index) {
+      async getPayport(index) {
           const address = this.addresses[index];
           if (typeof address === 'undefined') {
               throw new Error(`Cannot get address ${index} - keyPair[${index}] is undefined`);
           }
-          return address;
-      }
-      async getAddressIndex(address) {
-          const index = this.addressIndices[address];
-          if (typeof index === 'undefined') {
-              throw new Error(`Cannot get index of address ${address}`);
-          }
-          return index;
+          return { address };
       }
       async getPrivateKey(index) {
           const privateKey = this.privateKeys[index];
@@ -730,8 +713,6 @@
   }, 'BaseTronPaymentsConfig');
   const HdTronPaymentsConfig = tsCommon.extendCodec(BaseTronPaymentsConfig, {
       hdKey: t.string,
-  }, {
-      maxAddressScan: t.number,
   }, 'HdTronPaymentsConfig');
   const NullableOptionalString = t.union([t.string, t.null, t.undefined]);
   const KeyPairTronPaymentsConfig = tsCommon.extendCodec(BaseTronPaymentsConfig, {
@@ -748,7 +729,7 @@
   const TronBroadcastResult = tsCommon.extendCodec(paymentsCommon.BaseBroadcastResult, {
       rebroadcast: t.boolean,
   }, 'TronBroadcastResult');
-  const GetAddressOptions = t.partial({
+  const GetPayportOptions = t.partial({
       cacheIndex: t.boolean,
   });
 
@@ -764,18 +745,12 @@
       }
   }
 
-  class TronAddressValidator {
-      constructor() {
-          this.validate = isValidAddress;
-      }
-  }
-
   exports.CreateTransactionOptions = paymentsCommon.CreateTransactionOptions;
   exports.BaseTronPayments = BaseTronPayments;
   exports.HdTronPayments = HdTronPayments;
   exports.KeyPairTronPayments = KeyPairTronPayments;
   exports.TronPaymentsFactory = TronPaymentsFactory;
-  exports.TronAddressValidator = TronAddressValidator;
+  exports.TronPaymentsUtils = TronPaymentsUtils;
   exports.BaseTronPaymentsConfig = BaseTronPaymentsConfig;
   exports.HdTronPaymentsConfig = HdTronPaymentsConfig;
   exports.KeyPairTronPaymentsConfig = KeyPairTronPaymentsConfig;
@@ -784,17 +759,8 @@
   exports.TronSignedTransaction = TronSignedTransaction;
   exports.TronTransactionInfo = TronTransactionInfo;
   exports.TronBroadcastResult = TronBroadcastResult;
-  exports.GetAddressOptions = GetAddressOptions;
+  exports.GetPayportOptions = GetPayportOptions;
   exports.toError = toError;
-  exports.toMainDenominationNumber = toMainDenominationNumber;
-  exports.toMainDenomination = toMainDenomination;
-  exports.toBaseDenominationNumber = toBaseDenominationNumber;
-  exports.toBaseDenomination = toBaseDenomination;
-  exports.isValidXprv = isValidXprv;
-  exports.isValidXpub = isValidXpub;
-  exports.isValidAddress = isValidAddress;
-  exports.isValidPrivateKey = isValidPrivateKey;
-  exports.privateKeyToAddress = privateKeyToAddress;
   exports.derivationPath = derivationPath;
   exports.deriveAddress = deriveAddress;
   exports.derivePrivateKey = derivePrivateKey;
@@ -804,10 +770,12 @@
   exports.PACKAGE_NAME = PACKAGE_NAME;
   exports.MIN_BALANCE_SUN = MIN_BALANCE_SUN;
   exports.MIN_BALANCE_TRX = MIN_BALANCE_TRX;
+  exports.DECIMAL_PLACES = DECIMAL_PLACES;
   exports.DEFAULT_FULL_NODE = DEFAULT_FULL_NODE;
   exports.DEFAULT_SOLIDITY_NODE = DEFAULT_SOLIDITY_NODE;
   exports.DEFAULT_EVENT_SERVER = DEFAULT_EVENT_SERVER;
   exports.DEFAULT_MAX_ADDRESS_SCAN = DEFAULT_MAX_ADDRESS_SCAN;
+  exports.DEFAULT_FEE_LEVEL = DEFAULT_FEE_LEVEL;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

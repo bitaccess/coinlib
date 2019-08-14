@@ -1,5 +1,5 @@
 import { BaseTronPayments } from './BaseTronPayments';
-import { isValidAddress, isValidPrivateKey, privateKeyToAddress } from './utils';
+import { isValidAddress, isValidPrivateKey, privateKeyToAddress } from './helpers';
 export class KeyPairTronPayments extends BaseTronPayments {
     constructor(config) {
         super(config);
@@ -47,19 +47,12 @@ export class KeyPairTronPayments extends BaseTronPayments {
     getAccountIds() {
         return Object.keys(this.addressIndices);
     }
-    async getAddress(index) {
+    async getPayport(index) {
         const address = this.addresses[index];
         if (typeof address === 'undefined') {
             throw new Error(`Cannot get address ${index} - keyPair[${index}] is undefined`);
         }
-        return address;
-    }
-    async getAddressIndex(address) {
-        const index = this.addressIndices[address];
-        if (typeof index === 'undefined') {
-            throw new Error(`Cannot get index of address ${address}`);
-        }
-        return index;
+        return { address };
     }
     async getPrivateKey(index) {
         const privateKey = this.privateKeys[index];

@@ -1,10 +1,10 @@
 import { BaseTronPayments } from './BaseTronPayments';
-import { GetAddressOptions, HdTronPaymentsConfig } from './types';
+import { HdTronPaymentsConfig, GetPayportOptions } from './types';
+import { Payport } from '@faast/payments-common';
 export declare class HdTronPayments extends BaseTronPayments<HdTronPaymentsConfig> {
     private readonly config;
     readonly xprv: string | null;
     readonly xpub: string;
-    maxAddressScan: number;
     constructor(config: HdTronPaymentsConfig);
     static generateNewKeys(): {
         xprv: string;
@@ -15,8 +15,7 @@ export declare class HdTronPayments extends BaseTronPayments<HdTronPaymentsConfi
     getPublicConfig(): HdTronPaymentsConfig;
     getAccountId(index: number): string;
     getAccountIds(): string[];
-    getAddress(index: number, options?: GetAddressOptions): Promise<string>;
-    getAddressIndex(address: string): Promise<number>;
+    getPayport(index: number, options?: GetPayportOptions): Promise<Payport>;
     getPrivateKey(index: number): Promise<string>;
 }
 export default HdTronPayments;

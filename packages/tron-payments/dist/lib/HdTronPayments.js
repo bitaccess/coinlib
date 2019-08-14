@@ -2,14 +2,12 @@ import { HDPrivateKey } from 'bitcore-lib';
 import { BaseTronPayments } from './BaseTronPayments';
 import Bip44Cache from './Bip44Cache';
 import { deriveAddress, derivePrivateKey, xprvToXpub } from './bip44';
-import { DEFAULT_MAX_ADDRESS_SCAN } from './constants';
-import { isValidXpub, isValidXprv, isValidAddress } from './utils';
+import { isValidXprv, isValidXpub, isValidAddress } from './helpers';
 const xpubCache = new Bip44Cache();
 export class HdTronPayments extends BaseTronPayments {
     constructor(config) {
         super(config);
         this.config = config;
-        this.maxAddressScan = config.maxAddressScan || DEFAULT_MAX_ADDRESS_SCAN;
         if (isValidXprv(config.hdKey)) {
             this.xprv = config.hdKey;
             this.xpub = xprvToXpub(this.xprv);
@@ -49,7 +47,7 @@ export class HdTronPayments extends BaseTronPayments {
     getAccountIds() {
         return [this.getXpub()];
     }
-    async getAddress(index, options = {}) {
+    async getPayport(index, options = {}) {
         const cacheIndex = options.cacheIndex || true;
         const xpub = this.getXpub();
         const address = deriveAddress(xpub, index);
@@ -59,22 +57,7 @@ export class HdTronPayments extends BaseTronPayments {
         if (cacheIndex) {
             xpubCache.put(xpub, index, address);
         }
-        return address;
-    }
-    async getAddressIndex(address) {
-        const xpub = this.getXpub();
-        const cachedIndex = xpubCache.lookupIndex(xpub, address);
-        if (cachedIndex) {
-            return cachedIndex;
-        }
-        for (let i = 0; i < this.maxAddressScan; i++) {
-            if (address === deriveAddress(xpub, i)) {
-                xpubCache.put(xpub, i, address);
-                return i;
-            }
-        }
-        throw new Error('Cannot get index of address after checking cache and scanning addresses' +
-            ` from 0 to ${this.maxAddressScan - 1} (address=${address})`);
+        return { address };
     }
     async getPrivateKey(index) {
         if (!this.xprv) {

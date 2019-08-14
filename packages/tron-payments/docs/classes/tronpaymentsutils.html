@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>TronAddressValidator | @faast/tron-payments</title>
+	<title>TronPaymentsUtils | @faast/tron-payments</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -908,10 +908,43 @@ img { max-width: 100%; }
 <nav class="tsd-navigation secondary">
 	<ul>
 		<li class="current tsd-kind-class">
-			<a href="tronaddressvalidator.html" class="tsd-kind-icon">Tron<wbr>Address<wbr>Validator</a>
+			<a href="tronpaymentsutils.html" class="tsd-kind-icon">Tron<wbr>Payments<wbr>Utils</a>
 			<ul>
+				<li class=" tsd-kind-constructor tsd-parent-kind-class">
+					<a href="tronpaymentsutils.html#constructor" class="tsd-kind-icon">constructor</a>
+				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-class">
-					<a href="tronaddressvalidator.html#validate" class="tsd-kind-icon">validate</a>
+					<a href="tronpaymentsutils.html#isvalidprivatekey" class="tsd-kind-icon">is<wbr>Valid<wbr>Private<wbr>Key</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-class">
+					<a href="tronpaymentsutils.html#isvalidxprv" class="tsd-kind-icon">is<wbr>Valid<wbr>Xprv</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-class">
+					<a href="tronpaymentsutils.html#isvalidxpub" class="tsd-kind-icon">is<wbr>Valid<wbr>Xpub</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-class">
+					<a href="tronpaymentsutils.html#logger" class="tsd-kind-icon">logger</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-class">
+					<a href="tronpaymentsutils.html#networktype" class="tsd-kind-icon">network<wbr>Type</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-class">
+					<a href="tronpaymentsutils.html#privatekeytoaddress" class="tsd-kind-icon">private<wbr>Key<wbr>ToAddress</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="tronpaymentsutils.html#isvalidaddress" class="tsd-kind-icon">is<wbr>Valid<wbr>Address</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="tronpaymentsutils.html#isvalidextraid" class="tsd-kind-icon">is<wbr>Valid<wbr>Extra<wbr>Id</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="tronpaymentsutils.html#isvalidpayport" class="tsd-kind-icon">is<wbr>Valid<wbr>Payport</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="tronpaymentsutils.html#tobasedenomination" class="tsd-kind-icon">to<wbr>Base<wbr>Denomination</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="tronpaymentsutils.html#tomaindenomination" class="tsd-kind-icon">to<wbr>Main<wbr>Denomination</a>
 				</li>
 			</ul>
 		</li>
@@ -923,14 +956,19 @@ img { max-width: 100%; }
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
 				<li>
-					<span class="target">TronAddressValidator</span>
+					<span class="target">TronPaymentsUtils</span>
+					<ul class="tsd-hierarchy">
+						<li>
+							<a href="basetronpayments.html" class="tsd-signature-type">BaseTronPayments</a>
+						</li>
+					</ul>
 				</li>
 			</ul>
 		</section>
 		<section class="tsd-panel">
 			<h3>Implements</h3>
 			<ul class="tsd-hierarchy">
-				<li><span class="tsd-signature-type">AddressValidator</span></li>
+				<li><span class="tsd-signature-type">PaymentsUtils</span></li>
 			</ul>
 		</section>
 		<section class="tsd-panel-group tsd-index-group">
@@ -938,25 +976,240 @@ img { max-width: 100%; }
 			<section class="tsd-panel tsd-index-panel">
 				<div class="tsd-index-content">
 					<section class="tsd-index-section ">
+						<h3>Constructors</h3>
+						<ul class="tsd-index-list">
+							<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="tronpaymentsutils.html#constructor" class="tsd-kind-icon">constructor</a></li>
+						</ul>
+					</section>
+					<section class="tsd-index-section ">
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-property tsd-parent-kind-class"><a href="tronaddressvalidator.html#validate" class="tsd-kind-icon">validate</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class"><a href="tronpaymentsutils.html#isvalidprivatekey" class="tsd-kind-icon">is<wbr>Valid<wbr>Private<wbr>Key</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class"><a href="tronpaymentsutils.html#isvalidxprv" class="tsd-kind-icon">is<wbr>Valid<wbr>Xprv</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class"><a href="tronpaymentsutils.html#isvalidxpub" class="tsd-kind-icon">is<wbr>Valid<wbr>Xpub</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class"><a href="tronpaymentsutils.html#logger" class="tsd-kind-icon">logger</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class"><a href="tronpaymentsutils.html#networktype" class="tsd-kind-icon">network<wbr>Type</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class"><a href="tronpaymentsutils.html#privatekeytoaddress" class="tsd-kind-icon">private<wbr>Key<wbr>ToAddress</a></li>
+						</ul>
+					</section>
+					<section class="tsd-index-section ">
+						<h3>Methods</h3>
+						<ul class="tsd-index-list">
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="tronpaymentsutils.html#isvalidaddress" class="tsd-kind-icon">is<wbr>Valid<wbr>Address</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="tronpaymentsutils.html#isvalidextraid" class="tsd-kind-icon">is<wbr>Valid<wbr>Extra<wbr>Id</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="tronpaymentsutils.html#isvalidpayport" class="tsd-kind-icon">is<wbr>Valid<wbr>Payport</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="tronpaymentsutils.html#tobasedenomination" class="tsd-kind-icon">to<wbr>Base<wbr>Denomination</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="tronpaymentsutils.html#tomaindenomination" class="tsd-kind-icon">to<wbr>Main<wbr>Denomination</a></li>
 						</ul>
 					</section>
 				</div>
 			</section>
 		</section>
 		<section class="tsd-panel-group tsd-member-group ">
+			<h2>Constructors</h2>
+			<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
+				<a name="constructor" class="tsd-anchor"></a>
+				<h3>constructor</h3>
+				<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">new <wbr>Tron<wbr>Payments<wbr>Utils<span class="tsd-signature-symbol">(</span>config<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">BaseConfig</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="tronpaymentsutils.html" class="tsd-signature-type">TronPaymentsUtils</a></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/83274b0/src/TronPaymentsUtils.ts#L18">src/TronPaymentsUtils.ts:18</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5><span class="tsd-flag ts-flagDefault value">Default value</span> config: <span class="tsd-signature-type">BaseConfig</span><span class="tsd-signature-symbol"> =&nbsp;{}</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <a href="tronpaymentsutils.html" class="tsd-signature-type">TronPaymentsUtils</a></h4>
+					</li>
+				</ul>
+			</section>
+		</section>
+		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Properties</h2>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-				<a name="validate" class="tsd-anchor"></a>
-				<h3>validate</h3>
-				<div class="tsd-signature tsd-kind-icon">validate<span class="tsd-signature-symbol">:</span> <a href="../globals.html#isvalidaddress" class="tsd-signature-type">isValidAddress</a><span class="tsd-signature-symbol"> =&nbsp;isValidAddress</span></div>
+				<a name="isvalidprivatekey" class="tsd-anchor"></a>
+				<h3>is<wbr>Valid<wbr>Private<wbr>Key</h3>
+				<div class="tsd-signature tsd-kind-icon">is<wbr>Valid<wbr>Private<wbr>Key<span class="tsd-signature-symbol">:</span> <a href="../globals.html#isvalidprivatekey" class="tsd-signature-type">isValidPrivateKey</a><span class="tsd-signature-symbol"> =&nbsp;isValidPrivateKey</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/e68ee06/src/TronAddressValidator.ts#L5">src/TronAddressValidator.ts:5</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/83274b0/src/TronPaymentsUtils.ts#L49">src/TronPaymentsUtils.ts:49</a></li>
 					</ul>
 				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+				<a name="isvalidxprv" class="tsd-anchor"></a>
+				<h3>is<wbr>Valid<wbr>Xprv</h3>
+				<div class="tsd-signature tsd-kind-icon">is<wbr>Valid<wbr>Xprv<span class="tsd-signature-symbol">:</span> <a href="../globals.html#isvalidxprv" class="tsd-signature-type">isValidXprv</a><span class="tsd-signature-symbol"> =&nbsp;isValidXprv</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/83274b0/src/TronPaymentsUtils.ts#L46">src/TronPaymentsUtils.ts:46</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+				<a name="isvalidxpub" class="tsd-anchor"></a>
+				<h3>is<wbr>Valid<wbr>Xpub</h3>
+				<div class="tsd-signature tsd-kind-icon">is<wbr>Valid<wbr>Xpub<span class="tsd-signature-symbol">:</span> <a href="../globals.html#isvalidxpub" class="tsd-signature-type">isValidXpub</a><span class="tsd-signature-symbol"> =&nbsp;isValidXpub</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/83274b0/src/TronPaymentsUtils.ts#L47">src/TronPaymentsUtils.ts:47</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+				<a name="logger" class="tsd-anchor"></a>
+				<h3>logger</h3>
+				<div class="tsd-signature tsd-kind-icon">logger<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Logger</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/83274b0/src/TronPaymentsUtils.ts#L18">src/TronPaymentsUtils.ts:18</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+				<a name="networktype" class="tsd-anchor"></a>
+				<h3>network<wbr>Type</h3>
+				<div class="tsd-signature tsd-kind-icon">network<wbr>Type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">NetworkType</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/83274b0/src/TronPaymentsUtils.ts#L17">src/TronPaymentsUtils.ts:17</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+				<a name="privatekeytoaddress" class="tsd-anchor"></a>
+				<h3>private<wbr>Key<wbr>ToAddress</h3>
+				<div class="tsd-signature tsd-kind-icon">private<wbr>Key<wbr>ToAddress<span class="tsd-signature-symbol">:</span> <a href="../globals.html#privatekeytoaddress" class="tsd-signature-type">privateKeyToAddress</a><span class="tsd-signature-symbol"> =&nbsp;privateKeyToAddress</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/83274b0/src/TronPaymentsUtils.ts#L50">src/TronPaymentsUtils.ts:50</a></li>
+					</ul>
+				</aside>
+			</section>
+		</section>
+		<section class="tsd-panel-group tsd-member-group ">
+			<h2>Methods</h2>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="isvalidaddress" class="tsd-anchor"></a>
+				<h3>is<wbr>Valid<wbr>Address</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">is<wbr>Valid<wbr>Address<span class="tsd-signature-symbol">(</span>address<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/83274b0/src/TronPaymentsUtils.ts#L30">src/TronPaymentsUtils.ts:30</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>address: <span class="tsd-signature-type">string</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="isvalidextraid" class="tsd-anchor"></a>
+				<h3>is<wbr>Valid<wbr>Extra<wbr>Id</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">is<wbr>Valid<wbr>Extra<wbr>Id<span class="tsd-signature-symbol">(</span>extraId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/83274b0/src/TronPaymentsUtils.ts#L26">src/TronPaymentsUtils.ts:26</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>extraId: <span class="tsd-signature-type">string</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="isvalidpayport" class="tsd-anchor"></a>
+				<h3>is<wbr>Valid<wbr>Payport</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">is<wbr>Valid<wbr>Payport<span class="tsd-signature-symbol">(</span>payport<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Payport</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/83274b0/src/TronPaymentsUtils.ts#L34">src/TronPaymentsUtils.ts:34</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>payport: <span class="tsd-signature-type">Payport</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="tobasedenomination" class="tsd-anchor"></a>
+				<h3>to<wbr>Base<wbr>Denomination</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">to<wbr>Base<wbr>Denomination<span class="tsd-signature-symbol">(</span>amount<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/83274b0/src/TronPaymentsUtils.ts#L42">src/TronPaymentsUtils.ts:42</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>amount: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="tomaindenomination" class="tsd-anchor"></a>
+				<h3>to<wbr>Main<wbr>Denomination</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">to<wbr>Main<wbr>Denomination<span class="tsd-signature-symbol">(</span>amount<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/tron-payments/blob/83274b0/src/TronPaymentsUtils.ts#L38">src/TronPaymentsUtils.ts:38</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>amount: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+					</li>
+				</ul>
 			</section>
 		</section>
 		<footer class="with-border-bottom">
