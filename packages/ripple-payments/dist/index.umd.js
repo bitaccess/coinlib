@@ -796,12 +796,25 @@
       }
   }
 
+  class RipplePaymentsFactory {
+      forConfig(config) {
+          if (HdRipplePaymentsConfig.is(config)) {
+              return new HdRipplePayments(config);
+          }
+          if (AccountRipplePaymentsConfig.is(config)) {
+              return new AccountRipplePayments(config);
+          }
+          throw new Error('Cannot instantiate ripple payments for unsupported config');
+      }
+  }
+
   exports.CreateTransactionOptions = paymentsCommon.CreateTransactionOptions;
   exports.BaseRipplePayments = BaseRipplePayments;
   exports.HdRipplePayments = HdRipplePayments;
   exports.AccountRipplePayments = AccountRipplePayments;
   exports.RipplePaymentsUtils = RipplePaymentsUtils;
   exports.RippleBalanceMonitor = RippleBalanceMonitor;
+  exports.RipplePaymentsFactory = RipplePaymentsFactory;
   exports.BaseRipplePaymentsConfig = BaseRipplePaymentsConfig;
   exports.HdRipplePaymentsConfig = HdRipplePaymentsConfig;
   exports.RippleKeyPair = RippleKeyPair;

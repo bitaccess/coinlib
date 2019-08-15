@@ -797,5 +797,17 @@ class RippleBalanceMonitor extends BalanceMonitor {
     }
 }
 
-export { BaseRipplePayments, HdRipplePayments, AccountRipplePayments, RipplePaymentsUtils, RippleBalanceMonitor, BaseRipplePaymentsConfig, HdRipplePaymentsConfig, RippleKeyPair, RippleSecretPair, RippleAccountConfig, AccountRipplePaymentsConfig, RipplePaymentsConfig, RippleUnsignedTransaction, RippleSignedTransaction, RippleTransactionInfo, RippleBroadcastResult, RippleBalanceMonitorConfig, RippleCreateTransactionOptions, toMainDenominationBigNumber, toMainDenominationString, toMainDenominationNumber, toBaseDenominationBigNumber, toBaseDenominationString, toBaseDenominationNumber, isValidXprv, isValidXpub, isValidAddress, isValidExtraId, assertValidAddress, assertValidExtraId, assertValidExtraIdOrNil };
+class RipplePaymentsFactory {
+    forConfig(config) {
+        if (HdRipplePaymentsConfig.is(config)) {
+            return new HdRipplePayments(config);
+        }
+        if (AccountRipplePaymentsConfig.is(config)) {
+            return new AccountRipplePayments(config);
+        }
+        throw new Error('Cannot instantiate ripple payments for unsupported config');
+    }
+}
+
+export { BaseRipplePayments, HdRipplePayments, AccountRipplePayments, RipplePaymentsUtils, RippleBalanceMonitor, RipplePaymentsFactory, BaseRipplePaymentsConfig, HdRipplePaymentsConfig, RippleKeyPair, RippleSecretPair, RippleAccountConfig, AccountRipplePaymentsConfig, RipplePaymentsConfig, RippleUnsignedTransaction, RippleSignedTransaction, RippleTransactionInfo, RippleBroadcastResult, RippleBalanceMonitorConfig, RippleCreateTransactionOptions, toMainDenominationBigNumber, toMainDenominationString, toMainDenominationNumber, toBaseDenominationBigNumber, toBaseDenominationString, toBaseDenominationNumber, isValidXprv, isValidXpub, isValidAddress, isValidExtraId, assertValidAddress, assertValidExtraId, assertValidExtraIdOrNil };
 //# sourceMappingURL=index.es.js.map
