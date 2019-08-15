@@ -11,7 +11,7 @@ import {
   TransactionStatus,
   ResolveablePayport,
 } from '@faast/payments-common'
-import { Logger, assertType, isNil } from '@faast/ts-common'
+import { Logger, assertType, isNil, Numeric } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
 import { RippleAPI } from 'ripple-lib'
 import { FormattedPaymentTransaction, FormattedPayment, Prepare } from 'ripple-lib/dist/npm/transaction/types'
@@ -34,7 +34,7 @@ import {
   DEFAULT_MAX_LEDGER_VERSION_OFFSET,
   NOT_FOUND_ERRORS,
 } from './constants'
-import { assertValidAddress, assertValidExtraIdOrNil } from './helpers'
+import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers'
 import { isString } from 'util'
 import { resolveRippleServer } from './utils'
 
@@ -91,9 +91,19 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
 
   abstract isReadOnly(): boolean
 
-  async resolvePayport(payport: ResolveablePayport): Promise<Payport> {
+  private doGetPayport(index: number): Payport {
+    if (index === 0) {
+      return { address: this.getHotSignatory().address }
+    }
+    if (index === 1) {
+      return { address: this.getDepositSignatory().address }
+    }
+    return { address: this.getDepositSignatory().address, extraId: String(index) }
+  }
+
+  private doResolvePayport(payport: ResolveablePayport): Payport {
     if (typeof payport === 'number') {
-      return this.getPayport(payport)
+      return this.doGetPayport(payport)
     } else if (typeof payport === 'string') {
       assertValidAddress(payport)
       return { address: payport }
@@ -101,6 +111,10 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     assertValidAddress(payport.address)
     assertValidExtraIdOrNil(payport.extraId)
     return payport
+  }
+
+  async resolvePayport(payport: ResolveablePayport): Promise<Payport> {
+    return this.doResolvePayport(payport)
   }
 
   async resolveFromTo(from: number, to: ResolveablePayport): Promise<FromToWithPayport> {
@@ -119,13 +133,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
   }
 
   async getPayport(index: number): Promise<Payport> {
-    if (index === 0) {
-      return { address: this.getHotSignatory().address }
-    }
-    if (index === 1) {
-      return { address: this.getDepositSignatory().address }
-    }
-    return { address: this.getDepositSignatory().address, extraId: String(index) }
+    return this.doGetPayport(index)
   }
 
   requiresBalanceMonitor() {
@@ -136,8 +144,19 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     return [this.getHotSignatory().address, this.getDepositSignatory().address]
   }
 
-  isSweepableAddressBalance(balance: string): boolean {
+  isSweepableAddressBalance(balance: Numeric): boolean {
     return new BigNumber(balance).gt(MIN_BALANCE)
+  }
+
+  isSweepableBalance(balance: string, payport?: ResolveablePayport): boolean {
+    const balanceBase = toBaseDenominationBigNumber(balance)
+    if (payport) {
+      payport = this.doResolvePayport(payport)
+      if (isNil(payport.extraId)) {
+        return this.isSweepableAddressBalance(balanceBase)
+      }
+    }
+    return balanceBase.gt(0)
   }
 
   async getBalance(payportOrIndex: ResolveablePayport): Promise<BalanceResult> {
