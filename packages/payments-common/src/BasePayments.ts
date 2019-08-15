@@ -32,6 +32,12 @@ export interface BasePayments<
   BroadcastResult extends BaseBroadcastResult,
   TransactionInfo extends BaseTransactionInfo
 > extends PaymentsUtils {
+  /** Establishes any connections necessary for use */
+  init(): Promise<void>
+
+  /** Closes any connections that were opened in `init` */
+  destroy(): Promise<void>
+
   /**
    * Returns the full config used to instantiate this payments instance as is.
    */
