@@ -94,6 +94,13 @@ export interface BasePayments<
   getBalance<O extends object>(payport: ResolveablePayport, options?: O): Promise<BalanceResult>
 
   /**
+   * Returns true if the payport could be swept at the specified balance. Useful when using BalanceMonitor to
+   * externally track balances. If payport is unspecified assume it applies to a deposit payport rather than
+   * a hot wallet.
+   */
+  isSweepableBalance(balance: string, payport?: ResolveablePayport): boolean
+
+  /**
    * Get the info and status of a transaction.
    *
    * @param txId - The transaction ID to lookup
