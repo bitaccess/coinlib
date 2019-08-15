@@ -946,6 +946,12 @@ img { max-width: 100%; }
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-private">
 					<a href="baseripplepayments.html#docreatetransaction" class="tsd-kind-icon">do<wbr>Create<wbr>Transaction</a>
 				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-private">
+					<a href="baseripplepayments.html#dogetpayport" class="tsd-kind-icon">do<wbr>Get<wbr>Payport</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-private">
+					<a href="baseripplepayments.html#doresolvepayport" class="tsd-kind-icon">do<wbr>Resolve<wbr>Payport</a>
+				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class">
 					<a href="baseripplepayments.html#getaccountid" class="tsd-kind-icon">get<wbr>Account<wbr>Id</a>
 				</li>
@@ -984,6 +990,9 @@ img { max-width: 100%; }
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class">
 					<a href="baseripplepayments.html#issweepableaddressbalance" class="tsd-kind-icon">is<wbr>Sweepable<wbr>Address<wbr>Balance</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="baseripplepayments.html#issweepablebalance" class="tsd-kind-icon">is<wbr>Sweepable<wbr>Balance</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="baseripplepayments.html#isvalidaddress" class="tsd-kind-icon">is<wbr>Valid<wbr>Address</a>
@@ -1092,6 +1101,8 @@ img { max-width: 100%; }
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="baseripplepayments.html#createtransaction" class="tsd-kind-icon">create<wbr>Transaction</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="baseripplepayments.html#destroy" class="tsd-kind-icon">destroy</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="baseripplepayments.html#docreatetransaction" class="tsd-kind-icon">do<wbr>Create<wbr>Transaction</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="baseripplepayments.html#dogetpayport" class="tsd-kind-icon">do<wbr>Get<wbr>Payport</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="baseripplepayments.html#doresolvepayport" class="tsd-kind-icon">do<wbr>Resolve<wbr>Payport</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="baseripplepayments.html#getaccountid" class="tsd-kind-icon">get<wbr>Account<wbr>Id</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="baseripplepayments.html#getaccountids" class="tsd-kind-icon">get<wbr>Account<wbr>Ids</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="baseripplepayments.html#getaddressestomonitor" class="tsd-kind-icon">get<wbr>Addresses<wbr>ToMonitor</a></li>
@@ -1105,6 +1116,7 @@ img { max-width: 100%; }
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="baseripplepayments.html#init" class="tsd-kind-icon">init</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="baseripplepayments.html#isreadonly" class="tsd-kind-icon">is<wbr>Read<wbr>Only</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="baseripplepayments.html#issweepableaddressbalance" class="tsd-kind-icon">is<wbr>Sweepable<wbr>Address<wbr>Balance</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="baseripplepayments.html#issweepablebalance" class="tsd-kind-icon">is<wbr>Sweepable<wbr>Balance</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="baseripplepayments.html#isvalidaddress" class="tsd-kind-icon">is<wbr>Valid<wbr>Address</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="baseripplepayments.html#isvalidextraid" class="tsd-kind-icon">is<wbr>Valid<wbr>Extra<wbr>Id</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="baseripplepayments.html#isvalidpayport" class="tsd-kind-icon">is<wbr>Valid<wbr>Payport</a></li>
@@ -1135,7 +1147,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides <a href="ripplepaymentsutils.html">RipplePaymentsUtils</a>.<a href="ripplepaymentsutils.html#constructor">constructor</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L58">src/BaseRipplePayments.ts:58</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L58">src/BaseRipplePayments.ts:58</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1157,7 +1169,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">config<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Config</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L60">src/BaseRipplePayments.ts:60</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L60">src/BaseRipplePayments.ts:60</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1168,7 +1180,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="ripplepaymentsutils.html">RipplePaymentsUtils</a>.<a href="ripplepaymentsutils.html#isvalidxprv">isValidXprv</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/RipplePaymentsUtils.ts#L47">src/RipplePaymentsUtils.ts:47</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/RipplePaymentsUtils.ts#L47">src/RipplePaymentsUtils.ts:47</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1179,7 +1191,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="ripplepaymentsutils.html">RipplePaymentsUtils</a>.<a href="ripplepaymentsutils.html#isvalidxpub">isValidXpub</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/RipplePaymentsUtils.ts#L48">src/RipplePaymentsUtils.ts:48</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/RipplePaymentsUtils.ts#L48">src/RipplePaymentsUtils.ts:48</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1190,7 +1202,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Overrides <a href="ripplepaymentsutils.html">RipplePaymentsUtils</a>.<a href="ripplepaymentsutils.html#logger">logger</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L58">src/BaseRipplePayments.ts:58</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L58">src/BaseRipplePayments.ts:58</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1201,7 +1213,7 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="ripplepaymentsutils.html">RipplePaymentsUtils</a>.<a href="ripplepaymentsutils.html#networktype">networkType</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/RipplePaymentsUtils.ts#L14">src/RipplePaymentsUtils.ts:14</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/RipplePaymentsUtils.ts#L14">src/RipplePaymentsUtils.ts:14</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1211,7 +1223,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">ripple<wbr>Api<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">RippleAPI</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L57">src/BaseRipplePayments.ts:57</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L57">src/BaseRipplePayments.ts:57</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1228,7 +1240,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L428">src/BaseRipplePayments.ts:428</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L447">src/BaseRipplePayments.ts:447</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1251,7 +1263,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L373">src/BaseRipplePayments.ts:373</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L392">src/BaseRipplePayments.ts:392</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1280,7 +1292,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L360">src/BaseRipplePayments.ts:360</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L379">src/BaseRipplePayments.ts:379</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1312,7 +1324,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L72">src/BaseRipplePayments.ts:72</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L72">src/BaseRipplePayments.ts:72</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -1329,7 +1341,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L281">src/BaseRipplePayments.ts:281</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L300">src/BaseRipplePayments.ts:300</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1354,6 +1366,52 @@ img { max-width: 100%; }
 					</li>
 				</ul>
 			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private">
+				<a name="dogetpayport" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagPrivate">Private</span> do<wbr>Get<wbr>Payport</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+					<li class="tsd-signature tsd-kind-icon">do<wbr>Get<wbr>Payport<span class="tsd-signature-symbol">(</span>index<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Payport</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L94">src/BaseRipplePayments.ts:94</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>index: <span class="tsd-signature-type">number</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Payport</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private">
+				<a name="doresolvepayport" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagPrivate">Private</span> do<wbr>Resolve<wbr>Payport</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+					<li class="tsd-signature tsd-kind-icon">do<wbr>Resolve<wbr>Payport<span class="tsd-signature-symbol">(</span>payport<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ResolveablePayport</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Payport</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L104">src/BaseRipplePayments.ts:104</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>payport: <span class="tsd-signature-type">ResolveablePayport</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Payport</span></h4>
+					</li>
+				</ul>
+			</section>
 			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 				<a name="getaccountid" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagAbstract">Abstract</span> get<wbr>Account<wbr>Id</h3>
@@ -1364,7 +1422,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L86">src/BaseRipplePayments.ts:86</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L86">src/BaseRipplePayments.ts:86</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1387,7 +1445,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L84">src/BaseRipplePayments.ts:84</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L84">src/BaseRipplePayments.ts:84</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4>
@@ -1404,7 +1462,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L135">src/BaseRipplePayments.ts:135</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L143">src/BaseRipplePayments.ts:143</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4>
@@ -1421,7 +1479,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L143">src/BaseRipplePayments.ts:143</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L162">src/BaseRipplePayments.ts:162</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1444,7 +1502,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L90">src/BaseRipplePayments.ts:90</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L90">src/BaseRipplePayments.ts:90</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <a href="../globals.html#ripplesignatory" class="tsd-signature-type">RippleSignatory</a></h4>
@@ -1461,7 +1519,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L78">src/BaseRipplePayments.ts:78</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L78">src/BaseRipplePayments.ts:78</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Config</span></h4>
@@ -1478,7 +1536,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L88">src/BaseRipplePayments.ts:88</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L88">src/BaseRipplePayments.ts:88</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <a href="../globals.html#ripplesignatory" class="tsd-signature-type">RippleSignatory</a></h4>
@@ -1495,7 +1553,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L121">src/BaseRipplePayments.ts:121</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L135">src/BaseRipplePayments.ts:135</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1518,7 +1576,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L82">src/BaseRipplePayments.ts:82</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L82">src/BaseRipplePayments.ts:82</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Config</span></h4>
@@ -1535,7 +1593,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L169">src/BaseRipplePayments.ts:169</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L188">src/BaseRipplePayments.ts:188</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1558,7 +1616,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L66">src/BaseRipplePayments.ts:66</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L66">src/BaseRipplePayments.ts:66</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -1575,7 +1633,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L92">src/BaseRipplePayments.ts:92</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L92">src/BaseRipplePayments.ts:92</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -1586,19 +1644,45 @@ img { max-width: 100%; }
 				<a name="issweepableaddressbalance" class="tsd-anchor"></a>
 				<h3>is<wbr>Sweepable<wbr>Address<wbr>Balance</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">is<wbr>Sweepable<wbr>Address<wbr>Balance<span class="tsd-signature-symbol">(</span>balance<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					<li class="tsd-signature tsd-kind-icon">is<wbr>Sweepable<wbr>Address<wbr>Balance<span class="tsd-signature-symbol">(</span>balance<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Numeric</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L139">src/BaseRipplePayments.ts:139</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L147">src/BaseRipplePayments.ts:147</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>balance: <span class="tsd-signature-type">Numeric</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="issweepablebalance" class="tsd-anchor"></a>
+				<h3>is<wbr>Sweepable<wbr>Balance</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">is<wbr>Sweepable<wbr>Balance<span class="tsd-signature-symbol">(</span>balance<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, payport<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">ResolveablePayport</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L151">src/BaseRipplePayments.ts:151</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>balance: <span class="tsd-signature-type">string</span></h5>
+							</li>
+							<li>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> payport: <span class="tsd-signature-type">ResolveablePayport</span></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -1616,7 +1700,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="ripplepaymentsutils.html">RipplePaymentsUtils</a>.<a href="ripplepaymentsutils.html#isvalidaddress">isValidAddress</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/RipplePaymentsUtils.ts#L27">src/RipplePaymentsUtils.ts:27</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/RipplePaymentsUtils.ts#L27">src/RipplePaymentsUtils.ts:27</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1640,7 +1724,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="ripplepaymentsutils.html">RipplePaymentsUtils</a>.<a href="ripplepaymentsutils.html#isvalidextraid">isValidExtraId</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/RipplePaymentsUtils.ts#L23">src/RipplePaymentsUtils.ts:23</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/RipplePaymentsUtils.ts#L23">src/RipplePaymentsUtils.ts:23</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1664,7 +1748,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="ripplepaymentsutils.html">RipplePaymentsUtils</a>.<a href="ripplepaymentsutils.html#isvalidpayport">isValidPayport</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/RipplePaymentsUtils.ts#L31">src/RipplePaymentsUtils.ts:31</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/RipplePaymentsUtils.ts#L31">src/RipplePaymentsUtils.ts:31</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1687,7 +1771,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L131">src/BaseRipplePayments.ts:131</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L139">src/BaseRipplePayments.ts:139</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -1704,7 +1788,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L220">src/BaseRipplePayments.ts:220</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L239">src/BaseRipplePayments.ts:239</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1727,7 +1811,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L106">src/BaseRipplePayments.ts:106</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L120">src/BaseRipplePayments.ts:120</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1753,7 +1837,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L159">src/BaseRipplePayments.ts:159</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L178">src/BaseRipplePayments.ts:178</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1779,7 +1863,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L94">src/BaseRipplePayments.ts:94</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L116">src/BaseRipplePayments.ts:116</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1802,7 +1886,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L263">src/BaseRipplePayments.ts:263</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L282">src/BaseRipplePayments.ts:282</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1828,7 +1912,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/BaseRipplePayments.ts#L402">src/BaseRipplePayments.ts:402</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/BaseRipplePayments.ts#L421">src/BaseRipplePayments.ts:421</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1852,7 +1936,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="ripplepaymentsutils.html">RipplePaymentsUtils</a>.<a href="ripplepaymentsutils.html#tobasedenomination">toBaseDenomination</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/RipplePaymentsUtils.ts#L43">src/RipplePaymentsUtils.ts:43</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/RipplePaymentsUtils.ts#L43">src/RipplePaymentsUtils.ts:43</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1876,7 +1960,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="ripplepaymentsutils.html">RipplePaymentsUtils</a>.<a href="ripplepaymentsutils.html#tomaindenomination">toMainDenomination</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/d8eca20/src/RipplePaymentsUtils.ts#L39">src/RipplePaymentsUtils.ts:39</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/ripple-payments/blob/e30a3e1/src/RipplePaymentsUtils.ts#L39">src/RipplePaymentsUtils.ts:39</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>

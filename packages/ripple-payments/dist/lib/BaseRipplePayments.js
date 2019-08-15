@@ -4,7 +4,7 @@ import BigNumber from 'bignumber.js';
 import { BaseRipplePaymentsConfig, RippleUnsignedTransaction, RippleSignedTransaction, } from './types';
 import { RipplePaymentsUtils } from './RipplePaymentsUtils';
 import { DEFAULT_CREATE_TRANSACTION_OPTIONS, MIN_BALANCE, DEFAULT_MAX_LEDGER_VERSION_OFFSET, NOT_FOUND_ERRORS, } from './constants';
-import { assertValidAddress, assertValidExtraIdOrNil } from './helpers';
+import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers';
 import { resolveRippleServer } from './utils';
 function extraIdToTag(extraId) {
     return isNil(extraId) ? undefined : Number.parseInt(extraId);
@@ -32,9 +32,18 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
     getFullConfig() {
         return this.config;
     }
-    async resolvePayport(payport) {
+    doGetPayport(index) {
+        if (index === 0) {
+            return { address: this.getHotSignatory().address };
+        }
+        if (index === 1) {
+            return { address: this.getDepositSignatory().address };
+        }
+        return { address: this.getDepositSignatory().address, extraId: String(index) };
+    }
+    doResolvePayport(payport) {
         if (typeof payport === 'number') {
-            return this.getPayport(payport);
+            return this.doGetPayport(payport);
         }
         else if (typeof payport === 'string') {
             assertValidAddress(payport);
@@ -43,6 +52,9 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
         assertValidAddress(payport.address);
         assertValidExtraIdOrNil(payport.extraId);
         return payport;
+    }
+    async resolvePayport(payport) {
+        return this.doResolvePayport(payport);
     }
     async resolveFromTo(from, to) {
         const fromPayport = await this.getPayport(from);
@@ -59,13 +71,7 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
         };
     }
     async getPayport(index) {
-        if (index === 0) {
-            return { address: this.getHotSignatory().address };
-        }
-        if (index === 1) {
-            return { address: this.getDepositSignatory().address };
-        }
-        return { address: this.getDepositSignatory().address, extraId: String(index) };
+        return this.doGetPayport(index);
     }
     requiresBalanceMonitor() {
         return true;
@@ -75,6 +81,16 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
     }
     isSweepableAddressBalance(balance) {
         return new BigNumber(balance).gt(MIN_BALANCE);
+    }
+    isSweepableBalance(balance, payport) {
+        const balanceBase = toBaseDenominationBigNumber(balance);
+        if (payport) {
+            payport = this.doResolvePayport(payport);
+            if (isNil(payport.extraId)) {
+                return this.isSweepableAddressBalance(balanceBase);
+            }
+        }
+        return balanceBase.gt(0);
     }
     async getBalance(payportOrIndex) {
         const payport = await this.resolvePayport(payportOrIndex);

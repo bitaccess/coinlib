@@ -1,5 +1,5 @@
 import { BasePayments, BalanceResult, FeeOption, ResolvedFeeOption, Payport, ResolveablePayport } from '@faast/payments-common';
-import { Logger } from '@faast/ts-common';
+import { Logger, Numeric } from '@faast/ts-common';
 import { RippleAPI } from 'ripple-lib';
 import { Adjustment } from 'ripple-lib/dist/npm/common/types/objects';
 import { BaseRipplePaymentsConfig, RippleUnsignedTransaction, RippleSignedTransaction, RippleBroadcastResult, RippleTransactionInfo, RippleCreateTransactionOptions, FromToWithPayport, RippleSignatory } from './types';
@@ -18,12 +18,15 @@ export declare abstract class BaseRipplePayments<Config extends BaseRipplePaymen
     abstract getHotSignatory(): RippleSignatory;
     abstract getDepositSignatory(): RippleSignatory;
     abstract isReadOnly(): boolean;
+    private doGetPayport;
+    private doResolvePayport;
     resolvePayport(payport: ResolveablePayport): Promise<Payport>;
     resolveFromTo(from: number, to: ResolveablePayport): Promise<FromToWithPayport>;
     getPayport(index: number): Promise<Payport>;
     requiresBalanceMonitor(): boolean;
     getAddressesToMonitor(): string[];
-    isSweepableAddressBalance(balance: string): boolean;
+    isSweepableAddressBalance(balance: Numeric): boolean;
+    isSweepableBalance(balance: string, payport?: ResolveablePayport): boolean;
     getBalance(payportOrIndex: ResolveablePayport): Promise<BalanceResult>;
     resolveIndexFromAdjustment(adjustment: Adjustment): number | null;
     getTransactionInfo(txId: string): Promise<RippleTransactionInfo>;
