@@ -23,12 +23,23 @@ export type TransactionInfoRaw = RippleTransaction & {
   currentLedger: RippleLedger
 }
 
-export const BaseRipplePaymentsConfig = extendCodec(
+export const BaseRippleConfig = extendCodec(
   BaseConfig,
   {},
   {
-    server: t.string,
-    logger: Logger,
+    server: t.union([t.string, instanceofCodec(RippleAPI), t.nullType]),
+  },
+  'BaseRippleConfig',
+)
+export type BaseRippleConfig = t.TypeOf<typeof BaseRippleConfig>
+
+export const RippleBalanceMonitorConfig = BaseRippleConfig
+export type RippleBalanceMonitorConfig = t.TypeOf<typeof RippleBalanceMonitorConfig>
+
+export const BaseRipplePaymentsConfig = extendCodec(
+  BaseRippleConfig,
+  {},
+  {
     maxLedgerVersionOffset: t.number, // number of ledgers until a tx expires
   },
   'BaseRipplePaymentsConfig',
@@ -122,15 +133,6 @@ export const RippleBroadcastResult = extendCodec(
   'RippleBroadcastResult',
 )
 export type RippleBroadcastResult = t.TypeOf<typeof RippleBroadcastResult>
-
-export const RippleBalanceMonitorConfig = extendCodec(
-  BaseConfig,
-  {
-    server: t.union([t.string, instanceofCodec(RippleAPI)]),
-  },
-  'RippleBalanceMonitorConfig',
-)
-export type RippleBalanceMonitorConfig = t.TypeOf<typeof RippleBalanceMonitorConfig>
 
 export const RippleCreateTransactionOptions = extendCodec(
   CreateTransactionOptions,

@@ -9,21 +9,19 @@ import { RippleAPI } from 'ripple-lib'
 import { FormattedPaymentTransaction, FormattedTransactionType } from 'ripple-lib/dist/npm/transaction/types'
 import { TransactionsOptions } from 'ripple-lib/dist/npm/ledger/transactions'
 
-import { padLeft } from './utils'
+import { padLeft, resolveRippleServer } from './utils'
 import { RippleBalanceMonitorConfig } from './types'
 import { assertValidAddress } from './helpers'
-import { isUndefined, isNumber } from 'util'
+import { isUndefined, isNumber, isString } from 'util'
+import { assertType } from '@faast/ts-common'
 
 export class RippleBalanceMonitor extends BalanceMonitor {
   rippleApi: RippleAPI
 
   constructor(config: RippleBalanceMonitorConfig) {
     super(config)
-    if (config.server instanceof RippleAPI) {
-      this.rippleApi = config.server
-    } else {
-      this.rippleApi = new RippleAPI({ server: config.server })
-    }
+    assertType(RippleBalanceMonitorConfig, config)
+    this.rippleApi = resolveRippleServer(config.server, this.networkType)
   }
 
   async init(): Promise<void> {

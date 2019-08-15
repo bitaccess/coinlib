@@ -35,6 +35,8 @@ import {
   NOT_FOUND_ERRORS,
 } from './constants'
 import { assertValidAddress, assertValidExtraIdOrNil } from './helpers'
+import { isString } from 'util'
+import { resolveRippleServer } from './utils'
 
 function extraIdToTag(extraId: string | null | undefined): number | undefined {
   return isNil(extraId) ? undefined : Number.parseInt(extraId)
@@ -58,13 +60,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
   constructor(public readonly config: Config) {
     super(config)
     assertType(BaseRipplePaymentsConfig, config)
-    if (config.server) {
-      this.rippleApi = new RippleAPI({
-        server: config.server,
-      })
-    } else {
-      this.rippleApi = new RippleAPI()
-    }
+    this.rippleApi = resolveRippleServer(config.server, this.networkType)
   }
 
   async init(): Promise<void> {
