@@ -1,11 +1,13 @@
 import * as t from 'io-ts';
-import { extendCodec, Logger, instanceofCodec, nullable } from '@faast/ts-common';
+import { extendCodec, instanceofCodec, nullable } from '@faast/ts-common';
 import { BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, CreateTransactionOptions, BaseConfig, } from '@faast/payments-common';
 import { RippleAPI } from 'ripple-lib';
 export { CreateTransactionOptions };
-export const BaseRipplePaymentsConfig = extendCodec(BaseConfig, {}, {
-    server: t.string,
-    logger: Logger,
+export const BaseRippleConfig = extendCodec(BaseConfig, {}, {
+    server: t.union([t.string, instanceofCodec(RippleAPI), t.nullType]),
+}, 'BaseRippleConfig');
+export const RippleBalanceMonitorConfig = BaseRippleConfig;
+export const BaseRipplePaymentsConfig = extendCodec(BaseRippleConfig, {}, {
     maxLedgerVersionOffset: t.number,
 }, 'BaseRipplePaymentsConfig');
 export const HdRipplePaymentsConfig = extendCodec(BaseRipplePaymentsConfig, {
@@ -39,9 +41,6 @@ export const RippleBroadcastResult = extendCodec(BaseBroadcastResult, {
     rebroadcast: t.boolean,
     data: t.object,
 }, 'RippleBroadcastResult');
-export const RippleBalanceMonitorConfig = extendCodec(BaseConfig, {
-    server: t.union([t.string, instanceofCodec(RippleAPI)]),
-}, 'RippleBalanceMonitorConfig');
 export const RippleCreateTransactionOptions = extendCodec(CreateTransactionOptions, {}, {
     maxLedgerVersionOffset: t.number,
     sequence: t.number,

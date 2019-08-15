@@ -6,17 +6,19 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var BigNumber = _interopDefault(require('bignumber.js'));
 var t = require('io-ts');
+var rippleLib = require('ripple-lib');
 var bip32 = require('bip32');
 var baseX = _interopDefault(require('base-x'));
 var crypto = _interopDefault(require('crypto'));
-var tsCommon = require('@faast/ts-common');
 var paymentsCommon = require('@faast/payments-common');
-var rippleLib = require('ripple-lib');
 var util = require('util');
+var tsCommon = require('@faast/ts-common');
 
-const BaseRipplePaymentsConfig = tsCommon.extendCodec(paymentsCommon.BaseConfig, {}, {
-    server: t.string,
-    logger: tsCommon.Logger,
+const BaseRippleConfig = tsCommon.extendCodec(paymentsCommon.BaseConfig, {}, {
+    server: t.union([t.string, tsCommon.instanceofCodec(rippleLib.RippleAPI), t.nullType]),
+}, 'BaseRippleConfig');
+const RippleBalanceMonitorConfig = BaseRippleConfig;
+const BaseRipplePaymentsConfig = tsCommon.extendCodec(BaseRippleConfig, {}, {
     maxLedgerVersionOffset: t.number,
 }, 'BaseRipplePaymentsConfig');
 const HdRipplePaymentsConfig = tsCommon.extendCodec(BaseRipplePaymentsConfig, {
@@ -50,9 +52,6 @@ const RippleBroadcastResult = tsCommon.extendCodec(paymentsCommon.BaseBroadcastR
     rebroadcast: t.boolean,
     data: t.object,
 }, 'RippleBroadcastResult');
-const RippleBalanceMonitorConfig = tsCommon.extendCodec(paymentsCommon.BaseConfig, {
-    server: t.union([t.string, tsCommon.instanceofCodec(rippleLib.RippleAPI)]),
-}, 'RippleBalanceMonitorConfig');
 const RippleCreateTransactionOptions = tsCommon.extendCodec(paymentsCommon.CreateTransactionOptions, {}, {
     maxLedgerVersionOffset: t.number,
     sequence: t.number,
@@ -69,6 +68,8 @@ const EXTRA_ID_REGEX = /^[0-9]+$/;
 const XPUB_REGEX = /^xpub[a-km-zA-HJ-NP-Z1-9]{100,108}$/;
 const XPRV_REGEX = /^xprv[a-km-zA-HJ-NP-Z1-9]{100,108}$/;
 const NOT_FOUND_ERRORS = ['MissingLedgerHistoryError', 'NotFoundError'];
+const DEFAULT_MAINNET_SERVER = 'wss://s1.ripple.com';
+const DEFAULT_TESTNET_SERVER = 'wss://s.altnet.rippletest.net:51233';
 
 const { toMainDenominationBigNumber, toMainDenominationString, toMainDenominationNumber, toBaseDenominationBigNumber, toBaseDenominationString, toBaseDenominationNumber, } = paymentsCommon.createUnitConverters(DECIMAL_PLACES);
 function isValidXprv(xprv) {
@@ -128,6 +129,29 @@ class RipplePaymentsUtils {
     }
 }
 
+function padLeft(x, n, v) {
+    while (x.length < n) {
+        x = `${v}${x}`;
+    }
+    return x;
+}
+function resolveRippleServer(server, network) {
+    if (typeof server === 'undefined') {
+        server = network === paymentsCommon.NetworkType.Testnet ? DEFAULT_TESTNET_SERVER : DEFAULT_MAINNET_SERVER;
+    }
+    if (util.isString(server)) {
+        return new rippleLib.RippleAPI({
+            server: server,
+        });
+    }
+    else if (server instanceof rippleLib.RippleAPI) {
+        return server;
+    }
+    else {
+        return new rippleLib.RippleAPI();
+    }
+}
+
 function extraIdToTag(extraId) {
     return tsCommon.isNil(extraId) ? undefined : Number.parseInt(extraId);
 }
@@ -139,14 +163,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
         super(config);
         this.config = config;
         tsCommon.assertType(BaseRipplePaymentsConfig, config);
-        if (config.server) {
-            this.rippleApi = new rippleLib.RippleAPI({
-                server: config.server,
-            });
-        }
-        else {
-            this.rippleApi = new rippleLib.RippleAPI();
-        }
+        this.rippleApi = resolveRippleServer(config.server, this.networkType);
     }
     async init() {
         if (!this.rippleApi.isConnected()) {
@@ -480,13 +497,6 @@ class BaseRipplePayments extends RipplePaymentsUtils {
     }
 }
 
-function padLeft(x, n, v) {
-    while (x.length < n) {
-        x = `${v}${x}`;
-    }
-    return x;
-}
-
 const RIPPLE_B58_DICT = 'rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz';
 const base58 = baseX(RIPPLE_B58_DICT);
 const derivationPath = "m/44'/144'/0'";
@@ -669,12 +679,8 @@ class AccountRipplePayments extends BaseRipplePayments {
 class RippleBalanceMonitor extends paymentsCommon.BalanceMonitor {
     constructor(config) {
         super(config);
-        if (config.server instanceof rippleLib.RippleAPI) {
-            this.rippleApi = config.server;
-        }
-        else {
-            this.rippleApi = new rippleLib.RippleAPI({ server: config.server });
-        }
+        tsCommon.assertType(RippleBalanceMonitorConfig, config);
+        this.rippleApi = resolveRippleServer(config.server, this.networkType);
     }
     async init() {
         if (!this.rippleApi.isConnected()) {
@@ -821,6 +827,8 @@ exports.AccountRipplePayments = AccountRipplePayments;
 exports.RipplePaymentsUtils = RipplePaymentsUtils;
 exports.RippleBalanceMonitor = RippleBalanceMonitor;
 exports.RipplePaymentsFactory = RipplePaymentsFactory;
+exports.BaseRippleConfig = BaseRippleConfig;
+exports.RippleBalanceMonitorConfig = RippleBalanceMonitorConfig;
 exports.BaseRipplePaymentsConfig = BaseRipplePaymentsConfig;
 exports.HdRipplePaymentsConfig = HdRipplePaymentsConfig;
 exports.RippleKeyPair = RippleKeyPair;
@@ -832,7 +840,6 @@ exports.RippleUnsignedTransaction = RippleUnsignedTransaction;
 exports.RippleSignedTransaction = RippleSignedTransaction;
 exports.RippleTransactionInfo = RippleTransactionInfo;
 exports.RippleBroadcastResult = RippleBroadcastResult;
-exports.RippleBalanceMonitorConfig = RippleBalanceMonitorConfig;
 exports.RippleCreateTransactionOptions = RippleCreateTransactionOptions;
 exports.toMainDenominationBigNumber = toMainDenominationBigNumber;
 exports.toMainDenominationString = toMainDenominationString;

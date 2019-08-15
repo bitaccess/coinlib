@@ -1,11 +1,11 @@
 import { FeeLevel, FeeRateType, TransactionStatus, } from '@faast/payments-common';
 import { assertType, isNil } from '@faast/ts-common';
 import BigNumber from 'bignumber.js';
-import { RippleAPI } from 'ripple-lib';
 import { BaseRipplePaymentsConfig, RippleUnsignedTransaction, RippleSignedTransaction, } from './types';
 import { RipplePaymentsUtils } from './RipplePaymentsUtils';
 import { DEFAULT_CREATE_TRANSACTION_OPTIONS, MIN_BALANCE, DEFAULT_MAX_LEDGER_VERSION_OFFSET, NOT_FOUND_ERRORS, } from './constants';
 import { assertValidAddress, assertValidExtraIdOrNil } from './helpers';
+import { resolveRippleServer } from './utils';
 function extraIdToTag(extraId) {
     return isNil(extraId) ? undefined : Number.parseInt(extraId);
 }
@@ -17,14 +17,7 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
         super(config);
         this.config = config;
         assertType(BaseRipplePaymentsConfig, config);
-        if (config.server) {
-            this.rippleApi = new RippleAPI({
-                server: config.server,
-            });
-        }
-        else {
-            this.rippleApi = new RippleAPI();
-        }
+        this.rippleApi = resolveRippleServer(config.server, this.networkType);
     }
     async init() {
         if (!this.rippleApi.isConnected()) {

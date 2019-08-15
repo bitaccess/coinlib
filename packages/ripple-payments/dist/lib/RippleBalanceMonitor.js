@@ -1,17 +1,14 @@
 import { BalanceMonitor, } from '@faast/payments-common';
-import { RippleAPI } from 'ripple-lib';
-import { padLeft } from './utils';
+import { padLeft, resolveRippleServer } from './utils';
+import { RippleBalanceMonitorConfig } from './types';
 import { assertValidAddress } from './helpers';
 import { isUndefined, isNumber } from 'util';
+import { assertType } from '@faast/ts-common';
 export class RippleBalanceMonitor extends BalanceMonitor {
     constructor(config) {
         super(config);
-        if (config.server instanceof RippleAPI) {
-            this.rippleApi = config.server;
-        }
-        else {
-            this.rippleApi = new RippleAPI({ server: config.server });
-        }
+        assertType(RippleBalanceMonitorConfig, config);
+        this.rippleApi = resolveRippleServer(config.server, this.networkType);
     }
     async init() {
         if (!this.rippleApi.isConnected()) {

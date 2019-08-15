@@ -13,7 +13,7 @@ export declare class HdRipplePayments extends BaseRipplePayments<HdRipplePayment
         hdKey: string;
         network?: import("@faast/payments-common").NetworkType | undefined;
         logger?: import("@faast/ts-common").Logger | undefined;
-        server?: string | undefined;
+        server?: string | import("ripple-lib/dist/npm/api").RippleAPI | null | undefined;
         maxLedgerVersionOffset?: number | undefined;
     };
     getAccountIds(): string[];

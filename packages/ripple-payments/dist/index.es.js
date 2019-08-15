@@ -1,17 +1,19 @@
 import BigNumber from 'bignumber.js';
-import { string, number, type, union, boolean, object } from 'io-ts';
+import { union, string, nullType, number, type, boolean, object } from 'io-ts';
+import { RippleAPI } from 'ripple-lib';
 import { fromBase58, fromSeed } from 'bip32';
 import baseX from 'base-x';
 import crypto from 'crypto';
-import { extendCodec, Logger, instanceofCodec, nullable, isNil, DelegateLogger, assertType } from '@faast/ts-common';
 import { BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, CreateTransactionOptions, BaseConfig, createUnitConverters, NetworkType, Payport, FeeLevel, FeeRateType, TransactionStatus, BalanceMonitor } from '@faast/payments-common';
 export { CreateTransactionOptions } from '@faast/payments-common';
-import { RippleAPI } from 'ripple-lib';
-import { isUndefined, isNumber } from 'util';
+import { isString, isUndefined, isNumber } from 'util';
+import { extendCodec, instanceofCodec, nullable, isNil, DelegateLogger, assertType } from '@faast/ts-common';
 
-const BaseRipplePaymentsConfig = extendCodec(BaseConfig, {}, {
-    server: string,
-    logger: Logger,
+const BaseRippleConfig = extendCodec(BaseConfig, {}, {
+    server: union([string, instanceofCodec(RippleAPI), nullType]),
+}, 'BaseRippleConfig');
+const RippleBalanceMonitorConfig = BaseRippleConfig;
+const BaseRipplePaymentsConfig = extendCodec(BaseRippleConfig, {}, {
     maxLedgerVersionOffset: number,
 }, 'BaseRipplePaymentsConfig');
 const HdRipplePaymentsConfig = extendCodec(BaseRipplePaymentsConfig, {
@@ -45,9 +47,6 @@ const RippleBroadcastResult = extendCodec(BaseBroadcastResult, {
     rebroadcast: boolean,
     data: object,
 }, 'RippleBroadcastResult');
-const RippleBalanceMonitorConfig = extendCodec(BaseConfig, {
-    server: union([string, instanceofCodec(RippleAPI)]),
-}, 'RippleBalanceMonitorConfig');
 const RippleCreateTransactionOptions = extendCodec(CreateTransactionOptions, {}, {
     maxLedgerVersionOffset: number,
     sequence: number,
@@ -64,6 +63,8 @@ const EXTRA_ID_REGEX = /^[0-9]+$/;
 const XPUB_REGEX = /^xpub[a-km-zA-HJ-NP-Z1-9]{100,108}$/;
 const XPRV_REGEX = /^xprv[a-km-zA-HJ-NP-Z1-9]{100,108}$/;
 const NOT_FOUND_ERRORS = ['MissingLedgerHistoryError', 'NotFoundError'];
+const DEFAULT_MAINNET_SERVER = 'wss://s1.ripple.com';
+const DEFAULT_TESTNET_SERVER = 'wss://s.altnet.rippletest.net:51233';
 
 const { toMainDenominationBigNumber, toMainDenominationString, toMainDenominationNumber, toBaseDenominationBigNumber, toBaseDenominationString, toBaseDenominationNumber, } = createUnitConverters(DECIMAL_PLACES);
 function isValidXprv(xprv) {
@@ -123,6 +124,29 @@ class RipplePaymentsUtils {
     }
 }
 
+function padLeft(x, n, v) {
+    while (x.length < n) {
+        x = `${v}${x}`;
+    }
+    return x;
+}
+function resolveRippleServer(server, network) {
+    if (typeof server === 'undefined') {
+        server = network === NetworkType.Testnet ? DEFAULT_TESTNET_SERVER : DEFAULT_MAINNET_SERVER;
+    }
+    if (isString(server)) {
+        return new RippleAPI({
+            server: server,
+        });
+    }
+    else if (server instanceof RippleAPI) {
+        return server;
+    }
+    else {
+        return new RippleAPI();
+    }
+}
+
 function extraIdToTag(extraId) {
     return isNil(extraId) ? undefined : Number.parseInt(extraId);
 }
@@ -134,14 +158,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
         super(config);
         this.config = config;
         assertType(BaseRipplePaymentsConfig, config);
-        if (config.server) {
-            this.rippleApi = new RippleAPI({
-                server: config.server,
-            });
-        }
-        else {
-            this.rippleApi = new RippleAPI();
-        }
+        this.rippleApi = resolveRippleServer(config.server, this.networkType);
     }
     async init() {
         if (!this.rippleApi.isConnected()) {
@@ -475,13 +492,6 @@ class BaseRipplePayments extends RipplePaymentsUtils {
     }
 }
 
-function padLeft(x, n, v) {
-    while (x.length < n) {
-        x = `${v}${x}`;
-    }
-    return x;
-}
-
 const RIPPLE_B58_DICT = 'rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz';
 const base58 = baseX(RIPPLE_B58_DICT);
 const derivationPath = "m/44'/144'/0'";
@@ -664,12 +674,8 @@ class AccountRipplePayments extends BaseRipplePayments {
 class RippleBalanceMonitor extends BalanceMonitor {
     constructor(config) {
         super(config);
-        if (config.server instanceof RippleAPI) {
-            this.rippleApi = config.server;
-        }
-        else {
-            this.rippleApi = new RippleAPI({ server: config.server });
-        }
+        assertType(RippleBalanceMonitorConfig, config);
+        this.rippleApi = resolveRippleServer(config.server, this.networkType);
     }
     async init() {
         if (!this.rippleApi.isConnected()) {
@@ -809,5 +815,5 @@ class RipplePaymentsFactory {
     }
 }
 
-export { BaseRipplePayments, HdRipplePayments, AccountRipplePayments, RipplePaymentsUtils, RippleBalanceMonitor, RipplePaymentsFactory, BaseRipplePaymentsConfig, HdRipplePaymentsConfig, RippleKeyPair, RippleSecretPair, RippleAccountConfig, AccountRipplePaymentsConfig, RipplePaymentsConfig, RippleUnsignedTransaction, RippleSignedTransaction, RippleTransactionInfo, RippleBroadcastResult, RippleBalanceMonitorConfig, RippleCreateTransactionOptions, toMainDenominationBigNumber, toMainDenominationString, toMainDenominationNumber, toBaseDenominationBigNumber, toBaseDenominationString, toBaseDenominationNumber, isValidXprv, isValidXpub, isValidAddress, isValidExtraId, assertValidAddress, assertValidExtraId, assertValidExtraIdOrNil };
+export { BaseRipplePayments, HdRipplePayments, AccountRipplePayments, RipplePaymentsUtils, RippleBalanceMonitor, RipplePaymentsFactory, BaseRippleConfig, RippleBalanceMonitorConfig, BaseRipplePaymentsConfig, HdRipplePaymentsConfig, RippleKeyPair, RippleSecretPair, RippleAccountConfig, AccountRipplePaymentsConfig, RipplePaymentsConfig, RippleUnsignedTransaction, RippleSignedTransaction, RippleTransactionInfo, RippleBroadcastResult, RippleCreateTransactionOptions, toMainDenominationBigNumber, toMainDenominationString, toMainDenominationNumber, toBaseDenominationBigNumber, toBaseDenominationString, toBaseDenominationNumber, isValidXprv, isValidXpub, isValidAddress, isValidExtraId, assertValidAddress, assertValidExtraId, assertValidExtraIdOrNil };
 //# sourceMappingURL=index.es.js.map
