@@ -307,6 +307,10 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
     }
   }
 
+  isSweepableBalance(balanceTrx: string): boolean {
+    return this.canSweepBalance(toBaseDenominationNumber(balanceTrx))
+  }
+
   // HELPERS
 
   private canSweepBalance(balanceSun: number): boolean {
