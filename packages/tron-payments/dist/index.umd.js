@@ -305,6 +305,9 @@
               throw toError(e);
           }
       }
+      isSweepableBalance(balanceTrx) {
+          return this.canSweepBalance(toBaseDenominationNumber(balanceTrx));
+      }
       canSweepBalance(balanceSun) {
           return balanceSun > MIN_BALANCE_SUN;
       }

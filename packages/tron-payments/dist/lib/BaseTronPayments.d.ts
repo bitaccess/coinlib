@@ -22,6 +22,7 @@ export declare abstract class BaseTronPayments<Config extends BaseTronPaymentsCo
     signTransaction(unsignedTx: TronUnsignedTransaction): Promise<TronSignedTransaction>;
     broadcastTransaction(tx: TronSignedTransaction): Promise<TronBroadcastResult>;
     getTransactionInfo(txid: string): Promise<TronTransactionInfo>;
+    isSweepableBalance(balanceTrx: string): boolean;
     private canSweepBalance;
     private extractTxFields;
     resolvePayport(payport: ResolveablePayport): Promise<Payport>;
