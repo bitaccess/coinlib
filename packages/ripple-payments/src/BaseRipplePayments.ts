@@ -307,7 +307,10 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     if (amount.isNaN() || amount.lte(0)) {
       throw new Error(`Invalid amount provided to ripple-payments createTransaction: ${amount}`)
     }
-    const { fromIndex, fromAddress, fromExtraId, fromPayport, toIndex, toAddress, toExtraId, toPayport } = fromTo
+    const { fromIndex, fromAddress, fromExtraId, fromPayport, toIndex, toAddress, toExtraId } = fromTo
+    if (fromAddress === toAddress) {
+      throw new Error('Cannot create XRP payment transaction sending XRP to self')
+    }
     const { targetFeeLevel, targetFeeRate, targetFeeRateType, feeMain } = feeOption
     const { sequence } = options
     const maxLedgerVersionOffset =
