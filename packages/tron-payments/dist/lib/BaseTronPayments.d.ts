@@ -14,6 +14,8 @@ export declare abstract class BaseTronPayments<Config extends BaseTronPaymentsCo
     abstract getAccountIds(): string[];
     abstract getPayport(index: number, options?: GetPayportOptions): Promise<Payport>;
     abstract getPrivateKey(index: number): Promise<string>;
+    init(): Promise<void>;
+    destroy(): Promise<void>;
     requiresBalanceMonitor(): boolean;
     getBalance(resolveablePayport: ResolveablePayport): Promise<BalanceResult>;
     resolveFeeOption(feeOption: FeeOption): Promise<ResolvedFeeOption>;

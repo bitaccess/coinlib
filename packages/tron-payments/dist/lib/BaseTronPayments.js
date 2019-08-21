@@ -15,6 +15,8 @@ export class BaseTronPayments extends TronPaymentsUtils {
         this.logger = new DelegateLogger(config.logger, PACKAGE_NAME);
         this.tronweb = new TronWeb(this.fullNode, this.solidityNode, this.eventServer);
     }
+    async init() { }
+    async destroy() { }
     requiresBalanceMonitor() {
         return false;
     }

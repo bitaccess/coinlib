@@ -99,6 +99,8 @@
           this.logger = new tsCommon.DelegateLogger(config.logger, PACKAGE_NAME);
           this.tronweb = new TronWeb(this.fullNode, this.solidityNode, this.eventServer);
       }
+      async init() { }
+      async destroy() { }
       requiresBalanceMonitor() {
           return false;
       }
