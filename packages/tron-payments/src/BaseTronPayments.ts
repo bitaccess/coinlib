@@ -67,6 +67,9 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
   abstract async getPayport(index: number, options?: GetPayportOptions): Promise<Payport>
   abstract async getPrivateKey(index: number): Promise<string>
 
+  async init() {}
+  async destroy() {}
+
   requiresBalanceMonitor() {
     return false
   }
