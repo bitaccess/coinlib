@@ -2,6 +2,8 @@ import { BalanceResult, BaseUnsignedTransaction, BaseSignedTransaction, BaseTran
 import { PaymentsUtils } from './PaymentsUtils';
 export declare type AnyPayments<C extends object = any> = BasePayments<C, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, BaseTransactionInfo>;
 export interface BasePayments<Config extends BaseConfig, UnsignedTransaction extends BaseUnsignedTransaction, SignedTransaction extends BaseSignedTransaction, BroadcastResult extends BaseBroadcastResult, TransactionInfo extends BaseTransactionInfo> extends PaymentsUtils {
+    init(): Promise<void>;
+    destroy(): Promise<void>;
     getFullConfig(): Config;
     getPublicConfig(): Config;
     resolvePayport<O extends object>(payport: ResolveablePayport, options?: O): Promise<Payport>;
