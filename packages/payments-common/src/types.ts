@@ -222,3 +222,12 @@ export type FromTo = Pick<
 
 export const ResolveablePayport = t.union([Payport, t.string, t.number], 'ResolveablePayport')
 export type ResolveablePayport = t.TypeOf<typeof ResolveablePayport>
+
+export const RetrieveBalanceActivitiesResult = t.type(
+  {
+    from: t.number,
+    to: t.number,
+  },
+  'RetrieveBalanceActivitiesResult',
+)
+export type RetrieveBalanceActivitiesResult = t.TypeOf<typeof RetrieveBalanceActivitiesResult>
