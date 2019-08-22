@@ -48,17 +48,42 @@ export class RippleBalanceMonitor extends BalanceMonitor {
             }
         });
     }
+    async resolveFromToLedgers(options) {
+        const serverInfo = await this.rippleApi.getServerInfo();
+        const completeLedgers = serverInfo.completeLedgers.split('-');
+        let fromLedgerVersion = Number.parseInt(completeLedgers[0]);
+        let toLedgerVersion = Number.parseInt(completeLedgers[1]);
+        const { from, to } = options;
+        const requestedFrom = isUndefined(from) ? undefined : isNumber(from) ? from : from.confirmationNumber;
+        const requestedTo = isUndefined(to) ? undefined : isNumber(to) ? to : to.confirmationNumber;
+        if (isNumber(requestedFrom)) {
+            if (requestedFrom < fromLedgerVersion) {
+                this.logger.warn(`Server balance activity doesn't go back to ledger ${requestedFrom}, using ${fromLedgerVersion} instead`);
+            }
+            else {
+                fromLedgerVersion = requestedFrom;
+            }
+        }
+        if (isNumber(requestedTo)) {
+            if (requestedTo > toLedgerVersion) {
+                this.logger.warn(`Server balance activity doesn't go up to ledger ${requestedTo}, using ${toLedgerVersion} instead`);
+            }
+            else {
+                toLedgerVersion = requestedTo;
+            }
+        }
+        return {
+            from: fromLedgerVersion,
+            to: toLedgerVersion,
+        };
+    }
     async retrieveBalanceActivities(address, callbackFn, options = {}) {
         assertValidAddress(address);
-        const { from, to } = options;
-        const fromLedgerVersion = isUndefined(from) ? undefined : isNumber(from) ? from : from.confirmationNumber;
-        const toLedgerVersion = isUndefined(to) ? undefined : isNumber(to) ? to : to.confirmationNumber;
+        const { from, to } = await this.resolveFromToLedgers(options);
         const limit = 10;
         let lastTx;
         let transactions;
-        while (!lastTx ||
-            !transactions ||
-            (transactions.length === limit && (toLedgerVersion ? lastTx.outcome.ledgerVersion <= toLedgerVersion : true))) {
+        while (!lastTx || !transactions || (transactions.length === limit && lastTx.outcome.ledgerVersion <= to)) {
             const getTransactionOptions = {
                 types: ['payment'],
                 earliestFirst: true,
@@ -69,15 +94,15 @@ export class RippleBalanceMonitor extends BalanceMonitor {
                 getTransactionOptions.startTx = lastTx;
             }
             else {
-                getTransactionOptions.minLedgerVersion = fromLedgerVersion;
-                getTransactionOptions.maxLedgerVersion = toLedgerVersion;
+                getTransactionOptions.minLedgerVersion = from;
+                getTransactionOptions.maxLedgerVersion = to;
             }
             transactions = await this.rippleApi.getTransactions(address, getTransactionOptions);
             for (let tx of transactions) {
                 if (tx.type !== 'payment' ||
                     (lastTx && tx.id === lastTx.id) ||
-                    (fromLedgerVersion && tx.outcome.ledgerVersion < fromLedgerVersion) ||
-                    (toLedgerVersion && tx.outcome.ledgerVersion > toLedgerVersion)) {
+                    tx.outcome.ledgerVersion < from ||
+                    tx.outcome.ledgerVersion > to) {
                     continue;
                 }
                 const payment = tx;
@@ -88,6 +113,7 @@ export class RippleBalanceMonitor extends BalanceMonitor {
             }
             lastTx = transactions[transactions.length - 1];
         }
+        return { from, to };
     }
     determineActivityTypes(address, tx) {
         const result = [];
