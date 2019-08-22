@@ -166,8 +166,9 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       throw new Error(`Cannot getBalance of ripple payport with extraId ${extraId}, use BalanceMonitor instead`)
     }
     const balances = await this.rippleApi.getBalances(address)
+    this.logger.debug(`rippleApi.getBalance ${address}`, balances)
     const xrpBalance = balances.find(({ currency }) => currency === 'XRP')
-    const xrpAmount = xrpBalance ? xrpBalance.value : '0'
+    const xrpAmount = xrpBalance && xrpBalance.value ? xrpBalance.value : '0'
     return {
       confirmedBalance: xrpAmount,
       unconfirmedBalance: '0',

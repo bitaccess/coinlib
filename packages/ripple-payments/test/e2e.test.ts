@@ -20,7 +20,7 @@ import { RippleSignedTransaction } from '../src/types'
 import { padLeft } from '#/utils'
 import { omit, sortBy } from 'lodash'
 
-describe.only('e2e', async () => {
+describe('e2e', async () => {
   let testsComplete: boolean = false
   let rp: AccountRipplePayments
   let bm: RippleBalanceMonitor
@@ -77,6 +77,12 @@ describe.only('e2e', async () => {
     it('should have deposit account balance', async () => {
       const balances = await rp.getBalance(1)
       expect(Number.parseInt(balances.confirmedBalance)).toBeGreaterThan(20)
+      expect(balances.unconfirmedBalance).toBe('0')
+      expect(balances.sweepable).toBe(true)
+    })
+    it('should get balance of address', async () => {
+      const balances = await rp.getBalance({ address: rp.hotSignatory.address })
+      expect(Number.parseInt(balances.confirmedBalance)).toBeGreaterThan(0)
       expect(balances.unconfirmedBalance).toBe('0')
       expect(balances.sweepable).toBe(true)
     })
