@@ -237,3 +237,8 @@ export declare const ResolveablePayport: t.UnionC<[t.IntersectionC<[t.TypeC<{
     extraId: t.UnionC<[t.StringC, t.NullC]>;
 }>]>, t.StringC, t.NumberC]>;
 export declare type ResolveablePayport = t.TypeOf<typeof ResolveablePayport>;
+export declare const RetrieveBalanceActivitiesResult: t.TypeC<{
+    from: t.NumberC;
+    to: t.NumberC;
+}>;
+export declare type RetrieveBalanceActivitiesResult = t.TypeOf<typeof RetrieveBalanceActivitiesResult>;

@@ -1,5 +1,5 @@
 import { Logger } from '@faast/ts-common';
-import { NetworkType, BalanceMonitorConfig, BalanceActivityCallback, GetBalanceActivityOptions } from './types';
+import { NetworkType, BalanceMonitorConfig, BalanceActivityCallback, GetBalanceActivityOptions, RetrieveBalanceActivitiesResult } from './types';
 export declare abstract class BalanceMonitor {
     networkType: NetworkType;
     logger: Logger;
@@ -7,5 +7,5 @@ export declare abstract class BalanceMonitor {
     abstract init(): Promise<void>;
     abstract subscribeAddresses(addresses: string[]): Promise<void>;
     abstract onBalanceActivity(callbackFn: BalanceActivityCallback): void;
-    abstract retrieveBalanceActivities(address: string, callbackFn: BalanceActivityCallback, options?: GetBalanceActivityOptions): Promise<void>;
+    abstract retrieveBalanceActivities(address: string, callbackFn: BalanceActivityCallback, options?: GetBalanceActivityOptions): Promise<RetrieveBalanceActivitiesResult>;
 }

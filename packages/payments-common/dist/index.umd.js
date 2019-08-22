@@ -133,6 +133,10 @@
   }, 'GetBalanceActivityOptions');
   const BalanceActivityCallback = tsCommon.functionT('BalanceActivityCallback');
   const ResolveablePayport = t.union([Payport, t.string, t.number], 'ResolveablePayport');
+  const RetrieveBalanceActivitiesResult = t.type({
+      from: t.number,
+      to: t.number,
+  }, 'RetrieveBalanceActivitiesResult');
 
   function createUnitConverters(decimals) {
       const basePerMain = new BigNumber(10).pow(decimals);
@@ -209,6 +213,7 @@
   exports.GetBalanceActivityOptions = GetBalanceActivityOptions;
   exports.BalanceActivityCallback = BalanceActivityCallback;
   exports.ResolveablePayport = ResolveablePayport;
+  exports.RetrieveBalanceActivitiesResult = RetrieveBalanceActivitiesResult;
   exports.createUnitConverters = createUnitConverters;
   exports.BalanceMonitor = BalanceMonitor;
 

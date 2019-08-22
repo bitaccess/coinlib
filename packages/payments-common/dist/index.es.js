@@ -133,6 +133,10 @@ const GetBalanceActivityOptions = partial({
 }, 'GetBalanceActivityOptions');
 const BalanceActivityCallback = functionT('BalanceActivityCallback');
 const ResolveablePayport = union([Payport, string, number], 'ResolveablePayport');
+const RetrieveBalanceActivitiesResult = type({
+    from: number,
+    to: number,
+}, 'RetrieveBalanceActivitiesResult');
 
 function createUnitConverters(decimals) {
     const basePerMain = new BigNumber(10).pow(decimals);
@@ -185,5 +189,5 @@ class BalanceMonitor {
     }
 }
 
-export { NetworkType, NetworkTypeT, BaseConfig, AddressOrIndex, FeeLevel, FeeLevelT, FeeRateType, FeeRateTypeT, FeeOptionCustom, FeeOptionLevel, FeeOption, CreateTransactionOptions, ResolvedFeeOption, BalanceResult, TransactionStatus, TransactionStatusT, TransactionCommon, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, Payport, BalanceActivityType, BalanceActivity, BalanceMonitorConfig, GetBalanceActivityOptions, BalanceActivityCallback, ResolveablePayport, createUnitConverters, BalanceMonitor };
+export { NetworkType, NetworkTypeT, BaseConfig, AddressOrIndex, FeeLevel, FeeLevelT, FeeRateType, FeeRateTypeT, FeeOptionCustom, FeeOptionLevel, FeeOption, CreateTransactionOptions, ResolvedFeeOption, BalanceResult, TransactionStatus, TransactionStatusT, TransactionCommon, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, Payport, BalanceActivityType, BalanceActivity, BalanceMonitorConfig, GetBalanceActivityOptions, BalanceActivityCallback, ResolveablePayport, RetrieveBalanceActivitiesResult, createUnitConverters, BalanceMonitor };
 //# sourceMappingURL=index.es.js.map
