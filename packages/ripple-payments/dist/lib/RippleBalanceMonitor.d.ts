@@ -6,6 +6,7 @@ export declare class RippleBalanceMonitor extends BalanceMonitor {
     constructor(config: RippleBalanceMonitorConfig);
     init(): Promise<void>;
     destroy(): Promise<void>;
+    private retryDced;
     subscribeAddresses(addresses: string[]): Promise<void>;
     onBalanceActivity(callbackFn: BalanceActivityCallback): void;
     resolveFromToLedgers(options: GetBalanceActivityOptions): Promise<RetrieveBalanceActivitiesResult>;

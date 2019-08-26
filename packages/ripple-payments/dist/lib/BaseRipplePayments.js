@@ -5,7 +5,7 @@ import { BaseRipplePaymentsConfig, RippleUnsignedTransaction, RippleSignedTransa
 import { RipplePaymentsUtils } from './RipplePaymentsUtils';
 import { DEFAULT_CREATE_TRANSACTION_OPTIONS, MIN_BALANCE, DEFAULT_MAX_LEDGER_VERSION_OFFSET, NOT_FOUND_ERRORS, } from './constants';
 import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers';
-import { resolveRippleServer } from './utils';
+import { resolveRippleServer, retryIfDisconnected } from './utils';
 function extraIdToTag(extraId) {
     return isNil(extraId) ? undefined : Number.parseInt(extraId);
 }
@@ -28,6 +28,9 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
         if (this.rippleApi.isConnected()) {
             await this.rippleApi.disconnect();
         }
+    }
+    async retryDced(fn) {
+        return retryIfDisconnected(fn, this.rippleApi, this.logger);
     }
     getFullConfig() {
         return this.config;
@@ -98,7 +101,7 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
         if (!isNil(extraId)) {
             throw new Error(`Cannot getBalance of ripple payport with extraId ${extraId}, use BalanceMonitor instead`);
         }
-        const balances = await this.rippleApi.getBalances(address);
+        const balances = await this.retryDced(() => this.rippleApi.getBalances(address));
         this.logger.debug(`rippleApi.getBalance ${address}`, balances);
         const xrpBalance = balances.find(({ currency }) => currency === 'XRP');
         const xrpAmount = xrpBalance && xrpBalance.value ? xrpBalance.value : '0';
@@ -121,7 +124,7 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
     async getTransactionInfo(txId) {
         let tx;
         try {
-            tx = await this.rippleApi.getTransaction(txId);
+            tx = await this.retryDced(() => this.rippleApi.getTransaction(txId));
         }
         catch (e) {
             const eString = e.toString();
@@ -145,8 +148,8 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
         const amount = amountObject.value;
         const status = outcome.result.startsWith('tes') ? TransactionStatus.Confirmed : TransactionStatus.Failed;
         const confirmationNumber = outcome.ledgerVersion;
-        const ledger = await this.rippleApi.getLedger({ ledgerVersion: confirmationNumber });
-        const currentLedgerVersion = await this.rippleApi.getLedgerVersion();
+        const ledger = await this.retryDced(() => this.rippleApi.getLedger({ ledgerVersion: confirmationNumber }));
+        const currentLedgerVersion = await this.retryDced(() => this.rippleApi.getLedgerVersion());
         const confirmationId = ledger.ledgerHash;
         const confirmationTimestamp = outcome.timestamp ? new Date(outcome.timestamp) : null;
         return {
@@ -203,7 +206,7 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
             else if (targetFeeLevel === FeeLevel.High) {
                 cushion = 1.5;
             }
-            feeMain = await this.rippleApi.getFee(cushion);
+            feeMain = await this.retryDced(() => this.rippleApi.getFee(cushion));
             feeBase = this.toBaseDenomination(feeMain);
             targetFeeRate = feeMain;
             targetFeeRateType = FeeRateType.Main;
@@ -256,7 +259,7 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
             throw new Error(`Insufficient payport balance of ${payportBalance} XRP to send ${amountString} XRP ` +
                 `with fee of ${feeMain} XRP: ${serializePayport(fromPayport)}`);
         }
-        const preparedTx = await this.rippleApi.preparePayment(fromAddress, {
+        const preparedTx = await this.retryDced(() => this.rippleApi.preparePayment(fromAddress, {
             source: {
                 address: fromAddress,
                 tag: extraIdToTag(fromExtraId),
@@ -276,7 +279,7 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
         }, {
             maxLedgerVersionOffset,
             sequence,
-        });
+        }));
         return {
             id: null,
             fromIndex,
@@ -357,7 +360,7 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
             rebroadcast = existing.id === signedTx.id;
         }
         catch (e) { }
-        const result = (await this.rippleApi.submit(signedTxString));
+        const result = (await this.retryDced(() => this.rippleApi.submit(signedTxString)));
         this.logger.debug('broadcasted', result);
         const resultCode = result.engine_result || result.resultCode || '';
         if (!resultCode.startsWith('tes')) {

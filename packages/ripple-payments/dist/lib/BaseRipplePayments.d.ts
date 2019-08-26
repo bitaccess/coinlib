@@ -11,6 +11,7 @@ export declare abstract class BaseRipplePayments<Config extends BaseRipplePaymen
     constructor(config: Config);
     init(): Promise<void>;
     destroy(): Promise<void>;
+    private retryDced;
     getFullConfig(): Config;
     abstract getPublicConfig(): Config;
     abstract getAccountIds(): string[];

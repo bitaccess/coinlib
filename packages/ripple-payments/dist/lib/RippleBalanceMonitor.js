@@ -1,5 +1,5 @@
 import { BalanceMonitor, } from '@faast/payments-common';
-import { padLeft, resolveRippleServer } from './utils';
+import { padLeft, resolveRippleServer, retryIfDisconnected } from './utils';
 import { RippleBalanceMonitorConfig } from './types';
 import { assertValidAddress } from './helpers';
 import { isUndefined, isNumber } from 'util';
@@ -20,12 +20,15 @@ export class RippleBalanceMonitor extends BalanceMonitor {
             await this.rippleApi.disconnect();
         }
     }
+    async retryDced(fn) {
+        return retryIfDisconnected(fn, this.rippleApi, this.logger);
+    }
     async subscribeAddresses(addresses) {
         for (let address of addresses) {
             assertValidAddress(address);
         }
         try {
-            const res = await this.rippleApi.request('subscribe', { accounts: addresses });
+            const res = await this.retryDced(() => this.rippleApi.request('subscribe', { accounts: addresses }));
             if (res.status === 'success') {
                 this.logger.log('Ripple successfully subscribed', res);
             }
@@ -49,7 +52,7 @@ export class RippleBalanceMonitor extends BalanceMonitor {
         });
     }
     async resolveFromToLedgers(options) {
-        const serverInfo = await this.rippleApi.getServerInfo();
+        const serverInfo = await this.retryDced(() => this.rippleApi.getServerInfo());
         const completeLedgers = serverInfo.completeLedgers.split('-');
         let fromLedgerVersion = Number.parseInt(completeLedgers[0]);
         let toLedgerVersion = Number.parseInt(completeLedgers[1]);
@@ -83,9 +86,8 @@ export class RippleBalanceMonitor extends BalanceMonitor {
         const limit = 10;
         let lastTx;
         let transactions;
-        while (isUndefined(lastTx) ||
-            isUndefined(transactions) ||
-            (transactions.length === limit && lastTx.outcome.ledgerVersion <= to)) {
+        while (isUndefined(transactions) ||
+            (transactions.length === limit && lastTx && lastTx.outcome.ledgerVersion <= to)) {
             const getTransactionOptions = {
                 types: ['payment'],
                 earliestFirst: true,
@@ -99,7 +101,8 @@ export class RippleBalanceMonitor extends BalanceMonitor {
                 getTransactionOptions.minLedgerVersion = from;
                 getTransactionOptions.maxLedgerVersion = to;
             }
-            transactions = await this.rippleApi.getTransactions(address, getTransactionOptions);
+            transactions = await this.retryDced(() => this.rippleApi.getTransactions(address, getTransactionOptions));
+            this.logger.debug(`retrieved ripple txs for ${address}`, transactions);
             for (let tx of transactions) {
                 if (tx.type !== 'payment' ||
                     (lastTx && tx.id === lastTx.id) ||
@@ -137,7 +140,7 @@ export class RippleBalanceMonitor extends BalanceMonitor {
         const confirmationNumber = tx.outcome.ledgerVersion;
         const primarySequence = padLeft(String(tx.outcome.ledgerVersion), 12, '0');
         const secondarySequence = padLeft(String(tx.outcome.indexInLedger), 8, '0');
-        const ledger = await this.rippleApi.getLedger({ ledgerVersion: confirmationNumber });
+        const ledger = await this.retryDced(() => this.rippleApi.getLedger({ ledgerVersion: confirmationNumber }));
         for (let type of types) {
             const tag = (type === 'out' ? tx.specification.source : tx.specification.destination).tag;
             const amountObject = tx.outcome.deliveredAmount || tx.specification.source.amount || tx.specification.source.maxAmount;

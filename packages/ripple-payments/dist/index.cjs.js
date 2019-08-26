@@ -7,6 +7,7 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 var BigNumber = _interopDefault(require('bignumber.js'));
 var t = require('io-ts');
 var rippleLib = require('ripple-lib');
+var promiseRetry = _interopDefault(require('promise-retry'));
 var bip32 = require('bip32');
 var baseX = _interopDefault(require('base-x'));
 var crypto = _interopDefault(require('crypto'));
@@ -151,6 +152,33 @@ function resolveRippleServer(server, network) {
         return new rippleLib.RippleAPI();
     }
 }
+const CONNECTION_ERRORS = ['ConnectionError', 'NotConnectedError', 'DisconnectedError'];
+const RETRYABLE_ERRORS = [...CONNECTION_ERRORS, 'TimeoutError'];
+const MAX_RETRIES = 3;
+function retryIfDisconnected(fn, rippleApi, logger) {
+    return promiseRetry((retry, attempt) => {
+        return fn().catch(async (e) => {
+            const eName = e ? e.constructor.name : '';
+            if (RETRYABLE_ERRORS.includes(eName)) {
+                if (CONNECTION_ERRORS.includes(eName)) {
+                    logger.log('Connection error during rippleApi call, attempting to reconnect then ' +
+                        `retrying ${MAX_RETRIES - attempt} more times`, e.toString());
+                    if (rippleApi.isConnected()) {
+                        await rippleApi.disconnect();
+                    }
+                    await rippleApi.connect();
+                }
+                else {
+                    logger.log(`Retryable error during rippleApi call, retrying ${MAX_RETRIES - attempt} more times`, e.toString());
+                }
+                retry(e);
+            }
+            throw e;
+        });
+    }, {
+        retries: MAX_RETRIES,
+    });
+}
 
 function extraIdToTag(extraId) {
     return tsCommon.isNil(extraId) ? undefined : Number.parseInt(extraId);
@@ -174,6 +202,9 @@ class BaseRipplePayments extends RipplePaymentsUtils {
         if (this.rippleApi.isConnected()) {
             await this.rippleApi.disconnect();
         }
+    }
+    async retryDced(fn) {
+        return retryIfDisconnected(fn, this.rippleApi, this.logger);
     }
     getFullConfig() {
         return this.config;
@@ -244,7 +275,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
         if (!tsCommon.isNil(extraId)) {
             throw new Error(`Cannot getBalance of ripple payport with extraId ${extraId}, use BalanceMonitor instead`);
         }
-        const balances = await this.rippleApi.getBalances(address);
+        const balances = await this.retryDced(() => this.rippleApi.getBalances(address));
         this.logger.debug(`rippleApi.getBalance ${address}`, balances);
         const xrpBalance = balances.find(({ currency }) => currency === 'XRP');
         const xrpAmount = xrpBalance && xrpBalance.value ? xrpBalance.value : '0';
@@ -267,7 +298,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
     async getTransactionInfo(txId) {
         let tx;
         try {
-            tx = await this.rippleApi.getTransaction(txId);
+            tx = await this.retryDced(() => this.rippleApi.getTransaction(txId));
         }
         catch (e) {
             const eString = e.toString();
@@ -291,8 +322,8 @@ class BaseRipplePayments extends RipplePaymentsUtils {
         const amount = amountObject.value;
         const status = outcome.result.startsWith('tes') ? paymentsCommon.TransactionStatus.Confirmed : paymentsCommon.TransactionStatus.Failed;
         const confirmationNumber = outcome.ledgerVersion;
-        const ledger = await this.rippleApi.getLedger({ ledgerVersion: confirmationNumber });
-        const currentLedgerVersion = await this.rippleApi.getLedgerVersion();
+        const ledger = await this.retryDced(() => this.rippleApi.getLedger({ ledgerVersion: confirmationNumber }));
+        const currentLedgerVersion = await this.retryDced(() => this.rippleApi.getLedgerVersion());
         const confirmationId = ledger.ledgerHash;
         const confirmationTimestamp = outcome.timestamp ? new Date(outcome.timestamp) : null;
         return {
@@ -349,7 +380,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
             else if (targetFeeLevel === paymentsCommon.FeeLevel.High) {
                 cushion = 1.5;
             }
-            feeMain = await this.rippleApi.getFee(cushion);
+            feeMain = await this.retryDced(() => this.rippleApi.getFee(cushion));
             feeBase = this.toBaseDenomination(feeMain);
             targetFeeRate = feeMain;
             targetFeeRateType = paymentsCommon.FeeRateType.Main;
@@ -402,7 +433,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
             throw new Error(`Insufficient payport balance of ${payportBalance} XRP to send ${amountString} XRP ` +
                 `with fee of ${feeMain} XRP: ${serializePayport(fromPayport)}`);
         }
-        const preparedTx = await this.rippleApi.preparePayment(fromAddress, {
+        const preparedTx = await this.retryDced(() => this.rippleApi.preparePayment(fromAddress, {
             source: {
                 address: fromAddress,
                 tag: extraIdToTag(fromExtraId),
@@ -422,7 +453,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
         }, {
             maxLedgerVersionOffset,
             sequence,
-        });
+        }));
         return {
             id: null,
             fromIndex,
@@ -503,7 +534,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
             rebroadcast = existing.id === signedTx.id;
         }
         catch (e) { }
-        const result = (await this.rippleApi.submit(signedTxString));
+        const result = (await this.retryDced(() => this.rippleApi.submit(signedTxString)));
         this.logger.debug('broadcasted', result);
         const resultCode = result.engine_result || result.resultCode || '';
         if (!resultCode.startsWith('tes')) {
@@ -712,12 +743,15 @@ class RippleBalanceMonitor extends paymentsCommon.BalanceMonitor {
             await this.rippleApi.disconnect();
         }
     }
+    async retryDced(fn) {
+        return retryIfDisconnected(fn, this.rippleApi, this.logger);
+    }
     async subscribeAddresses(addresses) {
         for (let address of addresses) {
             assertValidAddress(address);
         }
         try {
-            const res = await this.rippleApi.request('subscribe', { accounts: addresses });
+            const res = await this.retryDced(() => this.rippleApi.request('subscribe', { accounts: addresses }));
             if (res.status === 'success') {
                 this.logger.log('Ripple successfully subscribed', res);
             }
@@ -741,7 +775,7 @@ class RippleBalanceMonitor extends paymentsCommon.BalanceMonitor {
         });
     }
     async resolveFromToLedgers(options) {
-        const serverInfo = await this.rippleApi.getServerInfo();
+        const serverInfo = await this.retryDced(() => this.rippleApi.getServerInfo());
         const completeLedgers = serverInfo.completeLedgers.split('-');
         let fromLedgerVersion = Number.parseInt(completeLedgers[0]);
         let toLedgerVersion = Number.parseInt(completeLedgers[1]);
@@ -775,9 +809,8 @@ class RippleBalanceMonitor extends paymentsCommon.BalanceMonitor {
         const limit = 10;
         let lastTx;
         let transactions;
-        while (util.isUndefined(lastTx) ||
-            util.isUndefined(transactions) ||
-            (transactions.length === limit && lastTx.outcome.ledgerVersion <= to)) {
+        while (util.isUndefined(transactions) ||
+            (transactions.length === limit && lastTx && lastTx.outcome.ledgerVersion <= to)) {
             const getTransactionOptions = {
                 types: ['payment'],
                 earliestFirst: true,
@@ -791,7 +824,8 @@ class RippleBalanceMonitor extends paymentsCommon.BalanceMonitor {
                 getTransactionOptions.minLedgerVersion = from;
                 getTransactionOptions.maxLedgerVersion = to;
             }
-            transactions = await this.rippleApi.getTransactions(address, getTransactionOptions);
+            transactions = await this.retryDced(() => this.rippleApi.getTransactions(address, getTransactionOptions));
+            this.logger.debug(`retrieved ripple txs for ${address}`, transactions);
             for (let tx of transactions) {
                 if (tx.type !== 'payment' ||
                     (lastTx && tx.id === lastTx.id) ||
@@ -829,7 +863,7 @@ class RippleBalanceMonitor extends paymentsCommon.BalanceMonitor {
         const confirmationNumber = tx.outcome.ledgerVersion;
         const primarySequence = padLeft(String(tx.outcome.ledgerVersion), 12, '0');
         const secondarySequence = padLeft(String(tx.outcome.indexInLedger), 8, '0');
-        const ledger = await this.rippleApi.getLedger({ ledgerVersion: confirmationNumber });
+        const ledger = await this.retryDced(() => this.rippleApi.getLedger({ ledgerVersion: confirmationNumber }));
         for (let type of types) {
             const tag = (type === 'out' ? tx.specification.source : tx.specification.destination).tag;
             const amountObject = tx.outcome.deliveredAmount || tx.specification.source.amount || tx.specification.source.maxAmount;
