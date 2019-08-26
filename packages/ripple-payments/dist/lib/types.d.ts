@@ -216,7 +216,7 @@ export declare const RippleCreateTransactionOptions: t.IntersectionC<[t.UnionC<[
 }>]>, t.PartialC<{
     maxLedgerVersionOffset: t.NumberC;
     sequence: t.NumberC;
-    payportBalance: t.StringC;
+    payportBalance: t.UnionC<[t.StringC, t.NumberC, import("@faast/ts-common").BigNumberC]>;
 }>]>;
 export declare type RippleCreateTransactionOptions = t.TypeOf<typeof RippleCreateTransactionOptions>;
 export declare type FromToWithPayport = FromTo & {
