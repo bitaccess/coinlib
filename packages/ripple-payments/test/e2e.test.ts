@@ -281,4 +281,9 @@ describe('e2e', async () => {
     const actual = await accumulateRetrievedActivities(rp.hotSignatory.address, { from })
     expectBalanceActivities(actual, [])
   })
+
+  it('should retry after being disconnected', async () => {
+    await rp.rippleApi.disconnect()
+    expect(await rp.getBalance(0)).toBeDefined()
+  })
 })

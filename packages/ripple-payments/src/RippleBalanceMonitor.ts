@@ -10,7 +10,7 @@ import { RippleAPI } from 'ripple-lib'
 import { FormattedPaymentTransaction, FormattedTransactionType } from 'ripple-lib/dist/npm/transaction/types'
 import { TransactionsOptions } from 'ripple-lib/dist/npm/ledger/transactions'
 
-import { padLeft, resolveRippleServer } from './utils'
+import { padLeft, resolveRippleServer, retryIfDisconnected } from './utils'
 import { RippleBalanceMonitorConfig } from './types'
 import { assertValidAddress } from './helpers'
 import { isUndefined, isNumber, isString } from 'util'
@@ -37,12 +37,16 @@ export class RippleBalanceMonitor extends BalanceMonitor {
     }
   }
 
+  private async retryDced<T>(fn: () => Promise<T>): Promise<T> {
+    return retryIfDisconnected(fn, this.rippleApi, this.logger)
+  }
+
   async subscribeAddresses(addresses: string[]) {
     for (let address of addresses) {
       assertValidAddress(address)
     }
     try {
-      const res = await this.rippleApi.request('subscribe', { accounts: addresses })
+      const res = await this.retryDced(() => this.rippleApi.request('subscribe', { accounts: addresses }))
       if (res.status === 'success') {
         this.logger.log('Ripple successfully subscribed', res)
       } else {
@@ -66,7 +70,7 @@ export class RippleBalanceMonitor extends BalanceMonitor {
   }
 
   async resolveFromToLedgers(options: GetBalanceActivityOptions): Promise<RetrieveBalanceActivitiesResult> {
-    const serverInfo = await this.rippleApi.getServerInfo()
+    const serverInfo = await this.retryDced(() => this.rippleApi.getServerInfo())
     const completeLedgers = serverInfo.completeLedgers.split('-')
     let fromLedgerVersion = Number.parseInt(completeLedgers[0])
     let toLedgerVersion = Number.parseInt(completeLedgers[1])
@@ -123,7 +127,7 @@ export class RippleBalanceMonitor extends BalanceMonitor {
         getTransactionOptions.minLedgerVersion = from
         getTransactionOptions.maxLedgerVersion = to
       }
-      transactions = await this.rippleApi.getTransactions(address, getTransactionOptions)
+      transactions = await this.retryDced(() => this.rippleApi.getTransactions(address, getTransactionOptions))
       this.logger.debug(`retrieved ripple txs for ${address}`, transactions)
       for (let tx of transactions) {
         if (
@@ -171,7 +175,7 @@ export class RippleBalanceMonitor extends BalanceMonitor {
     const confirmationNumber = tx.outcome.ledgerVersion
     const primarySequence = padLeft(String(tx.outcome.ledgerVersion), 12, '0')
     const secondarySequence = padLeft(String(tx.outcome.indexInLedger), 8, '0')
-    const ledger = await this.rippleApi.getLedger({ ledgerVersion: confirmationNumber })
+    const ledger = await this.retryDced(() => this.rippleApi.getLedger({ ledgerVersion: confirmationNumber }))
     for (let type of types) {
       const tag = (type === 'out' ? tx.specification.source : tx.specification.destination).tag
       const amountObject =
