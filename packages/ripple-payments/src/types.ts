@@ -1,5 +1,5 @@
 import * as t from 'io-ts'
-import { extendCodec, Logger, instanceofCodec, nullable } from '@faast/ts-common'
+import { extendCodec, Logger, instanceofCodec, nullable, Numeric } from '@faast/ts-common'
 import {
   BaseTransactionInfo,
   BaseUnsignedTransaction,
@@ -140,7 +140,7 @@ export const RippleCreateTransactionOptions = extendCodec(
   {
     maxLedgerVersionOffset: t.number,
     sequence: t.number,
-    payportBalance: t.string,
+    payportBalance: Numeric,
   },
   'RippleCreateTransactionOptions',
 )
