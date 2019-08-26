@@ -1,24 +1,11 @@
-import {
-  setupTestnetPayments,
-  delay,
-  END_TRANSACTION_STATES,
-  expectEqualOmit,
-  expectEqualWhenTruthy,
-  TestLogger,
-} from './utils'
+import { TransactionStatus, BalanceActivity, NetworkType, GetBalanceActivityOptions } from '@faast/payments-common'
+import BigNumber from 'bignumber.js'
+import { omit, sortBy } from 'lodash'
+
+import { setupTestnetPayments, delay, END_TRANSACTION_STATES, expectEqualOmit, expectEqualWhenTruthy } from './utils'
 import { AccountRipplePayments, RippleTransactionInfo, RippleBalanceMonitor } from '../src'
 import { ADDRESS_REGEX } from '../src/constants'
-import {
-  BalanceResult,
-  BaseTransactionInfo,
-  TransactionStatus,
-  BalanceActivity,
-  NetworkType,
-} from '@faast/payments-common'
-import BigNumber from 'bignumber.js'
 import { RippleSignedTransaction } from '../src/types'
-import { padLeft } from '#/utils'
-import { omit, sortBy } from 'lodash'
 
 describe('e2e', async () => {
   let testsComplete: boolean = false
@@ -125,14 +112,17 @@ describe('e2e', async () => {
     return tx
   }
 
-  async function accumulateRetrievedActivities(address: string): Promise<BalanceActivity[]> {
+  async function accumulateRetrievedActivities(
+    address: string,
+    options?: GetBalanceActivityOptions,
+  ): Promise<BalanceActivity[]> {
     const result: BalanceActivity[] = []
     await bm.retrieveBalanceActivities(
       address,
       activity => {
         result.push(activity)
       },
-      { from: startLedgerVersion },
+      { from: startLedgerVersion, ...options },
     )
     return result
   }
@@ -262,6 +252,8 @@ describe('e2e', async () => {
     expect(normalize(actual)).toEqual(normalize(expected))
   }
 
+  jest.setTimeout(30 * 1000)
+
   it.skip('should emit expected balance activities', async () => {
     // Can't get subscriptions to work :(
     const hotActivity = await getExpectedHotActivities()
@@ -279,5 +271,14 @@ describe('e2e', async () => {
     const actual = await accumulateRetrievedActivities(rp.hotSignatory.address)
     const expected = await getExpectedHotActivities()
     expectBalanceActivities(actual, expected)
+  })
+
+  it('should retrieve nothing for a range without activity', async () => {
+    const sweepTx = await sweepTxPromise
+    const sendTx = await sendTxPromise
+    const from =
+      1 + Math.max(sweepTx.confirmationNumber || startLedgerVersion, sendTx.confirmationNumber || startLedgerVersion)
+    const actual = await accumulateRetrievedActivities(rp.hotSignatory.address, { from })
+    expectBalanceActivities(actual, [])
   })
 })

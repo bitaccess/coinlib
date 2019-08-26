@@ -108,9 +108,8 @@ export class RippleBalanceMonitor extends BalanceMonitor {
     let lastTx: FormattedTransactionType | undefined
     let transactions: FormattedTransactionType[] | undefined
     while (
-      isUndefined(lastTx) ||
       isUndefined(transactions) ||
-      (transactions.length === limit && lastTx.outcome.ledgerVersion <= to)
+      (transactions.length === limit && lastTx && lastTx.outcome.ledgerVersion <= to)
     ) {
       const getTransactionOptions: TransactionsOptions = {
         types: ['payment'],
@@ -125,6 +124,7 @@ export class RippleBalanceMonitor extends BalanceMonitor {
         getTransactionOptions.maxLedgerVersion = to
       }
       transactions = await this.rippleApi.getTransactions(address, getTransactionOptions)
+      this.logger.debug(`retrieved ripple txs for ${address}`, transactions)
       for (let tx of transactions) {
         if (
           tx.type !== 'payment' ||
