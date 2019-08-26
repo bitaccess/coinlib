@@ -83,7 +83,9 @@ export class RippleBalanceMonitor extends BalanceMonitor {
         const limit = 10;
         let lastTx;
         let transactions;
-        while (!lastTx || !transactions || (transactions.length === limit && lastTx.outcome.ledgerVersion <= to)) {
+        while (isUndefined(lastTx) ||
+            isUndefined(transactions) ||
+            (transactions.length === limit && lastTx.outcome.ledgerVersion <= to)) {
             const getTransactionOptions = {
                 types: ['payment'],
                 earliestFirst: true,

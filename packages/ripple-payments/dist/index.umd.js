@@ -769,7 +769,9 @@
           const limit = 10;
           let lastTx;
           let transactions;
-          while (!lastTx || !transactions || (transactions.length === limit && lastTx.outcome.ledgerVersion <= to)) {
+          while (util.isUndefined(lastTx) ||
+              util.isUndefined(transactions) ||
+              (transactions.length === limit && lastTx.outcome.ledgerVersion <= to)) {
               const getTransactionOptions = {
                   types: ['payment'],
                   earliestFirst: true,
