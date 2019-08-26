@@ -238,14 +238,14 @@ describe('HdTronPayments', () => {
       })
       it('get correct balance for index 0', async () => {
         expect(await tp.getBalance(0)).toEqual({
-          confirmedBalance: '2.4',
+          confirmedBalance: '2.2',
           unconfirmedBalance: '0',
           sweepable: true,
         })
       })
       it('get correct balance for address 0', async () => {
         expect(await tp.getBalance({ address: address0 })).toEqual({
-          confirmedBalance: '2.4',
+          confirmedBalance: '2.2',
           unconfirmedBalance: '0',
           sweepable: true,
         })
