@@ -187,7 +187,7 @@ describe('e2e', async () => {
     return [
       {
         address: sweepTx.fromAddress,
-        amount: `-${sweepTx.amount}`,
+        amount: `-${new BigNumber(sweepTx.amount).plus(sweepTx.fee)}`,
         assetSymbol: 'XRP',
         confirmationId: sweepTx.confirmationId,
         confirmationNumber: sweepTx.confirmationNumber,
@@ -233,7 +233,7 @@ describe('e2e', async () => {
       },
       {
         address: sendTx.fromAddress,
-        amount: `-${sendTx.amount}`,
+        amount: `-${new BigNumber(sendTx.amount).plus(sendTx.fee)}`,
         assetSymbol: 'XRP',
         confirmationId: sendTx.confirmationId,
         confirmationNumber: sendTx.confirmationNumber,
