@@ -282,6 +282,11 @@ describe('e2e', async () => {
     expectBalanceActivities(actual, [])
   })
 
+  it.only('should be able to retrieve more activities than page limit', async () => {
+    const actual = await accumulateRetrievedActivities('r3b5PwYSZD48G8VeXoovj3CervMRyPMyVY')
+    expect(actual.length).toBeGreaterThan(10)
+  })
+
   it('should retry after being disconnected', async () => {
     await rp.rippleApi.disconnect()
     expect(await rp.getBalance(0)).toBeDefined()
