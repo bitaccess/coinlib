@@ -302,7 +302,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
             }
             throw e;
         }
-        this.logger.debug('tx', JSON.stringify(tx, null, 2));
+        this.logger.debug('getTransaction', txId, tx);
         if (tx.type !== 'payment') {
             throw new Error(`Unsupported ripple tx type ${tx.type}`);
         }
@@ -498,7 +498,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
         if (this.isReadOnly()) {
             throw new Error('Cannot sign transaction with read only ripple payments (no xprv or secrets provided)');
         }
-        this.logger.debug(unsignedTx.data);
+        this.logger.debug('signTransaction', unsignedTx.data);
         const { txJSON } = unsignedTx.data;
         let secret;
         const hotSignatory = this.getHotSignatory();
@@ -813,7 +813,7 @@ class RippleBalanceMonitor extends BalanceMonitor {
                 limit,
             };
             if (lastTx) {
-                getTransactionOptions.startTx = lastTx;
+                getTransactionOptions.start = lastTx.id;
             }
             else {
                 getTransactionOptions.minLedgerVersion = from;
