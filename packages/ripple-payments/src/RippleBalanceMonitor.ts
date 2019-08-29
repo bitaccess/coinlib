@@ -122,7 +122,7 @@ export class RippleBalanceMonitor extends BalanceMonitor {
         limit,
       }
       if (lastTx) {
-        getTransactionOptions.startTx = lastTx
+        getTransactionOptions.start = lastTx.id
       } else {
         getTransactionOptions.minLedgerVersion = from
         getTransactionOptions.maxLedgerVersion = to
