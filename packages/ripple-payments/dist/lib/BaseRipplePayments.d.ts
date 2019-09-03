@@ -5,9 +5,9 @@ import { Adjustment } from 'ripple-lib/dist/npm/common/types/objects';
 import { BaseRipplePaymentsConfig, RippleUnsignedTransaction, RippleSignedTransaction, RippleBroadcastResult, RippleTransactionInfo, RippleCreateTransactionOptions, FromToWithPayport, RippleSignatory } from './types';
 import { RipplePaymentsUtils } from './RipplePaymentsUtils';
 export declare abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig> extends RipplePaymentsUtils implements BasePayments<Config, RippleUnsignedTransaction, RippleSignedTransaction, RippleBroadcastResult, RippleTransactionInfo> {
-    readonly config: Config;
-    readonly rippleApi: RippleAPI;
-    readonly logger: Logger;
+    config: Config;
+    rippleApi: RippleAPI;
+    logger: Logger;
     constructor(config: Config);
     init(): Promise<void>;
     destroy(): Promise<void>;
@@ -28,6 +28,7 @@ export declare abstract class BaseRipplePayments<Config extends BaseRipplePaymen
     getAddressesToMonitor(): string[];
     isSweepableAddressBalance(balance: Numeric): boolean;
     isSweepableBalance(balance: string, payport?: ResolveablePayport): boolean;
+    initAccounts(): Promise<any>;
     getBalance(payportOrIndex: ResolveablePayport): Promise<BalanceResult>;
     resolveIndexFromAdjustment(adjustment: Adjustment): number | null;
     getTransactionInfo(txId: string): Promise<RippleTransactionInfo>;

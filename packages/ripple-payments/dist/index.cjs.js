@@ -257,7 +257,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
         return [this.getHotSignatory().address, this.getDepositSignatory().address];
     }
     isSweepableAddressBalance(balance) {
-        return new BigNumber(balance).gt(MIN_BALANCE);
+        return new BigNumber(balance).gt(0);
     }
     isSweepableBalance(balance, payport) {
         const balanceBase = toBaseDenominationBigNumber(balance);
@@ -269,6 +269,23 @@ class BaseRipplePayments extends RipplePaymentsUtils {
         }
         return balanceBase.gt(0);
     }
+    async initAccounts() {
+        const { address, secret } = this.getDepositSignatory();
+        const settings = await this.rippleApi.getSettings(address);
+        if (settings.requireDestinationTag) {
+            throw new Error(`ripple requireDestinationTag already set for ${address}`);
+        }
+        const unsignedTx = await this.rippleApi.prepareSettings(address, {
+            requireDestinationTag: true,
+        });
+        const signedTx = this.rippleApi.sign(unsignedTx.txJSON, secret);
+        const broadcast = await this.rippleApi.submit(signedTx.signedTransaction);
+        return {
+            unsignedTx,
+            signedTx,
+            broadcast,
+        };
+    }
     async getBalance(payportOrIndex) {
         const payport = await this.resolvePayport(payportOrIndex);
         const { address, extraId } = payport;
@@ -279,8 +296,9 @@ class BaseRipplePayments extends RipplePaymentsUtils {
         this.logger.debug(`rippleApi.getBalance ${address}`, balances);
         const xrpBalance = balances.find(({ currency }) => currency === 'XRP');
         const xrpAmount = xrpBalance && xrpBalance.value ? xrpBalance.value : '0';
+        const confirmedBalance = new BigNumber(xrpAmount).minus(MIN_BALANCE);
         return {
-            confirmedBalance: xrpAmount,
+            confirmedBalance: confirmedBalance.toString(),
             unconfirmedBalance: '0',
             sweepable: this.isSweepableAddressBalance(xrpAmount),
         };
@@ -421,11 +439,11 @@ class BaseRipplePayments extends RipplePaymentsUtils {
         const amountString = amount.toString();
         const addressBalances = await this.getBalance({ address: fromAddress });
         const addressBalance = new BigNumber(addressBalances.confirmedBalance);
-        if (addressBalance.lt(MIN_BALANCE)) {
+        if (addressBalance.lt(0)) {
             throw new Error(`Cannot send from ripple address that has less than ${MIN_BALANCE} XRP: ${fromAddress} (${addressBalance} XRP)`);
         }
         const totalValue = amount.plus(feeMain);
-        if (addressBalance.minus(totalValue).lt(MIN_BALANCE)) {
+        if (addressBalance.minus(totalValue).lt(0)) {
             throw new Error(`Cannot send ${amountString} XRP with fee of ${feeMain} XRP because it would reduce the balance below ` +
                 `the minimum required balance of ${MIN_BALANCE} XRP: ${fromAddress} (${addressBalance} XRP)`);
         }
@@ -487,14 +505,6 @@ class BaseRipplePayments extends RipplePaymentsUtils {
             const fromPayport = { address: fromTo.fromAddress, extraId: fromTo.fromExtraId };
             throw new Error(`Insufficient balance to sweep from ripple payport with fee of ${feeOption.feeMain} XRP: ` +
                 `${serializePayport(fromPayport)} (${payportBalance} XRP)`);
-        }
-        if (typeof fromTo.fromExtraId !== 'string') {
-            amountBn = amountBn.minus(MIN_BALANCE);
-            if (amountBn.lt(0)) {
-                throw new Error(`Insufficient balance to sweep from ripple address with fee of ${feeOption.feeMain} XRP and ` +
-                    `maintain the minimum required balance of ${MIN_BALANCE} XRP: ` +
-                    `${fromTo.fromAddress} (${payportBalance} XRP)`);
-            }
         }
         return this.doCreateTransaction(fromTo, feeOption, amountBn, payportBalance, options);
     }
