@@ -433,13 +433,14 @@
           const amountString = amount.toString();
           const addressBalances = await this.getBalance({ address: fromAddress });
           const addressBalance = new BigNumber(addressBalances.confirmedBalance);
+          const actualBalance = addressBalance.plus(MIN_BALANCE);
           if (addressBalance.lt(0)) {
-              throw new Error(`Cannot send from ripple address that has less than ${MIN_BALANCE} XRP: ${fromAddress} (${addressBalance} XRP)`);
+              throw new Error(`Cannot send from ripple address that has less than ${MIN_BALANCE} XRP: ${fromAddress} (${actualBalance} XRP)`);
           }
           const totalValue = amount.plus(feeMain);
           if (addressBalance.minus(totalValue).lt(0)) {
               throw new Error(`Cannot send ${amountString} XRP with fee of ${feeMain} XRP because it would reduce the balance below ` +
-                  `the minimum required balance of ${MIN_BALANCE} XRP: ${fromAddress} (${addressBalance} XRP)`);
+                  `the minimum required balance of ${MIN_BALANCE} XRP: ${fromAddress} (${actualBalance} XRP)`);
           }
           if (typeof fromExtraId === 'string' && totalValue.gt(payportBalance)) {
               throw new Error(`Insufficient payport balance of ${payportBalance} XRP to send ${amountString} XRP ` +

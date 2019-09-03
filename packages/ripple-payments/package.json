@@ -1,6 +1,6 @@
 {
   "name": "@faast/ripple-payments",
-  "version": "0.11.8",
+  "version": "0.11.9",
   "description": "Library for processing ripple payments",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
