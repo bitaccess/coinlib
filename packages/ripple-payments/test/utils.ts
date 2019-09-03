@@ -67,19 +67,21 @@ export async function setupTestnetPayments() {
     ...config,
   })
   await rp.init()
-  // Make sure we still have a balance, testnet can be wiped
-  const hotWalletBalances = await rp.getBalance(0)
-  const depositWalletBalances = await rp.getBalance(1)
-  if (!hotWalletBalances.sweepable || !depositWalletBalances.sweepable) {
-    console.warn(
-      'Existing testnet accounts have insufficient balances, will regenerate ' +
-        `(${hotWalletBalances.confirmedBalance} XRP and ${depositWalletBalances.confirmedBalance} XRP)`,
-    )
-    config = await generatePaymentsConfig()
-    rp = new AccountRipplePayments({
-      ...DEFAULT_CONFIG,
-      ...config,
-    })
+  // Make accounts still exist, testnet can be wiped
+  try {
+    await rp.getBalance(0)
+    await rp.getBalance(1)
+  } catch (e) {
+    if (e.message.includes('Account not found')) {
+      console.warn('Cached testnet accounts have been reset, will regenerate')
+      config = await generatePaymentsConfig()
+      const rippleApi = rp.rippleApi
+      rp = new AccountRipplePayments({
+        ...DEFAULT_CONFIG,
+        ...config,
+      })
+      rp.rippleApi = rippleApi
+    }
   }
   return rp
 }

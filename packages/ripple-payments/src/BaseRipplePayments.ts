@@ -54,10 +54,10 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       RippleBroadcastResult,
       RippleTransactionInfo
     > {
-  readonly rippleApi: RippleAPI
-  readonly logger: Logger
+  rippleApi: RippleAPI
+  logger: Logger
 
-  constructor(public readonly config: Config) {
+  constructor(public config: Config) {
     super(config)
     assertType(BaseRipplePaymentsConfig, config)
     this.rippleApi = resolveRippleServer(config.server, this.networkType)
