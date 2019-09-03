@@ -167,7 +167,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
    * A special method that broadcasts a transaction that enables the `requireDestinationTag` setting
    * on the deposit signatory.
    */
-  async initAccounts(): Promise<any> {
+  async initAccounts() {
     const { address, secret } = this.getDepositSignatory()
     const settings = await this.rippleApi.getSettings(address)
     if (settings.requireDestinationTag) {
@@ -179,6 +179,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     const signedTx = this.rippleApi.sign(unsignedTx.txJSON, secret)
     const broadcast = await this.rippleApi.submit(signedTx.signedTransaction)
     return {
+      txId: signedTx.id,
       unsignedTx,
       signedTx,
       broadcast,

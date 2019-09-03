@@ -82,8 +82,7 @@ describe('e2e', async () => {
     })
   })
 
-  async function pollUntilEnded(signedTx: RippleSignedTransaction) {
-    const txId = signedTx.id
+  async function pollTxId(txId: string) {
     console.log('polling until ended', txId)
     let tx: RippleTransactionInfo | undefined
     while (!testsComplete && (!tx || !END_TRANSACTION_STATES.includes(tx.status) || tx.confirmations === 0)) {
@@ -102,6 +101,12 @@ describe('e2e', async () => {
       throw new Error(`failed to poll until ended ${txId}`)
     }
     console.log(tx.status, tx)
+    return tx
+  }
+
+  async function pollSignedTx(signedTx: RippleSignedTransaction) {
+    const txId = signedTx.id
+    const tx = await pollTxId(txId)
     expect(tx.id).toBe(signedTx.id)
     expect(tx.fromAddress).toBe(signedTx.fromAddress)
     expectEqualWhenTruthy(tx.fromExtraId, signedTx.fromExtraId)
@@ -157,7 +162,7 @@ describe('e2e', async () => {
       },
       ['data'],
     )
-    sweepTxPromise = pollUntilEnded(signedTx)
+    sweepTxPromise = pollSignedTx(signedTx)
     const tx = await sweepTxPromise
     const amount = new BigNumber(tx.amount)
     const fee = new BigNumber(tx.fee)
@@ -182,7 +187,7 @@ describe('e2e', async () => {
       },
       ['data'],
     )
-    sendTxPromise = pollUntilEnded(signedTx)
+    sendTxPromise = pollSignedTx(signedTx)
     const tx = await sendTxPromise
     expect(tx.amount).toEqual(sendAmount)
     const fee = new BigNumber(tx.fee)
@@ -295,7 +300,7 @@ describe('e2e', async () => {
     expect(actual.length).toBeGreaterThan(10)
   })
 
-  it.only('should recognize balance activity of txs with tec result code', async () => {
+  it('should recognize balance activity of txs with tec result code', async () => {
     const [activity] = await accumulateRetrievedActivities(
       'rJdLzYr87z7xuey8qAfh3qZ9WmaXaAoELe',
       {
@@ -318,6 +323,18 @@ describe('e2e', async () => {
       confirmationNumber: 49684654,
       timestamp: new Date('2019-08-30T01:11:52.000Z'),
     })
+  })
+
+  it('should set requireDestinationTag setting correctly after initAccounts', async () => {
+    const settings = await rp.rippleApi.getSettings(rp.getDepositSignatory().address)
+    if (settings.requireDestinationTag) {
+      console.log('already set')
+      return
+    }
+    const { txId } = await rp.initAccounts()
+    await pollTxId(txId)
+    const newSettings = await rp.rippleApi.getSettings(rp.getDepositSignatory().address)
+    expect(newSettings.requireDestinationTag).toBe(true)
   })
 
   it('should retry after being disconnected', async () => {
