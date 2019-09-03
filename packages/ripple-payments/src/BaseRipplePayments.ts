@@ -173,8 +173,9 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     this.logger.debug(`rippleApi.getBalance ${address}`, balances)
     const xrpBalance = balances.find(({ currency }) => currency === 'XRP')
     const xrpAmount = xrpBalance && xrpBalance.value ? xrpBalance.value : '0'
+    const confirmedBalance = new BigNumber(xrpAmount).minus(MIN_BALANCE)
     return {
-      confirmedBalance: xrpAmount,
+      confirmedBalance: confirmedBalance.toString(),
       unconfirmedBalance: '0',
       sweepable: this.isSweepableAddressBalance(xrpAmount),
     }
@@ -323,13 +324,13 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     const amountString = amount.toString()
     const addressBalances = await this.getBalance({ address: fromAddress })
     const addressBalance = new BigNumber(addressBalances.confirmedBalance)
-    if (addressBalance.lt(MIN_BALANCE)) {
+    if (addressBalance.lt(0)) {
       throw new Error(
         `Cannot send from ripple address that has less than ${MIN_BALANCE} XRP: ${fromAddress} (${addressBalance} XRP)`,
       )
     }
     const totalValue = amount.plus(feeMain)
-    if (addressBalance.minus(totalValue).lt(MIN_BALANCE)) {
+    if (addressBalance.minus(totalValue).lt(0)) {
       throw new Error(
         `Cannot send ${amountString} XRP with fee of ${feeMain} XRP because it would reduce the balance below ` +
           `the minimum required balance of ${MIN_BALANCE} XRP: ${fromAddress} (${addressBalance} XRP)`,
