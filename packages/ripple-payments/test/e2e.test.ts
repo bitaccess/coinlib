@@ -11,6 +11,7 @@ describe('e2e', async () => {
   let testsComplete: boolean = false
   let rp: AccountRipplePayments
   let bm: RippleBalanceMonitor
+  let bmMainnet: RippleBalanceMonitor
 
   let startLedgerVersion: number
   const balanceActivities: BalanceActivity[] = []
@@ -23,6 +24,11 @@ describe('e2e', async () => {
       server: rp.rippleApi,
     })
     await bm.init()
+    bmMainnet = new RippleBalanceMonitor({
+      network: NetworkType.Mainnet,
+      server: 'wss://s2.ripple.com/',
+    })
+    await bmMainnet.init()
     startLedgerVersion = (await rp.rippleApi.getLedger()).ledgerVersion
     bm.onBalanceActivity(activity => {
       console.log('activity', activity)
@@ -33,6 +39,7 @@ describe('e2e', async () => {
   afterAll(async () => {
     await rp.destroy()
     await bm.destroy()
+    await bmMainnet.destroy()
     testsComplete = true
   })
 
@@ -115,9 +122,10 @@ describe('e2e', async () => {
   async function accumulateRetrievedActivities(
     address: string,
     options?: GetBalanceActivityOptions,
+    balanceMonitor: RippleBalanceMonitor = bm,
   ): Promise<BalanceActivity[]> {
     const result: BalanceActivity[] = []
-    await bm.retrieveBalanceActivities(
+    await balanceMonitor.retrieveBalanceActivities(
       address,
       activity => {
         result.push(activity)
@@ -285,6 +293,31 @@ describe('e2e', async () => {
   it.skip('should be able to retrieve more activities than page limit', async () => {
     const actual = await accumulateRetrievedActivities('r3b5PwYSZD48G8VeXoovj3CervMRyPMyVY')
     expect(actual.length).toBeGreaterThan(10)
+  })
+
+  it.only('should recognize balance activity of txs with tec result code', async () => {
+    const [activity] = await accumulateRetrievedActivities(
+      'rJdLzYr87z7xuey8qAfh3qZ9WmaXaAoELe',
+      {
+        from: 49684653,
+        to: 49684655,
+      },
+      bmMainnet,
+    )
+    expect(activity).toEqual({
+      type: 'out',
+      networkType: 'mainnet',
+      networkSymbol: 'XRP',
+      assetSymbol: 'XRP',
+      address: 'rJdLzYr87z7xuey8qAfh3qZ9WmaXaAoELe',
+      extraId: '12',
+      amount: '-0.000012',
+      externalId: 'F5C7793E506E9566CED0060D9FC519BA06BD0EB0F4A77C0680BEA8FD13A13A58',
+      activitySequence: '000049684654.00000040.00',
+      confirmationId: '4103BE72C0C718AD2B137C9B40C37AD3D157044A61F40AB74B122A12EFB15B32',
+      confirmationNumber: 49684654,
+      timestamp: new Date('2019-08-30T01:11:52.000Z'),
+    })
   })
 
   it('should retry after being disconnected', async () => {
