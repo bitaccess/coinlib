@@ -149,7 +149,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
   }
 
   isSweepableAddressBalance(balance: Numeric): boolean {
-    return new BigNumber(balance).gt(MIN_BALANCE)
+    return new BigNumber(balance).gt(0)
   }
 
   isSweepableBalance(balance: string, payport?: ResolveablePayport): boolean {
@@ -437,16 +437,6 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
         `Insufficient balance to sweep from ripple payport with fee of ${feeOption.feeMain} XRP: ` +
           `${serializePayport(fromPayport)} (${payportBalance} XRP)`,
       )
-    }
-    if (typeof fromTo.fromExtraId !== 'string') {
-      amountBn = amountBn.minus(MIN_BALANCE)
-      if (amountBn.lt(0)) {
-        throw new Error(
-          `Insufficient balance to sweep from ripple address with fee of ${feeOption.feeMain} XRP and ` +
-            `maintain the minimum required balance of ${MIN_BALANCE} XRP: ` +
-            `${fromTo.fromAddress} (${payportBalance} XRP)`,
-        )
-      }
     }
     return this.doCreateTransaction(fromTo, feeOption, amountBn, payportBalance, options)
   }
