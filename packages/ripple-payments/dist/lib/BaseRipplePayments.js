@@ -107,6 +107,7 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
         const signedTx = this.rippleApi.sign(unsignedTx.txJSON, secret);
         const broadcast = await this.rippleApi.submit(signedTx.signedTransaction);
         return {
+            txId: signedTx.id,
             unsignedTx,
             signedTx,
             broadcast,

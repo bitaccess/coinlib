@@ -2,7 +2,7 @@ import { BalanceMonitor, } from '@faast/payments-common';
 import { padLeft, resolveRippleServer, retryIfDisconnected } from './utils';
 import { RippleBalanceMonitorConfig } from './types';
 import { assertValidAddress } from './helpers';
-import { isUndefined, isNumber, isNull } from 'util';
+import { isUndefined, isNumber, isString } from 'util';
 import { assertType } from '@faast/ts-common';
 export class RippleBalanceMonitor extends BalanceMonitor {
     constructor(config) {
@@ -43,11 +43,9 @@ export class RippleBalanceMonitor extends BalanceMonitor {
     }
     onBalanceActivity(callbackFn) {
         this.rippleApi.connection.on('transaction', async (tx) => {
-            if (tx.type === 'payment') {
-                const activity = await this.paymentToBalanceActivities(tx.address, tx);
-                if (activity) {
-                    callbackFn(activity);
-                }
+            const activity = await this.txToBalanceActivity(tx.address, tx);
+            if (activity) {
+                callbackFn(activity);
             }
         });
     }
@@ -89,9 +87,8 @@ export class RippleBalanceMonitor extends BalanceMonitor {
         while (isUndefined(transactions) ||
             (transactions.length === limit && lastTx && lastTx.outcome.ledgerVersion <= to)) {
             const getTransactionOptions = {
-                types: ['payment'],
                 earliestFirst: true,
-                excludeFailures: true,
+                excludeFailures: false,
                 limit,
             };
             if (lastTx) {
@@ -104,14 +101,10 @@ export class RippleBalanceMonitor extends BalanceMonitor {
             transactions = await this.retryDced(() => this.rippleApi.getTransactions(address, getTransactionOptions));
             this.logger.debug(`retrieved ripple txs for ${address}`, transactions);
             for (let tx of transactions) {
-                if (tx.type !== 'payment' ||
-                    (lastTx && tx.id === lastTx.id) ||
-                    tx.outcome.ledgerVersion < from ||
-                    tx.outcome.ledgerVersion > to) {
+                if ((lastTx && tx.id === lastTx.id) || tx.outcome.ledgerVersion < from || tx.outcome.ledgerVersion > to) {
                     continue;
                 }
-                const payment = tx;
-                const activity = await this.paymentToBalanceActivities(address, payment);
+                const activity = await this.txToBalanceActivity(address, tx);
                 if (activity) {
                     await callbackFn(activity);
                 }
@@ -120,37 +113,43 @@ export class RippleBalanceMonitor extends BalanceMonitor {
         }
         return { from, to };
     }
-    async paymentToBalanceActivities(address, tx) {
-        const type = tx.specification.source.address === address
-            ? 'out'
-            : tx.specification.destination.address === address
-                ? 'in'
-                : null;
-        if (isNull(type)) {
-            this.logger.log(`Cannot determine balance activity for ripple tx ${tx.id} because it doesnt concern address ${address}`);
+    isPaymentTx(tx) {
+        return tx.type === 'payment';
+    }
+    async txToBalanceActivity(address, tx) {
+        if (!tx.outcome) {
+            this.logger.warn('txToBalanceActivity received tx object without outcome!', tx);
+            return null;
+        }
+        const txResult = tx.outcome.result;
+        if (!isString(txResult) || !(txResult.startsWith('tes') || txResult.startsWith('tec'))) {
+            this.logger.log(`No balance activity for ripple tx ${tx.id} because status is ${txResult}`);
             return null;
         }
         const confirmationNumber = tx.outcome.ledgerVersion;
         const primarySequence = padLeft(String(tx.outcome.ledgerVersion), 12, '0');
         const secondarySequence = padLeft(String(tx.outcome.indexInLedger), 8, '0');
         const ledger = await this.retryDced(() => this.rippleApi.getLedger({ ledgerVersion: confirmationNumber }));
-        const tag = (type === 'out' ? tx.specification.source : tx.specification.destination).tag;
         const balanceChange = (tx.outcome.balanceChanges[address] || []).find(({ currency }) => currency === 'XRP');
         if (!balanceChange) {
-            this.logger.warn(`Cannot determine balanceChange for address ${address} in ripple tx ${tx.id} because there's no XRP entry`);
+            this.logger.log(`Cannot determine balanceChange for address ${address} in ripple tx ${tx.id} because there's no XRP entry`);
             return null;
         }
         const amount = balanceChange.value;
         const assetSymbol = balanceChange.currency;
+        const type = amount.startsWith('-') ? 'out' : 'in';
+        const tag = this.isPaymentTx(tx)
+            ? (type === 'out' ? tx.specification.source : tx.specification.destination).tag
+            : undefined;
         const tertiarySequence = type === 'out' ? '00' : '01';
         const activitySequence = `${primarySequence}.${secondarySequence}.${tertiarySequence}`;
         return {
             type,
             networkType: this.networkType,
-            networkSymbol: 'TRX',
+            networkSymbol: 'XRP',
             assetSymbol,
             address: address,
-            extraId: typeof tag !== 'undefined' ? String(tag) : null,
+            extraId: !isUndefined(tag) ? String(tag) : null,
             amount,
             externalId: tx.id,
             activitySequence,

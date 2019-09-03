@@ -11,5 +11,6 @@ export declare class RippleBalanceMonitor extends BalanceMonitor {
     onBalanceActivity(callbackFn: BalanceActivityCallback): void;
     resolveFromToLedgers(options: GetBalanceActivityOptions): Promise<RetrieveBalanceActivitiesResult>;
     retrieveBalanceActivities(address: string, callbackFn: BalanceActivityCallback, options?: GetBalanceActivityOptions): Promise<RetrieveBalanceActivitiesResult>;
-    private paymentToBalanceActivities;
+    private isPaymentTx;
+    private txToBalanceActivity;
 }
