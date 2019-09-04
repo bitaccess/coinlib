@@ -326,13 +326,10 @@ describe('e2e', async () => {
   })
 
   it('should set requireDestinationTag setting correctly after initAccounts', async () => {
-    const settings = await rp.rippleApi.getSettings(rp.getDepositSignatory().address)
-    if (settings.requireDestinationTag) {
-      console.log('already set')
-      return
+    const result = await rp.initAccounts()
+    if (result) {
+      await pollTxId(result.txId)
     }
-    const { txId } = await rp.initAccounts()
-    await pollTxId(txId)
     const newSettings = await rp.rippleApi.getSettings(rp.getDepositSignatory().address)
     expect(newSettings.requireDestinationTag).toBe(true)
   })
