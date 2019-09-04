@@ -37,7 +37,7 @@ export declare abstract class BaseRipplePayments<Config extends BaseRipplePaymen
             id: string;
         };
         broadcast: import("ripple-lib/dist/npm/transaction/submit").FormattedSubmitResponse;
-    }>;
+    } | undefined>;
     getBalance(payportOrIndex: ResolveablePayport): Promise<BalanceResult>;
     resolveIndexFromAdjustment(adjustment: Adjustment): number | null;
     getTransactionInfo(txId: string): Promise<RippleTransactionInfo>;

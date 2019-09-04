@@ -23,6 +23,7 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
         if (!this.rippleApi.isConnected()) {
             await this.rippleApi.connect();
         }
+        await this.initAccounts();
     }
     async destroy() {
         if (this.rippleApi.isConnected()) {
@@ -99,13 +100,19 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
         const { address, secret } = this.getDepositSignatory();
         const settings = await this.rippleApi.getSettings(address);
         if (settings.requireDestinationTag) {
-            throw new Error(`ripple requireDestinationTag already set for ${address}`);
+            return;
         }
-        const unsignedTx = await this.rippleApi.prepareSettings(address, {
+        const { confirmedBalance } = await this.getBalance(address);
+        const { feeMain } = await this.resolveFeeOption({ feeLevel: FeeLevel.Medium });
+        if (new BigNumber(confirmedBalance).lt(feeMain)) {
+            this.logger.warn(`Insufficient balance in deposit account (${address}) to pay fee of ${feeMain} XRP ` +
+                'to send a transaction that sets ripple requireDestinationTag property to true');
+        }
+        const unsignedTx = await this.retryDced(() => this.rippleApi.prepareSettings(address, {
             requireDestinationTag: true,
-        });
+        }));
         const signedTx = this.rippleApi.sign(unsignedTx.txJSON, secret);
-        const broadcast = await this.rippleApi.submit(signedTx.signedTransaction);
+        const broadcast = await this.retryDced(() => this.rippleApi.submit(signedTx.signedTransaction));
         return {
             txId: signedTx.id,
             unsignedTx,
