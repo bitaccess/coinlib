@@ -102,11 +102,15 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
         if (settings.requireDestinationTag) {
             return;
         }
+        if (this.isReadOnly()) {
+            this.logger.warn(`Deposit account (${address}) doesn't have requireDestinationTag property set`);
+            return;
+        }
         const { confirmedBalance } = await this.getBalance(address);
         const { feeMain } = await this.resolveFeeOption({ feeLevel: FeeLevel.Medium });
         if (new BigNumber(confirmedBalance).lt(feeMain)) {
             this.logger.warn(`Insufficient balance in deposit account (${address}) to pay fee of ${feeMain} XRP ` +
-                'to send a transaction that sets ripple requireDestinationTag property to true');
+                'to send a transaction that sets requireDestinationTag property to true');
         }
         const unsignedTx = await this.retryDced(() => this.rippleApi.prepareSettings(address, {
             requireDestinationTag: true,
