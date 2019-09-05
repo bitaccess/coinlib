@@ -88,6 +88,7 @@ export const TransactionStatusT = enumCodec<TransactionStatus>(TransactionStatus
 
 export const TransactionCommon = requiredOptionalCodec(
   {
+    status: TransactionStatusT,
     id: nullable(t.string), // network txid
     fromAddress: nullable(t.string), // sender address
     toAddress: nullable(t.string), // recipient address
@@ -95,7 +96,7 @@ export const TransactionCommon = requiredOptionalCodec(
     toIndex: nullable(t.number), // recipient address index, null if not ours
     amount: nullable(t.string), // main denomination (eg "0.125")
     fee: nullable(t.string), // total fee in main denomination
-    status: TransactionStatusT,
+    sequenceNumber: nullable(t.number), // eg Ethereum nonce or ripple sequence
   },
   {
     fromExtraId: nullable(t.string), // eg ripple sender tag

@@ -40,6 +40,7 @@ describe('types', () => {
   })
   test('BaseUnsignedTransaction validates successfully', () => {
     assertType(BaseUnsignedTransaction, {
+      status: 'unsigned',
       id: null,
       fromAddress: 'address',
       toAddress: 'address',
@@ -51,7 +52,7 @@ describe('types', () => {
       targetFeeLevel: 'high',
       targetFeeRate: null,
       targetFeeRateType: null,
-      status: 'unsigned',
+      sequenceNumber: null,
       data: {},
     })
   })
@@ -60,6 +61,7 @@ describe('types', () => {
   })
   test('BaseSignedTransaction validates successfully', () => {
     assertType(BaseSignedTransaction, {
+      status: 'signed',
       id: 'id',
       fromAddress: 'address',
       toAddress: 'address',
@@ -71,7 +73,7 @@ describe('types', () => {
       targetFeeLevel: 'high',
       targetFeeRate: '0.1234',
       targetFeeRateType: 'main',
-      status: 'signed',
+      sequenceNumber: null,
       data: {},
     })
   })
@@ -80,6 +82,7 @@ describe('types', () => {
   })
   test('BaseTransactionInfo validates successfully', () => {
     assertType(BaseTransactionInfo, {
+      status: 'unsigned',
       id: 'id',
       fromAddress: 'address',
       toAddress: 'address',
@@ -88,7 +91,7 @@ describe('types', () => {
       toIndex: 1,
       amount: '0.1234',
       fee: '0.1234',
-      status: 'unsigned',
+      sequenceNumber: null,
       isExecuted: false,
       isConfirmed: false,
       confirmations: 0,
