@@ -313,6 +313,9 @@
       isSweepableBalance(balanceTrx) {
           return this.canSweepBalance(toBaseDenominationNumber(balanceTrx));
       }
+      async getNextSequenceNumber() {
+          return null;
+      }
       canSweepBalance(balanceSun) {
           return balanceSun > MIN_BALANCE_SUN;
       }
