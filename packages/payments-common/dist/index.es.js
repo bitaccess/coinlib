@@ -1,6 +1,6 @@
 import { partial, union, string, number, literal, type, boolean, object } from 'io-ts';
 import BigNumber from 'bignumber.js';
-import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT, Logger, functionT, DelegateLogger } from '@faast/ts-common';
+import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT, Logger, functionT, Numeric, DelegateLogger } from '@faast/ts-common';
 
 var NetworkType;
 (function (NetworkType) {
@@ -38,7 +38,10 @@ const FeeOptionLevel = partial({
     feeLevel: union([literal(FeeLevel.High), literal(FeeLevel.Medium), literal(FeeLevel.Low)]),
 }, 'FeeOptionLevel');
 const FeeOption = union([FeeOptionCustom, FeeOptionLevel], 'FeeOption');
-const CreateTransactionOptions = FeeOption;
+const CreateTransactionOptions = extendCodec(FeeOption, {}, {
+    sequenceNumber: number,
+    payportBalance: Numeric,
+}, 'CreateTransactionOptions');
 const ResolvedFeeOption = type({
     targetFeeLevel: FeeLevelT,
     targetFeeRate: string,

@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT, Logger, functionT } from '@faast/ts-common';
+import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT, Logger, functionT, Numeric, } from '@faast/ts-common';
 export var NetworkType;
 (function (NetworkType) {
     NetworkType["Mainnet"] = "mainnet";
@@ -36,7 +36,10 @@ export const FeeOptionLevel = t.partial({
     feeLevel: t.union([t.literal(FeeLevel.High), t.literal(FeeLevel.Medium), t.literal(FeeLevel.Low)]),
 }, 'FeeOptionLevel');
 export const FeeOption = t.union([FeeOptionCustom, FeeOptionLevel], 'FeeOption');
-export const CreateTransactionOptions = FeeOption;
+export const CreateTransactionOptions = extendCodec(FeeOption, {}, {
+    sequenceNumber: t.number,
+    payportBalance: Numeric,
+}, 'CreateTransactionOptions');
 export const ResolvedFeeOption = t.type({
     targetFeeLevel: FeeLevelT,
     targetFeeRate: t.string,

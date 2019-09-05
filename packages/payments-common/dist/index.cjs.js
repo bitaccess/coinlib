@@ -41,7 +41,10 @@ const FeeOptionLevel = t.partial({
     feeLevel: t.union([t.literal(exports.FeeLevel.High), t.literal(exports.FeeLevel.Medium), t.literal(exports.FeeLevel.Low)]),
 }, 'FeeOptionLevel');
 const FeeOption = t.union([FeeOptionCustom, FeeOptionLevel], 'FeeOption');
-const CreateTransactionOptions = FeeOption;
+const CreateTransactionOptions = tsCommon.extendCodec(FeeOption, {}, {
+    sequenceNumber: t.number,
+    payportBalance: tsCommon.Numeric,
+}, 'CreateTransactionOptions');
 const ResolvedFeeOption = t.type({
     targetFeeLevel: FeeLevelT,
     targetFeeRate: t.string,
