@@ -62,6 +62,7 @@ export declare const TronPaymentsConfig: t.UnionC<[t.IntersectionC<[t.Intersecti
 }>]>]>;
 export declare type TronPaymentsConfig = t.TypeOf<typeof TronPaymentsConfig>;
 export declare const TronUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.TypeC<{
+    status: t.Type<import("@faast/payments-common").TransactionStatus, import("@faast/payments-common").TransactionStatus, unknown>;
     id: t.UnionC<[t.StringC, t.NullC]>;
     fromAddress: t.UnionC<[t.StringC, t.NullC]>;
     toAddress: t.UnionC<[t.StringC, t.NullC]>;
@@ -69,7 +70,7 @@ export declare const TronUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    status: t.Type<import("@faast/payments-common").TransactionStatus, import("@faast/payments-common").TransactionStatus, unknown>;
+    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
@@ -90,6 +91,7 @@ export declare const TronUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
 }>]>;
 export declare type TronUnsignedTransaction = t.TypeOf<typeof TronUnsignedTransaction>;
 export declare const TronSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.TypeC<{
+    status: t.Type<import("@faast/payments-common").TransactionStatus, import("@faast/payments-common").TransactionStatus, unknown>;
     id: t.UnionC<[t.StringC, t.NullC]>;
     fromAddress: t.UnionC<[t.StringC, t.NullC]>;
     toAddress: t.UnionC<[t.StringC, t.NullC]>;
@@ -97,7 +99,7 @@ export declare const TronSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    status: t.Type<import("@faast/payments-common").TransactionStatus, import("@faast/payments-common").TransactionStatus, unknown>;
+    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
@@ -117,6 +119,7 @@ export declare const TronSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
 }>]>;
 export declare type TronSignedTransaction = t.TypeOf<typeof TronSignedTransaction>;
 export declare const TronTransactionInfo: t.IntersectionC<[t.IntersectionC<[t.TypeC<{
+    status: t.Type<import("@faast/payments-common").TransactionStatus, import("@faast/payments-common").TransactionStatus, unknown>;
     id: t.UnionC<[t.StringC, t.NullC]>;
     fromAddress: t.UnionC<[t.StringC, t.NullC]>;
     toAddress: t.UnionC<[t.StringC, t.NullC]>;
@@ -124,7 +127,7 @@ export declare const TronTransactionInfo: t.IntersectionC<[t.IntersectionC<[t.Ty
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    status: t.Type<import("@faast/payments-common").TransactionStatus, import("@faast/payments-common").TransactionStatus, unknown>;
+    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;

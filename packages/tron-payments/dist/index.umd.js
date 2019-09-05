@@ -155,6 +155,7 @@
               const amountTrx = this.toMainDenomination(amountSun);
               const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress);
               return {
+                  status: paymentsCommon.TransactionStatus.Unsigned,
                   id: tx.txID,
                   fromAddress,
                   toAddress,
@@ -166,7 +167,7 @@
                   targetFeeLevel,
                   targetFeeRate,
                   targetFeeRateType,
-                  status: paymentsCommon.TransactionStatus.Unsigned,
+                  sequenceNumber: null,
                   data: tx,
               };
           }
@@ -189,6 +190,7 @@
               }
               const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress);
               return {
+                  status: paymentsCommon.TransactionStatus.Unsigned,
                   id: tx.txID,
                   fromAddress,
                   toAddress,
@@ -200,7 +202,7 @@
                   targetFeeLevel,
                   targetFeeRate,
                   targetFeeRateType,
-                  status: paymentsCommon.TransactionStatus.Unsigned,
+                  sequenceNumber: null,
                   data: tx,
               };
           }
@@ -290,6 +292,7 @@
                   fromIndex: null,
                   toIndex: null,
                   fee: feeTrx,
+                  sequenceNumber: null,
                   isExecuted,
                   isConfirmed,
                   confirmations,

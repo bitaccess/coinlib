@@ -157,6 +157,7 @@ class BaseTronPayments extends TronPaymentsUtils {
             const amountTrx = this.toMainDenomination(amountSun);
             const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress);
             return {
+                status: TransactionStatus.Unsigned,
                 id: tx.txID,
                 fromAddress,
                 toAddress,
@@ -168,7 +169,7 @@ class BaseTronPayments extends TronPaymentsUtils {
                 targetFeeLevel,
                 targetFeeRate,
                 targetFeeRateType,
-                status: TransactionStatus.Unsigned,
+                sequenceNumber: null,
                 data: tx,
             };
         }
@@ -191,6 +192,7 @@ class BaseTronPayments extends TronPaymentsUtils {
             }
             const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress);
             return {
+                status: TransactionStatus.Unsigned,
                 id: tx.txID,
                 fromAddress,
                 toAddress,
@@ -202,7 +204,7 @@ class BaseTronPayments extends TronPaymentsUtils {
                 targetFeeLevel,
                 targetFeeRate,
                 targetFeeRateType,
-                status: TransactionStatus.Unsigned,
+                sequenceNumber: null,
                 data: tx,
             };
         }
@@ -292,6 +294,7 @@ class BaseTronPayments extends TronPaymentsUtils {
                 fromIndex: null,
                 toIndex: null,
                 fee: feeTrx,
+                sequenceNumber: null,
                 isExecuted,
                 isConfirmed,
                 confirmations,
