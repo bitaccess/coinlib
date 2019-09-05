@@ -357,6 +357,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
         const confirmationId = ledger.ledgerHash;
         const confirmationTimestamp = outcome.timestamp ? new Date(outcome.timestamp) : null;
         return {
+            status,
             id: tx.id,
             fromIndex,
             fromAddress: source.address,
@@ -366,7 +367,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
             toExtraId: typeof destination.tag !== 'undefined' ? String(destination.tag) : null,
             amount: amount,
             fee: outcome.fee,
-            status,
+            sequenceNumber: tx.sequence,
             confirmationId,
             confirmationNumber: ledger.ledgerVersion,
             confirmationTimestamp,
@@ -486,6 +487,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
             sequence,
         }));
         return {
+            status: paymentsCommon.TransactionStatus.Unsigned,
             id: null,
             fromIndex,
             fromAddress,
@@ -498,7 +500,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
             targetFeeRate,
             targetFeeRateType,
             fee: feeMain,
-            status: paymentsCommon.TransactionStatus.Unsigned,
+            sequenceNumber: preparedTx.instructions.sequence,
             data: preparedTx,
         };
     }

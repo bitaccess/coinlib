@@ -118,6 +118,7 @@ export declare const RipplePaymentsConfig: t.UnionC<[t.IntersectionC<[t.Intersec
 }>]>]>;
 export declare type RipplePaymentsConfig = t.TypeOf<typeof RipplePaymentsConfig>;
 export declare const RippleUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.TypeC<{
+    status: t.Type<import("@faast/payments-common").TransactionStatus, import("@faast/payments-common").TransactionStatus, unknown>;
     id: t.UnionC<[t.StringC, t.NullC]>;
     fromAddress: t.UnionC<[t.StringC, t.NullC]>;
     toAddress: t.UnionC<[t.StringC, t.NullC]>;
@@ -125,7 +126,7 @@ export declare const RippleUnsignedTransaction: t.IntersectionC<[t.IntersectionC
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    status: t.Type<import("@faast/payments-common").TransactionStatus, import("@faast/payments-common").TransactionStatus, unknown>;
+    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
@@ -145,6 +146,7 @@ export declare const RippleUnsignedTransaction: t.IntersectionC<[t.IntersectionC
 }>]>;
 export declare type RippleUnsignedTransaction = t.TypeOf<typeof RippleUnsignedTransaction>;
 export declare const RippleSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.TypeC<{
+    status: t.Type<import("@faast/payments-common").TransactionStatus, import("@faast/payments-common").TransactionStatus, unknown>;
     id: t.UnionC<[t.StringC, t.NullC]>;
     fromAddress: t.UnionC<[t.StringC, t.NullC]>;
     toAddress: t.UnionC<[t.StringC, t.NullC]>;
@@ -152,7 +154,7 @@ export declare const RippleSignedTransaction: t.IntersectionC<[t.IntersectionC<[
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    status: t.Type<import("@faast/payments-common").TransactionStatus, import("@faast/payments-common").TransactionStatus, unknown>;
+    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
@@ -174,6 +176,7 @@ export declare const RippleSignedTransaction: t.IntersectionC<[t.IntersectionC<[
 }>]>;
 export declare type RippleSignedTransaction = t.TypeOf<typeof RippleSignedTransaction>;
 export declare const RippleTransactionInfo: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.TypeC<{
+    status: t.Type<import("@faast/payments-common").TransactionStatus, import("@faast/payments-common").TransactionStatus, unknown>;
     id: t.UnionC<[t.StringC, t.NullC]>;
     fromAddress: t.UnionC<[t.StringC, t.NullC]>;
     toAddress: t.UnionC<[t.StringC, t.NullC]>;
@@ -181,7 +184,7 @@ export declare const RippleTransactionInfo: t.IntersectionC<[t.IntersectionC<[t.
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    status: t.Type<import("@faast/payments-common").TransactionStatus, import("@faast/payments-common").TransactionStatus, unknown>;
+    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
