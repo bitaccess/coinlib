@@ -61,6 +61,7 @@ var TransactionStatus;
 })(TransactionStatus || (TransactionStatus = {}));
 const TransactionStatusT = enumCodec(TransactionStatus, 'TransactionStatus');
 const TransactionCommon = requiredOptionalCodec({
+    status: TransactionStatusT,
     id: nullable(string),
     fromAddress: nullable(string),
     toAddress: nullable(string),
@@ -68,7 +69,7 @@ const TransactionCommon = requiredOptionalCodec({
     toIndex: nullable(number),
     amount: nullable(string),
     fee: nullable(string),
-    status: TransactionStatusT,
+    sequenceNumber: nullable(number),
 }, {
     fromExtraId: nullable(string),
     toExtraId: nullable(string),

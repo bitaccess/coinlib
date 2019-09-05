@@ -61,6 +61,7 @@
   })(exports.TransactionStatus || (exports.TransactionStatus = {}));
   const TransactionStatusT = tsCommon.enumCodec(exports.TransactionStatus, 'TransactionStatus');
   const TransactionCommon = tsCommon.requiredOptionalCodec({
+      status: TransactionStatusT,
       id: tsCommon.nullable(t.string),
       fromAddress: tsCommon.nullable(t.string),
       toAddress: tsCommon.nullable(t.string),
@@ -68,7 +69,7 @@
       toIndex: tsCommon.nullable(t.number),
       amount: tsCommon.nullable(t.string),
       fee: tsCommon.nullable(t.string),
-      status: TransactionStatusT,
+      sequenceNumber: tsCommon.nullable(t.number),
   }, {
       fromExtraId: tsCommon.nullable(t.string),
       toExtraId: tsCommon.nullable(t.string),
