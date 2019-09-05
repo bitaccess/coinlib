@@ -94,7 +94,7 @@ export interface BasePayments<
   /**
    * Get the balance of a payport (or payport at `index`).
    *
-   * @param payportOrIndex - The payport or payport index to get the balance of
+   * @param payport - The payport to get the balance of
    * @return The balance and unconfirmed balance formatted as a string in the main denomination (eg "0.125" XMR)
    */
   getBalance<O extends object>(payport: ResolveablePayport, options?: O): Promise<BalanceResult>
@@ -105,6 +105,12 @@ export interface BasePayments<
    * a hot wallet.
    */
   isSweepableBalance(balance: string, payport?: ResolveablePayport): boolean
+
+  /**
+   * Get the next unused transaction sequenceNumber for a payport.
+   * @returns null if the network doesn't use sequence numbers, or if it cannot be determined.
+   */
+  getNextSequenceNumber(payport: ResolveablePayport): Promise<number | null>
 
   /**
    * Get the info and status of a transaction.

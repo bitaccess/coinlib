@@ -1,5 +1,14 @@
 import * as t from 'io-ts'
-import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT, Logger, functionT } from '@faast/ts-common'
+import {
+  requiredOptionalCodec,
+  extendCodec,
+  enumCodec,
+  nullable,
+  DateT,
+  Logger,
+  functionT,
+  Numeric,
+} from '@faast/ts-common'
 
 export enum NetworkType {
   Mainnet = 'mainnet',
@@ -55,7 +64,15 @@ export const FeeOptionLevel = t.partial(
 export const FeeOption = t.union([FeeOptionCustom, FeeOptionLevel], 'FeeOption')
 export type FeeOption = t.TypeOf<typeof FeeOption>
 
-export const CreateTransactionOptions = FeeOption
+export const CreateTransactionOptions = extendCodec(
+  FeeOption,
+  {},
+  {
+    sequenceNumber: t.number,
+    payportBalance: Numeric,
+  },
+  'CreateTransactionOptions',
+)
 export type CreateTransactionOptions = t.TypeOf<typeof CreateTransactionOptions>
 
 export const ResolvedFeeOption = t.type({
