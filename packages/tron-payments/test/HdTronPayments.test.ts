@@ -259,7 +259,7 @@ describe('HdTronPayments', () => {
       it('create sweep transaction to an index', async () => {
         const tx = await tp.createSweepTransaction(0, 3)
         expect(tx).toBeDefined()
-        expect(tx.amount).toEqual('2.3')
+        expect(tx.amount).toEqual('2.1')
         expect(tx.fromAddress).toEqual(address0)
         expect(tx.toAddress).toEqual(address3)
         expect(tx.fromIndex).toEqual(0)
@@ -269,7 +269,7 @@ describe('HdTronPayments', () => {
       it('create sweep transaction to an internal address', async () => {
         const tx = await tp.createSweepTransaction(0, { address: address3 })
         expect(tx).toBeDefined()
-        expect(tx.amount).toEqual('2.3')
+        expect(tx.amount).toEqual('2.1')
         expect(tx.fromAddress).toEqual(address0)
         expect(tx.toAddress).toEqual(address3)
         expect(tx.fromIndex).toEqual(0)
@@ -279,7 +279,7 @@ describe('HdTronPayments', () => {
       it('create sweep transaction to an external address', async () => {
         const tx = await tp.createSweepTransaction(0, { address: EXTERNAL_ADDRESS })
         expect(tx).toBeDefined()
-        expect(tx.amount).toEqual('2.3')
+        expect(tx.amount).toEqual('2.1')
         expect(tx.fromAddress).toEqual(address0)
         expect(tx.toAddress).toEqual(EXTERNAL_ADDRESS)
         expect(tx.fromIndex).toEqual(0)

@@ -11,6 +11,7 @@ export const txInfo_209F8: TronTransactionInfo = {
   toIndex: null,
   amount: '0.002323',
   fee: '0.1',
+  sequenceNumber: null,
   isExecuted: true,
   isConfirmed: true,
   confirmations: 1234,
@@ -83,6 +84,7 @@ export const txInfo_a0787: TronTransactionInfo = {
   fromIndex: null,
   toIndex: null,
   fee: '0',
+  sequenceNumber: null,
   isExecuted: true,
   isConfirmed: true,
   confirmations: 4199517,
@@ -157,6 +159,7 @@ export const signedTx_valid: TronSignedTransaction = {
   targetFeeLevel: FeeLevel.Medium,
   targetFeeRate: '0',
   targetFeeRateType: FeeRateType.BasePerWeight,
+  sequenceNumber: null,
   status: TransactionStatus.Signed,
   data: {
     txID: 'c7376e46f869a9cadfca43ca20bfdc3c1bfe856908a6a57de147fb881189c3a7',
@@ -199,6 +202,7 @@ export const signedTx_invalid: TronSignedTransaction = {
   targetFeeLevel: FeeLevel.Medium,
   targetFeeRate: '0',
   targetFeeRateType: FeeRateType.BasePerWeight,
+  sequenceNumber: null,
   status: TransactionStatus.Signed,
   data: {
     txID: '1234567890',

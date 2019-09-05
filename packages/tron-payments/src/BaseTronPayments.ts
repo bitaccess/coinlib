@@ -133,6 +133,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
       const amountTrx = this.toMainDenomination(amountSun)
       const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)
       return {
+        status: TransactionStatus.Unsigned,
         id: tx.txID,
         fromAddress,
         toAddress,
@@ -144,7 +145,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
         targetFeeLevel,
         targetFeeRate,
         targetFeeRateType,
-        status: TransactionStatus.Unsigned,
+        sequenceNumber: null,
         data: tx,
       }
     } catch (e) {
@@ -176,6 +177,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
       }
       const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)
       return {
+        status: TransactionStatus.Unsigned,
         id: tx.txID,
         fromAddress,
         toAddress,
@@ -187,7 +189,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
         targetFeeLevel,
         targetFeeRate,
         targetFeeRateType,
-        status: TransactionStatus.Unsigned,
+        sequenceNumber: null,
         data: tx,
       }
     } catch (e) {
@@ -293,6 +295,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
         fromIndex: null,
         toIndex: null,
         fee: feeTrx,
+        sequenceNumber: null,
         isExecuted,
         isConfirmed,
         confirmations,
