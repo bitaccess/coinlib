@@ -139,8 +139,6 @@ export const RippleCreateTransactionOptions = extendCodec(
   {},
   {
     maxLedgerVersionOffset: t.number,
-    sequence: t.number,
-    payportBalance: Numeric,
   },
   'RippleCreateTransactionOptions',
 )

@@ -220,6 +220,13 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     }
   }
 
+  async getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<number> {
+    const payport = await this.resolvePayport(payportOrIndex)
+    const { address } = payport
+    const accountInfo = await this.retryDced(() => this.rippleApi.getAccountInfo(address))
+    return accountInfo.sequence
+  }
+
   resolveIndexFromAdjustment(adjustment: Adjustment): number | null {
     const { address, tag } = adjustment
     if (address === this.getHotSignatory().address) {
@@ -358,7 +365,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       throw new Error('Cannot create XRP payment transaction sending XRP to self')
     }
     const { targetFeeLevel, targetFeeRate, targetFeeRateType, feeMain } = feeOption
-    const { sequence } = options
+    const { sequenceNumber } = options
     const maxLedgerVersionOffset =
       options.maxLedgerVersionOffset || this.config.maxLedgerVersionOffset || DEFAULT_MAX_LEDGER_VERSION_OFFSET
     const amountString = amount.toString()
@@ -406,7 +413,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
         },
         {
           maxLedgerVersionOffset,
-          sequence,
+          sequence: sequenceNumber,
         },
       ),
     )
