@@ -317,6 +317,10 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
     return this.canSweepBalance(toBaseDenominationNumber(balanceTrx))
   }
 
+  async getNextSequenceNumber() {
+    return null
+  }
+
   // HELPERS
 
   private canSweepBalance(balanceSun: number): boolean {
