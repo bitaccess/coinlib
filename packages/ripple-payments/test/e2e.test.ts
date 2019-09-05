@@ -121,6 +121,7 @@ describe('e2e', async () => {
     expect(tx.confirmationId).toMatch(/^\w+$/)
     expect(tx.confirmationTimestamp).toBeDefined()
     expect(tx.confirmations).toBeGreaterThan(0)
+    expect(tx.sequenceNumber).toBeGreaterThan(0)
     return tx
   }
 

@@ -261,6 +261,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     const confirmationId = ledger.ledgerHash
     const confirmationTimestamp = outcome.timestamp ? new Date(outcome.timestamp) : null
     return {
+      status,
       id: tx.id,
       fromIndex,
       fromAddress: source.address,
@@ -270,7 +271,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       toExtraId: typeof destination.tag !== 'undefined' ? String(destination.tag) : null,
       amount: amount,
       fee: outcome.fee,
-      status,
+      sequenceNumber: tx.sequence,
       confirmationId,
       confirmationNumber: ledger.ledgerVersion,
       confirmationTimestamp,
@@ -410,6 +411,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       ),
     )
     return {
+      status: TransactionStatus.Unsigned,
       id: null,
       fromIndex,
       fromAddress,
@@ -422,7 +424,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       targetFeeRate,
       targetFeeRateType,
       fee: feeMain,
-      status: TransactionStatus.Unsigned,
+      sequenceNumber: preparedTx.instructions.sequence,
       data: preparedTx,
     }
   }
