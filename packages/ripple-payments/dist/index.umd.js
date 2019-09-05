@@ -49,8 +49,6 @@
   }, 'RippleBroadcastResult');
   const RippleCreateTransactionOptions = tsCommon.extendCodec(paymentsCommon.CreateTransactionOptions, {}, {
       maxLedgerVersionOffset: t.number,
-      sequence: t.number,
-      payportBalance: tsCommon.Numeric,
   }, 'RippleCreateTransactionOptions');
 
   const PACKAGE_NAME = 'ripple-payments';
@@ -309,6 +307,12 @@
               sweepable: this.isSweepableAddressBalance(xrpAmount),
           };
       }
+      async getNextSequenceNumber(payportOrIndex) {
+          const payport = await this.resolvePayport(payportOrIndex);
+          const { address } = payport;
+          const accountInfo = await this.retryDced(() => this.rippleApi.getAccountInfo(address));
+          return accountInfo.sequence;
+      }
       resolveIndexFromAdjustment(adjustment) {
           const { address, tag } = adjustment;
           if (address === this.getHotSignatory().address) {
@@ -441,7 +445,7 @@
               throw new Error('Cannot create XRP payment transaction sending XRP to self');
           }
           const { targetFeeLevel, targetFeeRate, targetFeeRateType, feeMain } = feeOption;
-          const { sequence } = options;
+          const { sequenceNumber } = options;
           const maxLedgerVersionOffset = options.maxLedgerVersionOffset || this.config.maxLedgerVersionOffset || DEFAULT_MAX_LEDGER_VERSION_OFFSET;
           const amountString = amount.toString();
           const addressBalances = await this.getBalance({ address: fromAddress });
@@ -478,7 +482,7 @@
               },
           }, {
               maxLedgerVersionOffset,
-              sequence,
+              sequence: sequenceNumber,
           }));
           return {
               status: paymentsCommon.TransactionStatus.Unsigned,

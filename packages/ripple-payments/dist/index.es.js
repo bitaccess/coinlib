@@ -8,7 +8,7 @@ import crypto from 'crypto';
 import { BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, CreateTransactionOptions, BaseConfig, createUnitConverters, NetworkType, Payport, FeeLevel, FeeRateType, TransactionStatus, BalanceMonitor } from '@faast/payments-common';
 export { CreateTransactionOptions } from '@faast/payments-common';
 import { isString, isUndefined, isNumber } from 'util';
-import { extendCodec, instanceofCodec, nullable, Numeric, isNil, DelegateLogger, assertType } from '@faast/ts-common';
+import { extendCodec, instanceofCodec, nullable, isNil, DelegateLogger, assertType } from '@faast/ts-common';
 
 const BaseRippleConfig = extendCodec(BaseConfig, {}, {
     server: union([string, instanceofCodec(RippleAPI), nullType]),
@@ -50,8 +50,6 @@ const RippleBroadcastResult = extendCodec(BaseBroadcastResult, {
 }, 'RippleBroadcastResult');
 const RippleCreateTransactionOptions = extendCodec(CreateTransactionOptions, {}, {
     maxLedgerVersionOffset: number,
-    sequence: number,
-    payportBalance: Numeric,
 }, 'RippleCreateTransactionOptions');
 
 const PACKAGE_NAME = 'ripple-payments';
@@ -310,6 +308,12 @@ class BaseRipplePayments extends RipplePaymentsUtils {
             sweepable: this.isSweepableAddressBalance(xrpAmount),
         };
     }
+    async getNextSequenceNumber(payportOrIndex) {
+        const payport = await this.resolvePayport(payportOrIndex);
+        const { address } = payport;
+        const accountInfo = await this.retryDced(() => this.rippleApi.getAccountInfo(address));
+        return accountInfo.sequence;
+    }
     resolveIndexFromAdjustment(adjustment) {
         const { address, tag } = adjustment;
         if (address === this.getHotSignatory().address) {
@@ -442,7 +446,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
             throw new Error('Cannot create XRP payment transaction sending XRP to self');
         }
         const { targetFeeLevel, targetFeeRate, targetFeeRateType, feeMain } = feeOption;
-        const { sequence } = options;
+        const { sequenceNumber } = options;
         const maxLedgerVersionOffset = options.maxLedgerVersionOffset || this.config.maxLedgerVersionOffset || DEFAULT_MAX_LEDGER_VERSION_OFFSET;
         const amountString = amount.toString();
         const addressBalances = await this.getBalance({ address: fromAddress });
@@ -479,7 +483,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
             },
         }, {
             maxLedgerVersionOffset,
-            sequence,
+            sequence: sequenceNumber,
         }));
         return {
             status: TransactionStatus.Unsigned,

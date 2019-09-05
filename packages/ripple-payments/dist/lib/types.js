@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-import { extendCodec, instanceofCodec, nullable, Numeric } from '@faast/ts-common';
+import { extendCodec, instanceofCodec, nullable } from '@faast/ts-common';
 import { BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, CreateTransactionOptions, BaseConfig, } from '@faast/payments-common';
 import { RippleAPI } from 'ripple-lib';
 export { CreateTransactionOptions };
@@ -43,7 +43,5 @@ export const RippleBroadcastResult = extendCodec(BaseBroadcastResult, {
 }, 'RippleBroadcastResult');
 export const RippleCreateTransactionOptions = extendCodec(CreateTransactionOptions, {}, {
     maxLedgerVersionOffset: t.number,
-    sequence: t.number,
-    payportBalance: Numeric,
 }, 'RippleCreateTransactionOptions');
 //# sourceMappingURL=types.js.map

@@ -209,7 +209,7 @@ export declare const RippleBroadcastResult: t.IntersectionC<[t.TypeC<{
     data: t.ObjectC;
 }>]>;
 export declare type RippleBroadcastResult = t.TypeOf<typeof RippleBroadcastResult>;
-export declare const RippleCreateTransactionOptions: t.IntersectionC<[t.UnionC<[t.IntersectionC<[t.TypeC<{
+export declare const RippleCreateTransactionOptions: t.IntersectionC<[t.IntersectionC<[t.UnionC<[t.IntersectionC<[t.TypeC<{
     feeRate: t.StringC;
     feeRateType: t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>;
 }>, t.PartialC<{
@@ -217,9 +217,10 @@ export declare const RippleCreateTransactionOptions: t.IntersectionC<[t.UnionC<[
 }>]>, t.PartialC<{
     feeLevel: t.UnionC<[t.LiteralC<import("@faast/payments-common").FeeLevel.High>, t.LiteralC<import("@faast/payments-common").FeeLevel.Medium>, t.LiteralC<import("@faast/payments-common").FeeLevel.Low>]>;
 }>]>, t.PartialC<{
-    maxLedgerVersionOffset: t.NumberC;
-    sequence: t.NumberC;
+    sequenceNumber: t.NumberC;
     payportBalance: t.UnionC<[t.StringC, t.NumberC, import("@faast/ts-common").BigNumberC]>;
+}>]>, t.PartialC<{
+    maxLedgerVersionOffset: t.NumberC;
 }>]>;
 export declare type RippleCreateTransactionOptions = t.TypeOf<typeof RippleCreateTransactionOptions>;
 export declare type FromToWithPayport = FromTo & {

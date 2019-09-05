@@ -141,6 +141,12 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
             sweepable: this.isSweepableAddressBalance(xrpAmount),
         };
     }
+    async getNextSequenceNumber(payportOrIndex) {
+        const payport = await this.resolvePayport(payportOrIndex);
+        const { address } = payport;
+        const accountInfo = await this.retryDced(() => this.rippleApi.getAccountInfo(address));
+        return accountInfo.sequence;
+    }
     resolveIndexFromAdjustment(adjustment) {
         const { address, tag } = adjustment;
         if (address === this.getHotSignatory().address) {
@@ -273,7 +279,7 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
             throw new Error('Cannot create XRP payment transaction sending XRP to self');
         }
         const { targetFeeLevel, targetFeeRate, targetFeeRateType, feeMain } = feeOption;
-        const { sequence } = options;
+        const { sequenceNumber } = options;
         const maxLedgerVersionOffset = options.maxLedgerVersionOffset || this.config.maxLedgerVersionOffset || DEFAULT_MAX_LEDGER_VERSION_OFFSET;
         const amountString = amount.toString();
         const addressBalances = await this.getBalance({ address: fromAddress });
@@ -310,7 +316,7 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
             },
         }, {
             maxLedgerVersionOffset,
-            sequence,
+            sequence: sequenceNumber,
         }));
         return {
             status: TransactionStatus.Unsigned,
