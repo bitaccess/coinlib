@@ -43,6 +43,12 @@ describe('e2e', async () => {
     testsComplete = true
   })
 
+  describe('properties', () => {
+    it('should detect server when passed rippleApi', () => {
+      expect(bm.server).toBe(rp.server)
+    })
+  })
+
   describe('getPayport', () => {
     it('index 0 should return hot account address', async () => {
       const pp = await rp.getPayport(0)
