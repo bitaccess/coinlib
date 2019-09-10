@@ -922,13 +922,10 @@
 
   class RipplePaymentsFactory {
       forConfig(config) {
-          if (HdRipplePaymentsConfig.is(config)) {
-              return new HdRipplePayments(config);
-          }
           if (AccountRipplePaymentsConfig.is(config)) {
               return new AccountRipplePayments(config);
           }
-          throw new Error('Cannot instantiate ripple payments for unsupported config');
+          return new HdRipplePayments(tsCommon.assertType(HdRipplePaymentsConfig, config));
       }
   }
 

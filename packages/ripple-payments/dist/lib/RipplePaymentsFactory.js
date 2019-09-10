@@ -1,15 +1,13 @@
 import { HdRipplePaymentsConfig, AccountRipplePaymentsConfig } from './types';
 import { HdRipplePayments } from './HdRipplePayments';
 import { AccountRipplePayments } from './AccountRipplePayments';
+import { assertType } from '@faast/ts-common';
 export class RipplePaymentsFactory {
     forConfig(config) {
-        if (HdRipplePaymentsConfig.is(config)) {
-            return new HdRipplePayments(config);
-        }
         if (AccountRipplePaymentsConfig.is(config)) {
             return new AccountRipplePayments(config);
         }
-        throw new Error('Cannot instantiate ripple payments for unsupported config');
+        return new HdRipplePayments(assertType(HdRipplePaymentsConfig, config));
     }
 }
 export default RipplePaymentsFactory;
