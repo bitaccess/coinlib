@@ -16,6 +16,7 @@ import BigNumber from 'bignumber.js'
 import { RippleAPI } from 'ripple-lib'
 import { FormattedPaymentTransaction, FormattedPayment, Prepare } from 'ripple-lib/dist/npm/transaction/types'
 import { Adjustment, Amount } from 'ripple-lib/dist/npm/common/types/objects'
+import { omit } from 'lodash'
 
 import {
   BaseRipplePaymentsConfig,
@@ -35,7 +36,6 @@ import {
   NOT_FOUND_ERRORS,
 } from './constants'
 import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers'
-import { isString } from 'util'
 import { resolveRippleServer, retryIfDisconnected } from './utils'
 
 function extraIdToTag(extraId: string | null | undefined): number | undefined {
@@ -87,7 +87,14 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     return this.config
   }
 
-  abstract getPublicConfig(): Config
+  getPublicConfig() {
+    return {
+      ...omit(this.config, ['logger', 'server']),
+      ...this.getPublicAccountConfig(),
+    }
+  }
+
+  abstract getPublicAccountConfig(): Config
 
   abstract getAccountIds(): string[]
 

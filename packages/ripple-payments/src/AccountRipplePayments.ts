@@ -50,9 +50,8 @@ export class AccountRipplePayments extends BaseRipplePayments<AccountRipplePayme
     return this.readOnly
   }
 
-  getPublicConfig(): AccountRipplePaymentsConfig {
+  getPublicAccountConfig(): AccountRipplePaymentsConfig {
     return {
-      ...this.config,
       hotAccount: this.hotSignatory.address,
       depositAccount: this.depositSignatory.address,
     }
