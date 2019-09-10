@@ -14,15 +14,24 @@ export function resolveRippleServer(server, network) {
         server = network === NetworkType.Testnet ? DEFAULT_TESTNET_SERVER : DEFAULT_MAINNET_SERVER;
     }
     if (isString(server)) {
-        return new RippleAPI({
-            server: server,
-        });
+        return {
+            api: new RippleAPI({
+                server,
+            }),
+            server,
+        };
     }
     else if (server instanceof RippleAPI) {
-        return server;
+        return {
+            api: server,
+            server: server.connection._url || '',
+        };
     }
     else {
-        return new RippleAPI();
+        return {
+            api: new RippleAPI(),
+            server: null,
+        };
     }
 }
 const CONNECTION_ERRORS = ['ConnectionError', 'NotConnectedError', 'DisconnectedError'];

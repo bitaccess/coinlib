@@ -2,7 +2,9 @@ import { BalanceActivityCallback, GetBalanceActivityOptions, BalanceMonitor, Ret
 import { RippleAPI } from 'ripple-lib';
 import { RippleBalanceMonitorConfig } from './types';
 export declare class RippleBalanceMonitor extends BalanceMonitor {
+    config: RippleBalanceMonitorConfig;
     rippleApi: RippleAPI;
+    server: string | null;
     constructor(config: RippleBalanceMonitorConfig);
     init(): Promise<void>;
     destroy(): Promise<void>;

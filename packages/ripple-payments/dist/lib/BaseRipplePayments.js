@@ -17,7 +17,9 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
         super(config);
         this.config = config;
         assertType(BaseRipplePaymentsConfig, config);
-        this.rippleApi = resolveRippleServer(config.server, this.networkType);
+        const { api, server } = resolveRippleServer(config.server, this.networkType);
+        this.rippleApi = api;
+        this.server = server;
     }
     async init() {
         if (!this.rippleApi.isConnected()) {

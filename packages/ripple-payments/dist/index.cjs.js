@@ -139,15 +139,24 @@ function resolveRippleServer(server, network) {
         server = network === paymentsCommon.NetworkType.Testnet ? DEFAULT_TESTNET_SERVER : DEFAULT_MAINNET_SERVER;
     }
     if (util.isString(server)) {
-        return new rippleLib.RippleAPI({
-            server: server,
-        });
+        return {
+            api: new rippleLib.RippleAPI({
+                server,
+            }),
+            server,
+        };
     }
     else if (server instanceof rippleLib.RippleAPI) {
-        return server;
+        return {
+            api: server,
+            server: server.connection._url || '',
+        };
     }
     else {
-        return new rippleLib.RippleAPI();
+        return {
+            api: new rippleLib.RippleAPI(),
+            server: null,
+        };
     }
 }
 const CONNECTION_ERRORS = ['ConnectionError', 'NotConnectedError', 'DisconnectedError'];
@@ -189,7 +198,9 @@ class BaseRipplePayments extends RipplePaymentsUtils {
         super(config);
         this.config = config;
         tsCommon.assertType(BaseRipplePaymentsConfig, config);
-        this.rippleApi = resolveRippleServer(config.server, this.networkType);
+        const { api, server } = resolveRippleServer(config.server, this.networkType);
+        this.rippleApi = api;
+        this.server = server;
     }
     async init() {
         if (!this.rippleApi.isConnected()) {
@@ -759,8 +770,11 @@ class AccountRipplePayments extends BaseRipplePayments {
 class RippleBalanceMonitor extends paymentsCommon.BalanceMonitor {
     constructor(config) {
         super(config);
+        this.config = config;
         tsCommon.assertType(RippleBalanceMonitorConfig, config);
-        this.rippleApi = resolveRippleServer(config.server, this.networkType);
+        const { api, server } = resolveRippleServer(config.server, this.networkType);
+        this.rippleApi = api;
+        this.server = server;
     }
     async init() {
         if (!this.rippleApi.isConnected()) {

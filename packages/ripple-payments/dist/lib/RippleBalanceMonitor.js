@@ -7,8 +7,11 @@ import { assertType } from '@faast/ts-common';
 export class RippleBalanceMonitor extends BalanceMonitor {
     constructor(config) {
         super(config);
+        this.config = config;
         assertType(RippleBalanceMonitorConfig, config);
-        this.rippleApi = resolveRippleServer(config.server, this.networkType);
+        const { api, server } = resolveRippleServer(config.server, this.networkType);
+        this.rippleApi = api;
+        this.server = server;
     }
     async init() {
         if (!this.rippleApi.isConnected()) {

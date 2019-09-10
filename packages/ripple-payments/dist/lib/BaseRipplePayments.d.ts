@@ -8,6 +8,7 @@ import { RipplePaymentsUtils } from './RipplePaymentsUtils';
 export declare abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig> extends RipplePaymentsUtils implements BasePayments<Config, RippleUnsignedTransaction, RippleSignedTransaction, RippleBroadcastResult, RippleTransactionInfo> {
     config: Config;
     rippleApi: RippleAPI;
+    server: string | null;
     logger: Logger;
     constructor(config: Config);
     init(): Promise<void>;
