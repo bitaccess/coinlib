@@ -55,12 +55,15 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       RippleTransactionInfo
     > {
   rippleApi: RippleAPI
+  server: string | null
   logger: Logger
 
   constructor(public config: Config) {
     super(config)
     assertType(BaseRipplePaymentsConfig, config)
-    this.rippleApi = resolveRippleServer(config.server, this.networkType)
+    const { api, server } = resolveRippleServer(config.server, this.networkType)
+    this.rippleApi = api
+    this.server = server
   }
 
   async init(): Promise<void> {

@@ -18,11 +18,14 @@ import { assertType } from '@faast/ts-common'
 
 export class RippleBalanceMonitor extends BalanceMonitor {
   rippleApi: RippleAPI
+  server: string | null
 
-  constructor(config: RippleBalanceMonitorConfig) {
+  constructor(public config: RippleBalanceMonitorConfig) {
     super(config)
     assertType(RippleBalanceMonitorConfig, config)
-    this.rippleApi = resolveRippleServer(config.server, this.networkType)
+    const { api, server } = resolveRippleServer(config.server, this.networkType)
+    this.rippleApi = api
+    this.server = server
   }
 
   async init(): Promise<void> {

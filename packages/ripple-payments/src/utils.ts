@@ -13,19 +13,33 @@ export function padLeft(x: string, n: number, v: string): string {
   return x
 }
 
-export function resolveRippleServer(server: BaseRippleConfig['server'], network: NetworkType): RippleAPI {
+export type ResolvedServer = {
+  api: RippleAPI
+  server: string | null
+}
+
+export function resolveRippleServer(server: BaseRippleConfig['server'], network: NetworkType): ResolvedServer {
   if (typeof server === 'undefined') {
     server = network === NetworkType.Testnet ? DEFAULT_TESTNET_SERVER : DEFAULT_MAINNET_SERVER
   }
   if (isString(server)) {
-    return new RippleAPI({
-      server: server,
-    })
+    return {
+      api: new RippleAPI({
+        server,
+      }),
+      server,
+    }
   } else if (server instanceof RippleAPI) {
-    return server
+    return {
+      api: server,
+      server: (server.connection as any)._url || '',
+    }
   } else {
-    // null server -> offline mode
-    return new RippleAPI()
+    // null server arg -> offline mode
+    return {
+      api: new RippleAPI(),
+      server: null,
+    }
   }
 }
 
