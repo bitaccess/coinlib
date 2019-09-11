@@ -9,12 +9,8 @@ export declare class HdRipplePayments extends BaseRipplePayments<HdRipplePayment
     constructor(config: HdRipplePaymentsConfig);
     static generateNewKeys: typeof generateNewKeys;
     isReadOnly(): boolean;
-    getPublicConfig(): {
+    getPublicAccountConfig(): {
         hdKey: string;
-        network?: import("@faast/payments-common").NetworkType | undefined;
-        logger?: import("@faast/ts-common").Logger | undefined;
-        server?: string | import("ripple-lib/dist/npm/api").RippleAPI | null | undefined;
-        maxLedgerVersionOffset?: number | undefined;
     };
     getAccountIds(): string[];
     getAccountId(index: number): string;

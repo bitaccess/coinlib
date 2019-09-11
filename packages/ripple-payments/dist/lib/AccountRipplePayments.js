@@ -39,9 +39,8 @@ export class AccountRipplePayments extends BaseRipplePayments {
     isReadOnly() {
         return this.readOnly;
     }
-    getPublicConfig() {
+    getPublicAccountConfig() {
         return {
-            ...this.config,
             hotAccount: this.hotSignatory.address,
             depositAccount: this.depositSignatory.address,
         };

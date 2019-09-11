@@ -1,4 +1,5 @@
 import BigNumber from 'bignumber.js';
+import { omit } from 'lodash';
 import { union, string, nullType, number, type, boolean, object } from 'io-ts';
 import { RippleAPI } from 'ripple-lib';
 import promiseRetry from 'promise-retry';
@@ -214,6 +215,12 @@ class BaseRipplePayments extends RipplePaymentsUtils {
     getFullConfig() {
         return this.config;
     }
+    getPublicConfig() {
+        return {
+            ...omit(this.config, ['logger', 'server']),
+            ...this.getPublicAccountConfig(),
+        };
+    }
     doGetPayport(index) {
         if (index === 0) {
             return { address: this.getHotSignatory().address };
@@ -360,7 +367,10 @@ class BaseRipplePayments extends RipplePaymentsUtils {
         const fromIndex = this.resolveIndexFromAdjustment(source);
         const toIndex = this.resolveIndexFromAdjustment(destination);
         const amount = amountObject.value;
-        const status = outcome.result.startsWith('tes') ? TransactionStatus.Confirmed : TransactionStatus.Failed;
+        const isSuccessful = outcome.result.startsWith('tes');
+        const isCostDestroyed = outcome.result.startsWith('tec');
+        const status = isSuccessful || isCostDestroyed ? TransactionStatus.Confirmed : TransactionStatus.Failed;
+        const isExecuted = isSuccessful;
         const confirmationNumber = outcome.ledgerVersion;
         const ledger = await this.retryDced(() => this.rippleApi.getLedger({ ledgerVersion: confirmationNumber }));
         const currentLedgerVersion = await this.retryDced(() => this.rippleApi.getLedgerVersion());
@@ -379,10 +389,10 @@ class BaseRipplePayments extends RipplePaymentsUtils {
             fee: outcome.fee,
             sequenceNumber: tx.sequence,
             confirmationId,
-            confirmationNumber: ledger.ledgerVersion,
+            confirmationNumber,
             confirmationTimestamp,
-            isExecuted: status === 'confirmed',
-            isConfirmed: true,
+            isExecuted,
+            isConfirmed: Boolean(confirmationNumber),
             confirmations: currentLedgerVersion - confirmationNumber,
             data: tx,
         };
@@ -572,7 +582,11 @@ class BaseRipplePayments extends RipplePaymentsUtils {
         const result = (await this.retryDced(() => this.rippleApi.submit(signedTxString)));
         this.logger.debug('broadcasted', result);
         const resultCode = result.engine_result || result.resultCode || '';
-        if (!resultCode.startsWith('tes')) {
+        const okay = resultCode.startsWith('tes') ||
+            resultCode.startsWith('ter') ||
+            resultCode.startsWith('tec') ||
+            resultCode === 'tefPAST_SEQ';
+        if (!okay) {
             throw new Error(`Failed to broadcast ripple tx ${signedTx.id} with result code ${resultCode}`);
         }
         return {
@@ -677,9 +691,8 @@ class HdRipplePayments extends BaseRipplePayments {
     isReadOnly() {
         return this.xprv === null;
     }
-    getPublicConfig() {
+    getPublicAccountConfig() {
         return {
-            ...this.config,
             hdKey: xprvToXpub(this.config.hdKey),
         };
     }
@@ -735,9 +748,8 @@ class AccountRipplePayments extends BaseRipplePayments {
     isReadOnly() {
         return this.readOnly;
     }
-    getPublicConfig() {
+    getPublicAccountConfig() {
         return {
-            ...this.config,
             hotAccount: this.hotSignatory.address,
             depositAccount: this.depositSignatory.address,
         };

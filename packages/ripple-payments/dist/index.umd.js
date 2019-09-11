@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('bignumber.js'), require('io-ts'), require('ripple-lib'), require('promise-retry'), require('bip32'), require('base-x'), require('crypto'), require('@faast/payments-common'), require('util'), require('@faast/ts-common')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'bignumber.js', 'io-ts', 'ripple-lib', 'promise-retry', 'bip32', 'base-x', 'crypto', '@faast/payments-common', 'util', '@faast/ts-common'], factory) :
-  (factory((global.faastRipplePayments = {}),global.BigNumber,global.t,global.rippleLib,global.promiseRetry,global.bip32,global.baseX,global.crypto,global.paymentsCommon,global.util,global.tsCommon));
-}(this, (function (exports,BigNumber,t,rippleLib,promiseRetry,bip32,baseX,crypto,paymentsCommon,util,tsCommon) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('bignumber.js'), require('lodash'), require('io-ts'), require('ripple-lib'), require('promise-retry'), require('bip32'), require('base-x'), require('crypto'), require('@faast/payments-common'), require('util'), require('@faast/ts-common')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'bignumber.js', 'lodash', 'io-ts', 'ripple-lib', 'promise-retry', 'bip32', 'base-x', 'crypto', '@faast/payments-common', 'util', '@faast/ts-common'], factory) :
+  (factory((global.faastRipplePayments = {}),global.BigNumber,global.lodash,global.t,global.rippleLib,global.promiseRetry,global.bip32,global.baseX,global.crypto,global.paymentsCommon,global.util,global.tsCommon));
+}(this, (function (exports,BigNumber,lodash,t,rippleLib,promiseRetry,bip32,baseX,crypto,paymentsCommon,util,tsCommon) { 'use strict';
 
   BigNumber = BigNumber && BigNumber.hasOwnProperty('default') ? BigNumber['default'] : BigNumber;
   promiseRetry = promiseRetry && promiseRetry.hasOwnProperty('default') ? promiseRetry['default'] : promiseRetry;
@@ -213,6 +213,12 @@
       getFullConfig() {
           return this.config;
       }
+      getPublicConfig() {
+          return {
+              ...lodash.omit(this.config, ['logger', 'server']),
+              ...this.getPublicAccountConfig(),
+          };
+      }
       doGetPayport(index) {
           if (index === 0) {
               return { address: this.getHotSignatory().address };
@@ -359,7 +365,10 @@
           const fromIndex = this.resolveIndexFromAdjustment(source);
           const toIndex = this.resolveIndexFromAdjustment(destination);
           const amount = amountObject.value;
-          const status = outcome.result.startsWith('tes') ? paymentsCommon.TransactionStatus.Confirmed : paymentsCommon.TransactionStatus.Failed;
+          const isSuccessful = outcome.result.startsWith('tes');
+          const isCostDestroyed = outcome.result.startsWith('tec');
+          const status = isSuccessful || isCostDestroyed ? paymentsCommon.TransactionStatus.Confirmed : paymentsCommon.TransactionStatus.Failed;
+          const isExecuted = isSuccessful;
           const confirmationNumber = outcome.ledgerVersion;
           const ledger = await this.retryDced(() => this.rippleApi.getLedger({ ledgerVersion: confirmationNumber }));
           const currentLedgerVersion = await this.retryDced(() => this.rippleApi.getLedgerVersion());
@@ -378,10 +387,10 @@
               fee: outcome.fee,
               sequenceNumber: tx.sequence,
               confirmationId,
-              confirmationNumber: ledger.ledgerVersion,
+              confirmationNumber,
               confirmationTimestamp,
-              isExecuted: status === 'confirmed',
-              isConfirmed: true,
+              isExecuted,
+              isConfirmed: Boolean(confirmationNumber),
               confirmations: currentLedgerVersion - confirmationNumber,
               data: tx,
           };
@@ -571,7 +580,11 @@
           const result = (await this.retryDced(() => this.rippleApi.submit(signedTxString)));
           this.logger.debug('broadcasted', result);
           const resultCode = result.engine_result || result.resultCode || '';
-          if (!resultCode.startsWith('tes')) {
+          const okay = resultCode.startsWith('tes') ||
+              resultCode.startsWith('ter') ||
+              resultCode.startsWith('tec') ||
+              resultCode === 'tefPAST_SEQ';
+          if (!okay) {
               throw new Error(`Failed to broadcast ripple tx ${signedTx.id} with result code ${resultCode}`);
           }
           return {
@@ -676,9 +689,8 @@
       isReadOnly() {
           return this.xprv === null;
       }
-      getPublicConfig() {
+      getPublicAccountConfig() {
           return {
-              ...this.config,
               hdKey: xprvToXpub(this.config.hdKey),
           };
       }
@@ -734,9 +746,8 @@
       isReadOnly() {
           return this.readOnly;
       }
-      getPublicConfig() {
+      getPublicAccountConfig() {
           return {
-              ...this.config,
               hotAccount: this.hotSignatory.address,
               depositAccount: this.depositSignatory.address,
           };

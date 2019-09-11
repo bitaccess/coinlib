@@ -7,7 +7,7 @@ export declare class AccountRipplePayments extends BaseRipplePayments<AccountRip
     constructor(config: AccountRipplePaymentsConfig);
     accountConfigToSignatory(accountConfig: RippleAccountConfig): RippleSignatory;
     isReadOnly(): boolean;
-    getPublicConfig(): AccountRipplePaymentsConfig;
+    getPublicAccountConfig(): AccountRipplePaymentsConfig;
     getAccountIds(): string[];
     getAccountId(index: number): string;
     getHotSignatory(): RippleSignatory;

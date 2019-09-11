@@ -15,7 +15,8 @@ export declare abstract class BaseRipplePayments<Config extends BaseRipplePaymen
     destroy(): Promise<void>;
     private retryDced;
     getFullConfig(): Config;
-    abstract getPublicConfig(): Config;
+    getPublicConfig(): Pick<Config, Exclude<keyof Config, "logger" | "server">> & Config;
+    abstract getPublicAccountConfig(): Config;
     abstract getAccountIds(): string[];
     abstract getAccountId(index: number): string;
     abstract getHotSignatory(): RippleSignatory;

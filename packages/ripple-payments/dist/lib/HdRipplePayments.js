@@ -21,9 +21,8 @@ export class HdRipplePayments extends BaseRipplePayments {
     isReadOnly() {
         return this.xprv === null;
     }
-    getPublicConfig() {
+    getPublicAccountConfig() {
         return {
-            ...this.config,
             hdKey: xprvToXpub(this.config.hdKey),
         };
     }
