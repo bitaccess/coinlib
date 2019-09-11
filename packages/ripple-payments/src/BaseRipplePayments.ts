@@ -521,8 +521,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     const okay =
       resultCode.startsWith('tes') || // successful
       resultCode.startsWith('ter') || // retryable
-      resultCode.startsWith('tec') || // not executed, but fee lost
-      resultCode === 'tefPAST_SEQ' // sequence number too high
+      resultCode.startsWith('tec') // not executed, but fee lost
     if (!okay) {
       throw new Error(`Failed to broadcast ripple tx ${signedTx.id} with result code ${resultCode}`)
     }
