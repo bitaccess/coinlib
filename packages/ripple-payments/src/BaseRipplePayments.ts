@@ -271,7 +271,10 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     const fromIndex = this.resolveIndexFromAdjustment(source)
     const toIndex = this.resolveIndexFromAdjustment(destination)
     const amount = amountObject.value
-    const status = outcome.result.startsWith('tes') ? TransactionStatus.Confirmed : TransactionStatus.Failed
+    const isSuccessful = outcome.result.startsWith('tes')
+    const isCostDestroyed = outcome.result.startsWith('tec')
+    const status = isSuccessful || isCostDestroyed ? TransactionStatus.Confirmed : TransactionStatus.Failed
+    const isExecuted = isSuccessful
     const confirmationNumber = outcome.ledgerVersion
     const ledger = await this.retryDced(() => this.rippleApi.getLedger({ ledgerVersion: confirmationNumber }))
     const currentLedgerVersion = await this.retryDced(() => this.rippleApi.getLedgerVersion())
@@ -290,10 +293,10 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       fee: outcome.fee,
       sequenceNumber: tx.sequence,
       confirmationId,
-      confirmationNumber: ledger.ledgerVersion,
+      confirmationNumber,
       confirmationTimestamp,
-      isExecuted: status === 'confirmed',
-      isConfirmed: true,
+      isExecuted,
+      isConfirmed: Boolean(confirmationNumber),
       confirmations: currentLedgerVersion - confirmationNumber,
       data: tx,
     }
@@ -515,7 +518,12 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     const result = (await this.retryDced(() => this.rippleApi.submit(signedTxString))) as any
     this.logger.debug('broadcasted', result)
     const resultCode = result.engine_result || result.resultCode || ''
-    if (!resultCode.startsWith('tes')) {
+    const okay =
+      resultCode.startsWith('tes') || // successful
+      resultCode.startsWith('ter') || // retryable
+      resultCode.startsWith('tec') || // not executed, but fee lost
+      resultCode === 'tefPAST_SEQ' // sequence number too high
+    if (!okay) {
       throw new Error(`Failed to broadcast ripple tx ${signedTx.id} with result code ${resultCode}`)
     }
     return {
