@@ -408,8 +408,7 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
         const resultCode = result.engine_result || result.resultCode || '';
         const okay = resultCode.startsWith('tes') ||
             resultCode.startsWith('ter') ||
-            resultCode.startsWith('tec') ||
-            resultCode === 'tefPAST_SEQ';
+            resultCode.startsWith('tec');
         if (!okay) {
             throw new Error(`Failed to broadcast ripple tx ${signedTx.id} with result code ${resultCode}`);
         }
