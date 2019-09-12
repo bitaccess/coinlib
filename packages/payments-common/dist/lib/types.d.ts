@@ -85,10 +85,10 @@ export declare const TransactionCommon: t.IntersectionC<[t.TypeC<{
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>]>;
 export declare type TransactionCommon = t.TypeOf<typeof TransactionCommon>;
 export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.TypeC<{
@@ -100,10 +100,10 @@ export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>]>, t.TypeC<{
     fromAddress: t.StringC;
     toAddress: t.StringC;
@@ -125,10 +125,10 @@ export declare const BaseSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>]>, t.TypeC<{
     fromAddress: t.StringC;
     toAddress: t.StringC;
@@ -153,10 +153,10 @@ export declare const BaseTransactionInfo: t.IntersectionC<[t.IntersectionC<[t.Ty
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>]>, t.TypeC<{
     id: t.StringC;
     amount: t.StringC;

@@ -70,10 +70,10 @@ export const TransactionCommon = requiredOptionalCodec({
     toIndex: nullable(t.number),
     amount: nullable(t.string),
     fee: nullable(t.string),
-    sequenceNumber: nullable(t.number),
 }, {
     fromExtraId: nullable(t.string),
     toExtraId: nullable(t.string),
+    sequenceNumber: nullable(t.number),
 }, 'TransactionCommon');
 const UnsignedCommon = extendCodec(TransactionCommon, {
     fromAddress: t.string,
