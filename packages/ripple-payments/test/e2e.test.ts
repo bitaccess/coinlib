@@ -7,7 +7,7 @@ import { AccountRipplePayments, RippleTransactionInfo, RippleBalanceMonitor } fr
 import { ADDRESS_REGEX } from '../src/constants'
 import { RippleSignedTransaction } from '../src/types'
 
-describe('e2e', async () => {
+describe('e2e', () => {
   let testsComplete: boolean = false
   let rp: AccountRipplePayments
   let bm: RippleBalanceMonitor
