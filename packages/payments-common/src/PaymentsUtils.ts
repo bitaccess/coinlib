@@ -1,5 +1,5 @@
 import { Numeric } from '@faast/ts-common'
-import { Payport, BaseConfig, NetworkType } from './types'
+import { Payport } from './types'
 
 export interface PaymentsUtils {
   /**
@@ -23,6 +23,11 @@ export interface PaymentsUtils {
    * Return true if it's a valid extra ID.
    */
   isValidExtraId<O extends object>(extraId: string, options?: O): Promise<boolean>
+
+  /**
+   * Throw on invalid, undefined otherwise.
+   */
+  validatePayport<O extends object>(payport: Payport, options?: O): Promise<void>
 
   /**
    * Return true if it's a valid payport.
