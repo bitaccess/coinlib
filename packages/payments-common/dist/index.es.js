@@ -193,5 +193,26 @@ class BalanceMonitor {
     }
 }
 
-export { NetworkType, NetworkTypeT, BaseConfig, AddressOrIndex, FeeLevel, FeeLevelT, FeeRateType, FeeRateTypeT, FeeOptionCustom, FeeOptionLevel, FeeOption, CreateTransactionOptions, ResolvedFeeOption, BalanceResult, TransactionStatus, TransactionStatusT, TransactionCommon, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, Payport, BalanceActivityType, BalanceActivity, BalanceMonitorConfig, GetBalanceActivityOptions, BalanceActivityCallback, ResolveablePayport, RetrieveBalanceActivitiesResult, createUnitConverters, BalanceMonitor };
+var PaymentsErrorCode;
+(function (PaymentsErrorCode) {
+    PaymentsErrorCode["TxExpired"] = "PAYMENTS_TX_EXPIRED";
+    PaymentsErrorCode["TxSequenceTooHigh"] = "PAYMENTS_TX_SEQUENCE_TOO_HIGH";
+    PaymentsErrorCode["TxSequenceCollision"] = "PAYMENTS_TX_SEQUENCE_COLLISION";
+})(PaymentsErrorCode || (PaymentsErrorCode = {}));
+class PaymentsError extends Error {
+    constructor(code, message) {
+        super(typeof message === 'undefined'
+            ? undefined
+            : typeof message === 'string'
+                ? message
+                : `caused by ${message.toString()}`);
+        this.code = code;
+        this.name = PaymentsError.name;
+    }
+    toString() {
+        return `${PaymentsError.name}(${this.code})${this.message ? `: ${this.message}` : ''}`;
+    }
+}
+
+export { NetworkType, NetworkTypeT, BaseConfig, AddressOrIndex, FeeLevel, FeeLevelT, FeeRateType, FeeRateTypeT, FeeOptionCustom, FeeOptionLevel, FeeOption, CreateTransactionOptions, ResolvedFeeOption, BalanceResult, TransactionStatus, TransactionStatusT, TransactionCommon, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, Payport, BalanceActivityType, BalanceActivity, BalanceMonitorConfig, GetBalanceActivityOptions, BalanceActivityCallback, ResolveablePayport, RetrieveBalanceActivitiesResult, createUnitConverters, BalanceMonitor, PaymentsErrorCode, PaymentsError };
 //# sourceMappingURL=index.es.js.map
