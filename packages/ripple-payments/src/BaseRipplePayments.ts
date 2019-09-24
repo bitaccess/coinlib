@@ -1,7 +1,6 @@
 import {
   BasePayments,
   BalanceResult,
-  CreateTransactionOptions,
   FeeOption,
   ResolvedFeeOption,
   FromTo,
@@ -10,11 +9,12 @@ import {
   FeeRateType,
   TransactionStatus,
   ResolveablePayport,
+  PaymentsError,
+  PaymentsErrorCode,
 } from '@faast/payments-common'
-import { Logger, assertType, isNil, Numeric } from '@faast/ts-common'
+import { assertType, isNil, Numeric } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
-import { RippleAPI } from 'ripple-lib'
-import { FormattedPaymentTransaction, FormattedPayment, Prepare } from 'ripple-lib/dist/npm/transaction/types'
+import { FormattedPaymentTransaction, Prepare } from 'ripple-lib/dist/npm/transaction/types'
 import { Adjustment, Amount } from 'ripple-lib/dist/npm/common/types/objects'
 import { omit } from 'lodash'
 
@@ -36,13 +36,12 @@ import {
   NOT_FOUND_ERRORS,
 } from './constants'
 import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers'
-import { resolveRippleServer, retryIfDisconnected } from './utils'
 
 function extraIdToTag(extraId: string | null | undefined): number | undefined {
   return isNil(extraId) ? undefined : Number.parseInt(extraId)
 }
 function serializePayport(payport: Payport): string {
-  return isNil(payport.extraId) ? payport.address : `${payport.address}:${payport.extraId}`
+  return isNil(payport.extraId) ? payport.address : `${payport.address}/${payport.extraId}`
 }
 
 export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig> extends RipplePaymentsUtils
@@ -54,33 +53,8 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       RippleBroadcastResult,
       RippleTransactionInfo
     > {
-  rippleApi: RippleAPI
-  server: string | null
-  logger: Logger
-
   constructor(public config: Config) {
     super(config)
-    assertType(BaseRipplePaymentsConfig, config)
-    const { api, server } = resolveRippleServer(config.server, this.networkType)
-    this.rippleApi = api
-    this.server = server
-  }
-
-  async init(): Promise<void> {
-    if (!this.rippleApi.isConnected()) {
-      await this.rippleApi.connect()
-    }
-    await this.initAccounts()
-  }
-
-  async destroy(): Promise<void> {
-    if (this.rippleApi.isConnected()) {
-      await this.rippleApi.disconnect()
-    }
-  }
-
-  private async retryDced<T>(fn: () => Promise<T>): Promise<T> {
-    return retryIfDisconnected(fn, this.rippleApi, this.logger)
   }
 
   getFullConfig() {
@@ -196,13 +170,13 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
           'to send a transaction that sets requireDestinationTag property to true',
       )
     }
-    const unsignedTx = await this.retryDced(() =>
+    const unsignedTx = await this._retryDced(() =>
       this.rippleApi.prepareSettings(address, {
         requireDestinationTag: true,
       }),
     )
     const signedTx = this.rippleApi.sign(unsignedTx.txJSON, secret)
-    const broadcast = await this.retryDced(() => this.rippleApi.submit(signedTx.signedTransaction))
+    const broadcast = await this._retryDced(() => this.rippleApi.submit(signedTx.signedTransaction))
     return {
       txId: signedTx.id,
       unsignedTx,
@@ -217,7 +191,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     if (!isNil(extraId)) {
       throw new Error(`Cannot getBalance of ripple payport with extraId ${extraId}, use BalanceMonitor instead`)
     }
-    const balances = await this.retryDced(() => this.rippleApi.getBalances(address))
+    const balances = await this._retryDced(() => this.rippleApi.getBalances(address))
     this.logger.debug(`rippleApi.getBalance ${address}`, balances)
     const xrpBalance = balances.find(({ currency }) => currency === 'XRP')
     const xrpAmount = xrpBalance && xrpBalance.value ? xrpBalance.value : '0'
@@ -233,7 +207,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
   async getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<number> {
     const payport = await this.resolvePayport(payportOrIndex)
     const { address } = payport
-    const accountInfo = await this.retryDced(() => this.rippleApi.getAccountInfo(address))
+    const accountInfo = await this._retryDced(() => this.rippleApi.getAccountInfo(address))
     return accountInfo.sequence
   }
 
@@ -250,7 +224,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
   async getTransactionInfo(txId: string): Promise<RippleTransactionInfo> {
     let tx
     try {
-      tx = await this.retryDced(() => this.rippleApi.getTransaction(txId))
+      tx = await this._retryDced(() => this.rippleApi.getTransaction(txId))
     } catch (e) {
       const eString = e.toString()
       if (NOT_FOUND_ERRORS.some(type => eString.includes(type))) {
@@ -276,8 +250,8 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     const status = isSuccessful || isCostDestroyed ? TransactionStatus.Confirmed : TransactionStatus.Failed
     const isExecuted = isSuccessful
     const confirmationNumber = outcome.ledgerVersion
-    const ledger = await this.retryDced(() => this.rippleApi.getLedger({ ledgerVersion: confirmationNumber }))
-    const currentLedgerVersion = await this.retryDced(() => this.rippleApi.getLedgerVersion())
+    const ledger = await this._retryDced(() => this.rippleApi.getLedger({ ledgerVersion: confirmationNumber }))
+    const currentLedgerVersion = await this._retryDced(() => this.rippleApi.getLedgerVersion())
     const confirmationId = ledger.ledgerHash
     const confirmationTimestamp = outcome.timestamp ? new Date(outcome.timestamp) : null
     return {
@@ -331,7 +305,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       } else if (targetFeeLevel === FeeLevel.High) {
         cushion = 1.5
       }
-      feeMain = await this.retryDced(() => this.rippleApi.getFee(cushion))
+      feeMain = await this._retryDced(() => this.rippleApi.getFee(cushion))
       feeBase = this.toBaseDenomination(feeMain)
       targetFeeRate = feeMain
       targetFeeRateType = FeeRateType.Main
@@ -403,7 +377,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
           `with fee of ${feeMain} XRP: ${serializePayport(fromPayport)}`,
       )
     }
-    const preparedTx = await this.retryDced(() =>
+    const preparedTx = await this._retryDced(() =>
       this.rippleApi.preparePayment(
         fromAddress,
         {
@@ -515,13 +489,27 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       const existing = await this.getTransactionInfo(signedTx.id)
       rebroadcast = existing.id === signedTx.id
     } catch (e) {}
-    const result = (await this.retryDced(() => this.rippleApi.submit(signedTxString))) as any
+    const result = (await this._retryDced(() => this.rippleApi.submit(signedTxString))) as any
     this.logger.debug('broadcasted', result)
     const resultCode = result.engine_result || result.resultCode || ''
+    if (resultCode === 'terPRE_SEQ') {
+      throw new PaymentsError(PaymentsErrorCode.TxSequenceTooHigh, resultCode)
+    }
+    if (!rebroadcast) {
+      // Sometimes these errors come up even after tx is confirmed
+      if (resultCode === 'tefPAST_SEQ') {
+        throw new PaymentsError(PaymentsErrorCode.TxSequenceCollision, resultCode)
+      }
+      if (resultCode === 'tefMAX_LEDGER') {
+        throw new PaymentsError(PaymentsErrorCode.TxExpired, resultCode)
+      }
+    }
     const okay =
       resultCode.startsWith('tes') || // successful
       resultCode.startsWith('ter') || // retryable
-      resultCode.startsWith('tec') // not executed, but fee lost
+      resultCode.startsWith('tec') || // not executed, but fee lost
+      resultCode === 'tefPAST_SEQ' || // handled above
+      resultCode === 'tefMAX_LEDGER' // handled above
     if (!okay) {
       throw new Error(`Failed to broadcast ripple tx ${signedTx.id} with result code ${resultCode}`)
     }

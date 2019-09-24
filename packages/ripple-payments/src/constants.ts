@@ -1,4 +1,4 @@
-import { FeeLevel } from '@faast/payments-common'
+import { NetworkType } from '@faast/payments-common'
 import { RippleCreateTransactionOptions } from './types'
 
 export const PACKAGE_NAME = 'ripple-payments'
@@ -23,5 +23,6 @@ export const XPRV_REGEX = /^xprv[a-km-zA-HJ-NP-Z1-9]{100,108}$/
 
 export const NOT_FOUND_ERRORS = ['MissingLedgerHistoryError', 'NotFoundError']
 
+export const DEFAULT_NETWORK = NetworkType.Mainnet
 export const DEFAULT_MAINNET_SERVER = 'wss://s1.ripple.com'
 export const DEFAULT_TESTNET_SERVER = 'wss://s.altnet.rippletest.net:51233'
