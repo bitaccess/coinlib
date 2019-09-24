@@ -61,6 +61,7 @@
   const XPUB_REGEX = /^xpub[a-km-zA-HJ-NP-Z1-9]{100,108}$/;
   const XPRV_REGEX = /^xprv[a-km-zA-HJ-NP-Z1-9]{100,108}$/;
   const NOT_FOUND_ERRORS = ['MissingLedgerHistoryError', 'NotFoundError'];
+  const DEFAULT_NETWORK = paymentsCommon.NetworkType.Mainnet;
   const DEFAULT_MAINNET_SERVER = 'wss://s1.ripple.com';
   const DEFAULT_TESTNET_SERVER = 'wss://s.altnet.rippletest.net:51233';
 
@@ -90,35 +91,6 @@
   function assertValidExtraIdOrNil(extraId) {
       if (!tsCommon.isNil(extraId) && !isValidExtraId(extraId)) {
           throw new Error(`Invalid ripple extraId: ${extraId}`);
-      }
-  }
-
-  class RipplePaymentsUtils {
-      constructor(config = {}) {
-          this.isValidXprv = isValidXprv;
-          this.isValidXpub = isValidXpub;
-          tsCommon.assertType(paymentsCommon.BaseConfig, config);
-          this.networkType = config.network || paymentsCommon.NetworkType.Mainnet;
-          this.logger = new tsCommon.DelegateLogger(config.logger, PACKAGE_NAME);
-      }
-      async isValidExtraId(extraId) {
-          return isValidExtraId(extraId);
-      }
-      async isValidAddress(address) {
-          return isValidAddress(address);
-      }
-      async isValidPayport(payport) {
-          if (!paymentsCommon.Payport.is(payport)) {
-              return false;
-          }
-          const { address, extraId } = payport;
-          return (await this.isValidAddress(address)) && (tsCommon.isNil(extraId) ? true : this.isValidExtraId(extraId));
-      }
-      toMainDenomination(amount) {
-          return toMainDenominationString(amount);
-      }
-      toBaseDenomination(amount) {
-          return toBaseDenominationString(amount);
       }
   }
 
@@ -181,17 +153,13 @@
       });
   }
 
-  function extraIdToTag(extraId) {
-      return tsCommon.isNil(extraId) ? undefined : Number.parseInt(extraId);
-  }
-  function serializePayport(payport) {
-      return tsCommon.isNil(payport.extraId) ? payport.address : `${payport.address}:${payport.extraId}`;
-  }
-  class BaseRipplePayments extends RipplePaymentsUtils {
-      constructor(config) {
-          super(config);
-          this.config = config;
-          tsCommon.assertType(BaseRipplePaymentsConfig, config);
+  class RipplePaymentsUtils {
+      constructor(config = {}) {
+          this.isValidXprv = isValidXprv;
+          this.isValidXpub = isValidXpub;
+          tsCommon.assertType(BaseRippleConfig, config);
+          this.networkType = config.network || DEFAULT_NETWORK;
+          this.logger = new tsCommon.DelegateLogger(config.logger, PACKAGE_NAME);
           const { api, server } = resolveRippleServer(config.server, this.networkType);
           this.rippleApi = api;
           this.server = server;
@@ -200,15 +168,74 @@
           if (!this.rippleApi.isConnected()) {
               await this.rippleApi.connect();
           }
-          await this.initAccounts();
       }
       async destroy() {
           if (this.rippleApi.isConnected()) {
               await this.rippleApi.disconnect();
           }
       }
-      async retryDced(fn) {
+      async _retryDced(fn) {
           return retryIfDisconnected(fn, this.rippleApi, this.logger);
+      }
+      async isValidExtraId(extraId) {
+          return isValidExtraId(extraId);
+      }
+      async isValidAddress(address) {
+          return isValidAddress(address);
+      }
+      async getPayportValidationMessage(payport) {
+          const { address, extraId } = payport;
+          if (!(await this.isValidAddress(address))) {
+              return 'Invalid payport address';
+          }
+          let requireExtraId = false;
+          try {
+              const settings = await this._retryDced(() => this.rippleApi.getSettings(address));
+              requireExtraId = settings.requireDestinationTag || false;
+          }
+          catch (e) {
+              this.logger.debug(`Failed to retrieve settings for ${address} - ${e.message}`);
+          }
+          if (tsCommon.isNil(extraId)) {
+              if (requireExtraId) {
+                  return `Payport extraId is required for address ${address} with ripple requireDestinationTag setting enabled`;
+              }
+          }
+          else if (!(await this.isValidExtraId(extraId))) {
+              return 'Invalid payport extraId';
+          }
+      }
+      async validatePayport(payport) {
+          tsCommon.assertType(paymentsCommon.Payport, payport);
+          const message = await this.getPayportValidationMessage(payport);
+          if (message) {
+              throw new Error(message);
+          }
+      }
+      async isValidPayport(payport) {
+          if (!paymentsCommon.Payport.is(payport)) {
+              return false;
+          }
+          return !(await this.getPayportValidationMessage(payport));
+      }
+      toMainDenomination(amount) {
+          return toMainDenominationString(amount);
+      }
+      toBaseDenomination(amount) {
+          return toBaseDenominationString(amount);
+      }
+  }
+
+  function extraIdToTag(extraId) {
+      return tsCommon.isNil(extraId) ? undefined : Number.parseInt(extraId);
+  }
+  function serializePayport(payport) {
+      return tsCommon.isNil(payport.extraId) ? payport.address : `${payport.address}/${payport.extraId}`;
+  }
+  class BaseRipplePayments extends RipplePaymentsUtils {
+      constructor(config) {
+          super(config);
+          this.config = config;
       }
       getFullConfig() {
           return this.config;
@@ -295,11 +322,11 @@
               this.logger.warn(`Insufficient balance in deposit account (${address}) to pay fee of ${feeMain} XRP ` +
                   'to send a transaction that sets requireDestinationTag property to true');
           }
-          const unsignedTx = await this.retryDced(() => this.rippleApi.prepareSettings(address, {
+          const unsignedTx = await this._retryDced(() => this.rippleApi.prepareSettings(address, {
               requireDestinationTag: true,
           }));
           const signedTx = this.rippleApi.sign(unsignedTx.txJSON, secret);
-          const broadcast = await this.retryDced(() => this.rippleApi.submit(signedTx.signedTransaction));
+          const broadcast = await this._retryDced(() => this.rippleApi.submit(signedTx.signedTransaction));
           return {
               txId: signedTx.id,
               unsignedTx,
@@ -313,7 +340,7 @@
           if (!tsCommon.isNil(extraId)) {
               throw new Error(`Cannot getBalance of ripple payport with extraId ${extraId}, use BalanceMonitor instead`);
           }
-          const balances = await this.retryDced(() => this.rippleApi.getBalances(address));
+          const balances = await this._retryDced(() => this.rippleApi.getBalances(address));
           this.logger.debug(`rippleApi.getBalance ${address}`, balances);
           const xrpBalance = balances.find(({ currency }) => currency === 'XRP');
           const xrpAmount = xrpBalance && xrpBalance.value ? xrpBalance.value : '0';
@@ -327,7 +354,7 @@
       async getNextSequenceNumber(payportOrIndex) {
           const payport = await this.resolvePayport(payportOrIndex);
           const { address } = payport;
-          const accountInfo = await this.retryDced(() => this.rippleApi.getAccountInfo(address));
+          const accountInfo = await this._retryDced(() => this.rippleApi.getAccountInfo(address));
           return accountInfo.sequence;
       }
       resolveIndexFromAdjustment(adjustment) {
@@ -343,7 +370,7 @@
       async getTransactionInfo(txId) {
           let tx;
           try {
-              tx = await this.retryDced(() => this.rippleApi.getTransaction(txId));
+              tx = await this._retryDced(() => this.rippleApi.getTransaction(txId));
           }
           catch (e) {
               const eString = e.toString();
@@ -370,8 +397,8 @@
           const status = isSuccessful || isCostDestroyed ? paymentsCommon.TransactionStatus.Confirmed : paymentsCommon.TransactionStatus.Failed;
           const isExecuted = isSuccessful;
           const confirmationNumber = outcome.ledgerVersion;
-          const ledger = await this.retryDced(() => this.rippleApi.getLedger({ ledgerVersion: confirmationNumber }));
-          const currentLedgerVersion = await this.retryDced(() => this.rippleApi.getLedgerVersion());
+          const ledger = await this._retryDced(() => this.rippleApi.getLedger({ ledgerVersion: confirmationNumber }));
+          const currentLedgerVersion = await this._retryDced(() => this.rippleApi.getLedgerVersion());
           const confirmationId = ledger.ledgerHash;
           const confirmationTimestamp = outcome.timestamp ? new Date(outcome.timestamp) : null;
           return {
@@ -429,7 +456,7 @@
               else if (targetFeeLevel === paymentsCommon.FeeLevel.High) {
                   cushion = 1.5;
               }
-              feeMain = await this.retryDced(() => this.rippleApi.getFee(cushion));
+              feeMain = await this._retryDced(() => this.rippleApi.getFee(cushion));
               feeBase = this.toBaseDenomination(feeMain);
               targetFeeRate = feeMain;
               targetFeeRateType = paymentsCommon.FeeRateType.Main;
@@ -483,7 +510,7 @@
               throw new Error(`Insufficient payport balance of ${payportBalance} XRP to send ${amountString} XRP ` +
                   `with fee of ${feeMain} XRP: ${serializePayport(fromPayport)}`);
           }
-          const preparedTx = await this.retryDced(() => this.rippleApi.preparePayment(fromAddress, {
+          const preparedTx = await this._retryDced(() => this.rippleApi.preparePayment(fromAddress, {
               source: {
                   address: fromAddress,
                   tag: extraIdToTag(fromExtraId),
@@ -577,12 +604,25 @@
               rebroadcast = existing.id === signedTx.id;
           }
           catch (e) { }
-          const result = (await this.retryDced(() => this.rippleApi.submit(signedTxString)));
+          const result = (await this._retryDced(() => this.rippleApi.submit(signedTxString)));
           this.logger.debug('broadcasted', result);
           const resultCode = result.engine_result || result.resultCode || '';
+          if (resultCode === 'terPRE_SEQ') {
+              throw new paymentsCommon.PaymentsError(paymentsCommon.PaymentsErrorCode.TxSequenceTooHigh, resultCode);
+          }
+          if (!rebroadcast) {
+              if (resultCode === 'tefPAST_SEQ') {
+                  throw new paymentsCommon.PaymentsError(paymentsCommon.PaymentsErrorCode.TxSequenceCollision, resultCode);
+              }
+              if (resultCode === 'tefMAX_LEDGER') {
+                  throw new paymentsCommon.PaymentsError(paymentsCommon.PaymentsErrorCode.TxExpired, resultCode);
+              }
+          }
           const okay = resultCode.startsWith('tes') ||
               resultCode.startsWith('ter') ||
-              resultCode.startsWith('tec');
+              resultCode.startsWith('tec') ||
+              resultCode === 'tefPAST_SEQ' ||
+              resultCode === 'tefMAX_LEDGER';
           if (!okay) {
               throw new Error(`Failed to broadcast ripple tx ${signedTx.id} with result code ${resultCode}`);
           }

@@ -1,19 +1,12 @@
 import { BasePayments, BalanceResult, FeeOption, ResolvedFeeOption, Payport, ResolveablePayport } from '@faast/payments-common';
-import { Logger, Numeric } from '@faast/ts-common';
-import { RippleAPI } from 'ripple-lib';
+import { Numeric } from '@faast/ts-common';
 import { Prepare } from 'ripple-lib/dist/npm/transaction/types';
 import { Adjustment } from 'ripple-lib/dist/npm/common/types/objects';
 import { BaseRipplePaymentsConfig, RippleUnsignedTransaction, RippleSignedTransaction, RippleBroadcastResult, RippleTransactionInfo, RippleCreateTransactionOptions, FromToWithPayport, RippleSignatory } from './types';
 import { RipplePaymentsUtils } from './RipplePaymentsUtils';
 export declare abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig> extends RipplePaymentsUtils implements BasePayments<Config, RippleUnsignedTransaction, RippleSignedTransaction, RippleBroadcastResult, RippleTransactionInfo> {
     config: Config;
-    rippleApi: RippleAPI;
-    server: string | null;
-    logger: Logger;
     constructor(config: Config);
-    init(): Promise<void>;
-    destroy(): Promise<void>;
-    private retryDced;
     getFullConfig(): Config;
     getPublicConfig(): Pick<Config, Exclude<keyof Config, "logger" | "server">> & Config;
     abstract getPublicAccountConfig(): Config;
