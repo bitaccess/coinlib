@@ -1,0 +1,11 @@
+{
+  "extends": "./node_modules/@faast/ts-config/library/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "dist/lib",
+    "paths": {
+      "#/*": ["./src/*"],
+    }
+  },
+  "exclude": ["node_modules", "dist"]
+}
