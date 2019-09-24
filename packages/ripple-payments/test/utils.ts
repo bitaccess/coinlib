@@ -29,7 +29,7 @@ export async function delay(ms: number): Promise<void> {
 }
 
 async function generatePaymentsConfig(): Promise<AccountRipplePaymentsConfig> {
-  console.log('Generating testnet payments accounts using faucet')
+  logger.log('Generating testnet payments accounts using faucet')
   const hotAccount = await generateTestnetAccount()
   await delay(1000)
   const depositAccount = await generateTestnetAccount()
@@ -41,7 +41,7 @@ async function generatePaymentsConfig(): Promise<AccountRipplePaymentsConfig> {
   return config
 }
 
-export async function setupTestnetPayments() {
+export async function setupTestnetPayments(): Promise<AccountRipplePayments> {
   let config: AccountRipplePaymentsConfig | undefined
   // Load saved testnet accounts
   if (fs.existsSync(TEST_ACCOUNT_FILE)) {
@@ -50,7 +50,7 @@ export async function setupTestnetPayments() {
       const jsonContents = JSON.parse(stringContents)
       config = assertType(AccountRipplePaymentsConfig, jsonContents)
     } catch (e) {
-      console.log(`Failed to parse testnet account file: ${TEST_ACCOUNT_FILE}`)
+      logger.log(`Failed to parse testnet account file: ${TEST_ACCOUNT_FILE}`)
       config = await generatePaymentsConfig()
     }
   } else {
@@ -60,7 +60,7 @@ export async function setupTestnetPayments() {
   const DEFAULT_CONFIG = {
     network: NetworkType.Testnet,
     server: TESTNET_SERVER,
-    logger: new TestLogger(),
+    logger,
   }
   let rp = new AccountRipplePayments({
     ...DEFAULT_CONFIG,
@@ -73,7 +73,7 @@ export async function setupTestnetPayments() {
     await rp.getBalance(1)
   } catch (e) {
     if (e.message.includes('Account not found')) {
-      console.warn('Cached testnet accounts have been reset, will regenerate')
+      logger.warn('Cached testnet accounts have been reset, will regenerate')
       config = await generatePaymentsConfig()
       const rippleApi = rp.rippleApi
       rp = new AccountRipplePayments({
@@ -113,6 +113,8 @@ export class TestLogger implements Logger {
   debug = logLevel('DEBUG')
   trace = logLevel('TRACE')
 }
+
+export const logger = new TestLogger()
 
 export function expectEqualOmit(actual: any, expected: any, omitFields: string[]) {
   expect(omit(actual, omitFields)).toEqual(omit(expected, omitFields))

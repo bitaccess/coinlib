@@ -1,5 +1,6 @@
 import { RipplePaymentsUtils } from '../src'
 import { hdAccount } from './fixtures/accounts'
+import { logger } from './utils'
 
 const { XPRV, XPUB } = hdAccount
 
@@ -11,15 +12,21 @@ const VALID_EXTRA_ID = '123'
 const INVALID_EXTRA_ID = 'abc'
 const INVALID_ADDRESS = 'abc'
 
+jest.setTimeout(60 * 1000)
+
 describe('RipplePaymentsUtils', () => {
-  const rpu = new RipplePaymentsUtils()
+  const rpu = new RipplePaymentsUtils({
+    logger,
+    server: 'wss://s2.ripple.com',
+  })
 
   beforeAll(async () => {
     await rpu.init()
-  })
+  }, 120 * 1000)
+
   afterAll(async () => {
     await rpu.destroy()
-  })
+  }, 120 * 1000)
 
   describe('isValidAddress', () => {
     it('returns true for valid address', async () => {

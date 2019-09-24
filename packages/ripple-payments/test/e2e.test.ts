@@ -2,10 +2,19 @@ import { TransactionStatus, BalanceActivity, NetworkType, GetBalanceActivityOpti
 import BigNumber from 'bignumber.js'
 import { omit, sortBy } from 'lodash'
 
-import { setupTestnetPayments, delay, END_TRANSACTION_STATES, expectEqualOmit, expectEqualWhenTruthy } from './utils'
+import {
+  setupTestnetPayments,
+  delay,
+  END_TRANSACTION_STATES,
+  expectEqualOmit,
+  expectEqualWhenTruthy,
+  logger,
+} from './utils'
 import { AccountRipplePayments, RippleTransactionInfo, RippleBalanceMonitor } from '../src'
 import { ADDRESS_REGEX } from '../src/constants'
 import { RippleSignedTransaction } from '../src/types'
+
+jest.setTimeout(60 * 1000)
 
 describe('e2e', () => {
   let testsComplete: boolean = false
@@ -20,28 +29,31 @@ describe('e2e', () => {
     rp = await setupTestnetPayments()
     await rp.init()
     bm = new RippleBalanceMonitor({
+      logger,
       network: NetworkType.Testnet,
       server: rp.rippleApi,
     })
     await bm.init()
     bmMainnet = new RippleBalanceMonitor({
+      logger,
       network: NetworkType.Mainnet,
       server: 'wss://s2.ripple.com/',
     })
     await bmMainnet.init()
     startLedgerVersion = (await rp.rippleApi.getLedger()).ledgerVersion
     bm.onBalanceActivity(activity => {
-      console.log('activity', activity)
+      logger.log('activity', activity)
       balanceActivities.push(activity)
     })
     await bm.subscribeAddresses(rp.getAddressesToMonitor())
-  })
+  }, 120 * 1000)
+
   afterAll(async () => {
-    await rp.destroy()
-    await bm.destroy()
-    await bmMainnet.destroy()
+    if (rp) await rp.destroy()
+    if (bm) await bm.destroy()
+    if (bmMainnet) await bmMainnet.destroy()
     testsComplete = true
-  })
+  }, 120 * 1000)
 
   describe('properties', () => {
     it('should detect server when passed rippleApi', () => {
@@ -89,14 +101,14 @@ describe('e2e', () => {
   })
 
   async function pollTxId(txId: string) {
-    console.log('polling until ended', txId)
+    logger.log('polling until ended', txId)
     let tx: RippleTransactionInfo | undefined
     while (!testsComplete && (!tx || !END_TRANSACTION_STATES.includes(tx.status) || tx.confirmations === 0)) {
       try {
         tx = await rp.getTransactionInfo(txId)
       } catch (e) {
         if (e.message.includes('Transaction not found')) {
-          console.log('tx not found yet', txId, e.message)
+          logger.log('tx not found yet', txId, e.message)
         } else {
           throw e
         }
@@ -106,7 +118,7 @@ describe('e2e', () => {
     if (!tx) {
       throw new Error(`failed to poll until ended ${txId}`)
     }
-    console.log(tx.status, tx)
+    logger.log(tx.status, tx)
     return tx
   }
 
@@ -159,7 +171,7 @@ describe('e2e', () => {
 
     const unsignedTx = await rp.createSweepTransaction(indexToSweep, recipientIndex, { payportBalance })
     const signedTx = await rp.signTransaction(unsignedTx)
-    console.log(`Sweeping ${signedTx.amount} XRP from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
+    logger.log(`Sweeping ${signedTx.amount} XRP from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
     const broadcastResult = await rp.broadcastTransaction(signedTx)
     expectEqualOmit(
       broadcastResult,
@@ -184,7 +196,7 @@ describe('e2e', () => {
 
     const unsignedTx = await rp.createTransaction(indexToSweep, recipientIndex, sendAmount)
     const signedTx = await rp.signTransaction(unsignedTx)
-    console.log(`Sending ${signedTx.amount} XRP from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
+    logger.log(`Sending ${signedTx.amount} XRP from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
     const broadcastResult = await rp.broadcastTransaction(signedTx)
     expectEqualOmit(
       broadcastResult,
