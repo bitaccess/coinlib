@@ -1,12 +1,11 @@
 import * as t from 'io-ts';
-import { extendCodec, Logger } from '@faast/ts-common';
+import { extendCodec } from '@faast/ts-common';
 import { BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, CreateTransactionOptions, BaseConfig, } from '@faast/payments-common';
 export { CreateTransactionOptions };
 export const BaseTronPaymentsConfig = extendCodec(BaseConfig, {}, {
     fullNode: t.string,
     solidityNode: t.string,
     eventServer: t.string,
-    logger: Logger,
 }, 'BaseTronPaymentsConfig');
 export const HdTronPaymentsConfig = extendCodec(BaseTronPaymentsConfig, {
     hdKey: t.string,

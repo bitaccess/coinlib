@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('tronweb'), require('lodash'), require('bip32'), require('js-sha3'), require('jssha'), require('elliptic'), require('crypto'), require('io-ts'), require('@faast/ts-common'), require('@faast/payments-common')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'tronweb', 'lodash', 'bip32', 'js-sha3', 'jssha', 'elliptic', 'crypto', 'io-ts', '@faast/ts-common', '@faast/payments-common'], factory) :
-  (factory((global.faastTronPayments = {}),global.TronWeb,global.lodash,global.bip32,global.jsSha3,global.jsSHA,global.elliptic,global.crypto,global.t,global.tsCommon,global.paymentsCommon));
-}(this, (function (exports,TronWeb,lodash,bip32,jsSha3,jsSHA,elliptic,crypto,t,tsCommon,paymentsCommon) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('tronweb'), require('io-ts'), require('@faast/ts-common'), require('@faast/payments-common'), require('lodash'), require('bip32'), require('js-sha3'), require('jssha'), require('elliptic'), require('crypto')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'tronweb', 'io-ts', '@faast/ts-common', '@faast/payments-common', 'lodash', 'bip32', 'js-sha3', 'jssha', 'elliptic', 'crypto'], factory) :
+  (factory((global.faastTronPayments = {}),global.TronWeb,global.t,global.tsCommon,global.paymentsCommon,global.lodash,global.bip32,global.jsSha3,global.jsSHA,global.elliptic,global.crypto));
+}(this, (function (exports,TronWeb,t,tsCommon,paymentsCommon,lodash,bip32,jsSha3,jsSHA,elliptic,crypto) { 'use strict';
 
   TronWeb = TronWeb && TronWeb.hasOwnProperty('default') ? TronWeb['default'] : TronWeb;
   jsSHA = jsSHA && jsSHA.hasOwnProperty('default') ? jsSHA['default'] : jsSHA;
@@ -16,6 +16,7 @@
   const DEFAULT_SOLIDITY_NODE = process.env.TRX_SOLIDITY_NODE_URL || 'https://api.trongrid.io';
   const DEFAULT_EVENT_SERVER = process.env.TRX_EVENT_SERVER_URL || 'https://api.trongrid.io';
   const DEFAULT_FEE_LEVEL = paymentsCommon.FeeLevel.Medium;
+  const EXPIRATION_FUDGE_MS = 10 * 1000;
 
   const { toMainDenominationBigNumber, toMainDenominationString, toMainDenominationNumber, toBaseDenominationBigNumber, toBaseDenominationString, toBaseDenominationNumber, } = paymentsCommon.createUnitConverters(DECIMAL_PLACES);
   function isValidXprv(xprv) {
@@ -29,13 +30,6 @@
   }
   function isValidExtraId(extraId) {
       return false;
-  }
-  function isValidPayport(payport) {
-      if (!paymentsCommon.Payport.is(payport)) {
-          return false;
-      }
-      const { address, extraId } = payport;
-      return isValidAddress(address) && (tsCommon.isNil(extraId) ? true : isValidExtraId(extraId));
   }
   function isValidPrivateKey(privateKey) {
       try {
@@ -63,13 +57,40 @@
       return e;
   }
 
+  const BaseTronPaymentsConfig = tsCommon.extendCodec(paymentsCommon.BaseConfig, {}, {
+      fullNode: t.string,
+      solidityNode: t.string,
+      eventServer: t.string,
+  }, 'BaseTronPaymentsConfig');
+  const HdTronPaymentsConfig = tsCommon.extendCodec(BaseTronPaymentsConfig, {
+      hdKey: t.string,
+  }, 'HdTronPaymentsConfig');
+  const NullableOptionalString = t.union([t.string, t.null, t.undefined]);
+  const KeyPairTronPaymentsConfig = tsCommon.extendCodec(BaseTronPaymentsConfig, {
+      keyPairs: t.union([t.array(NullableOptionalString), t.record(t.number, NullableOptionalString)]),
+  }, 'KeyPairTronPaymentsConfig');
+  const TronPaymentsConfig = t.union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig], 'TronPaymentsConfig');
+  const TronUnsignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseUnsignedTransaction, {
+      id: t.string,
+      amount: t.string,
+      fee: t.string,
+  }, 'TronUnsignedTransaction');
+  const TronSignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseSignedTransaction, {}, {}, 'TronSignedTransaction');
+  const TronTransactionInfo = tsCommon.extendCodec(paymentsCommon.BaseTransactionInfo, {}, {}, 'TronTransactionInfo');
+  const TronBroadcastResult = tsCommon.extendCodec(paymentsCommon.BaseBroadcastResult, {
+      rebroadcast: t.boolean,
+  }, 'TronBroadcastResult');
+  const GetPayportOptions = t.partial({
+      cacheIndex: t.boolean,
+  });
+
   class TronPaymentsUtils {
       constructor(config = {}) {
           this.isValidXprv = isValidXprv;
           this.isValidXpub = isValidXpub;
           this.isValidPrivateKey = isValidPrivateKey;
           this.privateKeyToAddress = privateKeyToAddress;
-          tsCommon.assertType(paymentsCommon.BaseConfig, config);
+          tsCommon.assertType(BaseTronPaymentsConfig, config);
           this.networkType = config.network || paymentsCommon.NetworkType.Mainnet;
           this.logger = new tsCommon.DelegateLogger(config.logger, PACKAGE_NAME);
       }
@@ -79,8 +100,24 @@
       async isValidAddress(address) {
           return isValidAddress(address);
       }
+      async getPayportValidationMessage(payport) {
+          const { address, extraId } = payport;
+          if (!isValidAddress(address)) {
+              return 'Invalid payport address';
+          }
+          if (!tsCommon.isNil(extraId) && !isValidExtraId(extraId)) {
+              return 'Invalid payport extraId';
+          }
+      }
+      async validatePayport(payport) {
+          tsCommon.assertType(paymentsCommon.Payport, payport);
+          const message = await this.getPayportValidationMessage(payport);
+          if (message) {
+              throw new Error(message);
+          }
+      }
       async isValidPayport(payport) {
-          return isValidPayport(payport);
+          return paymentsCommon.Payport.is(payport) && !(await this.getPayportValidationMessage(payport));
       }
       toMainDenomination(amount) {
           return toMainDenominationString(amount);
@@ -96,7 +133,6 @@
           this.fullNode = config.fullNode || DEFAULT_FULL_NODE;
           this.solidityNode = config.solidityNode || DEFAULT_SOLIDITY_NODE;
           this.eventServer = config.eventServer || DEFAULT_EVENT_SERVER;
-          this.logger = new tsCommon.DelegateLogger(config.logger, PACKAGE_NAME);
           this.tronweb = new TronWeb(this.fullNode, this.solidityNode, this.eventServer);
       }
       async init() { }
@@ -239,7 +275,12 @@
                       success = true;
                       rebroadcast = true;
                   }
-                  catch (e) { }
+                  catch (e) {
+                      const expiration = tx.data && tx.data.raw_data.expiration;
+                      if (expiration && Date.now() > expiration + EXPIRATION_FUDGE_MS) {
+                          throw new paymentsCommon.PaymentsError(paymentsCommon.PaymentsErrorCode.TxExpired, 'Transaction has expired');
+                      }
+                  }
               }
               if (success) {
                   return {
@@ -249,6 +290,9 @@
               }
               else {
                   let statusCode = status.code;
+                  if (statusCode === 'TRANSACTION_EXPIRATION_ERROR') {
+                      throw new paymentsCommon.PaymentsError(paymentsCommon.PaymentsErrorCode.TxExpired, `${statusCode} ${status.message || ''}`);
+                  }
                   if (statusCode === 'DUP_TRANSACTION_ERROR') {
                       statusCode = 'DUP_TX_BUT_TX_NOT_FOUND_SO_PROBABLY_INVALID_TX_ERROR';
                   }
@@ -345,7 +389,7 @@
               }
               return { address: payport };
           }
-          if (!isValidPayport(payport)) {
+          if (!this.isValidPayport(payport)) {
               throw new Error(`Invalid TRON payport: ${JSON.stringify(payport)}`);
           }
           return payport;
@@ -726,34 +770,6 @@
       }
   }
 
-  const BaseTronPaymentsConfig = tsCommon.extendCodec(paymentsCommon.BaseConfig, {}, {
-      fullNode: t.string,
-      solidityNode: t.string,
-      eventServer: t.string,
-      logger: tsCommon.Logger,
-  }, 'BaseTronPaymentsConfig');
-  const HdTronPaymentsConfig = tsCommon.extendCodec(BaseTronPaymentsConfig, {
-      hdKey: t.string,
-  }, 'HdTronPaymentsConfig');
-  const NullableOptionalString = t.union([t.string, t.null, t.undefined]);
-  const KeyPairTronPaymentsConfig = tsCommon.extendCodec(BaseTronPaymentsConfig, {
-      keyPairs: t.union([t.array(NullableOptionalString), t.record(t.number, NullableOptionalString)]),
-  }, 'KeyPairTronPaymentsConfig');
-  const TronPaymentsConfig = t.union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig], 'TronPaymentsConfig');
-  const TronUnsignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseUnsignedTransaction, {
-      id: t.string,
-      amount: t.string,
-      fee: t.string,
-  }, 'TronUnsignedTransaction');
-  const TronSignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseSignedTransaction, {}, {}, 'TronSignedTransaction');
-  const TronTransactionInfo = tsCommon.extendCodec(paymentsCommon.BaseTransactionInfo, {}, {}, 'TronTransactionInfo');
-  const TronBroadcastResult = tsCommon.extendCodec(paymentsCommon.BaseBroadcastResult, {
-      rebroadcast: t.boolean,
-  }, 'TronBroadcastResult');
-  const GetPayportOptions = t.partial({
-      cacheIndex: t.boolean,
-  });
-
   class TronPaymentsFactory {
       forConfig(config) {
           if (HdTronPaymentsConfig.is(config)) {
@@ -797,6 +813,7 @@
   exports.DEFAULT_SOLIDITY_NODE = DEFAULT_SOLIDITY_NODE;
   exports.DEFAULT_EVENT_SERVER = DEFAULT_EVENT_SERVER;
   exports.DEFAULT_FEE_LEVEL = DEFAULT_FEE_LEVEL;
+  exports.EXPIRATION_FUDGE_MS = EXPIRATION_FUDGE_MS;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

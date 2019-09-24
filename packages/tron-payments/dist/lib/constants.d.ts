@@ -7,3 +7,4 @@ export declare const DEFAULT_FULL_NODE: string;
 export declare const DEFAULT_SOLIDITY_NODE: string;
 export declare const DEFAULT_EVENT_SERVER: string;
 export declare const DEFAULT_FEE_LEVEL = FeeLevel.Medium;
+export declare const EXPIRATION_FUDGE_MS: number;

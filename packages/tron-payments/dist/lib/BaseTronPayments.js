@@ -1,10 +1,10 @@
 import TronWeb from 'tronweb';
 import { pick, get, cloneDeep } from 'lodash';
-import { TransactionStatus, FeeLevel, FeeRateType, FeeOptionCustom, } from '@faast/payments-common';
-import { isType, DelegateLogger } from '@faast/ts-common';
-import { toBaseDenominationNumber, isValidAddress, isValidPayport } from './helpers';
+import { TransactionStatus, FeeLevel, FeeRateType, FeeOptionCustom, PaymentsError, PaymentsErrorCode, } from '@faast/payments-common';
+import { isType } from '@faast/ts-common';
+import { toBaseDenominationNumber, isValidAddress } from './helpers';
 import { toError } from './utils';
-import { DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE, MIN_BALANCE_SUN, MIN_BALANCE_TRX, PACKAGE_NAME, DEFAULT_FEE_LEVEL, } from './constants';
+import { DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE, MIN_BALANCE_SUN, MIN_BALANCE_TRX, DEFAULT_FEE_LEVEL, EXPIRATION_FUDGE_MS, } from './constants';
 import { TronPaymentsUtils } from './TronPaymentsUtils';
 export class BaseTronPayments extends TronPaymentsUtils {
     constructor(config) {
@@ -12,7 +12,6 @@ export class BaseTronPayments extends TronPaymentsUtils {
         this.fullNode = config.fullNode || DEFAULT_FULL_NODE;
         this.solidityNode = config.solidityNode || DEFAULT_SOLIDITY_NODE;
         this.eventServer = config.eventServer || DEFAULT_EVENT_SERVER;
-        this.logger = new DelegateLogger(config.logger, PACKAGE_NAME);
         this.tronweb = new TronWeb(this.fullNode, this.solidityNode, this.eventServer);
     }
     async init() { }
@@ -155,7 +154,12 @@ export class BaseTronPayments extends TronPaymentsUtils {
                     success = true;
                     rebroadcast = true;
                 }
-                catch (e) { }
+                catch (e) {
+                    const expiration = tx.data && tx.data.raw_data.expiration;
+                    if (expiration && Date.now() > expiration + EXPIRATION_FUDGE_MS) {
+                        throw new PaymentsError(PaymentsErrorCode.TxExpired, 'Transaction has expired');
+                    }
+                }
             }
             if (success) {
                 return {
@@ -165,6 +169,9 @@ export class BaseTronPayments extends TronPaymentsUtils {
             }
             else {
                 let statusCode = status.code;
+                if (statusCode === 'TRANSACTION_EXPIRATION_ERROR') {
+                    throw new PaymentsError(PaymentsErrorCode.TxExpired, `${statusCode} ${status.message || ''}`);
+                }
                 if (statusCode === 'DUP_TRANSACTION_ERROR') {
                     statusCode = 'DUP_TX_BUT_TX_NOT_FOUND_SO_PROBABLY_INVALID_TX_ERROR';
                 }
@@ -261,7 +268,7 @@ export class BaseTronPayments extends TronPaymentsUtils {
             }
             return { address: payport };
         }
-        if (!isValidPayport(payport)) {
+        if (!this.isValidPayport(payport)) {
             throw new Error(`Invalid TRON payport: ${JSON.stringify(payport)}`);
         }
         return payport;

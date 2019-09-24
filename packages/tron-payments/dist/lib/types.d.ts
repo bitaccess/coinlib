@@ -12,7 +12,6 @@ export declare const BaseTronPaymentsConfig: t.IntersectionC<[t.PartialC<{
     fullNode: t.StringC;
     solidityNode: t.StringC;
     eventServer: t.StringC;
-    logger: import("@faast/ts-common").LoggerC;
 }>]>;
 export declare type BaseTronPaymentsConfig = t.TypeOf<typeof BaseTronPaymentsConfig>;
 export declare const HdTronPaymentsConfig: t.IntersectionC<[t.IntersectionC<[t.PartialC<{
@@ -22,7 +21,6 @@ export declare const HdTronPaymentsConfig: t.IntersectionC<[t.IntersectionC<[t.P
     fullNode: t.StringC;
     solidityNode: t.StringC;
     eventServer: t.StringC;
-    logger: import("@faast/ts-common").LoggerC;
 }>]>, t.TypeC<{
     hdKey: t.StringC;
 }>]>;
@@ -34,7 +32,6 @@ export declare const KeyPairTronPaymentsConfig: t.IntersectionC<[t.IntersectionC
     fullNode: t.StringC;
     solidityNode: t.StringC;
     eventServer: t.StringC;
-    logger: import("@faast/ts-common").LoggerC;
 }>]>, t.TypeC<{
     keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>]>;
 }>]>;
@@ -46,7 +43,6 @@ export declare const TronPaymentsConfig: t.UnionC<[t.IntersectionC<[t.Intersecti
     fullNode: t.StringC;
     solidityNode: t.StringC;
     eventServer: t.StringC;
-    logger: import("@faast/ts-common").LoggerC;
 }>]>, t.TypeC<{
     hdKey: t.StringC;
 }>]>, t.IntersectionC<[t.IntersectionC<[t.PartialC<{
@@ -56,7 +52,6 @@ export declare const TronPaymentsConfig: t.UnionC<[t.IntersectionC<[t.Intersecti
     fullNode: t.StringC;
     solidityNode: t.StringC;
     eventServer: t.StringC;
-    logger: import("@faast/ts-common").LoggerC;
 }>]>, t.TypeC<{
     keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>]>;
 }>]>]>;
@@ -70,10 +65,10 @@ export declare const TronUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>]>, t.TypeC<{
     fromAddress: t.StringC;
     toAddress: t.StringC;
@@ -99,10 +94,10 @@ export declare const TronSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>]>, t.TypeC<{
     fromAddress: t.StringC;
     toAddress: t.StringC;
@@ -127,10 +122,10 @@ export declare const TronTransactionInfo: t.IntersectionC<[t.IntersectionC<[t.Ty
     toIndex: t.UnionC<[t.NumberC, t.NullC]>;
     amount: t.UnionC<[t.StringC, t.NullC]>;
     fee: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
 }>]>, t.TypeC<{
     id: t.StringC;
     amount: t.StringC;
