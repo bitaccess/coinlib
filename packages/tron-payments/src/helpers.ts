@@ -37,14 +37,6 @@ export function isValidExtraId(extraId: string): boolean {
   return false
 }
 
-export function isValidPayport(payport: Payport): boolean {
-  if (!Payport.is(payport)) {
-    return false
-  }
-  const { address, extraId } = payport
-  return isValidAddress(address) && (isNil(extraId) ? true : isValidExtraId(extraId))
-}
-
 export function isValidPrivateKey(privateKey: string): boolean {
   try {
     privateKeyToAddress(privateKey)

@@ -12,6 +12,8 @@ import {
   Payport,
   FromTo,
   ResolveablePayport,
+  PaymentsError,
+  PaymentsErrorCode,
 } from '@faast/payments-common'
 import { isType, DelegateLogger, Logger } from '@faast/ts-common'
 
@@ -25,7 +27,7 @@ import {
   BaseTronPaymentsConfig,
   TronWebTransaction,
 } from './types'
-import { toBaseDenominationNumber, isValidAddress, isValidPayport } from './helpers'
+import { toBaseDenominationNumber, isValidAddress } from './helpers'
 import { toError } from './utils'
 import {
   DEFAULT_FULL_NODE,
@@ -35,6 +37,7 @@ import {
   MIN_BALANCE_TRX,
   PACKAGE_NAME,
   DEFAULT_FEE_LEVEL,
+  EXPIRATION_FUDGE_MS,
 } from './constants'
 import { TronPaymentsUtils } from './TronPaymentsUtils'
 
@@ -56,7 +59,6 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
     this.fullNode = config.fullNode || DEFAULT_FULL_NODE
     this.solidityNode = config.solidityNode || DEFAULT_SOLIDITY_NODE
     this.eventServer = config.eventServer || DEFAULT_EVENT_SERVER
-    this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
     this.tronweb = new TronWeb(this.fullNode, this.solidityNode, this.eventServer)
   }
 
@@ -236,7 +238,12 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
           await this.tronweb.trx.getTransaction(tx.id)
           success = true
           rebroadcast = true
-        } catch (e) {}
+        } catch (e) {
+          const expiration = tx.data && (tx.data as TronTransaction).raw_data.expiration
+          if (expiration && Date.now() > expiration + EXPIRATION_FUDGE_MS) {
+            throw new PaymentsError(PaymentsErrorCode.TxExpired, 'Transaction has expired')
+          }
+        }
       }
       if (success) {
         return {
@@ -245,6 +252,9 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
         }
       } else {
         let statusCode: string | undefined = status.code
+        if (statusCode === 'TRANSACTION_EXPIRATION_ERROR') {
+          throw new PaymentsError(PaymentsErrorCode.TxExpired, `${statusCode} ${status.message || ''}`)
+        }
         if (statusCode === 'DUP_TRANSACTION_ERROR') {
           statusCode = 'DUP_TX_BUT_TX_NOT_FOUND_SO_PROBABLY_INVALID_TX_ERROR'
         }
@@ -354,7 +364,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
       }
       return { address: payport }
     }
-    if (!isValidPayport(payport)) {
+    if (!this.isValidPayport(payport)) {
       throw new Error(`Invalid TRON payport: ${JSON.stringify(payport)}`)
     }
     return payport

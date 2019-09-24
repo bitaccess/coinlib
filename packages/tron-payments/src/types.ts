@@ -30,7 +30,6 @@ export const BaseTronPaymentsConfig = extendCodec(
     fullNode: t.string,
     solidityNode: t.string,
     eventServer: t.string,
-    logger: Logger,
   },
   'BaseTronPaymentsConfig',
 )

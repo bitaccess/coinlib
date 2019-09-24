@@ -163,7 +163,7 @@ function runHardcodedPublicKeyTests(tp: HdTronPayments, config: HdTronPaymentsCo
     })
   })
   it('broadcast should fail on invalid tx', async () => {
-    await expect(tp.broadcastTransaction(signedTx_invalid)).rejects.toThrow('Failed to broadcast transaction: ')
+    await expect(tp.broadcastTransaction(signedTx_invalid)).rejects.toThrow('PaymentsError: Transaction has expired')
   })
 }
 
