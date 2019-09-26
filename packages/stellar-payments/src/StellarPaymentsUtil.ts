@@ -1,5 +1,5 @@
 import { PaymentsUtils, NetworkType, Payport } from '@faast/payments-common'
-import { StellarAPI } from 'stellar-sdk'
+import { Server as StellarApi } from 'stellar-sdk'
 
 import {
   toMainDenominationString,
@@ -17,7 +17,7 @@ import { resolveStellarServer, retryIfDisconnected } from './utils'
 export class StellarPaymentsUtils implements PaymentsUtils {
   networkType: NetworkType
   logger: Logger
-  stellarApi: StellarAPI
+  api: StellarApi | null
   server: string | null
 
   constructor(config: BaseStellarConfig = {}) {
@@ -25,24 +25,23 @@ export class StellarPaymentsUtils implements PaymentsUtils {
     this.networkType = config.network || DEFAULT_NETWORK
     this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
     const { api, server } = resolveStellarServer(config.server, this.networkType)
-    this.stellarApi = api
+    this.api = api
     this.server = server
   }
 
-  async init(): Promise<void> {
-    if (!this.stellarApi.isConnected()) {
-      await this.stellarApi.connect()
+  private getApi(): StellarApi {
+    if (this.api === null) {
+      throw new Error('Cannot access stellar network when configured with null server')
     }
+    return this.api
   }
 
-  async destroy(): Promise<void> {
-    if (this.stellarApi.isConnected()) {
-      await this.stellarApi.disconnect()
-    }
-  }
+  async init(): Promise<void> {}
+
+  async destroy(): Promise<void> {}
 
   async _retryDced<T>(fn: () => Promise<T>): Promise<T> {
-    return retryIfDisconnected(fn, this.stellarApi, this.logger)
+    return retryIfDisconnected(fn, this.getApi(), this.logger)
   }
 
   async isValidExtraId(extraId: string): Promise<boolean> {
@@ -60,7 +59,7 @@ export class StellarPaymentsUtils implements PaymentsUtils {
     }
     let requireExtraId = false
     try {
-      const settings = await this._retryDced(() => this.stellarApi.getSettings(address))
+      const settings = await this._retryDced(() => this.getApi().getSettings(address))
       requireExtraId = settings.requireDestinationTag || false
     } catch (e) {
       this.logger.debug(`Failed to retrieve settings for ${address} - ${e.message}`)

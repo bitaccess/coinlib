@@ -24,5 +24,5 @@ export const XPRV_REGEX = /^xprv[a-km-zA-HJ-NP-Z1-9]{100,108}$/
 export const NOT_FOUND_ERRORS = ['MissingLedgerHistoryError', 'NotFoundError']
 
 export const DEFAULT_NETWORK = NetworkType.Mainnet
-export const DEFAULT_MAINNET_SERVER = 'wss://s1.stellar.com'
-export const DEFAULT_TESTNET_SERVER = 'wss://s.altnet.stellartest.net:51233'
+export const DEFAULT_MAINNET_SERVER = 'https://horizon.stellar.org'
+export const DEFAULT_TESTNET_SERVER = 'https://horizon-testnet.stellar.org'

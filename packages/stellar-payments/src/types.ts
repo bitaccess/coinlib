@@ -10,12 +10,11 @@ import {
   Payport,
   FromTo,
 } from '@faast/payments-common'
-import { FormattedTransactionType as StellarTransaction, StellarAPI } from 'stellar-sdk'
-import { KeyPair } from 'stellar-sdk/dist/npm/transaction/types'
+import * as Stellar from 'stellar-sdk'
 import { AccountStellarPayments } from './AccountStellarPayments'
 
-type PromiseValue<T> = T extends Promise<infer X> ? X : never
-type StellarLedger = PromiseValue<ReturnType<StellarAPI['getLedger']>>
+type StellarTransaction = Stellar.ServerApi.TransactionRecord
+type StellarLedger = Stellar.ServerApi.LedgerRecord
 
 export { StellarTransaction, StellarLedger, CreateTransactionOptions }
 
@@ -27,7 +26,7 @@ export const BaseStellarConfig = extendCodec(
   BaseConfig,
   {},
   {
-    server: t.union([t.string, instanceofCodec(StellarAPI), t.nullType]),
+    server: t.union([t.string, instanceofCodec(Stellar.Server), t.nullType]),
   },
   'BaseStellarConfig',
 )
@@ -58,7 +57,7 @@ export type HdStellarPaymentsConfig = t.TypeOf<typeof HdStellarPaymentsConfig>
 export const StellarKeyPair = t.type(
   {
     publicKey: t.string,
-    privateKey: t.string,
+    secretKey: t.string,
   },
   'StellarKeyPair',
 )
@@ -138,7 +137,7 @@ export const StellarCreateTransactionOptions = extendCodec(
   CreateTransactionOptions,
   {},
   {
-    maxLedgerVersionOffset: t.number,
+    timeoutSeconds: t.number,
   },
   'StellarCreateTransactionOptions',
 )
@@ -151,5 +150,5 @@ export type FromToWithPayport = FromTo & {
 
 export type StellarSignatory = {
   address: string
-  secret: string | KeyPair
+  secret: string | Stellar.Keypair
 }

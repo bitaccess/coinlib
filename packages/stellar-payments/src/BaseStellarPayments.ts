@@ -14,8 +14,6 @@ import {
 } from '@faast/payments-common'
 import { assertType, isNil, Numeric } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
-import { FormattedPaymentTransaction, Prepare } from 'stellar-sdk/dist/npm/transaction/types'
-import { Adjustment, Amount } from 'stellar-sdk/dist/npm/common/types/objects'
 import { omit } from 'lodash'
 
 import {

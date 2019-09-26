@@ -1,10 +1,11 @@
-import { BaseStellarConfig } from './types'
-import { StellarAPI } from 'stellar-sdk'
+import * as Stellar from 'stellar-sdk'
 import { isString } from 'util'
 import { NetworkType } from '@faast/payments-common'
 import promiseRetry from 'promise-retry'
-import { DEFAULT_TESTNET_SERVER, DEFAULT_MAINNET_SERVER } from './constants'
 import { Logger } from '@faast/ts-common'
+
+import { BaseStellarConfig } from './types'
+import { DEFAULT_TESTNET_SERVER, DEFAULT_MAINNET_SERVER } from './constants'
 
 export function padLeft(x: string, n: number, v: string): string {
   while (x.length < n) {
@@ -14,7 +15,7 @@ export function padLeft(x: string, n: number, v: string): string {
 }
 
 export type ResolvedServer = {
-  api: StellarAPI
+  api: Stellar.Server | null
   server: string | null
 }
 
@@ -24,20 +25,18 @@ export function resolveStellarServer(server: BaseStellarConfig['server'], networ
   }
   if (isString(server)) {
     return {
-      api: new StellarAPI({
-        server,
-      }),
+      api: new Stellar.Server(server),
       server,
     }
-  } else if (server instanceof StellarAPI) {
+  } else if (server instanceof Stellar.Server) {
     return {
       api: server,
-      server: (server.connection as any)._url || '',
+      server: server.serverURL.toString(),
     }
   } else {
     // null server arg -> offline mode
     return {
-      api: new StellarAPI(),
+      api: null,
       server: null,
     }
   }
@@ -47,7 +46,7 @@ const CONNECTION_ERRORS = ['ConnectionError', 'NotConnectedError', 'Disconnected
 const RETRYABLE_ERRORS = [...CONNECTION_ERRORS, 'TimeoutError']
 const MAX_RETRIES = 3
 
-export function retryIfDisconnected<T>(fn: () => Promise<T>, stellarApi: StellarAPI, logger: Logger): Promise<T> {
+export function retryIfDisconnected<T>(fn: () => Promise<T>, stellarApi: Stellar.Server, logger: Logger): Promise<T> {
   return promiseRetry(
     (retry, attempt) => {
       return fn().catch(async e => {
