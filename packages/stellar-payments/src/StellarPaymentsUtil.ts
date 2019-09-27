@@ -57,18 +57,7 @@ export class StellarPaymentsUtils implements PaymentsUtils {
     if (!(await this.isValidAddress(address))) {
       return 'Invalid payport address'
     }
-    let requireExtraId = false
-    try {
-      const settings = await this._retryDced(() => this.getApi().getSettings(address))
-      requireExtraId = settings.requireDestinationTag || false
-    } catch (e) {
-      this.logger.debug(`Failed to retrieve settings for ${address} - ${e.message}`)
-    }
-    if (isNil(extraId)) {
-      if (requireExtraId) {
-        return `Payport extraId is required for address ${address} with stellar requireDestinationTag setting enabled`
-      }
-    } else if (!(await this.isValidExtraId(extraId))) {
+    if (!isNil(extraId) && !(await this.isValidExtraId(extraId))) {
       return 'Invalid payport extraId'
     }
   }
