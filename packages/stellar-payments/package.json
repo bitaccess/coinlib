@@ -72,6 +72,7 @@
     "io-ts": "^1.10.4",
     "lodash": "^4.17.15",
     "promise-retry": "^1.1.1",
+    "stellar-hd-wallet": "0.0.10",
     "stellar-sdk": "^3.0.1"
   }
 }
