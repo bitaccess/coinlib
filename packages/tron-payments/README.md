@@ -8,7 +8,7 @@ Please see the BIP32 standard for more information ([BIP32](https://github.com/b
 
 Some work is inspired off of the prior work done by [tron-bip44](https://github.com/trapp/tron-bip44)
 
-Coming soon: tools to sign transactions passed down from the server connected to web3.
+Implements the [payments-common](https://github.com/go-faast/payments-common) interface.
 
 ## Getting Started
 
