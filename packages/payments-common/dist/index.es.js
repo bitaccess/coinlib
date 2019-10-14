@@ -1,6 +1,6 @@
 import { partial, union, string, number, literal, type, boolean, object } from 'io-ts';
+import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT, Logger, functionT, Numeric } from '@faast/ts-common';
 import BigNumber from 'bignumber.js';
-import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT, Logger, functionT, Numeric, DelegateLogger } from '@faast/ts-common';
 
 var NetworkType;
 (function (NetworkType) {
@@ -186,13 +186,6 @@ function createUnitConverters(decimals) {
     };
 }
 
-class BalanceMonitor {
-    constructor(config) {
-        this.networkType = config.network || NetworkType.Mainnet;
-        this.logger = new DelegateLogger(config.logger, BalanceMonitor.name);
-    }
-}
-
 var PaymentsErrorCode;
 (function (PaymentsErrorCode) {
     PaymentsErrorCode["TxExpired"] = "PAYMENTS_TX_EXPIRED";
@@ -214,5 +207,5 @@ class PaymentsError extends Error {
     }
 }
 
-export { NetworkType, NetworkTypeT, BaseConfig, AddressOrIndex, FeeLevel, FeeLevelT, FeeRateType, FeeRateTypeT, FeeOptionCustom, FeeOptionLevel, FeeOption, CreateTransactionOptions, ResolvedFeeOption, BalanceResult, TransactionStatus, TransactionStatusT, TransactionCommon, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, Payport, BalanceActivityType, BalanceActivity, BalanceMonitorConfig, GetBalanceActivityOptions, BalanceActivityCallback, ResolveablePayport, RetrieveBalanceActivitiesResult, createUnitConverters, BalanceMonitor, PaymentsErrorCode, PaymentsError };
+export { NetworkType, NetworkTypeT, BaseConfig, AddressOrIndex, FeeLevel, FeeLevelT, FeeRateType, FeeRateTypeT, FeeOptionCustom, FeeOptionLevel, FeeOption, CreateTransactionOptions, ResolvedFeeOption, BalanceResult, TransactionStatus, TransactionStatusT, TransactionCommon, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, Payport, BalanceActivityType, BalanceActivity, BalanceMonitorConfig, GetBalanceActivityOptions, BalanceActivityCallback, ResolveablePayport, RetrieveBalanceActivitiesResult, createUnitConverters, PaymentsErrorCode, PaymentsError };
 //# sourceMappingURL=index.es.js.map

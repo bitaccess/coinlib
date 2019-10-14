@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('io-ts'), require('bignumber.js'), require('@faast/ts-common')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'io-ts', 'bignumber.js', '@faast/ts-common'], factory) :
-  (factory((global.faastPaymentsCommon = {}),global.t,global.BigNumber,global.tsCommon));
-}(this, (function (exports,t,BigNumber,tsCommon) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('io-ts'), require('@faast/ts-common'), require('bignumber.js')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'io-ts', '@faast/ts-common', 'bignumber.js'], factory) :
+  (factory((global.faastPaymentsCommon = {}),global.t,global.tsCommon,global.BigNumber));
+}(this, (function (exports,t,tsCommon,BigNumber) { 'use strict';
 
   BigNumber = BigNumber && BigNumber.hasOwnProperty('default') ? BigNumber['default'] : BigNumber;
 
@@ -186,13 +186,6 @@
       };
   }
 
-  class BalanceMonitor {
-      constructor(config) {
-          this.networkType = config.network || exports.NetworkType.Mainnet;
-          this.logger = new tsCommon.DelegateLogger(config.logger, BalanceMonitor.name);
-      }
-  }
-
   (function (PaymentsErrorCode) {
       PaymentsErrorCode["TxExpired"] = "PAYMENTS_TX_EXPIRED";
       PaymentsErrorCode["TxSequenceTooHigh"] = "PAYMENTS_TX_SEQUENCE_TOO_HIGH";
@@ -239,7 +232,6 @@
   exports.ResolveablePayport = ResolveablePayport;
   exports.RetrieveBalanceActivitiesResult = RetrieveBalanceActivitiesResult;
   exports.createUnitConverters = createUnitConverters;
-  exports.BalanceMonitor = BalanceMonitor;
   exports.PaymentsError = PaymentsError;
 
   Object.defineProperty(exports, '__esModule', { value: true });

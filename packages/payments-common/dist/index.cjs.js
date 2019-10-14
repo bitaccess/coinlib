@@ -5,8 +5,8 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var t = require('io-ts');
-var BigNumber = _interopDefault(require('bignumber.js'));
 var tsCommon = require('@faast/ts-common');
+var BigNumber = _interopDefault(require('bignumber.js'));
 
 (function (NetworkType) {
     NetworkType["Mainnet"] = "mainnet";
@@ -188,13 +188,6 @@ function createUnitConverters(decimals) {
     };
 }
 
-class BalanceMonitor {
-    constructor(config) {
-        this.networkType = config.network || exports.NetworkType.Mainnet;
-        this.logger = new tsCommon.DelegateLogger(config.logger, BalanceMonitor.name);
-    }
-}
-
 (function (PaymentsErrorCode) {
     PaymentsErrorCode["TxExpired"] = "PAYMENTS_TX_EXPIRED";
     PaymentsErrorCode["TxSequenceTooHigh"] = "PAYMENTS_TX_SEQUENCE_TOO_HIGH";
@@ -241,6 +234,5 @@ exports.BalanceActivityCallback = BalanceActivityCallback;
 exports.ResolveablePayport = ResolveablePayport;
 exports.RetrieveBalanceActivitiesResult = RetrieveBalanceActivitiesResult;
 exports.createUnitConverters = createUnitConverters;
-exports.BalanceMonitor = BalanceMonitor;
 exports.PaymentsError = PaymentsError;
 //# sourceMappingURL=index.cjs.js.map
