@@ -1,29 +1,13 @@
-import { Logger, DelegateLogger } from '@faast/ts-common'
+import { BalanceActivityCallback, GetBalanceActivityOptions, RetrieveBalanceActivitiesResult } from './types'
 
-import {
-  NetworkType,
-  BalanceMonitorConfig,
-  BalanceActivityCallback,
-  GetBalanceActivityOptions,
-  RetrieveBalanceActivitiesResult,
-} from './types'
+export interface BalanceMonitor {
+  init(): Promise<void>
 
-export abstract class BalanceMonitor {
-  networkType: NetworkType
-  logger: Logger
+  subscribeAddresses(addresses: string[]): Promise<void>
 
-  constructor(config: BalanceMonitorConfig) {
-    this.networkType = config.network || NetworkType.Mainnet
-    this.logger = new DelegateLogger(config.logger, BalanceMonitor.name)
-  }
+  onBalanceActivity(callbackFn: BalanceActivityCallback): void
 
-  abstract init(): Promise<void>
-
-  abstract subscribeAddresses(addresses: string[]): Promise<void>
-
-  abstract onBalanceActivity(callbackFn: BalanceActivityCallback): void
-
-  abstract retrieveBalanceActivities(
+  retrieveBalanceActivities(
     address: string,
     callbackFn: BalanceActivityCallback,
     options?: GetBalanceActivityOptions,
