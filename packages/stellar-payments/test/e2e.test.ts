@@ -10,9 +10,8 @@ import {
   expectEqualWhenTruthy,
   logger,
 } from './utils'
-import { AccountStellarPayments, StellarTransactionInfo, StellarBalanceMonitor } from '../src'
-import { StellarSignedTransaction } from '../src/types'
-import { isValidAddress } from '../src/helpers';
+import { isValidAddress, StellarSignedTransaction, AccountStellarPayments, StellarTransactionInfo, StellarBalanceMonitor } from '../src'
+import { padLeft } from '#/utils'
 
 jest.setTimeout(60 * 1000)
 
@@ -23,7 +22,7 @@ describe('e2e', () => {
   let monitorMainnet: StellarBalanceMonitor
 
   let startLedgerVersion: number
-  const balanceActivities: BalanceActivity[] = []
+  const emittedBalanceActivities: BalanceActivity[] = []
 
   beforeAll(async () => {
     payments = await setupTestnetPayments()
@@ -42,7 +41,7 @@ describe('e2e', () => {
     startLedgerVersion = (await payments.getBlock()).sequence
     monitor.onBalanceActivity(activity => {
       logger.log('activity', activity)
-      balanceActivities.push(activity)
+      emittedBalanceActivities.push(activity)
     })
     await monitor.subscribeAddresses(payments.getAddressesToMonitor())
   }, 120 * 1000)
@@ -121,13 +120,19 @@ describe('e2e', () => {
     return tx
   }
 
-  async function pollSignedTx(signedTx: StellarSignedTransaction) {
-    const txId = signedTx.id
+  async function pollSignedTx(txId: string, signedTx: StellarSignedTransaction) {
     const tx = await pollTxId(txId)
-    expect(tx.id).toBe(signedTx.id)
+    expect(tx.id).toBe(txId)
     expect(tx.fromAddress).toBe(signedTx.fromAddress)
-    expectEqualWhenTruthy(tx.fromExtraId, signedTx.fromExtraId)
-    expect(tx.fromIndex).toBe(signedTx.fromIndex)
+
+    // Stellar has no way to record fromExtraId so can't properly check it
+    expect(tx.fromExtraId).toBe(null)
+    if (signedTx.fromIndex === 0) {
+      expect(tx.fromIndex).toBe(0)
+    } else {
+      expect(tx.fromIndex).toBe(1)
+    }
+
     expect(tx.toAddress).toBe(signedTx.toAddress)
     expectEqualWhenTruthy(tx.toExtraId, signedTx.toExtraId)
     expect(tx.toIndex).toBe(signedTx.toIndex)
@@ -172,15 +177,9 @@ describe('e2e', () => {
     const signedTx = await payments.signTransaction(unsignedTx)
     logger.log(`Sweeping ${signedTx.amount} XLM from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
     const broadcastResult = await payments.broadcastTransaction(signedTx)
-    expectEqualOmit(
-      broadcastResult,
-      {
-        id: signedTx.id,
-        rebroadcast: false,
-      },
-      ['data'],
-    )
-    sweepTxPromise = pollSignedTx(signedTx)
+    expect(broadcastResult.id).toBeTruthy()
+    expect(broadcastResult.rebroadcast).toBe(false)
+    sweepTxPromise = pollSignedTx(broadcastResult.id, signedTx)
     const tx = await sweepTxPromise
     const amount = new BigNumber(tx.amount)
     const fee = new BigNumber(tx.fee)
@@ -197,20 +196,18 @@ describe('e2e', () => {
     const signedTx = await payments.signTransaction(unsignedTx)
     logger.log(`Sending ${signedTx.amount} XLM from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
     const broadcastResult = await payments.broadcastTransaction(signedTx)
-    expectEqualOmit(
-      broadcastResult,
-      {
-        id: signedTx.id,
-        rebroadcast: false,
-      },
-      ['data'],
-    )
-    sendTxPromise = pollSignedTx(signedTx)
+    expect(broadcastResult.id).toBeTruthy()
+    expect(broadcastResult.rebroadcast).toBe(false)
+    sendTxPromise = pollSignedTx(broadcastResult.id, signedTx)
     const tx = await sendTxPromise
     expect(tx.amount).toEqual(sendAmount)
     const fee = new BigNumber(tx.fee)
     expect(fee.toNumber()).toBeGreaterThan(0)
   })
+
+  function getExpectedActivitySequence(tx: StellarTransactionInfo, type: 'out' | 'in'): string {
+    return `${padLeft((tx.confirmationNumber || 0).toString(), 12, '0')}.${padLeft((tx.confirmationTimestamp as Date).getTime().toString(), 18, '0')}.${type === 'out' ? '00' : '01'}`
+  }
 
   async function getExpectedDepositActivities() {
     const sweepTx = await sweepTxPromise
@@ -223,10 +220,11 @@ describe('e2e', () => {
         confirmationId: sweepTx.confirmationId,
         confirmationNumber: sweepTx.confirmationNumber,
         externalId: sweepTx.id,
-        extraId: sweepTx.fromExtraId,
+        extraId: null,
         networkSymbol: 'XLM',
         networkType: NetworkType.Testnet,
         timestamp: sweepTx.confirmationTimestamp,
+        activitySequence: getExpectedActivitySequence(sweepTx, 'out'),
         type: 'out',
       },
       {
@@ -240,6 +238,7 @@ describe('e2e', () => {
         networkSymbol: 'XLM',
         networkType: NetworkType.Testnet,
         timestamp: sendTx.confirmationTimestamp,
+        activitySequence: getExpectedActivitySequence(sendTx, 'in'),
         type: 'in',
       },
     ]
@@ -260,6 +259,7 @@ describe('e2e', () => {
         networkSymbol: 'XLM',
         networkType: NetworkType.Testnet,
         timestamp: sweepTx.confirmationTimestamp,
+        activitySequence: getExpectedActivitySequence(sweepTx, 'in'),
         type: 'in',
       },
       {
@@ -269,27 +269,27 @@ describe('e2e', () => {
         confirmationId: sendTx.confirmationId,
         confirmationNumber: sendTx.confirmationNumber,
         externalId: sendTx.id,
-        extraId: sendTx.fromExtraId,
+        extraId: null,
         networkSymbol: 'XLM',
         networkType: NetworkType.Testnet,
         timestamp: sendTx.confirmationTimestamp,
+        activitySequence: getExpectedActivitySequence(sendTx, 'out'),
         type: 'out',
       },
     ]
   }
 
   function expectBalanceActivities(actual: any[], expected: any[]) {
-    const normalize = (x: any[]) => sortBy(x, ['timestamp']).map(a => omit(a, ['activitySequence']))
+    const normalize = (x: any[]) => sortBy(x, ['activitySequence'])
     expect(normalize(actual)).toEqual(normalize(expected))
   }
 
   jest.setTimeout(30 * 1000)
 
-  it.skip('should emit expected balance activities', async () => {
-    // Can't get subscriptions to work :(
+  it('should emit expected balance activities', async () => {
     const hotActivity = await getExpectedHotActivities()
     const depositActivity = await getExpectedDepositActivities()
-    expect(balanceActivities).toEqual(hotActivity.concat(depositActivity))
+    expectBalanceActivities(emittedBalanceActivities, hotActivity.concat(depositActivity))
   })
 
   it('should be able to retrieve the deposit account balance activities', async () => {
@@ -313,34 +313,12 @@ describe('e2e', () => {
     expectBalanceActivities(actual, [])
   })
 
-  it.skip('should be able to retrieve more activities than page limit', async () => {
-    const actual = await accumulateRetrievedActivities('r3b5PwYSZD48G8VeXoovj3CervMRyPMyVY')
+  it('should be able to retrieve more activities than page limit', async () => {
+    const actual = await accumulateRetrievedActivities('GDHMECSDSY3U66WAZMO3RFJXTNCGCFFVHINONHTWU2VPHHRFSBKHWMOL', {
+      from: 24895758,
+      to: 26463647,
+    }, monitorMainnet)
     expect(actual.length).toBeGreaterThan(10)
-  })
-
-  it('should recognize balance activity of txs with tec result code', async () => {
-    const [activity] = await accumulateRetrievedActivities(
-      'rJdLzYr87z7xuey8qAfh3qZ9WmaXaAoELe',
-      {
-        from: 49684653,
-        to: 49684655,
-      },
-      monitorMainnet,
-    )
-    expect(activity).toEqual({
-      type: 'out',
-      networkType: 'mainnet',
-      networkSymbol: 'XLM',
-      assetSymbol: 'XLM',
-      address: 'rJdLzYr87z7xuey8qAfh3qZ9WmaXaAoELe',
-      extraId: '12',
-      amount: '-0.000012',
-      externalId: 'F5C7793E506E9566CED0060D9FC519BA06BD0EB0F4A77C0680BEA8FD13A13A58',
-      activitySequence: '000049684654.00000040.00',
-      confirmationId: '4103BE72C0C718AD2B137C9B40C37AD3D157044A61F40AB74B122A12EFB15B32',
-      confirmationNumber: 49684654,
-      timestamp: new Date('2019-08-30T01:11:52.000Z'),
-    })
   })
 
 })

@@ -18,7 +18,7 @@ async function generateTestnetAccount(): Promise<StellarAccountConfig> {
   const address = pair.publicKey()
   const res = await fetch(`https://friendbot.stellar.org?addr=${encodeURIComponent(address)}`)
   const result = await res.json()
-  if (typeof result !== 'object' || result === null || !result.balance || !result.account) {
+  if (typeof result !== 'object' || result === null || !result.hash) {
     throw new Error(`Unexpected testnet faucet result for ${address} ${util.inspect(result)}`)
   }
   return {
