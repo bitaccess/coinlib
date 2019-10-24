@@ -11,89 +11,88 @@ import {
   logger,
 } from './utils'
 import { AccountStellarPayments, StellarTransactionInfo, StellarBalanceMonitor } from '../src'
-import { ADDRESS_REGEX } from '../src/constants'
 import { StellarSignedTransaction } from '../src/types'
+import { isValidAddress } from '../src/helpers';
 
 jest.setTimeout(60 * 1000)
 
 describe('e2e', () => {
   let testsComplete: boolean = false
-  let rp: AccountStellarPayments
-  let bm: StellarBalanceMonitor
-  let bmMainnet: StellarBalanceMonitor
+  let payments: AccountStellarPayments
+  let monitor: StellarBalanceMonitor
+  let monitorMainnet: StellarBalanceMonitor
 
   let startLedgerVersion: number
   const balanceActivities: BalanceActivity[] = []
 
   beforeAll(async () => {
-    rp = await setupTestnetPayments()
-    await rp.init()
-    bm = new StellarBalanceMonitor({
+    payments = await setupTestnetPayments()
+    await payments.init()
+    monitor = new StellarBalanceMonitor({
       logger,
       network: NetworkType.Testnet,
-      server: rp.stellarApi,
+      server: payments.server,
     })
-    await bm.init()
-    bmMainnet = new StellarBalanceMonitor({
+    await monitor.init()
+    monitorMainnet = new StellarBalanceMonitor({
       logger,
       network: NetworkType.Mainnet,
-      server: 'wss://s2.stellar.com/',
     })
-    await bmMainnet.init()
-    startLedgerVersion = (await rp.stellarApi.getLedger()).ledgerVersion
-    bm.onBalanceActivity(activity => {
+    await monitorMainnet.init()
+    startLedgerVersion = (await payments.getBlock()).sequence
+    monitor.onBalanceActivity(activity => {
       logger.log('activity', activity)
       balanceActivities.push(activity)
     })
-    await bm.subscribeAddresses(rp.getAddressesToMonitor())
+    await monitor.subscribeAddresses(payments.getAddressesToMonitor())
   }, 120 * 1000)
 
   afterAll(async () => {
-    if (rp) await rp.destroy()
-    if (bm) await bm.destroy()
-    if (bmMainnet) await bmMainnet.destroy()
+    if (payments) await payments.destroy()
+    if (monitor) await monitor.destroy()
+    if (monitorMainnet) await monitorMainnet.destroy()
     testsComplete = true
   }, 120 * 1000)
 
   describe('properties', () => {
     it('should detect server when passed stellarApi', () => {
-      expect(bm.server).toBe(rp.server)
+      expect(monitor.server).toBe(payments.server)
     })
   })
 
   describe('getPayport', () => {
     it('index 0 should return hot account address', async () => {
-      const pp = await rp.getPayport(0)
-      expect(pp.address).toMatch(ADDRESS_REGEX)
+      const pp = await payments.getPayport(0)
+      expect(isValidAddress(pp.address)).toBe(true)
       expect(pp.extraId).toBe(undefined)
     })
     it('index 1 should return deposit account address', async () => {
-      const pp = await rp.getPayport(1)
-      expect(pp.address).toMatch(ADDRESS_REGEX)
+      const pp = await payments.getPayport(1)
+      expect(isValidAddress(pp.address)).toBe(true)
       expect(pp.extraId).toBe(undefined)
     })
     it('index 2 should return deposit account address plus extraId', async () => {
-      const pp = await rp.getPayport(2)
-      expect(pp.address).toMatch(ADDRESS_REGEX)
+      const pp = await payments.getPayport(2)
+      expect(isValidAddress(pp.address)).toBe(true)
       expect(pp.extraId).toBe('2')
     })
   })
 
   describe('getBalance', () => {
     it('should have hot account balance', async () => {
-      const balances = await rp.getBalance(0)
+      const balances = await payments.getBalance(0)
       expect(Number.parseInt(balances.confirmedBalance)).toBeGreaterThan(0)
       expect(balances.unconfirmedBalance).toBe('0')
       expect(balances.sweepable).toBe(true)
     })
     it('should have deposit account balance', async () => {
-      const balances = await rp.getBalance(1)
+      const balances = await payments.getBalance(1)
       expect(Number.parseInt(balances.confirmedBalance)).toBeGreaterThan(0)
       expect(balances.unconfirmedBalance).toBe('0')
       expect(balances.sweepable).toBe(true)
     })
     it('should get balance of address', async () => {
-      const balances = await rp.getBalance({ address: rp.hotSignatory.address })
+      const balances = await payments.getBalance({ address: payments.hotSignatory.address })
       expect(Number.parseInt(balances.confirmedBalance)).toBeGreaterThan(0)
       expect(balances.unconfirmedBalance).toBe('0')
       expect(balances.sweepable).toBe(true)
@@ -105,7 +104,7 @@ describe('e2e', () => {
     let tx: StellarTransactionInfo | undefined
     while (!testsComplete && (!tx || !END_TRANSACTION_STATES.includes(tx.status) || tx.confirmations === 0)) {
       try {
-        tx = await rp.getTransactionInfo(txId)
+        tx = await payments.getTransactionInfo(txId)
       } catch (e) {
         if (e.message.includes('Transaction not found')) {
           logger.log('tx not found yet', txId, e.message)
@@ -146,7 +145,7 @@ describe('e2e', () => {
   async function accumulateRetrievedActivities(
     address: string,
     options?: GetBalanceActivityOptions,
-    balanceMonitor: StellarBalanceMonitor = bm,
+    balanceMonitor: StellarBalanceMonitor = monitor,
   ): Promise<BalanceActivity[]> {
     const result: BalanceActivity[] = []
     await balanceMonitor.retrieveBalanceActivities(
@@ -169,10 +168,10 @@ describe('e2e', () => {
     const recipientIndex = 0
     const payportBalance = '1.333' // Pretend the payport has this much balance
 
-    const unsignedTx = await rp.createSweepTransaction(indexToSweep, recipientIndex, { payportBalance })
-    const signedTx = await rp.signTransaction(unsignedTx)
-    logger.log(`Sweeping ${signedTx.amount} XRP from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
-    const broadcastResult = await rp.broadcastTransaction(signedTx)
+    const unsignedTx = await payments.createSweepTransaction(indexToSweep, recipientIndex, { payportBalance })
+    const signedTx = await payments.signTransaction(unsignedTx)
+    logger.log(`Sweeping ${signedTx.amount} XLM from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
+    const broadcastResult = await payments.broadcastTransaction(signedTx)
     expectEqualOmit(
       broadcastResult,
       {
@@ -194,10 +193,10 @@ describe('e2e', () => {
     const recipientIndex = 5
     const sendAmount = '1.222' // Pretend the payport has this much balance
 
-    const unsignedTx = await rp.createTransaction(indexToSweep, recipientIndex, sendAmount)
-    const signedTx = await rp.signTransaction(unsignedTx)
-    logger.log(`Sending ${signedTx.amount} XRP from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
-    const broadcastResult = await rp.broadcastTransaction(signedTx)
+    const unsignedTx = await payments.createTransaction(indexToSweep, recipientIndex, sendAmount)
+    const signedTx = await payments.signTransaction(unsignedTx)
+    logger.log(`Sending ${signedTx.amount} XLM from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
+    const broadcastResult = await payments.broadcastTransaction(signedTx)
     expectEqualOmit(
       broadcastResult,
       {
@@ -220,12 +219,12 @@ describe('e2e', () => {
       {
         address: sweepTx.fromAddress,
         amount: `-${new BigNumber(sweepTx.amount).plus(sweepTx.fee)}`,
-        assetSymbol: 'XRP',
+        assetSymbol: 'XLM',
         confirmationId: sweepTx.confirmationId,
         confirmationNumber: sweepTx.confirmationNumber,
         externalId: sweepTx.id,
         extraId: sweepTx.fromExtraId,
-        networkSymbol: 'XRP',
+        networkSymbol: 'XLM',
         networkType: NetworkType.Testnet,
         timestamp: sweepTx.confirmationTimestamp,
         type: 'out',
@@ -233,12 +232,12 @@ describe('e2e', () => {
       {
         address: sendTx.toAddress,
         amount: sendTx.amount,
-        assetSymbol: 'XRP',
+        assetSymbol: 'XLM',
         confirmationId: sendTx.confirmationId,
         confirmationNumber: sendTx.confirmationNumber,
         externalId: sendTx.id,
         extraId: sendTx.toExtraId,
-        networkSymbol: 'XRP',
+        networkSymbol: 'XLM',
         networkType: NetworkType.Testnet,
         timestamp: sendTx.confirmationTimestamp,
         type: 'in',
@@ -253,12 +252,12 @@ describe('e2e', () => {
       {
         address: sweepTx.toAddress,
         amount: sweepTx.amount,
-        assetSymbol: 'XRP',
+        assetSymbol: 'XLM',
         confirmationId: sweepTx.confirmationId,
         confirmationNumber: sweepTx.confirmationNumber,
         externalId: sweepTx.id,
         extraId: sweepTx.toExtraId,
-        networkSymbol: 'XRP',
+        networkSymbol: 'XLM',
         networkType: NetworkType.Testnet,
         timestamp: sweepTx.confirmationTimestamp,
         type: 'in',
@@ -266,12 +265,12 @@ describe('e2e', () => {
       {
         address: sendTx.fromAddress,
         amount: `-${new BigNumber(sendTx.amount).plus(sendTx.fee)}`,
-        assetSymbol: 'XRP',
+        assetSymbol: 'XLM',
         confirmationId: sendTx.confirmationId,
         confirmationNumber: sendTx.confirmationNumber,
         externalId: sendTx.id,
         extraId: sendTx.fromExtraId,
-        networkSymbol: 'XRP',
+        networkSymbol: 'XLM',
         networkType: NetworkType.Testnet,
         timestamp: sendTx.confirmationTimestamp,
         type: 'out',
@@ -294,13 +293,13 @@ describe('e2e', () => {
   })
 
   it('should be able to retrieve the deposit account balance activities', async () => {
-    const actual = await accumulateRetrievedActivities(rp.depositSignatory.address)
+    const actual = await accumulateRetrievedActivities(payments.depositSignatory.address)
     const expected = await getExpectedDepositActivities()
     expectBalanceActivities(actual, expected)
   })
 
   it('should be able to retrieve the hot account balance activities', async () => {
-    const actual = await accumulateRetrievedActivities(rp.hotSignatory.address)
+    const actual = await accumulateRetrievedActivities(payments.hotSignatory.address)
     const expected = await getExpectedHotActivities()
     expectBalanceActivities(actual, expected)
   })
@@ -310,7 +309,7 @@ describe('e2e', () => {
     const sendTx = await sendTxPromise
     const from =
       1 + Math.max(sweepTx.confirmationNumber || startLedgerVersion, sendTx.confirmationNumber || startLedgerVersion)
-    const actual = await accumulateRetrievedActivities(rp.hotSignatory.address, { from })
+    const actual = await accumulateRetrievedActivities(payments.hotSignatory.address, { from })
     expectBalanceActivities(actual, [])
   })
 
@@ -326,13 +325,13 @@ describe('e2e', () => {
         from: 49684653,
         to: 49684655,
       },
-      bmMainnet,
+      monitorMainnet,
     )
     expect(activity).toEqual({
       type: 'out',
       networkType: 'mainnet',
-      networkSymbol: 'XRP',
-      assetSymbol: 'XRP',
+      networkSymbol: 'XLM',
+      assetSymbol: 'XLM',
       address: 'rJdLzYr87z7xuey8qAfh3qZ9WmaXaAoELe',
       extraId: '12',
       amount: '-0.000012',
@@ -344,17 +343,4 @@ describe('e2e', () => {
     })
   })
 
-  it('should set requireDestinationTag setting correctly after initAccounts', async () => {
-    const result = await rp.initAccounts()
-    if (result) {
-      await pollTxId(result.txId)
-    }
-    const newSettings = await rp.stellarApi.getSettings(rp.getDepositSignatory().address)
-    expect(newSettings.requireDestinationTag).toBe(true)
-  })
-
-  it('should retry after being disconnected', async () => {
-    await rp.stellarApi.disconnect()
-    expect(await rp.getBalance(0)).toBeDefined()
-  })
 })
