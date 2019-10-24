@@ -4,7 +4,7 @@ import { NetworkType } from '@faast/payments-common'
 import promiseRetry from 'promise-retry'
 import { Logger } from '@faast/ts-common'
 
-import { BaseStellarConfig } from './types'
+import { BaseStellarConfig, StellarRawTransaction } from './types';
 import { DEFAULT_TESTNET_SERVER, DEFAULT_MAINNET_SERVER } from './constants'
 
 export function padLeft(x: string, n: number, v: string): string {
@@ -52,22 +52,10 @@ export function retryIfDisconnected<T>(fn: () => Promise<T>, stellarApi: Stellar
       return fn().catch(async e => {
         const eName = e ? e.constructor.name : ''
         if (RETRYABLE_ERRORS.includes(eName)) {
-          if (CONNECTION_ERRORS.includes(eName)) {
-            logger.log(
-              'Connection error during stellarApi call, attempting to reconnect then ' +
-                `retrying ${MAX_RETRIES - attempt} more times`,
-              e.toString(),
-            )
-            if (stellarApi.isConnected()) {
-              await stellarApi.disconnect()
-            }
-            await stellarApi.connect()
-          } else {
-            logger.log(
-              `Retryable error during stellarApi call, retrying ${MAX_RETRIES - attempt} more times`,
-              e.toString(),
-            )
-          }
+          logger.log(
+            `Retryable error during stellar server call, retrying ${MAX_RETRIES - attempt} more times`,
+            e.toString(),
+          )
           retry(e)
         }
         throw e

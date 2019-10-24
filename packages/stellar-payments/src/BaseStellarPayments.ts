@@ -11,8 +11,9 @@ import {
   ResolveablePayport,
   PaymentsError,
   PaymentsErrorCode,
+  NetworkType,
 } from '@faast/payments-common'
-import { assertType, isNil, Numeric } from '@faast/ts-common'
+import { assertType, isNil, Numeric, isString } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
 import { omit } from 'lodash'
 
@@ -30,10 +31,12 @@ import { StellarPaymentsUtils } from './StellarPaymentsUtil'
 import {
   DEFAULT_CREATE_TRANSACTION_OPTIONS,
   MIN_BALANCE,
-  DEFAULT_MAX_LEDGER_VERSION_OFFSET,
   NOT_FOUND_ERRORS,
+  BASE_UNITS,
+  DEFAULT_TX_TIMEOUT_SECONDS,
 } from './constants'
 import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers'
+import * as Stellar from 'stellar-sdk'
 
 function extraIdToTag(extraId: string | null | undefined): number | undefined {
   return isNil(extraId) ? undefined : Number.parseInt(extraId)
@@ -146,83 +149,68 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     return balanceBase.gt(0)
   }
 
-  /**
-   * A special method that broadcasts a transaction that enables the `requireDestinationTag` setting
-   * on the deposit signatory.
-   */
-  async initAccounts() {
-    const { address, secret } = this.getDepositSignatory()
-    const settings = await this.stellarApi.getSettings(address)
-    if (settings.requireDestinationTag) {
-      return
-    }
-    if (this.isReadOnly()) {
-      this.logger.warn(`Deposit account (${address}) doesn't have requireDestinationTag property set`)
-      return
-    }
-    const { confirmedBalance } = await this.getBalance(address)
-    const { feeMain } = await this.resolveFeeOption({ feeLevel: FeeLevel.Medium })
-    if (new BigNumber(confirmedBalance).lt(feeMain)) {
-      this.logger.warn(
-        `Insufficient balance in deposit account (${address}) to pay fee of ${feeMain} XRP ` +
-          'to send a transaction that sets requireDestinationTag property to true',
-      )
-    }
-    const unsignedTx = await this._retryDced(() =>
-      this.stellarApi.prepareSettings(address, {
-        requireDestinationTag: true,
-      }),
-    )
-    const signedTx = this.stellarApi.sign(unsignedTx.txJSON, secret)
-    const broadcast = await this._retryDced(() => this.stellarApi.submit(signedTx.signedTransaction))
-    return {
-      txId: signedTx.id,
-      unsignedTx,
-      signedTx,
-      broadcast,
-    }
-  }
-
   async getBalance(payportOrIndex: ResolveablePayport): Promise<BalanceResult> {
     const payport = await this.resolvePayport(payportOrIndex)
     const { address, extraId } = payport
     if (!isNil(extraId)) {
       throw new Error(`Cannot getBalance of stellar payport with extraId ${extraId}, use BalanceMonitor instead`)
     }
-    const balances = await this._retryDced(() => this.stellarApi.getBalances(address))
-    this.logger.debug(`stellarApi.getBalance ${address}`, balances)
-    const xrpBalance = balances.find(({ currency }) => currency === 'XRP')
-    const xrpAmount = xrpBalance && xrpBalance.value ? xrpBalance.value : '0'
+    const accountInfo = await this._retryDced(() => this.getApi().loadAccount(address))
+    this.logger.debug(`api.loadAccount ${address}`, accountInfo)
+    const balanceLine = accountInfo.balances.find((line) => line.asset_type === 'native')
+    const amountBase = balanceLine && balanceLine.balance ? balanceLine.balance : '0'
+    const amountMain = new BigNumber(amountBase).div(BASE_UNITS)
     // Subtract locked up min balance from result to avoid confusion about what is actually spendable
-    const confirmedBalance = new BigNumber(xrpAmount).minus(MIN_BALANCE)
+    const confirmedBalance = amountMain.minus(MIN_BALANCE)
     return {
       confirmedBalance: confirmedBalance.toString(),
       unconfirmedBalance: '0',
-      sweepable: this.isSweepableAddressBalance(xrpAmount),
+      sweepable: this.isSweepableAddressBalance(amountMain),
     }
   }
 
   async getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<number> {
     const payport = await this.resolvePayport(payportOrIndex)
     const { address } = payport
-    const accountInfo = await this._retryDced(() => this.stellarApi.getAccountInfo(address))
-    return accountInfo.sequence
+    const accountInfo = await this._retryDced(() => this.getApi().loadAccount(address))
+    return Number.parseInt(accountInfo.sequence) + 1
   }
 
-  resolveIndexFromAdjustment(adjustment: Adjustment): number | null {
-    const { address, tag } = adjustment
+  resolveIndexFromAddressAndMemo(address: string, memo?: string): number | null {
     if (address === this.getHotSignatory().address) {
       return 0
     } else if (address === this.getDepositSignatory().address) {
-      return tag || 1
+      if (memo) {
+        const index = Number.parseInt(memo)
+        if (!Number.isNaN(index)) {
+          return index
+        }
+      }
+      return 1
     }
     return null
   }
 
+  async getLatestBlock(): Promise<Stellar.ServerApi.LedgerRecord> {
+    const page = await this._retryDced(() => this.getApi().ledgers()
+      .order('desc')
+      .limit(1)
+      .call())
+    if (!page.records) {
+      throw new Error('Failed to get stellar ledger records')
+    }
+    return page.records[0]
+  }
+
   async getTransactionInfo(txId: string): Promise<StellarTransactionInfo> {
-    let tx
+    let tx: Stellar.ServerApi.TransactionRecord
     try {
-      tx = await this._retryDced(() => this.stellarApi.getTransaction(txId))
+      const txPage = await this._retryDced(() => this.getApi().transactions().transaction(txId).call())
+      if (txPage.records) {
+        tx = txPage.records[0]
+      } else {
+        throw new Error(`Transaction not found ${txId}`)
+      }
     } catch (e) {
       const eString = e.toString()
       if (NOT_FOUND_ERRORS.some(type => eString.includes(type))) {
@@ -230,46 +218,40 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       }
       throw e
     }
-    this.logger.debug('getTransaction', txId, tx)
-    if (tx.type !== 'payment') {
-      throw new Error(`Unsupported stellar tx type ${tx.type}`)
-    }
-    const { specification, outcome } = tx as FormattedPaymentTransaction
-    const { source, destination } = specification
-    const amountObject = ((source as any).maxAmount || source.amount) as Amount
-    if (amountObject.currency !== 'XRP') {
-      throw new Error(`Unsupported stellar tx currency ${amountObject.currency}`)
-    }
-    const fromIndex = this.resolveIndexFromAdjustment(source)
-    const toIndex = this.resolveIndexFromAdjustment(destination)
-    const amount = amountObject.value
-    const isSuccessful = outcome.result.startsWith('tes')
-    const isCostDestroyed = outcome.result.startsWith('tec')
-    const status = isSuccessful || isCostDestroyed ? TransactionStatus.Confirmed : TransactionStatus.Failed
-    const isExecuted = isSuccessful
-    const confirmationNumber = outcome.ledgerVersion
-    const ledger = await this._retryDced(() => this.stellarApi.getLedger({ ledgerVersion: confirmationNumber }))
-    const currentLedgerVersion = await this._retryDced(() => this.stellarApi.getLedgerVersion())
-    const confirmationId = ledger.ledgerHash
-    const confirmationTimestamp = outcome.timestamp ? new Date(outcome.timestamp) : null
+    this.logger.debug('tx', txId, tx)
+    const { amount, fromAddress, toAddress } = await this._normalizeTxOperation(tx)
+    const fee = this.toMainDenomination(tx.fee_paid)
+    const fromIndex = this.resolveIndexFromAddressAndMemo(fromAddress, tx.memo)
+    const toIndex = this.resolveIndexFromAddressAndMemo(toAddress, tx.memo)
+    const confirmationNumber = tx.ledger_attr
+    const ledger = await this._retryDced(() => tx.ledger())
+    const currentLedger = await this.getLatestBlock()
+    const currentLedgerSequence = currentLedger.sequence
+    const confirmationId = ledger.hash
+    const confirmationTimestamp = ledger.closed_at ? new Date(ledger.closed_at) : null
+    const confirmations = currentLedgerSequence - confirmationNumber
+    const sequenceNumber = Number.parseInt(tx.source_account_sequence)
+    const isExecuted = (tx as any).successful
+    const isConfirmed = Boolean(confirmationNumber)
+    const status = isConfirmed || isExecuted ? TransactionStatus.Confirmed : TransactionStatus.Pending
     return {
       status,
       id: tx.id,
       fromIndex,
-      fromAddress: source.address,
-      fromExtraId: typeof source.tag !== 'undefined' ? String(source.tag) : null,
+      fromAddress,
+      fromExtraId: null,
       toIndex,
-      toAddress: destination.address,
-      toExtraId: typeof destination.tag !== 'undefined' ? String(destination.tag) : null,
+      toAddress,
+      toExtraId: tx.memo || null,
       amount: amount,
-      fee: outcome.fee,
-      sequenceNumber: tx.sequence,
+      fee,
+      sequenceNumber,
       confirmationId,
       confirmationNumber,
       confirmationTimestamp,
       isExecuted,
-      isConfirmed: Boolean(confirmationNumber),
-      confirmations: currentLedgerVersion - confirmationNumber,
+      isConfirmed,
+      confirmations,
       data: tx,
     }
   }
@@ -295,16 +277,14 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       }
     } else {
       targetFeeLevel = feeOption.feeLevel || FeeLevel.Medium
-      let cushion: number | undefined
-      if (targetFeeLevel === FeeLevel.Low) {
-        cushion = 1
-      } else if (targetFeeLevel === FeeLevel.Medium) {
-        cushion = 1.2
+      const feeStats = await this._retryDced(() => this.getApi().feeStats())
+      feeBase = feeStats.p10_accepted_fee
+      if (targetFeeLevel === FeeLevel.Medium) {
+        feeBase = feeStats.p50_accepted_fee
       } else if (targetFeeLevel === FeeLevel.High) {
-        cushion = 1.5
+        feeBase = feeStats.p95_accepted_fee
       }
-      feeMain = await this._retryDced(() => this.stellarApi.getFee(cushion))
-      feeBase = this.toBaseDenomination(feeMain)
+      feeMain = this.toMainDenomination(feeBase)
       targetFeeRate = feeMain
       targetFeeRateType = FeeRateType.Main
     }
@@ -335,6 +315,23 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     return payportBalance
   }
 
+  private getNetworkPassphrase() {
+    return this.networkType === NetworkType.Testnet
+      ? Stellar.Networks.TESTNET
+      : Stellar.Networks.PUBLIC
+  }
+
+  private serializeTransaction(tx: Stellar.Transaction): { serializedTx: string } {
+    const xdr = tx.toEnvelope().toXDR('base64')
+    return {
+      serializedTx: xdr.toString()
+    }
+  }
+
+  private deserializeTransaction(txData: object): Stellar.Transaction {
+    return new Stellar.Transaction((txData as any).serializedTx)
+  }
+
   private async doCreateTransaction(
     fromTo: FromTo,
     feeOption: ResolvedFeeOption,
@@ -347,61 +344,50 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     }
     const { fromIndex, fromAddress, fromExtraId, fromPayport, toIndex, toAddress, toExtraId } = fromTo
     if (fromAddress === toAddress) {
-      throw new Error('Cannot create XRP payment transaction sending XRP to self')
+      throw new Error('Cannot create XLM payment transaction sending XLM to self')
     }
-    const { targetFeeLevel, targetFeeRate, targetFeeRateType, feeMain } = feeOption
+    const { targetFeeLevel, targetFeeRate, targetFeeRateType, feeBase, feeMain } = feeOption
     const { sequenceNumber } = options
-    const maxLedgerVersionOffset =
-      options.maxLedgerVersionOffset || this.config.maxLedgerVersionOffset || DEFAULT_MAX_LEDGER_VERSION_OFFSET
+    const txTimeoutSecs = options.timeoutSeconds || this.config.txTimeoutSeconds || DEFAULT_TX_TIMEOUT_SECONDS
     const amountString = amount.toString()
     const addressBalances = await this.getBalance({ address: fromAddress })
     const addressBalance = new BigNumber(addressBalances.confirmedBalance)
     const actualBalance = addressBalance.plus(MIN_BALANCE)
     if (addressBalance.lt(0)) {
       throw new Error(
-        `Cannot send from stellar address that has less than ${MIN_BALANCE} XRP: ${fromAddress} (${actualBalance} XRP)`,
+        `Cannot send from stellar address that has less than ${MIN_BALANCE} XLM: ${fromAddress} (${actualBalance} XLM)`,
       )
     }
     const totalValue = amount.plus(feeMain)
     if (addressBalance.minus(totalValue).lt(0)) {
       throw new Error(
-        `Cannot send ${amountString} XRP with fee of ${feeMain} XRP because it would reduce the balance below ` +
-          `the minimum required balance of ${MIN_BALANCE} XRP: ${fromAddress} (${actualBalance} XRP)`,
+        `Cannot send ${amountString} XLM with fee of ${feeMain} XLM because it would reduce the balance below ` +
+          `the minimum required balance of ${MIN_BALANCE} XLM: ${fromAddress} (${actualBalance} XLM)`,
       )
     }
     if (typeof fromExtraId === 'string' && totalValue.gt(payportBalance)) {
       throw new Error(
-        `Insufficient payport balance of ${payportBalance} XRP to send ${amountString} XRP ` +
-          `with fee of ${feeMain} XRP: ${serializePayport(fromPayport)}`,
+        `Insufficient payport balance of ${payportBalance} XLM to send ${amountString} XLM ` +
+          `with fee of ${feeMain} XLM: ${serializePayport(fromPayport)}`,
       )
     }
-    const preparedTx = await this._retryDced(() =>
-      this.stellarApi.preparePayment(
-        fromAddress,
-        {
-          source: {
-            address: fromAddress,
-            tag: extraIdToTag(fromExtraId),
-            maxAmount: {
-              currency: 'XRP',
-              value: amountString,
-            },
-          },
-          destination: {
-            address: toAddress,
-            tag: extraIdToTag(toExtraId),
-            amount: {
-              currency: 'XRP',
-              value: amountString,
-            },
-          },
-        },
-        {
-          maxLedgerVersionOffset,
-          sequence: sequenceNumber,
-        },
-      ),
-    )
+    const account = sequenceNumber
+      ? new Stellar.Account(fromAddress, sequenceNumber.toString())
+      : await this.getApi().loadAccount(fromAddress)
+
+    const preparedTx = new Stellar.TransactionBuilder(account, {
+        fee: Number.parseInt(feeBase),
+        networkPassphrase: this.getNetworkPassphrase(),
+        memo: toExtraId ? Stellar.Memo.text(toExtraId) : undefined,
+      })
+      .addOperation(Stellar.Operation.payment({
+        destination: toAddress,
+        asset: Stellar.Asset.native(),
+        amount: amount.toString(),
+      }))
+      .setTimeout(txTimeoutSecs)
+      .build()
+    const txData = this.serializeTransaction(preparedTx)
     return {
       status: TransactionStatus.Unsigned,
       id: null,
@@ -416,8 +402,8 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       targetFeeRate,
       targetFeeRateType,
       fee: feeMain,
-      sequenceNumber: preparedTx.instructions.sequence,
-      data: preparedTx,
+      sequenceNumber: Number.parseInt(preparedTx.sequence),
+      data: txData,
     }
   }
 
@@ -446,8 +432,8 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     if (amountBn.lt(0)) {
       const fromPayport = { address: fromTo.fromAddress, extraId: fromTo.fromExtraId }
       throw new Error(
-        `Insufficient balance to sweep from stellar payport with fee of ${feeOption.feeMain} XRP: ` +
-          `${serializePayport(fromPayport)} (${payportBalance} XRP)`,
+        `Insufficient balance to sweep from stellar payport with fee of ${feeOption.feeMain} XLM: ` +
+          `${serializePayport(fromPayport)} (${payportBalance} XLM)`,
       )
     }
     return this.doCreateTransaction(fromTo, feeOption, amountBn, payportBalance, options)
@@ -459,8 +445,9 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       throw new Error('Cannot sign transaction with read only stellar payments (no xprv or secrets provided)')
     }
     this.logger.debug('signTransaction', unsignedTx.data)
-    const { txJSON } = unsignedTx.data as Prepare
-    let secret
+    const { serializedTx } = unsignedTx.data as { serializedTx: string }
+    const preparedTx = new Stellar.Transaction(serializedTx)
+    let secret: string | Stellar.Keypair
     const hotSignatory = this.getHotSignatory()
     const depositSignatory = this.getDepositSignatory()
     if (unsignedTx.fromAddress === hotSignatory.address) {
@@ -470,25 +457,28 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     } else {
       throw new Error(`Cannot sign stellar transaction from address ${unsignedTx.fromAddress}`)
     }
-    const signResult = this.stellarApi.sign(txJSON, secret)
+    const keypair = isString(secret) ? Stellar.Keypair.fromSecret(secret) : secret
+    preparedTx.sign(keypair)
+    const signedData = this.serializeTransaction(preparedTx)
     return {
       ...unsignedTx,
-      id: signResult.id,
-      data: signResult,
+      id: '',
+      data: signedData,
       status: TransactionStatus.Signed,
     }
   }
 
   async broadcastTransaction(signedTx: StellarSignedTransaction): Promise<StellarBroadcastResult> {
     assertType(StellarSignedTransaction, signedTx)
-    const signedTxString = (signedTx.data as any).signedTransaction as string
+    const preparedTx = this.deserializeTransaction(signedTx.data)
     let rebroadcast: boolean = false
     try {
       const existing = await this.getTransactionInfo(signedTx.id)
       rebroadcast = existing.id === signedTx.id
     } catch (e) {}
-    const result = (await this._retryDced(() => this.stellarApi.submit(signedTxString))) as any
+    const result = await this._retryDced(() => this.getApi().submitTransaction(preparedTx))
     this.logger.debug('broadcasted', result)
+    /*
     const resultCode = result.engine_result || result.resultCode || ''
     if (resultCode === 'terPRE_SEQ') {
       throw new PaymentsError(PaymentsErrorCode.TxSequenceTooHigh, resultCode)
@@ -511,8 +501,9 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     if (!okay) {
       throw new Error(`Failed to broadcast stellar tx ${signedTx.id} with result code ${resultCode}`)
     }
+    */
     return {
-      id: signedTx.id,
+      id: result.hash,
       rebroadcast,
       data: result,
     }

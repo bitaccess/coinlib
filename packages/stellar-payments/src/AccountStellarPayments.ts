@@ -2,12 +2,12 @@ import {
   AccountStellarPaymentsConfig,
   StellarSignatory,
   StellarAccountConfig,
-  StellarKeyPair,
-  StellarSecretPair,
+  PartialStellarSignatory,
 } from './types'
 import { BaseStellarPayments } from './BaseStellarPayments'
 import { assertType } from '@faast/ts-common'
-import { isValidAddress } from './helpers'
+import { isValidAddress, isValidSecret } from './helpers'
+import * as Stellar from 'stellar-sdk'
 
 export class AccountStellarPayments extends BaseStellarPayments<AccountStellarPaymentsConfig> {
   readOnly: boolean = false
@@ -22,26 +22,30 @@ export class AccountStellarPayments extends BaseStellarPayments<AccountStellarPa
   }
 
   accountConfigToSignatory(accountConfig: StellarAccountConfig): StellarSignatory {
-    if (StellarKeyPair.is(accountConfig)) {
-      if (!accountConfig.privateKey) {
-        this.readOnly = true
-      }
-      const address = this.stellarApi.deriveAddress(accountConfig.publicKey)
-      return {
-        address,
-        secret: accountConfig,
-      }
-    } else if (StellarSecretPair.is(accountConfig)) {
+    if (PartialStellarSignatory.is(accountConfig)) {
       if (!accountConfig.secret) {
+        if (!accountConfig.address) {
+          throw new Error('Invalid StellarSecretPair, either secret or address required')
+        }
         this.readOnly = true
+        return {
+          address: accountConfig.address,
+          secret: '',
+        }
       }
-      return accountConfig
+      const keyPair = Stellar.Keypair.fromSecret(accountConfig.secret)
+      return {
+        address: keyPair.publicKey(),
+        secret: keyPair.secret(),
+      }
     } else if (isValidAddress(accountConfig)) {
       this.readOnly = true
       return {
         address: accountConfig,
         secret: '',
       }
+    } else if (isValidSecret(accountConfig)) {
+
     }
     throw new Error('Invalid stellar account config provided to stellar payments')
   }

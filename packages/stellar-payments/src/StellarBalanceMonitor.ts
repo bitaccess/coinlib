@@ -2,67 +2,46 @@ import {
   BalanceActivityCallback,
   GetBalanceActivityOptions,
   BalanceActivity,
-  BalanceActivityType,
   BalanceMonitor,
   RetrieveBalanceActivitiesResult,
 } from '@faast/payments-common'
-import { StellarAPI } from 'stellar-sdk'
-import { FormattedPaymentTransaction, FormattedTransactionType } from 'stellar-sdk/dist/npm/transaction/types'
-import { TransactionsOptions } from 'stellar-sdk/dist/npm/ledger/transactions'
+import * as Stellar from 'stellar-sdk'
 
-import { padLeft, resolveStellarServer, retryIfDisconnected } from './utils'
-import { StellarBalanceMonitorConfig } from './types'
+import { padLeft } from './utils'
+import { StellarRawTransaction, StellarCollectionPage } from './types';
 import { assertValidAddress } from './helpers'
-import { isUndefined, isNumber, isString, isNull } from 'util'
-import { assertType } from '@faast/ts-common'
+import { isUndefined, isNumber } from 'util'
+import { StellarConnected } from './StellarConnected';
+import { EventEmitter } from 'events'
 
-export class StellarBalanceMonitor extends BalanceMonitor {
-  stellarApi: StellarAPI
-  server: string | null
+export class StellarBalanceMonitor extends StellarConnected implements BalanceMonitor {
 
-  constructor(public config: StellarBalanceMonitorConfig) {
-    super(config)
-    assertType(StellarBalanceMonitorConfig, config)
-    const { api, server } = resolveStellarServer(config.server, this.networkType)
-    this.stellarApi = api
-    this.server = server
-  }
-
-  async init(): Promise<void> {
-    if (!this.stellarApi.isConnected()) {
-      await this.stellarApi.connect()
-    }
-  }
-
-  async destroy(): Promise<void> {
-    if (this.stellarApi.isConnected()) {
-      await this.stellarApi.disconnect()
-    }
-  }
-
-  private async retryDced<T>(fn: () => Promise<T>): Promise<T> {
-    return retryIfDisconnected(fn, this.stellarApi, this.logger)
-  }
+  txEmitter = new EventEmitter()
 
   async subscribeAddresses(addresses: string[]) {
     for (let address of addresses) {
       assertValidAddress(address)
     }
-    try {
-      const res = await this.retryDced(() => this.stellarApi.request('subscribe', { accounts: addresses }))
-      if (res.status === 'success') {
-        this.logger.log('Stellar successfully subscribed', res)
-      } else {
-        this.logger.warn('Stellar subscribe unsuccessful', res)
+    for (let address of addresses) {
+      try {
+        this.getApi().transactions().forAccount(address).stream({
+          onmessage: (value) => {
+            this.txEmitter.emit('tx', value)
+          },
+          onerror: (e) => {
+            this.logger.error('Stellar tx stream error', e)
+          },
+        })
+        this.logger.log('Stellar address subscribed', address)
+      } catch (e) {
+        this.logger.error('Failed to subscribe to stellar address', address, e.toString())
+        throw e
       }
-    } catch (e) {
-      this.logger.error('Failed to subscribe to stellar addresses', e.toString())
-      throw e
     }
   }
 
   onBalanceActivity(callbackFn: BalanceActivityCallback) {
-    this.stellarApi.connection.on('transaction', async (tx: FormattedTransactionType) => {
+    this.txEmitter.on('tx', async (tx) => {
       const activity = await this.txToBalanceActivity(tx.address, tx)
       if (activity) {
         callbackFn(activity)
@@ -71,34 +50,12 @@ export class StellarBalanceMonitor extends BalanceMonitor {
   }
 
   async resolveFromToLedgers(options: GetBalanceActivityOptions): Promise<RetrieveBalanceActivitiesResult> {
-    const serverInfo = await this.retryDced(() => this.stellarApi.getServerInfo())
-    const completeLedgers = serverInfo.completeLedgers.split('-')
-    let fromLedgerVersion = Number.parseInt(completeLedgers[0])
-    let toLedgerVersion = Number.parseInt(completeLedgers[1])
     const { from, to } = options
-    const requestedFrom = isUndefined(from) ? undefined : isNumber(from) ? from : from.confirmationNumber
-    const requestedTo = isUndefined(to) ? undefined : isNumber(to) ? to : to.confirmationNumber
-    if (isNumber(requestedFrom)) {
-      if (requestedFrom < fromLedgerVersion) {
-        this.logger.warn(
-          `Server balance activity doesn't go back to ledger ${requestedFrom}, using ${fromLedgerVersion} instead`,
-        )
-      } else {
-        fromLedgerVersion = requestedFrom
-      }
-    }
-    if (isNumber(requestedTo)) {
-      if (requestedTo > toLedgerVersion) {
-        this.logger.warn(
-          `Server balance activity doesn't go up to ledger ${requestedTo}, using ${toLedgerVersion} instead`,
-        )
-      } else {
-        toLedgerVersion = requestedTo
-      }
-    }
+    const resolvedFrom = isUndefined(from) ? 0 : isNumber(from) ? from : from.confirmationNumber
+    const resolvedTo = isUndefined(to) ? Number.MAX_SAFE_INTEGER : isNumber(to) ? to : to.confirmationNumber
     return {
-      from: fromLedgerVersion,
-      to: toLedgerVersion,
+      from: resolvedFrom,
+      to: resolvedTo,
     }
   }
 
@@ -110,27 +67,29 @@ export class StellarBalanceMonitor extends BalanceMonitor {
     assertValidAddress(address)
     const { from, to } = await this.resolveFromToLedgers(options)
     const limit = 10
-    let lastTx: FormattedTransactionType | undefined
-    let transactions: FormattedTransactionType[] | undefined
+    let lastTx: StellarRawTransaction | undefined
+    let transactionPage: StellarCollectionPage<StellarRawTransaction> | undefined
+    let transactions: StellarRawTransaction[] | undefined
     while (
-      isUndefined(transactions) ||
-      (transactions.length === limit && lastTx && lastTx.outcome.ledgerVersion <= to)
+      isUndefined(transactionPage) ||
+      (transactionPage.records.length === limit
+        && lastTx
+        // This condition enables retrieving txs until we reach the desired range. No built in way to filter the query
+        && (lastTx.ledger_attr >= from || lastTx.ledger_attr >= to))
     ) {
-      const getTransactionOptions: TransactionsOptions = {
-        earliestFirst: true,
-        excludeFailures: false,
-        limit,
-      }
-      if (lastTx) {
-        getTransactionOptions.start = lastTx.id
-      } else {
-        getTransactionOptions.minLedgerVersion = from
-        getTransactionOptions.maxLedgerVersion = to
-      }
-      transactions = await this.retryDced(() => this.stellarApi.getTransactions(address, getTransactionOptions))
+      transactionPage = await this._retryDced(() => transactionPage
+        ? transactionPage.next()
+        : this.getApi()
+          .transactions()
+          .forAccount(address)
+          .limit(limit)
+          .order('desc') // important txs are retrieved newest to oldest for while loop condition to work
+          .call()
+      )
+      const transactions = transactionPage.records
       this.logger.debug(`retrieved stellar txs for ${address}`, transactions)
       for (let tx of transactions) {
-        if ((lastTx && tx.id === lastTx.id) || tx.outcome.ledgerVersion < from || tx.outcome.ledgerVersion > to) {
+        if ((lastTx && tx.id === lastTx.id) || !(tx.ledger_attr >= from && tx.ledger_attr <= to)) {
           continue
         }
         const activity = await this.txToBalanceActivity(address, tx)
@@ -143,54 +102,42 @@ export class StellarBalanceMonitor extends BalanceMonitor {
     return { from, to }
   }
 
-  private isPaymentTx(tx: FormattedTransactionType): tx is FormattedPaymentTransaction {
-    return tx.type === 'payment'
-  }
-
-  private async txToBalanceActivity(address: string, tx: FormattedTransactionType): Promise<BalanceActivity | null> {
-    if (!tx.outcome) {
-      this.logger.warn('txToBalanceActivity received tx object without outcome!', tx)
+  private async txToBalanceActivity(address: string, tx: StellarRawTransaction): Promise<BalanceActivity | null> {
+    const successful = (tx as any).successful
+    if (!successful) {
+      this.logger.log(`No balance activity for stellar tx ${tx.id} because successful is ${successful}`)
       return null
     }
-    const txResult = tx.outcome.result
-    if (!isString(txResult) || !(txResult.startsWith('tes') || txResult.startsWith('tec'))) {
-      this.logger.log(`No balance activity for stellar tx ${tx.id} because status is ${txResult}`)
+    const confirmationNumber = tx.ledger_attr
+    const primarySequence = padLeft(String(tx.ledger_attr), 12, '0')
+    const secondarySequence = padLeft(String(new Date(tx.created_at).getTime()), 15, '0')
+    const [ledger, { amount, fromAddress, toAddress }] = await Promise.all([
+      this.getBlock(confirmationNumber),
+      this._normalizeTxOperation(tx),
+    ])
+    if (!(fromAddress === address || toAddress === address)) {
+      this.logger.log(`Stellar transaction ${tx.id} operation does not apply to ${address}`)
       return null
     }
-    const confirmationNumber = tx.outcome.ledgerVersion
-    const primarySequence = padLeft(String(tx.outcome.ledgerVersion), 12, '0')
-    const secondarySequence = padLeft(String(tx.outcome.indexInLedger), 8, '0')
-    const ledger = await this.retryDced(() => this.stellarApi.getLedger({ ledgerVersion: confirmationNumber }))
-    const balanceChange = (tx.outcome.balanceChanges[address] || []).find(({ currency }) => currency === 'XRP')
-    if (!balanceChange) {
-      this.logger.log(
-        `Cannot determine balanceChange for address ${address} in stellar tx ${tx.id} because there's no XRP entry`,
-      )
-      return null
-    }
-    const amount = balanceChange.value
-    const assetSymbol = balanceChange.currency
-    const type = amount.startsWith('-') ? 'out' : 'in'
-    const tag = this.isPaymentTx(tx)
-      ? (type === 'out' ? tx.specification.source : tx.specification.destination).tag
-      : undefined
+    const type = toAddress === address ? 'in' : 'out'
+    const extraId = toAddress === address ? tx.memo : null
     const tertiarySequence = type === 'out' ? '00' : '01'
     const activitySequence = `${primarySequence}.${secondarySequence}.${tertiarySequence}`
     return {
       type,
       networkType: this.networkType,
-      networkSymbol: 'XRP',
-      assetSymbol,
+      networkSymbol: 'XLM',
+      assetSymbol: 'XLM',
       address: address,
-      extraId: !isUndefined(tag) ? String(tag) : null,
+      extraId: !isUndefined(extraId) ? extraId : null,
 
       amount,
 
       externalId: tx.id,
       activitySequence,
-      confirmationId: ledger.ledgerHash,
+      confirmationId: ledger.hash,
       confirmationNumber,
-      timestamp: new Date(ledger.closeTime),
+      timestamp: new Date(ledger.closed_at),
     }
   }
 }

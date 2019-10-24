@@ -1,6 +1,9 @@
 import { createUnitConverters } from '@faast/payments-common'
-import { DECIMAL_PLACES, XPRV_REGEX, XPUB_REGEX, ADDRESS_REGEX, EXTRA_ID_REGEX } from './constants'
 import { isNil } from '@faast/ts-common'
+import * as Stellar from 'stellar-sdk'
+import { isString } from 'util'
+
+import { DECIMAL_PLACES, EXTRA_ID_REGEX } from './constants'
 
 const {
   toMainDenominationBigNumber,
@@ -20,20 +23,16 @@ export {
   toBaseDenominationNumber,
 }
 
-export function isValidXprv(xprv: unknown): boolean {
-  return typeof xprv === 'string' && XPRV_REGEX.test(xprv)
-}
-
-export function isValidXpub(xpub: unknown): boolean {
-  return typeof xpub === 'string' && XPUB_REGEX.test(xpub)
-}
-
 export function isValidAddress(address: unknown): boolean {
-  return typeof address === 'string' && ADDRESS_REGEX.test(address)
+  return isString(address) && Stellar.StrKey.isValidEd25519PublicKey(address)
 }
 
 export function isValidExtraId(extraId: unknown): boolean {
-  return typeof extraId === 'string' && EXTRA_ID_REGEX.test(extraId)
+  return isString(extraId) && EXTRA_ID_REGEX.test(extraId)
+}
+
+export function isValidSecret(secret: unknown): boolean {
+  return isString(secret) && Stellar.StrKey.isValidEd25519SecretSeed(secret)
 }
 
 export function assertValidAddress(address: string): void {

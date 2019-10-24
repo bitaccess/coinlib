@@ -11,15 +11,15 @@ import {
   FromTo,
 } from '@faast/payments-common'
 import * as Stellar from 'stellar-sdk'
-import { AccountStellarPayments } from './AccountStellarPayments'
 
-type StellarTransaction = Stellar.ServerApi.TransactionRecord
-type StellarLedger = Stellar.ServerApi.LedgerRecord
+export type StellarCollectionPage<T extends Stellar.Horizon.BaseResponse<never>> = Stellar.ServerApi.CollectionPage<T>
+export type StellarRawTransaction = Stellar.ServerApi.TransactionRecord
+export type StellarRawLedger = Stellar.ServerApi.LedgerRecord
 
-export { StellarTransaction, StellarLedger, CreateTransactionOptions }
+export { StellarRawTransaction as StellarTransaction, StellarRawLedger as StellarLedger, CreateTransactionOptions }
 
-export type TransactionInfoRaw = StellarTransaction & {
-  currentLedger: StellarLedger
+export type TransactionInfoRaw = StellarRawTransaction & {
+  currentLedger: StellarRawLedger
 }
 
 export const BaseStellarConfig = extendCodec(
@@ -39,7 +39,7 @@ export const BaseStellarPaymentsConfig = extendCodec(
   BaseStellarConfig,
   {},
   {
-    maxLedgerVersionOffset: t.number, // number of ledgers until a tx expires
+    txTimeoutSeconds: t.number, // number of seconds until a tx expires
   },
   'BaseStellarPaymentsConfig',
 )
@@ -48,34 +48,30 @@ export type BaseStellarPaymentsConfig = t.TypeOf<typeof BaseStellarPaymentsConfi
 export const HdStellarPaymentsConfig = extendCodec(
   BaseStellarPaymentsConfig,
   {
-    hdKey: t.string, // xprv or xpub
+    seed: t.string,
   },
   'HdStellarPaymentsConfig',
 )
 export type HdStellarPaymentsConfig = t.TypeOf<typeof HdStellarPaymentsConfig>
 
-export const StellarKeyPair = t.type(
-  {
-    publicKey: t.string,
-    secretKey: t.string,
-  },
-  'StellarKeyPair',
-)
-export type StellarKeyPair = t.TypeOf<typeof StellarKeyPair>
-
-export const StellarSecretPair = t.type(
+export const StellarSignatory = t.type(
   {
     address: t.string,
     secret: t.string,
   },
-  'StellarSecretPair',
+  'StellarSignatory',
 )
-export type StellarSecretPair = t.TypeOf<typeof StellarSecretPair>
+export type StellarSignatory = t.TypeOf<typeof StellarSignatory>
+
+export const PartialStellarSignatory = t.partial(StellarSignatory.props, 'PartialStellarSignatory')
+export type PartialStellarSignatory = t.TypeOf<typeof PartialStellarSignatory>
 
 /**
- * address, or secret+address, or public+private key
+ * address, or secret+address
  */
-export const StellarAccountConfig = t.union([t.string, StellarSecretPair, StellarKeyPair], 'StellarAccountConfig')
+export const StellarAccountConfig = t.union([
+  t.string, PartialStellarSignatory,
+], 'StellarAccountConfig')
 export type StellarAccountConfig = t.TypeOf<typeof StellarAccountConfig>
 
 export const AccountStellarPaymentsConfig = extendCodec(
@@ -146,9 +142,4 @@ export type StellarCreateTransactionOptions = t.TypeOf<typeof StellarCreateTrans
 export type FromToWithPayport = FromTo & {
   fromPayport: Payport
   toPayport: Payport
-}
-
-export type StellarSignatory = {
-  address: string
-  secret: string | Stellar.Keypair
 }

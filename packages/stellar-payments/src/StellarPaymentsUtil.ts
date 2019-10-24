@@ -1,48 +1,15 @@
-import { PaymentsUtils, NetworkType, Payport } from '@faast/payments-common'
-import { Server as StellarApi } from 'stellar-sdk'
+import { PaymentsUtils, Payport } from '@faast/payments-common'
 
 import {
   toMainDenominationString,
   toBaseDenominationString,
-  isValidXprv,
-  isValidXpub,
   isValidAddress,
   isValidExtraId,
 } from './helpers'
-import { Logger, DelegateLogger, isNil, assertType } from '@faast/ts-common'
-import { PACKAGE_NAME, DEFAULT_NETWORK } from './constants'
-import { BaseStellarConfig } from './types'
-import { resolveStellarServer, retryIfDisconnected } from './utils'
+import { isNil, assertType } from '@faast/ts-common'
+import { StellarConnected } from './StellarConnected';
 
-export class StellarPaymentsUtils implements PaymentsUtils {
-  networkType: NetworkType
-  logger: Logger
-  api: StellarApi | null
-  server: string | null
-
-  constructor(config: BaseStellarConfig = {}) {
-    assertType(BaseStellarConfig, config)
-    this.networkType = config.network || DEFAULT_NETWORK
-    this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
-    const { api, server } = resolveStellarServer(config.server, this.networkType)
-    this.api = api
-    this.server = server
-  }
-
-  private getApi(): StellarApi {
-    if (this.api === null) {
-      throw new Error('Cannot access stellar network when configured with null server')
-    }
-    return this.api
-  }
-
-  async init(): Promise<void> {}
-
-  async destroy(): Promise<void> {}
-
-  async _retryDced<T>(fn: () => Promise<T>): Promise<T> {
-    return retryIfDisconnected(fn, this.getApi(), this.logger)
-  }
+export class StellarPaymentsUtils extends StellarConnected implements PaymentsUtils {
 
   async isValidExtraId(extraId: string): Promise<boolean> {
     return isValidExtraId(extraId)
@@ -85,6 +52,4 @@ export class StellarPaymentsUtils implements PaymentsUtils {
     return toBaseDenominationString(amount)
   }
 
-  isValidXprv = isValidXprv
-  isValidXpub = isValidXpub
 }
