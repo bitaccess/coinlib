@@ -36,14 +36,17 @@ export abstract class StellarConnected {
     return retryIfDisconnected(fn, this.getApi(), this.logger)
   }
 
-  async getBlock(id: string | number): Promise<StellarRawLedger> {
-    const ledgerPage = await this._retryDced(() => this.getApi()
+  async getBlock(id?: string | number): Promise<StellarRawLedger> {
+    let query = this.getApi()
       .ledgers()
-      .ledger(id)
-      .call()
-    )
+      .order('desc')
+      .limit(1)
+    if (id) {
+      query = query.ledger(id)
+    }
+    const ledgerPage = await this._retryDced(() => query.call())
     if (ledgerPage.records.length === 0) {
-      throw new Error(`Cannot get stellar ledger ${id}`)
+      throw new Error(`Cannot get stellar ledger ${id ? id : 'head'}`)
     }
     return ledgerPage.records[0]
   }
