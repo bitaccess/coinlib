@@ -9,8 +9,6 @@ export const MIN_BALANCE = 1
 export const DEFAULT_CREATE_TRANSACTION_OPTIONS: StellarCreateTransactionOptions = {}
 export const DEFAULT_TX_TIMEOUT_SECONDS = 5 * 60
 
-export const EXTRA_ID_REGEX = /^[0-9]+$/
-
 export const NOT_FOUND_ERRORS = ['MissingLedgerHistoryError', 'NotFoundError']
 
 export const DEFAULT_NETWORK = NetworkType.Mainnet

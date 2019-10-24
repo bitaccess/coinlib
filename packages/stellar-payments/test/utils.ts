@@ -7,21 +7,24 @@ import { AccountStellarPaymentsConfig, StellarAccountConfig } from '../src/types
 import { Logger, assertType } from '@faast/ts-common'
 import { TransactionStatus, NetworkType } from '@faast/payments-common'
 import { omit } from 'lodash'
+import * as Stellar from 'stellar-sdk'
 
-const TESTNET_SERVER = 'wss://s.altnet.stellartest.net:51233'
+const TESTNET_SERVER = 'https://horizon-testnet.stellar.org'
 const TEST_ACCOUNT_FILE = path.resolve(__dirname, 'keys/testnet.accounts.key')
 export const END_TRANSACTION_STATES = [TransactionStatus.Confirmed, TransactionStatus.Failed]
 
 async function generateTestnetAccount(): Promise<StellarAccountConfig> {
-  const res = await fetch('https://faucet.altnet.stellartest.net/accounts', {
-    headers: { accept: 'application/json, text/javascript, */*; q=0.01' },
-    method: 'POST',
-  })
+  const pair = Stellar.Keypair.random()
+  const address = pair.publicKey()
+  const res = await fetch(`https://friendbot.stellar.org?addr=${encodeURIComponent(address)}`)
   const result = await res.json()
   if (typeof result !== 'object' || result === null || !result.balance || !result.account) {
-    throw new Error(`Unexpected testnet faucet result ${util.inspect(result)}`)
+    throw new Error(`Unexpected testnet faucet result for ${address} ${util.inspect(result)}`)
   }
-  return result.account
+  return {
+    address,
+    secret: pair.secret(),
+  }
 }
 
 export async function delay(ms: number): Promise<void> {
@@ -62,28 +65,26 @@ export async function setupTestnetPayments(): Promise<AccountStellarPayments> {
     server: TESTNET_SERVER,
     logger,
   }
-  let rp = new AccountStellarPayments({
+  let payments = new AccountStellarPayments({
     ...DEFAULT_CONFIG,
     ...config,
   })
-  await rp.init()
-  // Make accounts still exist, testnet can be wiped
+  await payments.init()
+  // Ensure accounts still exist, testnet can be wiped
   try {
-    await rp.getBalance(0)
-    await rp.getBalance(1)
+    await payments.getBalance(0)
+    await payments.getBalance(1)
   } catch (e) {
     if (e.message.includes('Account not found')) {
       logger.warn('Cached testnet accounts have been reset, will regenerate')
       config = await generatePaymentsConfig()
-      const stellarApi = rp.stellarApi
-      rp = new AccountStellarPayments({
+      payments = new AccountStellarPayments({
         ...DEFAULT_CONFIG,
         ...config,
       })
-      rp.stellarApi = stellarApi
     }
   }
-  return rp
+  return payments
 }
 
 function formatArgs(...args: any[]): string {

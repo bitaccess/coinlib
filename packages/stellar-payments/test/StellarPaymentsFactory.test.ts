@@ -5,25 +5,25 @@ import { HdStellarPaymentsConfig, AccountStellarPaymentsConfig } from '#/types'
 
 import { hdAccount } from './fixtures/accounts'
 
-const { XPRV, PRIVATE_KEYS, PUBLIC_KEYS, ADDRESSES } = hdAccount
+const { SEED, ADDRESSES, SECRETS } = hdAccount
 
 describe('StellarPaymentsFactory', () => {
   const factory = new StellarPaymentsFactory()
   it('should instantiate HdStellarPayments', () => {
     const config: HdStellarPaymentsConfig = {
-      hdKey: XPRV,
+      seed: SEED,
     }
     expect(factory.forConfig(config)).toBeInstanceOf(HdStellarPayments)
   })
   it('should instantiate AccountStellarPayments from key pairs', () => {
     const config: AccountStellarPaymentsConfig = {
       hotAccount: {
-        privateKey: PRIVATE_KEYS[0],
-        publicKey: PUBLIC_KEYS[0],
+        address: ADDRESSES[0],
+        secret: SECRETS[0],
       },
       depositAccount: {
-        privateKey: PRIVATE_KEYS[1],
-        publicKey: PUBLIC_KEYS[1],
+        address: ADDRESSES[1],
+        secret: SECRETS[1],
       },
     }
     expect(factory.forConfig(config)).toBeInstanceOf(AccountStellarPayments)

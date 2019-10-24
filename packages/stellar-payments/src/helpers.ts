@@ -3,7 +3,7 @@ import { isNil } from '@faast/ts-common'
 import * as Stellar from 'stellar-sdk'
 import { isString } from 'util'
 
-import { DECIMAL_PLACES, EXTRA_ID_REGEX } from './constants'
+import { DECIMAL_PLACES } from './constants'
 
 const {
   toMainDenominationBigNumber,
@@ -28,7 +28,7 @@ export function isValidAddress(address: unknown): boolean {
 }
 
 export function isValidExtraId(extraId: unknown): boolean {
-  return isString(extraId) && EXTRA_ID_REGEX.test(extraId)
+  return isString(extraId)
 }
 
 export function isValidSecret(secret: unknown): boolean {
