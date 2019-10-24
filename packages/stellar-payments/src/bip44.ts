@@ -1,5 +1,6 @@
 import { StellarSignatory } from './types'
 import StellarHDWallet from 'stellar-hd-wallet'
+import * as bip39 from 'bip39'
 
 export function deriveSignatory(seed: string, index: number): StellarSignatory {
   const wallet = seed.includes(' ') ? StellarHDWallet.fromMnemonic(seed) : StellarHDWallet.fromSeed(seed)
@@ -14,4 +15,8 @@ export function deriveSignatory(seed: string, index: number): StellarSignatory {
 
 export function generateMnemonic(): string {
   return StellarHDWallet.generateMnemonic()
+}
+
+export function mnemonicToSeed(mnemonic: string): string {
+  return bip39.mnemonicToSeedSync(mnemonic).toString('hex')
 }

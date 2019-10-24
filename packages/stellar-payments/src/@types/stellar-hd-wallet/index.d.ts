@@ -5,7 +5,7 @@ declare module 'stellar-hd-wallet' {
   import { Keypair } from 'stellar-base'
 
   export default class StellarHDWallet {
-      /**
+    /**
      * Instance from a BIP39 mnemonic string.
      * @param {string} mnemonic A BIP39 mnemonic
      * @param {string} [password] Optional mnemonic password
