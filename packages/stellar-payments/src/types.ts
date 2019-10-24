@@ -102,9 +102,7 @@ export type StellarUnsignedTransaction = t.TypeOf<typeof StellarUnsignedTransact
 
 export const StellarSignedTransaction = extendCodec(
   BaseSignedTransaction,
-  {
-    id: t.string,
-  },
+  {},
   'StellarSignedTransaction',
 )
 export type StellarSignedTransaction = t.TypeOf<typeof StellarSignedTransaction>

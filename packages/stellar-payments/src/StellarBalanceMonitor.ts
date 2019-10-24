@@ -18,21 +18,28 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
 
   txEmitter = new EventEmitter()
 
+  _subscribeCancellors: Function[] = []
+
+  async destroy() {
+    this._subscribeCancellors.forEach((cancel) => cancel())
+  }
+
   async subscribeAddresses(addresses: string[]) {
     for (let address of addresses) {
       assertValidAddress(address)
     }
     for (let address of addresses) {
       try {
-        this.getApi().transactions().forAccount(address).stream({
+        const cancel = this.getApi().transactions().cursor('now').forAccount(address).stream({
           onmessage: (value) => {
-            this.txEmitter.emit('tx', value)
+            this.txEmitter.emit('tx', { address, tx: value })
           },
           onerror: (e) => {
             this.logger.error('Stellar tx stream error', e)
           },
         })
         this.logger.log('Stellar address subscribed', address)
+        this._subscribeCancellors.push(cancel)
       } catch (e) {
         this.logger.error('Failed to subscribe to stellar address', address, e.toString())
         throw e
@@ -41,8 +48,8 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
   }
 
   onBalanceActivity(callbackFn: BalanceActivityCallback) {
-    this.txEmitter.on('tx', async (tx) => {
-      const activity = await this.txToBalanceActivity(tx.address, tx)
+    this.txEmitter.on('tx', async ({ address, tx }) => {
+      const activity = await this.txToBalanceActivity(address, tx)
       if (activity) {
         callbackFn(activity)
       }
@@ -110,11 +117,18 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
     }
     const confirmationNumber = tx.ledger_attr
     const primarySequence = padLeft(String(tx.ledger_attr), 12, '0')
-    const secondarySequence = padLeft(String(new Date(tx.created_at).getTime()), 15, '0')
-    const [ledger, { amount, fromAddress, toAddress }] = await Promise.all([
-      this.getBlock(confirmationNumber),
-      this._normalizeTxOperation(tx),
-    ])
+    const secondarySequence = padLeft(String(new Date(tx.created_at).getTime()), 18, '0')
+    const ledger = await this.getBlock(confirmationNumber)
+    let operation
+    try {
+      operation = await this._normalizeTxOperation(tx)
+    } catch (e) {
+      if (e.message.includes('Cannot normalize stellar tx')) {
+        return null
+      }
+      throw e
+    }
+    const { amount, fee, fromAddress, toAddress } = operation
     if (!(fromAddress === address || toAddress === address)) {
       this.logger.log(`Stellar transaction ${tx.id} operation does not apply to ${address}`)
       return null
@@ -123,6 +137,9 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
     const extraId = toAddress === address ? tx.memo : null
     const tertiarySequence = type === 'out' ? '00' : '01'
     const activitySequence = `${primarySequence}.${secondarySequence}.${tertiarySequence}`
+
+    const netAmount = type === 'out' ? amount.plus(fee).times(-1) : amount
+
     return {
       type,
       networkType: this.networkType,
@@ -131,7 +148,7 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
       address: address,
       extraId: !isUndefined(extraId) ? extraId : null,
 
-      amount,
+      amount: netAmount.toString(),
 
       externalId: tx.id,
       activitySequence,

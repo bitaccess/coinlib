@@ -1,11 +1,18 @@
 import * as Stellar from 'stellar-sdk'
-import { isString } from 'util'
 import { NetworkType } from '@faast/payments-common'
 import promiseRetry from 'promise-retry'
-import { Logger } from '@faast/ts-common'
+import { Logger, isString, isObject } from '@faast/ts-common'
 
-import { BaseStellarConfig, StellarRawTransaction } from './types';
+import { BaseStellarConfig, StellarRawTransaction, StellarLedger, StellarTransaction } from './types';
 import { DEFAULT_TESTNET_SERVER, DEFAULT_MAINNET_SERVER } from './constants'
+
+export function isStellarLedger(x: unknown): x is StellarLedger {
+  return isObject(x) && x.hasOwnProperty('successful_transaction_count')
+}
+
+export function isStellarTransaction(x: unknown): x is StellarTransaction {
+  return isObject(x) && x.hasOwnProperty('source_account')
+}
 
 export function padLeft(x: string, n: number, v: string): string {
   while (x.length < n) {

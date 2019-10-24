@@ -6,7 +6,7 @@ import {
   isValidAddress,
   isValidExtraId,
 } from './helpers'
-import { isNil, assertType } from '@faast/ts-common'
+import { isNil, assertType, Numeric } from '@faast/ts-common'
 import { StellarConnected } from './StellarConnected';
 
 export class StellarPaymentsUtils extends StellarConnected implements PaymentsUtils {
@@ -44,11 +44,11 @@ export class StellarPaymentsUtils extends StellarConnected implements PaymentsUt
     return !(await this.getPayportValidationMessage(payport))
   }
 
-  toMainDenomination(amount: string | number): string {
+  toMainDenomination(amount: Numeric): string {
     return toMainDenominationString(amount)
   }
 
-  toBaseDenomination(amount: string | number): string {
+  toBaseDenomination(amount: Numeric): string {
     return toBaseDenominationString(amount)
   }
 

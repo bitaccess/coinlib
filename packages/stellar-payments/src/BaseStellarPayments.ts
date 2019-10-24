@@ -37,6 +37,7 @@ import {
 } from './constants'
 import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers'
 import * as Stellar from 'stellar-sdk'
+import { isStellarTransaction } from './utils';
 
 function extraIdToTag(extraId: string | null | undefined): number | undefined {
   return isNil(extraId) ? undefined : Number.parseInt(extraId)
@@ -158,8 +159,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     const accountInfo = await this._retryDced(() => this.getApi().loadAccount(address))
     this.logger.debug(`api.loadAccount ${address}`, accountInfo)
     const balanceLine = accountInfo.balances.find((line) => line.asset_type === 'native')
-    const amountBase = balanceLine && balanceLine.balance ? balanceLine.balance : '0'
-    const amountMain = new BigNumber(amountBase).div(BASE_UNITS)
+    const amountMain = new BigNumber(balanceLine && balanceLine.balance ? balanceLine.balance : '0')
     // Subtract locked up min balance from result to avoid confusion about what is actually spendable
     const confirmedBalance = amountMain.minus(MIN_BALANCE)
     return {
@@ -208,6 +208,8 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       const txPage = await this._retryDced(() => this.getApi().transactions().transaction(txId).call())
       if (txPage.records) {
         tx = txPage.records[0]
+      } else if (isStellarTransaction(txPage)) {
+        tx = txPage
       } else {
         throw new Error(`Transaction not found ${txId}`)
       }
@@ -219,8 +221,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       throw e
     }
     this.logger.debug('tx', txId, tx)
-    const { amount, fromAddress, toAddress } = await this._normalizeTxOperation(tx)
-    const fee = this.toMainDenomination(tx.fee_paid)
+    const { amount, fee, fromAddress, toAddress } = await this._normalizeTxOperation(tx)
     const fromIndex = this.resolveIndexFromAddressAndMemo(fromAddress, tx.memo)
     const toIndex = this.resolveIndexFromAddressAndMemo(toAddress, tx.memo)
     const confirmationNumber = tx.ledger_attr
@@ -243,8 +244,8 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       toIndex,
       toAddress,
       toExtraId: tx.memo || null,
-      amount: amount,
-      fee,
+      amount: amount.toString(),
+      fee: fee.toString(),
       sequenceNumber,
       confirmationId,
       confirmationNumber,
@@ -315,7 +316,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     return payportBalance
   }
 
-  private getNetworkPassphrase() {
+  private getStellarNetwork() {
     return this.networkType === NetworkType.Testnet
       ? Stellar.Networks.TESTNET
       : Stellar.Networks.PUBLIC
@@ -329,7 +330,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
   }
 
   private deserializeTransaction(txData: object): Stellar.Transaction {
-    return new Stellar.Transaction((txData as any).serializedTx)
+    return new Stellar.Transaction((txData as any).serializedTx, this.getStellarNetwork())
   }
 
   private async doCreateTransaction(
@@ -377,7 +378,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
 
     const preparedTx = new Stellar.TransactionBuilder(account, {
         fee: Number.parseInt(feeBase),
-        networkPassphrase: this.getNetworkPassphrase(),
+        networkPassphrase: this.getStellarNetwork(),
         memo: toExtraId ? Stellar.Memo.text(toExtraId) : undefined,
       })
       .addOperation(Stellar.Operation.payment({
@@ -445,8 +446,8 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       throw new Error('Cannot sign transaction with read only stellar payments (no xprv or secrets provided)')
     }
     this.logger.debug('signTransaction', unsignedTx.data)
-    const { serializedTx } = unsignedTx.data as { serializedTx: string }
-    const preparedTx = new Stellar.Transaction(serializedTx)
+    const preparedTx = this.deserializeTransaction(unsignedTx.data)
+    this.logger.debug('preparedTx', JSON.stringify(preparedTx, null, 2))
     let secret: string | Stellar.Keypair
     const hotSignatory = this.getHotSignatory()
     const depositSignatory = this.getDepositSignatory()
@@ -478,30 +479,6 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     } catch (e) {}
     const result = await this._retryDced(() => this.getApi().submitTransaction(preparedTx))
     this.logger.debug('broadcasted', result)
-    /*
-    const resultCode = result.engine_result || result.resultCode || ''
-    if (resultCode === 'terPRE_SEQ') {
-      throw new PaymentsError(PaymentsErrorCode.TxSequenceTooHigh, resultCode)
-    }
-    if (!rebroadcast) {
-      // Sometimes these errors come up even after tx is confirmed
-      if (resultCode === 'tefPAST_SEQ') {
-        throw new PaymentsError(PaymentsErrorCode.TxSequenceCollision, resultCode)
-      }
-      if (resultCode === 'tefMAX_LEDGER') {
-        throw new PaymentsError(PaymentsErrorCode.TxExpired, resultCode)
-      }
-    }
-    const okay =
-      resultCode.startsWith('tes') || // successful
-      resultCode.startsWith('ter') || // retryable
-      resultCode.startsWith('tec') || // not executed, but fee lost
-      resultCode === 'tefPAST_SEQ' || // handled above
-      resultCode === 'tefMAX_LEDGER' // handled above
-    if (!okay) {
-      throw new Error(`Failed to broadcast stellar tx ${signedTx.id} with result code ${resultCode}`)
-    }
-    */
     return {
       id: result.hash,
       rebroadcast,

@@ -2,9 +2,11 @@ import { NetworkType } from '@faast/payments-common'
 import { Logger, assertType, DelegateLogger } from '@faast/ts-common'
 import * as Stellar from 'stellar-sdk'
 
-import { BaseStellarConfig, StellarRawLedger, StellarRawTransaction } from './types'
+import { BaseStellarConfig, StellarRawLedger, StellarRawTransaction, StellarLedger } from './types'
 import { DEFAULT_NETWORK, PACKAGE_NAME } from './constants'
-import { resolveStellarServer, retryIfDisconnected } from './utils'
+import { resolveStellarServer, retryIfDisconnected, isStellarLedger } from './utils'
+import BigNumber from 'bignumber.js';
+import { toMainDenominationBigNumber } from './helpers';
 
 export abstract class StellarConnected {
   networkType: NetworkType
@@ -44,40 +46,45 @@ export abstract class StellarConnected {
     if (id) {
       query = query.ledger(id)
     }
-    const ledgerPage = await this._retryDced(() => query.call())
-    if (ledgerPage.records.length === 0) {
+    const ledgerCallResult = await this._retryDced(() => query.call())
+    let ledger: StellarLedger
+    if (ledgerCallResult.records) {
+      ledger = ledgerCallResult.records[0]
+    } else if (isStellarLedger(ledgerCallResult)) {
+      ledger = ledgerCallResult
+    } else {
+      this.logger.log(`getBlock(${id ? id : ''}) ledgerCallResult`, ledgerCallResult)
       throw new Error(`Cannot get stellar ledger ${id ? id : 'head'}`)
     }
-    return ledgerPage.records[0]
+    return ledger
   }
 
-
-async _normalizeTxOperation(
-  tx: StellarRawTransaction,
-): Promise<{ amount: string, fromAddress: string, toAddress: string }> {
-  const opPage = await this._retryDced(() => tx.operations())
-  const op = opPage.records.find(({ type }) => type === 'create_account' || type === 'payment')
-  if (!op) {
-    throw new Error(`Operation not found for transaction ${tx.id}`)
-  }
-  this.logger.debug('operation', op)
-  let fromAddress: string
-  let toAddress: string
-  let amount: string
-  if (op.type === 'create_account') {
-    fromAddress = op.funder
-    toAddress = op.account
-    amount = op.starting_balance
-  } else if (op.type === 'payment') {
-    if (op.asset_type !== 'native') {
-      throw new Error(`Unsupported stellar payment asset ${op.asset_type}`)
+  async _normalizeTxOperation(
+    tx: StellarRawTransaction,
+  ): Promise<{ amount: BigNumber, fee: BigNumber, fromAddress: string, toAddress: string }> {
+    const opPage = await this._retryDced(() => tx.operations())
+    const op = opPage.records.find(({ type }) => type === 'create_account' || type === 'payment')
+    if (!op) {
+      throw new Error(`Cannot normalize stellar tx - operation not found for transaction ${tx.id}`)
     }
-    fromAddress = op.from
-    toAddress = op.to
-    amount = op.amount
-  } else {
-    throw new Error(`Unsupported stellar operation type ${op.type}`)
+    let fromAddress: string
+    let toAddress: string
+    let amount: string
+    if (op.type === 'create_account') {
+      fromAddress = op.funder
+      toAddress = op.account
+      amount = op.starting_balance
+    } else if (op.type === 'payment') {
+      if (op.asset_type !== 'native') {
+        throw new Error(`Cannot normalize stellar tx - Unsupported stellar payment asset ${op.asset_type}`)
+      }
+      fromAddress = op.from
+      toAddress = op.to
+      amount = op.amount
+    } else {
+      throw new Error(`Cannot normalize stellar tx - Unsupported stellar operation type ${op.type}`)
+    }
+    const fee = toMainDenominationBigNumber(tx.fee_paid)
+    return { amount: new BigNumber(amount), fee, fromAddress, toAddress }
   }
-  return { amount, fromAddress, toAddress }
-}
 }
