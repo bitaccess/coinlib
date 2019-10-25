@@ -1,37 +1,18 @@
-import { BalanceMonitor, } from '@faast/payments-common';
-import { padLeft, resolveRippleServer, retryIfDisconnected } from './utils';
-import { RippleBalanceMonitorConfig } from './types';
+import { isUndefined, isNumber, isString } from '@faast/ts-common';
+import { padLeft } from './utils';
 import { assertValidAddress } from './helpers';
-import { isUndefined, isNumber, isString } from 'util';
-import { assertType } from '@faast/ts-common';
-export class RippleBalanceMonitor extends BalanceMonitor {
+import { RippleConnected } from './RippleConnected';
+export class RippleBalanceMonitor extends RippleConnected {
     constructor(config) {
         super(config);
         this.config = config;
-        assertType(RippleBalanceMonitorConfig, config);
-        const { api, server } = resolveRippleServer(config.server, this.networkType);
-        this.rippleApi = api;
-        this.server = server;
-    }
-    async init() {
-        if (!this.rippleApi.isConnected()) {
-            await this.rippleApi.connect();
-        }
-    }
-    async destroy() {
-        if (this.rippleApi.isConnected()) {
-            await this.rippleApi.disconnect();
-        }
-    }
-    async retryDced(fn) {
-        return retryIfDisconnected(fn, this.rippleApi, this.logger);
     }
     async subscribeAddresses(addresses) {
         for (let address of addresses) {
             assertValidAddress(address);
         }
         try {
-            const res = await this.retryDced(() => this.rippleApi.request('subscribe', { accounts: addresses }));
+            const res = await this._retryDced(() => this.api.request('subscribe', { accounts: addresses }));
             if (res.status === 'success') {
                 this.logger.log('Ripple successfully subscribed', res);
             }
@@ -45,7 +26,7 @@ export class RippleBalanceMonitor extends BalanceMonitor {
         }
     }
     onBalanceActivity(callbackFn) {
-        this.rippleApi.connection.on('transaction', async (tx) => {
+        this.api.connection.on('transaction', async (tx) => {
             const activity = await this.txToBalanceActivity(tx.address, tx);
             if (activity) {
                 callbackFn(activity);
@@ -53,7 +34,7 @@ export class RippleBalanceMonitor extends BalanceMonitor {
         });
     }
     async resolveFromToLedgers(options) {
-        const serverInfo = await this.retryDced(() => this.rippleApi.getServerInfo());
+        const serverInfo = await this._retryDced(() => this.api.getServerInfo());
         const completeLedgers = serverInfo.completeLedgers.split('-');
         let fromLedgerVersion = Number.parseInt(completeLedgers[0]);
         let toLedgerVersion = Number.parseInt(completeLedgers[1]);
@@ -101,7 +82,7 @@ export class RippleBalanceMonitor extends BalanceMonitor {
                 getTransactionOptions.minLedgerVersion = from;
                 getTransactionOptions.maxLedgerVersion = to;
             }
-            transactions = await this.retryDced(() => this.rippleApi.getTransactions(address, getTransactionOptions));
+            transactions = await this._retryDced(() => this.api.getTransactions(address, getTransactionOptions));
             this.logger.debug(`retrieved ripple txs for ${address}`, transactions);
             for (let tx of transactions) {
                 if ((lastTx && tx.id === lastTx.id) || tx.outcome.ledgerVersion < from || tx.outcome.ledgerVersion > to) {
@@ -132,7 +113,7 @@ export class RippleBalanceMonitor extends BalanceMonitor {
         const confirmationNumber = tx.outcome.ledgerVersion;
         const primarySequence = padLeft(String(tx.outcome.ledgerVersion), 12, '0');
         const secondarySequence = padLeft(String(tx.outcome.indexInLedger), 8, '0');
-        const ledger = await this.retryDced(() => this.rippleApi.getLedger({ ledgerVersion: confirmationNumber }));
+        const ledger = await this._retryDced(() => this.api.getLedger({ ledgerVersion: confirmationNumber }));
         const balanceChange = (tx.outcome.balanceChanges[address] || []).find(({ currency }) => currency === 'XRP');
         if (!balanceChange) {
             this.logger.log(`Cannot determine balanceChange for address ${address} in ripple tx ${tx.id} because there's no XRP entry`);

@@ -1,14 +1,9 @@
 import { BalanceActivityCallback, GetBalanceActivityOptions, BalanceMonitor, RetrieveBalanceActivitiesResult } from '@faast/payments-common';
-import { RippleAPI } from 'ripple-lib';
 import { RippleBalanceMonitorConfig } from './types';
-export declare class RippleBalanceMonitor extends BalanceMonitor {
+import { RippleConnected } from './RippleConnected';
+export declare class RippleBalanceMonitor extends RippleConnected implements BalanceMonitor {
     config: RippleBalanceMonitorConfig;
-    rippleApi: RippleAPI;
-    server: string | null;
     constructor(config: RippleBalanceMonitorConfig);
-    init(): Promise<void>;
-    destroy(): Promise<void>;
-    private retryDced;
     subscribeAddresses(addresses: string[]): Promise<void>;
     onBalanceActivity(callbackFn: BalanceActivityCallback): void;
     resolveFromToLedgers(options: GetBalanceActivityOptions): Promise<RetrieveBalanceActivitiesResult>;
