@@ -75,12 +75,12 @@ export async function setupTestnetPayments(): Promise<AccountRipplePayments> {
     if (e.message.includes('Account not found')) {
       logger.warn('Cached testnet accounts have been reset, will regenerate')
       config = await generatePaymentsConfig()
-      const rippleApi = rp.rippleApi
+      const rippleApi = rp.api
       rp = new AccountRipplePayments({
         ...DEFAULT_CONFIG,
         ...config,
       })
-      rp.rippleApi = rippleApi
+      rp.api = rippleApi
     }
   }
   return rp

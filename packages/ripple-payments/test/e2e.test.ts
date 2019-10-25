@@ -31,7 +31,7 @@ describe('e2e', () => {
     bm = new RippleBalanceMonitor({
       logger,
       network: NetworkType.Testnet,
-      server: rp.rippleApi,
+      server: rp.api,
     })
     await bm.init()
     bmMainnet = new RippleBalanceMonitor({
@@ -40,7 +40,7 @@ describe('e2e', () => {
       server: 'wss://s2.ripple.com/',
     })
     await bmMainnet.init()
-    startLedgerVersion = (await rp.rippleApi.getLedger()).ledgerVersion
+    startLedgerVersion = (await rp.api.getLedger()).ledgerVersion
     bm.onBalanceActivity(activity => {
       logger.log('activity', activity)
       balanceActivities.push(activity)
@@ -349,12 +349,12 @@ describe('e2e', () => {
     if (result) {
       await pollTxId(result.txId)
     }
-    const newSettings = await rp.rippleApi.getSettings(rp.getDepositSignatory().address)
+    const newSettings = await rp.api.getSettings(rp.getDepositSignatory().address)
     expect(newSettings.requireDestinationTag).toBe(true)
   })
 
   it('should retry after being disconnected', async () => {
-    await rp.rippleApi.disconnect()
+    await rp.api.disconnect()
     expect(await rp.getBalance(0)).toBeDefined()
   })
 })

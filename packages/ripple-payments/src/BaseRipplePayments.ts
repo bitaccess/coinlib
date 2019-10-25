@@ -154,7 +154,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
    */
   async initAccounts() {
     const { address, secret } = this.getDepositSignatory()
-    const settings = await this.rippleApi.getSettings(address)
+    const settings = await this.api.getSettings(address)
     if (settings.requireDestinationTag) {
       return
     }
@@ -171,12 +171,12 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       )
     }
     const unsignedTx = await this._retryDced(() =>
-      this.rippleApi.prepareSettings(address, {
+      this.api.prepareSettings(address, {
         requireDestinationTag: true,
       }),
     )
-    const signedTx = this.rippleApi.sign(unsignedTx.txJSON, secret)
-    const broadcast = await this._retryDced(() => this.rippleApi.submit(signedTx.signedTransaction))
+    const signedTx = this.api.sign(unsignedTx.txJSON, secret)
+    const broadcast = await this._retryDced(() => this.api.submit(signedTx.signedTransaction))
     return {
       txId: signedTx.id,
       unsignedTx,
@@ -191,7 +191,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     if (!isNil(extraId)) {
       throw new Error(`Cannot getBalance of ripple payport with extraId ${extraId}, use BalanceMonitor instead`)
     }
-    const balances = await this._retryDced(() => this.rippleApi.getBalances(address))
+    const balances = await this._retryDced(() => this.api.getBalances(address))
     this.logger.debug(`rippleApi.getBalance ${address}`, balances)
     const xrpBalance = balances.find(({ currency }) => currency === 'XRP')
     const xrpAmount = xrpBalance && xrpBalance.value ? xrpBalance.value : '0'
@@ -207,7 +207,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
   async getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<number> {
     const payport = await this.resolvePayport(payportOrIndex)
     const { address } = payport
-    const accountInfo = await this._retryDced(() => this.rippleApi.getAccountInfo(address))
+    const accountInfo = await this._retryDced(() => this.api.getAccountInfo(address))
     return accountInfo.sequence
   }
 
@@ -224,7 +224,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
   async getTransactionInfo(txId: string): Promise<RippleTransactionInfo> {
     let tx
     try {
-      tx = await this._retryDced(() => this.rippleApi.getTransaction(txId))
+      tx = await this._retryDced(() => this.api.getTransaction(txId))
     } catch (e) {
       const eString = e.toString()
       if (NOT_FOUND_ERRORS.some(type => eString.includes(type))) {
@@ -250,8 +250,8 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     const status = isSuccessful || isCostDestroyed ? TransactionStatus.Confirmed : TransactionStatus.Failed
     const isExecuted = isSuccessful
     const confirmationNumber = outcome.ledgerVersion
-    const ledger = await this._retryDced(() => this.rippleApi.getLedger({ ledgerVersion: confirmationNumber }))
-    const currentLedgerVersion = await this._retryDced(() => this.rippleApi.getLedgerVersion())
+    const ledger = await this._retryDced(() => this.api.getLedger({ ledgerVersion: confirmationNumber }))
+    const currentLedgerVersion = await this._retryDced(() => this.api.getLedgerVersion())
     const confirmationId = ledger.ledgerHash
     const confirmationTimestamp = outcome.timestamp ? new Date(outcome.timestamp) : null
     return {
@@ -305,7 +305,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       } else if (targetFeeLevel === FeeLevel.High) {
         cushion = 1.5
       }
-      feeMain = await this._retryDced(() => this.rippleApi.getFee(cushion))
+      feeMain = await this._retryDced(() => this.api.getFee(cushion))
       feeBase = this.toBaseDenomination(feeMain)
       targetFeeRate = feeMain
       targetFeeRateType = FeeRateType.Main
@@ -378,7 +378,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       )
     }
     const preparedTx = await this._retryDced(() =>
-      this.rippleApi.preparePayment(
+      this.api.preparePayment(
         fromAddress,
         {
           source: {
@@ -472,7 +472,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     } else {
       throw new Error(`Cannot sign ripple transaction from address ${unsignedTx.fromAddress}`)
     }
-    const signResult = this.rippleApi.sign(txJSON, secret)
+    const signResult = this.api.sign(txJSON, secret)
     return {
       ...unsignedTx,
       id: signResult.id,
@@ -489,7 +489,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       const existing = await this.getTransactionInfo(signedTx.id)
       rebroadcast = existing.id === signedTx.id
     } catch (e) {}
-    const result = (await this._retryDced(() => this.rippleApi.submit(signedTxString))) as any
+    const result = (await this._retryDced(() => this.api.submit(signedTxString))) as any
     this.logger.debug('broadcasted', result)
     const resultCode = result.engine_result || result.resultCode || ''
     if (resultCode === 'terPRE_SEQ') {

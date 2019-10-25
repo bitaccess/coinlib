@@ -1,5 +1,5 @@
-import { PaymentsUtils, NetworkType, Payport } from '@faast/payments-common'
-import { RippleAPI } from 'ripple-lib'
+import { PaymentsUtils, Payport } from '@faast/payments-common'
+import { isNil, assertType } from '@faast/ts-common'
 
 import {
   toMainDenominationString,
@@ -9,40 +9,12 @@ import {
   isValidAddress,
   isValidExtraId,
 } from './helpers'
-import { Logger, DelegateLogger, isNil, assertType } from '@faast/ts-common'
-import { PACKAGE_NAME, DEFAULT_NETWORK } from './constants'
 import { BaseRippleConfig } from './types'
-import { resolveRippleServer, retryIfDisconnected } from './utils'
+import { RippleConnected } from './RippleConnected'
 
-export class RipplePaymentsUtils implements PaymentsUtils {
-  networkType: NetworkType
-  logger: Logger
-  rippleApi: RippleAPI
-  server: string | null
-
-  constructor(config: BaseRippleConfig = {}) {
-    assertType(BaseRippleConfig, config)
-    this.networkType = config.network || DEFAULT_NETWORK
-    this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
-    const { api, server } = resolveRippleServer(config.server, this.networkType)
-    this.rippleApi = api
-    this.server = server
-  }
-
-  async init(): Promise<void> {
-    if (!this.rippleApi.isConnected()) {
-      await this.rippleApi.connect()
-    }
-  }
-
-  async destroy(): Promise<void> {
-    if (this.rippleApi.isConnected()) {
-      await this.rippleApi.disconnect()
-    }
-  }
-
-  async _retryDced<T>(fn: () => Promise<T>): Promise<T> {
-    return retryIfDisconnected(fn, this.rippleApi, this.logger)
+export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtils {
+  constructor(config: BaseRippleConfig) {
+    super(config)
   }
 
   async isValidExtraId(extraId: string): Promise<boolean> {
@@ -60,7 +32,7 @@ export class RipplePaymentsUtils implements PaymentsUtils {
     }
     let requireExtraId = false
     try {
-      const settings = await this._retryDced(() => this.rippleApi.getSettings(address))
+      const settings = await this._retryDced(() => this.api.getSettings(address))
       requireExtraId = settings.requireDestinationTag || false
     } catch (e) {
       this.logger.debug(`Failed to retrieve settings for ${address} - ${e.message}`)

@@ -26,7 +26,7 @@ export class AccountRipplePayments extends BaseRipplePayments<AccountRipplePayme
       if (!accountConfig.privateKey) {
         this.readOnly = true
       }
-      const address = this.rippleApi.deriveAddress(accountConfig.publicKey)
+      const address = this.api.deriveAddress(accountConfig.publicKey)
       return {
         address,
         secret: accountConfig,
