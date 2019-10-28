@@ -8,12 +8,12 @@ var t = require('io-ts');
 var paymentsCommon = require('@faast/payments-common');
 var promiseRetry = _interopDefault(require('promise-retry'));
 var lodash = require('lodash');
-var BigNumber = _interopDefault(require('bignumber.js'));
 var StellarHDWallet = _interopDefault(require('stellar-hd-wallet'));
 require('bip39');
 var Stellar = require('stellar-sdk');
 var util = require('util');
 var events = require('events');
+var BigNumber = _interopDefault(require('bignumber.js'));
 var tsCommon = require('@faast/ts-common');
 
 const BaseStellarConfig = tsCommon.extendCodec(paymentsCommon.BaseConfig, {}, {
@@ -45,7 +45,7 @@ const StellarUnsignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseUnsig
 }, 'StellarUnsignedTransaction');
 const StellarSignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseSignedTransaction, {}, 'StellarSignedTransaction');
 const StellarTransactionInfo = tsCommon.extendCodec(paymentsCommon.BaseTransactionInfo, {
-    confirmationNumber: tsCommon.nullable(t.number),
+    confirmationNumber: tsCommon.nullable(t.string),
 }, {}, 'StellarTransactionInfo');
 const StellarBroadcastResult = tsCommon.extendCodec(paymentsCommon.BaseBroadcastResult, {
     rebroadcast: t.boolean,
@@ -413,7 +413,7 @@ class BaseStellarPayments extends StellarPaymentsUtils {
         const confirmationId = ledger.hash;
         const confirmationTimestamp = ledger.closed_at ? new Date(ledger.closed_at) : null;
         const confirmations = currentLedgerSequence - confirmationNumber;
-        const sequenceNumber = Number.parseInt(tx.source_account_sequence);
+        const sequenceNumber = tx.source_account_sequence;
         const isExecuted = tx.successful;
         const isConfirmed = Boolean(confirmationNumber);
         const status = isConfirmed || isExecuted ? paymentsCommon.TransactionStatus.Confirmed : paymentsCommon.TransactionStatus.Pending;
@@ -430,7 +430,7 @@ class BaseStellarPayments extends StellarPaymentsUtils {
             fee: fee.toString(),
             sequenceNumber,
             confirmationId,
-            confirmationNumber,
+            confirmationNumber: String(confirmationNumber),
             confirmationTimestamp,
             isExecuted,
             isConfirmed,
@@ -567,7 +567,7 @@ class BaseStellarPayments extends StellarPaymentsUtils {
             targetFeeRate,
             targetFeeRateType,
             fee: feeMain,
-            sequenceNumber: Number.parseInt(preparedTx.sequence),
+            sequenceNumber: preparedTx.sequence,
             data: txData,
         };
     }
@@ -768,25 +768,18 @@ class StellarBalanceMonitor extends StellarConnected {
             }
         });
     }
-    async resolveFromToLedgers(options) {
-        const { from, to } = options;
-        const resolvedFrom = util.isUndefined(from) ? 0 : util.isNumber(from) ? from : from.confirmationNumber;
-        const resolvedTo = util.isUndefined(to) ? Number.MAX_SAFE_INTEGER : util.isNumber(to) ? to : to.confirmationNumber;
-        return {
-            from: resolvedFrom,
-            to: resolvedTo,
-        };
-    }
     async retrieveBalanceActivities(address, callbackFn, options = {}) {
         assertValidAddress(address);
-        const { from, to } = await this.resolveFromToLedgers(options);
+        const { from: fromOption, to: toOption } = options;
+        const from = new BigNumber(util.isUndefined(fromOption) ? 0 : (tsCommon.Numeric.is(fromOption) ? fromOption : fromOption.confirmationNumber));
+        const to = new BigNumber(util.isUndefined(toOption) ? 'Infinity' : (tsCommon.Numeric.is(toOption) ? toOption.toString() : toOption.confirmationNumber));
         const limit = 10;
         let lastTx;
         let transactionPage;
         while (util.isUndefined(transactionPage) ||
             (transactionPage.records.length === limit
                 && lastTx
-                && (lastTx.ledger_attr >= from || lastTx.ledger_attr >= to))) {
+                && (from.lt(lastTx.ledger_attr) || to.lt(lastTx.ledger_attr)))) {
             transactionPage = await this._retryDced(() => transactionPage
                 ? transactionPage.next()
                 : this.getApi()
@@ -798,7 +791,7 @@ class StellarBalanceMonitor extends StellarConnected {
             const transactions = transactionPage.records;
             this.logger.debug(`retrieved stellar txs for ${address}`, omitHidden(transactions));
             for (let tx of transactions) {
-                if ((lastTx && tx.id === lastTx.id) || !(tx.ledger_attr >= from && tx.ledger_attr <= to)) {
+                if ((lastTx && tx.id === lastTx.id) || !(from.lt(tx.ledger_attr) && to.gt(tx.ledger_attr))) {
                     continue;
                 }
                 const activity = await this.txToBalanceActivity(address, tx);
@@ -808,7 +801,7 @@ class StellarBalanceMonitor extends StellarConnected {
             }
             lastTx = transactions[transactions.length - 1];
         }
-        return { from, to };
+        return { from: from.toString(), to: to.toString() };
     }
     async txToBalanceActivity(address, tx) {
         const successful = tx.successful;
@@ -851,7 +844,7 @@ class StellarBalanceMonitor extends StellarConnected {
             externalId: tx.id,
             activitySequence,
             confirmationId: ledger.hash,
-            confirmationNumber,
+            confirmationNumber: String(confirmationNumber),
             timestamp: new Date(ledger.closed_at),
         };
     }

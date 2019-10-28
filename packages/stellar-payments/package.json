@@ -1,6 +1,6 @@
 {
   "name": "@faast/stellar-payments",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "description": "Library for processing stellar payments",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",

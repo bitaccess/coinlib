@@ -9,7 +9,6 @@ export declare class StellarBalanceMonitor extends StellarConnected implements B
     destroy(): Promise<void>;
     subscribeAddresses(addresses: string[]): Promise<void>;
     onBalanceActivity(callbackFn: BalanceActivityCallback): void;
-    resolveFromToLedgers(options: GetBalanceActivityOptions): Promise<RetrieveBalanceActivitiesResult>;
     retrieveBalanceActivities(address: string, callbackFn: BalanceActivityCallback, options?: GetBalanceActivityOptions): Promise<RetrieveBalanceActivitiesResult>;
     txToBalanceActivity(address: string, tx: StellarRawTransaction): Promise<BalanceActivity | null>;
 }

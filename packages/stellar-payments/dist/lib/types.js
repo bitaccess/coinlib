@@ -32,7 +32,7 @@ export const StellarUnsignedTransaction = extendCodec(BaseUnsignedTransaction, {
 }, 'StellarUnsignedTransaction');
 export const StellarSignedTransaction = extendCodec(BaseSignedTransaction, {}, 'StellarSignedTransaction');
 export const StellarTransactionInfo = extendCodec(BaseTransactionInfo, {
-    confirmationNumber: nullable(t.number),
+    confirmationNumber: nullable(t.string),
 }, {}, 'StellarTransactionInfo');
 export const StellarBroadcastResult = extendCodec(BaseBroadcastResult, {
     rebroadcast: t.boolean,

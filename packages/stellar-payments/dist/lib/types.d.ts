@@ -114,7 +114,7 @@ export declare const StellarUnsignedTransaction: t.IntersectionC<[t.Intersection
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.StringC, t.NullC]>;
 }>]>, t.TypeC<{
     fromAddress: t.StringC;
     toAddress: t.StringC;
@@ -142,7 +142,7 @@ export declare const StellarSignedTransaction: t.IntersectionC<[t.IntersectionC<
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.StringC, t.NullC]>;
 }>]>, t.TypeC<{
     fromAddress: t.StringC;
     toAddress: t.StringC;
@@ -170,7 +170,7 @@ export declare const StellarTransactionInfo: t.IntersectionC<[t.IntersectionC<[t
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.StringC, t.NullC]>;
 }>]>, t.TypeC<{
     id: t.StringC;
     amount: t.StringC;
@@ -182,7 +182,7 @@ export declare const StellarTransactionInfo: t.IntersectionC<[t.IntersectionC<[t
     confirmationTimestamp: t.UnionC<[import("@faast/ts-common").DateC, t.NullC]>;
     data: t.ObjectC;
 }>]>, t.TypeC<{
-    confirmationNumber: t.UnionC<[t.NumberC, t.NullC]>;
+    confirmationNumber: t.UnionC<[t.StringC, t.NullC]>;
 }>]>;
 export declare type StellarTransactionInfo = t.TypeOf<typeof StellarTransactionInfo>;
 export declare const StellarBroadcastResult: t.IntersectionC<[t.TypeC<{
@@ -200,7 +200,7 @@ export declare const StellarCreateTransactionOptions: t.IntersectionC<[t.Interse
 }>]>, t.PartialC<{
     feeLevel: t.UnionC<[t.LiteralC<import("@faast/payments-common").FeeLevel.High>, t.LiteralC<import("@faast/payments-common").FeeLevel.Medium>, t.LiteralC<import("@faast/payments-common").FeeLevel.Low>]>;
 }>]>, t.PartialC<{
-    sequenceNumber: t.NumberC;
+    sequenceNumber: t.UnionC<[t.StringC, t.NumberC, import("@faast/ts-common").BigNumberC]>;
     payportBalance: t.UnionC<[t.StringC, t.NumberC, import("@faast/ts-common").BigNumberC]>;
 }>]>, t.PartialC<{
     timeoutSeconds: t.NumberC;

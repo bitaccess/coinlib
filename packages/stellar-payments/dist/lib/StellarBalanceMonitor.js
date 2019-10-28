@@ -1,8 +1,10 @@
 import { padLeft, omitHidden } from './utils';
 import { assertValidAddress } from './helpers';
-import { isUndefined, isNumber } from 'util';
+import { isUndefined } from 'util';
 import { StellarConnected } from './StellarConnected';
 import { EventEmitter } from 'events';
+import { Numeric } from '@faast/ts-common';
+import BigNumber from 'bignumber.js';
 export class StellarBalanceMonitor extends StellarConnected {
     constructor() {
         super(...arguments);
@@ -43,18 +45,11 @@ export class StellarBalanceMonitor extends StellarConnected {
             }
         });
     }
-    async resolveFromToLedgers(options) {
-        const { from, to } = options;
-        const resolvedFrom = isUndefined(from) ? 0 : isNumber(from) ? from : from.confirmationNumber;
-        const resolvedTo = isUndefined(to) ? Number.MAX_SAFE_INTEGER : isNumber(to) ? to : to.confirmationNumber;
-        return {
-            from: resolvedFrom,
-            to: resolvedTo,
-        };
-    }
     async retrieveBalanceActivities(address, callbackFn, options = {}) {
         assertValidAddress(address);
-        const { from, to } = await this.resolveFromToLedgers(options);
+        const { from: fromOption, to: toOption } = options;
+        const from = new BigNumber(isUndefined(fromOption) ? 0 : (Numeric.is(fromOption) ? fromOption : fromOption.confirmationNumber));
+        const to = new BigNumber(isUndefined(toOption) ? 'Infinity' : (Numeric.is(toOption) ? toOption.toString() : toOption.confirmationNumber));
         const limit = 10;
         let lastTx;
         let transactionPage;
@@ -62,7 +57,7 @@ export class StellarBalanceMonitor extends StellarConnected {
         while (isUndefined(transactionPage) ||
             (transactionPage.records.length === limit
                 && lastTx
-                && (lastTx.ledger_attr >= from || lastTx.ledger_attr >= to))) {
+                && (from.lt(lastTx.ledger_attr) || to.lt(lastTx.ledger_attr)))) {
             transactionPage = await this._retryDced(() => transactionPage
                 ? transactionPage.next()
                 : this.getApi()
@@ -74,7 +69,7 @@ export class StellarBalanceMonitor extends StellarConnected {
             const transactions = transactionPage.records;
             this.logger.debug(`retrieved stellar txs for ${address}`, omitHidden(transactions));
             for (let tx of transactions) {
-                if ((lastTx && tx.id === lastTx.id) || !(tx.ledger_attr >= from && tx.ledger_attr <= to)) {
+                if ((lastTx && tx.id === lastTx.id) || !(from.lt(tx.ledger_attr) && to.gt(tx.ledger_attr))) {
                     continue;
                 }
                 const activity = await this.txToBalanceActivity(address, tx);
@@ -84,7 +79,7 @@ export class StellarBalanceMonitor extends StellarConnected {
             }
             lastTx = transactions[transactions.length - 1];
         }
-        return { from, to };
+        return { from: from.toString(), to: to.toString() };
     }
     async txToBalanceActivity(address, tx) {
         const successful = tx.successful;
@@ -127,7 +122,7 @@ export class StellarBalanceMonitor extends StellarConnected {
             externalId: tx.id,
             activitySequence,
             confirmationId: ledger.hash,
-            confirmationNumber,
+            confirmationNumber: String(confirmationNumber),
             timestamp: new Date(ledger.closed_at),
         };
     }
