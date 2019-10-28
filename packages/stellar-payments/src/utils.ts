@@ -1,10 +1,19 @@
 import * as Stellar from 'stellar-sdk'
-import { NetworkType } from '@faast/payments-common'
+import { NetworkType, Payport } from '@faast/payments-common'
 import promiseRetry from 'promise-retry'
-import { Logger, isString, isObject } from '@faast/ts-common'
+import { Logger, isString, isObject, isNil } from '@faast/ts-common'
 
-import { BaseStellarConfig, StellarRawTransaction, StellarLedger, StellarTransaction } from './types';
+import { BaseStellarConfig, StellarRawTransaction, StellarLedger, StellarTransaction } from './types'
 import { DEFAULT_TESTNET_SERVER, DEFAULT_MAINNET_SERVER } from './constants'
+import { omitBy } from 'lodash';
+
+export function serializePayport(payport: Payport): string {
+  return isNil(payport.extraId) ? payport.address : `${payport.address}/${payport.extraId}`
+}
+
+export function omitHidden(o: object): object {
+  return omitBy(o, (_, k) => k.startsWith('_'))
+}
 
 export function isStellarLedger(x: unknown): x is StellarLedger {
   return isObject(x) && x.hasOwnProperty('successful_transaction_count')

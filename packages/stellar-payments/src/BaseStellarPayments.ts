@@ -15,7 +15,8 @@ import {
 } from '@faast/payments-common'
 import { assertType, isNil, Numeric, isString } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
-import { omit } from 'lodash'
+import { omit, omitBy } from 'lodash'
+import * as Stellar from 'stellar-sdk'
 
 import {
   BaseStellarPaymentsConfig,
@@ -36,15 +37,7 @@ import {
   DEFAULT_TX_TIMEOUT_SECONDS,
 } from './constants'
 import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers'
-import * as Stellar from 'stellar-sdk'
-import { isStellarTransaction } from './utils';
-
-function extraIdToTag(extraId: string | null | undefined): number | undefined {
-  return isNil(extraId) ? undefined : Number.parseInt(extraId)
-}
-function serializePayport(payport: Payport): string {
-  return isNil(payport.extraId) ? payport.address : `${payport.address}/${payport.extraId}`
-}
+import { isStellarTransaction, serializePayport, omitHidden } from './utils'
 
 export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConfig> extends StellarPaymentsUtils
   implements
@@ -157,7 +150,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       throw new Error(`Cannot getBalance of stellar payport with extraId ${extraId}, use BalanceMonitor instead`)
     }
     const accountInfo = await this._retryDced(() => this.getApi().loadAccount(address))
-    this.logger.debug(`api.loadAccount ${address}`, accountInfo)
+    this.logger.debug(`api.loadAccount ${address}`, omitHidden(accountInfo))
     const balanceLine = accountInfo.balances.find((line) => line.asset_type === 'native')
     const amountMain = new BigNumber(balanceLine && balanceLine.balance ? balanceLine.balance : '0')
     // Subtract locked up min balance from result to avoid confusion about what is actually spendable
@@ -220,7 +213,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       }
       throw e
     }
-    this.logger.debug('tx', txId, tx)
+    this.logger.debug('getTransactionInfo', txId, omitHidden(tx))
     const { amount, fee, fromAddress, toAddress } = await this._normalizeTxOperation(tx)
     const fromIndex = this.resolveIndexFromAddressAndMemo(fromAddress, tx.memo)
     const toIndex = this.resolveIndexFromAddressAndMemo(toAddress, tx.memo)
@@ -447,7 +440,6 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     }
     this.logger.debug('signTransaction', unsignedTx.data)
     const preparedTx = this.deserializeTransaction(unsignedTx.data)
-    this.logger.debug('preparedTx', JSON.stringify(preparedTx, null, 2))
     let secret: string | Stellar.Keypair
     const hotSignatory = this.getHotSignatory()
     const depositSignatory = this.getDepositSignatory()
@@ -478,7 +470,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       rebroadcast = existing.id === signedTx.id
     } catch (e) {}
     const result = await this._retryDced(() => this.getApi().submitTransaction(preparedTx))
-    this.logger.debug('broadcasted', result)
+    this.logger.debug('broadcasted', omitHidden(result))
     return {
       id: result.hash,
       rebroadcast,

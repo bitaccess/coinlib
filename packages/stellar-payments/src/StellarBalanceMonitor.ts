@@ -7,7 +7,7 @@ import {
 } from '@faast/payments-common'
 import * as Stellar from 'stellar-sdk'
 
-import { padLeft } from './utils'
+import { padLeft, omitHidden } from './utils';
 import { StellarRawTransaction, StellarCollectionPage } from './types';
 import { assertValidAddress } from './helpers'
 import { isUndefined, isNumber } from 'util'
@@ -66,6 +66,7 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
     }
   }
 
+
   async retrieveBalanceActivities(
     address: string,
     callbackFn: BalanceActivityCallback,
@@ -84,17 +85,18 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
         // This condition enables retrieving txs until we reach the desired range. No built in way to filter the query
         && (lastTx.ledger_attr >= from || lastTx.ledger_attr >= to))
     ) {
+      // I tried doing this with .stream, but it didn't let me order it in descending order
       transactionPage = await this._retryDced(() => transactionPage
         ? transactionPage.next()
         : this.getApi()
           .transactions()
           .forAccount(address)
           .limit(limit)
-          .order('desc') // important txs are retrieved newest to oldest for while loop condition to work
+          .order('desc') // important txs are retrieved newest to oldest for exit condition to work
           .call()
       )
       const transactions = transactionPage.records
-      this.logger.debug(`retrieved stellar txs for ${address}`, transactions)
+      this.logger.debug(`retrieved stellar txs for ${address}`, omitHidden(transactions))
       for (let tx of transactions) {
         if ((lastTx && tx.id === lastTx.id) || !(tx.ledger_attr >= from && tx.ledger_attr <= to)) {
           continue
@@ -109,7 +111,7 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
     return { from, to }
   }
 
-  private async txToBalanceActivity(address: string, tx: StellarRawTransaction): Promise<BalanceActivity | null> {
+  async txToBalanceActivity(address: string, tx: StellarRawTransaction): Promise<BalanceActivity | null> {
     const successful = (tx as any).successful
     if (!successful) {
       this.logger.log(`No balance activity for stellar tx ${tx.id} because successful is ${successful}`)

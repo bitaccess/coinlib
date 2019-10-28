@@ -40,7 +40,7 @@ describe('e2e', () => {
     await monitorMainnet.init()
     startLedgerVersion = (await payments.getBlock()).sequence
     monitor.onBalanceActivity(activity => {
-      logger.log('activity', activity)
+      logger.log('onBalanceActivity', activity)
       emittedBalanceActivities.push(activity)
     })
     await monitor.subscribeAddresses(payments.getAddressesToMonitor())
