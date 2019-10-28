@@ -1,4 +1,5 @@
-import { BalanceActivityCallback, GetBalanceActivityOptions, BalanceMonitor, RetrieveBalanceActivitiesResult } from '@faast/payments-common';
+import { BalanceActivityCallback, GetBalanceActivityOptions, BalanceActivity, BalanceMonitor, RetrieveBalanceActivitiesResult } from '@faast/payments-common';
+import { FormattedTransactionType } from 'ripple-lib/dist/npm/transaction/types';
 import { RippleBalanceMonitorConfig } from './types';
 import { RippleConnected } from './RippleConnected';
 export declare class RippleBalanceMonitor extends RippleConnected implements BalanceMonitor {
@@ -9,5 +10,5 @@ export declare class RippleBalanceMonitor extends RippleConnected implements Bal
     resolveFromToLedgers(options: GetBalanceActivityOptions): Promise<RetrieveBalanceActivitiesResult>;
     retrieveBalanceActivities(address: string, callbackFn: BalanceActivityCallback, options?: GetBalanceActivityOptions): Promise<RetrieveBalanceActivitiesResult>;
     private isPaymentTx;
-    private txToBalanceActivity;
+    txToBalanceActivity(address: string, tx: FormattedTransactionType): Promise<BalanceActivity | null>;
 }
