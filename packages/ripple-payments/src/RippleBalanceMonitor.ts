@@ -7,12 +7,13 @@ import {
 } from '@faast/payments-common'
 import { FormattedPaymentTransaction, FormattedTransactionType } from 'ripple-lib/dist/npm/transaction/types'
 import { TransactionsOptions } from 'ripple-lib/dist/npm/ledger/transactions'
-import { isUndefined, isNumber, isString } from '@faast/ts-common'
+import { isUndefined, isNumber, isString, Numeric } from '@faast/ts-common'
 
 import { padLeft, retryIfDisconnected } from './utils'
 import { RippleBalanceMonitorConfig } from './types'
 import { assertValidAddress } from './helpers'
 import { RippleConnected } from './RippleConnected'
+import BigNumber from 'bignumber.js'
 
 export class RippleBalanceMonitor extends RippleConnected implements BalanceMonitor {
   constructor(public config: RippleBalanceMonitorConfig) {
@@ -45,16 +46,18 @@ export class RippleBalanceMonitor extends RippleConnected implements BalanceMoni
     })
   }
 
-  async resolveFromToLedgers(options: GetBalanceActivityOptions): Promise<RetrieveBalanceActivitiesResult> {
+  private async resolveFromToLedgers(options: GetBalanceActivityOptions): Promise<{ from: BigNumber; to: BigNumber }> {
     const serverInfo = await this._retryDced(() => this.api.getServerInfo())
     const completeLedgers = serverInfo.completeLedgers.split('-')
-    let fromLedgerVersion = Number.parseInt(completeLedgers[0])
-    let toLedgerVersion = Number.parseInt(completeLedgers[1])
+    let fromLedgerVersion = new BigNumber(completeLedgers[0])
+    let toLedgerVersion = new BigNumber(completeLedgers[1])
     const { from, to } = options
-    const requestedFrom = isUndefined(from) ? undefined : isNumber(from) ? from : from.confirmationNumber
-    const requestedTo = isUndefined(to) ? undefined : isNumber(to) ? to : to.confirmationNumber
-    if (isNumber(requestedFrom)) {
-      if (requestedFrom < fromLedgerVersion) {
+    const requestedFrom = isUndefined(from)
+      ? undefined
+      : new BigNumber(Numeric.is(from) ? from : from.confirmationNumber)
+    const requestedTo = isUndefined(to) ? undefined : new BigNumber(Numeric.is(to) ? to : to.confirmationNumber)
+    if (!isUndefined(requestedFrom)) {
+      if (requestedFrom.lt(fromLedgerVersion)) {
         this.logger.warn(
           `Server balance activity doesn't go back to ledger ${requestedFrom}, using ${fromLedgerVersion} instead`,
         )
@@ -62,7 +65,7 @@ export class RippleBalanceMonitor extends RippleConnected implements BalanceMoni
         fromLedgerVersion = requestedFrom
       }
     }
-    if (isNumber(requestedTo)) {
+    if (!isUndefined(requestedTo)) {
       if (requestedTo > toLedgerVersion) {
         this.logger.warn(
           `Server balance activity doesn't go up to ledger ${requestedTo}, using ${toLedgerVersion} instead`,
@@ -89,7 +92,7 @@ export class RippleBalanceMonitor extends RippleConnected implements BalanceMoni
     let transactions: FormattedTransactionType[] | undefined
     while (
       isUndefined(transactions) ||
-      (transactions.length === limit && lastTx && lastTx.outcome.ledgerVersion <= to)
+      (transactions.length === limit && lastTx && to.gt(lastTx.outcome.ledgerVersion))
     ) {
       const getTransactionOptions: TransactionsOptions = {
         earliestFirst: true,
@@ -99,13 +102,13 @@ export class RippleBalanceMonitor extends RippleConnected implements BalanceMoni
       if (lastTx) {
         getTransactionOptions.start = lastTx.id
       } else {
-        getTransactionOptions.minLedgerVersion = from
-        getTransactionOptions.maxLedgerVersion = to
+        getTransactionOptions.minLedgerVersion = from.toNumber()
+        getTransactionOptions.maxLedgerVersion = to.toNumber()
       }
       transactions = await this._retryDced(() => this.api.getTransactions(address, getTransactionOptions))
       this.logger.debug(`retrieved ripple txs for ${address}`, transactions)
       for (let tx of transactions) {
-        if ((lastTx && tx.id === lastTx.id) || tx.outcome.ledgerVersion < from || tx.outcome.ledgerVersion > to) {
+        if ((lastTx && tx.id === lastTx.id) || from.gte(tx.outcome.ledgerVersion) || to.lte(tx.outcome.ledgerVersion)) {
           continue
         }
         const activity = await this.txToBalanceActivity(address, tx)
@@ -115,7 +118,7 @@ export class RippleBalanceMonitor extends RippleConnected implements BalanceMoni
       }
       lastTx = transactions[transactions.length - 1]
     }
-    return { from, to }
+    return { from: from.toString(), to: to.toString() }
   }
 
   private isPaymentTx(tx: FormattedTransactionType): tx is FormattedPaymentTransaction {
@@ -164,7 +167,7 @@ export class RippleBalanceMonitor extends RippleConnected implements BalanceMoni
       externalId: tx.id,
       activitySequence,
       confirmationId: ledger.ledgerHash,
-      confirmationNumber,
+      confirmationNumber: String(confirmationNumber),
       timestamp: new Date(ledger.closeTime),
     }
   }

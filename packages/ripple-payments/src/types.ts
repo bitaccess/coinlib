@@ -117,7 +117,7 @@ export type RippleSignedTransaction = t.TypeOf<typeof RippleSignedTransaction>
 export const RippleTransactionInfo = extendCodec(
   BaseTransactionInfo,
   {
-    confirmationNumber: nullable(t.number),
+    confirmationNumber: nullable(t.string),
   },
   {},
   'RippleTransactionInfo',

@@ -139,7 +139,7 @@ describe('e2e', () => {
     expect(tx.confirmationId).toMatch(/^\w+$/)
     expect(tx.confirmationTimestamp).toBeDefined()
     expect(tx.confirmations).toBeGreaterThan(0)
-    expect(tx.sequenceNumber).toBeGreaterThan(0)
+    expect(tx.sequenceNumber).toMatch(/[1-9]/)
     return tx
   }
 
@@ -308,8 +308,10 @@ describe('e2e', () => {
   it('should retrieve nothing for a range without activity', async () => {
     const sweepTx = await sweepTxPromise
     const sendTx = await sendTxPromise
-    const from =
-      1 + Math.max(sweepTx.confirmationNumber || startLedgerVersion, sendTx.confirmationNumber || startLedgerVersion)
+    const from = BigNumber.max(
+      sweepTx.confirmationNumber || startLedgerVersion,
+      sendTx.confirmationNumber || startLedgerVersion,
+    ).plus(1)
     const actual = await accumulateRetrievedActivities(rp.hotSignatory.address, { from })
     expectBalanceActivities(actual, [])
   })
@@ -339,7 +341,7 @@ describe('e2e', () => {
       externalId: 'F5C7793E506E9566CED0060D9FC519BA06BD0EB0F4A77C0680BEA8FD13A13A58',
       activitySequence: '000049684654.00000040.00',
       confirmationId: '4103BE72C0C718AD2B137C9B40C37AD3D157044A61F40AB74B122A12EFB15B32',
-      confirmationNumber: 49684654,
+      confirmationNumber: '49684654',
       timestamp: new Date('2019-08-30T01:11:52.000Z'),
     })
   })

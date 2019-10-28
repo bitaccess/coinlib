@@ -12,7 +12,7 @@ import {
   PaymentsError,
   PaymentsErrorCode,
 } from '@faast/payments-common'
-import { assertType, isNil, Numeric } from '@faast/ts-common'
+import { assertType, isNil, Numeric, isUndefined } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
 import { FormattedPaymentTransaction, Prepare } from 'ripple-lib/dist/npm/transaction/types'
 import { Adjustment, Amount } from 'ripple-lib/dist/npm/common/types/objects'
@@ -265,9 +265,9 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       toExtraId: typeof destination.tag !== 'undefined' ? String(destination.tag) : null,
       amount: amount,
       fee: outcome.fee,
-      sequenceNumber: tx.sequence,
+      sequenceNumber: String(tx.sequence),
       confirmationId,
-      confirmationNumber,
+      confirmationNumber: String(confirmationNumber),
       confirmationTimestamp,
       isExecuted,
       isConfirmed: Boolean(confirmationNumber),
@@ -400,7 +400,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
         },
         {
           maxLedgerVersionOffset,
-          sequence: sequenceNumber,
+          sequence: isUndefined(sequenceNumber) ? sequenceNumber : new BigNumber(sequenceNumber).toNumber(),
         },
       ),
     )
@@ -418,7 +418,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       targetFeeRate,
       targetFeeRateType,
       fee: feeMain,
-      sequenceNumber: preparedTx.instructions.sequence,
+      sequenceNumber: String(preparedTx.instructions.sequence),
       data: preparedTx,
     }
   }
