@@ -223,8 +223,8 @@ export type BalanceMonitorConfig = t.TypeOf<typeof BalanceMonitorConfig>
 
 export const GetBalanceActivityOptions = t.partial(
   {
-    from: t.union([t.number, BalanceActivity]),
-    to: t.union([t.number, BalanceActivity]),
+    from: t.union([Numeric, BalanceActivity]),
+    to: t.union([Numeric, BalanceActivity]),
   },
   'GetBalanceActivityOptions',
 )
@@ -243,8 +243,8 @@ export type ResolveablePayport = t.TypeOf<typeof ResolveablePayport>
 
 export const RetrieveBalanceActivitiesResult = t.type(
   {
-    from: t.number,
-    to: t.number,
+    from: t.string,
+    to: t.string,
   },
   'RetrieveBalanceActivitiesResult',
 )
