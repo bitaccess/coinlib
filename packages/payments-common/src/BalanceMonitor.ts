@@ -1,4 +1,9 @@
-import { BalanceActivityCallback, GetBalanceActivityOptions, RetrieveBalanceActivitiesResult } from './types'
+import {
+  BalanceActivityCallback,
+  GetBalanceActivityOptions,
+  RetrieveBalanceActivitiesResult,
+  BalanceActivity,
+} from './types'
 
 export interface BalanceMonitor {
   init(): Promise<void>
@@ -12,4 +17,6 @@ export interface BalanceMonitor {
     callbackFn: BalanceActivityCallback,
     options?: GetBalanceActivityOptions,
   ): Promise<RetrieveBalanceActivitiesResult>
+
+  txToBalanceActivity(tx: object): Promise<BalanceActivity>
 }
