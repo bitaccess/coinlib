@@ -56,7 +56,7 @@
     "io-ts": "^1.8.5"
   },
   "dependencies": {
-    "@faast/payments-common": "^0.16.1",
+    "@faast/payments-common": "^0.16.2",
     "@faast/ts-common": "^0.4.1",
     "bignumber.js": "^9.0.0",
     "bip32": "^2.0.4",
