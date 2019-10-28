@@ -110,7 +110,7 @@ export interface BasePayments<
    * Get the next unused transaction sequenceNumber for a payport.
    * @returns null if the network doesn't use sequence numbers, or if it cannot be determined.
    */
-  getNextSequenceNumber(payport: ResolveablePayport): Promise<number | null>
+  getNextSequenceNumber(payport: ResolveablePayport): Promise<string | null>
 
   /**
    * Get the info and status of a transaction.
