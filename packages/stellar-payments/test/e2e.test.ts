@@ -143,7 +143,7 @@ describe('e2e', () => {
     expect(tx.confirmationId).toMatch(/^\w+$/)
     expect(tx.confirmationTimestamp).toBeDefined()
     expect(tx.confirmations).toBeGreaterThan(0)
-    expect(tx.sequenceNumber).toBeGreaterThan(0)
+    expect(tx.sequenceNumber).toMatch(/[1-9]/)
     return tx
   }
 
@@ -307,8 +307,8 @@ describe('e2e', () => {
   it('should retrieve nothing for a range without activity', async () => {
     const sweepTx = await sweepTxPromise
     const sendTx = await sendTxPromise
-    const from =
-      1 + Math.max(sweepTx.confirmationNumber || startLedgerVersion, sendTx.confirmationNumber || startLedgerVersion)
+    const from = BigNumber.max(sweepTx.confirmationNumber || startLedgerVersion, sendTx.confirmationNumber || startLedgerVersion)
+      .plus(1)
     const actual = await accumulateRetrievedActivities(payments.hotSignatory.address, { from })
     expectBalanceActivities(actual, [])
   })

@@ -110,7 +110,7 @@ export type StellarSignedTransaction = t.TypeOf<typeof StellarSignedTransaction>
 export const StellarTransactionInfo = extendCodec(
   BaseTransactionInfo,
   {
-    confirmationNumber: nullable(t.number),
+    confirmationNumber: nullable(t.string),
   },
   {},
   'StellarTransactionInfo',

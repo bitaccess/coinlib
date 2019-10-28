@@ -13,6 +13,8 @@ import { assertValidAddress } from './helpers'
 import { isUndefined, isNumber } from 'util'
 import { StellarConnected } from './StellarConnected';
 import { EventEmitter } from 'events'
+import { Numeric } from '@faast/ts-common';
+import BigNumber from 'bignumber.js';
 
 export class StellarBalanceMonitor extends StellarConnected implements BalanceMonitor {
 
@@ -56,24 +58,20 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
     })
   }
 
-  async resolveFromToLedgers(options: GetBalanceActivityOptions): Promise<RetrieveBalanceActivitiesResult> {
-    const { from, to } = options
-    const resolvedFrom = isUndefined(from) ? 0 : isNumber(from) ? from : from.confirmationNumber
-    const resolvedTo = isUndefined(to) ? Number.MAX_SAFE_INTEGER : isNumber(to) ? to : to.confirmationNumber
-    return {
-      from: resolvedFrom,
-      to: resolvedTo,
-    }
-  }
-
-
   async retrieveBalanceActivities(
     address: string,
     callbackFn: BalanceActivityCallback,
     options: GetBalanceActivityOptions = {},
   ): Promise<RetrieveBalanceActivitiesResult> {
     assertValidAddress(address)
-    const { from, to } = await this.resolveFromToLedgers(options)
+    const { from: fromOption, to: toOption } = options
+    const from = new BigNumber(
+      isUndefined(fromOption) ? 0 : (Numeric.is(fromOption) ? fromOption : fromOption.confirmationNumber)
+    )
+    const to = new BigNumber(
+      isUndefined(toOption) ? 'Infinity' : (Numeric.is(toOption) ? toOption.toString() : toOption.confirmationNumber)
+    )
+
     const limit = 10
     let lastTx: StellarRawTransaction | undefined
     let transactionPage: StellarCollectionPage<StellarRawTransaction> | undefined
@@ -83,7 +81,7 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
       (transactionPage.records.length === limit
         && lastTx
         // This condition enables retrieving txs until we reach the desired range. No built in way to filter the query
-        && (lastTx.ledger_attr >= from || lastTx.ledger_attr >= to))
+        && (from.lt(lastTx.ledger_attr) || to.lt(lastTx.ledger_attr)))
     ) {
       // I tried doing this with .stream, but it didn't let me order it in descending order
       transactionPage = await this._retryDced(() => transactionPage
@@ -98,7 +96,7 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
       const transactions = transactionPage.records
       this.logger.debug(`retrieved stellar txs for ${address}`, omitHidden(transactions))
       for (let tx of transactions) {
-        if ((lastTx && tx.id === lastTx.id) || !(tx.ledger_attr >= from && tx.ledger_attr <= to)) {
+        if ((lastTx && tx.id === lastTx.id) || !(from.lt(tx.ledger_attr) && to.gt(tx.ledger_attr))) {
           continue
         }
         const activity = await this.txToBalanceActivity(address, tx)
@@ -108,7 +106,7 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
       }
       lastTx = transactions[transactions.length - 1]
     }
-    return { from, to }
+    return { from: from.toString(), to: to.toString() }
   }
 
   async txToBalanceActivity(address: string, tx: StellarRawTransaction): Promise<BalanceActivity | null> {
@@ -155,7 +153,7 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
       externalId: tx.id,
       activitySequence,
       confirmationId: ledger.hash,
-      confirmationNumber,
+      confirmationNumber: String(confirmationNumber),
       timestamp: new Date(ledger.closed_at),
     }
   }

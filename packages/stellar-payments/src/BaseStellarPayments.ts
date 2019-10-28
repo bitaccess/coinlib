@@ -224,7 +224,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     const confirmationId = ledger.hash
     const confirmationTimestamp = ledger.closed_at ? new Date(ledger.closed_at) : null
     const confirmations = currentLedgerSequence - confirmationNumber
-    const sequenceNumber = Number.parseInt(tx.source_account_sequence)
+    const sequenceNumber = tx.source_account_sequence
     const isExecuted = (tx as any).successful
     const isConfirmed = Boolean(confirmationNumber)
     const status = isConfirmed || isExecuted ? TransactionStatus.Confirmed : TransactionStatus.Pending
@@ -241,7 +241,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       fee: fee.toString(),
       sequenceNumber,
       confirmationId,
-      confirmationNumber,
+      confirmationNumber: String(confirmationNumber),
       confirmationTimestamp,
       isExecuted,
       isConfirmed,
@@ -396,7 +396,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       targetFeeRate,
       targetFeeRateType,
       fee: feeMain,
-      sequenceNumber: Number.parseInt(preparedTx.sequence),
+      sequenceNumber: preparedTx.sequence,
       data: txData,
     }
   }
