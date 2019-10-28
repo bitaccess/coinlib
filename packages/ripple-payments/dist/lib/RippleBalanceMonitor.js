@@ -1,7 +1,8 @@
-import { isUndefined, isNumber, isString } from '@faast/ts-common';
+import { isUndefined, isString, Numeric } from '@faast/ts-common';
 import { padLeft } from './utils';
 import { assertValidAddress } from './helpers';
 import { RippleConnected } from './RippleConnected';
+import BigNumber from 'bignumber.js';
 export class RippleBalanceMonitor extends RippleConnected {
     constructor(config) {
         super(config);
@@ -36,20 +37,22 @@ export class RippleBalanceMonitor extends RippleConnected {
     async resolveFromToLedgers(options) {
         const serverInfo = await this._retryDced(() => this.api.getServerInfo());
         const completeLedgers = serverInfo.completeLedgers.split('-');
-        let fromLedgerVersion = Number.parseInt(completeLedgers[0]);
-        let toLedgerVersion = Number.parseInt(completeLedgers[1]);
+        let fromLedgerVersion = new BigNumber(completeLedgers[0]);
+        let toLedgerVersion = new BigNumber(completeLedgers[1]);
         const { from, to } = options;
-        const requestedFrom = isUndefined(from) ? undefined : isNumber(from) ? from : from.confirmationNumber;
-        const requestedTo = isUndefined(to) ? undefined : isNumber(to) ? to : to.confirmationNumber;
-        if (isNumber(requestedFrom)) {
-            if (requestedFrom < fromLedgerVersion) {
+        const requestedFrom = isUndefined(from)
+            ? undefined
+            : new BigNumber(Numeric.is(from) ? from : from.confirmationNumber);
+        const requestedTo = isUndefined(to) ? undefined : new BigNumber(Numeric.is(to) ? to : to.confirmationNumber);
+        if (!isUndefined(requestedFrom)) {
+            if (requestedFrom.lt(fromLedgerVersion)) {
                 this.logger.warn(`Server balance activity doesn't go back to ledger ${requestedFrom}, using ${fromLedgerVersion} instead`);
             }
             else {
                 fromLedgerVersion = requestedFrom;
             }
         }
-        if (isNumber(requestedTo)) {
+        if (!isUndefined(requestedTo)) {
             if (requestedTo > toLedgerVersion) {
                 this.logger.warn(`Server balance activity doesn't go up to ledger ${requestedTo}, using ${toLedgerVersion} instead`);
             }
@@ -69,7 +72,7 @@ export class RippleBalanceMonitor extends RippleConnected {
         let lastTx;
         let transactions;
         while (isUndefined(transactions) ||
-            (transactions.length === limit && lastTx && lastTx.outcome.ledgerVersion <= to)) {
+            (transactions.length === limit && lastTx && to.gt(lastTx.outcome.ledgerVersion))) {
             const getTransactionOptions = {
                 earliestFirst: true,
                 excludeFailures: false,
@@ -79,13 +82,13 @@ export class RippleBalanceMonitor extends RippleConnected {
                 getTransactionOptions.start = lastTx.id;
             }
             else {
-                getTransactionOptions.minLedgerVersion = from;
-                getTransactionOptions.maxLedgerVersion = to;
+                getTransactionOptions.minLedgerVersion = from.toNumber();
+                getTransactionOptions.maxLedgerVersion = to.toNumber();
             }
             transactions = await this._retryDced(() => this.api.getTransactions(address, getTransactionOptions));
             this.logger.debug(`retrieved ripple txs for ${address}`, transactions);
             for (let tx of transactions) {
-                if ((lastTx && tx.id === lastTx.id) || tx.outcome.ledgerVersion < from || tx.outcome.ledgerVersion > to) {
+                if ((lastTx && tx.id === lastTx.id) || from.gte(tx.outcome.ledgerVersion) || to.lte(tx.outcome.ledgerVersion)) {
                     continue;
                 }
                 const activity = await this.txToBalanceActivity(address, tx);
@@ -95,7 +98,7 @@ export class RippleBalanceMonitor extends RippleConnected {
             }
             lastTx = transactions[transactions.length - 1];
         }
-        return { from, to };
+        return { from: from.toString(), to: to.toString() };
     }
     isPaymentTx(tx) {
         return tx.type === 'payment';
@@ -138,7 +141,7 @@ export class RippleBalanceMonitor extends RippleConnected {
             externalId: tx.id,
             activitySequence,
             confirmationId: ledger.ledgerHash,
-            confirmationNumber,
+            confirmationNumber: String(confirmationNumber),
             timestamp: new Date(ledger.closeTime),
         };
     }

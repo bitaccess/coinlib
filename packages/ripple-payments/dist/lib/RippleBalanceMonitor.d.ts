@@ -7,7 +7,7 @@ export declare class RippleBalanceMonitor extends RippleConnected implements Bal
     constructor(config: RippleBalanceMonitorConfig);
     subscribeAddresses(addresses: string[]): Promise<void>;
     onBalanceActivity(callbackFn: BalanceActivityCallback): void;
-    resolveFromToLedgers(options: GetBalanceActivityOptions): Promise<RetrieveBalanceActivitiesResult>;
+    private resolveFromToLedgers;
     retrieveBalanceActivities(address: string, callbackFn: BalanceActivityCallback, options?: GetBalanceActivityOptions): Promise<RetrieveBalanceActivitiesResult>;
     private isPaymentTx;
     txToBalanceActivity(address: string, tx: FormattedTransactionType): Promise<BalanceActivity | null>;

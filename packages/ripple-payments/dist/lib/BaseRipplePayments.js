@@ -1,5 +1,5 @@
 import { FeeLevel, FeeRateType, TransactionStatus, PaymentsError, PaymentsErrorCode, } from '@faast/payments-common';
-import { assertType, isNil } from '@faast/ts-common';
+import { assertType, isNil, isUndefined } from '@faast/ts-common';
 import BigNumber from 'bignumber.js';
 import { omit } from 'lodash';
 import { RippleUnsignedTransaction, RippleSignedTransaction, } from './types';
@@ -192,9 +192,9 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
             toExtraId: typeof destination.tag !== 'undefined' ? String(destination.tag) : null,
             amount: amount,
             fee: outcome.fee,
-            sequenceNumber: tx.sequence,
+            sequenceNumber: String(tx.sequence),
             confirmationId,
-            confirmationNumber,
+            confirmationNumber: String(confirmationNumber),
             confirmationTimestamp,
             isExecuted,
             isConfirmed: Boolean(confirmationNumber),
@@ -309,7 +309,7 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
             },
         }, {
             maxLedgerVersionOffset,
-            sequence: sequenceNumber,
+            sequence: isUndefined(sequenceNumber) ? sequenceNumber : new BigNumber(sequenceNumber).toNumber(),
         }));
         return {
             status: TransactionStatus.Unsigned,
@@ -325,7 +325,7 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
             targetFeeRate,
             targetFeeRateType,
             fee: feeMain,
-            sequenceNumber: preparedTx.instructions.sequence,
+            sequenceNumber: String(preparedTx.instructions.sequence),
             data: preparedTx,
         };
     }

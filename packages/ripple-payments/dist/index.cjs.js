@@ -4,7 +4,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var BigNumber = _interopDefault(require('bignumber.js'));
 var lodash = require('lodash');
 var t = require('io-ts');
 var rippleLib = require('ripple-lib');
@@ -14,6 +13,7 @@ var promiseRetry = _interopDefault(require('promise-retry'));
 var bip32 = require('bip32');
 var baseX = _interopDefault(require('base-x'));
 var crypto = _interopDefault(require('crypto'));
+var BigNumber = _interopDefault(require('bignumber.js'));
 var tsCommon = require('@faast/ts-common');
 
 const BaseRippleConfig = tsCommon.extendCodec(paymentsCommon.BaseConfig, {}, {
@@ -48,7 +48,7 @@ const RippleSignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseSignedTr
     id: t.string,
 }, 'RippleSignedTransaction');
 const RippleTransactionInfo = tsCommon.extendCodec(paymentsCommon.BaseTransactionInfo, {
-    confirmationNumber: tsCommon.nullable(t.number),
+    confirmationNumber: tsCommon.nullable(t.string),
 }, {}, 'RippleTransactionInfo');
 const RippleBroadcastResult = tsCommon.extendCodec(paymentsCommon.BaseBroadcastResult, {
     rebroadcast: t.boolean,
@@ -425,9 +425,9 @@ class BaseRipplePayments extends RipplePaymentsUtils {
             toExtraId: typeof destination.tag !== 'undefined' ? String(destination.tag) : null,
             amount: amount,
             fee: outcome.fee,
-            sequenceNumber: tx.sequence,
+            sequenceNumber: String(tx.sequence),
             confirmationId,
-            confirmationNumber,
+            confirmationNumber: String(confirmationNumber),
             confirmationTimestamp,
             isExecuted,
             isConfirmed: Boolean(confirmationNumber),
@@ -542,7 +542,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
             },
         }, {
             maxLedgerVersionOffset,
-            sequence: sequenceNumber,
+            sequence: tsCommon.isUndefined(sequenceNumber) ? sequenceNumber : new BigNumber(sequenceNumber).toNumber(),
         }));
         return {
             status: paymentsCommon.TransactionStatus.Unsigned,
@@ -558,7 +558,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
             targetFeeRate,
             targetFeeRateType,
             fee: feeMain,
-            sequenceNumber: preparedTx.instructions.sequence,
+            sequenceNumber: String(preparedTx.instructions.sequence),
             data: preparedTx,
         };
     }
@@ -858,20 +858,22 @@ class RippleBalanceMonitor extends RippleConnected {
     async resolveFromToLedgers(options) {
         const serverInfo = await this._retryDced(() => this.api.getServerInfo());
         const completeLedgers = serverInfo.completeLedgers.split('-');
-        let fromLedgerVersion = Number.parseInt(completeLedgers[0]);
-        let toLedgerVersion = Number.parseInt(completeLedgers[1]);
+        let fromLedgerVersion = new BigNumber(completeLedgers[0]);
+        let toLedgerVersion = new BigNumber(completeLedgers[1]);
         const { from, to } = options;
-        const requestedFrom = tsCommon.isUndefined(from) ? undefined : tsCommon.isNumber(from) ? from : from.confirmationNumber;
-        const requestedTo = tsCommon.isUndefined(to) ? undefined : tsCommon.isNumber(to) ? to : to.confirmationNumber;
-        if (tsCommon.isNumber(requestedFrom)) {
-            if (requestedFrom < fromLedgerVersion) {
+        const requestedFrom = tsCommon.isUndefined(from)
+            ? undefined
+            : new BigNumber(tsCommon.Numeric.is(from) ? from : from.confirmationNumber);
+        const requestedTo = tsCommon.isUndefined(to) ? undefined : new BigNumber(tsCommon.Numeric.is(to) ? to : to.confirmationNumber);
+        if (!tsCommon.isUndefined(requestedFrom)) {
+            if (requestedFrom.lt(fromLedgerVersion)) {
                 this.logger.warn(`Server balance activity doesn't go back to ledger ${requestedFrom}, using ${fromLedgerVersion} instead`);
             }
             else {
                 fromLedgerVersion = requestedFrom;
             }
         }
-        if (tsCommon.isNumber(requestedTo)) {
+        if (!tsCommon.isUndefined(requestedTo)) {
             if (requestedTo > toLedgerVersion) {
                 this.logger.warn(`Server balance activity doesn't go up to ledger ${requestedTo}, using ${toLedgerVersion} instead`);
             }
@@ -891,7 +893,7 @@ class RippleBalanceMonitor extends RippleConnected {
         let lastTx;
         let transactions;
         while (tsCommon.isUndefined(transactions) ||
-            (transactions.length === limit && lastTx && lastTx.outcome.ledgerVersion <= to)) {
+            (transactions.length === limit && lastTx && to.gt(lastTx.outcome.ledgerVersion))) {
             const getTransactionOptions = {
                 earliestFirst: true,
                 excludeFailures: false,
@@ -901,13 +903,13 @@ class RippleBalanceMonitor extends RippleConnected {
                 getTransactionOptions.start = lastTx.id;
             }
             else {
-                getTransactionOptions.minLedgerVersion = from;
-                getTransactionOptions.maxLedgerVersion = to;
+                getTransactionOptions.minLedgerVersion = from.toNumber();
+                getTransactionOptions.maxLedgerVersion = to.toNumber();
             }
             transactions = await this._retryDced(() => this.api.getTransactions(address, getTransactionOptions));
             this.logger.debug(`retrieved ripple txs for ${address}`, transactions);
             for (let tx of transactions) {
-                if ((lastTx && tx.id === lastTx.id) || tx.outcome.ledgerVersion < from || tx.outcome.ledgerVersion > to) {
+                if ((lastTx && tx.id === lastTx.id) || from.gte(tx.outcome.ledgerVersion) || to.lte(tx.outcome.ledgerVersion)) {
                     continue;
                 }
                 const activity = await this.txToBalanceActivity(address, tx);
@@ -917,7 +919,7 @@ class RippleBalanceMonitor extends RippleConnected {
             }
             lastTx = transactions[transactions.length - 1];
         }
-        return { from, to };
+        return { from: from.toString(), to: to.toString() };
     }
     isPaymentTx(tx) {
         return tx.type === 'payment';
@@ -960,7 +962,7 @@ class RippleBalanceMonitor extends RippleConnected {
             externalId: tx.id,
             activitySequence,
             confirmationId: ledger.ledgerHash,
-            confirmationNumber,
+            confirmationNumber: String(confirmationNumber),
             timestamp: new Date(ledger.closeTime),
         };
     }

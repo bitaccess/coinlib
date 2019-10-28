@@ -1,13 +1,13 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('bignumber.js'), require('lodash'), require('io-ts'), require('ripple-lib'), require('util'), require('@faast/payments-common'), require('promise-retry'), require('bip32'), require('base-x'), require('crypto'), require('@faast/ts-common')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'bignumber.js', 'lodash', 'io-ts', 'ripple-lib', 'util', '@faast/payments-common', 'promise-retry', 'bip32', 'base-x', 'crypto', '@faast/ts-common'], factory) :
-  (factory((global.faastRipplePayments = {}),global.BigNumber,global.lodash,global.t,global.rippleLib,global.util,global.paymentsCommon,global.promiseRetry,global.bip32,global.baseX,global.crypto,global.tsCommon));
-}(this, (function (exports,BigNumber,lodash,t,rippleLib,util,paymentsCommon,promiseRetry,bip32,baseX,crypto,tsCommon) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('lodash'), require('io-ts'), require('ripple-lib'), require('util'), require('@faast/payments-common'), require('promise-retry'), require('bip32'), require('base-x'), require('crypto'), require('bignumber.js'), require('@faast/ts-common')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'lodash', 'io-ts', 'ripple-lib', 'util', '@faast/payments-common', 'promise-retry', 'bip32', 'base-x', 'crypto', 'bignumber.js', '@faast/ts-common'], factory) :
+  (factory((global.faastRipplePayments = {}),global.lodash,global.t,global.rippleLib,global.util,global.paymentsCommon,global.promiseRetry,global.bip32,global.baseX,global.crypto,global.BigNumber,global.tsCommon));
+}(this, (function (exports,lodash,t,rippleLib,util,paymentsCommon,promiseRetry,bip32,baseX,crypto,BigNumber,tsCommon) { 'use strict';
 
-  BigNumber = BigNumber && BigNumber.hasOwnProperty('default') ? BigNumber['default'] : BigNumber;
   promiseRetry = promiseRetry && promiseRetry.hasOwnProperty('default') ? promiseRetry['default'] : promiseRetry;
   baseX = baseX && baseX.hasOwnProperty('default') ? baseX['default'] : baseX;
   crypto = crypto && crypto.hasOwnProperty('default') ? crypto['default'] : crypto;
+  BigNumber = BigNumber && BigNumber.hasOwnProperty('default') ? BigNumber['default'] : BigNumber;
 
   const BaseRippleConfig = tsCommon.extendCodec(paymentsCommon.BaseConfig, {}, {
       server: t.union([t.string, tsCommon.instanceofCodec(rippleLib.RippleAPI), t.nullType]),
@@ -41,7 +41,7 @@
       id: t.string,
   }, 'RippleSignedTransaction');
   const RippleTransactionInfo = tsCommon.extendCodec(paymentsCommon.BaseTransactionInfo, {
-      confirmationNumber: tsCommon.nullable(t.number),
+      confirmationNumber: tsCommon.nullable(t.string),
   }, {}, 'RippleTransactionInfo');
   const RippleBroadcastResult = tsCommon.extendCodec(paymentsCommon.BaseBroadcastResult, {
       rebroadcast: t.boolean,
@@ -418,9 +418,9 @@
               toExtraId: typeof destination.tag !== 'undefined' ? String(destination.tag) : null,
               amount: amount,
               fee: outcome.fee,
-              sequenceNumber: tx.sequence,
+              sequenceNumber: String(tx.sequence),
               confirmationId,
-              confirmationNumber,
+              confirmationNumber: String(confirmationNumber),
               confirmationTimestamp,
               isExecuted,
               isConfirmed: Boolean(confirmationNumber),
@@ -535,7 +535,7 @@
               },
           }, {
               maxLedgerVersionOffset,
-              sequence: sequenceNumber,
+              sequence: tsCommon.isUndefined(sequenceNumber) ? sequenceNumber : new BigNumber(sequenceNumber).toNumber(),
           }));
           return {
               status: paymentsCommon.TransactionStatus.Unsigned,
@@ -551,7 +551,7 @@
               targetFeeRate,
               targetFeeRateType,
               fee: feeMain,
-              sequenceNumber: preparedTx.instructions.sequence,
+              sequenceNumber: String(preparedTx.instructions.sequence),
               data: preparedTx,
           };
       }
@@ -851,20 +851,22 @@
       async resolveFromToLedgers(options) {
           const serverInfo = await this._retryDced(() => this.api.getServerInfo());
           const completeLedgers = serverInfo.completeLedgers.split('-');
-          let fromLedgerVersion = Number.parseInt(completeLedgers[0]);
-          let toLedgerVersion = Number.parseInt(completeLedgers[1]);
+          let fromLedgerVersion = new BigNumber(completeLedgers[0]);
+          let toLedgerVersion = new BigNumber(completeLedgers[1]);
           const { from, to } = options;
-          const requestedFrom = tsCommon.isUndefined(from) ? undefined : tsCommon.isNumber(from) ? from : from.confirmationNumber;
-          const requestedTo = tsCommon.isUndefined(to) ? undefined : tsCommon.isNumber(to) ? to : to.confirmationNumber;
-          if (tsCommon.isNumber(requestedFrom)) {
-              if (requestedFrom < fromLedgerVersion) {
+          const requestedFrom = tsCommon.isUndefined(from)
+              ? undefined
+              : new BigNumber(tsCommon.Numeric.is(from) ? from : from.confirmationNumber);
+          const requestedTo = tsCommon.isUndefined(to) ? undefined : new BigNumber(tsCommon.Numeric.is(to) ? to : to.confirmationNumber);
+          if (!tsCommon.isUndefined(requestedFrom)) {
+              if (requestedFrom.lt(fromLedgerVersion)) {
                   this.logger.warn(`Server balance activity doesn't go back to ledger ${requestedFrom}, using ${fromLedgerVersion} instead`);
               }
               else {
                   fromLedgerVersion = requestedFrom;
               }
           }
-          if (tsCommon.isNumber(requestedTo)) {
+          if (!tsCommon.isUndefined(requestedTo)) {
               if (requestedTo > toLedgerVersion) {
                   this.logger.warn(`Server balance activity doesn't go up to ledger ${requestedTo}, using ${toLedgerVersion} instead`);
               }
@@ -884,7 +886,7 @@
           let lastTx;
           let transactions;
           while (tsCommon.isUndefined(transactions) ||
-              (transactions.length === limit && lastTx && lastTx.outcome.ledgerVersion <= to)) {
+              (transactions.length === limit && lastTx && to.gt(lastTx.outcome.ledgerVersion))) {
               const getTransactionOptions = {
                   earliestFirst: true,
                   excludeFailures: false,
@@ -894,13 +896,13 @@
                   getTransactionOptions.start = lastTx.id;
               }
               else {
-                  getTransactionOptions.minLedgerVersion = from;
-                  getTransactionOptions.maxLedgerVersion = to;
+                  getTransactionOptions.minLedgerVersion = from.toNumber();
+                  getTransactionOptions.maxLedgerVersion = to.toNumber();
               }
               transactions = await this._retryDced(() => this.api.getTransactions(address, getTransactionOptions));
               this.logger.debug(`retrieved ripple txs for ${address}`, transactions);
               for (let tx of transactions) {
-                  if ((lastTx && tx.id === lastTx.id) || tx.outcome.ledgerVersion < from || tx.outcome.ledgerVersion > to) {
+                  if ((lastTx && tx.id === lastTx.id) || from.gte(tx.outcome.ledgerVersion) || to.lte(tx.outcome.ledgerVersion)) {
                       continue;
                   }
                   const activity = await this.txToBalanceActivity(address, tx);
@@ -910,7 +912,7 @@
               }
               lastTx = transactions[transactions.length - 1];
           }
-          return { from, to };
+          return { from: from.toString(), to: to.toString() };
       }
       isPaymentTx(tx) {
           return tx.type === 'payment';
@@ -953,7 +955,7 @@
               externalId: tx.id,
               activitySequence,
               confirmationId: ledger.ledgerHash,
-              confirmationNumber,
+              confirmationNumber: String(confirmationNumber),
               timestamp: new Date(ledger.closeTime),
           };
       }

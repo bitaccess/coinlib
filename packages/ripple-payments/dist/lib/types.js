@@ -35,7 +35,7 @@ export const RippleSignedTransaction = extendCodec(BaseSignedTransaction, {
     id: t.string,
 }, 'RippleSignedTransaction');
 export const RippleTransactionInfo = extendCodec(BaseTransactionInfo, {
-    confirmationNumber: nullable(t.number),
+    confirmationNumber: nullable(t.string),
 }, {}, 'RippleTransactionInfo');
 export const RippleBroadcastResult = extendCodec(BaseBroadcastResult, {
     rebroadcast: t.boolean,

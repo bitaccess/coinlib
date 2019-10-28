@@ -129,7 +129,7 @@ export declare const RippleUnsignedTransaction: t.IntersectionC<[t.IntersectionC
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.StringC, t.NullC]>;
 }>]>, t.TypeC<{
     fromAddress: t.StringC;
     toAddress: t.StringC;
@@ -157,7 +157,7 @@ export declare const RippleSignedTransaction: t.IntersectionC<[t.IntersectionC<[
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.StringC, t.NullC]>;
 }>]>, t.TypeC<{
     fromAddress: t.StringC;
     toAddress: t.StringC;
@@ -187,7 +187,7 @@ export declare const RippleTransactionInfo: t.IntersectionC<[t.IntersectionC<[t.
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.NumberC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.StringC, t.NullC]>;
 }>]>, t.TypeC<{
     id: t.StringC;
     amount: t.StringC;
@@ -199,7 +199,7 @@ export declare const RippleTransactionInfo: t.IntersectionC<[t.IntersectionC<[t.
     confirmationTimestamp: t.UnionC<[import("@faast/ts-common").DateC, t.NullC]>;
     data: t.ObjectC;
 }>]>, t.TypeC<{
-    confirmationNumber: t.UnionC<[t.NumberC, t.NullC]>;
+    confirmationNumber: t.UnionC<[t.StringC, t.NullC]>;
 }>]>;
 export declare type RippleTransactionInfo = t.TypeOf<typeof RippleTransactionInfo>;
 export declare const RippleBroadcastResult: t.IntersectionC<[t.TypeC<{
@@ -217,7 +217,7 @@ export declare const RippleCreateTransactionOptions: t.IntersectionC<[t.Intersec
 }>]>, t.PartialC<{
     feeLevel: t.UnionC<[t.LiteralC<import("@faast/payments-common").FeeLevel.High>, t.LiteralC<import("@faast/payments-common").FeeLevel.Medium>, t.LiteralC<import("@faast/payments-common").FeeLevel.Low>]>;
 }>]>, t.PartialC<{
-    sequenceNumber: t.NumberC;
+    sequenceNumber: t.UnionC<[t.StringC, t.NumberC, import("@faast/ts-common").BigNumberC]>;
     payportBalance: t.UnionC<[t.StringC, t.NumberC, import("@faast/ts-common").BigNumberC]>;
 }>]>, t.PartialC<{
     maxLedgerVersionOffset: t.NumberC;
