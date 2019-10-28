@@ -922,6 +922,9 @@ img { max-width: 100%; }
 				<li class=" tsd-kind-method tsd-parent-kind-interface">
 					<a href="balancemonitor.html#subscribeaddresses" class="tsd-kind-icon">subscribe<wbr>Addresses</a>
 				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-interface">
+					<a href="balancemonitor.html#txtobalanceactivity" class="tsd-kind-icon">tx<wbr>ToBalance<wbr>Activity</a>
+				</li>
 			</ul>
 		</li>
 	</ul>
@@ -947,6 +950,7 @@ img { max-width: 100%; }
 							<li class="tsd-kind-method tsd-parent-kind-interface"><a href="balancemonitor.html#onbalanceactivity" class="tsd-kind-icon">on<wbr>Balance<wbr>Activity</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-interface"><a href="balancemonitor.html#retrievebalanceactivities" class="tsd-kind-icon">retrieve<wbr>Balance<wbr>Activities</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-interface"><a href="balancemonitor.html#subscribeaddresses" class="tsd-kind-icon">subscribe<wbr>Addresses</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-interface"><a href="balancemonitor.html#txtobalanceactivity" class="tsd-kind-icon">tx<wbr>ToBalance<wbr>Activity</a></li>
 						</ul>
 					</section>
 				</div>
@@ -964,7 +968,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/0084632/src/BalanceMonitor.ts#L4">src/BalanceMonitor.ts:4</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/99062fa/src/BalanceMonitor.ts#L9">src/BalanceMonitor.ts:9</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -981,7 +985,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/0084632/src/BalanceMonitor.ts#L8">src/BalanceMonitor.ts:8</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/99062fa/src/BalanceMonitor.ts#L13">src/BalanceMonitor.ts:13</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1004,7 +1008,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/0084632/src/BalanceMonitor.ts#L10">src/BalanceMonitor.ts:10</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/99062fa/src/BalanceMonitor.ts#L15">src/BalanceMonitor.ts:15</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1033,7 +1037,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/0084632/src/BalanceMonitor.ts#L6">src/BalanceMonitor.ts:6</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/99062fa/src/BalanceMonitor.ts#L11">src/BalanceMonitor.ts:11</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1043,6 +1047,29 @@ img { max-width: 100%; }
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+				<a name="txtobalanceactivity" class="tsd-anchor"></a>
+				<h3>tx<wbr>ToBalance<wbr>Activity</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+					<li class="tsd-signature tsd-kind-icon">tx<wbr>ToBalance<wbr>Activity<span class="tsd-signature-symbol">(</span>tx<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../globals.html#balanceactivity" class="tsd-signature-type">BalanceActivity</a><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/payments-common/blob/99062fa/src/BalanceMonitor.ts#L21">src/BalanceMonitor.ts:21</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>tx: <span class="tsd-signature-type">object</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../globals.html#balanceactivity" class="tsd-signature-type">BalanceActivity</a><span class="tsd-signature-symbol">&gt;</span></h4>
 					</li>
 				</ul>
 			</section>
