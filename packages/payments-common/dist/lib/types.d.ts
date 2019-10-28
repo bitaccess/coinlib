@@ -202,7 +202,7 @@ export declare const BalanceMonitorConfig: t.PartialC<{
 }>;
 export declare type BalanceMonitorConfig = t.TypeOf<typeof BalanceMonitorConfig>;
 export declare const GetBalanceActivityOptions: t.PartialC<{
-    from: t.UnionC<[t.NumberC, t.TypeC<{
+    from: t.UnionC<[t.UnionC<[t.StringC, t.NumberC, import("@faast/ts-common").BigNumberC]>, t.TypeC<{
         type: t.UnionC<[t.LiteralC<"in">, t.LiteralC<"out">]>;
         networkType: t.Type<NetworkType, NetworkType, unknown>;
         networkSymbol: t.StringC;
@@ -216,7 +216,7 @@ export declare const GetBalanceActivityOptions: t.PartialC<{
         confirmationNumber: t.StringC;
         timestamp: import("@faast/ts-common").DateC;
     }>]>;
-    to: t.UnionC<[t.NumberC, t.TypeC<{
+    to: t.UnionC<[t.UnionC<[t.StringC, t.NumberC, import("@faast/ts-common").BigNumberC]>, t.TypeC<{
         type: t.UnionC<[t.LiteralC<"in">, t.LiteralC<"out">]>;
         networkType: t.Type<NetworkType, NetworkType, unknown>;
         networkSymbol: t.StringC;
@@ -245,7 +245,7 @@ export declare const ResolveablePayport: t.UnionC<[t.IntersectionC<[t.TypeC<{
 }>]>, t.StringC, t.NumberC]>;
 export declare type ResolveablePayport = t.TypeOf<typeof ResolveablePayport>;
 export declare const RetrieveBalanceActivitiesResult: t.TypeC<{
-    from: t.NumberC;
-    to: t.NumberC;
+    from: t.StringC;
+    to: t.StringC;
 }>;
 export declare type RetrieveBalanceActivitiesResult = t.TypeOf<typeof RetrieveBalanceActivitiesResult>;

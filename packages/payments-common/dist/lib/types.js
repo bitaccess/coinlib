@@ -130,13 +130,13 @@ export const BalanceActivity = t.type({
 }, 'BalanceActivity');
 export const BalanceMonitorConfig = BaseConfig;
 export const GetBalanceActivityOptions = t.partial({
-    from: t.union([t.number, BalanceActivity]),
-    to: t.union([t.number, BalanceActivity]),
+    from: t.union([Numeric, BalanceActivity]),
+    to: t.union([Numeric, BalanceActivity]),
 }, 'GetBalanceActivityOptions');
 export const BalanceActivityCallback = functionT('BalanceActivityCallback');
 export const ResolveablePayport = t.union([Payport, t.string, t.number], 'ResolveablePayport');
 export const RetrieveBalanceActivitiesResult = t.type({
-    from: t.number,
-    to: t.number,
+    from: t.string,
+    to: t.string,
 }, 'RetrieveBalanceActivitiesResult');
 //# sourceMappingURL=types.js.map

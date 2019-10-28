@@ -132,14 +132,14 @@ const BalanceActivity = type({
 }, 'BalanceActivity');
 const BalanceMonitorConfig = BaseConfig;
 const GetBalanceActivityOptions = partial({
-    from: union([number, BalanceActivity]),
-    to: union([number, BalanceActivity]),
+    from: union([Numeric, BalanceActivity]),
+    to: union([Numeric, BalanceActivity]),
 }, 'GetBalanceActivityOptions');
 const BalanceActivityCallback = functionT('BalanceActivityCallback');
 const ResolveablePayport = union([Payport, string, number], 'ResolveablePayport');
 const RetrieveBalanceActivitiesResult = type({
-    from: number,
-    to: number,
+    from: string,
+    to: string,
 }, 'RetrieveBalanceActivitiesResult');
 
 function createUnitConverters(decimals) {
