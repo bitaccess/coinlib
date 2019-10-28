@@ -34,7 +34,7 @@ export declare abstract class BaseRipplePayments<Config extends BaseRipplePaymen
         broadcast: import("ripple-lib/dist/npm/transaction/submit").FormattedSubmitResponse;
     } | undefined>;
     getBalance(payportOrIndex: ResolveablePayport): Promise<BalanceResult>;
-    getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<number>;
+    getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<string>;
     resolveIndexFromAdjustment(adjustment: Adjustment): number | null;
     getTransactionInfo(txId: string): Promise<RippleTransactionInfo>;
     resolveFeeOption(feeOption: FeeOption): Promise<ResolvedFeeOption>;
