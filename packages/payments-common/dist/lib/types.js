@@ -37,7 +37,7 @@ export const FeeOptionLevel = t.partial({
 }, 'FeeOptionLevel');
 export const FeeOption = t.union([FeeOptionCustom, FeeOptionLevel], 'FeeOption');
 export const CreateTransactionOptions = extendCodec(FeeOption, {}, {
-    sequenceNumber: t.number,
+    sequenceNumber: Numeric,
     payportBalance: Numeric,
 }, 'CreateTransactionOptions');
 export const ResolvedFeeOption = t.type({
@@ -73,7 +73,7 @@ export const TransactionCommon = requiredOptionalCodec({
 }, {
     fromExtraId: nullable(t.string),
     toExtraId: nullable(t.string),
-    sequenceNumber: nullable(t.number),
+    sequenceNumber: nullable(t.string),
 }, 'TransactionCommon');
 const UnsignedCommon = extendCodec(TransactionCommon, {
     fromAddress: t.string,
@@ -125,7 +125,7 @@ export const BalanceActivity = t.type({
     externalId: t.string,
     activitySequence: t.string,
     confirmationId: t.string,
-    confirmationNumber: t.number,
+    confirmationNumber: t.string,
     timestamp: DateT,
 }, 'BalanceActivity');
 export const BalanceMonitorConfig = BaseConfig;

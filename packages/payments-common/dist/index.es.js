@@ -39,7 +39,7 @@ const FeeOptionLevel = partial({
 }, 'FeeOptionLevel');
 const FeeOption = union([FeeOptionCustom, FeeOptionLevel], 'FeeOption');
 const CreateTransactionOptions = extendCodec(FeeOption, {}, {
-    sequenceNumber: number,
+    sequenceNumber: Numeric,
     payportBalance: Numeric,
 }, 'CreateTransactionOptions');
 const ResolvedFeeOption = type({
@@ -75,7 +75,7 @@ const TransactionCommon = requiredOptionalCodec({
 }, {
     fromExtraId: nullable(string),
     toExtraId: nullable(string),
-    sequenceNumber: nullable(number),
+    sequenceNumber: nullable(string),
 }, 'TransactionCommon');
 const UnsignedCommon = extendCodec(TransactionCommon, {
     fromAddress: string,
@@ -127,7 +127,7 @@ const BalanceActivity = type({
     externalId: string,
     activitySequence: string,
     confirmationId: string,
-    confirmationNumber: number,
+    confirmationNumber: string,
     timestamp: DateT,
 }, 'BalanceActivity');
 const BalanceMonitorConfig = BaseConfig;

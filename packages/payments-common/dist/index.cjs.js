@@ -42,7 +42,7 @@ const FeeOptionLevel = t.partial({
 }, 'FeeOptionLevel');
 const FeeOption = t.union([FeeOptionCustom, FeeOptionLevel], 'FeeOption');
 const CreateTransactionOptions = tsCommon.extendCodec(FeeOption, {}, {
-    sequenceNumber: t.number,
+    sequenceNumber: tsCommon.Numeric,
     payportBalance: tsCommon.Numeric,
 }, 'CreateTransactionOptions');
 const ResolvedFeeOption = t.type({
@@ -77,7 +77,7 @@ const TransactionCommon = tsCommon.requiredOptionalCodec({
 }, {
     fromExtraId: tsCommon.nullable(t.string),
     toExtraId: tsCommon.nullable(t.string),
-    sequenceNumber: tsCommon.nullable(t.number),
+    sequenceNumber: tsCommon.nullable(t.string),
 }, 'TransactionCommon');
 const UnsignedCommon = tsCommon.extendCodec(TransactionCommon, {
     fromAddress: t.string,
@@ -129,7 +129,7 @@ const BalanceActivity = t.type({
     externalId: t.string,
     activitySequence: t.string,
     confirmationId: t.string,
-    confirmationNumber: t.number,
+    confirmationNumber: t.string,
     timestamp: tsCommon.DateT,
 }, 'BalanceActivity');
 const BalanceMonitorConfig = BaseConfig;
