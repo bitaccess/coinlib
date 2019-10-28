@@ -68,7 +68,7 @@ export const CreateTransactionOptions = extendCodec(
   FeeOption,
   {},
   {
-    sequenceNumber: t.number,
+    sequenceNumber: Numeric,
     payportBalance: Numeric,
   },
   'CreateTransactionOptions',
@@ -117,7 +117,7 @@ export const TransactionCommon = requiredOptionalCodec(
   {
     fromExtraId: nullable(t.string), // eg ripple sender tag
     toExtraId: nullable(t.string), // eg Monero payment ID or ripple destination tag
-    sequenceNumber: nullable(t.number), // eg Ethereum nonce or ripple sequence
+    sequenceNumber: nullable(t.string), // eg Ethereum nonce or ripple sequence
   },
   'TransactionCommon',
 )
@@ -211,7 +211,7 @@ export const BalanceActivity = t.type(
     externalId: t.string,
     activitySequence: t.string,
     confirmationId: t.string,
-    confirmationNumber: t.number,
+    confirmationNumber: t.string,
     timestamp: DateT,
   },
   'BalanceActivity',
