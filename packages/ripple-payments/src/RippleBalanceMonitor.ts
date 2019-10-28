@@ -122,7 +122,7 @@ export class RippleBalanceMonitor extends RippleConnected implements BalanceMoni
     return tx.type === 'payment'
   }
 
-  private async txToBalanceActivity(address: string, tx: FormattedTransactionType): Promise<BalanceActivity | null> {
+  async txToBalanceActivity(address: string, tx: FormattedTransactionType): Promise<BalanceActivity | null> {
     if (!tx.outcome) {
       this.logger.warn('txToBalanceActivity received tx object without outcome!', tx)
       return null
