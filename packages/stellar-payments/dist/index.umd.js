@@ -346,7 +346,7 @@
           const payport = await this.resolvePayport(payportOrIndex);
           const { address } = payport;
           const accountInfo = await this._retryDced(() => this.getApi().loadAccount(address));
-          return Number.parseInt(accountInfo.sequence) + 1;
+          return new BigNumber(accountInfo.sequence).plus(1).toString();
       }
       resolveIndexFromAddressAndMemo(address, memo) {
           if (address === this.getHotSignatory().address) {

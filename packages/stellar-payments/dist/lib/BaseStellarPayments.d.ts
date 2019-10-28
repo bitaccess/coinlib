@@ -24,7 +24,7 @@ export declare abstract class BaseStellarPayments<Config extends BaseStellarPaym
     isSweepableAddressBalance(balance: Numeric): boolean;
     isSweepableBalance(balance: string, payport?: ResolveablePayport): boolean;
     getBalance(payportOrIndex: ResolveablePayport): Promise<BalanceResult>;
-    getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<number>;
+    getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<string>;
     resolveIndexFromAddressAndMemo(address: string, memo?: string): number | null;
     getLatestBlock(): Promise<Stellar.ServerApi.LedgerRecord>;
     getTransactionInfo(txId: string): Promise<StellarTransactionInfo>;
