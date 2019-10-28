@@ -1,8 +1,8 @@
 import { BasePayments, BalanceResult, FeeOption, ResolvedFeeOption, Payport, ResolveablePayport } from '@faast/payments-common';
 import { Numeric } from '@faast/ts-common';
+import * as Stellar from 'stellar-sdk';
 import { BaseStellarPaymentsConfig, StellarUnsignedTransaction, StellarSignedTransaction, StellarBroadcastResult, StellarTransactionInfo, StellarCreateTransactionOptions, FromToWithPayport, StellarSignatory } from './types';
 import { StellarPaymentsUtils } from './StellarPaymentsUtil';
-import * as Stellar from 'stellar-sdk';
 export declare abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConfig> extends StellarPaymentsUtils implements BasePayments<Config, StellarUnsignedTransaction, StellarSignedTransaction, StellarBroadcastResult, StellarTransactionInfo> {
     config: Config;
     constructor(config: Config);

@@ -1,5 +1,6 @@
 /// <reference types="node" />
-import { BalanceActivityCallback, GetBalanceActivityOptions, BalanceMonitor, RetrieveBalanceActivitiesResult } from '@faast/payments-common';
+import { BalanceActivityCallback, GetBalanceActivityOptions, BalanceActivity, BalanceMonitor, RetrieveBalanceActivitiesResult } from '@faast/payments-common';
+import { StellarRawTransaction } from './types';
 import { StellarConnected } from './StellarConnected';
 import { EventEmitter } from 'events';
 export declare class StellarBalanceMonitor extends StellarConnected implements BalanceMonitor {
@@ -10,5 +11,5 @@ export declare class StellarBalanceMonitor extends StellarConnected implements B
     onBalanceActivity(callbackFn: BalanceActivityCallback): void;
     resolveFromToLedgers(options: GetBalanceActivityOptions): Promise<RetrieveBalanceActivitiesResult>;
     retrieveBalanceActivities(address: string, callbackFn: BalanceActivityCallback, options?: GetBalanceActivityOptions): Promise<RetrieveBalanceActivitiesResult>;
-    private txToBalanceActivity;
+    txToBalanceActivity(address: string, tx: StellarRawTransaction): Promise<BalanceActivity | null>;
 }

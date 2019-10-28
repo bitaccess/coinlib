@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('lodash'), require('io-ts'), require('@faast/payments-common'), require('promise-retry'), require('bignumber.js'), require('stellar-hd-wallet'), require('bip39'), require('stellar-sdk'), require('util'), require('events'), require('@faast/ts-common')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'lodash', 'io-ts', '@faast/payments-common', 'promise-retry', 'bignumber.js', 'stellar-hd-wallet', 'bip39', 'stellar-sdk', 'util', 'events', '@faast/ts-common'], factory) :
-  (factory((global.faastStellarPayments = {}),global.lodash,global.t,global.paymentsCommon,global.promiseRetry,global.BigNumber,global.StellarHDWallet,global.bip39,global.Stellar,global.util,global.events,global.tsCommon));
-}(this, (function (exports,lodash,t,paymentsCommon,promiseRetry,BigNumber,StellarHDWallet,bip39,Stellar,util,events,tsCommon) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('io-ts'), require('@faast/payments-common'), require('promise-retry'), require('lodash'), require('bignumber.js'), require('stellar-hd-wallet'), require('bip39'), require('stellar-sdk'), require('util'), require('events'), require('@faast/ts-common')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'io-ts', '@faast/payments-common', 'promise-retry', 'lodash', 'bignumber.js', 'stellar-hd-wallet', 'bip39', 'stellar-sdk', 'util', 'events', '@faast/ts-common'], factory) :
+  (factory((global.faastStellarPayments = {}),global.t,global.paymentsCommon,global.promiseRetry,global.lodash,global.BigNumber,global.StellarHDWallet,global.bip39,global.Stellar,global.util,global.events,global.tsCommon));
+}(this, (function (exports,t,paymentsCommon,promiseRetry,lodash,BigNumber,StellarHDWallet,bip39,Stellar,util,events,tsCommon) { 'use strict';
 
   promiseRetry = promiseRetry && promiseRetry.hasOwnProperty('default') ? promiseRetry['default'] : promiseRetry;
   BigNumber = BigNumber && BigNumber.hasOwnProperty('default') ? BigNumber['default'] : BigNumber;
@@ -83,6 +83,12 @@
       }
   }
 
+  function serializePayport(payport) {
+      return tsCommon.isNil(payport.extraId) ? payport.address : `${payport.address}/${payport.extraId}`;
+  }
+  function omitHidden(o) {
+      return lodash.omitBy(o, (_, k) => k.startsWith('_'));
+  }
   function isStellarLedger(x) {
       return tsCommon.isObject(x) && x.hasOwnProperty('successful_transaction_count');
   }
@@ -245,9 +251,6 @@
       }
   }
 
-  function serializePayport(payport) {
-      return tsCommon.isNil(payport.extraId) ? payport.address : `${payport.address}/${payport.extraId}`;
-  }
   class BaseStellarPayments extends StellarPaymentsUtils {
       constructor(config) {
           super(config);
@@ -329,7 +332,7 @@
               throw new Error(`Cannot getBalance of stellar payport with extraId ${extraId}, use BalanceMonitor instead`);
           }
           const accountInfo = await this._retryDced(() => this.getApi().loadAccount(address));
-          this.logger.debug(`api.loadAccount ${address}`, accountInfo);
+          this.logger.debug(`api.loadAccount ${address}`, omitHidden(accountInfo));
           const balanceLine = accountInfo.balances.find((line) => line.asset_type === 'native');
           const amountMain = new BigNumber(balanceLine && balanceLine.balance ? balanceLine.balance : '0');
           const confirmedBalance = amountMain.minus(MIN_BALANCE);
@@ -391,7 +394,7 @@
               }
               throw e;
           }
-          this.logger.debug('tx', txId, tx);
+          this.logger.debug('getTransactionInfo', txId, omitHidden(tx));
           const { amount, fee, fromAddress, toAddress } = await this._normalizeTxOperation(tx);
           const fromIndex = this.resolveIndexFromAddressAndMemo(fromAddress, tx.memo);
           const toIndex = this.resolveIndexFromAddressAndMemo(toAddress, tx.memo);
@@ -586,7 +589,6 @@
           }
           this.logger.debug('signTransaction', unsignedTx.data);
           const preparedTx = this.deserializeTransaction(unsignedTx.data);
-          this.logger.debug('preparedTx', JSON.stringify(preparedTx, null, 2));
           let secret;
           const hotSignatory = this.getHotSignatory();
           const depositSignatory = this.getDepositSignatory();
@@ -619,7 +621,7 @@
           }
           catch (e) { }
           const result = await this._retryDced(() => this.getApi().submitTransaction(preparedTx));
-          this.logger.debug('broadcasted', result);
+          this.logger.debug('broadcasted', omitHidden(result));
           return {
               id: result.hash,
               rebroadcast,
@@ -786,7 +788,7 @@
                       .order('desc')
                       .call());
               const transactions = transactionPage.records;
-              this.logger.debug(`retrieved stellar txs for ${address}`, transactions);
+              this.logger.debug(`retrieved stellar txs for ${address}`, omitHidden(transactions));
               for (let tx of transactions) {
                   if ((lastTx && tx.id === lastTx.id) || !(tx.ledger_attr >= from && tx.ledger_attr <= to)) {
                       continue;

@@ -4,10 +4,10 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var lodash = require('lodash');
 var t = require('io-ts');
 var paymentsCommon = require('@faast/payments-common');
 var promiseRetry = _interopDefault(require('promise-retry'));
+var lodash = require('lodash');
 var BigNumber = _interopDefault(require('bignumber.js'));
 var StellarHDWallet = _interopDefault(require('stellar-hd-wallet'));
 require('bip39');
@@ -91,6 +91,12 @@ function assertValidExtraIdOrNil(extraId) {
     }
 }
 
+function serializePayport(payport) {
+    return tsCommon.isNil(payport.extraId) ? payport.address : `${payport.address}/${payport.extraId}`;
+}
+function omitHidden(o) {
+    return lodash.omitBy(o, (_, k) => k.startsWith('_'));
+}
 function isStellarLedger(x) {
     return tsCommon.isObject(x) && x.hasOwnProperty('successful_transaction_count');
 }
@@ -253,9 +259,6 @@ class StellarPaymentsUtils extends StellarConnected {
     }
 }
 
-function serializePayport(payport) {
-    return tsCommon.isNil(payport.extraId) ? payport.address : `${payport.address}/${payport.extraId}`;
-}
 class BaseStellarPayments extends StellarPaymentsUtils {
     constructor(config) {
         super(config);
@@ -337,7 +340,7 @@ class BaseStellarPayments extends StellarPaymentsUtils {
             throw new Error(`Cannot getBalance of stellar payport with extraId ${extraId}, use BalanceMonitor instead`);
         }
         const accountInfo = await this._retryDced(() => this.getApi().loadAccount(address));
-        this.logger.debug(`api.loadAccount ${address}`, accountInfo);
+        this.logger.debug(`api.loadAccount ${address}`, omitHidden(accountInfo));
         const balanceLine = accountInfo.balances.find((line) => line.asset_type === 'native');
         const amountMain = new BigNumber(balanceLine && balanceLine.balance ? balanceLine.balance : '0');
         const confirmedBalance = amountMain.minus(MIN_BALANCE);
@@ -399,7 +402,7 @@ class BaseStellarPayments extends StellarPaymentsUtils {
             }
             throw e;
         }
-        this.logger.debug('tx', txId, tx);
+        this.logger.debug('getTransactionInfo', txId, omitHidden(tx));
         const { amount, fee, fromAddress, toAddress } = await this._normalizeTxOperation(tx);
         const fromIndex = this.resolveIndexFromAddressAndMemo(fromAddress, tx.memo);
         const toIndex = this.resolveIndexFromAddressAndMemo(toAddress, tx.memo);
@@ -594,7 +597,6 @@ class BaseStellarPayments extends StellarPaymentsUtils {
         }
         this.logger.debug('signTransaction', unsignedTx.data);
         const preparedTx = this.deserializeTransaction(unsignedTx.data);
-        this.logger.debug('preparedTx', JSON.stringify(preparedTx, null, 2));
         let secret;
         const hotSignatory = this.getHotSignatory();
         const depositSignatory = this.getDepositSignatory();
@@ -627,7 +629,7 @@ class BaseStellarPayments extends StellarPaymentsUtils {
         }
         catch (e) { }
         const result = await this._retryDced(() => this.getApi().submitTransaction(preparedTx));
-        this.logger.debug('broadcasted', result);
+        this.logger.debug('broadcasted', omitHidden(result));
         return {
             id: result.hash,
             rebroadcast,
@@ -794,7 +796,7 @@ class StellarBalanceMonitor extends StellarConnected {
                     .order('desc')
                     .call());
             const transactions = transactionPage.records;
-            this.logger.debug(`retrieved stellar txs for ${address}`, transactions);
+            this.logger.debug(`retrieved stellar txs for ${address}`, omitHidden(transactions));
             for (let tx of transactions) {
                 if ((lastTx && tx.id === lastTx.id) || !(tx.ledger_attr >= from && tx.ledger_attr <= to)) {
                     continue;

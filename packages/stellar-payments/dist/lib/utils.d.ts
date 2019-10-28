@@ -1,7 +1,9 @@
 import * as Stellar from 'stellar-sdk';
-import { NetworkType } from '@faast/payments-common';
+import { NetworkType, Payport } from '@faast/payments-common';
 import { Logger } from '@faast/ts-common';
 import { BaseStellarConfig, StellarLedger, StellarTransaction } from './types';
+export declare function serializePayport(payport: Payport): string;
+export declare function omitHidden(o: object): object;
 export declare function isStellarLedger(x: unknown): x is StellarLedger;
 export declare function isStellarTransaction(x: unknown): x is StellarTransaction;
 export declare function padLeft(x: string, n: number, v: string): string;
