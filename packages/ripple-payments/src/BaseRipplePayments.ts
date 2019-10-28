@@ -204,11 +204,11 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     }
   }
 
-  async getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<number> {
+  async getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<string> {
     const payport = await this.resolvePayport(payportOrIndex)
     const { address } = payport
     const accountInfo = await this._retryDced(() => this.api.getAccountInfo(address))
-    return accountInfo.sequence
+    return new BigNumber(accountInfo.sequence).plus(1).toString()
   }
 
   resolveIndexFromAdjustment(adjustment: Adjustment): number | null {
