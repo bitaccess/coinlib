@@ -88,7 +88,7 @@ export declare const TransactionCommon: t.IntersectionC<[t.TypeC<{
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.StringC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.UnionC<[t.StringC, t.NumberC]>, t.NullC]>;
 }>]>;
 export declare type TransactionCommon = t.TypeOf<typeof TransactionCommon>;
 export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.TypeC<{
@@ -103,7 +103,7 @@ export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.StringC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.UnionC<[t.StringC, t.NumberC]>, t.NullC]>;
 }>]>, t.TypeC<{
     fromAddress: t.StringC;
     toAddress: t.StringC;
@@ -128,7 +128,7 @@ export declare const BaseSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.StringC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.UnionC<[t.StringC, t.NumberC]>, t.NullC]>;
 }>]>, t.TypeC<{
     fromAddress: t.StringC;
     toAddress: t.StringC;
@@ -156,7 +156,7 @@ export declare const BaseTransactionInfo: t.IntersectionC<[t.IntersectionC<[t.Ty
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.StringC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.UnionC<[t.StringC, t.NumberC]>, t.NullC]>;
 }>]>, t.TypeC<{
     id: t.StringC;
     amount: t.StringC;
@@ -192,7 +192,7 @@ export declare const BalanceActivity: t.TypeC<{
     externalId: t.StringC;
     activitySequence: t.StringC;
     confirmationId: t.StringC;
-    confirmationNumber: t.StringC;
+    confirmationNumber: t.UnionC<[t.StringC, t.NumberC]>;
     timestamp: import("@faast/ts-common").DateC;
 }>;
 export declare type BalanceActivity = t.TypeOf<typeof BalanceActivity>;
@@ -213,7 +213,7 @@ export declare const GetBalanceActivityOptions: t.PartialC<{
         externalId: t.StringC;
         activitySequence: t.StringC;
         confirmationId: t.StringC;
-        confirmationNumber: t.StringC;
+        confirmationNumber: t.UnionC<[t.StringC, t.NumberC]>;
         timestamp: import("@faast/ts-common").DateC;
     }>]>;
     to: t.UnionC<[t.UnionC<[t.StringC, t.NumberC, import("@faast/ts-common").BigNumberC]>, t.TypeC<{
@@ -227,7 +227,7 @@ export declare const GetBalanceActivityOptions: t.PartialC<{
         externalId: t.StringC;
         activitySequence: t.StringC;
         confirmationId: t.StringC;
-        confirmationNumber: t.StringC;
+        confirmationNumber: t.UnionC<[t.StringC, t.NumberC]>;
         timestamp: import("@faast/ts-common").DateC;
     }>]>;
 }>;

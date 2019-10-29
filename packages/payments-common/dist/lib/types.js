@@ -73,7 +73,7 @@ export const TransactionCommon = requiredOptionalCodec({
 }, {
     fromExtraId: nullable(t.string),
     toExtraId: nullable(t.string),
-    sequenceNumber: nullable(t.string),
+    sequenceNumber: nullable(t.union([t.string, t.number])),
 }, 'TransactionCommon');
 const UnsignedCommon = extendCodec(TransactionCommon, {
     fromAddress: t.string,
@@ -125,7 +125,7 @@ export const BalanceActivity = t.type({
     externalId: t.string,
     activitySequence: t.string,
     confirmationId: t.string,
-    confirmationNumber: t.string,
+    confirmationNumber: t.union([t.string, t.number]),
     timestamp: DateT,
 }, 'BalanceActivity');
 export const BalanceMonitorConfig = BaseConfig;
