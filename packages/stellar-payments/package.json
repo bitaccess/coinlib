@@ -67,7 +67,7 @@
   },
   "dependencies": {
     "@faast/payments-common": "^0.16.2",
-    "@faast/ts-common": "^0.4.2",
+    "@faast/ts-common": "^0.5.1",
     "base-x": "^3.0.6",
     "bignumber.js": "^9.0.0",
     "bip32": "^2.0.3",
