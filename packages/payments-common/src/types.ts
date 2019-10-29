@@ -117,7 +117,7 @@ export const TransactionCommon = requiredOptionalCodec(
   {
     fromExtraId: nullable(t.string), // eg ripple sender tag
     toExtraId: nullable(t.string), // eg Monero payment ID or ripple destination tag
-    sequenceNumber: nullable(t.string), // eg Ethereum nonce or ripple sequence
+    sequenceNumber: nullable(t.union([t.string, t.number])), // eg Ethereum nonce or ripple sequence
   },
   'TransactionCommon',
 )
@@ -211,7 +211,7 @@ export const BalanceActivity = t.type(
     externalId: t.string,
     activitySequence: t.string,
     confirmationId: t.string,
-    confirmationNumber: t.string,
+    confirmationNumber: t.union([t.string, t.number]),
     timestamp: DateT,
   },
   'BalanceActivity',
