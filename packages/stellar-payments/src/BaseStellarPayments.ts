@@ -13,7 +13,7 @@ import {
   PaymentsErrorCode,
   NetworkType,
 } from '@faast/payments-common'
-import { assertType, isNil, Numeric, isString } from '@faast/ts-common'
+import { assertType, isNil, Numeric, isString, toBigNumber } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
 import { omit, omitBy } from 'lodash'
 import * as Stellar from 'stellar-sdk'
@@ -341,7 +341,8 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       throw new Error('Cannot create XLM payment transaction sending XLM to self')
     }
     const { targetFeeLevel, targetFeeRate, targetFeeRateType, feeBase, feeMain } = feeOption
-    const { sequenceNumber } = options
+    const seqNo = options.sequenceNumber
+    const sequenceNumber = toBigNumber(seqNo)
     const txTimeoutSecs = options.timeoutSeconds || this.config.txTimeoutSeconds || DEFAULT_TX_TIMEOUT_SECONDS
     const amountString = amount.toString()
     const addressBalances = await this.getBalance({ address: fromAddress })
@@ -365,8 +366,9 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
           `with fee of ${feeMain} XLM: ${serializePayport(fromPayport)}`,
       )
     }
+    // Stellar creates txs with account sequence + 1, so we must subtract sequenceNumber option first
     const account = sequenceNumber
-      ? new Stellar.Account(fromAddress, sequenceNumber.toString())
+      ? new Stellar.Account(fromAddress, sequenceNumber.minus(1).toString())
       : await this.getApi().loadAccount(fromAddress)
 
     const preparedTx = new Stellar.TransactionBuilder(account, {
