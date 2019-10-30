@@ -7,5 +7,4 @@ export declare class PaymentsError extends Error {
     code: PaymentsErrorCode;
     name: string;
     constructor(code: PaymentsErrorCode, message?: string | Error);
-    toString(): string;
 }

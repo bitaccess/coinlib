@@ -6,16 +6,9 @@ export var PaymentsErrorCode;
 })(PaymentsErrorCode || (PaymentsErrorCode = {}));
 export class PaymentsError extends Error {
     constructor(code, message) {
-        super(typeof message === 'undefined'
-            ? undefined
-            : typeof message === 'string'
-                ? message
-                : `caused by ${message.toString()}`);
+        super(typeof message === 'undefined' ? code : `${code} - ${message.toString()}`);
         this.code = code;
         this.name = PaymentsError.name;
-    }
-    toString() {
-        return `${PaymentsError.name}(${this.code})${this.message ? `: ${this.message}` : ''}`;
     }
 }
 //# sourceMappingURL=errors.js.map
