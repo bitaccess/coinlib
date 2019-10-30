@@ -8,16 +8,6 @@ export class PaymentsError extends Error {
   name = PaymentsError.name
 
   constructor(public code: PaymentsErrorCode, message?: string | Error) {
-    super(
-      typeof message === 'undefined'
-        ? undefined
-        : typeof message === 'string'
-        ? message
-        : `caused by ${message.toString()}`,
-    )
-  }
-
-  toString() {
-    return `${PaymentsError.name}(${this.code})${this.message ? `: ${this.message}` : ''}`
+    super(typeof message === 'undefined' ? code : `${code} - ${message.toString()}`)
   }
 }

@@ -2,11 +2,12 @@ import { PaymentsErrorCode, PaymentsError } from '../src/errors'
 
 describe('errors', () => {
   describe('PaymentsError', () => {
+    const code = PaymentsErrorCode.TxExpired
     const testMessage = 'test message'
-    const basic = new PaymentsError(PaymentsErrorCode.TxExpired)
-    const basicMessage = new PaymentsError(PaymentsErrorCode.TxExpired, testMessage)
+    const basic = new PaymentsError(code)
+    const basicMessage = new PaymentsError(code, testMessage)
     const cause = new Error(testMessage)
-    const basicCause = new PaymentsError(PaymentsErrorCode.TxExpired, cause)
+    const basicCause = new PaymentsError(code, cause)
 
     it('is instanceof Error', () => {
       expect(basic).toBeInstanceOf(Error)
@@ -15,22 +16,22 @@ describe('errors', () => {
       expect(basic.name).toBe('PaymentsError')
     })
     it('has no message when not provided', () => {
-      expect(basic.message).toBeFalsy()
+      expect(basic.message).toBe(code)
     })
     it('has correct message when string provided', () => {
-      expect(basicMessage.message).toBe(testMessage)
+      expect(basicMessage.message).toBe(`${code} - ${testMessage}`)
     })
     it('has correct message when error provided', () => {
-      expect(basicCause.message).toBe(`caused by Error: ${testMessage}`)
+      expect(basicCause.message).toBe(`${code} - ${cause}`)
     })
     it('returns correct string representation without message', () => {
-      expect(basic.toString()).toBe(`PaymentsError(${PaymentsErrorCode.TxExpired})`)
+      expect(basic.toString()).toBe(`PaymentsError: ${code}`)
     })
     it('returns correct string representation with message', () => {
-      expect(basicMessage.toString()).toBe(`PaymentsError(${PaymentsErrorCode.TxExpired}): ${testMessage}`)
+      expect(basicMessage.toString()).toBe(`PaymentsError: ${code} - ${testMessage}`)
     })
     it('returns correct string representation with cause', () => {
-      expect(basicCause.toString()).toBe(`PaymentsError(${PaymentsErrorCode.TxExpired}): caused by ${cause}`)
+      expect(basicCause.toString()).toBe(`PaymentsError: ${code} - ${cause}`)
     })
   })
 })
