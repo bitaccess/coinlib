@@ -229,7 +229,7 @@ class StellarPaymentsUtils extends StellarConnected {
     async isValidAddress(address) {
         return isValidAddress(address);
     }
-    async getPayportValidationMessage(payport) {
+    async _getPayportValidationMessage(payport) {
         const { address, extraId } = payport;
         if (!(await this.isValidAddress(address))) {
             return 'Invalid payport address';
@@ -238,9 +238,18 @@ class StellarPaymentsUtils extends StellarConnected {
             return 'Invalid payport extraId';
         }
     }
+    async getPayportValidationMessage(payport) {
+        try {
+            payport = tsCommon.assertType(paymentsCommon.Payport, payport, 'payport');
+        }
+        catch (e) {
+            return e.message;
+        }
+        return this._getPayportValidationMessage(payport);
+    }
     async validatePayport(payport) {
-        tsCommon.assertType(paymentsCommon.Payport, payport);
-        const message = await this.getPayportValidationMessage(payport);
+        tsCommon.assertType(paymentsCommon.Payport, payport, 'payport');
+        const message = await this._getPayportValidationMessage(payport);
         if (message) {
             throw new Error(message);
         }
@@ -249,7 +258,7 @@ class StellarPaymentsUtils extends StellarConnected {
         if (!paymentsCommon.Payport.is(payport)) {
             return false;
         }
-        return !(await this.getPayportValidationMessage(payport));
+        return !(await this._getPayportValidationMessage(payport));
     }
     toMainDenomination(amount) {
         return toMainDenominationString(amount);
@@ -790,7 +799,7 @@ class StellarBalanceMonitor extends StellarConnected {
                     .order('desc')
                     .call());
             const transactions = transactionPage.records;
-            this.logger.debug(`retrieved stellar txs for ${address}`, omitHidden(transactions));
+            this.logger.debug(`retrieved stellar txs for ${address}`, JSON.stringify(transactions.map(({ id }) => id)));
             for (let tx of transactions) {
                 if ((lastTx && tx.id === lastTx.id) || !(from.lt(tx.ledger_attr) && to.gt(tx.ledger_attr))) {
                     continue;

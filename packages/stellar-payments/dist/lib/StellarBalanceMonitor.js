@@ -1,4 +1,4 @@
-import { padLeft, omitHidden } from './utils';
+import { padLeft } from './utils';
 import { assertValidAddress } from './helpers';
 import { isUndefined } from 'util';
 import { StellarConnected } from './StellarConnected';
@@ -67,7 +67,7 @@ export class StellarBalanceMonitor extends StellarConnected {
                     .order('desc')
                     .call());
             const transactions = transactionPage.records;
-            this.logger.debug(`retrieved stellar txs for ${address}`, omitHidden(transactions));
+            this.logger.debug(`retrieved stellar txs for ${address}`, JSON.stringify(transactions.map(({ id }) => id)));
             for (let tx of transactions) {
                 if ((lastTx && tx.id === lastTx.id) || !(from.lt(tx.ledger_attr) && to.gt(tx.ledger_attr))) {
                     continue;

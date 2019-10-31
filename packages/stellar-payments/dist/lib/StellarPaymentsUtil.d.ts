@@ -4,7 +4,8 @@ import { StellarConnected } from './StellarConnected';
 export declare class StellarPaymentsUtils extends StellarConnected implements PaymentsUtils {
     isValidExtraId(extraId: string): Promise<boolean>;
     isValidAddress(address: string): Promise<boolean>;
-    private getPayportValidationMessage;
+    _getPayportValidationMessage(payport: Payport): Promise<string | undefined>;
+    getPayportValidationMessage(payport: Payport): Promise<string | undefined>;
     validatePayport(payport: Payport): Promise<void>;
     isValidPayport(payport: Payport): Promise<boolean>;
     toMainDenomination(amount: Numeric): string;
