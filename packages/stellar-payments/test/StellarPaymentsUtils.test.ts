@@ -84,9 +84,23 @@ describe('StellarPaymentsUtils', () => {
     })
   })
 
+  describe('getPayportValidationMessage', () => {
+    it('returns string for empty object', async () => {
+      expect(await pu.getPayportValidationMessage({} as any)).toMatch('Invalid payport')
+    })
+    it('returns undefined for valid address with valid extraId', async () => {
+      expect(await pu.getPayportValidationMessage({ address: VALID_ADDRESS, extraId: VALID_EXTRA_ID })).toBe(undefined)
+    })
+    it('return string for valid address with invalid extraId', async () => {
+      expect(await pu.getPayportValidationMessage({ address: VALID_ADDRESS, extraId: INVALID_EXTRA_ID })).toBe(
+        'Invalid payport',
+      )
+    })
+  })
+
   describe('validatePayport', () => {
     it('rejects for empty object', async () => {
-      await expect(pu.validatePayport({} as any)).rejects.toThrow('Invalid type')
+      await expect(pu.validatePayport({} as any)).rejects.toThrow('Invalid payport')
     })
     it('resolves for valid address without extraId', async () => {
       await pu.validatePayport({ address: VALID_ADDRESS })
@@ -102,7 +116,7 @@ describe('StellarPaymentsUtils', () => {
     })
     it('rejects for valid address with invalid extraId', async () => {
       await expect(pu.validatePayport({ address: VALID_ADDRESS, extraId: INVALID_EXTRA_ID })).rejects.toThrow(
-        'Invalid type - Expected type string for Payport.extraId',
+        'Invalid payport - Expected type string for Payport.extraId',
       )
     })
     it('rejects for invalid address with valid extraId', async () => {
@@ -111,16 +125,16 @@ describe('StellarPaymentsUtils', () => {
       )
     })
     it('rejects for valid extraId without address', async () => {
-      await expect(pu.validatePayport({ extraId: VALID_EXTRA_ID } as any)).rejects.toThrow('Invalid type')
+      await expect(pu.validatePayport({ extraId: VALID_EXTRA_ID } as any)).rejects.toThrow('Invalid payport')
     })
     it('rejects for valid extraId with null address', async () => {
       await expect(pu.validatePayport({ address: null, extraId: VALID_EXTRA_ID } as any)).rejects.toThrow(
-        'Invalid type',
+        'Invalid payport',
       )
     })
     it('rejects for undefined extraId with undefined address', async () => {
       await expect(pu.validatePayport({ address: undefined, extraId: undefined } as any)).rejects.toThrow(
-        'Invalid type',
+        'Invalid payport',
       )
     })
     it('resolves for valid address with valid extraId', async () => {

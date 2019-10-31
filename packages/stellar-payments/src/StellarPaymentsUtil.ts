@@ -19,7 +19,7 @@ export class StellarPaymentsUtils extends StellarConnected implements PaymentsUt
     return isValidAddress(address)
   }
 
-  private async getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
+  async _getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
     const { address, extraId } = payport
     if (!(await this.isValidAddress(address))) {
       return 'Invalid payport address'
@@ -29,9 +29,18 @@ export class StellarPaymentsUtils extends StellarConnected implements PaymentsUt
     }
   }
 
+  async getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
+    try {
+      payport = assertType(Payport, payport, 'payport')
+    } catch (e) {
+      return e.message
+    }
+    return this._getPayportValidationMessage(payport)
+  }
+
   async validatePayport(payport: Payport): Promise<void> {
-    assertType(Payport, payport)
-    const message = await this.getPayportValidationMessage(payport)
+    assertType(Payport, payport, 'payport')
+    const message = await this._getPayportValidationMessage(payport)
     if (message) {
       throw new Error(message)
     }
@@ -41,7 +50,7 @@ export class StellarPaymentsUtils extends StellarConnected implements PaymentsUt
     if (!Payport.is(payport)) {
       return false
     }
-    return !(await this.getPayportValidationMessage(payport))
+    return !(await this._getPayportValidationMessage(payport))
   }
 
   toMainDenomination(amount: Numeric): string {
