@@ -25,12 +25,17 @@ export interface PaymentsUtils {
   isValidExtraId<O extends object>(extraId: string, options?: O): Promise<boolean>
 
   /**
+   * Return true if it's a valid payport.
+   */
+  isValidPayport<O extends object>(payport: Payport, options?: O): Promise<boolean>
+
+  /**
    * Throw on invalid, undefined otherwise.
    */
   validatePayport<O extends object>(payport: Payport, options?: O): Promise<void>
 
   /**
-   * Return true if it's a valid payport.
+   * Return a validation message on invalid, undefined otherwise.
    */
-  isValidPayport<O extends object>(payport: Payport, options?: O): Promise<boolean>
+  getPayportValidationMessage<O extends object>(payport: Payport, options?: O): Promise<string | undefined>
 }
