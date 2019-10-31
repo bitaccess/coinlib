@@ -92,7 +92,7 @@ describe('StellarPaymentsUtils', () => {
       expect(await pu.getPayportValidationMessage({ address: VALID_ADDRESS, extraId: VALID_EXTRA_ID })).toBe(undefined)
     })
     it('return string for valid address with invalid extraId', async () => {
-      expect(await pu.getPayportValidationMessage({ address: VALID_ADDRESS, extraId: INVALID_EXTRA_ID })).toBe(
+      expect(await pu.getPayportValidationMessage({ address: VALID_ADDRESS, extraId: INVALID_EXTRA_ID })).toMatch(
         'Invalid payport',
       )
     })

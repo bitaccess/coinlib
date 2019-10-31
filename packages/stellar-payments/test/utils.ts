@@ -41,6 +41,7 @@ async function generatePaymentsConfig(): Promise<AccountStellarPaymentsConfig> {
     depositAccount,
   }
   fs.writeFileSync(TEST_ACCOUNT_FILE, JSON.stringify(config), { encoding: 'utf8' })
+  await delay(5000) // Give the funds time to clear to avoid conflicting with test cases
   return config
 }
 
@@ -71,18 +72,30 @@ export async function setupTestnetPayments(): Promise<AccountStellarPayments> {
   })
   await payments.init()
   // Ensure accounts still exist, testnet can be wiped
+  async function regenerate() {
+    config = await generatePaymentsConfig()
+    payments = new AccountStellarPayments({
+      ...DEFAULT_CONFIG,
+      ...config,
+    })
+  }
+  let hotBalance
+  let depositBalance
   try {
-    await payments.getBalance(0)
-    await payments.getBalance(1)
+    hotBalance = await payments.getBalance(0)
+    depositBalance = await payments.getBalance(1)
   } catch (e) {
-    if (e.message.includes('Account not found')) {
-      logger.warn('Cached testnet accounts have been reset, will regenerate')
-      config = await generatePaymentsConfig()
-      payments = new AccountStellarPayments({
-        ...DEFAULT_CONFIG,
-        ...config,
-      })
+    if (e.toString().toLowerCase().includes('not found')) {
+      logger.warn('Cached testnet accounts are not found, will regenerate')
+      await regenerate()
+      return payments
+    } else {
+      throw new Error(`Unable to get balances of testnet accounts during setup - ${e.toString()}`)
     }
+  }
+  if (hotBalance.confirmedBalance === '0' || depositBalance.confirmedBalance === '0') {
+    logger.warn('Cached testnet accounts have no balance, will regenerate')
+    await regenerate()
   }
   return payments
 }
