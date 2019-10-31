@@ -129,7 +129,7 @@ export declare const RippleUnsignedTransaction: t.IntersectionC<[t.IntersectionC
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.StringC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.UnionC<[t.StringC, t.NumberC]>, t.NullC]>;
 }>]>, t.TypeC<{
     fromAddress: t.StringC;
     toAddress: t.StringC;
@@ -157,7 +157,7 @@ export declare const RippleSignedTransaction: t.IntersectionC<[t.IntersectionC<[
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.StringC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.UnionC<[t.StringC, t.NumberC]>, t.NullC]>;
 }>]>, t.TypeC<{
     fromAddress: t.StringC;
     toAddress: t.StringC;
@@ -187,7 +187,7 @@ export declare const RippleTransactionInfo: t.IntersectionC<[t.IntersectionC<[t.
 }>, t.PartialC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
-    sequenceNumber: t.UnionC<[t.StringC, t.NullC]>;
+    sequenceNumber: t.UnionC<[t.UnionC<[t.StringC, t.NumberC]>, t.NullC]>;
 }>]>, t.TypeC<{
     id: t.StringC;
     amount: t.StringC;

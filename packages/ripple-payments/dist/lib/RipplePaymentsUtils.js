@@ -14,7 +14,7 @@ export class RipplePaymentsUtils extends RippleConnected {
     async isValidAddress(address) {
         return isValidAddress(address);
     }
-    async getPayportValidationMessage(payport) {
+    async _getPayportValidationMessage(payport) {
         const { address, extraId } = payport;
         if (!(await this.isValidAddress(address))) {
             return 'Invalid payport address';
@@ -25,7 +25,7 @@ export class RipplePaymentsUtils extends RippleConnected {
             requireExtraId = settings.requireDestinationTag || false;
         }
         catch (e) {
-            this.logger.debug(`Failed to retrieve settings for ${address} - ${e.message}`);
+            this.logger.log(`getPayportValidationMessage failed to retrieve settings for ${address} - ${e.message}`);
         }
         if (isNil(extraId)) {
             if (requireExtraId) {
@@ -36,9 +36,18 @@ export class RipplePaymentsUtils extends RippleConnected {
             return 'Invalid payport extraId';
         }
     }
+    async getPayportValidationMessage(payport) {
+        try {
+            payport = assertType(Payport, payport, 'payport');
+        }
+        catch (e) {
+            return e.message;
+        }
+        return this._getPayportValidationMessage(payport);
+    }
     async validatePayport(payport) {
-        assertType(Payport, payport);
-        const message = await this.getPayportValidationMessage(payport);
+        payport = assertType(Payport, payport, 'payport');
+        const message = await this._getPayportValidationMessage(payport);
         if (message) {
             throw new Error(message);
         }
@@ -47,7 +56,7 @@ export class RipplePaymentsUtils extends RippleConnected {
         if (!Payport.is(payport)) {
             return false;
         }
-        return !(await this.getPayportValidationMessage(payport));
+        return !(await this._getPayportValidationMessage(payport));
     }
     toMainDenomination(amount) {
         return toMainDenominationString(amount);

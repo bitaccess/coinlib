@@ -189,7 +189,7 @@
       async isValidAddress(address) {
           return isValidAddress(address);
       }
-      async getPayportValidationMessage(payport) {
+      async _getPayportValidationMessage(payport) {
           const { address, extraId } = payport;
           if (!(await this.isValidAddress(address))) {
               return 'Invalid payport address';
@@ -200,7 +200,7 @@
               requireExtraId = settings.requireDestinationTag || false;
           }
           catch (e) {
-              this.logger.debug(`Failed to retrieve settings for ${address} - ${e.message}`);
+              this.logger.log(`getPayportValidationMessage failed to retrieve settings for ${address} - ${e.message}`);
           }
           if (tsCommon.isNil(extraId)) {
               if (requireExtraId) {
@@ -211,9 +211,18 @@
               return 'Invalid payport extraId';
           }
       }
+      async getPayportValidationMessage(payport) {
+          try {
+              payport = tsCommon.assertType(paymentsCommon.Payport, payport, 'payport');
+          }
+          catch (e) {
+              return e.message;
+          }
+          return this._getPayportValidationMessage(payport);
+      }
       async validatePayport(payport) {
-          tsCommon.assertType(paymentsCommon.Payport, payport);
-          const message = await this.getPayportValidationMessage(payport);
+          payport = tsCommon.assertType(paymentsCommon.Payport, payport, 'payport');
+          const message = await this._getPayportValidationMessage(payport);
           if (message) {
               throw new Error(message);
           }
@@ -222,7 +231,7 @@
           if (!paymentsCommon.Payport.is(payport)) {
               return false;
           }
-          return !(await this.getPayportValidationMessage(payport));
+          return !(await this._getPayportValidationMessage(payport));
       }
       toMainDenomination(amount) {
           return toMainDenominationString(amount);
