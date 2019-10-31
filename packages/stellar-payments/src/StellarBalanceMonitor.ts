@@ -94,7 +94,7 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
           .call()
       )
       const transactions = transactionPage.records
-      this.logger.debug(`retrieved stellar txs for ${address}`, transactions.map(({ id }) => id))
+      this.logger.debug(`retrieved stellar txs for ${address}`, JSON.stringify(transactions.map(({ id }) => id)))
       for (let tx of transactions) {
         if ((lastTx && tx.id === lastTx.id) || !(from.lt(tx.ledger_attr) && to.gt(tx.ledger_attr))) {
           continue
