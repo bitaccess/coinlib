@@ -5,6 +5,7 @@ export interface PaymentsUtils {
     toBaseDenomination<O extends object>(amount: Numeric, options?: O): string;
     isValidAddress<O extends object>(address: string, options?: O): Promise<boolean>;
     isValidExtraId<O extends object>(extraId: string, options?: O): Promise<boolean>;
-    validatePayport<O extends object>(payport: Payport, options?: O): Promise<void>;
     isValidPayport<O extends object>(payport: Payport, options?: O): Promise<boolean>;
+    validatePayport<O extends object>(payport: Payport, options?: O): Promise<void>;
+    getPayportValidationMessage<O extends object>(payport: Payport, options?: O): Promise<string | undefined>;
 }
