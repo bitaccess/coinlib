@@ -8,7 +8,8 @@ export declare class TronPaymentsUtils implements PaymentsUtils {
     constructor(config?: BaseTronPaymentsConfig);
     isValidExtraId(extraId: string): Promise<boolean>;
     isValidAddress(address: string): Promise<boolean>;
-    private getPayportValidationMessage;
+    private _getPayportValidationMessage;
+    getPayportValidationMessage(payport: Payport): Promise<string | undefined>;
     validatePayport(payport: Payport): Promise<void>;
     isValidPayport(payport: Payport): Promise<boolean>;
     toMainDenomination(amount: string | number): string;

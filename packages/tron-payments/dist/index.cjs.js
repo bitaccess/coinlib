@@ -107,7 +107,7 @@ class TronPaymentsUtils {
     async isValidAddress(address) {
         return isValidAddress(address);
     }
-    async getPayportValidationMessage(payport) {
+    async _getPayportValidationMessage(payport) {
         const { address, extraId } = payport;
         if (!isValidAddress(address)) {
             return 'Invalid payport address';
@@ -116,15 +116,24 @@ class TronPaymentsUtils {
             return 'Invalid payport extraId';
         }
     }
+    async getPayportValidationMessage(payport) {
+        try {
+            payport = tsCommon.assertType(paymentsCommon.Payport, payport, 'payport');
+        }
+        catch (e) {
+            return e.message;
+        }
+        return this._getPayportValidationMessage(payport);
+    }
     async validatePayport(payport) {
-        tsCommon.assertType(paymentsCommon.Payport, payport);
-        const message = await this.getPayportValidationMessage(payport);
+        payport = tsCommon.assertType(paymentsCommon.Payport, payport, 'payport');
+        const message = await this._getPayportValidationMessage(payport);
         if (message) {
             throw new Error(message);
         }
     }
     async isValidPayport(payport) {
-        return paymentsCommon.Payport.is(payport) && !(await this.getPayportValidationMessage(payport));
+        return paymentsCommon.Payport.is(payport) && !(await this._getPayportValidationMessage(payport));
     }
     toMainDenomination(amount) {
         return toMainDenominationString(amount);
