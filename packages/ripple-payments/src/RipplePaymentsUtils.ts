@@ -1,5 +1,5 @@
 import { PaymentsUtils, Payport } from '@faast/payments-common'
-import { isNil, assertType } from '@faast/ts-common'
+import { isNil, assertType, SimpleReporter } from '@faast/ts-common'
 
 import {
   toMainDenominationString,
@@ -25,7 +25,7 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
     return isValidAddress(address)
   }
 
-  private async getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
+  private async _getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
     const { address, extraId } = payport
     if (!(await this.isValidAddress(address))) {
       return 'Invalid payport address'
@@ -35,7 +35,7 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
       const settings = await this._retryDced(() => this.api.getSettings(address))
       requireExtraId = settings.requireDestinationTag || false
     } catch (e) {
-      this.logger.debug(`Failed to retrieve settings for ${address} - ${e.message}`)
+      this.logger.log(`getPayportValidationMessage failed to retrieve settings for ${address} - ${e.message}`)
     }
     if (isNil(extraId)) {
       if (requireExtraId) {
@@ -46,9 +46,18 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
     }
   }
 
+  async getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
+    try {
+      payport = assertType(Payport, payport, 'payport')
+    } catch (e) {
+      return e.message
+    }
+    return this._getPayportValidationMessage(payport)
+  }
+
   async validatePayport(payport: Payport): Promise<void> {
-    assertType(Payport, payport)
-    const message = await this.getPayportValidationMessage(payport)
+    payport = assertType(Payport, payport, 'payport')
+    const message = await this._getPayportValidationMessage(payport)
     if (message) {
       throw new Error(message)
     }
@@ -58,7 +67,7 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
     if (!Payport.is(payport)) {
       return false
     }
-    return !(await this.getPayportValidationMessage(payport))
+    return !(await this._getPayportValidationMessage(payport))
   }
 
   toMainDenomination(amount: string | number): string {

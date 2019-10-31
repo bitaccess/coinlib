@@ -91,9 +91,23 @@ describe('RipplePaymentsUtils', () => {
     })
   })
 
+  describe('getPayportValidationMessage', () => {
+    it('returns string for empty object', async () => {
+      expect(await rpu.getPayportValidationMessage({} as any)).toMatch('Invalid payport')
+    })
+    it('returns undefined for valid address with valid extraId', async () => {
+      expect(await rpu.getPayportValidationMessage({ address: VALID_ADDRESS, extraId: VALID_EXTRA_ID })).toBe(undefined)
+    })
+    it('return string for valid address with invalid extraId', async () => {
+      expect(await rpu.getPayportValidationMessage({ address: VALID_ADDRESS, extraId: INVALID_EXTRA_ID })).toBe(
+        'Invalid payport extraId',
+      )
+    })
+  })
+
   describe('validatePayport', () => {
     it('rejects for empty object', async () => {
-      await expect(rpu.validatePayport({} as any)).rejects.toThrow('Invalid type')
+      await expect(rpu.validatePayport({} as any)).rejects.toThrow('Invalid payport')
     })
     it('resolves for valid address without extraId', async () => {
       await rpu.validatePayport({ address: VALID_ADDRESS })
@@ -118,16 +132,16 @@ describe('RipplePaymentsUtils', () => {
       )
     })
     it('rejects for valid extraId without address', async () => {
-      await expect(rpu.validatePayport({ extraId: VALID_EXTRA_ID } as any)).rejects.toThrow('Invalid type')
+      await expect(rpu.validatePayport({ extraId: VALID_EXTRA_ID } as any)).rejects.toThrow('Invalid payport')
     })
     it('rejects for valid extraId with null address', async () => {
       await expect(rpu.validatePayport({ address: null, extraId: VALID_EXTRA_ID } as any)).rejects.toThrow(
-        'Invalid type',
+        'Invalid payport',
       )
     })
     it('rejects for undefined extraId with undefined address', async () => {
       await expect(rpu.validatePayport({ address: undefined, extraId: undefined } as any)).rejects.toThrow(
-        'Invalid type',
+        'Invalid payport',
       )
     })
     it('resolves for valid address with valid extraId', async () => {
