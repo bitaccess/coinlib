@@ -377,7 +377,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
         const payport = await this.resolvePayport(payportOrIndex);
         const { address } = payport;
         const accountInfo = await this._retryDced(() => this.api.getAccountInfo(address));
-        return new BigNumber(accountInfo.sequence).plus(1).toString();
+        return new BigNumber(accountInfo.sequence).toString();
     }
     resolveIndexFromAdjustment(adjustment) {
         const { address, tag } = adjustment;
