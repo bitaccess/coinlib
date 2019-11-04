@@ -35,7 +35,7 @@
     "postversion": "git push && git push --tags"
   },
   "devDependencies": {
-    "@faast/ts-config": "github:go-faast/faast-ts-config",
+    "@faast/ts-config": "^1.3.2",
     "@types/jest": "^23.3.2",
     "@types/node": "^10.11.0",
     "coveralls": "^3.0.2",
