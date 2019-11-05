@@ -36,7 +36,6 @@
     "prebuild": "rimraf dist",
     "build": "bin/build.sh",
     "start": "rollup -c rollup.config.js -w",
-    "pretest": "npm run lint",
     "test": "jest --runInBand --detectOpenHandles",
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
     "version": "npm run build && git add -Af dist docs"
@@ -49,6 +48,7 @@
     "coveralls": "^3.0.2",
     "io-ts": "^1.10.4",
     "jest": "^24.9.0",
+    "jest-circus": "^24.9.0",
     "jest-config": "^24.9.0",
     "lint-staged": "^8.0.0",
     "node-fetch": "^2.6.0",
