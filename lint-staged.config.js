@@ -1,5 +1,6 @@
-const base = require('@faast/ts-config/library/lint-staged.config.js')
-
-module.exports = Object.assign({}, base, {
-  // overrides here
-})
+module.exports = {
+  'packages/*/{src,test}/**/*.ts': [
+    'prettier --write',
+    'git add'
+  ]
+}

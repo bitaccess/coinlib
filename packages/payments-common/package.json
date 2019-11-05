@@ -39,7 +39,6 @@
     "pretest": "npm run lint",
     "test": "jest --runInBand --detectOpenHandles",
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
-    "precommit": "lint-staged",
     "version": "npm run build && git add -Af dist docs"
   },
   "devDependencies": {
