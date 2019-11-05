@@ -34,7 +34,7 @@
     "build": "lerna run build",
     "pretest": "lerna run lint",
     "test": "lerna run test",
-    "postversion": "git push && git push --tags",
+    "version": "lerna version",
     "precommit": "lerna run precommit",
     "release": "npm run bootstrap && lerna publish"
   },
