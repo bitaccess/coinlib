@@ -81,8 +81,8 @@ function hdPrivateKeyToPrivateKey(key: HDNode): string {
 
 function bip32PublicToTronPublic(pubKey: any): number[] {
   const pubkey = ec.keyFromPublic(pubKey).getPublic()
-  const x = pubkey.x
-  const y = pubkey.y
+  const x = pubkey.getX()
+  const y = pubkey.getY()
 
   let xHex = x.toString('hex')
 
@@ -104,8 +104,7 @@ function bip32PublicToTronPublic(pubKey: any): number[] {
 
 function bip32PrivateToTronPrivate(priKeyBytes: Buffer): string {
   const key = ec.keyFromPrivate(priKeyBytes, 'bytes')
-  const privkey = key.getPrivate() as Buffer
-  let priKeyHex = privkey.toString('hex')
+  let priKeyHex = key.getPrivate('hex')
   while (priKeyHex.length < 64) {
     priKeyHex = `0${priKeyHex}`
   }
