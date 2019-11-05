@@ -47,10 +47,7 @@
     "test": "jest --runInBand --detectOpenHandles --bail",
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
     "precommit": "lint-staged",
-    "preversion": "bin/preversion.sh",
-    "version": "npm run build && git add -Af dist docs",
-    "postversion": "git push && git push --tags",
-    "release": "npm publish --access=public"
+    "version": "npm run build && git add -Af dist docs"
   },
   "peerDependencies": {
     "io-ts": "^1.8.5"

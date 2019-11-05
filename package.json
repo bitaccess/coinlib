@@ -34,11 +34,13 @@
     "build": "lerna run build",
     "pretest": "lerna run lint",
     "test": "lerna run test",
-    "version": "lerna version",
     "precommit": "lerna run precommit",
+    "preversion": "bin/preversion.sh",
+    "version": "lerna version",
     "release": "npm run bootstrap && lerna publish"
   },
   "devDependencies": {
+    "@faast/ts-config": "^1.3.2",
     "husky": "^2.1.0",
     "lerna": "^3.18.3",
     "lint-staged": "^8.0.0",

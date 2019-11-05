@@ -1,6 +1,5 @@
-const base = require('@faast/ts-config/library/jest.config.js')
+const base = require('../../jest.config.js')
 
 module.exports = Object.assign({}, base, {
-  // overrides here
-  verbose: true,
+  'testRunner': 'jest-circus/runner'
 })

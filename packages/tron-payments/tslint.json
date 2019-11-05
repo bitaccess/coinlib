@@ -1,5 +1,8 @@
 {
   "extends": [
-    "@faast/ts-config/library/tslint.json"
-  ]
+    "../../tslint.json"
+  ],
+  "rules": {
+    "deprecation": false
+  }
 }

@@ -1,4 +1,4 @@
-const base = require('@faast/ts-config/library/rollup.config')
+const base = require('../../rollup.config')
 const pkg = require('./package.json')
 
 export default {
