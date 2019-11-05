@@ -40,6 +40,7 @@ async function generatePaymentsConfig(): Promise<AccountStellarPaymentsConfig> {
     hotAccount,
     depositAccount,
   }
+  fs.mkdirSync(path.dirname(TEST_ACCOUNT_FILE), { recursive: true })
   fs.writeFileSync(TEST_ACCOUNT_FILE, JSON.stringify(config), { encoding: 'utf8' })
   await delay(5000) // Give the funds time to clear to avoid conflicting with test cases
   return config

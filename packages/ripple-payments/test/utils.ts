@@ -37,6 +37,7 @@ async function generatePaymentsConfig(): Promise<AccountRipplePaymentsConfig> {
     hotAccount,
     depositAccount,
   }
+  fs.mkdirSync(path.dirname(TEST_ACCOUNT_FILE), { recursive: true })
   fs.writeFileSync(TEST_ACCOUNT_FILE, JSON.stringify(config), { encoding: 'utf8' })
   return config
 }
