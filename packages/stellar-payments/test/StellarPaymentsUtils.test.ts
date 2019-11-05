@@ -116,7 +116,7 @@ describe('StellarPaymentsUtils', () => {
     })
     it('rejects for valid address with invalid extraId', async () => {
       await expect(pu.validatePayport({ address: VALID_ADDRESS, extraId: INVALID_EXTRA_ID })).rejects.toThrow(
-        'Invalid payport - Expected type string for Payport.extraId',
+        'Invalid payport - Expected type string | null | undefined for Payport.extraId',
       )
     })
     it('rejects for invalid address with valid extraId', async () => {
