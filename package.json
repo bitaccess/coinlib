@@ -1,62 +1,50 @@
 {
   "name": "@faast/coin-payments",
-  "version": "0.0.0",
-  "description": "Unified library for sending and receiving cryptocurrency payments",
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.es.js",
-  "browser": "dist/index.umd.js",
-  "types": "dist/lib/index.d.ts",
-  "esnext": "dist/lib/index.js",
-  "files": [
-    "dist/",
-    "src/"
+  "version": "0.17.2",
+  "description": "Unified interface for sending and receiving crypto payments",
+  "main": "packages/coin-payments/dist/index.cjs.js",
+  "module": "packages/coin-payments/dist/index.es.js",
+  "browser": "packages/coin-payments/dist/index.umd.js",
+  "types": "packages/coin-payments/dist/lib/index.d.ts",
+  "esnext": "packages/coin-payments/dist/lib/index.js",
+  "repository": "https://github.com/go-faast/coin-payments/tree/master/packages/coin-payments",
+  "keywords": [
+    "coin",
+    "payments",
+    "crypto"
   ],
-  "engines": {
-    "node": ">=6.0.0"
-  },
+  "author": "Dylan Seago <dylan@bitaccess.co>",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/go-faast/coin-payments.git"
+  "bugs": {
+    "url": "https://github.com/go-faast/payments-common/issues"
+  },
+  "engines": {
+    "node": ">=8.0.0"
   },
   "scripts": {
-    "lint": "tslint --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "docs": "typedoc --options typedoc.js",
-    "prebuild": "rimraf dist",
-    "build": "tsc --build ./tsconfig.build.json && rollup -c rollup.config.js && npm run docs",
-    "start": "rollup -c rollup.config.ts -w",
-    "pretest": "npm run lint",
-    "test": "jest --runInBand --detectOpenHandles",
-    "report-coverage": "cat ./coverage/lcov.info | coveralls",
-    "precommit": "lint-staged",
-    "preversion": "bin/preversion.sh",
-    "version": "npm run build && git add -Af dist docs",
-    "postversion": "git push && git push --tags"
+    "clean": "lerna clean",
+    "link": "lerna link",
+    "bootstrap": "lerna bootstrap",
+    "install:all": "lerna add",
+    "remove:all": "lerna exec npm uninstall",
+    "lint": "lerna run lint",
+    "format": "lerna run format",
+    "docs": "lerna run docs",
+    "prebuild": "lerna run prebuild",
+    "build": "lerna run build",
+    "pretest": "lerna run lint",
+    "test": "lerna run test",
+    "postversion": "git push && git push --tags",
+    "precommit": "lerna run precommit",
+    "release": "npm run bootstrap && lerna publish"
   },
   "devDependencies": {
-    "@faast/ts-config": "^1.3.2",
-    "@types/jest": "^23.3.2",
-    "@types/node": "^10.11.0",
-    "coveralls": "^3.0.2",
-    "husky": "^1.3.1",
-    "jest": "^23.6.0",
-    "jest-config": "^23.6.0",
-    "lerna": "^3.16.4",
+    "husky": "^2.1.0",
+    "lerna": "^3.18.3",
     "lint-staged": "^8.0.0",
     "prettier": "^1.14.3",
     "rimraf": "^2.6.2",
-    "rollup": "^0.67.0",
-    "rollup-plugin-commonjs": "^9.1.8",
-    "rollup-plugin-json": "^3.1.0",
-    "rollup-plugin-node-resolve": "^4.2.3",
-    "rollup-plugin-sourcemaps": "^0.4.2",
-    "rollup-plugin-typescript2": "^0.18.0",
-    "ts-jest": "^23.10.2",
-    "ts-lint": "^4.5.1",
     "ts-node": "^7.0.1",
-    "tslint": "^5.14.0",
-    "typedoc": "^0.14.2",
     "typescript": "^3.4.3"
   }
 }
