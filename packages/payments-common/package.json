@@ -1,33 +1,33 @@
 {
   "name": "@faast/payments-common",
   "version": "0.17.0",
-  "description": "Common modules used by payments libs",
+  "description": "Common modules used by coin-payments libs",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "browser": "dist/index.umd.js",
   "types": "dist/lib/index.d.ts",
   "esnext": "dist/lib/index.js",
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/go-faast/payments-common.git"
+  "repository": "https://github.com/go-faast/coin-payments/tree/master/packages/payments-common",
+  "homepage": "https://github.com/go-faast/coin-payments/tree/master/packages/payments-common#readme",
+  "bugs": {
+    "url": "https://github.com/go-faast/coin-payments/issues"
   },
   "keywords": [
-    "crypto",
+    "coin",
     "payments",
-    "common"
+    "crypto",
+    "common",
+    "faast",
+    "bitaccess"
   ],
   "author": "Dylan Seago <dylan@bitaccess.co>",
   "license": "MIT",
-  "homepage": "https://github.com/go-faast/payments-common#readme",
-  "bugs": {
-    "url": "https://github.com/go-faast/payments-common/issues"
-  },
   "files": [
     "dist/",
     "src/"
   ],
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=8.0.0"
   },
   "scripts": {
     "lint": "tslint --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",

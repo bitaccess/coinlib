@@ -7,17 +7,28 @@
   "browser": "dist/index.umd.js",
   "types": "dist/lib/index.d.ts",
   "esnext": "dist/lib/index.js",
+  "repository": "https://github.com/go-faast/coin-payments/tree/master/packages/stellar-payments",
+  "homepage": "https://github.com/go-faast/coin-payments/tree/master/packages/stellar-payments#readme",
+  "bugs": {
+    "url": "https://github.com/go-faast/coin-payments/issues"
+  },
+  "keywords": [
+    "coin",
+    "payments",
+    "crypto",
+    "ripple",
+    "xrp",
+    "faast",
+    "bitaccess"
+  ],
+  "author": "Dylan Seago <dylan@bitaccess.co>",
+  "license": "MIT",
   "files": [
     "dist/",
     "src/"
   ],
   "engines": {
-    "node": ">=6.0.0"
-  },
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/go-faast/stellar-payments.git"
+    "node": ">=8.0.0"
   },
   "scripts": {
     "lint": "tslint --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",

@@ -11,7 +11,9 @@
   "keywords": [
     "coin",
     "payments",
-    "crypto"
+    "crypto",
+    "faast",
+    "bitaccess"
   ],
   "author": "Dylan Seago <dylan@bitaccess.co>",
   "license": "MIT",
