@@ -31,8 +31,8 @@ describe('types', () => {
     expect(() => assertType(BalanceResult, {})).toThrow()
   })
   test('TransactionStatusT validates successfully', () => {
-    for (let k in TransactionStatus) {
-      assertType(TransactionStatusT, TransactionStatus[k])
+    for (let status of Object.values(TransactionStatus)) {
+      assertType(TransactionStatusT, status)
     }
   })
   test('TransactionStatusT throws on invalid', () => {
