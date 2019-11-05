@@ -35,6 +35,7 @@ import {
   NOT_FOUND_ERRORS,
   BASE_UNITS,
   DEFAULT_TX_TIMEOUT_SECONDS,
+  DEFAULT_FEE_LEVEL,
 } from './constants'
 import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers'
 import { isStellarTransaction, serializePayport, omitHidden } from './utils'
@@ -270,7 +271,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
         throw new Error(`Unsupport stellar feeRateType ${feeOption.feeRateType}`)
       }
     } else {
-      targetFeeLevel = feeOption.feeLevel || FeeLevel.Medium
+      targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL
       const feeStats = await this._retryDced(() => this.getApi().feeStats())
       feeBase = feeStats.p10_accepted_fee
       if (targetFeeLevel === FeeLevel.Medium) {
