@@ -34,7 +34,6 @@
     "build": "lerna run build",
     "pretest": "lerna run lint",
     "test": "lerna run test",
-    "precommit": "lint-staged",
     "preversion": "bin/preversion.sh",
     "version": "lerna version",
     "release": "npm run bootstrap && lerna publish"
