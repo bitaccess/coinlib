@@ -1,12 +1,12 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('io-ts'), require('@faast/payments-common'), require('promise-retry'), require('lodash'), require('stellar-hd-wallet'), require('bip39'), require('stellar-sdk'), require('util'), require('events'), require('bignumber.js'), require('@faast/ts-common')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'io-ts', '@faast/payments-common', 'promise-retry', 'lodash', 'stellar-hd-wallet', 'bip39', 'stellar-sdk', 'util', 'events', 'bignumber.js', '@faast/ts-common'], factory) :
-  (factory((global.faastStellarPayments = {}),global.t,global.paymentsCommon,global.promiseRetry,global.lodash,global.StellarHDWallet,global.bip39,global.Stellar,global.util,global.events,global.BigNumber,global.tsCommon));
-}(this, (function (exports,t,paymentsCommon,promiseRetry,lodash,StellarHDWallet,bip39,Stellar,util,events,BigNumber,tsCommon) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@faast/payments-common'), require('@faast/ts-common'), require('bignumber.js'), require('lodash'), require('stellar-sdk'), require('io-ts'), require('util'), require('promise-retry'), require('stellar-hd-wallet'), require('bip39'), require('events')) :
+  typeof define === 'function' && define.amd ? define(['exports', '@faast/payments-common', '@faast/ts-common', 'bignumber.js', 'lodash', 'stellar-sdk', 'io-ts', 'util', 'promise-retry', 'stellar-hd-wallet', 'bip39', 'events'], factory) :
+  (global = global || self, factory(global.faastStellarPayments = {}, global.paymentsCommon, global.tsCommon, global.BigNumber, global.lodash, global.Stellar, global.t, global.util, global.promiseRetry, global.StellarHDWallet, global.bip39, global.events));
+}(this, (function (exports, paymentsCommon, tsCommon, BigNumber, lodash, Stellar, t, util, promiseRetry, StellarHDWallet, bip39, events) { 'use strict';
 
+  BigNumber = BigNumber && BigNumber.hasOwnProperty('default') ? BigNumber['default'] : BigNumber;
   promiseRetry = promiseRetry && promiseRetry.hasOwnProperty('default') ? promiseRetry['default'] : promiseRetry;
   StellarHDWallet = StellarHDWallet && StellarHDWallet.hasOwnProperty('default') ? StellarHDWallet['default'] : StellarHDWallet;
-  BigNumber = BigNumber && BigNumber.hasOwnProperty('default') ? BigNumber['default'] : BigNumber;
 
   const BaseStellarConfig = tsCommon.extendCodec(paymentsCommon.BaseConfig, {}, {
       server: t.union([t.string, tsCommon.instanceofCodec(Stellar.Server), t.nullType]),
@@ -52,6 +52,7 @@
   const MIN_BALANCE = 1;
   const DEFAULT_CREATE_TRANSACTION_OPTIONS = {};
   const DEFAULT_TX_TIMEOUT_SECONDS = 5 * 60;
+  const DEFAULT_FEE_LEVEL = paymentsCommon.FeeLevel.Low;
   const NOT_FOUND_ERRORS = ['MissingLedgerHistoryError', 'NotFoundError'];
   const DEFAULT_NETWORK = paymentsCommon.NetworkType.Mainnet;
   const DEFAULT_MAINNET_SERVER = 'https://horizon.stellar.org';
@@ -462,7 +463,7 @@
               }
           }
           else {
-              targetFeeLevel = feeOption.feeLevel || paymentsCommon.FeeLevel.Medium;
+              targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL;
               const feeStats = await this._retryDced(() => this.getApi().feeStats());
               feeBase = feeStats.p10_accepted_fee;
               if (targetFeeLevel === paymentsCommon.FeeLevel.Medium) {
@@ -687,7 +688,13 @@
                   secret: '',
               };
           }
-          else if (isValidSecret(accountConfig)) ;
+          else if (isValidSecret(accountConfig)) {
+              const keyPair = Stellar.Keypair.fromSecret(accountConfig);
+              return {
+                  address: keyPair.publicKey(),
+                  secret: keyPair.secret(),
+              };
+          }
           throw new Error('Invalid stellar account config provided to stellar payments');
       }
       isReadOnly() {
@@ -726,6 +733,7 @@
               hotAccount: deriveSignatory(seed, 0),
               depositAccount: deriveSignatory(seed, 1)
           });
+          this.seed = seed;
       }
   }
   HdStellarPayments.generateMnemonic = generateMnemonic;
@@ -861,39 +869,44 @@
       }
   }
 
-  exports.CreateTransactionOptions = paymentsCommon.CreateTransactionOptions;
-  exports.BaseStellarPayments = BaseStellarPayments;
-  exports.HdStellarPayments = HdStellarPayments;
+  Object.defineProperty(exports, 'CreateTransactionOptions', {
+    enumerable: true,
+    get: function () {
+      return paymentsCommon.CreateTransactionOptions;
+    }
+  });
   exports.AccountStellarPayments = AccountStellarPayments;
-  exports.StellarPaymentsUtils = StellarPaymentsUtils;
-  exports.StellarBalanceMonitor = StellarBalanceMonitor;
-  exports.StellarPaymentsFactory = StellarPaymentsFactory;
+  exports.AccountStellarPaymentsConfig = AccountStellarPaymentsConfig;
   exports.BaseStellarConfig = BaseStellarConfig;
-  exports.StellarBalanceMonitorConfig = StellarBalanceMonitorConfig;
+  exports.BaseStellarPayments = BaseStellarPayments;
   exports.BaseStellarPaymentsConfig = BaseStellarPaymentsConfig;
+  exports.HdStellarPayments = HdStellarPayments;
   exports.HdStellarPaymentsConfig = HdStellarPaymentsConfig;
-  exports.StellarSignatory = StellarSignatory;
   exports.PartialStellarSignatory = PartialStellarSignatory;
   exports.StellarAccountConfig = StellarAccountConfig;
-  exports.AccountStellarPaymentsConfig = AccountStellarPaymentsConfig;
-  exports.StellarPaymentsConfig = StellarPaymentsConfig;
-  exports.StellarUnsignedTransaction = StellarUnsignedTransaction;
-  exports.StellarSignedTransaction = StellarSignedTransaction;
-  exports.StellarTransactionInfo = StellarTransactionInfo;
+  exports.StellarBalanceMonitor = StellarBalanceMonitor;
+  exports.StellarBalanceMonitorConfig = StellarBalanceMonitorConfig;
   exports.StellarBroadcastResult = StellarBroadcastResult;
   exports.StellarCreateTransactionOptions = StellarCreateTransactionOptions;
-  exports.toMainDenominationBigNumber = toMainDenominationBigNumber;
-  exports.toMainDenominationString = toMainDenominationString;
-  exports.toMainDenominationNumber = toMainDenominationNumber;
-  exports.toBaseDenominationBigNumber = toBaseDenominationBigNumber;
-  exports.toBaseDenominationString = toBaseDenominationString;
-  exports.toBaseDenominationNumber = toBaseDenominationNumber;
-  exports.isValidAddress = isValidAddress;
-  exports.isValidExtraId = isValidExtraId;
-  exports.isValidSecret = isValidSecret;
+  exports.StellarPaymentsConfig = StellarPaymentsConfig;
+  exports.StellarPaymentsFactory = StellarPaymentsFactory;
+  exports.StellarPaymentsUtils = StellarPaymentsUtils;
+  exports.StellarSignatory = StellarSignatory;
+  exports.StellarSignedTransaction = StellarSignedTransaction;
+  exports.StellarTransactionInfo = StellarTransactionInfo;
+  exports.StellarUnsignedTransaction = StellarUnsignedTransaction;
   exports.assertValidAddress = assertValidAddress;
   exports.assertValidExtraId = assertValidExtraId;
   exports.assertValidExtraIdOrNil = assertValidExtraIdOrNil;
+  exports.isValidAddress = isValidAddress;
+  exports.isValidExtraId = isValidExtraId;
+  exports.isValidSecret = isValidSecret;
+  exports.toBaseDenominationBigNumber = toBaseDenominationBigNumber;
+  exports.toBaseDenominationNumber = toBaseDenominationNumber;
+  exports.toBaseDenominationString = toBaseDenominationString;
+  exports.toMainDenominationBigNumber = toMainDenominationBigNumber;
+  exports.toMainDenominationNumber = toMainDenominationNumber;
+  exports.toMainDenominationString = toMainDenominationString;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

@@ -60,8 +60,8 @@ function hdPrivateKeyToPrivateKey(key) {
 }
 function bip32PublicToTronPublic(pubKey) {
     const pubkey = ec.keyFromPublic(pubKey).getPublic();
-    const x = pubkey.x;
-    const y = pubkey.y;
+    const x = pubkey.getX();
+    const y = pubkey.getY();
     let xHex = x.toString('hex');
     while (xHex.length < 64) {
         xHex = `0${xHex}`;
@@ -76,8 +76,7 @@ function bip32PublicToTronPublic(pubKey) {
 }
 function bip32PrivateToTronPrivate(priKeyBytes) {
     const key = ec.keyFromPrivate(priKeyBytes, 'bytes');
-    const privkey = key.getPrivate();
-    let priKeyHex = privkey.toString('hex');
+    let priKeyHex = key.getPrivate('hex');
     while (priKeyHex.length < 64) {
         priKeyHex = `0${priKeyHex}`;
     }

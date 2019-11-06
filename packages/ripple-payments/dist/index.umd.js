@@ -1,13 +1,13 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('lodash'), require('io-ts'), require('ripple-lib'), require('util'), require('@faast/payments-common'), require('promise-retry'), require('bip32'), require('base-x'), require('crypto'), require('bignumber.js'), require('@faast/ts-common')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'lodash', 'io-ts', 'ripple-lib', 'util', '@faast/payments-common', 'promise-retry', 'bip32', 'base-x', 'crypto', 'bignumber.js', '@faast/ts-common'], factory) :
-  (factory((global.faastRipplePayments = {}),global.lodash,global.t,global.rippleLib,global.util,global.paymentsCommon,global.promiseRetry,global.bip32,global.baseX,global.crypto,global.BigNumber,global.tsCommon));
-}(this, (function (exports,lodash,t,rippleLib,util,paymentsCommon,promiseRetry,bip32,baseX,crypto,BigNumber,tsCommon) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@faast/payments-common'), require('@faast/ts-common'), require('bignumber.js'), require('lodash'), require('io-ts'), require('ripple-lib'), require('util'), require('promise-retry'), require('bip32'), require('base-x'), require('crypto')) :
+  typeof define === 'function' && define.amd ? define(['exports', '@faast/payments-common', '@faast/ts-common', 'bignumber.js', 'lodash', 'io-ts', 'ripple-lib', 'util', 'promise-retry', 'bip32', 'base-x', 'crypto'], factory) :
+  (global = global || self, factory(global.faastRipplePayments = {}, global.paymentsCommon, global.tsCommon, global.BigNumber, global.lodash, global.t, global.rippleLib, global.util, global.promiseRetry, global.bip32, global.baseX, global.crypto));
+}(this, (function (exports, paymentsCommon, tsCommon, BigNumber, lodash, t, rippleLib, util, promiseRetry, bip32, baseX, crypto) { 'use strict';
 
+  BigNumber = BigNumber && BigNumber.hasOwnProperty('default') ? BigNumber['default'] : BigNumber;
   promiseRetry = promiseRetry && promiseRetry.hasOwnProperty('default') ? promiseRetry['default'] : promiseRetry;
   baseX = baseX && baseX.hasOwnProperty('default') ? baseX['default'] : baseX;
   crypto = crypto && crypto.hasOwnProperty('default') ? crypto['default'] : crypto;
-  BigNumber = BigNumber && BigNumber.hasOwnProperty('default') ? BigNumber['default'] : BigNumber;
 
   const BaseRippleConfig = tsCommon.extendCodec(paymentsCommon.BaseConfig, {}, {
       server: t.union([t.string, tsCommon.instanceofCodec(rippleLib.RippleAPI), t.nullType]),
@@ -979,40 +979,45 @@
       }
   }
 
-  exports.CreateTransactionOptions = paymentsCommon.CreateTransactionOptions;
-  exports.BaseRipplePayments = BaseRipplePayments;
-  exports.HdRipplePayments = HdRipplePayments;
+  Object.defineProperty(exports, 'CreateTransactionOptions', {
+    enumerable: true,
+    get: function () {
+      return paymentsCommon.CreateTransactionOptions;
+    }
+  });
   exports.AccountRipplePayments = AccountRipplePayments;
-  exports.RipplePaymentsUtils = RipplePaymentsUtils;
-  exports.RippleBalanceMonitor = RippleBalanceMonitor;
-  exports.RipplePaymentsFactory = RipplePaymentsFactory;
-  exports.BaseRippleConfig = BaseRippleConfig;
-  exports.RippleBalanceMonitorConfig = RippleBalanceMonitorConfig;
-  exports.BaseRipplePaymentsConfig = BaseRipplePaymentsConfig;
-  exports.HdRipplePaymentsConfig = HdRipplePaymentsConfig;
-  exports.RippleKeyPair = RippleKeyPair;
-  exports.RippleSecretPair = RippleSecretPair;
-  exports.RippleAccountConfig = RippleAccountConfig;
   exports.AccountRipplePaymentsConfig = AccountRipplePaymentsConfig;
-  exports.RipplePaymentsConfig = RipplePaymentsConfig;
-  exports.RippleUnsignedTransaction = RippleUnsignedTransaction;
-  exports.RippleSignedTransaction = RippleSignedTransaction;
-  exports.RippleTransactionInfo = RippleTransactionInfo;
+  exports.BaseRippleConfig = BaseRippleConfig;
+  exports.BaseRipplePayments = BaseRipplePayments;
+  exports.BaseRipplePaymentsConfig = BaseRipplePaymentsConfig;
+  exports.HdRipplePayments = HdRipplePayments;
+  exports.HdRipplePaymentsConfig = HdRipplePaymentsConfig;
+  exports.RippleAccountConfig = RippleAccountConfig;
+  exports.RippleBalanceMonitor = RippleBalanceMonitor;
+  exports.RippleBalanceMonitorConfig = RippleBalanceMonitorConfig;
   exports.RippleBroadcastResult = RippleBroadcastResult;
   exports.RippleCreateTransactionOptions = RippleCreateTransactionOptions;
-  exports.toMainDenominationBigNumber = toMainDenominationBigNumber;
-  exports.toMainDenominationString = toMainDenominationString;
-  exports.toMainDenominationNumber = toMainDenominationNumber;
-  exports.toBaseDenominationBigNumber = toBaseDenominationBigNumber;
-  exports.toBaseDenominationString = toBaseDenominationString;
-  exports.toBaseDenominationNumber = toBaseDenominationNumber;
-  exports.isValidXprv = isValidXprv;
-  exports.isValidXpub = isValidXpub;
-  exports.isValidAddress = isValidAddress;
-  exports.isValidExtraId = isValidExtraId;
+  exports.RippleKeyPair = RippleKeyPair;
+  exports.RipplePaymentsConfig = RipplePaymentsConfig;
+  exports.RipplePaymentsFactory = RipplePaymentsFactory;
+  exports.RipplePaymentsUtils = RipplePaymentsUtils;
+  exports.RippleSecretPair = RippleSecretPair;
+  exports.RippleSignedTransaction = RippleSignedTransaction;
+  exports.RippleTransactionInfo = RippleTransactionInfo;
+  exports.RippleUnsignedTransaction = RippleUnsignedTransaction;
   exports.assertValidAddress = assertValidAddress;
   exports.assertValidExtraId = assertValidExtraId;
   exports.assertValidExtraIdOrNil = assertValidExtraIdOrNil;
+  exports.isValidAddress = isValidAddress;
+  exports.isValidExtraId = isValidExtraId;
+  exports.isValidXprv = isValidXprv;
+  exports.isValidXpub = isValidXpub;
+  exports.toBaseDenominationBigNumber = toBaseDenominationBigNumber;
+  exports.toBaseDenominationNumber = toBaseDenominationNumber;
+  exports.toBaseDenominationString = toBaseDenominationString;
+  exports.toMainDenominationBigNumber = toMainDenominationBigNumber;
+  exports.toMainDenominationNumber = toMainDenominationNumber;
+  exports.toMainDenominationString = toMainDenominationString;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

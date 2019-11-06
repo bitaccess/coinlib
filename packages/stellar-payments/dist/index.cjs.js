@@ -4,17 +4,17 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var t = require('io-ts');
 var paymentsCommon = require('@faast/payments-common');
-var promiseRetry = _interopDefault(require('promise-retry'));
+var tsCommon = require('@faast/ts-common');
+var BigNumber = _interopDefault(require('bignumber.js'));
 var lodash = require('lodash');
+var Stellar = require('stellar-sdk');
+var t = require('io-ts');
+var util = require('util');
+var promiseRetry = _interopDefault(require('promise-retry'));
 var StellarHDWallet = _interopDefault(require('stellar-hd-wallet'));
 require('bip39');
-var Stellar = require('stellar-sdk');
-var util = require('util');
 var events = require('events');
-var BigNumber = _interopDefault(require('bignumber.js'));
-var tsCommon = require('@faast/ts-common');
 
 const BaseStellarConfig = tsCommon.extendCodec(paymentsCommon.BaseConfig, {}, {
     server: t.union([t.string, tsCommon.instanceofCodec(Stellar.Server), t.nullType]),
@@ -60,6 +60,7 @@ const DECIMAL_PLACES = 7;
 const MIN_BALANCE = 1;
 const DEFAULT_CREATE_TRANSACTION_OPTIONS = {};
 const DEFAULT_TX_TIMEOUT_SECONDS = 5 * 60;
+const DEFAULT_FEE_LEVEL = paymentsCommon.FeeLevel.Low;
 const NOT_FOUND_ERRORS = ['MissingLedgerHistoryError', 'NotFoundError'];
 const DEFAULT_NETWORK = paymentsCommon.NetworkType.Mainnet;
 const DEFAULT_MAINNET_SERVER = 'https://horizon.stellar.org';
@@ -470,7 +471,7 @@ class BaseStellarPayments extends StellarPaymentsUtils {
             }
         }
         else {
-            targetFeeLevel = feeOption.feeLevel || paymentsCommon.FeeLevel.Medium;
+            targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL;
             const feeStats = await this._retryDced(() => this.getApi().feeStats());
             feeBase = feeStats.p10_accepted_fee;
             if (targetFeeLevel === paymentsCommon.FeeLevel.Medium) {
@@ -695,7 +696,13 @@ class AccountStellarPayments extends BaseStellarPayments {
                 secret: '',
             };
         }
-        else if (isValidSecret(accountConfig)) ;
+        else if (isValidSecret(accountConfig)) {
+            const keyPair = Stellar.Keypair.fromSecret(accountConfig);
+            return {
+                address: keyPair.publicKey(),
+                secret: keyPair.secret(),
+            };
+        }
         throw new Error('Invalid stellar account config provided to stellar payments');
     }
     isReadOnly() {
@@ -734,6 +741,7 @@ class HdStellarPayments extends AccountStellarPayments {
             hotAccount: deriveSignatory(seed, 0),
             depositAccount: deriveSignatory(seed, 1)
         });
+        this.seed = seed;
     }
 }
 HdStellarPayments.generateMnemonic = generateMnemonic;
@@ -869,37 +877,42 @@ class StellarPaymentsFactory {
     }
 }
 
-exports.CreateTransactionOptions = paymentsCommon.CreateTransactionOptions;
-exports.BaseStellarPayments = BaseStellarPayments;
-exports.HdStellarPayments = HdStellarPayments;
+Object.defineProperty(exports, 'CreateTransactionOptions', {
+  enumerable: true,
+  get: function () {
+    return paymentsCommon.CreateTransactionOptions;
+  }
+});
 exports.AccountStellarPayments = AccountStellarPayments;
-exports.StellarPaymentsUtils = StellarPaymentsUtils;
-exports.StellarBalanceMonitor = StellarBalanceMonitor;
-exports.StellarPaymentsFactory = StellarPaymentsFactory;
+exports.AccountStellarPaymentsConfig = AccountStellarPaymentsConfig;
 exports.BaseStellarConfig = BaseStellarConfig;
-exports.StellarBalanceMonitorConfig = StellarBalanceMonitorConfig;
+exports.BaseStellarPayments = BaseStellarPayments;
 exports.BaseStellarPaymentsConfig = BaseStellarPaymentsConfig;
+exports.HdStellarPayments = HdStellarPayments;
 exports.HdStellarPaymentsConfig = HdStellarPaymentsConfig;
-exports.StellarSignatory = StellarSignatory;
 exports.PartialStellarSignatory = PartialStellarSignatory;
 exports.StellarAccountConfig = StellarAccountConfig;
-exports.AccountStellarPaymentsConfig = AccountStellarPaymentsConfig;
-exports.StellarPaymentsConfig = StellarPaymentsConfig;
-exports.StellarUnsignedTransaction = StellarUnsignedTransaction;
-exports.StellarSignedTransaction = StellarSignedTransaction;
-exports.StellarTransactionInfo = StellarTransactionInfo;
+exports.StellarBalanceMonitor = StellarBalanceMonitor;
+exports.StellarBalanceMonitorConfig = StellarBalanceMonitorConfig;
 exports.StellarBroadcastResult = StellarBroadcastResult;
 exports.StellarCreateTransactionOptions = StellarCreateTransactionOptions;
-exports.toMainDenominationBigNumber = toMainDenominationBigNumber;
-exports.toMainDenominationString = toMainDenominationString;
-exports.toMainDenominationNumber = toMainDenominationNumber;
-exports.toBaseDenominationBigNumber = toBaseDenominationBigNumber;
-exports.toBaseDenominationString = toBaseDenominationString;
-exports.toBaseDenominationNumber = toBaseDenominationNumber;
-exports.isValidAddress = isValidAddress;
-exports.isValidExtraId = isValidExtraId;
-exports.isValidSecret = isValidSecret;
+exports.StellarPaymentsConfig = StellarPaymentsConfig;
+exports.StellarPaymentsFactory = StellarPaymentsFactory;
+exports.StellarPaymentsUtils = StellarPaymentsUtils;
+exports.StellarSignatory = StellarSignatory;
+exports.StellarSignedTransaction = StellarSignedTransaction;
+exports.StellarTransactionInfo = StellarTransactionInfo;
+exports.StellarUnsignedTransaction = StellarUnsignedTransaction;
 exports.assertValidAddress = assertValidAddress;
 exports.assertValidExtraId = assertValidExtraId;
 exports.assertValidExtraIdOrNil = assertValidExtraIdOrNil;
+exports.isValidAddress = isValidAddress;
+exports.isValidExtraId = isValidExtraId;
+exports.isValidSecret = isValidSecret;
+exports.toBaseDenominationBigNumber = toBaseDenominationBigNumber;
+exports.toBaseDenominationNumber = toBaseDenominationNumber;
+exports.toBaseDenominationString = toBaseDenominationString;
+exports.toMainDenominationBigNumber = toMainDenominationBigNumber;
+exports.toMainDenominationNumber = toMainDenominationNumber;
+exports.toMainDenominationString = toMainDenominationString;
 //# sourceMappingURL=index.cjs.js.map

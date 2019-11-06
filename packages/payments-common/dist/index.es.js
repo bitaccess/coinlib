@@ -1,5 +1,5 @@
 import { partial, union, string, number, literal, type, boolean, object } from 'io-ts';
-import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT, Logger, functionT, Numeric } from '@faast/ts-common';
+import { enumCodec, Logger, requiredOptionalCodec, extendCodec, Numeric, nullable, DateT, functionT } from '@faast/ts-common';
 import BigNumber from 'bignumber.js';
 
 var NetworkType;
@@ -200,5 +200,5 @@ class PaymentsError extends Error {
     }
 }
 
-export { NetworkType, NetworkTypeT, BaseConfig, AddressOrIndex, FeeLevel, FeeLevelT, FeeRateType, FeeRateTypeT, FeeOptionCustom, FeeOptionLevel, FeeOption, CreateTransactionOptions, ResolvedFeeOption, BalanceResult, TransactionStatus, TransactionStatusT, TransactionCommon, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, Payport, BalanceActivityType, BalanceActivity, BalanceMonitorConfig, GetBalanceActivityOptions, BalanceActivityCallback, ResolveablePayport, RetrieveBalanceActivitiesResult, createUnitConverters, PaymentsErrorCode, PaymentsError };
+export { AddressOrIndex, BalanceActivity, BalanceActivityCallback, BalanceActivityType, BalanceMonitorConfig, BalanceResult, BaseBroadcastResult, BaseConfig, BaseSignedTransaction, BaseTransactionInfo, BaseUnsignedTransaction, CreateTransactionOptions, FeeLevel, FeeLevelT, FeeOption, FeeOptionCustom, FeeOptionLevel, FeeRateType, FeeRateTypeT, GetBalanceActivityOptions, NetworkType, NetworkTypeT, PaymentsError, PaymentsErrorCode, Payport, ResolveablePayport, ResolvedFeeOption, RetrieveBalanceActivitiesResult, TransactionCommon, TransactionStatus, TransactionStatusT, createUnitConverters };
 //# sourceMappingURL=index.es.js.map

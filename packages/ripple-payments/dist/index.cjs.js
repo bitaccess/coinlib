@@ -4,17 +4,17 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
+var paymentsCommon = require('@faast/payments-common');
+var tsCommon = require('@faast/ts-common');
+var BigNumber = _interopDefault(require('bignumber.js'));
 var lodash = require('lodash');
 var t = require('io-ts');
 var rippleLib = require('ripple-lib');
 var util = require('util');
-var paymentsCommon = require('@faast/payments-common');
 var promiseRetry = _interopDefault(require('promise-retry'));
 var bip32 = require('bip32');
 var baseX = _interopDefault(require('base-x'));
 var crypto = _interopDefault(require('crypto'));
-var BigNumber = _interopDefault(require('bignumber.js'));
-var tsCommon = require('@faast/ts-common');
 
 const BaseRippleConfig = tsCommon.extendCodec(paymentsCommon.BaseConfig, {}, {
     server: t.union([t.string, tsCommon.instanceofCodec(rippleLib.RippleAPI), t.nullType]),
@@ -986,38 +986,43 @@ class RipplePaymentsFactory {
     }
 }
 
-exports.CreateTransactionOptions = paymentsCommon.CreateTransactionOptions;
-exports.BaseRipplePayments = BaseRipplePayments;
-exports.HdRipplePayments = HdRipplePayments;
+Object.defineProperty(exports, 'CreateTransactionOptions', {
+  enumerable: true,
+  get: function () {
+    return paymentsCommon.CreateTransactionOptions;
+  }
+});
 exports.AccountRipplePayments = AccountRipplePayments;
-exports.RipplePaymentsUtils = RipplePaymentsUtils;
-exports.RippleBalanceMonitor = RippleBalanceMonitor;
-exports.RipplePaymentsFactory = RipplePaymentsFactory;
-exports.BaseRippleConfig = BaseRippleConfig;
-exports.RippleBalanceMonitorConfig = RippleBalanceMonitorConfig;
-exports.BaseRipplePaymentsConfig = BaseRipplePaymentsConfig;
-exports.HdRipplePaymentsConfig = HdRipplePaymentsConfig;
-exports.RippleKeyPair = RippleKeyPair;
-exports.RippleSecretPair = RippleSecretPair;
-exports.RippleAccountConfig = RippleAccountConfig;
 exports.AccountRipplePaymentsConfig = AccountRipplePaymentsConfig;
-exports.RipplePaymentsConfig = RipplePaymentsConfig;
-exports.RippleUnsignedTransaction = RippleUnsignedTransaction;
-exports.RippleSignedTransaction = RippleSignedTransaction;
-exports.RippleTransactionInfo = RippleTransactionInfo;
+exports.BaseRippleConfig = BaseRippleConfig;
+exports.BaseRipplePayments = BaseRipplePayments;
+exports.BaseRipplePaymentsConfig = BaseRipplePaymentsConfig;
+exports.HdRipplePayments = HdRipplePayments;
+exports.HdRipplePaymentsConfig = HdRipplePaymentsConfig;
+exports.RippleAccountConfig = RippleAccountConfig;
+exports.RippleBalanceMonitor = RippleBalanceMonitor;
+exports.RippleBalanceMonitorConfig = RippleBalanceMonitorConfig;
 exports.RippleBroadcastResult = RippleBroadcastResult;
 exports.RippleCreateTransactionOptions = RippleCreateTransactionOptions;
-exports.toMainDenominationBigNumber = toMainDenominationBigNumber;
-exports.toMainDenominationString = toMainDenominationString;
-exports.toMainDenominationNumber = toMainDenominationNumber;
-exports.toBaseDenominationBigNumber = toBaseDenominationBigNumber;
-exports.toBaseDenominationString = toBaseDenominationString;
-exports.toBaseDenominationNumber = toBaseDenominationNumber;
-exports.isValidXprv = isValidXprv;
-exports.isValidXpub = isValidXpub;
-exports.isValidAddress = isValidAddress;
-exports.isValidExtraId = isValidExtraId;
+exports.RippleKeyPair = RippleKeyPair;
+exports.RipplePaymentsConfig = RipplePaymentsConfig;
+exports.RipplePaymentsFactory = RipplePaymentsFactory;
+exports.RipplePaymentsUtils = RipplePaymentsUtils;
+exports.RippleSecretPair = RippleSecretPair;
+exports.RippleSignedTransaction = RippleSignedTransaction;
+exports.RippleTransactionInfo = RippleTransactionInfo;
+exports.RippleUnsignedTransaction = RippleUnsignedTransaction;
 exports.assertValidAddress = assertValidAddress;
 exports.assertValidExtraId = assertValidExtraId;
 exports.assertValidExtraIdOrNil = assertValidExtraIdOrNil;
+exports.isValidAddress = isValidAddress;
+exports.isValidExtraId = isValidExtraId;
+exports.isValidXprv = isValidXprv;
+exports.isValidXpub = isValidXpub;
+exports.toBaseDenominationBigNumber = toBaseDenominationBigNumber;
+exports.toBaseDenominationNumber = toBaseDenominationNumber;
+exports.toBaseDenominationString = toBaseDenominationString;
+exports.toMainDenominationBigNumber = toMainDenominationBigNumber;
+exports.toMainDenominationNumber = toMainDenominationNumber;
+exports.toMainDenominationString = toMainDenominationString;
 //# sourceMappingURL=index.cjs.js.map

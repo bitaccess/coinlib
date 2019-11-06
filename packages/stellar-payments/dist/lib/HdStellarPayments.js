@@ -7,6 +7,7 @@ export class HdStellarPayments extends AccountStellarPayments {
             hotAccount: deriveSignatory(seed, 0),
             depositAccount: deriveSignatory(seed, 1)
         });
+        this.seed = seed;
     }
 }
 HdStellarPayments.generateMnemonic = generateMnemonic;

@@ -5,7 +5,7 @@ import { omit } from 'lodash';
 import * as Stellar from 'stellar-sdk';
 import { StellarUnsignedTransaction, StellarSignedTransaction, } from './types';
 import { StellarPaymentsUtils } from './StellarPaymentsUtil';
-import { DEFAULT_CREATE_TRANSACTION_OPTIONS, MIN_BALANCE, NOT_FOUND_ERRORS, DEFAULT_TX_TIMEOUT_SECONDS, } from './constants';
+import { DEFAULT_CREATE_TRANSACTION_OPTIONS, MIN_BALANCE, NOT_FOUND_ERRORS, DEFAULT_TX_TIMEOUT_SECONDS, DEFAULT_FEE_LEVEL, } from './constants';
 import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers';
 import { isStellarTransaction, serializePayport, omitHidden } from './utils';
 export class BaseStellarPayments extends StellarPaymentsUtils {
@@ -210,7 +210,7 @@ export class BaseStellarPayments extends StellarPaymentsUtils {
             }
         }
         else {
-            targetFeeLevel = feeOption.feeLevel || FeeLevel.Medium;
+            targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL;
             const feeStats = await this._retryDced(() => this.getApi().feeStats());
             feeBase = feeStats.p10_accepted_fee;
             if (targetFeeLevel === FeeLevel.Medium) {

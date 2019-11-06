@@ -5,10 +5,10 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var TronWeb = _interopDefault(require('tronweb'));
-var t = require('io-ts');
-var tsCommon = require('@faast/ts-common');
-var paymentsCommon = require('@faast/payments-common');
 var lodash = require('lodash');
+var paymentsCommon = require('@faast/payments-common');
+var tsCommon = require('@faast/ts-common');
+var t = require('io-ts');
 var bip32 = require('bip32');
 var jsSha3 = require('js-sha3');
 var jsSHA = _interopDefault(require('jssha'));
@@ -102,7 +102,7 @@ class TronPaymentsUtils {
         this.logger = new tsCommon.DelegateLogger(config.logger, PACKAGE_NAME);
     }
     async isValidExtraId(extraId) {
-        return isValidExtraId(extraId);
+        return isValidExtraId();
     }
     async isValidAddress(address) {
         return isValidAddress(address);
@@ -112,7 +112,7 @@ class TronPaymentsUtils {
         if (!isValidAddress(address)) {
             return 'Invalid payport address';
         }
-        if (!tsCommon.isNil(extraId) && !isValidExtraId(extraId)) {
+        if (!tsCommon.isNil(extraId) && !isValidExtraId()) {
             return 'Invalid payport extraId';
         }
     }
@@ -567,8 +567,8 @@ function hdPrivateKeyToPrivateKey(key) {
 }
 function bip32PublicToTronPublic(pubKey) {
     const pubkey = ec.keyFromPublic(pubKey).getPublic();
-    const x = pubkey.x;
-    const y = pubkey.y;
+    const x = pubkey.getX();
+    const y = pubkey.getY();
     let xHex = x.toString('hex');
     while (xHex.length < 64) {
         xHex = `0${xHex}`;
@@ -583,8 +583,7 @@ function bip32PublicToTronPublic(pubKey) {
 }
 function bip32PrivateToTronPrivate(priKeyBytes) {
     const key = ec.keyFromPrivate(priKeyBytes, 'bytes');
-    const privkey = key.getPrivate();
-    let priKeyHex = privkey.toString('hex');
+    let priKeyHex = key.getPrivate('hex');
     while (priKeyHex.length < 64) {
         priKeyHex = `0${priKeyHex}`;
     }
@@ -798,36 +797,41 @@ class TronPaymentsFactory {
     }
 }
 
-exports.CreateTransactionOptions = paymentsCommon.CreateTransactionOptions;
+Object.defineProperty(exports, 'CreateTransactionOptions', {
+  enumerable: true,
+  get: function () {
+    return paymentsCommon.CreateTransactionOptions;
+  }
+});
 exports.BaseTronPayments = BaseTronPayments;
+exports.BaseTronPaymentsConfig = BaseTronPaymentsConfig;
+exports.DECIMAL_PLACES = DECIMAL_PLACES;
+exports.DEFAULT_EVENT_SERVER = DEFAULT_EVENT_SERVER;
+exports.DEFAULT_FEE_LEVEL = DEFAULT_FEE_LEVEL;
+exports.DEFAULT_FULL_NODE = DEFAULT_FULL_NODE;
+exports.DEFAULT_SOLIDITY_NODE = DEFAULT_SOLIDITY_NODE;
+exports.EXPIRATION_FUDGE_MS = EXPIRATION_FUDGE_MS;
+exports.GetPayportOptions = GetPayportOptions;
 exports.HdTronPayments = HdTronPayments;
+exports.HdTronPaymentsConfig = HdTronPaymentsConfig;
 exports.KeyPairTronPayments = KeyPairTronPayments;
+exports.KeyPairTronPaymentsConfig = KeyPairTronPaymentsConfig;
+exports.MIN_BALANCE_SUN = MIN_BALANCE_SUN;
+exports.MIN_BALANCE_TRX = MIN_BALANCE_TRX;
+exports.PACKAGE_NAME = PACKAGE_NAME;
+exports.TronBroadcastResult = TronBroadcastResult;
+exports.TronPaymentsConfig = TronPaymentsConfig;
 exports.TronPaymentsFactory = TronPaymentsFactory;
 exports.TronPaymentsUtils = TronPaymentsUtils;
-exports.BaseTronPaymentsConfig = BaseTronPaymentsConfig;
-exports.HdTronPaymentsConfig = HdTronPaymentsConfig;
-exports.KeyPairTronPaymentsConfig = KeyPairTronPaymentsConfig;
-exports.TronPaymentsConfig = TronPaymentsConfig;
-exports.TronUnsignedTransaction = TronUnsignedTransaction;
 exports.TronSignedTransaction = TronSignedTransaction;
 exports.TronTransactionInfo = TronTransactionInfo;
-exports.TronBroadcastResult = TronBroadcastResult;
-exports.GetPayportOptions = GetPayportOptions;
-exports.toError = toError;
+exports.TronUnsignedTransaction = TronUnsignedTransaction;
+exports.decode58 = decode58;
 exports.derivationPath = derivationPath;
 exports.deriveAddress = deriveAddress;
 exports.derivePrivateKey = derivePrivateKey;
-exports.xprvToXpub = xprvToXpub;
-exports.generateNewKeys = generateNewKeys;
 exports.encode58 = encode58;
-exports.decode58 = decode58;
-exports.PACKAGE_NAME = PACKAGE_NAME;
-exports.MIN_BALANCE_SUN = MIN_BALANCE_SUN;
-exports.MIN_BALANCE_TRX = MIN_BALANCE_TRX;
-exports.DECIMAL_PLACES = DECIMAL_PLACES;
-exports.DEFAULT_FULL_NODE = DEFAULT_FULL_NODE;
-exports.DEFAULT_SOLIDITY_NODE = DEFAULT_SOLIDITY_NODE;
-exports.DEFAULT_EVENT_SERVER = DEFAULT_EVENT_SERVER;
-exports.DEFAULT_FEE_LEVEL = DEFAULT_FEE_LEVEL;
-exports.EXPIRATION_FUDGE_MS = EXPIRATION_FUDGE_MS;
+exports.generateNewKeys = generateNewKeys;
+exports.toError = toError;
+exports.xprvToXpub = xprvToXpub;
 //# sourceMappingURL=index.cjs.js.map

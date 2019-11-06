@@ -37,6 +37,11 @@ export class AccountStellarPayments extends BaseStellarPayments {
             };
         }
         else if (isValidSecret(accountConfig)) {
+            const keyPair = Stellar.Keypair.fromSecret(accountConfig);
+            return {
+                address: keyPair.publicKey(),
+                secret: keyPair.secret(),
+            };
         }
         throw new Error('Invalid stellar account config provided to stellar payments');
     }

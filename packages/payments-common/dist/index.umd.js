@@ -1,8 +1,8 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('io-ts'), require('@faast/ts-common'), require('bignumber.js')) :
   typeof define === 'function' && define.amd ? define(['exports', 'io-ts', '@faast/ts-common', 'bignumber.js'], factory) :
-  (factory((global.faastPaymentsCommon = {}),global.t,global.tsCommon,global.BigNumber));
-}(this, (function (exports,t,tsCommon,BigNumber) { 'use strict';
+  (global = global || self, factory(global.faastPaymentsCommon = {}, global.t, global.tsCommon, global.BigNumber));
+}(this, (function (exports, t, tsCommon, BigNumber) { 'use strict';
 
   BigNumber = BigNumber && BigNumber.hasOwnProperty('default') ? BigNumber['default'] : BigNumber;
 
@@ -199,33 +199,33 @@
       }
   }
 
-  exports.NetworkTypeT = NetworkTypeT;
-  exports.BaseConfig = BaseConfig;
   exports.AddressOrIndex = AddressOrIndex;
-  exports.FeeLevelT = FeeLevelT;
-  exports.FeeRateTypeT = FeeRateTypeT;
-  exports.FeeOptionCustom = FeeOptionCustom;
-  exports.FeeOptionLevel = FeeOptionLevel;
-  exports.FeeOption = FeeOption;
-  exports.CreateTransactionOptions = CreateTransactionOptions;
-  exports.ResolvedFeeOption = ResolvedFeeOption;
+  exports.BalanceActivity = BalanceActivity;
+  exports.BalanceActivityCallback = BalanceActivityCallback;
+  exports.BalanceActivityType = BalanceActivityType;
+  exports.BalanceMonitorConfig = BalanceMonitorConfig;
   exports.BalanceResult = BalanceResult;
-  exports.TransactionStatusT = TransactionStatusT;
-  exports.TransactionCommon = TransactionCommon;
-  exports.BaseUnsignedTransaction = BaseUnsignedTransaction;
+  exports.BaseBroadcastResult = BaseBroadcastResult;
+  exports.BaseConfig = BaseConfig;
   exports.BaseSignedTransaction = BaseSignedTransaction;
   exports.BaseTransactionInfo = BaseTransactionInfo;
-  exports.BaseBroadcastResult = BaseBroadcastResult;
-  exports.Payport = Payport;
-  exports.BalanceActivityType = BalanceActivityType;
-  exports.BalanceActivity = BalanceActivity;
-  exports.BalanceMonitorConfig = BalanceMonitorConfig;
+  exports.BaseUnsignedTransaction = BaseUnsignedTransaction;
+  exports.CreateTransactionOptions = CreateTransactionOptions;
+  exports.FeeLevelT = FeeLevelT;
+  exports.FeeOption = FeeOption;
+  exports.FeeOptionCustom = FeeOptionCustom;
+  exports.FeeOptionLevel = FeeOptionLevel;
+  exports.FeeRateTypeT = FeeRateTypeT;
   exports.GetBalanceActivityOptions = GetBalanceActivityOptions;
-  exports.BalanceActivityCallback = BalanceActivityCallback;
-  exports.ResolveablePayport = ResolveablePayport;
-  exports.RetrieveBalanceActivitiesResult = RetrieveBalanceActivitiesResult;
-  exports.createUnitConverters = createUnitConverters;
+  exports.NetworkTypeT = NetworkTypeT;
   exports.PaymentsError = PaymentsError;
+  exports.Payport = Payport;
+  exports.ResolveablePayport = ResolveablePayport;
+  exports.ResolvedFeeOption = ResolvedFeeOption;
+  exports.RetrieveBalanceActivitiesResult = RetrieveBalanceActivitiesResult;
+  exports.TransactionCommon = TransactionCommon;
+  exports.TransactionStatusT = TransactionStatusT;
+  exports.createUnitConverters = createUnitConverters;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

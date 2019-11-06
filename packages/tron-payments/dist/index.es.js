@@ -1,13 +1,13 @@
 import TronWeb from 'tronweb';
-import { string, union, null, undefined as undefined$1, array, record, number, boolean, partial } from 'io-ts';
-import { extendCodec, DelegateLogger, isNil, assertType, isType } from '@faast/ts-common';
-import { FeeLevel, createUnitConverters, BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, BaseConfig, NetworkType, Payport, TransactionStatus, FeeRateType, FeeOptionCustom, PaymentsError, PaymentsErrorCode } from '@faast/payments-common';
+import { cloneDeep, get, pick, set } from 'lodash';
+import { FeeLevel, createUnitConverters, BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, NetworkType, Payport, FeeOptionCustom, FeeRateType, TransactionStatus, PaymentsError, PaymentsErrorCode } from '@faast/payments-common';
 export { CreateTransactionOptions } from '@faast/payments-common';
-import { pick, get, cloneDeep, set } from 'lodash';
+import { extendCodec, assertType, DelegateLogger, isNil, isType } from '@faast/ts-common';
+import { string, union, null as null$1, undefined as undefined$1, array, record, number, boolean, partial } from 'io-ts';
 import { fromBase58, fromSeed } from 'bip32';
 import { keccak256 } from 'js-sha3';
 import jsSHA from 'jssha';
-import { ec } from 'elliptic';
+import { ec as ec$1 } from 'elliptic';
 import crypto from 'crypto';
 
 const PACKAGE_NAME = 'tron-payments';
@@ -67,7 +67,7 @@ const BaseTronPaymentsConfig = extendCodec(BaseConfig, {}, {
 const HdTronPaymentsConfig = extendCodec(BaseTronPaymentsConfig, {
     hdKey: string,
 }, 'HdTronPaymentsConfig');
-const NullableOptionalString = union([string, null, undefined$1]);
+const NullableOptionalString = union([string, null$1, undefined$1]);
 const KeyPairTronPaymentsConfig = extendCodec(BaseTronPaymentsConfig, {
     keyPairs: union([array(NullableOptionalString), record(number, NullableOptionalString)]),
 }, 'KeyPairTronPaymentsConfig');
@@ -97,7 +97,7 @@ class TronPaymentsUtils {
         this.logger = new DelegateLogger(config.logger, PACKAGE_NAME);
     }
     async isValidExtraId(extraId) {
-        return isValidExtraId(extraId);
+        return isValidExtraId();
     }
     async isValidAddress(address) {
         return isValidAddress(address);
@@ -107,7 +107,7 @@ class TronPaymentsUtils {
         if (!isValidAddress(address)) {
             return 'Invalid payport address';
         }
-        if (!isNil(extraId) && !isValidExtraId(extraId)) {
+        if (!isNil(extraId) && !isValidExtraId()) {
             return 'Invalid payport extraId';
         }
     }
@@ -507,7 +507,7 @@ function decode58(s) {
     return bytes.reverse();
 }
 
-const ec$1 = new ec('secp256k1');
+const ec = new ec$1('secp256k1');
 const derivationPath = "m/44'/195'/0'";
 const derivationPathParts = derivationPath.split('/').slice(1);
 function deriveAddress(xpub, index) {
@@ -561,9 +561,9 @@ function hdPrivateKeyToPrivateKey(key) {
     return bip32PrivateToTronPrivate(key.privateKey);
 }
 function bip32PublicToTronPublic(pubKey) {
-    const pubkey = ec$1.keyFromPublic(pubKey).getPublic();
-    const x = pubkey.x;
-    const y = pubkey.y;
+    const pubkey = ec.keyFromPublic(pubKey).getPublic();
+    const x = pubkey.getX();
+    const y = pubkey.getY();
     let xHex = x.toString('hex');
     while (xHex.length < 64) {
         xHex = `0${xHex}`;
@@ -577,9 +577,8 @@ function bip32PublicToTronPublic(pubKey) {
     return pubkeyBytes;
 }
 function bip32PrivateToTronPrivate(priKeyBytes) {
-    const key = ec$1.keyFromPrivate(priKeyBytes, 'bytes');
-    const privkey = key.getPrivate();
-    let priKeyHex = privkey.toString('hex');
+    const key = ec.keyFromPrivate(priKeyBytes, 'bytes');
+    let priKeyHex = key.getPrivate('hex');
     while (priKeyHex.length < 64) {
         priKeyHex = `0${priKeyHex}`;
     }
@@ -793,5 +792,5 @@ class TronPaymentsFactory {
     }
 }
 
-export { BaseTronPayments, HdTronPayments, KeyPairTronPayments, TronPaymentsFactory, TronPaymentsUtils, BaseTronPaymentsConfig, HdTronPaymentsConfig, KeyPairTronPaymentsConfig, TronPaymentsConfig, TronUnsignedTransaction, TronSignedTransaction, TronTransactionInfo, TronBroadcastResult, GetPayportOptions, toError, derivationPath, deriveAddress, derivePrivateKey, xprvToXpub, generateNewKeys, encode58, decode58, PACKAGE_NAME, MIN_BALANCE_SUN, MIN_BALANCE_TRX, DECIMAL_PLACES, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, DEFAULT_EVENT_SERVER, DEFAULT_FEE_LEVEL, EXPIRATION_FUDGE_MS };
+export { BaseTronPayments, BaseTronPaymentsConfig, DECIMAL_PLACES, DEFAULT_EVENT_SERVER, DEFAULT_FEE_LEVEL, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, EXPIRATION_FUDGE_MS, GetPayportOptions, HdTronPayments, HdTronPaymentsConfig, KeyPairTronPayments, KeyPairTronPaymentsConfig, MIN_BALANCE_SUN, MIN_BALANCE_TRX, PACKAGE_NAME, TronBroadcastResult, TronPaymentsConfig, TronPaymentsFactory, TronPaymentsUtils, TronSignedTransaction, TronTransactionInfo, TronUnsignedTransaction, decode58, derivationPath, deriveAddress, derivePrivateKey, encode58, generateNewKeys, toError, xprvToXpub };
 //# sourceMappingURL=index.es.js.map

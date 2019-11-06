@@ -1,15 +1,15 @@
+import { BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, CreateTransactionOptions, NetworkType, createUnitConverters, Payport, FeeLevel, TransactionStatus, FeeRateType, PaymentsError, PaymentsErrorCode } from '@faast/payments-common';
+export { CreateTransactionOptions } from '@faast/payments-common';
+import { extendCodec, instanceofCodec, nullable, isNil, assertType, DelegateLogger, isUndefined, Numeric, isString as isString$1 } from '@faast/ts-common';
+import BigNumber from 'bignumber.js';
 import { omit } from 'lodash';
 import { union, string, nullType, number, type, boolean, object } from 'io-ts';
 import { RippleAPI } from 'ripple-lib';
 import { isString } from 'util';
-import { BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, CreateTransactionOptions, BaseConfig, NetworkType, createUnitConverters, Payport, FeeLevel, FeeRateType, TransactionStatus, PaymentsError, PaymentsErrorCode } from '@faast/payments-common';
-export { CreateTransactionOptions } from '@faast/payments-common';
 import promiseRetry from 'promise-retry';
 import { fromBase58, fromSeed } from 'bip32';
 import baseX from 'base-x';
 import crypto from 'crypto';
-import BigNumber from 'bignumber.js';
-import { extendCodec, instanceofCodec, nullable, isNil, assertType, DelegateLogger, isUndefined, isString as isString$1, Numeric } from '@faast/ts-common';
 
 const BaseRippleConfig = extendCodec(BaseConfig, {}, {
     server: union([string, instanceofCodec(RippleAPI), nullType]),
@@ -391,7 +391,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
         }
         catch (e) {
             const eString = e.toString();
-            if (NOT_FOUND_ERRORS.some(type$$1 => eString.includes(type$$1))) {
+            if (NOT_FOUND_ERRORS.some(type => eString.includes(type))) {
                 throw new Error(`Transaction not found: ${eString}`);
             }
             throw e;
@@ -949,14 +949,14 @@ class RippleBalanceMonitor extends RippleConnected {
         }
         const amount = balanceChange.value;
         const assetSymbol = balanceChange.currency;
-        const type$$1 = amount.startsWith('-') ? 'out' : 'in';
+        const type = amount.startsWith('-') ? 'out' : 'in';
         const tag = this.isPaymentTx(tx)
-            ? (type$$1 === 'out' ? tx.specification.source : tx.specification.destination).tag
+            ? (type === 'out' ? tx.specification.source : tx.specification.destination).tag
             : undefined;
-        const tertiarySequence = type$$1 === 'out' ? '00' : '01';
+        const tertiarySequence = type === 'out' ? '00' : '01';
         const activitySequence = `${primarySequence}.${secondarySequence}.${tertiarySequence}`;
         return {
-            type: type$$1,
+            type,
             networkType: this.networkType,
             networkSymbol: 'XRP',
             assetSymbol,
@@ -981,5 +981,5 @@ class RipplePaymentsFactory {
     }
 }
 
-export { BaseRipplePayments, HdRipplePayments, AccountRipplePayments, RipplePaymentsUtils, RippleBalanceMonitor, RipplePaymentsFactory, BaseRippleConfig, RippleBalanceMonitorConfig, BaseRipplePaymentsConfig, HdRipplePaymentsConfig, RippleKeyPair, RippleSecretPair, RippleAccountConfig, AccountRipplePaymentsConfig, RipplePaymentsConfig, RippleUnsignedTransaction, RippleSignedTransaction, RippleTransactionInfo, RippleBroadcastResult, RippleCreateTransactionOptions, toMainDenominationBigNumber, toMainDenominationString, toMainDenominationNumber, toBaseDenominationBigNumber, toBaseDenominationString, toBaseDenominationNumber, isValidXprv, isValidXpub, isValidAddress, isValidExtraId, assertValidAddress, assertValidExtraId, assertValidExtraIdOrNil };
+export { AccountRipplePayments, AccountRipplePaymentsConfig, BaseRippleConfig, BaseRipplePayments, BaseRipplePaymentsConfig, HdRipplePayments, HdRipplePaymentsConfig, RippleAccountConfig, RippleBalanceMonitor, RippleBalanceMonitorConfig, RippleBroadcastResult, RippleCreateTransactionOptions, RippleKeyPair, RipplePaymentsConfig, RipplePaymentsFactory, RipplePaymentsUtils, RippleSecretPair, RippleSignedTransaction, RippleTransactionInfo, RippleUnsignedTransaction, assertValidAddress, assertValidExtraId, assertValidExtraIdOrNil, isValidAddress, isValidExtraId, isValidXprv, isValidXpub, toBaseDenominationBigNumber, toBaseDenominationNumber, toBaseDenominationString, toMainDenominationBigNumber, toMainDenominationNumber, toMainDenominationString };
 //# sourceMappingURL=index.es.js.map

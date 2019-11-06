@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('tronweb'), require('io-ts'), require('@faast/ts-common'), require('@faast/payments-common'), require('lodash'), require('bip32'), require('js-sha3'), require('jssha'), require('elliptic'), require('crypto')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'tronweb', 'io-ts', '@faast/ts-common', '@faast/payments-common', 'lodash', 'bip32', 'js-sha3', 'jssha', 'elliptic', 'crypto'], factory) :
-  (factory((global.faastTronPayments = {}),global.TronWeb,global.t,global.tsCommon,global.paymentsCommon,global.lodash,global.bip32,global.jsSha3,global.jsSHA,global.elliptic,global.crypto));
-}(this, (function (exports,TronWeb,t,tsCommon,paymentsCommon,lodash,bip32,jsSha3,jsSHA,elliptic,crypto) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('tronweb'), require('lodash'), require('@faast/payments-common'), require('@faast/ts-common'), require('io-ts'), require('bip32'), require('js-sha3'), require('jssha'), require('elliptic'), require('crypto')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'tronweb', 'lodash', '@faast/payments-common', '@faast/ts-common', 'io-ts', 'bip32', 'js-sha3', 'jssha', 'elliptic', 'crypto'], factory) :
+  (global = global || self, factory(global.faastTronPayments = {}, global.TronWeb, global.lodash, global.paymentsCommon, global.tsCommon, global.t, global.bip32, global.jsSha3, global.jsSHA, global.elliptic, global.crypto));
+}(this, (function (exports, TronWeb, lodash, paymentsCommon, tsCommon, t, bip32, jsSha3, jsSHA, elliptic, crypto) { 'use strict';
 
   TronWeb = TronWeb && TronWeb.hasOwnProperty('default') ? TronWeb['default'] : TronWeb;
   jsSHA = jsSHA && jsSHA.hasOwnProperty('default') ? jsSHA['default'] : jsSHA;
@@ -95,7 +95,7 @@
           this.logger = new tsCommon.DelegateLogger(config.logger, PACKAGE_NAME);
       }
       async isValidExtraId(extraId) {
-          return isValidExtraId(extraId);
+          return isValidExtraId();
       }
       async isValidAddress(address) {
           return isValidAddress(address);
@@ -105,7 +105,7 @@
           if (!isValidAddress(address)) {
               return 'Invalid payport address';
           }
-          if (!tsCommon.isNil(extraId) && !isValidExtraId(extraId)) {
+          if (!tsCommon.isNil(extraId) && !isValidExtraId()) {
               return 'Invalid payport extraId';
           }
       }
@@ -560,8 +560,8 @@
   }
   function bip32PublicToTronPublic(pubKey) {
       const pubkey = ec.keyFromPublic(pubKey).getPublic();
-      const x = pubkey.x;
-      const y = pubkey.y;
+      const x = pubkey.getX();
+      const y = pubkey.getY();
       let xHex = x.toString('hex');
       while (xHex.length < 64) {
           xHex = `0${xHex}`;
@@ -576,8 +576,7 @@
   }
   function bip32PrivateToTronPrivate(priKeyBytes) {
       const key = ec.keyFromPrivate(priKeyBytes, 'bytes');
-      const privkey = key.getPrivate();
-      let priKeyHex = privkey.toString('hex');
+      let priKeyHex = key.getPrivate('hex');
       while (priKeyHex.length < 64) {
           priKeyHex = `0${priKeyHex}`;
       }
@@ -791,38 +790,43 @@
       }
   }
 
-  exports.CreateTransactionOptions = paymentsCommon.CreateTransactionOptions;
+  Object.defineProperty(exports, 'CreateTransactionOptions', {
+    enumerable: true,
+    get: function () {
+      return paymentsCommon.CreateTransactionOptions;
+    }
+  });
   exports.BaseTronPayments = BaseTronPayments;
+  exports.BaseTronPaymentsConfig = BaseTronPaymentsConfig;
+  exports.DECIMAL_PLACES = DECIMAL_PLACES;
+  exports.DEFAULT_EVENT_SERVER = DEFAULT_EVENT_SERVER;
+  exports.DEFAULT_FEE_LEVEL = DEFAULT_FEE_LEVEL;
+  exports.DEFAULT_FULL_NODE = DEFAULT_FULL_NODE;
+  exports.DEFAULT_SOLIDITY_NODE = DEFAULT_SOLIDITY_NODE;
+  exports.EXPIRATION_FUDGE_MS = EXPIRATION_FUDGE_MS;
+  exports.GetPayportOptions = GetPayportOptions;
   exports.HdTronPayments = HdTronPayments;
+  exports.HdTronPaymentsConfig = HdTronPaymentsConfig;
   exports.KeyPairTronPayments = KeyPairTronPayments;
+  exports.KeyPairTronPaymentsConfig = KeyPairTronPaymentsConfig;
+  exports.MIN_BALANCE_SUN = MIN_BALANCE_SUN;
+  exports.MIN_BALANCE_TRX = MIN_BALANCE_TRX;
+  exports.PACKAGE_NAME = PACKAGE_NAME;
+  exports.TronBroadcastResult = TronBroadcastResult;
+  exports.TronPaymentsConfig = TronPaymentsConfig;
   exports.TronPaymentsFactory = TronPaymentsFactory;
   exports.TronPaymentsUtils = TronPaymentsUtils;
-  exports.BaseTronPaymentsConfig = BaseTronPaymentsConfig;
-  exports.HdTronPaymentsConfig = HdTronPaymentsConfig;
-  exports.KeyPairTronPaymentsConfig = KeyPairTronPaymentsConfig;
-  exports.TronPaymentsConfig = TronPaymentsConfig;
-  exports.TronUnsignedTransaction = TronUnsignedTransaction;
   exports.TronSignedTransaction = TronSignedTransaction;
   exports.TronTransactionInfo = TronTransactionInfo;
-  exports.TronBroadcastResult = TronBroadcastResult;
-  exports.GetPayportOptions = GetPayportOptions;
-  exports.toError = toError;
+  exports.TronUnsignedTransaction = TronUnsignedTransaction;
+  exports.decode58 = decode58;
   exports.derivationPath = derivationPath;
   exports.deriveAddress = deriveAddress;
   exports.derivePrivateKey = derivePrivateKey;
-  exports.xprvToXpub = xprvToXpub;
-  exports.generateNewKeys = generateNewKeys;
   exports.encode58 = encode58;
-  exports.decode58 = decode58;
-  exports.PACKAGE_NAME = PACKAGE_NAME;
-  exports.MIN_BALANCE_SUN = MIN_BALANCE_SUN;
-  exports.MIN_BALANCE_TRX = MIN_BALANCE_TRX;
-  exports.DECIMAL_PLACES = DECIMAL_PLACES;
-  exports.DEFAULT_FULL_NODE = DEFAULT_FULL_NODE;
-  exports.DEFAULT_SOLIDITY_NODE = DEFAULT_SOLIDITY_NODE;
-  exports.DEFAULT_EVENT_SERVER = DEFAULT_EVENT_SERVER;
-  exports.DEFAULT_FEE_LEVEL = DEFAULT_FEE_LEVEL;
-  exports.EXPIRATION_FUDGE_MS = EXPIRATION_FUDGE_MS;
+  exports.generateNewKeys = generateNewKeys;
+  exports.toError = toError;
+  exports.xprvToXpub = xprvToXpub;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

@@ -1,15 +1,15 @@
-import { union, string, nullType, number, type, partial, boolean, object } from 'io-ts';
-import { BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, CreateTransactionOptions, BaseConfig, NetworkType, createUnitConverters, Payport, FeeLevel, FeeRateType, TransactionStatus } from '@faast/payments-common';
+import { BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, CreateTransactionOptions, FeeLevel, NetworkType, createUnitConverters, Payport, TransactionStatus, FeeRateType } from '@faast/payments-common';
 export { CreateTransactionOptions } from '@faast/payments-common';
-import promiseRetry from 'promise-retry';
+import { extendCodec, instanceofCodec, nullable, isNil, isObject, isString as isString$1, assertType, DelegateLogger, toBigNumber, Numeric } from '@faast/ts-common';
+import BigNumber from 'bignumber.js';
 import { omitBy, omit } from 'lodash';
+import { Server, StrKey, Networks, Transaction, Account, TransactionBuilder, Memo, Operation, Asset, Keypair } from 'stellar-sdk';
+import { union, string, nullType, number, type, partial, boolean, object } from 'io-ts';
+import { isString, isUndefined } from 'util';
+import promiseRetry from 'promise-retry';
 import StellarHDWallet from 'stellar-hd-wallet';
 import 'bip39';
-import { Networks, Transaction, Account, TransactionBuilder, Memo, Operation, Asset, Keypair, Server, StrKey } from 'stellar-sdk';
-import { isString, isUndefined } from 'util';
 import { EventEmitter } from 'events';
-import BigNumber from 'bignumber.js';
-import { extendCodec, instanceofCodec, nullable, isNil, isString as isString$1, isObject, assertType, DelegateLogger, toBigNumber, Numeric } from '@faast/ts-common';
 
 const BaseStellarConfig = extendCodec(BaseConfig, {}, {
     server: union([string, instanceofCodec(Server), nullType]),
@@ -55,6 +55,7 @@ const DECIMAL_PLACES = 7;
 const MIN_BALANCE = 1;
 const DEFAULT_CREATE_TRANSACTION_OPTIONS = {};
 const DEFAULT_TX_TIMEOUT_SECONDS = 5 * 60;
+const DEFAULT_FEE_LEVEL = FeeLevel.Low;
 const NOT_FOUND_ERRORS = ['MissingLedgerHistoryError', 'NotFoundError'];
 const DEFAULT_NETWORK = NetworkType.Mainnet;
 const DEFAULT_MAINNET_SERVER = 'https://horizon.stellar.org';
@@ -189,7 +190,7 @@ class StellarConnected {
     }
     async _normalizeTxOperation(tx) {
         const opPage = await this._retryDced(() => tx.operations());
-        const op = opPage.records.find(({ type: type$$1 }) => type$$1 === 'create_account' || type$$1 === 'payment');
+        const op = opPage.records.find(({ type }) => type === 'create_account' || type === 'payment');
         if (!op) {
             throw new Error(`Cannot normalize stellar tx - operation not found for transaction ${tx.id}`);
         }
@@ -401,7 +402,7 @@ class BaseStellarPayments extends StellarPaymentsUtils {
         }
         catch (e) {
             const eString = e.toString();
-            if (NOT_FOUND_ERRORS.some(type$$1 => eString.includes(type$$1))) {
+            if (NOT_FOUND_ERRORS.some(type => eString.includes(type))) {
                 throw new Error(`Transaction not found: ${eString}`);
             }
             throw e;
@@ -465,7 +466,7 @@ class BaseStellarPayments extends StellarPaymentsUtils {
             }
         }
         else {
-            targetFeeLevel = feeOption.feeLevel || FeeLevel.Medium;
+            targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL;
             const feeStats = await this._retryDced(() => this.getApi().feeStats());
             feeBase = feeStats.p10_accepted_fee;
             if (targetFeeLevel === FeeLevel.Medium) {
@@ -690,7 +691,13 @@ class AccountStellarPayments extends BaseStellarPayments {
                 secret: '',
             };
         }
-        else if (isValidSecret(accountConfig)) ;
+        else if (isValidSecret(accountConfig)) {
+            const keyPair = Keypair.fromSecret(accountConfig);
+            return {
+                address: keyPair.publicKey(),
+                secret: keyPair.secret(),
+            };
+        }
         throw new Error('Invalid stellar account config provided to stellar payments');
     }
     isReadOnly() {
@@ -729,6 +736,7 @@ class HdStellarPayments extends AccountStellarPayments {
             hotAccount: deriveSignatory(seed, 0),
             depositAccount: deriveSignatory(seed, 1)
         });
+        this.seed = seed;
     }
 }
 HdStellarPayments.generateMnemonic = generateMnemonic;
@@ -833,13 +841,13 @@ class StellarBalanceMonitor extends StellarConnected {
             this.logger.log(`Stellar transaction ${tx.id} operation does not apply to ${address}`);
             return null;
         }
-        const type$$1 = toAddress === address ? 'in' : 'out';
+        const type = toAddress === address ? 'in' : 'out';
         const extraId = toAddress === address ? tx.memo : null;
-        const tertiarySequence = type$$1 === 'out' ? '00' : '01';
+        const tertiarySequence = type === 'out' ? '00' : '01';
         const activitySequence = `${primarySequence}.${secondarySequence}.${tertiarySequence}`;
-        const netAmount = type$$1 === 'out' ? amount.plus(fee).times(-1) : amount;
+        const netAmount = type === 'out' ? amount.plus(fee).times(-1) : amount;
         return {
-            type: type$$1,
+            type,
             networkType: this.networkType,
             networkSymbol: 'XLM',
             assetSymbol: 'XLM',
@@ -864,5 +872,5 @@ class StellarPaymentsFactory {
     }
 }
 
-export { BaseStellarPayments, HdStellarPayments, AccountStellarPayments, StellarPaymentsUtils, StellarBalanceMonitor, StellarPaymentsFactory, BaseStellarConfig, StellarBalanceMonitorConfig, BaseStellarPaymentsConfig, HdStellarPaymentsConfig, StellarSignatory, PartialStellarSignatory, StellarAccountConfig, AccountStellarPaymentsConfig, StellarPaymentsConfig, StellarUnsignedTransaction, StellarSignedTransaction, StellarTransactionInfo, StellarBroadcastResult, StellarCreateTransactionOptions, toMainDenominationBigNumber, toMainDenominationString, toMainDenominationNumber, toBaseDenominationBigNumber, toBaseDenominationString, toBaseDenominationNumber, isValidAddress, isValidExtraId, isValidSecret, assertValidAddress, assertValidExtraId, assertValidExtraIdOrNil };
+export { AccountStellarPayments, AccountStellarPaymentsConfig, BaseStellarConfig, BaseStellarPayments, BaseStellarPaymentsConfig, HdStellarPayments, HdStellarPaymentsConfig, PartialStellarSignatory, StellarAccountConfig, StellarBalanceMonitor, StellarBalanceMonitorConfig, StellarBroadcastResult, StellarCreateTransactionOptions, StellarPaymentsConfig, StellarPaymentsFactory, StellarPaymentsUtils, StellarSignatory, StellarSignedTransaction, StellarTransactionInfo, StellarUnsignedTransaction, assertValidAddress, assertValidExtraId, assertValidExtraIdOrNil, isValidAddress, isValidExtraId, isValidSecret, toBaseDenominationBigNumber, toBaseDenominationNumber, toBaseDenominationString, toMainDenominationBigNumber, toMainDenominationNumber, toMainDenominationString };
 //# sourceMappingURL=index.es.js.map
