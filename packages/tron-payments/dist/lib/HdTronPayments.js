@@ -2,6 +2,7 @@ import { BaseTronPayments } from './BaseTronPayments';
 import Bip44Cache from './Bip44Cache';
 import { deriveAddress, derivePrivateKey, xprvToXpub, generateNewKeys } from './bip44';
 import { isValidXprv, isValidXpub, isValidAddress } from './helpers';
+import { omit } from 'lodash';
 const xpubCache = new Bip44Cache();
 export class HdTronPayments extends BaseTronPayments {
     constructor(config) {
@@ -27,7 +28,7 @@ export class HdTronPayments extends BaseTronPayments {
     }
     getPublicConfig() {
         return {
-            ...this.config,
+            ...omit(this.config, ['logger', 'fullNode', 'solidityNode', 'eventServer']),
             hdKey: this.getXpub(),
         };
     }

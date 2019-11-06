@@ -688,7 +688,7 @@ class HdTronPayments extends BaseTronPayments {
     }
     getPublicConfig() {
         return {
-            ...this.config,
+            ...lodash.omit(this.config, ['logger', 'fullNode', 'solidityNode', 'eventServer']),
             hdKey: this.getXpub(),
         };
     }
@@ -752,7 +752,7 @@ class KeyPairTronPayments extends BaseTronPayments {
     }
     getPublicConfig() {
         return {
-            ...this.config,
+            ...lodash.omit(this.config, ['logger', 'fullNode', 'solidityNode', 'eventServer']),
             keyPairs: this.addresses,
         };
     }

@@ -681,7 +681,7 @@
       }
       getPublicConfig() {
           return {
-              ...this.config,
+              ...lodash.omit(this.config, ['logger', 'fullNode', 'solidityNode', 'eventServer']),
               hdKey: this.getXpub(),
           };
       }
@@ -745,7 +745,7 @@
       }
       getPublicConfig() {
           return {
-              ...this.config,
+              ...lodash.omit(this.config, ['logger', 'fullNode', 'solidityNode', 'eventServer']),
               keyPairs: this.addresses,
           };
       }

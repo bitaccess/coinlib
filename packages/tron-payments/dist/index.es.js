@@ -1,5 +1,5 @@
 import TronWeb from 'tronweb';
-import { cloneDeep, get, pick, set } from 'lodash';
+import { cloneDeep, get, pick, set, omit } from 'lodash';
 import { FeeLevel, createUnitConverters, BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, NetworkType, Payport, FeeOptionCustom, FeeRateType, TransactionStatus, PaymentsError, PaymentsErrorCode } from '@faast/payments-common';
 export { CreateTransactionOptions } from '@faast/payments-common';
 import { extendCodec, assertType, DelegateLogger, isNil, isType } from '@faast/ts-common';
@@ -683,7 +683,7 @@ class HdTronPayments extends BaseTronPayments {
     }
     getPublicConfig() {
         return {
-            ...this.config,
+            ...omit(this.config, ['logger', 'fullNode', 'solidityNode', 'eventServer']),
             hdKey: this.getXpub(),
         };
     }
@@ -747,7 +747,7 @@ class KeyPairTronPayments extends BaseTronPayments {
     }
     getPublicConfig() {
         return {
-            ...this.config,
+            ...omit(this.config, ['logger', 'fullNode', 'solidityNode', 'eventServer']),
             keyPairs: this.addresses,
         };
     }

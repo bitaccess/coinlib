@@ -1,5 +1,6 @@
 import { BaseTronPayments } from './BaseTronPayments';
 import { isValidAddress, isValidPrivateKey, privateKeyToAddress } from './helpers';
+import { omit } from 'lodash';
 export class KeyPairTronPayments extends BaseTronPayments {
     constructor(config) {
         super(config);
@@ -33,7 +34,7 @@ export class KeyPairTronPayments extends BaseTronPayments {
     }
     getPublicConfig() {
         return {
-            ...this.config,
+            ...omit(this.config, ['logger', 'fullNode', 'solidityNode', 'eventServer']),
             keyPairs: this.addresses,
         };
     }
