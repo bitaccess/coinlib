@@ -1,3 +1,6 @@
 {
-  "extends": "./node_modules/@faast/ts-config/library/tsconfig.json"
+  "extends": "./node_modules/@faast/ts-config/library/tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+  }
 }
