@@ -5,6 +5,7 @@
     "outDir": "dist/lib",
     "paths": {
       "#/*": ["./src/*"],
+      "@faast/ts-common": ["node_modules/@faast/ts-common"],
     }
   },
   "exclude": ["node_modules", "dist"]
