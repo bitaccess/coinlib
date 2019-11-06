@@ -37,7 +37,7 @@
     "pretest": "lerna run lint",
     "test": "lerna run test",
     "preversion": "bin/preversion.sh",
-    "release": "npm run bootstrap && lerna publish"
+    "release": "npm run bs && lerna publish from-git"
   },
   "devDependencies": {
     "@faast/ts-config": "^1.3.2",
