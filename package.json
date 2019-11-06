@@ -37,7 +37,6 @@
     "pretest": "lerna run lint",
     "test": "lerna run test",
     "preversion": "bin/preversion.sh",
-    "version": "lerna version",
     "release": "npm run bootstrap && lerna publish"
   },
   "devDependencies": {
