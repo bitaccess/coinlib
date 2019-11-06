@@ -1,7 +1,6 @@
-import KeyPairTronPayments from '#/KeyPairTronPayments'
+import { KeyPairTronPaymentsConfig, KeyPairTronPayments } from '../src'
 
 import { hdAccount } from './fixtures/accounts'
-import { KeyPairTronPaymentsConfig } from '../src/types'
 
 const EXTERNAL_ADDRESS = 'TW22XzVixyFZU5DxQJwxqXuKfNKFNMLqJ2'
 

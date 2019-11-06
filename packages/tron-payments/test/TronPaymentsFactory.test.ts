@@ -1,8 +1,7 @@
-import { TronPaymentsFactory } from '#/TronPaymentsFactory'
-import { HdTronPayments } from '#/HdTronPayments'
-import { KeyPairTronPayments } from '#/KeyPairTronPayments'
-import { HdTronPaymentsConfig, KeyPairTronPaymentsConfig } from '#/types'
-import { TronPaymentsConfig } from '../src/types'
+import {
+  TronPaymentsFactory, HdTronPayments, KeyPairTronPayments, TronPaymentsConfig,
+  HdTronPaymentsConfig, KeyPairTronPaymentsConfig,
+} from '../src'
 
 import { hdAccount } from './fixtures/accounts'
 

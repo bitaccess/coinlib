@@ -1,18 +1,21 @@
 import { TransactionStatus, BalanceActivity, NetworkType, GetBalanceActivityOptions } from '@faast/payments-common'
 import BigNumber from 'bignumber.js'
-import { omit, sortBy } from 'lodash'
+import { sortBy } from 'lodash'
+import StellarHD from 'stellar-hd-wallet'
+
+import {
+  isValidAddress, StellarSignedTransaction, AccountStellarPayments,
+  StellarTransactionInfo, StellarBalanceMonitor,
+} from '../src'
+import { padLeft } from '../src/utils'
 
 import {
   setupTestnetPayments,
   delay,
   END_TRANSACTION_STATES,
-  expectEqualOmit,
   expectEqualWhenTruthy,
   logger,
 } from './utils'
-import { isValidAddress, StellarSignedTransaction, AccountStellarPayments, StellarTransactionInfo, StellarBalanceMonitor } from '../src'
-import { padLeft } from '#/utils'
-import StellarHD from 'stellar-hd-wallet'
 
 jest.setTimeout(60 * 1000)
 
@@ -222,7 +225,7 @@ describe('e2e', () => {
     expect(broadcastResult.id).toBeTruthy()
     expect(broadcastResult.rebroadcast).toBe(false)
     sendFreshTxPromise = pollSignedTx(broadcastResult.id, signedTx)
-    const tx = await sendTxPromise
+    const tx = await sendFreshTxPromise
     expect(tx.amount).toEqual(sendAmount)
     const fee = new BigNumber(tx.fee)
     expect(fee.toNumber()).toBeGreaterThan(0)
@@ -263,20 +266,6 @@ describe('e2e', () => {
         networkType: NetworkType.Testnet,
         timestamp: sendTx.confirmationTimestamp,
         activitySequence: getExpectedActivitySequence(sendTx, 'in'),
-        type: 'in',
-      },
-      {
-        address: sendFreshTx.toAddress,
-        amount: sendFreshTx.amount,
-        assetSymbol: 'XLM',
-        confirmationId: sendFreshTx.confirmationId,
-        confirmationNumber: sendFreshTx.confirmationNumber,
-        externalId: sendFreshTx.id,
-        extraId: sendFreshTx.toExtraId,
-        networkSymbol: 'XLM',
-        networkType: NetworkType.Testnet,
-        timestamp: sendFreshTx.confirmationTimestamp,
-        activitySequence: getExpectedActivitySequence(sendFreshTx, 'in'),
         type: 'in',
       },
     ]
@@ -358,9 +347,10 @@ describe('e2e', () => {
   })
 
   it('should retrieve nothing for a range without activity', async () => {
-    const sweepTx = await sweepTxPromise
-    const sendTx = await sendTxPromise
-    const from = BigNumber.max(sweepTx.confirmationNumber || startLedgerVersion, sendTx.confirmationNumber || startLedgerVersion)
+    const txs = [
+      await sweepTxPromise, await sendTxPromise, await sendFreshTxPromise
+    ]
+    const from = BigNumber.max(...txs.map((tx) => tx.confirmationNumber || startLedgerVersion))
       .plus(1)
     const actual = await accumulateRetrievedActivities(payments.hotSignatory.address, { from })
     expectBalanceActivities(actual, [])

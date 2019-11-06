@@ -154,7 +154,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       }
       throw e
     }
-    this.logger.debug(`api.loadAccount ${address}`, omitHidden(accountInfo))
+    // this.logger.debug(`api.loadAccount ${address}`, omitHidden(accountInfo))
     return accountInfo
   }
 
@@ -177,6 +177,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     const amountMain = new BigNumber(balanceLine && balanceLine.balance ? balanceLine.balance : '0')
     // Subtract locked up min balance from result to avoid confusion about what is actually spendable
     const confirmedBalance = amountMain.minus(MIN_BALANCE)
+    this.logger.debug(`getBalance ${address}/${extraId}`, confirmedBalance)
     return {
       confirmedBalance: confirmedBalance.toString(),
       unconfirmedBalance: '0',
@@ -235,7 +236,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       }
       throw e
     }
-    this.logger.debug('getTransactionInfo', txId, omitHidden(tx))
+    // this.logger.debug('getTransactionInfo', txId, omitHidden(tx))
     const { amount, fee, fromAddress, toAddress } = await this._normalizeTxOperation(tx)
     const fromIndex = this.resolveIndexFromAddressAndMemo(fromAddress, tx.memo)
     const toIndex = this.resolveIndexFromAddressAndMemo(toAddress, tx.memo)

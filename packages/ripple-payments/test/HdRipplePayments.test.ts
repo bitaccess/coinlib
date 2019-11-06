@@ -1,6 +1,5 @@
-import { HdRipplePayments } from '../src'
+import { HdRipplePayments, XPUB_REGEX, XPRV_REGEX } from '../src'
 import { hdAccount } from './fixtures/accounts'
-import { XPUB_REGEX, XPRV_REGEX } from '../src/constants'
 
 const { XPRV, XPUB, PRIVATE_KEYS, PUBLIC_KEYS, ADDRESSES } = hdAccount
 

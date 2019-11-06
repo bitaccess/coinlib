@@ -10,9 +10,10 @@ import {
   expectEqualWhenTruthy,
   logger,
 } from './utils'
-import { AccountRipplePayments, RippleTransactionInfo, RippleBalanceMonitor } from '../src'
-import { ADDRESS_REGEX } from '../src/constants'
-import { RippleSignedTransaction } from '../src/types'
+import {
+  ADDRESS_REGEX, RippleSignedTransaction, AccountRipplePayments,
+  RippleTransactionInfo, RippleBalanceMonitor,
+} from '../src'
 
 jest.setTimeout(60 * 1000)
 

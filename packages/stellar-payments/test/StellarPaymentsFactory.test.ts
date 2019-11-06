@@ -1,7 +1,7 @@
-import { StellarPaymentsFactory } from '#/StellarPaymentsFactory'
-import { HdStellarPayments } from '#/HdStellarPayments'
-import { AccountStellarPayments } from '#/AccountStellarPayments'
-import { HdStellarPaymentsConfig, AccountStellarPaymentsConfig } from '#/types'
+import {
+  StellarPaymentsFactory, HdStellarPayments, AccountStellarPayments,
+  HdStellarPaymentsConfig, AccountStellarPaymentsConfig,
+} from '../src'
 
 import { hdAccount } from './fixtures/accounts'
 

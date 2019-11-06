@@ -1,6 +1,6 @@
 import { HdStellarPayments } from '../src'
 import { hdAccount } from './fixtures/accounts'
-import * as bip39 from 'bip39';
+import * as bip39 from 'bip39'
 
 const { MNEMONIC, SEED, ADDRESSES, SECRETS } = hdAccount
 

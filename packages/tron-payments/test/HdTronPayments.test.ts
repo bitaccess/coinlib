@@ -1,18 +1,17 @@
 import fs from 'fs'
 import path from 'path'
 import { omit } from 'lodash'
+import { FeeRateType, BalanceResult, TransactionStatus, NetworkType } from '@faast/payments-common'
+import { Transaction } from 'tronweb'
 
-import { HdTronPayments } from '#/HdTronPayments'
-import { TronTransactionInfo } from '#/types'
+import {
+  HdTronPayments, TronTransactionInfo, HdTronPaymentsConfig,
+  TronSignedTransaction, TronUnsignedTransaction,
+} from '../src'
 
 import { txInfo_209F8, signedTx_valid, txInfo_a0787, signedTx_invalid } from './fixtures/transactions'
 import { hdAccount } from './fixtures/accounts'
-import { HdTronPaymentsConfig, TronSignedTransaction, TronUnsignedTransaction } from '../src/types'
-import { resolveSoa } from 'dns'
-import { FeeRateType, BalanceResult, TransactionStatus, NetworkType } from '@faast/payments-common'
-import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, TestLogger } from './utils'
-import BigNumber from 'bignumber.js'
-import { Transaction } from 'tronweb'
+import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger } from './utils'
 
 const { XPRV, XPUB, PRIVATE_KEYS, ADDRESSES } = hdAccount
 
@@ -28,9 +27,9 @@ if (fs.existsSync(secretXprvFilePath)) {
     .readFileSync(secretXprvFilePath)
     .toString('utf8')
     .trim()
-  console.log(`Loaded ${SECRET_XPRV_FILE}. Send and sweep tests enabled.`)
+  logger.log(`Loaded ${SECRET_XPRV_FILE}. Send and sweep tests enabled.`)
 } else {
-  console.log(
+  logger.log(
     `File ${SECRET_XPRV_FILE} missing. Send and sweep tests will be skipped. To enable all tests ask Dylan to share the file with you on Lastpass.`,
   )
 }
@@ -189,7 +188,7 @@ describe('HdTronPayments', () => {
     const config = {
       hdKey: XPUB,
       network: NetworkType.Mainnet,
-      logger: new TestLogger(),
+      logger,
     }
     const tp = new HdTronPayments(config)
 
@@ -204,7 +203,7 @@ describe('HdTronPayments', () => {
     const config = {
       hdKey: XPRV,
       network: NetworkType.Mainnet,
-      logger: new TestLogger(),
+      logger,
     }
     const tp = new HdTronPayments(config)
 
@@ -220,7 +219,7 @@ describe('HdTronPayments', () => {
       const tp = new HdTronPayments({
         hdKey: secretXprv,
         network: NetworkType.Mainnet,
-        logger: new TestLogger(),
+        logger,
       })
       const address0 = 'TGykLnoEQWYh6Mj6XWk9dWU5L6SXez2AWj'
       const address3 = 'TJGHeNADuV24au6bscVSfiynZmcpTMN8UK'
@@ -312,14 +311,14 @@ describe('HdTronPayments', () => {
 
       async function pollUntilEnded(signedTx: TronSignedTransaction) {
         const txId = signedTx.id
-        console.log('polling until ended', txId)
+        logger.log('polling until ended', txId)
         let tx: TronTransactionInfo | undefined
         while (!testsComplete && (!tx || !END_TRANSACTION_STATES.includes(tx.status) || tx.confirmations === 0)) {
           try {
             tx = await tp.getTransactionInfo(txId)
           } catch (e) {
             if (e.message.includes('Transaction not found')) {
-              console.log('tx not found yet', txId, e.message)
+              logger.log('tx not found yet', txId, e.message)
             } else {
               throw e
             }
@@ -329,7 +328,7 @@ describe('HdTronPayments', () => {
         if (!tx) {
           throw new Error(`failed to poll until ended ${txId}`)
         }
-        console.log(tx.status, tx)
+        logger.log(tx.status, tx)
         expect(tx.id).toBe(signedTx.id)
         expect(tx.fromAddress).toBe(signedTx.fromAddress)
         expectEqualWhenTruthy(tx.fromExtraId, signedTx.fromExtraId)
@@ -361,7 +360,7 @@ describe('HdTronPayments', () => {
         }
         if (indexToSweep < 0) {
           const allAddresses = await Promise.all(indicesToTry.map(i => tp.getPayport(i)))
-          console.log(
+          logger.log(
             'Cannot end to end test sweeping due to lack of funds. Send TRX to any of the following addresses and try again.',
             allAddresses,
           )
@@ -371,7 +370,7 @@ describe('HdTronPayments', () => {
         try {
           const unsignedTx = await tp.createSweepTransaction(indexToSweep, recipientIndex)
           const signedTx = await tp.signTransaction(unsignedTx)
-          console.log(`Sweeping ${signedTx.amount} TRX from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
+          logger.log(`Sweeping ${signedTx.amount} TRX from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
           expect(await tp.broadcastTransaction(signedTx)).toEqual({
             id: signedTx.id,
             rebroadcast: false,
@@ -381,7 +380,7 @@ describe('HdTronPayments', () => {
           expect(tx.fee).toEqual(signedTx.fee)
         } catch (e) {
           if ((e.message || (e as string)).includes('Validate TransferContract error, balance is not sufficient')) {
-            console.log('Ran consecutive tests too soon, previous sweep not complete. Wait a minute and retry')
+            logger.log('Ran consecutive tests too soon, previous sweep not complete. Wait a minute and retry')
           }
           throw e
         }
