@@ -23,6 +23,8 @@ export declare abstract class BaseStellarPayments<Config extends BaseStellarPaym
     getAddressesToMonitor(): string[];
     isSweepableAddressBalance(balance: Numeric): boolean;
     isSweepableBalance(balance: string, payport?: ResolveablePayport): boolean;
+    loadAccount(address: string): Promise<Stellar.AccountResponse | null>;
+    loadAccountOrThrow(address: string): Promise<Stellar.AccountResponse>;
     getBalance(payportOrIndex: ResolveablePayport): Promise<BalanceResult>;
     getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<string>;
     resolveIndexFromAddressAndMemo(address: string, memo?: string): number | null;

@@ -6,4 +6,5 @@ export * from './RippleBalanceMonitor';
 export * from './RipplePaymentsFactory';
 export * from './types';
 export * from './helpers';
+export * from './constants';
 //# sourceMappingURL=index.js.map

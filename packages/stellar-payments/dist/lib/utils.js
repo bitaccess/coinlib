@@ -4,6 +4,10 @@ import promiseRetry from 'promise-retry';
 import { isString, isObject, isNil } from '@faast/ts-common';
 import { DEFAULT_TESTNET_SERVER, DEFAULT_MAINNET_SERVER } from './constants';
 import { omitBy } from 'lodash';
+export function isMatchingError(e, partialMessages) {
+    const messageLower = e.toString().toLowerCase();
+    return partialMessages.some(pm => messageLower.includes(pm.toLowerCase()));
+}
 export function serializePayport(payport) {
     return isNil(payport.extraId) ? payport.address : `${payport.address}/${payport.extraId}`;
 }
@@ -45,14 +49,12 @@ export function resolveStellarServer(server, network) {
         };
     }
 }
-const CONNECTION_ERRORS = ['ConnectionError', 'NotConnectedError', 'DisconnectedError'];
-const RETRYABLE_ERRORS = [...CONNECTION_ERRORS, 'TimeoutError'];
+const RETRYABLE_ERRORS = ['timeout', 'disconnected'];
 const MAX_RETRIES = 3;
 export function retryIfDisconnected(fn, stellarApi, logger) {
     return promiseRetry((retry, attempt) => {
         return fn().catch(async (e) => {
-            const eName = e ? e.constructor.name : '';
-            if (RETRYABLE_ERRORS.includes(eName)) {
+            if (isMatchingError(e, RETRYABLE_ERRORS)) {
                 logger.log(`Retryable error during stellar server call, retrying ${MAX_RETRIES - attempt} more times`, e.toString());
                 retry(e);
             }

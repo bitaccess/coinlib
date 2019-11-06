@@ -53,7 +53,7 @@
   const DEFAULT_CREATE_TRANSACTION_OPTIONS = {};
   const DEFAULT_TX_TIMEOUT_SECONDS = 5 * 60;
   const DEFAULT_FEE_LEVEL = paymentsCommon.FeeLevel.Low;
-  const NOT_FOUND_ERRORS = ['MissingLedgerHistoryError', 'NotFoundError'];
+  const NOT_FOUND_ERRORS = ['MissingLedgerHistoryError', 'NotFoundError', 'Not Found'];
   const DEFAULT_NETWORK = paymentsCommon.NetworkType.Mainnet;
   const DEFAULT_MAINNET_SERVER = 'https://horizon.stellar.org';
   const DEFAULT_TESTNET_SERVER = 'https://horizon-testnet.stellar.org';
@@ -84,6 +84,10 @@
       }
   }
 
+  function isMatchingError(e, partialMessages) {
+      const messageLower = e.toString().toLowerCase();
+      return partialMessages.some(pm => messageLower.includes(pm.toLowerCase()));
+  }
   function serializePayport(payport) {
       return tsCommon.isNil(payport.extraId) ? payport.address : `${payport.address}/${payport.extraId}`;
   }
@@ -125,14 +129,12 @@
           };
       }
   }
-  const CONNECTION_ERRORS = ['ConnectionError', 'NotConnectedError', 'DisconnectedError'];
-  const RETRYABLE_ERRORS = [...CONNECTION_ERRORS, 'TimeoutError'];
+  const RETRYABLE_ERRORS = ['timeout', 'disconnected'];
   const MAX_RETRIES = 3;
   function retryIfDisconnected(fn, stellarApi, logger) {
       return promiseRetry((retry, attempt) => {
           return fn().catch(async (e) => {
-              const eName = e ? e.constructor.name : '';
-              if (RETRYABLE_ERRORS.includes(eName)) {
+              if (isMatchingError(e, RETRYABLE_ERRORS)) {
                   logger.log(`Retryable error during stellar server call, retrying ${MAX_RETRIES - attempt} more times`, e.toString());
                   retry(e);
               }
@@ -335,17 +337,38 @@
           }
           return balanceBase.gt(0);
       }
+      async loadAccount(address) {
+          let accountInfo;
+          try {
+              accountInfo = await this._retryDced(() => this.getApi().loadAccount(address));
+          }
+          catch (e) {
+              if (isMatchingError(e, NOT_FOUND_ERRORS)) {
+                  this.logger.debug('api.loadAccount account not found', address);
+                  return null;
+              }
+              throw e;
+          }
+          return accountInfo;
+      }
+      async loadAccountOrThrow(address) {
+          const accountInfo = await this.loadAccount(address);
+          if (accountInfo === null) {
+              throw new Error(`Account not found ${address}`);
+          }
+          return accountInfo;
+      }
       async getBalance(payportOrIndex) {
           const payport = await this.resolvePayport(payportOrIndex);
           const { address, extraId } = payport;
           if (!tsCommon.isNil(extraId)) {
               throw new Error(`Cannot getBalance of stellar payport with extraId ${extraId}, use BalanceMonitor instead`);
           }
-          const accountInfo = await this._retryDced(() => this.getApi().loadAccount(address));
-          this.logger.debug(`api.loadAccount ${address}`, omitHidden(accountInfo));
+          const accountInfo = await this.loadAccountOrThrow(address);
           const balanceLine = accountInfo.balances.find((line) => line.asset_type === 'native');
           const amountMain = new BigNumber(balanceLine && balanceLine.balance ? balanceLine.balance : '0');
           const confirmedBalance = amountMain.minus(MIN_BALANCE);
+          this.logger.debug(`getBalance ${address}/${extraId}`, confirmedBalance);
           return {
               confirmedBalance: confirmedBalance.toString(),
               unconfirmedBalance: '0',
@@ -355,7 +378,7 @@
       async getNextSequenceNumber(payportOrIndex) {
           const payport = await this.resolvePayport(payportOrIndex);
           const { address } = payport;
-          const accountInfo = await this._retryDced(() => this.getApi().loadAccount(address));
+          const accountInfo = await this.loadAccountOrThrow(address);
           return new BigNumber(accountInfo.sequence).plus(1).toString();
       }
       resolveIndexFromAddressAndMemo(address, memo) {
@@ -404,7 +427,6 @@
               }
               throw e;
           }
-          this.logger.debug('getTransactionInfo', txId, omitHidden(tx));
           const { amount, fee, fromAddress, toAddress } = await this._normalizeTxOperation(tx);
           const fromIndex = this.resolveIndexFromAddressAndMemo(fromAddress, tx.memo);
           const toIndex = this.resolveIndexFromAddressAndMemo(toAddress, tx.memo);
@@ -540,19 +562,28 @@
               throw new Error(`Insufficient payport balance of ${payportBalance} XLM to send ${amountString} XLM ` +
                   `with fee of ${feeMain} XLM: ${serializePayport(fromPayport)}`);
           }
-          const account = sequenceNumber
-              ? new Stellar.Account(fromAddress, sequenceNumber.minus(1).toString())
-              : await this.getApi().loadAccount(fromAddress);
-          const preparedTx = new Stellar.TransactionBuilder(account, {
+          const fromAccount = await this.loadAccountOrThrow(fromAddress);
+          let sourceAccount = fromAccount;
+          if (sequenceNumber) {
+              sourceAccount = new Stellar.Account(fromAddress, sequenceNumber.minus(1).toString());
+          }
+          const toAccount = await this.loadAccount(toAddress);
+          const operation = toAccount === null
+              ? Stellar.Operation.createAccount({
+                  destination: toAddress,
+                  startingBalance: amount.toString(),
+              })
+              : Stellar.Operation.payment({
+                  destination: toAddress,
+                  asset: Stellar.Asset.native(),
+                  amount: amount.toString(),
+              });
+          const preparedTx = new Stellar.TransactionBuilder(sourceAccount, {
               fee: Number.parseInt(feeBase),
               networkPassphrase: this.getStellarNetwork(),
               memo: toExtraId ? Stellar.Memo.text(toExtraId) : undefined,
           })
-              .addOperation(Stellar.Operation.payment({
-              destination: toAddress,
-              asset: Stellar.Asset.native(),
-              amount: amount.toString(),
-          }))
+              .addOperation(operation)
               .setTimeout(txTimeoutSecs)
               .build();
           const txData = this.serializeTransaction(preparedTx);
