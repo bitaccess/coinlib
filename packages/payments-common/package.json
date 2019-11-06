@@ -33,7 +33,7 @@
     "lint": "tslint --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "docs": "bin/docs.sh",
-    "prebuild": "rimraf dist",
+    "prebuild": "rimraf dist && rimraf docs",
     "build": "bin/build.sh",
     "start": "rollup -c rollup.config.js -w",
     "test": "jest --runInBand --detectOpenHandles",
