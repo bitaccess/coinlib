@@ -12,8 +12,12 @@ import {
 } from './utils'
 import { isValidAddress, StellarSignedTransaction, AccountStellarPayments, StellarTransactionInfo, StellarBalanceMonitor } from '../src'
 import { padLeft } from '#/utils'
+import StellarHD from 'stellar-hd-wallet'
 
 jest.setTimeout(60 * 1000)
+
+const FRESH_INDEX = Math.floor(Date.now() / 1000) - 1573074564
+const FRESH_ADDRESS = StellarHD.fromSeed('1234').getPublicKey(FRESH_INDEX)
 
 describe('e2e', () => {
   let testsComplete: boolean = false
@@ -167,6 +171,7 @@ describe('e2e', () => {
 
   let sweepTxPromise: Promise<StellarTransactionInfo>
   let sendTxPromise: Promise<StellarTransactionInfo>
+  let sendFreshTxPromise: Promise<StellarTransactionInfo>
 
   it('end to end sweep', async () => {
     const indexToSweep = 5
@@ -188,17 +193,35 @@ describe('e2e', () => {
   })
 
   it('end to end send', async () => {
-    const indexToSweep = 0
+    const sourceIndex = 0
     const recipientIndex = 5
-    const sendAmount = '1.222' // Pretend the payport has this much balance
+    const sendAmount = '1.222'
 
-    const unsignedTx = await payments.createTransaction(indexToSweep, recipientIndex, sendAmount)
+    const unsignedTx = await payments.createTransaction(sourceIndex, recipientIndex, sendAmount)
     const signedTx = await payments.signTransaction(unsignedTx)
-    logger.log(`Sending ${signedTx.amount} XLM from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
+    logger.log(`Sending ${signedTx.amount} XLM from ${sourceIndex} to ${recipientIndex} in tx ${signedTx.id}`)
     const broadcastResult = await payments.broadcastTransaction(signedTx)
     expect(broadcastResult.id).toBeTruthy()
     expect(broadcastResult.rebroadcast).toBe(false)
     sendTxPromise = pollSignedTx(broadcastResult.id, signedTx)
+    const tx = await sendTxPromise
+    expect(tx.amount).toEqual(sendAmount)
+    const fee = new BigNumber(tx.fee)
+    expect(fee.toNumber()).toBeGreaterThan(0)
+  })
+
+  it('end to end send to fresh address', async () => {
+    const sourceIndex = 0
+    const recipientAddress = FRESH_ADDRESS
+    const sendAmount = '1.111'
+
+    const unsignedTx = await payments.createTransaction(sourceIndex, recipientAddress, sendAmount)
+    const signedTx = await payments.signTransaction(unsignedTx)
+    logger.log(`Sending ${signedTx.amount} XLM from ${sourceIndex} to fresh address ${recipientAddress} in tx ${signedTx.id}`)
+    const broadcastResult = await payments.broadcastTransaction(signedTx)
+    expect(broadcastResult.id).toBeTruthy()
+    expect(broadcastResult.rebroadcast).toBe(false)
+    sendFreshTxPromise = pollSignedTx(broadcastResult.id, signedTx)
     const tx = await sendTxPromise
     expect(tx.amount).toEqual(sendAmount)
     const fee = new BigNumber(tx.fee)
@@ -212,6 +235,7 @@ describe('e2e', () => {
   async function getExpectedDepositActivities() {
     const sweepTx = await sweepTxPromise
     const sendTx = await sendTxPromise
+    const sendFreshTx = await sendFreshTxPromise
     return [
       {
         address: sweepTx.fromAddress,
@@ -241,12 +265,27 @@ describe('e2e', () => {
         activitySequence: getExpectedActivitySequence(sendTx, 'in'),
         type: 'in',
       },
+      {
+        address: sendFreshTx.toAddress,
+        amount: sendFreshTx.amount,
+        assetSymbol: 'XLM',
+        confirmationId: sendFreshTx.confirmationId,
+        confirmationNumber: sendFreshTx.confirmationNumber,
+        externalId: sendFreshTx.id,
+        extraId: sendFreshTx.toExtraId,
+        networkSymbol: 'XLM',
+        networkType: NetworkType.Testnet,
+        timestamp: sendFreshTx.confirmationTimestamp,
+        activitySequence: getExpectedActivitySequence(sendFreshTx, 'in'),
+        type: 'in',
+      },
     ]
   }
 
   async function getExpectedHotActivities() {
     const sweepTx = await sweepTxPromise
     const sendTx = await sendTxPromise
+    const sendFreshTx = await sendFreshTxPromise
     return [
       {
         address: sweepTx.toAddress,
@@ -274,6 +313,20 @@ describe('e2e', () => {
         networkType: NetworkType.Testnet,
         timestamp: sendTx.confirmationTimestamp,
         activitySequence: getExpectedActivitySequence(sendTx, 'out'),
+        type: 'out',
+      },
+      {
+        address: sendFreshTx.fromAddress,
+        amount: `-${new BigNumber(sendFreshTx.amount).plus(sendFreshTx.fee)}`,
+        assetSymbol: 'XLM',
+        confirmationId: sendFreshTx.confirmationId,
+        confirmationNumber: sendFreshTx.confirmationNumber,
+        externalId: sendFreshTx.id,
+        extraId: null,
+        networkSymbol: 'XLM',
+        networkType: NetworkType.Testnet,
+        timestamp: sendFreshTx.confirmationTimestamp,
+        activitySequence: getExpectedActivitySequence(sendFreshTx, 'out'),
         type: 'out',
       },
     ]

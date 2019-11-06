@@ -38,7 +38,7 @@ import {
   DEFAULT_FEE_LEVEL,
 } from './constants'
 import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers'
-import { isStellarTransaction, serializePayport, omitHidden } from './utils'
+import { isStellarTransaction, serializePayport, omitHidden, isMatchingError } from './utils'
 
 export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConfig> extends StellarPaymentsUtils
   implements
@@ -143,6 +143,28 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     }
     return balanceBase.gt(0)
   }
+  async loadAccount(address: string) {
+    let accountInfo
+    try {
+      accountInfo = await this._retryDced(() => this.getApi().loadAccount(address))
+    } catch (e) {
+      if (isMatchingError(e, NOT_FOUND_ERRORS)) {
+        this.logger.debug('api.loadAccount account not found', address)
+        return null
+      }
+      throw e
+    }
+    this.logger.debug(`api.loadAccount ${address}`, omitHidden(accountInfo))
+    return accountInfo
+  }
+
+  async loadAccountOrThrow(address: string) {
+    const accountInfo = await this.loadAccount(address)
+    if (accountInfo === null) {
+      throw new Error(`Account not found ${address}`)
+    }
+    return accountInfo
+  }
 
   async getBalance(payportOrIndex: ResolveablePayport): Promise<BalanceResult> {
     const payport = await this.resolvePayport(payportOrIndex)
@@ -150,8 +172,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     if (!isNil(extraId)) {
       throw new Error(`Cannot getBalance of stellar payport with extraId ${extraId}, use BalanceMonitor instead`)
     }
-    const accountInfo = await this._retryDced(() => this.getApi().loadAccount(address))
-    this.logger.debug(`api.loadAccount ${address}`, omitHidden(accountInfo))
+    const accountInfo = await this.loadAccountOrThrow(address)
     const balanceLine = accountInfo.balances.find((line) => line.asset_type === 'native')
     const amountMain = new BigNumber(balanceLine && balanceLine.balance ? balanceLine.balance : '0')
     // Subtract locked up min balance from result to avoid confusion about what is actually spendable
@@ -166,7 +187,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
   async getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<string> {
     const payport = await this.resolvePayport(payportOrIndex)
     const { address } = payport
-    const accountInfo = await this._retryDced(() => this.getApi().loadAccount(address))
+    const accountInfo = await this.loadAccountOrThrow(address)
     return new BigNumber(accountInfo.sequence).plus(1).toString()
   }
 
@@ -367,21 +388,33 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
           `with fee of ${feeMain} XLM: ${serializePayport(fromPayport)}`,
       )
     }
-    // Stellar creates txs with account sequence + 1, so we must subtract sequenceNumber option first
-    const account = sequenceNumber
-      ? new Stellar.Account(fromAddress, sequenceNumber.minus(1).toString())
-      : await this.getApi().loadAccount(fromAddress)
+    const fromAccount = await this.loadAccountOrThrow(fromAddress)
 
-    const preparedTx = new Stellar.TransactionBuilder(account, {
+    let sourceAccount: Stellar.Account = fromAccount
+    if (sequenceNumber) {
+      // Stellar creates txs with account sequence + 1, so we must subtract sequenceNumber option first
+      sourceAccount = new Stellar.Account(fromAddress, sequenceNumber.minus(1).toString())
+    }
+
+    const toAccount = await this.loadAccount(toAddress)
+
+    const operation = toAccount === null
+      ? Stellar.Operation.createAccount({
+          destination: toAddress,
+          startingBalance: amount.toString(),
+        })
+      : Stellar.Operation.payment({
+          destination: toAddress,
+          asset: Stellar.Asset.native(),
+          amount: amount.toString(),
+        })
+
+    const preparedTx = new Stellar.TransactionBuilder(sourceAccount, {
         fee: Number.parseInt(feeBase),
         networkPassphrase: this.getStellarNetwork(),
         memo: toExtraId ? Stellar.Memo.text(toExtraId) : undefined,
       })
-      .addOperation(Stellar.Operation.payment({
-        destination: toAddress,
-        asset: Stellar.Asset.native(),
-        amount: amount.toString(),
-      }))
+      .addOperation(operation)
       .setTimeout(txTimeoutSecs)
       .build()
     const txData = this.serializeTransaction(preparedTx)
