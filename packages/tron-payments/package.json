@@ -7,8 +7,8 @@
   "browser": "dist/index.umd.js",
   "types": "dist/lib/index.d.ts",
   "esnext": "dist/lib/index.js",
-  "repository": "https://github.com/go-faast/coin-payments/tree/master/packages/ripple-payments",
-  "homepage": "https://github.com/go-faast/coin-payments/tree/master/packages/ripple-payments#readme",
+  "repository": "https://github.com/go-faast/coin-payments/tree/master/packages/tron-payments",
+  "homepage": "https://github.com/go-faast/coin-payments/tree/master/packages/tron-payments#readme",
   "bugs": {
     "url": "https://github.com/go-faast/coin-payments/issues"
   },

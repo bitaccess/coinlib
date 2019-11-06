@@ -1,7 +1,7 @@
 {
   "name": "@faast/stellar-payments",
   "version": "0.17.3",
-  "description": "Library for processing stellar payments",
+  "description": "Library to assist in processing stellar payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "browser": "dist/index.umd.js",
