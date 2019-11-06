@@ -2,6 +2,7 @@ import { BaseTronPayments } from './BaseTronPayments'
 import { KeyPairTronPaymentsConfig } from './types'
 import { isValidAddress, isValidPrivateKey, privateKeyToAddress } from './helpers'
 import { Payport } from '@faast/payments-common'
+import { omit } from 'lodash'
 
 export class KeyPairTronPayments extends BaseTronPayments<KeyPairTronPaymentsConfig> {
   readonly addresses: { [index: number]: string | undefined } = {}
@@ -38,7 +39,7 @@ export class KeyPairTronPayments extends BaseTronPayments<KeyPairTronPaymentsCon
 
   getPublicConfig(): KeyPairTronPaymentsConfig {
     return {
-      ...this.config,
+      ...omit(this.config, ['logger', 'fullNode', 'solidityNode', 'eventServer']),
       keyPairs: this.addresses,
     }
   }

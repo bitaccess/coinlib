@@ -4,6 +4,7 @@ import { HdTronPaymentsConfig, GetPayportOptions } from './types'
 import { deriveAddress, derivePrivateKey, xprvToXpub, generateNewKeys } from './bip44'
 import { Payport } from '@faast/payments-common'
 import { isValidXprv, isValidXpub, isValidAddress } from './helpers'
+import { omit } from 'lodash'
 
 const xpubCache = new Bip44Cache()
 
@@ -36,7 +37,7 @@ export class HdTronPayments extends BaseTronPayments<HdTronPaymentsConfig> {
 
   getPublicConfig(): HdTronPaymentsConfig {
     return {
-      ...this.config,
+      ...omit(this.config, ['logger', 'fullNode', 'solidityNode', 'eventServer']),
       hdKey: this.getXpub(),
     }
   }

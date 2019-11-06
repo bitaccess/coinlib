@@ -12,7 +12,6 @@ function runTests(tp: KeyPairTronPayments, config: KeyPairTronPaymentsConfig) {
   })
   it('getPublicConfig', () => {
     expect(tp.getPublicConfig()).toEqual({
-      ...config,
       keyPairs: {
         1: ADDRESSES[1],
         2: ADDRESSES[2],

@@ -50,7 +50,7 @@ function runHardcodedPublicKeyTests(tp: HdTronPayments, config: HdTronPaymentsCo
   })
   it('getPublicConfig', () => {
     expect(tp.getPublicConfig()).toEqual({
-      ...config,
+      network: config.network,
       hdKey: XPUB,
     })
   })
