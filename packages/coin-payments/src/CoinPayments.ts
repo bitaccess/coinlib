@@ -1,33 +1,42 @@
-import { PaymentsFactory, AnyPayments } from '@faast/payments-common'
-import { TronPaymentsFactory } from '@faast/tron-payments'
-import { RipplePaymentsFactory } from '@faast/ripple-payments'
-import { StellarPaymentsFactory } from '@faast/stellar-payments'
+import * as bip32 from 'bip32'
+import { assertType, Logger } from '@faast/ts-common'
+import { PaymentsFactory, AnyPayments, NetworkType } from '@faast/payments-common'
 
-import { CoinPaymentsConfig, SupportedCoinPaymentsSymbol, CoinPaymentsConfigPartial } from './types'
+import { CoinPaymentsConfig, SupportedCoinPaymentsSymbol, CoinPaymentsAssetConfigs } from './types'
 import { keysOf } from './utils'
-import { assertType } from '@faast/ts-common';
-
-const paymentsFactories: {
-  [A in SupportedCoinPaymentsSymbol]: PaymentsFactory
-} = {
-  TRX: new TronPaymentsFactory(),
-  XRP: new RipplePaymentsFactory(),
-  XLM: new StellarPaymentsFactory(),
-}
+import { SUPPORTED_ASSET_SYMBOLS, PAYMENTS_FACTORIES } from './constants'
 
 export class CoinPayments {
   readonly payments: { [A in SupportedCoinPaymentsSymbol]?: AnyPayments } = {}
   readonly accountIds: string[]
+  readonly network: NetworkType
+  readonly logger: Logger
 
-  constructor(public readonly config: CoinPaymentsConfigPartial) {
-    assertType(CoinPaymentsConfigPartial, config)
+  constructor(public readonly config: CoinPaymentsConfig) {
+    assertType(CoinPaymentsConfig, config)
+    this.network = config.network || NetworkType.Mainnet
+    this.logger = config.logger || console
     const accountIdSet = new Set<string>()
-    keysOf(config).forEach((assetSymbol) => {
-      const assetConfig = config[assetSymbol]
+    SUPPORTED_ASSET_SYMBOLS.forEach((assetSymbol) => {
+      let assetConfig = config[assetSymbol]
+      if (!assetConfig && config.seed) {
+        const xprv = bip32.fromSeed(Buffer.from(config.seed, 'hex')).toBase58()
+        // TODO: make all payments accept seed so we can omit xprv
+        assetConfig = {
+          seed: config.seed,
+          hdKey: xprv,
+        }
+      }
       if (!assetConfig) {
         return
       }
-      const assetPayments = paymentsFactories[assetSymbol].forConfig(assetConfig)
+      if (config.network) {
+        assetConfig.network = config.network
+      }
+      if (config.logger) {
+        assetConfig.logger = config.logger
+      }
+      const assetPayments = PAYMENTS_FACTORIES[assetSymbol].forConfig(assetConfig)
       this.payments[assetSymbol] = assetPayments
       assetPayments.getAccountIds().forEach((id) => accountIdSet.add(id))
     })
@@ -35,7 +44,7 @@ export class CoinPayments {
   }
 
   static getFactory(assetSymbol: SupportedCoinPaymentsSymbol): PaymentsFactory {
-    const paymentsFactory = paymentsFactories[assetSymbol]
+    const paymentsFactory = PAYMENTS_FACTORIES[assetSymbol]
     if (!paymentsFactory) {
       throw new Error(`No payment factory configured for asset symbol ${assetSymbol}`)
     }
@@ -44,10 +53,17 @@ export class CoinPayments {
 
   static getPayments<A extends SupportedCoinPaymentsSymbol>(
     assetSymbol: A,
-    config: CoinPaymentsConfig[A],
+    config: CoinPaymentsAssetConfigs[A],
   ): AnyPayments {
     const factory = CoinPayments.getFactory(assetSymbol)
     return factory.forConfig(config)
+  }
+
+  getPublicConfig(): CoinPaymentsConfig {
+    return keysOf(this.payments).reduce((o, k) => {
+      o[k] = this.forAsset(k).getPublicConfig()
+      return o
+    }, {} as CoinPaymentsConfig)
   }
 
   getAccountIds(): string[] {

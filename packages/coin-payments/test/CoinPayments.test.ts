@@ -1,5 +1,7 @@
-import { CoinPayments } from '../src'
+import { CoinPayments, SUPPORTED_ASSET_SYMBOLS } from '../src'
 import { HdTronPayments, TronPaymentsFactory } from '@faast/tron-payments'
+import { omit } from 'lodash'
+import { NetworkType } from '../../payments-common/src/types';
 
 const TRX_XPUB = 'xpub6BfusYhSxkNBEVoXKgecUo69gdz3ghgpa1oHBxpB18Q8rGGQSEfPpfEGYFGg5x6sS8oRu1mMmb3PhDLekpCoLY5bSwJqDAnrq4pzFVSzH3m'
 const XLM_HOT = 'GB6NPF4YDMGKDOOOIJXTDGYZGTXBF5DBENSR44QTHYT7IVEF7BYYYOCS'
@@ -52,7 +54,7 @@ describe('CoinPayments', () => {
     })
   })
 
-  describe('instance', () => {
+  describe('instance manual', () => {
     const cp = new CoinPayments(CONFIG)
 
     describe('forAsset', () => {
@@ -94,6 +96,35 @@ describe('CoinPayments', () => {
     describe('getAccountIds', () => {
       it('returns correct IDs', () => {
         expect(cp.getAccountIds().sort()).toEqual(ACCOUNT_IDS.sort())
+      })
+    })
+
+    describe('getPublicConfig', () => {
+      it('returns correctly', () => {
+        expect(cp.getPublicConfig()).toEqual(omit(CONFIG, [UNCONFIGURED_ASSET]))
+      })
+    })
+  })
+
+  describe('instance seed', () => {
+    const cp = new CoinPayments({
+      network: NetworkType.Mainnet,
+      logger: console,
+      seed: 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
+    })
+    describe('getPublicConfig', () => {
+      it('returns all assets', () => {
+        const publicConfig = cp.getPublicConfig()
+        expect(Object.keys(publicConfig).sort()).toEqual(SUPPORTED_ASSET_SYMBOLS.sort())
+        expect(publicConfig.logger).toBe(undefined)
+        expect(publicConfig.network).toBe(undefined)
+      })
+    })
+    describe('isAssetConfigured', () => {
+      it('returns true for all supported assets', () => {
+        SUPPORTED_ASSET_SYMBOLS.forEach((s) => {
+          expect(cp.isAssetConfigured(s)).toBe(true)
+        })
       })
     })
   })
