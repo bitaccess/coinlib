@@ -14,12 +14,11 @@ import { CoinPayments } from '@faast/coin-payments'
 const coinPayments = new CoinPayments({
   seed: '5cf2d4a8b0...ca676651f'
 })
+```
 
-// For read only, first use seed, then use the public config
-const readOnlyConfig = coinPayments.getPublicConfig()
-const readOnlyCoinPayments = new CoinPayments(readOnlyConfig)
+To begin processing payments, select your asset
 
-// To process payments, select your asset
+```typescript
 const xrpPayments = coinPayments.forAsset('XRP')
 await xrpPayments.init()
 ```
@@ -69,6 +68,13 @@ let txInfo = await xrpPayments.getTransactionInfo(txHash)
 if (txInfo.isConfirmed) {
   // txInfo.confirmations > 0
 }
+```
+
+In some circumstances, you may want a read-only copy that can do everything but sign. First create it with your seed as usual, then get the public config to use for read only version.
+
+```typescript
+const readOnlyConfig = coinPayments.getPublicConfig()
+const readOnlyCoinPayments = new CoinPayments(readOnlyConfig)
 ```
 
 *See tests or types for more utilities*
