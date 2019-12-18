@@ -26,7 +26,10 @@ export class TestLogger implements Logger {
   logFile: any
 
   constructor(public packageName: string) {
-    fs.mkdirSync(logDir, { recursive: true })
+    if (!fs.existsSync(logDir)) {
+      fs.mkdirSync(logDir, { recursive: true })
+    }
+
     this.logFile = fs.createWriteStream(
       path.resolve(logDir, `test.${packageName}.log`), { flags: 'w' }
     )
