@@ -18,6 +18,8 @@ export type StellarRawLedger = Stellar.ServerApi.LedgerRecord
 
 export { StellarRawTransaction as StellarTransaction, StellarRawLedger as StellarLedger, CreateTransactionOptions }
 
+export class StellarServerAPI extends Stellar.Server {}
+
 export type TransactionInfoRaw = StellarRawTransaction & {
   currentLedger: StellarRawLedger
 }
@@ -26,7 +28,7 @@ export const BaseStellarConfig = extendCodec(
   BaseConfig,
   {},
   {
-    server: t.union([t.string, instanceofCodec(Stellar.Server), t.nullType]),
+    server: t.union([t.string, instanceofCodec(StellarServerAPI), t.nullType]),
   },
   'BaseStellarConfig',
 )

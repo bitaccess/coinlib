@@ -3,7 +3,7 @@ import { NetworkType, Payport } from '@faast/payments-common'
 import promiseRetry from 'promise-retry'
 import { Logger, isString, isObject, isNil } from '@faast/ts-common'
 
-import { BaseStellarConfig, StellarRawTransaction, StellarLedger, StellarTransaction } from './types'
+import { BaseStellarConfig, StellarRawTransaction, StellarLedger, StellarTransaction, StellarServerAPI } from './types'
 import { DEFAULT_TESTNET_SERVER, DEFAULT_MAINNET_SERVER } from './constants'
 import { omitBy } from 'lodash'
 
@@ -36,7 +36,7 @@ export function padLeft(x: string, n: number, v: string): string {
 }
 
 export type ResolvedServer = {
-  api: Stellar.Server | null
+  api: StellarServerAPI | null
   server: string | null
 }
 
@@ -46,10 +46,10 @@ export function resolveStellarServer(server: BaseStellarConfig['server'], networ
   }
   if (isString(server)) {
     return {
-      api: new Stellar.Server(server),
+      api: new StellarServerAPI(server),
       server,
     }
-  } else if (server instanceof Stellar.Server) {
+  } else if (server instanceof StellarServerAPI) {
     return {
       api: server,
       server: server.serverURL.toString(),
@@ -66,7 +66,7 @@ export function resolveStellarServer(server: BaseStellarConfig['server'], networ
 const RETRYABLE_ERRORS = ['timeout', 'disconnected']
 const MAX_RETRIES = 3
 
-export function retryIfDisconnected<T>(fn: () => Promise<T>, stellarApi: Stellar.Server, logger: Logger): Promise<T> {
+export function retryIfDisconnected<T>(fn: () => Promise<T>, stellarApi: StellarServerAPI, logger: Logger): Promise<T> {
   return promiseRetry(
     (retry, attempt) => {
       return fn().catch(async e => {
