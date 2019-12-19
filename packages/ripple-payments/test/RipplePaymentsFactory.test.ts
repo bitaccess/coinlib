@@ -1,7 +1,7 @@
-import { RipplePaymentsFactory } from '#/RipplePaymentsFactory'
-import { HdRipplePayments } from '#/HdRipplePayments'
-import { AccountRipplePayments } from '#/AccountRipplePayments'
-import { HdRipplePaymentsConfig, AccountRipplePaymentsConfig } from '#/types'
+import {
+  RipplePaymentsFactory, HdRipplePayments, AccountRipplePayments,
+  HdRipplePaymentsConfig, AccountRipplePaymentsConfig,
+} from '../src'
 
 import { hdAccount } from './fixtures/accounts'
 
