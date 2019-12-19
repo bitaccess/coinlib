@@ -23,7 +23,6 @@ import {
   TronSignedTransaction,
   TronBroadcastResult,
   CreateTransactionOptions,
-  GetPayportOptions,
   BaseTronPaymentsConfig,
   TronWebTransaction,
 } from './types'
@@ -66,7 +65,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
   abstract getPublicConfig(): Config
   abstract getAccountId(index: number): string
   abstract getAccountIds(): string[]
-  abstract async getPayport(index: number, options?: GetPayportOptions): Promise<Payport>
+  abstract async getPayport(index: number): Promise<Payport>
   abstract async getPrivateKey(index: number): Promise<string>
 
   async init() {}
