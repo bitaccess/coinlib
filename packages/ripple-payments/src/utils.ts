@@ -1,5 +1,4 @@
-import { BaseRippleConfig } from './types'
-import { RippleAPI } from 'ripple-lib'
+import { BaseRippleConfig, RippleServerAPI } from './types'
 import { isString } from 'util'
 import { NetworkType } from '@faast/payments-common'
 import promiseRetry from 'promise-retry'
@@ -14,7 +13,7 @@ export function padLeft(x: string, n: number, v: string): string {
 }
 
 export type ResolvedServer = {
-  api: RippleAPI
+  api: RippleServerAPI
   server: string | null
 }
 
@@ -24,12 +23,12 @@ export function resolveRippleServer(server: BaseRippleConfig['server'], network:
   }
   if (isString(server)) {
     return {
-      api: new RippleAPI({
+      api: new RippleServerAPI({
         server,
       }),
       server,
     }
-  } else if (server instanceof RippleAPI) {
+  } else if (server instanceof RippleServerAPI) {
     return {
       api: server,
       server: (server.connection as any)._url || '',
@@ -37,7 +36,7 @@ export function resolveRippleServer(server: BaseRippleConfig['server'], network:
   } else {
     // null server arg -> offline mode
     return {
-      api: new RippleAPI(),
+      api: new RippleServerAPI(),
       server: null,
     }
   }
@@ -47,7 +46,7 @@ const CONNECTION_ERRORS = ['ConnectionError', 'NotConnectedError', 'Disconnected
 const RETRYABLE_ERRORS = [...CONNECTION_ERRORS, 'TimeoutError']
 const MAX_RETRIES = 3
 
-export function retryIfDisconnected<T>(fn: () => Promise<T>, rippleApi: RippleAPI, logger: Logger): Promise<T> {
+export function retryIfDisconnected<T>(fn: () => Promise<T>, rippleApi: RippleServerAPI, logger: Logger): Promise<T> {
   return promiseRetry(
     (retry, attempt) => {
       return fn().catch(async e => {

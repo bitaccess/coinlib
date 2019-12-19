@@ -23,11 +23,13 @@ export type TransactionInfoRaw = RippleTransaction & {
   currentLedger: RippleLedger
 }
 
+export class RippleServerAPI extends RippleAPI {}
+
 export const BaseRippleConfig = extendCodec(
   BaseConfig,
   {},
   {
-    server: t.union([t.string, instanceofCodec(RippleAPI), t.nullType]),
+    server: t.union([t.string, instanceofCodec(RippleServerAPI), t.nullType]),
   },
   'BaseRippleConfig',
 )
