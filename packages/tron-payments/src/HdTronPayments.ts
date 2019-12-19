@@ -1,12 +1,9 @@
 import { BaseTronPayments } from './BaseTronPayments'
-import Bip44Cache from './Bip44Cache'
-import { HdTronPaymentsConfig, GetPayportOptions } from './types'
+import { HdTronPaymentsConfig } from './types'
 import { deriveAddress, derivePrivateKey, xprvToXpub, generateNewKeys } from './bip44'
 import { Payport } from '@faast/payments-common'
 import { isValidXprv, isValidXpub, isValidAddress } from './helpers'
 import { omit } from 'lodash'
-
-const xpubCache = new Bip44Cache()
 
 export class HdTronPayments extends BaseTronPayments<HdTronPaymentsConfig> {
   readonly xprv: string | null
@@ -50,17 +47,12 @@ export class HdTronPayments extends BaseTronPayments<HdTronPaymentsConfig> {
     return [this.getXpub()]
   }
 
-  async getPayport(index: number, options: GetPayportOptions = {}): Promise<Payport> {
-    const cacheIndex = options.cacheIndex || true
-    // this.account is an xprv or xpub
+  async getPayport(index: number): Promise<Payport> {
     const xpub = this.getXpub()
     const address = deriveAddress(xpub, index)
     if (!isValidAddress(address)) {
       // This should never happen
       throw new Error(`Cannot get address ${index} - validation failed for derived address`)
-    }
-    if (cacheIndex) {
-      xpubCache.put(xpub, index, address)
     }
     return { address }
   }

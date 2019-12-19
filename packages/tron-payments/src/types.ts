@@ -86,11 +86,6 @@ export const TronBroadcastResult = extendCodec(
 )
 export type TronBroadcastResult = t.TypeOf<typeof TronBroadcastResult>
 
-export const GetPayportOptions = t.partial({
-  cacheIndex: t.boolean,
-})
-export type GetPayportOptions = t.TypeOf<typeof GetPayportOptions>
-
 export type FromToWithPayport = FromTo & {
   fromPayport: Payport
   toPayport: Payport
