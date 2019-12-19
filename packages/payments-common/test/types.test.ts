@@ -9,7 +9,7 @@ import {
   BaseTransactionInfo,
   BaseConfig,
   NetworkType,
-} from '#/types'
+} from '../src'
 
 describe('types', () => {
   test('BaseConfig validates successfully', () => {

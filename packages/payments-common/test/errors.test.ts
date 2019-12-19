@@ -1,4 +1,4 @@
-import { PaymentsErrorCode, PaymentsError } from '../src/errors'
+import { PaymentsErrorCode, PaymentsError } from '../src'
 
 describe('errors', () => {
   describe('PaymentsError', () => {
