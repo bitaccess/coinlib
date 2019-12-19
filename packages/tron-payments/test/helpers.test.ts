@@ -1,4 +1,6 @@
-import { toMainDenominationString, toBaseDenominationString, isValidXpub, isValidXprv, isValidAddress } from '#/helpers'
+import {
+  toMainDenominationString, toBaseDenominationString, isValidXpub, isValidXprv, isValidAddress,
+} from '../src'
 import { hdAccount } from './fixtures/accounts'
 
 const { XPRV, XPUB, ADDRESSES } = hdAccount

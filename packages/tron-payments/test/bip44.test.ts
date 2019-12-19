@@ -1,4 +1,4 @@
-import { xprvToXpub, deriveAddress, derivePrivateKey } from '#/bip44'
+import { xprvToXpub, deriveAddress, derivePrivateKey } from '../src'
 import { hdAccount } from './fixtures/accounts'
 
 const { XPRV, XPUB, PRIVATE_KEYS, ADDRESSES } = hdAccount

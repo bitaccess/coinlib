@@ -1,5 +1,5 @@
 /* tslint:disable: max-line-length variable-name */
-import { TronTransactionInfo, TronSignedTransaction } from '#/types'
+import { TronTransactionInfo, TronSignedTransaction } from '../../src'
 import { FeeLevel, FeeRateType, TransactionStatus } from '@faast/payments-common'
 
 export const txInfo_209F8: TronTransactionInfo = {

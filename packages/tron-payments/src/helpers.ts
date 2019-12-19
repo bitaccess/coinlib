@@ -1,7 +1,6 @@
 import TronWeb from 'tronweb'
 import { DECIMAL_PLACES } from './constants'
-import { createUnitConverters, Payport } from '@faast/payments-common'
-import { isNil } from '@faast/ts-common'
+import { createUnitConverters } from '@faast/payments-common'
 
 const {
   toMainDenominationBigNumber,
