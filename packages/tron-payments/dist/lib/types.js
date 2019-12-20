@@ -25,7 +25,4 @@ export const TronTransactionInfo = extendCodec(BaseTransactionInfo, {}, {}, 'Tro
 export const TronBroadcastResult = extendCodec(BaseBroadcastResult, {
     rebroadcast: t.boolean,
 }, 'TronBroadcastResult');
-export const GetPayportOptions = t.partial({
-    cacheIndex: t.boolean,
-});
 //# sourceMappingURL=types.js.map

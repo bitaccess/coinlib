@@ -9,8 +9,10 @@
   baseX = baseX && baseX.hasOwnProperty('default') ? baseX['default'] : baseX;
   crypto = crypto && crypto.hasOwnProperty('default') ? crypto['default'] : crypto;
 
+  class RippleServerAPI extends rippleLib.RippleAPI {
+  }
   const BaseRippleConfig = tsCommon.extendCodec(paymentsCommon.BaseConfig, {}, {
-      server: t.union([t.string, tsCommon.instanceofCodec(rippleLib.RippleAPI), t.nullType]),
+      server: t.union([t.string, tsCommon.instanceofCodec(RippleServerAPI), t.nullType]),
   }, 'BaseRippleConfig');
   const RippleBalanceMonitorConfig = BaseRippleConfig;
   const BaseRipplePaymentsConfig = tsCommon.extendCodec(BaseRippleConfig, {}, {
@@ -106,13 +108,13 @@
       }
       if (util.isString(server)) {
           return {
-              api: new rippleLib.RippleAPI({
+              api: new RippleServerAPI({
                   server,
               }),
               server,
           };
       }
-      else if (server instanceof rippleLib.RippleAPI) {
+      else if (server instanceof RippleServerAPI) {
           return {
               api: server,
               server: server.connection._url || '',
@@ -120,7 +122,7 @@
       }
       else {
           return {
-              api: new rippleLib.RippleAPI(),
+              api: new RippleServerAPI(),
               server: null,
           };
       }
@@ -1013,6 +1015,7 @@
   exports.RipplePaymentsFactory = RipplePaymentsFactory;
   exports.RipplePaymentsUtils = RipplePaymentsUtils;
   exports.RippleSecretPair = RippleSecretPair;
+  exports.RippleServerAPI = RippleServerAPI;
   exports.RippleSignedTransaction = RippleSignedTransaction;
   exports.RippleTransactionInfo = RippleTransactionInfo;
   exports.RippleUnsignedTransaction = RippleUnsignedTransaction;

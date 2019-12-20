@@ -1,11 +1,10 @@
-import { BaseRippleConfig } from './types';
-import { RippleAPI } from 'ripple-lib';
+import { BaseRippleConfig, RippleServerAPI } from './types';
 import { NetworkType } from '@faast/payments-common';
 import { Logger } from '@faast/ts-common';
 export declare function padLeft(x: string, n: number, v: string): string;
 export declare type ResolvedServer = {
-    api: RippleAPI;
+    api: RippleServerAPI;
     server: string | null;
 };
 export declare function resolveRippleServer(server: BaseRippleConfig['server'], network: NetworkType): ResolvedServer;
-export declare function retryIfDisconnected<T>(fn: () => Promise<T>, rippleApi: RippleAPI, logger: Logger): Promise<T>;
+export declare function retryIfDisconnected<T>(fn: () => Promise<T>, rippleApi: RippleServerAPI, logger: Logger): Promise<T>;

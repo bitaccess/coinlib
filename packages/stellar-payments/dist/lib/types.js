@@ -3,8 +3,10 @@ import { extendCodec, instanceofCodec, nullable } from '@faast/ts-common';
 import { BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, CreateTransactionOptions, BaseConfig, } from '@faast/payments-common';
 import * as Stellar from 'stellar-sdk';
 export { CreateTransactionOptions };
+export class StellarServerAPI extends Stellar.Server {
+}
 export const BaseStellarConfig = extendCodec(BaseConfig, {}, {
-    server: t.union([t.string, instanceofCodec(Stellar.Server), t.nullType]),
+    server: t.union([t.string, instanceofCodec(StellarServerAPI), t.nullType]),
 }, 'BaseStellarConfig');
 export const StellarBalanceMonitorConfig = BaseStellarConfig;
 export const BaseStellarPaymentsConfig = extendCodec(BaseStellarConfig, {}, {

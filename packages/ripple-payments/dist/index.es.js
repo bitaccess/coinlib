@@ -11,8 +11,10 @@ import { fromBase58, fromSeed } from 'bip32';
 import baseX from 'base-x';
 import crypto from 'crypto';
 
+class RippleServerAPI extends RippleAPI {
+}
 const BaseRippleConfig = extendCodec(BaseConfig, {}, {
-    server: union([string, instanceofCodec(RippleAPI), nullType]),
+    server: union([string, instanceofCodec(RippleServerAPI), nullType]),
 }, 'BaseRippleConfig');
 const RippleBalanceMonitorConfig = BaseRippleConfig;
 const BaseRipplePaymentsConfig = extendCodec(BaseRippleConfig, {}, {
@@ -108,13 +110,13 @@ function resolveRippleServer(server, network) {
     }
     if (isString(server)) {
         return {
-            api: new RippleAPI({
+            api: new RippleServerAPI({
                 server,
             }),
             server,
         };
     }
-    else if (server instanceof RippleAPI) {
+    else if (server instanceof RippleServerAPI) {
         return {
             api: server,
             server: server.connection._url || '',
@@ -122,7 +124,7 @@ function resolveRippleServer(server, network) {
     }
     else {
         return {
-            api: new RippleAPI(),
+            api: new RippleServerAPI(),
             server: null,
         };
     }
@@ -981,5 +983,5 @@ class RipplePaymentsFactory {
     }
 }
 
-export { ADDRESS_REGEX, AccountRipplePayments, AccountRipplePaymentsConfig, BaseRippleConfig, BaseRipplePayments, BaseRipplePaymentsConfig, DECIMAL_PLACES, DEFAULT_CREATE_TRANSACTION_OPTIONS, DEFAULT_MAINNET_SERVER, DEFAULT_MAX_LEDGER_VERSION_OFFSET, DEFAULT_NETWORK, DEFAULT_TESTNET_SERVER, EXTRA_ID_REGEX, HdRipplePayments, HdRipplePaymentsConfig, MIN_BALANCE, NOT_FOUND_ERRORS, PACKAGE_NAME, RippleAccountConfig, RippleBalanceMonitor, RippleBalanceMonitorConfig, RippleBroadcastResult, RippleCreateTransactionOptions, RippleKeyPair, RipplePaymentsConfig, RipplePaymentsFactory, RipplePaymentsUtils, RippleSecretPair, RippleSignedTransaction, RippleTransactionInfo, RippleUnsignedTransaction, XPRV_REGEX, XPUB_REGEX, assertValidAddress, assertValidExtraId, assertValidExtraIdOrNil, isValidAddress, isValidExtraId, isValidXprv, isValidXpub, toBaseDenominationBigNumber, toBaseDenominationNumber, toBaseDenominationString, toMainDenominationBigNumber, toMainDenominationNumber, toMainDenominationString };
+export { ADDRESS_REGEX, AccountRipplePayments, AccountRipplePaymentsConfig, BaseRippleConfig, BaseRipplePayments, BaseRipplePaymentsConfig, DECIMAL_PLACES, DEFAULT_CREATE_TRANSACTION_OPTIONS, DEFAULT_MAINNET_SERVER, DEFAULT_MAX_LEDGER_VERSION_OFFSET, DEFAULT_NETWORK, DEFAULT_TESTNET_SERVER, EXTRA_ID_REGEX, HdRipplePayments, HdRipplePaymentsConfig, MIN_BALANCE, NOT_FOUND_ERRORS, PACKAGE_NAME, RippleAccountConfig, RippleBalanceMonitor, RippleBalanceMonitorConfig, RippleBroadcastResult, RippleCreateTransactionOptions, RippleKeyPair, RipplePaymentsConfig, RipplePaymentsFactory, RipplePaymentsUtils, RippleSecretPair, RippleServerAPI, RippleSignedTransaction, RippleTransactionInfo, RippleUnsignedTransaction, XPRV_REGEX, XPUB_REGEX, assertValidAddress, assertValidExtraId, assertValidExtraIdOrNil, isValidAddress, isValidExtraId, isValidXprv, isValidXpub, toBaseDenominationBigNumber, toBaseDenominationNumber, toBaseDenominationString, toMainDenominationBigNumber, toMainDenominationNumber, toMainDenominationString };
 //# sourceMappingURL=index.es.js.map

@@ -1,9 +1,7 @@
 import { BaseTronPayments } from './BaseTronPayments';
-import Bip44Cache from './Bip44Cache';
 import { deriveAddress, derivePrivateKey, xprvToXpub, generateNewKeys } from './bip44';
 import { isValidXprv, isValidXpub, isValidAddress } from './helpers';
 import { omit } from 'lodash';
-const xpubCache = new Bip44Cache();
 export class HdTronPayments extends BaseTronPayments {
     constructor(config) {
         super(config);
@@ -38,15 +36,11 @@ export class HdTronPayments extends BaseTronPayments {
     getAccountIds() {
         return [this.getXpub()];
     }
-    async getPayport(index, options = {}) {
-        const cacheIndex = options.cacheIndex || true;
+    async getPayport(index) {
         const xpub = this.getXpub();
         const address = deriveAddress(xpub, index);
         if (!isValidAddress(address)) {
             throw new Error(`Cannot get address ${index} - validation failed for derived address`);
-        }
-        if (cacheIndex) {
-            xpubCache.put(xpub, index, address);
         }
         return { address };
     }

@@ -1,7 +1,7 @@
-import * as Stellar from 'stellar-sdk';
 import { NetworkType } from '@faast/payments-common';
 import promiseRetry from 'promise-retry';
 import { isString, isObject, isNil } from '@faast/ts-common';
+import { StellarServerAPI } from './types';
 import { DEFAULT_TESTNET_SERVER, DEFAULT_MAINNET_SERVER } from './constants';
 import { omitBy } from 'lodash';
 export function isMatchingError(e, partialMessages) {
@@ -32,11 +32,11 @@ export function resolveStellarServer(server, network) {
     }
     if (isString(server)) {
         return {
-            api: new Stellar.Server(server),
+            api: new StellarServerAPI(server),
             server,
         };
     }
-    else if (server instanceof Stellar.Server) {
+    else if (server instanceof StellarServerAPI) {
         return {
             api: server,
             server: server.serverURL.toString(),

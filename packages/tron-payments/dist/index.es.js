@@ -1,9 +1,9 @@
 import TronWeb from 'tronweb';
-import { cloneDeep, get, pick, set, omit } from 'lodash';
+import { cloneDeep, get, pick, omit } from 'lodash';
 import { FeeLevel, createUnitConverters, BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, NetworkType, Payport, FeeOptionCustom, FeeRateType, TransactionStatus, PaymentsError, PaymentsErrorCode } from '@faast/payments-common';
 export { CreateTransactionOptions } from '@faast/payments-common';
 import { extendCodec, assertType, DelegateLogger, isNil, isType } from '@faast/ts-common';
-import { string, union, null as null$1, undefined as undefined$1, array, record, number, boolean, partial } from 'io-ts';
+import { string, union, null as null$1, undefined as undefined$1, array, record, number, boolean } from 'io-ts';
 import { fromBase58, fromSeed } from 'bip32';
 import { keccak256 } from 'js-sha3';
 import jsSHA from 'jssha';
@@ -82,9 +82,6 @@ const TronTransactionInfo = extendCodec(BaseTransactionInfo, {}, {}, 'TronTransa
 const TronBroadcastResult = extendCodec(BaseBroadcastResult, {
     rebroadcast: boolean,
 }, 'TronBroadcastResult');
-const GetPayportOptions = partial({
-    cacheIndex: boolean,
-});
 
 class TronPaymentsUtils {
     constructor(config = {}) {
@@ -421,22 +418,6 @@ class BaseTronPayments extends TronPaymentsUtils {
     }
 }
 
-class Bip44Cache {
-    constructor() {
-        this.store = {};
-    }
-    put(xpub, index, address) {
-        set(this.store, [xpub, 'addresses', index], address);
-        set(this.store, [xpub, 'indices', address], index);
-    }
-    lookupIndex(xpub, address) {
-        return get(this.store, [xpub, 'indices', address]);
-    }
-    lookupAddress(xpub, index) {
-        return get(this.store, [xpub, 'addresses', index]);
-    }
-}
-
 const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 const ALPHABET_MAP = {};
 for (let i = 0; i < ALPHABET.length; i++) {
@@ -658,7 +639,6 @@ function SHA256(msgBytes) {
     return hexStr2byteArray(hashHex);
 }
 
-const xpubCache = new Bip44Cache();
 class HdTronPayments extends BaseTronPayments {
     constructor(config) {
         super(config);
@@ -693,15 +673,11 @@ class HdTronPayments extends BaseTronPayments {
     getAccountIds() {
         return [this.getXpub()];
     }
-    async getPayport(index, options = {}) {
-        const cacheIndex = options.cacheIndex || true;
+    async getPayport(index) {
         const xpub = this.getXpub();
         const address = deriveAddress(xpub, index);
         if (!isValidAddress(address)) {
             throw new Error(`Cannot get address ${index} - validation failed for derived address`);
-        }
-        if (cacheIndex) {
-            xpubCache.put(xpub, index, address);
         }
         return { address };
     }
@@ -792,5 +768,5 @@ class TronPaymentsFactory {
     }
 }
 
-export { BaseTronPayments, BaseTronPaymentsConfig, DECIMAL_PLACES, DEFAULT_EVENT_SERVER, DEFAULT_FEE_LEVEL, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, EXPIRATION_FUDGE_MS, GetPayportOptions, HdTronPayments, HdTronPaymentsConfig, KeyPairTronPayments, KeyPairTronPaymentsConfig, MIN_BALANCE_SUN, MIN_BALANCE_TRX, PACKAGE_NAME, TronBroadcastResult, TronPaymentsConfig, TronPaymentsFactory, TronPaymentsUtils, TronSignedTransaction, TronTransactionInfo, TronUnsignedTransaction, decode58, derivationPath, deriveAddress, derivePrivateKey, encode58, generateNewKeys, toError, xprvToXpub };
+export { BaseTronPayments, BaseTronPaymentsConfig, DECIMAL_PLACES, DEFAULT_EVENT_SERVER, DEFAULT_FEE_LEVEL, DEFAULT_FULL_NODE, DEFAULT_SOLIDITY_NODE, EXPIRATION_FUDGE_MS, HdTronPayments, HdTronPaymentsConfig, KeyPairTronPayments, KeyPairTronPaymentsConfig, MIN_BALANCE_SUN, MIN_BALANCE_TRX, PACKAGE_NAME, TronBroadcastResult, TronPaymentsConfig, TronPaymentsFactory, TronPaymentsUtils, TronSignedTransaction, TronTransactionInfo, TronUnsignedTransaction, decode58, derivationPath, deriveAddress, derivePrivateKey, encode58, generateNewKeys, isValidAddress, isValidExtraId, isValidPrivateKey, isValidXprv, isValidXpub, privateKeyToAddress, toBaseDenominationBigNumber, toBaseDenominationNumber, toBaseDenominationString, toMainDenominationBigNumber, toMainDenominationNumber, toMainDenominationString, xprvToXpub };
 //# sourceMappingURL=index.es.js.map

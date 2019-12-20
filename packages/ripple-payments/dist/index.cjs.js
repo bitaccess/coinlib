@@ -16,8 +16,10 @@ var bip32 = require('bip32');
 var baseX = _interopDefault(require('base-x'));
 var crypto = _interopDefault(require('crypto'));
 
+class RippleServerAPI extends rippleLib.RippleAPI {
+}
 const BaseRippleConfig = tsCommon.extendCodec(paymentsCommon.BaseConfig, {}, {
-    server: t.union([t.string, tsCommon.instanceofCodec(rippleLib.RippleAPI), t.nullType]),
+    server: t.union([t.string, tsCommon.instanceofCodec(RippleServerAPI), t.nullType]),
 }, 'BaseRippleConfig');
 const RippleBalanceMonitorConfig = BaseRippleConfig;
 const BaseRipplePaymentsConfig = tsCommon.extendCodec(BaseRippleConfig, {}, {
@@ -113,13 +115,13 @@ function resolveRippleServer(server, network) {
     }
     if (util.isString(server)) {
         return {
-            api: new rippleLib.RippleAPI({
+            api: new RippleServerAPI({
                 server,
             }),
             server,
         };
     }
-    else if (server instanceof rippleLib.RippleAPI) {
+    else if (server instanceof RippleServerAPI) {
         return {
             api: server,
             server: server.connection._url || '',
@@ -127,7 +129,7 @@ function resolveRippleServer(server, network) {
     }
     else {
         return {
-            api: new rippleLib.RippleAPI(),
+            api: new RippleServerAPI(),
             server: null,
         };
     }
@@ -1020,6 +1022,7 @@ exports.RipplePaymentsConfig = RipplePaymentsConfig;
 exports.RipplePaymentsFactory = RipplePaymentsFactory;
 exports.RipplePaymentsUtils = RipplePaymentsUtils;
 exports.RippleSecretPair = RippleSecretPair;
+exports.RippleServerAPI = RippleServerAPI;
 exports.RippleSignedTransaction = RippleSignedTransaction;
 exports.RippleTransactionInfo = RippleTransactionInfo;
 exports.RippleUnsignedTransaction = RippleUnsignedTransaction;

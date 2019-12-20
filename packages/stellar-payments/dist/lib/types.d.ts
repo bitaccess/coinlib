@@ -5,6 +5,8 @@ export declare type StellarCollectionPage<T extends Stellar.Horizon.BaseResponse
 export declare type StellarRawTransaction = Stellar.ServerApi.TransactionRecord;
 export declare type StellarRawLedger = Stellar.ServerApi.LedgerRecord;
 export { StellarRawTransaction as StellarTransaction, StellarRawLedger as StellarLedger, CreateTransactionOptions };
+export declare class StellarServerAPI extends Stellar.Server {
+}
 export declare type TransactionInfoRaw = StellarRawTransaction & {
     currentLedger: StellarRawLedger;
 };
@@ -12,21 +14,21 @@ export declare const BaseStellarConfig: t.IntersectionC<[t.PartialC<{
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
     logger: import("@faast/ts-common").LoggerC;
 }>, t.PartialC<{
-    server: t.UnionC<[t.StringC, t.Type<Stellar.Server, Stellar.Server, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.Type<StellarServerAPI, StellarServerAPI, unknown>, t.NullC]>;
 }>]>;
 export declare type BaseStellarConfig = t.TypeOf<typeof BaseStellarConfig>;
 export declare const StellarBalanceMonitorConfig: t.IntersectionC<[t.PartialC<{
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
     logger: import("@faast/ts-common").LoggerC;
 }>, t.PartialC<{
-    server: t.UnionC<[t.StringC, t.Type<Stellar.Server, Stellar.Server, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.Type<StellarServerAPI, StellarServerAPI, unknown>, t.NullC]>;
 }>]>;
 export declare type StellarBalanceMonitorConfig = t.TypeOf<typeof StellarBalanceMonitorConfig>;
 export declare const BaseStellarPaymentsConfig: t.IntersectionC<[t.IntersectionC<[t.PartialC<{
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
     logger: import("@faast/ts-common").LoggerC;
 }>, t.PartialC<{
-    server: t.UnionC<[t.StringC, t.Type<Stellar.Server, Stellar.Server, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.Type<StellarServerAPI, StellarServerAPI, unknown>, t.NullC]>;
 }>]>, t.PartialC<{
     txTimeoutSeconds: t.NumberC;
 }>]>;
@@ -35,7 +37,7 @@ export declare const HdStellarPaymentsConfig: t.IntersectionC<[t.IntersectionC<[
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
     logger: import("@faast/ts-common").LoggerC;
 }>, t.PartialC<{
-    server: t.UnionC<[t.StringC, t.Type<Stellar.Server, Stellar.Server, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.Type<StellarServerAPI, StellarServerAPI, unknown>, t.NullC]>;
 }>]>, t.PartialC<{
     txTimeoutSeconds: t.NumberC;
 }>]>, t.TypeC<{
@@ -61,7 +63,7 @@ export declare const AccountStellarPaymentsConfig: t.IntersectionC<[t.Intersecti
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
     logger: import("@faast/ts-common").LoggerC;
 }>, t.PartialC<{
-    server: t.UnionC<[t.StringC, t.Type<Stellar.Server, Stellar.Server, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.Type<StellarServerAPI, StellarServerAPI, unknown>, t.NullC]>;
 }>]>, t.PartialC<{
     txTimeoutSeconds: t.NumberC;
 }>]>, t.TypeC<{
@@ -79,7 +81,7 @@ export declare const StellarPaymentsConfig: t.UnionC<[t.IntersectionC<[t.Interse
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
     logger: import("@faast/ts-common").LoggerC;
 }>, t.PartialC<{
-    server: t.UnionC<[t.StringC, t.Type<Stellar.Server, Stellar.Server, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.Type<StellarServerAPI, StellarServerAPI, unknown>, t.NullC]>;
 }>]>, t.PartialC<{
     txTimeoutSeconds: t.NumberC;
 }>]>, t.TypeC<{
@@ -88,7 +90,7 @@ export declare const StellarPaymentsConfig: t.UnionC<[t.IntersectionC<[t.Interse
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
     logger: import("@faast/ts-common").LoggerC;
 }>, t.PartialC<{
-    server: t.UnionC<[t.StringC, t.Type<Stellar.Server, Stellar.Server, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.Type<StellarServerAPI, StellarServerAPI, unknown>, t.NullC]>;
 }>]>, t.PartialC<{
     txTimeoutSeconds: t.NumberC;
 }>]>, t.TypeC<{

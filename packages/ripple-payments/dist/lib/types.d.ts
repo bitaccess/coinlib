@@ -8,25 +8,27 @@ export { RippleTransaction, RippleLedger, CreateTransactionOptions };
 export declare type TransactionInfoRaw = RippleTransaction & {
     currentLedger: RippleLedger;
 };
+export declare class RippleServerAPI extends RippleAPI {
+}
 export declare const BaseRippleConfig: t.IntersectionC<[t.PartialC<{
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
     logger: import("@faast/ts-common").LoggerC;
 }>, t.PartialC<{
-    server: t.UnionC<[t.StringC, t.Type<RippleAPI, RippleAPI, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.Type<RippleServerAPI, RippleServerAPI, unknown>, t.NullC]>;
 }>]>;
 export declare type BaseRippleConfig = t.TypeOf<typeof BaseRippleConfig>;
 export declare const RippleBalanceMonitorConfig: t.IntersectionC<[t.PartialC<{
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
     logger: import("@faast/ts-common").LoggerC;
 }>, t.PartialC<{
-    server: t.UnionC<[t.StringC, t.Type<RippleAPI, RippleAPI, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.Type<RippleServerAPI, RippleServerAPI, unknown>, t.NullC]>;
 }>]>;
 export declare type RippleBalanceMonitorConfig = t.TypeOf<typeof RippleBalanceMonitorConfig>;
 export declare const BaseRipplePaymentsConfig: t.IntersectionC<[t.IntersectionC<[t.PartialC<{
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
     logger: import("@faast/ts-common").LoggerC;
 }>, t.PartialC<{
-    server: t.UnionC<[t.StringC, t.Type<RippleAPI, RippleAPI, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.Type<RippleServerAPI, RippleServerAPI, unknown>, t.NullC]>;
 }>]>, t.PartialC<{
     maxLedgerVersionOffset: t.NumberC;
 }>]>;
@@ -35,7 +37,7 @@ export declare const HdRipplePaymentsConfig: t.IntersectionC<[t.IntersectionC<[t
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
     logger: import("@faast/ts-common").LoggerC;
 }>, t.PartialC<{
-    server: t.UnionC<[t.StringC, t.Type<RippleAPI, RippleAPI, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.Type<RippleServerAPI, RippleServerAPI, unknown>, t.NullC]>;
 }>]>, t.PartialC<{
     maxLedgerVersionOffset: t.NumberC;
 }>]>, t.TypeC<{
@@ -64,7 +66,7 @@ export declare const AccountRipplePaymentsConfig: t.IntersectionC<[t.Intersectio
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
     logger: import("@faast/ts-common").LoggerC;
 }>, t.PartialC<{
-    server: t.UnionC<[t.StringC, t.Type<RippleAPI, RippleAPI, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.Type<RippleServerAPI, RippleServerAPI, unknown>, t.NullC]>;
 }>]>, t.PartialC<{
     maxLedgerVersionOffset: t.NumberC;
 }>]>, t.TypeC<{
@@ -88,7 +90,7 @@ export declare const RipplePaymentsConfig: t.UnionC<[t.IntersectionC<[t.Intersec
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
     logger: import("@faast/ts-common").LoggerC;
 }>, t.PartialC<{
-    server: t.UnionC<[t.StringC, t.Type<RippleAPI, RippleAPI, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.Type<RippleServerAPI, RippleServerAPI, unknown>, t.NullC]>;
 }>]>, t.PartialC<{
     maxLedgerVersionOffset: t.NumberC;
 }>]>, t.TypeC<{
@@ -97,7 +99,7 @@ export declare const RipplePaymentsConfig: t.UnionC<[t.IntersectionC<[t.Intersec
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
     logger: import("@faast/ts-common").LoggerC;
 }>, t.PartialC<{
-    server: t.UnionC<[t.StringC, t.Type<RippleAPI, RippleAPI, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.Type<RippleServerAPI, RippleServerAPI, unknown>, t.NullC]>;
 }>]>, t.PartialC<{
     maxLedgerVersionOffset: t.NumberC;
 }>]>, t.TypeC<{

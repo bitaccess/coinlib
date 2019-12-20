@@ -1,6 +1,6 @@
 {
   "name": "@faast/payments-common",
-  "version": "0.17.6",
+  "version": "0.18.0",
   "description": "Common module used by coin-payments libs",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",

@@ -80,9 +80,6 @@
   const TronBroadcastResult = tsCommon.extendCodec(paymentsCommon.BaseBroadcastResult, {
       rebroadcast: t.boolean,
   }, 'TronBroadcastResult');
-  const GetPayportOptions = t.partial({
-      cacheIndex: t.boolean,
-  });
 
   class TronPaymentsUtils {
       constructor(config = {}) {
@@ -419,22 +416,6 @@
       }
   }
 
-  class Bip44Cache {
-      constructor() {
-          this.store = {};
-      }
-      put(xpub, index, address) {
-          lodash.set(this.store, [xpub, 'addresses', index], address);
-          lodash.set(this.store, [xpub, 'indices', address], index);
-      }
-      lookupIndex(xpub, address) {
-          return lodash.get(this.store, [xpub, 'indices', address]);
-      }
-      lookupAddress(xpub, index) {
-          return lodash.get(this.store, [xpub, 'addresses', index]);
-      }
-  }
-
   const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
   const ALPHABET_MAP = {};
   for (let i = 0; i < ALPHABET.length; i++) {
@@ -656,7 +637,6 @@
       return hexStr2byteArray(hashHex);
   }
 
-  const xpubCache = new Bip44Cache();
   class HdTronPayments extends BaseTronPayments {
       constructor(config) {
           super(config);
@@ -691,15 +671,11 @@
       getAccountIds() {
           return [this.getXpub()];
       }
-      async getPayport(index, options = {}) {
-          const cacheIndex = options.cacheIndex || true;
+      async getPayport(index) {
           const xpub = this.getXpub();
           const address = deriveAddress(xpub, index);
           if (!isValidAddress(address)) {
               throw new Error(`Cannot get address ${index} - validation failed for derived address`);
-          }
-          if (cacheIndex) {
-              xpubCache.put(xpub, index, address);
           }
           return { address };
       }
@@ -804,7 +780,6 @@
   exports.DEFAULT_FULL_NODE = DEFAULT_FULL_NODE;
   exports.DEFAULT_SOLIDITY_NODE = DEFAULT_SOLIDITY_NODE;
   exports.EXPIRATION_FUDGE_MS = EXPIRATION_FUDGE_MS;
-  exports.GetPayportOptions = GetPayportOptions;
   exports.HdTronPayments = HdTronPayments;
   exports.HdTronPaymentsConfig = HdTronPaymentsConfig;
   exports.KeyPairTronPayments = KeyPairTronPayments;
@@ -825,7 +800,18 @@
   exports.derivePrivateKey = derivePrivateKey;
   exports.encode58 = encode58;
   exports.generateNewKeys = generateNewKeys;
-  exports.toError = toError;
+  exports.isValidAddress = isValidAddress;
+  exports.isValidExtraId = isValidExtraId;
+  exports.isValidPrivateKey = isValidPrivateKey;
+  exports.isValidXprv = isValidXprv;
+  exports.isValidXpub = isValidXpub;
+  exports.privateKeyToAddress = privateKeyToAddress;
+  exports.toBaseDenominationBigNumber = toBaseDenominationBigNumber;
+  exports.toBaseDenominationNumber = toBaseDenominationNumber;
+  exports.toBaseDenominationString = toBaseDenominationString;
+  exports.toMainDenominationBigNumber = toMainDenominationBigNumber;
+  exports.toMainDenominationNumber = toMainDenominationNumber;
+  exports.toMainDenominationString = toMainDenominationString;
   exports.xprvToXpub = xprvToXpub;
 
   Object.defineProperty(exports, '__esModule', { value: true });

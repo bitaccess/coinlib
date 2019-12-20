@@ -16,8 +16,10 @@ var StellarHDWallet = _interopDefault(require('stellar-hd-wallet'));
 require('bip39');
 var events = require('events');
 
+class StellarServerAPI extends Stellar.Server {
+}
 const BaseStellarConfig = tsCommon.extendCodec(paymentsCommon.BaseConfig, {}, {
-    server: t.union([t.string, tsCommon.instanceofCodec(Stellar.Server), t.nullType]),
+    server: t.union([t.string, tsCommon.instanceofCodec(StellarServerAPI), t.nullType]),
 }, 'BaseStellarConfig');
 const StellarBalanceMonitorConfig = BaseStellarConfig;
 const BaseStellarPaymentsConfig = tsCommon.extendCodec(BaseStellarConfig, {}, {
@@ -120,11 +122,11 @@ function resolveStellarServer(server, network) {
     }
     if (tsCommon.isString(server)) {
         return {
-            api: new Stellar.Server(server),
+            api: new StellarServerAPI(server),
             server,
         };
     }
-    else if (server instanceof Stellar.Server) {
+    else if (server instanceof StellarServerAPI) {
         return {
             api: server,
             server: server.serverURL.toString(),
@@ -930,6 +932,7 @@ exports.StellarCreateTransactionOptions = StellarCreateTransactionOptions;
 exports.StellarPaymentsConfig = StellarPaymentsConfig;
 exports.StellarPaymentsFactory = StellarPaymentsFactory;
 exports.StellarPaymentsUtils = StellarPaymentsUtils;
+exports.StellarServerAPI = StellarServerAPI;
 exports.StellarSignatory = StellarSignatory;
 exports.StellarSignedTransaction = StellarSignedTransaction;
 exports.StellarTransactionInfo = StellarTransactionInfo;

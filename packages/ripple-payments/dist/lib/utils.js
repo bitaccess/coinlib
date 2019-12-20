@@ -1,4 +1,4 @@
-import { RippleAPI } from 'ripple-lib';
+import { RippleServerAPI } from './types';
 import { isString } from 'util';
 import { NetworkType } from '@faast/payments-common';
 import promiseRetry from 'promise-retry';
@@ -15,13 +15,13 @@ export function resolveRippleServer(server, network) {
     }
     if (isString(server)) {
         return {
-            api: new RippleAPI({
+            api: new RippleServerAPI({
                 server,
             }),
             server,
         };
     }
-    else if (server instanceof RippleAPI) {
+    else if (server instanceof RippleServerAPI) {
         return {
             api: server,
             server: server.connection._url || '',
@@ -29,7 +29,7 @@ export function resolveRippleServer(server, network) {
     }
     else {
         return {
-            api: new RippleAPI(),
+            api: new RippleServerAPI(),
             server: null,
         };
     }

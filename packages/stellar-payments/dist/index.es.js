@@ -11,8 +11,10 @@ import StellarHDWallet from 'stellar-hd-wallet';
 import 'bip39';
 import { EventEmitter } from 'events';
 
+class StellarServerAPI extends Server {
+}
 const BaseStellarConfig = extendCodec(BaseConfig, {}, {
-    server: union([string, instanceofCodec(Server), nullType]),
+    server: union([string, instanceofCodec(StellarServerAPI), nullType]),
 }, 'BaseStellarConfig');
 const StellarBalanceMonitorConfig = BaseStellarConfig;
 const BaseStellarPaymentsConfig = extendCodec(BaseStellarConfig, {}, {
@@ -115,11 +117,11 @@ function resolveStellarServer(server, network) {
     }
     if (isString$1(server)) {
         return {
-            api: new Server(server),
+            api: new StellarServerAPI(server),
             server,
         };
     }
-    else if (server instanceof Server) {
+    else if (server instanceof StellarServerAPI) {
         return {
             api: server,
             server: server.serverURL.toString(),
@@ -903,5 +905,5 @@ class StellarPaymentsFactory {
     }
 }
 
-export { AccountStellarPayments, AccountStellarPaymentsConfig, BaseStellarConfig, BaseStellarPayments, BaseStellarPaymentsConfig, HdStellarPayments, HdStellarPaymentsConfig, PartialStellarSignatory, StellarAccountConfig, StellarBalanceMonitor, StellarBalanceMonitorConfig, StellarBroadcastResult, StellarCreateTransactionOptions, StellarPaymentsConfig, StellarPaymentsFactory, StellarPaymentsUtils, StellarSignatory, StellarSignedTransaction, StellarTransactionInfo, StellarUnsignedTransaction, assertValidAddress, assertValidExtraId, assertValidExtraIdOrNil, isValidAddress, isValidExtraId, isValidSecret, toBaseDenominationBigNumber, toBaseDenominationNumber, toBaseDenominationString, toMainDenominationBigNumber, toMainDenominationNumber, toMainDenominationString };
+export { AccountStellarPayments, AccountStellarPaymentsConfig, BaseStellarConfig, BaseStellarPayments, BaseStellarPaymentsConfig, HdStellarPayments, HdStellarPaymentsConfig, PartialStellarSignatory, StellarAccountConfig, StellarBalanceMonitor, StellarBalanceMonitorConfig, StellarBroadcastResult, StellarCreateTransactionOptions, StellarPaymentsConfig, StellarPaymentsFactory, StellarPaymentsUtils, StellarServerAPI, StellarSignatory, StellarSignedTransaction, StellarTransactionInfo, StellarUnsignedTransaction, assertValidAddress, assertValidExtraId, assertValidExtraIdOrNil, isValidAddress, isValidExtraId, isValidSecret, toBaseDenominationBigNumber, toBaseDenominationNumber, toBaseDenominationString, toMainDenominationBigNumber, toMainDenominationNumber, toMainDenominationString };
 //# sourceMappingURL=index.es.js.map

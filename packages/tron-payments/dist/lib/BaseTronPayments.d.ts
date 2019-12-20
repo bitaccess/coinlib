@@ -1,6 +1,6 @@
 import TronWeb from 'tronweb';
 import { BalanceResult, BasePayments, FeeOption, ResolvedFeeOption, Payport, FromTo, ResolveablePayport } from '@faast/payments-common';
-import { TronTransactionInfo, TronUnsignedTransaction, TronSignedTransaction, TronBroadcastResult, CreateTransactionOptions, GetPayportOptions, BaseTronPaymentsConfig } from './types';
+import { TronTransactionInfo, TronUnsignedTransaction, TronSignedTransaction, TronBroadcastResult, CreateTransactionOptions, BaseTronPaymentsConfig } from './types';
 import { TronPaymentsUtils } from './TronPaymentsUtils';
 export declare abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> extends TronPaymentsUtils implements BasePayments<Config, TronUnsignedTransaction, TronSignedTransaction, TronBroadcastResult, TronTransactionInfo> {
     fullNode: string;
@@ -12,7 +12,7 @@ export declare abstract class BaseTronPayments<Config extends BaseTronPaymentsCo
     abstract getPublicConfig(): Config;
     abstract getAccountId(index: number): string;
     abstract getAccountIds(): string[];
-    abstract getPayport(index: number, options?: GetPayportOptions): Promise<Payport>;
+    abstract getPayport(index: number): Promise<Payport>;
     abstract getPrivateKey(index: number): Promise<string>;
     init(): Promise<void>;
     destroy(): Promise<void>;

@@ -3,8 +3,10 @@ import { extendCodec, instanceofCodec, nullable } from '@faast/ts-common';
 import { BaseTransactionInfo, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, CreateTransactionOptions, BaseConfig, } from '@faast/payments-common';
 import { RippleAPI } from 'ripple-lib';
 export { CreateTransactionOptions };
+export class RippleServerAPI extends RippleAPI {
+}
 export const BaseRippleConfig = extendCodec(BaseConfig, {}, {
-    server: t.union([t.string, instanceofCodec(RippleAPI), t.nullType]),
+    server: t.union([t.string, instanceofCodec(RippleServerAPI), t.nullType]),
 }, 'BaseRippleConfig');
 export const RippleBalanceMonitorConfig = BaseRippleConfig;
 export const BaseRipplePaymentsConfig = extendCodec(BaseRippleConfig, {}, {

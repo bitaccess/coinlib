@@ -144,10 +144,6 @@ export declare const TronBroadcastResult: t.IntersectionC<[t.TypeC<{
     rebroadcast: t.BooleanC;
 }>]>;
 export declare type TronBroadcastResult = t.TypeOf<typeof TronBroadcastResult>;
-export declare const GetPayportOptions: t.PartialC<{
-    cacheIndex: t.BooleanC;
-}>;
-export declare type GetPayportOptions = t.TypeOf<typeof GetPayportOptions>;
 export declare type FromToWithPayport = FromTo & {
     fromPayport: Payport;
     toPayport: Payport;
