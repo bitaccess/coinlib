@@ -2,7 +2,7 @@
 
 A nodejs library providing a unified API for sending and receiving crypto payments for multiple coin networks.
 
-## Seting Up
+## Setting Up
 
 1. Install root dependencies:
 ```bash
@@ -24,7 +24,7 @@ npm run test
 ### Pull Request process
 1. Ensure following branch naming conventions `<tag>/<subject_message>`;
 2. Ensure following commit message conventions (templated);
-3. Ensure test and linting are exectuted succesfully;
+3. Ensure test and linting are executed successfully;
 4. You may merge the Pull Request in once you have the sign-off of other developers, or if you do not have permission to do that, you may request the reviewer to merge it for you;
 
 ### Commit message template
@@ -33,17 +33,17 @@ Run
 git config commit.template  ./.gitmessage
 ```
 
-### Adding new asstes
+### Adding new assets
 #### Importing packages
 Use lerna to import packages (More info in [lerna docs](https://github.com/lerna/lerna/))
 #### Configuring assets
 Add payment factory to `packages/coin-payments/src/constants.ts`
 
-#### Registring assets
+#### Registering assets
 Add payment config to `packages/coin-payments/src/types.ts`
 
 ### Abstractions to implement
-Find types and intefraces at `packages/payments-common/src/`
+Find types and interfaces at `packages/payments-common/src/`
 
 ## Usage
 
