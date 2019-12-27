@@ -1,0 +1,23 @@
+# [<tag>] (<package>) <subject> (Max 72 char)
+# |<----   Preferably using up to 50 chars   --->|<------------------->|
+# Example:
+# [feat] (bitcoin) Add support for new address scheme
+
+# (Optional) Explain why this change is being made
+# |<----   Try To Limit Each Line to a Maximum Of 72 Characters   ---->|
+
+# (Optional) Provide links or keys to any relevant tickets, articles or other resources
+# Example: Github issue #23
+
+# --- COMMIT END ---
+# Tag can be 
+#    feat     (new feature)
+#    fix      (bug fix)
+#    refactor (refactoring code)
+#    style    (formatting, missing semi colons, etc; no code change)
+#    doc      (changes to documentation)
+#    test     (adding or refactoring tests; no production code change)
+#    version  (version bump/new release; no production code change)
+#    dbg      (Changes in debugging code/frameworks; no production code change)
+#    license  (Edits regarding licensing; no production code change)
+#    hack     (Temporary fix to make things move forward; please avoid it)
