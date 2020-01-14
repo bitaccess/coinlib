@@ -63,7 +63,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
 
   getPublicConfig() {
     return {
-      ...omit(this.config, ['logger', 'server']),
+      ...omit(this.config, ['logger', 'server', 'hdKey']),
       ...this.getPublicAccountConfig(),
     }
   }
