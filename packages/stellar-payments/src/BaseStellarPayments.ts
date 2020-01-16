@@ -59,7 +59,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
 
   getPublicConfig() {
     return {
-      ...omit(this.config, ['logger', 'server']),
+      ...omit(this.config, ['logger', 'server', 'hdKey']),
       ...this.getPublicAccountConfig(),
     }
   }
