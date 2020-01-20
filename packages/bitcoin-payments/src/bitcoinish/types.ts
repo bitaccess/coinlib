@@ -9,7 +9,10 @@ import { BlockbookBitcoin, BlockInfoBitcoin } from 'blockbook-client'
 
 export { BitcoinjsNetwork, UtxoInfo }
 
-export const BlockbookConfigServer = t.union([t.string, instanceofCodec(BlockbookBitcoin), t.null], 'BlockbookConfigServer')
+/** A hack to get around TS2742 when config is re-exported from coin-payments */
+export class BlockbookServerAPI extends BlockbookBitcoin {}
+
+export const BlockbookConfigServer = t.union([t.string, instanceofCodec(BlockbookServerAPI), t.null], 'BlockbookConfigServer')
 export type BlockbookConfigServer = t.TypeOf<typeof BlockbookConfigServer>
 
 export const BlockbookConnectedConfig = requiredOptionalCodec(
