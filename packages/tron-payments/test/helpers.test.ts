@@ -5,7 +5,7 @@ import { hdAccount } from './fixtures/accounts'
 
 const { XPRV, XPUB, ADDRESSES } = hdAccount
 
-describe('utils', () => {
+describe('helpers', () => {
   test('toMainDenomination from string', () => {
     expect(toMainDenominationString('123456789')).toBe('123.456789')
   })
@@ -21,19 +21,19 @@ describe('utils', () => {
   test('isValidXpub should return true for valid', () => {
     expect(isValidXpub(XPUB)).toBe(true)
   })
-  test('isValidXpub should return true for valid', () => {
+  test('isValidXpub should return false for invalid', () => {
     expect(isValidXpub('xpat1234')).toBe(false)
   })
-  test('isValidXrv should return true for valid', () => {
+  test('isValidXprv should return true for valid', () => {
     expect(isValidXprv(XPRV)).toBe(true)
   })
-  test('isValidXrv should return false for invalid', () => {
+  test('isValidXprv should return false for invalid', () => {
     expect(isValidXprv('xpat1234')).toBe(false)
   })
-  test('isValidAddress shoudl return true for valid', async () => {
+  test('isValidAddress should return true for valid', async () => {
     expect(isValidAddress(ADDRESSES[0])).toBe(true)
   })
-  test('isValidAddress shoudl return true for valid', async () => {
+  test('isValidAddress should return false for invalid', async () => {
     expect(isValidAddress('fake')).toBe(false)
   })
 })
