@@ -11,6 +11,7 @@ import {
   Payport,
   FromTo,
   ResolveablePayport,
+  UtxoInfo,
 } from './types'
 import { PaymentsUtils } from './PaymentsUtils'
 
@@ -30,7 +31,7 @@ export interface BasePayments<
   UnsignedTransaction extends BaseUnsignedTransaction,
   SignedTransaction extends BaseSignedTransaction,
   BroadcastResult extends BaseBroadcastResult,
-  TransactionInfo extends BaseTransactionInfo
+  TransactionInfo extends BaseTransactionInfo,
 > extends PaymentsUtils {
   /** Establishes any connections necessary for use */
   init(): Promise<void>
@@ -105,6 +106,12 @@ export interface BasePayments<
    * a hot wallet.
    */
   isSweepableBalance(balance: string, payport?: ResolveablePayport): boolean
+
+  usesUtxos(): boolean
+
+  getAvailableUtxos(payport: ResolveablePayport): Promise<UtxoInfo[]>
+
+  usesSequenceNumber(): boolean
 
   /**
    * Get the next unused transaction sequenceNumber for a payport.

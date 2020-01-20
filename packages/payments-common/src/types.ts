@@ -36,6 +36,13 @@ export enum FeeLevel {
 }
 export const FeeLevelT = enumCodec<FeeLevel>(FeeLevel, 'FeeLevel')
 
+export const AutoFeeLevels = t.keyof({
+  [FeeLevel.Low]: null,
+  [FeeLevel.Medium]: null,
+  [FeeLevel.High]: null,
+}, 'AutoFeeLevels')
+export type AutoFeeLevels = t.TypeOf<typeof AutoFeeLevels>
+
 export enum FeeRateType {
   Main = 'main', // ie bitcoins, ethers
   Base = 'base', // ie satoshis, wei
@@ -43,16 +50,21 @@ export enum FeeRateType {
 }
 export const FeeRateTypeT = enumCodec<FeeRateType>(FeeRateType, 'FeeRateType')
 
-export const FeeOptionCustom = requiredOptionalCodec(
-  {
-    feeRate: t.string,
-    feeRateType: FeeRateTypeT,
-  },
+export const FeeRate = t.type({
+  feeRate: t.string,
+  feeRateType: FeeRateTypeT,
+}, 'FeeRate')
+export type FeeRate = t.TypeOf<typeof FeeRate>
+
+export const FeeOptionCustom = extendCodec(
+  FeeRate,
+  {},
   {
     feeLevel: t.literal(FeeLevel.Custom),
   },
   'FeeOptionCustom',
 )
+export type FeeOptionCustom = t.TypeOf<typeof FeeOptionCustom>
 
 export const FeeOptionLevel = t.partial(
   {
@@ -60,9 +72,26 @@ export const FeeOptionLevel = t.partial(
   },
   'FeeOptionLevel',
 )
+export type FeeOptionLevel = t.TypeOf<typeof FeeOptionLevel>
 
 export const FeeOption = t.union([FeeOptionCustom, FeeOptionLevel], 'FeeOption')
 export type FeeOption = t.TypeOf<typeof FeeOption>
+
+export const UtxoInfo = requiredOptionalCodec(
+  {
+    txid: t.string,
+    vout: t.number,
+    value: t.string, // main denomination
+  },
+  {
+    confirmations: t.number,
+    height: t.string,
+    lockTime: t.string,
+    coinbase: t.boolean,
+  },
+  'UtxoInfo',
+)
+export type UtxoInfo = t.TypeOf<typeof UtxoInfo>
 
 export const CreateTransactionOptions = extendCodec(
   FeeOption,
@@ -70,10 +99,15 @@ export const CreateTransactionOptions = extendCodec(
   {
     sequenceNumber: Numeric,
     payportBalance: Numeric,
+    availableUtxos: t.array(UtxoInfo),
+    useAllUtxos: t.boolean,
   },
   'CreateTransactionOptions',
 )
 export type CreateTransactionOptions = t.TypeOf<typeof CreateTransactionOptions>
+
+export const GetPayportOptions = t.partial({}, 'GetPayportOptions')
+export type GetPayportOptions = t.TypeOf<typeof GetPayportOptions>
 
 export const ResolvedFeeOption = t.type({
   targetFeeLevel: FeeLevelT,
@@ -81,7 +115,7 @@ export const ResolvedFeeOption = t.type({
   targetFeeRateType: FeeRateTypeT,
   feeBase: t.string,
   feeMain: t.string,
-})
+}, 'ResolvedFeeOption')
 export type ResolvedFeeOption = t.TypeOf<typeof ResolvedFeeOption>
 
 export const BalanceResult = t.type(
@@ -133,6 +167,9 @@ const UnsignedCommon = extendCodec(
     targetFeeRate: nullable(t.string),
     targetFeeRateType: nullable(FeeRateTypeT),
   },
+  {
+    inputUtxos: t.array(UtxoInfo),
+  },
   'UnsignedCommon',
 )
 type UnsignedCommon = t.TypeOf<typeof UnsignedCommon>
@@ -172,6 +209,9 @@ export const BaseTransactionInfo = extendCodec(
     confirmationId: nullable(t.string), // eg block number or hash. null if not confirmed
     confirmationTimestamp: nullable(DateT), // block timestamp. null if timestamp unavailable or unconfirmed
     data: t.object,
+  },
+  {
+    confirmationNumber: t.string, // eg block number
   },
   'BaseTransactionInfo',
 )

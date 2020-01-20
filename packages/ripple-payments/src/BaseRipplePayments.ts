@@ -204,6 +204,18 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     }
   }
 
+  usesUtxos() {
+    return false
+  }
+
+  async getAvailableUtxos() {
+    return []
+  }
+
+  usesSequenceNumber() {
+    return true
+  }
+
   async getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<string> {
     const payport = await this.resolvePayport(payportOrIndex)
     const { address } = payport

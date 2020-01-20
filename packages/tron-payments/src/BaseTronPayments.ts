@@ -14,6 +14,7 @@ import {
   ResolveablePayport,
   PaymentsError,
   PaymentsErrorCode,
+  GetPayportOptions,
 } from '@faast/payments-common'
 import { isType, DelegateLogger, Logger } from '@faast/ts-common'
 
@@ -326,8 +327,20 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
     return this.canSweepBalance(toBaseDenominationNumber(balanceTrx))
   }
 
+  usesSequenceNumber() {
+    return false
+  }
+
   async getNextSequenceNumber() {
     return null
+  }
+
+  usesUtxos() {
+    return false
+  }
+
+  async getAvailableUtxos() {
+    return []
   }
 
   // HELPERS
