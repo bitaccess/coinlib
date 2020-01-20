@@ -19,6 +19,11 @@ export var FeeLevel;
     FeeLevel["High"] = "high";
 })(FeeLevel || (FeeLevel = {}));
 export const FeeLevelT = enumCodec(FeeLevel, 'FeeLevel');
+export const AutoFeeLevels = t.keyof({
+    [FeeLevel.Low]: null,
+    [FeeLevel.Medium]: null,
+    [FeeLevel.High]: null,
+}, 'AutoFeeLevels');
 export var FeeRateType;
 (function (FeeRateType) {
     FeeRateType["Main"] = "main";
@@ -26,27 +31,41 @@ export var FeeRateType;
     FeeRateType["BasePerWeight"] = "base/weight";
 })(FeeRateType || (FeeRateType = {}));
 export const FeeRateTypeT = enumCodec(FeeRateType, 'FeeRateType');
-export const FeeOptionCustom = requiredOptionalCodec({
+export const FeeRate = t.type({
     feeRate: t.string,
     feeRateType: FeeRateTypeT,
-}, {
+}, 'FeeRate');
+export const FeeOptionCustom = extendCodec(FeeRate, {}, {
     feeLevel: t.literal(FeeLevel.Custom),
 }, 'FeeOptionCustom');
 export const FeeOptionLevel = t.partial({
     feeLevel: t.union([t.literal(FeeLevel.High), t.literal(FeeLevel.Medium), t.literal(FeeLevel.Low)]),
 }, 'FeeOptionLevel');
 export const FeeOption = t.union([FeeOptionCustom, FeeOptionLevel], 'FeeOption');
+export const UtxoInfo = requiredOptionalCodec({
+    txid: t.string,
+    vout: t.number,
+    value: t.string,
+}, {
+    confirmations: t.number,
+    height: t.string,
+    lockTime: t.string,
+    coinbase: t.boolean,
+}, 'UtxoInfo');
 export const CreateTransactionOptions = extendCodec(FeeOption, {}, {
     sequenceNumber: Numeric,
     payportBalance: Numeric,
+    availableUtxos: t.array(UtxoInfo),
+    useAllUtxos: t.boolean,
 }, 'CreateTransactionOptions');
+export const GetPayportOptions = t.partial({}, 'GetPayportOptions');
 export const ResolvedFeeOption = t.type({
     targetFeeLevel: FeeLevelT,
     targetFeeRate: t.string,
     targetFeeRateType: FeeRateTypeT,
     feeBase: t.string,
     feeMain: t.string,
-});
+}, 'ResolvedFeeOption');
 export const BalanceResult = t.type({
     confirmedBalance: t.string,
     unconfirmedBalance: t.string,
@@ -82,6 +101,8 @@ const UnsignedCommon = extendCodec(TransactionCommon, {
     targetFeeLevel: FeeLevelT,
     targetFeeRate: nullable(t.string),
     targetFeeRateType: nullable(FeeRateTypeT),
+}, {
+    inputUtxos: t.array(UtxoInfo),
 }, 'UnsignedCommon');
 export const BaseUnsignedTransaction = extendCodec(UnsignedCommon, {
     status: t.literal(TransactionStatus.Unsigned),
@@ -104,6 +125,8 @@ export const BaseTransactionInfo = extendCodec(TransactionCommon, {
     confirmationId: nullable(t.string),
     confirmationTimestamp: nullable(DateT),
     data: t.object,
+}, {
+    confirmationNumber: t.string,
 }, 'BaseTransactionInfo');
 export const BaseBroadcastResult = t.type({
     id: t.string,

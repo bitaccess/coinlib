@@ -1,5 +1,5 @@
-import { partial, union, string, number, literal, type, boolean, object } from 'io-ts';
-import { enumCodec, Logger, requiredOptionalCodec, extendCodec, Numeric, nullable, DateT, functionT } from '@faast/ts-common';
+import { partial, union, string, number, keyof, type, literal, boolean, array, object } from 'io-ts';
+import { enumCodec, Logger, extendCodec, requiredOptionalCodec, Numeric, nullable, DateT, functionT } from '@faast/ts-common';
 import BigNumber from 'bignumber.js';
 
 var NetworkType;
@@ -21,6 +21,11 @@ var FeeLevel;
     FeeLevel["High"] = "high";
 })(FeeLevel || (FeeLevel = {}));
 const FeeLevelT = enumCodec(FeeLevel, 'FeeLevel');
+const AutoFeeLevels = keyof({
+    [FeeLevel.Low]: null,
+    [FeeLevel.Medium]: null,
+    [FeeLevel.High]: null,
+}, 'AutoFeeLevels');
 var FeeRateType;
 (function (FeeRateType) {
     FeeRateType["Main"] = "main";
@@ -28,27 +33,41 @@ var FeeRateType;
     FeeRateType["BasePerWeight"] = "base/weight";
 })(FeeRateType || (FeeRateType = {}));
 const FeeRateTypeT = enumCodec(FeeRateType, 'FeeRateType');
-const FeeOptionCustom = requiredOptionalCodec({
+const FeeRate = type({
     feeRate: string,
     feeRateType: FeeRateTypeT,
-}, {
+}, 'FeeRate');
+const FeeOptionCustom = extendCodec(FeeRate, {}, {
     feeLevel: literal(FeeLevel.Custom),
 }, 'FeeOptionCustom');
 const FeeOptionLevel = partial({
     feeLevel: union([literal(FeeLevel.High), literal(FeeLevel.Medium), literal(FeeLevel.Low)]),
 }, 'FeeOptionLevel');
 const FeeOption = union([FeeOptionCustom, FeeOptionLevel], 'FeeOption');
+const UtxoInfo = requiredOptionalCodec({
+    txid: string,
+    vout: number,
+    value: string,
+}, {
+    confirmations: number,
+    height: string,
+    lockTime: string,
+    coinbase: boolean,
+}, 'UtxoInfo');
 const CreateTransactionOptions = extendCodec(FeeOption, {}, {
     sequenceNumber: Numeric,
     payportBalance: Numeric,
+    availableUtxos: array(UtxoInfo),
+    useAllUtxos: boolean,
 }, 'CreateTransactionOptions');
+const GetPayportOptions = partial({}, 'GetPayportOptions');
 const ResolvedFeeOption = type({
     targetFeeLevel: FeeLevelT,
     targetFeeRate: string,
     targetFeeRateType: FeeRateTypeT,
     feeBase: string,
     feeMain: string,
-});
+}, 'ResolvedFeeOption');
 const BalanceResult = type({
     confirmedBalance: string,
     unconfirmedBalance: string,
@@ -84,6 +103,8 @@ const UnsignedCommon = extendCodec(TransactionCommon, {
     targetFeeLevel: FeeLevelT,
     targetFeeRate: nullable(string),
     targetFeeRateType: nullable(FeeRateTypeT),
+}, {
+    inputUtxos: array(UtxoInfo),
 }, 'UnsignedCommon');
 const BaseUnsignedTransaction = extendCodec(UnsignedCommon, {
     status: literal(TransactionStatus.Unsigned),
@@ -106,6 +127,8 @@ const BaseTransactionInfo = extendCodec(TransactionCommon, {
     confirmationId: nullable(string),
     confirmationTimestamp: nullable(DateT),
     data: object,
+}, {
+    confirmationNumber: string,
 }, 'BaseTransactionInfo');
 const BaseBroadcastResult = type({
     id: string,
@@ -200,5 +223,5 @@ class PaymentsError extends Error {
     }
 }
 
-export { AddressOrIndex, BalanceActivity, BalanceActivityCallback, BalanceActivityType, BalanceMonitorConfig, BalanceResult, BaseBroadcastResult, BaseConfig, BaseSignedTransaction, BaseTransactionInfo, BaseUnsignedTransaction, CreateTransactionOptions, FeeLevel, FeeLevelT, FeeOption, FeeOptionCustom, FeeOptionLevel, FeeRateType, FeeRateTypeT, GetBalanceActivityOptions, NetworkType, NetworkTypeT, PaymentsError, PaymentsErrorCode, Payport, ResolveablePayport, ResolvedFeeOption, RetrieveBalanceActivitiesResult, TransactionCommon, TransactionStatus, TransactionStatusT, createUnitConverters };
+export { AddressOrIndex, AutoFeeLevels, BalanceActivity, BalanceActivityCallback, BalanceActivityType, BalanceMonitorConfig, BalanceResult, BaseBroadcastResult, BaseConfig, BaseSignedTransaction, BaseTransactionInfo, BaseUnsignedTransaction, CreateTransactionOptions, FeeLevel, FeeLevelT, FeeOption, FeeOptionCustom, FeeOptionLevel, FeeRate, FeeRateType, FeeRateTypeT, GetBalanceActivityOptions, GetPayportOptions, NetworkType, NetworkTypeT, PaymentsError, PaymentsErrorCode, Payport, ResolveablePayport, ResolvedFeeOption, RetrieveBalanceActivitiesResult, TransactionCommon, TransactionStatus, TransactionStatusT, UtxoInfo, createUnitConverters };
 //# sourceMappingURL=index.es.js.map

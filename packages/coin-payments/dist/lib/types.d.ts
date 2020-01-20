@@ -23,7 +23,7 @@ export declare const CoinPaymentsAssetConfigs: t.TypeC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
-        server: t.UnionC<[t.StringC, t.Type<import("ripple-lib/dist/npm/api").RippleAPI, import("ripple-lib/dist/npm/api").RippleAPI, unknown>, t.NullC]>;
+        server: t.UnionC<[t.StringC, t.Type<import("@faast/ripple-payments").RippleServerAPI, import("@faast/ripple-payments").RippleServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
         maxLedgerVersionOffset: t.NumberC;
     }>]>, t.TypeC<{
@@ -32,7 +32,7 @@ export declare const CoinPaymentsAssetConfigs: t.TypeC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
-        server: t.UnionC<[t.StringC, t.Type<import("ripple-lib/dist/npm/api").RippleAPI, import("ripple-lib/dist/npm/api").RippleAPI, unknown>, t.NullC]>;
+        server: t.UnionC<[t.StringC, t.Type<import("@faast/ripple-payments").RippleServerAPI, import("@faast/ripple-payments").RippleServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
         maxLedgerVersionOffset: t.NumberC;
     }>]>, t.TypeC<{
@@ -55,7 +55,7 @@ export declare const CoinPaymentsAssetConfigs: t.TypeC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
-        server: t.UnionC<[t.StringC, t.Type<import("stellar-sdk").Server, import("stellar-sdk").Server, unknown>, t.NullC]>;
+        server: t.UnionC<[t.StringC, t.Type<import("@faast/stellar-payments").StellarServerAPI, import("@faast/stellar-payments").StellarServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
         txTimeoutSeconds: t.NumberC;
     }>]>, t.TypeC<{
@@ -64,7 +64,7 @@ export declare const CoinPaymentsAssetConfigs: t.TypeC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
-        server: t.UnionC<[t.StringC, t.Type<import("stellar-sdk").Server, import("stellar-sdk").Server, unknown>, t.NullC]>;
+        server: t.UnionC<[t.StringC, t.Type<import("@faast/stellar-payments").StellarServerAPI, import("@faast/stellar-payments").StellarServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
         txTimeoutSeconds: t.NumberC;
     }>]>, t.TypeC<{
@@ -106,7 +106,7 @@ export declare const CoinPaymentsConfig: t.PartialC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
-        server: t.UnionC<[t.StringC, t.Type<import("ripple-lib/dist/npm/api").RippleAPI, import("ripple-lib/dist/npm/api").RippleAPI, unknown>, t.NullC]>;
+        server: t.UnionC<[t.StringC, t.Type<import("@faast/ripple-payments").RippleServerAPI, import("@faast/ripple-payments").RippleServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
         maxLedgerVersionOffset: t.NumberC;
     }>]>, t.TypeC<{
@@ -115,7 +115,7 @@ export declare const CoinPaymentsConfig: t.PartialC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
-        server: t.UnionC<[t.StringC, t.Type<import("ripple-lib/dist/npm/api").RippleAPI, import("ripple-lib/dist/npm/api").RippleAPI, unknown>, t.NullC]>;
+        server: t.UnionC<[t.StringC, t.Type<import("@faast/ripple-payments").RippleServerAPI, import("@faast/ripple-payments").RippleServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
         maxLedgerVersionOffset: t.NumberC;
     }>]>, t.TypeC<{
@@ -138,7 +138,7 @@ export declare const CoinPaymentsConfig: t.PartialC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
-        server: t.UnionC<[t.StringC, t.Type<import("stellar-sdk").Server, import("stellar-sdk").Server, unknown>, t.NullC]>;
+        server: t.UnionC<[t.StringC, t.Type<import("@faast/stellar-payments").StellarServerAPI, import("@faast/stellar-payments").StellarServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
         txTimeoutSeconds: t.NumberC;
     }>]>, t.TypeC<{
@@ -147,7 +147,7 @@ export declare const CoinPaymentsConfig: t.PartialC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
-        server: t.UnionC<[t.StringC, t.Type<import("stellar-sdk").Server, import("stellar-sdk").Server, unknown>, t.NullC]>;
+        server: t.UnionC<[t.StringC, t.Type<import("@faast/stellar-payments").StellarServerAPI, import("@faast/stellar-payments").StellarServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
         txTimeoutSeconds: t.NumberC;
     }>]>, t.TypeC<{
@@ -186,7 +186,7 @@ export declare const SupportedCoinPaymentsSymbol: t.KeyofC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
-        server: t.UnionC<[t.StringC, t.Type<import("ripple-lib/dist/npm/api").RippleAPI, import("ripple-lib/dist/npm/api").RippleAPI, unknown>, t.NullC]>;
+        server: t.UnionC<[t.StringC, t.Type<import("@faast/ripple-payments").RippleServerAPI, import("@faast/ripple-payments").RippleServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
         maxLedgerVersionOffset: t.NumberC;
     }>]>, t.TypeC<{
@@ -195,7 +195,7 @@ export declare const SupportedCoinPaymentsSymbol: t.KeyofC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
-        server: t.UnionC<[t.StringC, t.Type<import("ripple-lib/dist/npm/api").RippleAPI, import("ripple-lib/dist/npm/api").RippleAPI, unknown>, t.NullC]>;
+        server: t.UnionC<[t.StringC, t.Type<import("@faast/ripple-payments").RippleServerAPI, import("@faast/ripple-payments").RippleServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
         maxLedgerVersionOffset: t.NumberC;
     }>]>, t.TypeC<{
@@ -218,7 +218,7 @@ export declare const SupportedCoinPaymentsSymbol: t.KeyofC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
-        server: t.UnionC<[t.StringC, t.Type<import("stellar-sdk").Server, import("stellar-sdk").Server, unknown>, t.NullC]>;
+        server: t.UnionC<[t.StringC, t.Type<import("@faast/stellar-payments").StellarServerAPI, import("@faast/stellar-payments").StellarServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
         txTimeoutSeconds: t.NumberC;
     }>]>, t.TypeC<{
@@ -227,7 +227,7 @@ export declare const SupportedCoinPaymentsSymbol: t.KeyofC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
-        server: t.UnionC<[t.StringC, t.Type<import("stellar-sdk").Server, import("stellar-sdk").Server, unknown>, t.NullC]>;
+        server: t.UnionC<[t.StringC, t.Type<import("@faast/stellar-payments").StellarServerAPI, import("@faast/stellar-payments").StellarServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
         txTimeoutSeconds: t.NumberC;
     }>]>, t.TypeC<{

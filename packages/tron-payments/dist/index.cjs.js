@@ -370,8 +370,17 @@ class BaseTronPayments extends TronPaymentsUtils {
     isSweepableBalance(balanceTrx) {
         return this.canSweepBalance(toBaseDenominationNumber(balanceTrx));
     }
+    usesSequenceNumber() {
+        return false;
+    }
     async getNextSequenceNumber() {
         return null;
+    }
+    usesUtxos() {
+        return false;
+    }
+    async getAvailableUtxos() {
+        return [];
     }
     canSweepBalance(balanceSun) {
         return balanceSun > MIN_BALANCE_SUN;
@@ -668,7 +677,7 @@ class HdTronPayments extends BaseTronPayments {
     }
     getPublicConfig() {
         return {
-            ...lodash.omit(this.config, ['logger', 'fullNode', 'solidityNode', 'eventServer']),
+            ...lodash.omit(this.config, ['logger', 'fullNode', 'solidityNode', 'eventServer', 'hdKey']),
             hdKey: this.getXpub(),
         };
     }

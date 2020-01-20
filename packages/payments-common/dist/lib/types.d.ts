@@ -18,21 +18,34 @@ export declare enum FeeLevel {
     High = "high"
 }
 export declare const FeeLevelT: t.Type<FeeLevel, FeeLevel, unknown>;
+export declare const AutoFeeLevels: t.KeyofC<{
+    [FeeLevel.Low]: null;
+    [FeeLevel.Medium]: null;
+    [FeeLevel.High]: null;
+}>;
+export declare type AutoFeeLevels = t.TypeOf<typeof AutoFeeLevels>;
 export declare enum FeeRateType {
     Main = "main",
     Base = "base",
     BasePerWeight = "base/weight"
 }
 export declare const FeeRateTypeT: t.Type<FeeRateType, FeeRateType, unknown>;
+export declare const FeeRate: t.TypeC<{
+    feeRate: t.StringC;
+    feeRateType: t.Type<FeeRateType, FeeRateType, unknown>;
+}>;
+export declare type FeeRate = t.TypeOf<typeof FeeRate>;
 export declare const FeeOptionCustom: t.IntersectionC<[t.TypeC<{
     feeRate: t.StringC;
     feeRateType: t.Type<FeeRateType, FeeRateType, unknown>;
 }>, t.PartialC<{
     feeLevel: t.LiteralC<FeeLevel.Custom>;
 }>]>;
+export declare type FeeOptionCustom = t.TypeOf<typeof FeeOptionCustom>;
 export declare const FeeOptionLevel: t.PartialC<{
     feeLevel: t.UnionC<[t.LiteralC<FeeLevel.High>, t.LiteralC<FeeLevel.Medium>, t.LiteralC<FeeLevel.Low>]>;
 }>;
+export declare type FeeOptionLevel = t.TypeOf<typeof FeeOptionLevel>;
 export declare const FeeOption: t.UnionC<[t.IntersectionC<[t.TypeC<{
     feeRate: t.StringC;
     feeRateType: t.Type<FeeRateType, FeeRateType, unknown>;
@@ -42,6 +55,17 @@ export declare const FeeOption: t.UnionC<[t.IntersectionC<[t.TypeC<{
     feeLevel: t.UnionC<[t.LiteralC<FeeLevel.High>, t.LiteralC<FeeLevel.Medium>, t.LiteralC<FeeLevel.Low>]>;
 }>]>;
 export declare type FeeOption = t.TypeOf<typeof FeeOption>;
+export declare const UtxoInfo: t.IntersectionC<[t.TypeC<{
+    txid: t.StringC;
+    vout: t.NumberC;
+    value: t.StringC;
+}>, t.PartialC<{
+    confirmations: t.NumberC;
+    height: t.StringC;
+    lockTime: t.StringC;
+    coinbase: t.BooleanC;
+}>]>;
+export declare type UtxoInfo = t.TypeOf<typeof UtxoInfo>;
 export declare const CreateTransactionOptions: t.IntersectionC<[t.UnionC<[t.IntersectionC<[t.TypeC<{
     feeRate: t.StringC;
     feeRateType: t.Type<FeeRateType, FeeRateType, unknown>;
@@ -52,8 +76,21 @@ export declare const CreateTransactionOptions: t.IntersectionC<[t.UnionC<[t.Inte
 }>]>, t.PartialC<{
     sequenceNumber: t.UnionC<[t.StringC, t.NumberC, import("@faast/ts-common").BigNumberC]>;
     payportBalance: t.UnionC<[t.StringC, t.NumberC, import("@faast/ts-common").BigNumberC]>;
+    availableUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        txid: t.StringC;
+        vout: t.NumberC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        confirmations: t.NumberC;
+        height: t.StringC;
+        lockTime: t.StringC;
+        coinbase: t.BooleanC;
+    }>]>>;
+    useAllUtxos: t.BooleanC;
 }>]>;
 export declare type CreateTransactionOptions = t.TypeOf<typeof CreateTransactionOptions>;
+export declare const GetPayportOptions: t.PartialC<{}>;
+export declare type GetPayportOptions = t.TypeOf<typeof GetPayportOptions>;
 export declare const ResolvedFeeOption: t.TypeC<{
     targetFeeLevel: t.Type<FeeLevel, FeeLevel, unknown>;
     targetFeeRate: t.StringC;
@@ -111,6 +148,17 @@ export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
     targetFeeLevel: t.Type<FeeLevel, FeeLevel, unknown>;
     targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
     targetFeeRateType: t.UnionC<[t.Type<FeeRateType, FeeRateType, unknown>, t.NullC]>;
+}>, t.PartialC<{
+    inputUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        txid: t.StringC;
+        vout: t.NumberC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        confirmations: t.NumberC;
+        height: t.StringC;
+        lockTime: t.StringC;
+        coinbase: t.BooleanC;
+    }>]>>;
 }>]>, t.TypeC<{
     status: t.LiteralC<TransactionStatus.Unsigned>;
     data: t.ObjectC;
@@ -136,6 +184,17 @@ export declare const BaseSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
     targetFeeLevel: t.Type<FeeLevel, FeeLevel, unknown>;
     targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
     targetFeeRateType: t.UnionC<[t.Type<FeeRateType, FeeRateType, unknown>, t.NullC]>;
+}>, t.PartialC<{
+    inputUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        txid: t.StringC;
+        vout: t.NumberC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        confirmations: t.NumberC;
+        height: t.StringC;
+        lockTime: t.StringC;
+        coinbase: t.BooleanC;
+    }>]>>;
 }>]>, t.TypeC<{
     status: t.LiteralC<TransactionStatus.Signed>;
     id: t.StringC;
@@ -167,6 +226,8 @@ export declare const BaseTransactionInfo: t.IntersectionC<[t.IntersectionC<[t.Ty
     confirmationId: t.UnionC<[t.StringC, t.NullC]>;
     confirmationTimestamp: t.UnionC<[import("@faast/ts-common").DateC, t.NullC]>;
     data: t.ObjectC;
+}>, t.PartialC<{
+    confirmationNumber: t.StringC;
 }>]>;
 export declare type BaseTransactionInfo = t.TypeOf<typeof BaseTransactionInfo>;
 export declare const BaseBroadcastResult: t.TypeC<{

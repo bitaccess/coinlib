@@ -25,33 +25,52 @@ const AddressOrIndex = t.union([t.string, t.number], 'AddressOrIndex');
     FeeLevel["High"] = "high";
 })(exports.FeeLevel || (exports.FeeLevel = {}));
 const FeeLevelT = tsCommon.enumCodec(exports.FeeLevel, 'FeeLevel');
+const AutoFeeLevels = t.keyof({
+    [exports.FeeLevel.Low]: null,
+    [exports.FeeLevel.Medium]: null,
+    [exports.FeeLevel.High]: null,
+}, 'AutoFeeLevels');
 (function (FeeRateType) {
     FeeRateType["Main"] = "main";
     FeeRateType["Base"] = "base";
     FeeRateType["BasePerWeight"] = "base/weight";
 })(exports.FeeRateType || (exports.FeeRateType = {}));
 const FeeRateTypeT = tsCommon.enumCodec(exports.FeeRateType, 'FeeRateType');
-const FeeOptionCustom = tsCommon.requiredOptionalCodec({
+const FeeRate = t.type({
     feeRate: t.string,
     feeRateType: FeeRateTypeT,
-}, {
+}, 'FeeRate');
+const FeeOptionCustom = tsCommon.extendCodec(FeeRate, {}, {
     feeLevel: t.literal(exports.FeeLevel.Custom),
 }, 'FeeOptionCustom');
 const FeeOptionLevel = t.partial({
     feeLevel: t.union([t.literal(exports.FeeLevel.High), t.literal(exports.FeeLevel.Medium), t.literal(exports.FeeLevel.Low)]),
 }, 'FeeOptionLevel');
 const FeeOption = t.union([FeeOptionCustom, FeeOptionLevel], 'FeeOption');
+const UtxoInfo = tsCommon.requiredOptionalCodec({
+    txid: t.string,
+    vout: t.number,
+    value: t.string,
+}, {
+    confirmations: t.number,
+    height: t.string,
+    lockTime: t.string,
+    coinbase: t.boolean,
+}, 'UtxoInfo');
 const CreateTransactionOptions = tsCommon.extendCodec(FeeOption, {}, {
     sequenceNumber: tsCommon.Numeric,
     payportBalance: tsCommon.Numeric,
+    availableUtxos: t.array(UtxoInfo),
+    useAllUtxos: t.boolean,
 }, 'CreateTransactionOptions');
+const GetPayportOptions = t.partial({}, 'GetPayportOptions');
 const ResolvedFeeOption = t.type({
     targetFeeLevel: FeeLevelT,
     targetFeeRate: t.string,
     targetFeeRateType: FeeRateTypeT,
     feeBase: t.string,
     feeMain: t.string,
-});
+}, 'ResolvedFeeOption');
 const BalanceResult = t.type({
     confirmedBalance: t.string,
     unconfirmedBalance: t.string,
@@ -86,6 +105,8 @@ const UnsignedCommon = tsCommon.extendCodec(TransactionCommon, {
     targetFeeLevel: FeeLevelT,
     targetFeeRate: tsCommon.nullable(t.string),
     targetFeeRateType: tsCommon.nullable(FeeRateTypeT),
+}, {
+    inputUtxos: t.array(UtxoInfo),
 }, 'UnsignedCommon');
 const BaseUnsignedTransaction = tsCommon.extendCodec(UnsignedCommon, {
     status: t.literal(exports.TransactionStatus.Unsigned),
@@ -108,6 +129,8 @@ const BaseTransactionInfo = tsCommon.extendCodec(TransactionCommon, {
     confirmationId: tsCommon.nullable(t.string),
     confirmationTimestamp: tsCommon.nullable(tsCommon.DateT),
     data: t.object,
+}, {
+    confirmationNumber: t.string,
 }, 'BaseTransactionInfo');
 const BaseBroadcastResult = t.type({
     id: t.string,
@@ -202,6 +225,7 @@ class PaymentsError extends Error {
 }
 
 exports.AddressOrIndex = AddressOrIndex;
+exports.AutoFeeLevels = AutoFeeLevels;
 exports.BalanceActivity = BalanceActivity;
 exports.BalanceActivityCallback = BalanceActivityCallback;
 exports.BalanceActivityType = BalanceActivityType;
@@ -217,8 +241,10 @@ exports.FeeLevelT = FeeLevelT;
 exports.FeeOption = FeeOption;
 exports.FeeOptionCustom = FeeOptionCustom;
 exports.FeeOptionLevel = FeeOptionLevel;
+exports.FeeRate = FeeRate;
 exports.FeeRateTypeT = FeeRateTypeT;
 exports.GetBalanceActivityOptions = GetBalanceActivityOptions;
+exports.GetPayportOptions = GetPayportOptions;
 exports.NetworkTypeT = NetworkTypeT;
 exports.PaymentsError = PaymentsError;
 exports.Payport = Payport;
@@ -227,5 +253,6 @@ exports.ResolvedFeeOption = ResolvedFeeOption;
 exports.RetrieveBalanceActivitiesResult = RetrieveBalanceActivitiesResult;
 exports.TransactionCommon = TransactionCommon;
 exports.TransactionStatusT = TransactionStatusT;
+exports.UtxoInfo = UtxoInfo;
 exports.createUnitConverters = createUnitConverters;
 //# sourceMappingURL=index.cjs.js.map

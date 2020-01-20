@@ -22,7 +22,7 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
     }
     getPublicConfig() {
         return {
-            ...omit(this.config, ['logger', 'server']),
+            ...omit(this.config, ['logger', 'server', 'hdKey']),
             ...this.getPublicAccountConfig(),
         };
     }
@@ -130,6 +130,15 @@ export class BaseRipplePayments extends RipplePaymentsUtils {
             unconfirmedBalance: '0',
             sweepable: this.isSweepableAddressBalance(xrpAmount),
         };
+    }
+    usesUtxos() {
+        return false;
+    }
+    async getAvailableUtxos() {
+        return [];
+    }
+    usesSequenceNumber() {
+        return true;
     }
     async getNextSequenceNumber(payportOrIndex) {
         const payport = await this.resolvePayport(payportOrIndex);

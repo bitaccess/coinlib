@@ -76,6 +76,17 @@ export declare const TronUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
     targetFeeLevel: t.Type<import("@faast/payments-common").FeeLevel, import("@faast/payments-common").FeeLevel, unknown>;
     targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
     targetFeeRateType: t.UnionC<[t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>, t.NullC]>;
+}>, t.PartialC<{
+    inputUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        txid: t.StringC;
+        vout: t.NumberC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        confirmations: t.NumberC;
+        height: t.StringC;
+        lockTime: t.StringC;
+        coinbase: t.BooleanC;
+    }>]>>;
 }>]>, t.TypeC<{
     status: t.LiteralC<import("@faast/payments-common").TransactionStatus.Unsigned>;
     data: t.ObjectC;
@@ -105,6 +116,17 @@ export declare const TronSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
     targetFeeLevel: t.Type<import("@faast/payments-common").FeeLevel, import("@faast/payments-common").FeeLevel, unknown>;
     targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
     targetFeeRateType: t.UnionC<[t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>, t.NullC]>;
+}>, t.PartialC<{
+    inputUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        txid: t.StringC;
+        vout: t.NumberC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        confirmations: t.NumberC;
+        height: t.StringC;
+        lockTime: t.StringC;
+        coinbase: t.BooleanC;
+    }>]>>;
 }>]>, t.TypeC<{
     status: t.LiteralC<import("@faast/payments-common").TransactionStatus.Signed>;
     id: t.StringC;
@@ -136,6 +158,8 @@ export declare const TronTransactionInfo: t.IntersectionC<[t.IntersectionC<[t.Ty
     confirmationId: t.UnionC<[t.StringC, t.NullC]>;
     confirmationTimestamp: t.UnionC<[import("@faast/ts-common").DateC, t.NullC]>;
     data: t.ObjectC;
+}>, t.PartialC<{
+    confirmationNumber: t.StringC;
 }>]>;
 export declare type TronTransactionInfo = t.TypeOf<typeof TronTransactionInfo>;
 export declare const TronBroadcastResult: t.IntersectionC<[t.TypeC<{

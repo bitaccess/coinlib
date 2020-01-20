@@ -278,7 +278,7 @@ class BaseStellarPayments extends StellarPaymentsUtils {
     }
     getPublicConfig() {
         return {
-            ...omit(this.config, ['logger', 'server']),
+            ...omit(this.config, ['logger', 'server', 'hdKey']),
             ...this.getPublicAccountConfig(),
         };
     }
@@ -379,6 +379,15 @@ class BaseStellarPayments extends StellarPaymentsUtils {
             unconfirmedBalance: '0',
             sweepable: this.isSweepableAddressBalance(amountMain),
         };
+    }
+    usesUtxos() {
+        return false;
+    }
+    async getAvailableUtxos() {
+        return [];
+    }
+    usesSequenceNumber() {
+        return true;
     }
     async getNextSequenceNumber(payportOrIndex) {
         const payport = await this.resolvePayport(payportOrIndex);

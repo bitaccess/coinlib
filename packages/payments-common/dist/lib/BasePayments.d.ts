@@ -1,4 +1,4 @@
-import { BalanceResult, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, CreateTransactionOptions, FeeOption, ResolvedFeeOption, BaseConfig, Payport, FromTo, ResolveablePayport } from './types';
+import { BalanceResult, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, CreateTransactionOptions, FeeOption, ResolvedFeeOption, BaseConfig, Payport, FromTo, ResolveablePayport, UtxoInfo } from './types';
 import { PaymentsUtils } from './PaymentsUtils';
 export declare type AnyPayments<C extends object = any> = BasePayments<C, BaseUnsignedTransaction, BaseSignedTransaction, BaseBroadcastResult, BaseTransactionInfo>;
 export interface BasePayments<Config extends BaseConfig, UnsignedTransaction extends BaseUnsignedTransaction, SignedTransaction extends BaseSignedTransaction, BroadcastResult extends BaseBroadcastResult, TransactionInfo extends BaseTransactionInfo> extends PaymentsUtils {
@@ -15,6 +15,9 @@ export interface BasePayments<Config extends BaseConfig, UnsignedTransaction ext
     getPayport<O extends object>(index: number, options?: O): Promise<Payport>;
     getBalance<O extends object>(payport: ResolveablePayport, options?: O): Promise<BalanceResult>;
     isSweepableBalance(balance: string, payport?: ResolveablePayport): boolean;
+    usesUtxos(): boolean;
+    getAvailableUtxos(payport: ResolveablePayport): Promise<UtxoInfo[]>;
+    usesSequenceNumber(): boolean;
     getNextSequenceNumber(payport: ResolveablePayport): Promise<string | null>;
     getTransactionInfo<O extends object>(txId: string, payport?: ResolveablePayport, options?: O): Promise<TransactionInfo>;
     createTransaction<O extends CreateTransactionOptions>(from: number, to: ResolveablePayport, amount: string, options?: O): Promise<UnsignedTransaction>;

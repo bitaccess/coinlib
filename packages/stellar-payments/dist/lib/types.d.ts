@@ -124,6 +124,17 @@ export declare const StellarUnsignedTransaction: t.IntersectionC<[t.Intersection
     targetFeeLevel: t.Type<import("@faast/payments-common").FeeLevel, import("@faast/payments-common").FeeLevel, unknown>;
     targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
     targetFeeRateType: t.UnionC<[t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>, t.NullC]>;
+}>, t.PartialC<{
+    inputUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        txid: t.StringC;
+        vout: t.NumberC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        confirmations: t.NumberC;
+        height: t.StringC;
+        lockTime: t.StringC;
+        coinbase: t.BooleanC;
+    }>]>>;
 }>]>, t.TypeC<{
     status: t.LiteralC<import("@faast/payments-common").TransactionStatus.Unsigned>;
     data: t.ObjectC;
@@ -152,6 +163,17 @@ export declare const StellarSignedTransaction: t.IntersectionC<[t.IntersectionC<
     targetFeeLevel: t.Type<import("@faast/payments-common").FeeLevel, import("@faast/payments-common").FeeLevel, unknown>;
     targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
     targetFeeRateType: t.UnionC<[t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>, t.NullC]>;
+}>, t.PartialC<{
+    inputUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        txid: t.StringC;
+        vout: t.NumberC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        confirmations: t.NumberC;
+        height: t.StringC;
+        lockTime: t.StringC;
+        coinbase: t.BooleanC;
+    }>]>>;
 }>]>, t.TypeC<{
     status: t.LiteralC<import("@faast/payments-common").TransactionStatus.Signed>;
     id: t.StringC;
@@ -183,6 +205,8 @@ export declare const StellarTransactionInfo: t.IntersectionC<[t.IntersectionC<[t
     confirmationId: t.UnionC<[t.StringC, t.NullC]>;
     confirmationTimestamp: t.UnionC<[import("@faast/ts-common").DateC, t.NullC]>;
     data: t.ObjectC;
+}>, t.PartialC<{
+    confirmationNumber: t.StringC;
 }>]>, t.TypeC<{
     confirmationNumber: t.UnionC<[t.StringC, t.NullC]>;
 }>]>;
@@ -204,6 +228,17 @@ export declare const StellarCreateTransactionOptions: t.IntersectionC<[t.Interse
 }>]>, t.PartialC<{
     sequenceNumber: t.UnionC<[t.StringC, t.NumberC, import("@faast/ts-common").BigNumberC]>;
     payportBalance: t.UnionC<[t.StringC, t.NumberC, import("@faast/ts-common").BigNumberC]>;
+    availableUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        txid: t.StringC;
+        vout: t.NumberC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        confirmations: t.NumberC;
+        height: t.StringC;
+        lockTime: t.StringC;
+        coinbase: t.BooleanC;
+    }>]>>;
+    useAllUtxos: t.BooleanC;
 }>]>, t.PartialC<{
     timeoutSeconds: t.NumberC;
 }>]>;

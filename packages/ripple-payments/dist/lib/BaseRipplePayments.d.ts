@@ -8,7 +8,7 @@ export declare abstract class BaseRipplePayments<Config extends BaseRipplePaymen
     config: Config;
     constructor(config: Config);
     getFullConfig(): Config;
-    getPublicConfig(): Pick<Config, Exclude<keyof Config, "logger" | "server">> & Config;
+    getPublicConfig(): Partial<Config> & Config;
     abstract getPublicAccountConfig(): Config;
     abstract getAccountIds(): string[];
     abstract getAccountId(index: number): string;
@@ -34,6 +34,9 @@ export declare abstract class BaseRipplePayments<Config extends BaseRipplePaymen
         broadcast: import("ripple-lib/dist/npm/transaction/submit").FormattedSubmitResponse;
     } | undefined>;
     getBalance(payportOrIndex: ResolveablePayport): Promise<BalanceResult>;
+    usesUtxos(): boolean;
+    getAvailableUtxos(): Promise<never[]>;
+    usesSequenceNumber(): boolean;
     getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<string>;
     resolveIndexFromAdjustment(adjustment: Adjustment): number | null;
     getTransactionInfo(txId: string): Promise<RippleTransactionInfo>;

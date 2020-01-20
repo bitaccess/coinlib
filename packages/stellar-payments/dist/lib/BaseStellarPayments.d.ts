@@ -7,7 +7,7 @@ export declare abstract class BaseStellarPayments<Config extends BaseStellarPaym
     config: Config;
     constructor(config: Config);
     getFullConfig(): Config;
-    getPublicConfig(): Pick<Config, Exclude<keyof Config, "logger" | "server">> & Config;
+    getPublicConfig(): Partial<Config> & Config;
     abstract getPublicAccountConfig(): Config;
     abstract getAccountIds(): string[];
     abstract getAccountId(index: number): string;
@@ -26,6 +26,9 @@ export declare abstract class BaseStellarPayments<Config extends BaseStellarPaym
     loadAccount(address: string): Promise<Stellar.AccountResponse | null>;
     loadAccountOrThrow(address: string): Promise<Stellar.AccountResponse>;
     getBalance(payportOrIndex: ResolveablePayport): Promise<BalanceResult>;
+    usesUtxos(): boolean;
+    getAvailableUtxos(): Promise<never[]>;
+    usesSequenceNumber(): boolean;
     getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<string>;
     resolveIndexFromAddressAndMemo(address: string, memo?: string): number | null;
     getLatestBlock(): Promise<Stellar.ServerApi.LedgerRecord>;

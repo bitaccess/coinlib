@@ -26,7 +26,7 @@ export class HdTronPayments extends BaseTronPayments {
     }
     getPublicConfig() {
         return {
-            ...omit(this.config, ['logger', 'fullNode', 'solidityNode', 'eventServer']),
+            ...omit(this.config, ['logger', 'fullNode', 'solidityNode', 'eventServer', 'hdKey']),
             hdKey: this.getXpub(),
         };
     }

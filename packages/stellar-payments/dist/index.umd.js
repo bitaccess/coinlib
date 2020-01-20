@@ -275,7 +275,7 @@
       }
       getPublicConfig() {
           return {
-              ...lodash.omit(this.config, ['logger', 'server']),
+              ...lodash.omit(this.config, ['logger', 'server', 'hdKey']),
               ...this.getPublicAccountConfig(),
           };
       }
@@ -376,6 +376,15 @@
               unconfirmedBalance: '0',
               sweepable: this.isSweepableAddressBalance(amountMain),
           };
+      }
+      usesUtxos() {
+          return false;
+      }
+      async getAvailableUtxos() {
+          return [];
+      }
+      usesSequenceNumber() {
+          return true;
       }
       async getNextSequenceNumber(payportOrIndex) {
           const payport = await this.resolvePayport(payportOrIndex);
