@@ -3,11 +3,13 @@ import { FeeRate, AutoFeeLevels, UtxoInfo } from '@faast/payments-common';
 import { Network as BitcoinjsNetwork } from 'bitcoinjs-lib';
 import { BlockbookBitcoin, BlockInfoBitcoin } from 'blockbook-client';
 export { BitcoinjsNetwork, UtxoInfo };
-export declare const BlockbookConfigServer: t.UnionC<[t.StringC, t.Type<BlockbookBitcoin, BlockbookBitcoin, unknown>, t.NullC]>;
+export declare class BlockbookServerAPI extends BlockbookBitcoin {
+}
+export declare const BlockbookConfigServer: t.UnionC<[t.StringC, t.Type<BlockbookServerAPI, BlockbookServerAPI, unknown>, t.NullC]>;
 export declare type BlockbookConfigServer = t.TypeOf<typeof BlockbookConfigServer>;
 export declare const BlockbookConnectedConfig: t.IntersectionC<[t.TypeC<{
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
-    server: t.UnionC<[t.StringC, t.Type<BlockbookBitcoin, BlockbookBitcoin, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.Type<BlockbookServerAPI, BlockbookServerAPI, unknown>, t.NullC]>;
 }>, t.PartialC<{
     logger: t.UnionC<[import("@faast/ts-common").LoggerC, t.NullC]>;
 }>]>;

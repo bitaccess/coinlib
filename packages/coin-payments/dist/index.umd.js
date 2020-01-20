@@ -1,13 +1,14 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('io-ts'), require('@faast/ts-common'), require('@faast/payments-common'), require('@faast/tron-payments'), require('@faast/ripple-payments'), require('@faast/stellar-payments'), require('bip32')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'io-ts', '@faast/ts-common', '@faast/payments-common', '@faast/tron-payments', '@faast/ripple-payments', '@faast/stellar-payments', 'bip32'], factory) :
-  (global = global || self, factory(global.faastCoinPayments = {}, global.t, global.tsCommon, global.paymentsCommon, global.tronPayments, global.ripplePayments, global.stellarPayments, global.bip32));
-}(this, (function (exports, t, tsCommon, paymentsCommon, tronPayments, ripplePayments, stellarPayments, bip32) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('io-ts'), require('@faast/ts-common'), require('@faast/payments-common'), require('@faast/tron-payments'), require('@faast/ripple-payments'), require('@faast/stellar-payments'), require('@faast/bitcoin-payments'), require('bip32')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'io-ts', '@faast/ts-common', '@faast/payments-common', '@faast/tron-payments', '@faast/ripple-payments', '@faast/stellar-payments', '@faast/bitcoin-payments', 'bip32'], factory) :
+  (global = global || self, factory(global.faastCoinPayments = {}, global.t, global.tsCommon, global.paymentsCommon, global.tronPayments, global.ripplePayments, global.stellarPayments, global.bitcoinPayments, global.bip32));
+}(this, (function (exports, t, tsCommon, paymentsCommon, tronPayments, ripplePayments, stellarPayments, bitcoinPayments, bip32) { 'use strict';
 
   const assetConfigCodecs = {
       TRX: tronPayments.TronPaymentsConfig,
       XRP: ripplePayments.RipplePaymentsConfig,
       XLM: stellarPayments.StellarPaymentsConfig,
+      BTC: bitcoinPayments.BitcoinPaymentsConfig,
   };
   const CoinPaymentsAssetConfigs = t.type(assetConfigCodecs, 'CoinPaymentsAssetConfigs');
   const CoinPaymentsConfig = t.partial({
@@ -26,6 +27,7 @@
       TRX: new tronPayments.TronPaymentsFactory(),
       XRP: new ripplePayments.RipplePaymentsFactory(),
       XLM: new stellarPayments.StellarPaymentsFactory(),
+      BTC: new bitcoinPayments.BitcoinPaymentsFactory(),
   };
   const SUPPORTED_ASSET_SYMBOLS = keysOf(PAYMENTS_FACTORIES);
 

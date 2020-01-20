@@ -26,6 +26,7 @@ export const HdBitcoinPaymentsConfig = extendCodec(BaseBitcoinPaymentsConfig, {
 }, {
     derivationPath: t.string,
 }, 'HdBitcoinPaymentsConfig');
+export const BitcoinPaymentsConfig = HdBitcoinPaymentsConfig;
 export const BitcoinUnsignedTransactionData = BitcoinishPaymentTx;
 export const BitcoinUnsignedTransaction = extendCodec(BaseUnsignedTransaction, {
     amount: t.string,

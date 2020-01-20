@@ -5,12 +5,14 @@ export * from '@faast/payments-common';
 import { TronPaymentsConfig, TronPaymentsFactory } from '@faast/tron-payments';
 import { RipplePaymentsConfig, RipplePaymentsFactory } from '@faast/ripple-payments';
 import { StellarPaymentsConfig, StellarPaymentsFactory } from '@faast/stellar-payments';
+import { BitcoinPaymentsConfig, BitcoinPaymentsFactory } from '@faast/bitcoin-payments';
 import { fromSeed } from 'bip32';
 
 const assetConfigCodecs = {
     TRX: TronPaymentsConfig,
     XRP: RipplePaymentsConfig,
     XLM: StellarPaymentsConfig,
+    BTC: BitcoinPaymentsConfig,
 };
 const CoinPaymentsAssetConfigs = type(assetConfigCodecs, 'CoinPaymentsAssetConfigs');
 const CoinPaymentsConfig = partial({
@@ -29,6 +31,7 @@ const PAYMENTS_FACTORIES = {
     TRX: new TronPaymentsFactory(),
     XRP: new RipplePaymentsFactory(),
     XLM: new StellarPaymentsFactory(),
+    BTC: new BitcoinPaymentsFactory(),
 };
 const SUPPORTED_ASSET_SYMBOLS = keysOf(PAYMENTS_FACTORIES);
 

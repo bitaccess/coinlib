@@ -4,10 +4,12 @@ import { NetworkTypeT } from '@faast/payments-common';
 import { TronPaymentsConfig } from '@faast/tron-payments';
 import { RipplePaymentsConfig } from '@faast/ripple-payments';
 import { StellarPaymentsConfig } from '@faast/stellar-payments';
+import { BitcoinPaymentsConfig } from '@faast/bitcoin-payments';
 const assetConfigCodecs = {
     TRX: TronPaymentsConfig,
     XRP: RipplePaymentsConfig,
     XLM: StellarPaymentsConfig,
+    BTC: BitcoinPaymentsConfig,
 };
 export const CoinPaymentsAssetConfigs = t.type(assetConfigCodecs, 'CoinPaymentsAssetConfigs');
 export const CoinPaymentsConfig = t.partial({

@@ -3349,7 +3349,9 @@ function sortUtxos(utxoList) {
     return matureList.concat(immatureList);
 }
 
-const BlockbookConfigServer = union([string, instanceofCodec(BlockbookBitcoin), null$1], 'BlockbookConfigServer');
+class BlockbookServerAPI extends BlockbookBitcoin {
+}
+const BlockbookConfigServer = union([string, instanceofCodec(BlockbookServerAPI), null$1], 'BlockbookConfigServer');
 const BlockbookConnectedConfig = requiredOptionalCodec({
     network: NetworkTypeT,
     server: BlockbookConfigServer,
@@ -3809,6 +3811,7 @@ const HdBitcoinPaymentsConfig = extendCodec(BaseBitcoinPaymentsConfig, {
 }, {
     derivationPath: string,
 }, 'HdBitcoinPaymentsConfig');
+const BitcoinPaymentsConfig = HdBitcoinPaymentsConfig;
 const BitcoinUnsignedTransactionData = BitcoinishPaymentTx;
 const BitcoinUnsignedTransaction = extendCodec(BaseUnsignedTransaction, {
     amount: string,
@@ -14655,5 +14658,14 @@ class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
     }
 }
 
-export { AddressType, AddressTypeT, BaseBitcoinPayments, BaseBitcoinPaymentsConfig, BitcoinBlock, BitcoinBroadcastResult, BitcoinPaymentsUtils, BitcoinPaymentsUtilsConfig, BitcoinSignedTransaction, BitcoinTransactionInfo, BitcoinUnsignedTransaction, BitcoinUnsignedTransactionData, BitcoinishBlock, BitcoinishBroadcastResult, BitcoinishPaymentTx, BitcoinishSignedTransaction, BitcoinishTransactionInfo, BitcoinishTxOutput, BitcoinishUnsignedTransaction, BlockbookConfigServer, BlockbookConnectedConfig, COIN_NAME, COIN_SYMBOL, DECIMAL_PLACES, DEFAULT_ADDRESS_TYPE, DEFAULT_DERIVATION_PATHS, DEFAULT_DUST_THRESHOLD, DEFAULT_FEE_LEVEL, DEFAULT_MAINNET_SERVER, DEFAULT_MIN_TX_FEE, DEFAULT_NETWORK, DEFAULT_NETWORK_MIN_RELAY_FEE, DEFAULT_SAT_PER_BYTE_LEVELS, DEFAULT_TESTNET_SERVER, HdBitcoinPayments, HdBitcoinPaymentsConfig, NETWORK_MAINNET, NETWORK_TESTNET, PACKAGE_NAME, isValidAddress, isValidExtraId, isValidPrivateKey, isValidXprv, isValidXpub, privateKeyToAddress, publicKeyToAddress, toBaseDenominationBigNumber, toBaseDenominationNumber, toBaseDenominationString, toMainDenominationBigNumber, toMainDenominationNumber, toMainDenominationString, validateHdKey };
+class BitcoinPaymentsFactory {
+    forConfig(config) {
+        if (HdBitcoinPaymentsConfig.is(config)) {
+            return new HdBitcoinPayments(config);
+        }
+        throw new Error('Cannot instantiate bitcoin payments for unsupported config');
+    }
+}
+
+export { AddressType, AddressTypeT, BaseBitcoinPayments, BaseBitcoinPaymentsConfig, BitcoinBlock, BitcoinBroadcastResult, BitcoinPaymentsConfig, BitcoinPaymentsFactory, BitcoinPaymentsUtils, BitcoinPaymentsUtilsConfig, BitcoinSignedTransaction, BitcoinTransactionInfo, BitcoinUnsignedTransaction, BitcoinUnsignedTransactionData, BitcoinishBlock, BitcoinishBroadcastResult, BitcoinishPaymentTx, BitcoinishSignedTransaction, BitcoinishTransactionInfo, BitcoinishTxOutput, BitcoinishUnsignedTransaction, BlockbookConfigServer, BlockbookConnectedConfig, BlockbookServerAPI, COIN_NAME, COIN_SYMBOL, DECIMAL_PLACES, DEFAULT_ADDRESS_TYPE, DEFAULT_DERIVATION_PATHS, DEFAULT_DUST_THRESHOLD, DEFAULT_FEE_LEVEL, DEFAULT_MAINNET_SERVER, DEFAULT_MIN_TX_FEE, DEFAULT_NETWORK, DEFAULT_NETWORK_MIN_RELAY_FEE, DEFAULT_SAT_PER_BYTE_LEVELS, DEFAULT_TESTNET_SERVER, HdBitcoinPayments, HdBitcoinPaymentsConfig, NETWORK_MAINNET, NETWORK_TESTNET, PACKAGE_NAME, isValidAddress, isValidExtraId, isValidPrivateKey, isValidXprv, isValidXpub, privateKeyToAddress, publicKeyToAddress, toBaseDenominationBigNumber, toBaseDenominationNumber, toBaseDenominationString, toMainDenominationBigNumber, toMainDenominationNumber, toMainDenominationString, validateHdKey };
 //# sourceMappingURL=index.es.js.map

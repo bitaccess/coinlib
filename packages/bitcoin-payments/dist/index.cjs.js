@@ -3354,7 +3354,9 @@ function sortUtxos(utxoList) {
     return matureList.concat(immatureList);
 }
 
-const BlockbookConfigServer = t.union([t.string, tsCommon.instanceofCodec(blockbookClient.BlockbookBitcoin), t.null], 'BlockbookConfigServer');
+class BlockbookServerAPI extends blockbookClient.BlockbookBitcoin {
+}
+const BlockbookConfigServer = t.union([t.string, tsCommon.instanceofCodec(BlockbookServerAPI), t.null], 'BlockbookConfigServer');
 const BlockbookConnectedConfig = tsCommon.requiredOptionalCodec({
     network: paymentsCommon.NetworkTypeT,
     server: BlockbookConfigServer,
@@ -3813,6 +3815,7 @@ const HdBitcoinPaymentsConfig = tsCommon.extendCodec(BaseBitcoinPaymentsConfig, 
 }, {
     derivationPath: t.string,
 }, 'HdBitcoinPaymentsConfig');
+const BitcoinPaymentsConfig = HdBitcoinPaymentsConfig;
 const BitcoinUnsignedTransactionData = BitcoinishPaymentTx;
 const BitcoinUnsignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseUnsignedTransaction, {
     amount: t.string,
@@ -14659,6 +14662,15 @@ class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
     }
 }
 
+class BitcoinPaymentsFactory {
+    forConfig(config) {
+        if (HdBitcoinPaymentsConfig.is(config)) {
+            return new HdBitcoinPayments(config);
+        }
+        throw new Error('Cannot instantiate bitcoin payments for unsupported config');
+    }
+}
+
 Object.defineProperty(exports, 'UtxoInfo', {
   enumerable: true,
   get: function () {
@@ -14670,6 +14682,8 @@ exports.BaseBitcoinPayments = BaseBitcoinPayments;
 exports.BaseBitcoinPaymentsConfig = BaseBitcoinPaymentsConfig;
 exports.BitcoinBlock = BitcoinBlock;
 exports.BitcoinBroadcastResult = BitcoinBroadcastResult;
+exports.BitcoinPaymentsConfig = BitcoinPaymentsConfig;
+exports.BitcoinPaymentsFactory = BitcoinPaymentsFactory;
 exports.BitcoinPaymentsUtils = BitcoinPaymentsUtils;
 exports.BitcoinPaymentsUtilsConfig = BitcoinPaymentsUtilsConfig;
 exports.BitcoinSignedTransaction = BitcoinSignedTransaction;
@@ -14685,6 +14699,7 @@ exports.BitcoinishTxOutput = BitcoinishTxOutput;
 exports.BitcoinishUnsignedTransaction = BitcoinishUnsignedTransaction;
 exports.BlockbookConfigServer = BlockbookConfigServer;
 exports.BlockbookConnectedConfig = BlockbookConnectedConfig;
+exports.BlockbookServerAPI = BlockbookServerAPI;
 exports.COIN_NAME = COIN_NAME;
 exports.COIN_SYMBOL = COIN_SYMBOL;
 exports.DECIMAL_PLACES = DECIMAL_PLACES;

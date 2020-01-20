@@ -3,7 +3,9 @@ import { BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, Ba
 import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger } from '@faast/ts-common';
 import { BlockbookBitcoin, BlockInfoBitcoin } from 'blockbook-client';
 export { UtxoInfo };
-export const BlockbookConfigServer = t.union([t.string, instanceofCodec(BlockbookBitcoin), t.null], 'BlockbookConfigServer');
+export class BlockbookServerAPI extends BlockbookBitcoin {
+}
+export const BlockbookConfigServer = t.union([t.string, instanceofCodec(BlockbookServerAPI), t.null], 'BlockbookConfigServer');
 export const BlockbookConnectedConfig = requiredOptionalCodec({
     network: NetworkTypeT,
     server: BlockbookConfigServer,
