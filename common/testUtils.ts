@@ -3,6 +3,9 @@ import { Logger } from '@faast/ts-common'
 import util from 'util'
 import fs from 'fs'
 import path from 'path'
+import { TransactionStatus } from '../packages/payments-common/src'
+
+export const END_TRANSACTION_STATES = [TransactionStatus.Confirmed, TransactionStatus.Failed]
 
 export async function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -38,7 +41,7 @@ export class TestLogger implements Logger {
   doLog(level: 'ERROR' | 'WARN' | 'INFO' | 'LOG' | 'DEBUG' | 'TRACE') {
     return (...args: any[]) => {
       const message = `${level} ${formatArgs(...args)}\n`
-      if (level === 'ERROR' || level === 'WARN' || level === 'INFO') {
+      if (process.env.VERBOSE || level === 'ERROR' || level === 'WARN' || level === 'INFO') {
         process.stderr.write(message)
       }
       this.logFile.write(message)
