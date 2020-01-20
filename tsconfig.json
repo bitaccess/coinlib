@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.build.json",
   "compilerOptions": {
+    "strict": true,
     "paths": {
       "@faast/ts-common": ["node_modules/@faast/ts-common"],
       "@faast/payments-common": ["../payments-common/src", "node_modules/@faast/payments-common"],
