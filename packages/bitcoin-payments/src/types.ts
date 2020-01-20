@@ -53,6 +53,10 @@ export const HdBitcoinPaymentsConfig = extendCodec(
 )
 export type HdBitcoinPaymentsConfig = t.TypeOf<typeof HdBitcoinPaymentsConfig>
 
+// TODO: Add KeyPairBitcoinPaymentsConfig as a union to this once it exists
+export const BitcoinPaymentsConfig = HdBitcoinPaymentsConfig
+export type BitcoinPaymentsConfig = t.TypeOf<typeof BitcoinPaymentsConfig>
+
 export const BitcoinUnsignedTransactionData = BitcoinishPaymentTx
 export type BitcoinUnsignedTransactionData = t.TypeOf<typeof BitcoinUnsignedTransactionData>
 
