@@ -1,4 +1,45 @@
 import * as t from 'io-ts';
+export declare const CoinPaymentsBaseAssetConfigs: t.TypeC<{
+    TRX: t.IntersectionC<[t.PartialC<{
+        network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+        logger: import("@faast/ts-common").LoggerC;
+    }>, t.PartialC<{
+        fullNode: t.StringC;
+        solidityNode: t.StringC;
+        eventServer: t.StringC;
+    }>]>;
+    XRP: t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+        network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+        logger: import("@faast/ts-common").LoggerC;
+    }>, t.PartialC<{
+        server: t.UnionC<[t.StringC, t.Type<import("@faast/ripple-payments").RippleServerAPI, import("@faast/ripple-payments").RippleServerAPI, unknown>, t.NullC]>;
+    }>]>, t.PartialC<{
+        maxLedgerVersionOffset: t.NumberC;
+    }>]>;
+    XLM: t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+        network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+        logger: import("@faast/ts-common").LoggerC;
+    }>, t.PartialC<{
+        server: t.UnionC<[t.StringC, t.Type<import("@faast/stellar-payments").StellarServerAPI, import("@faast/stellar-payments").StellarServerAPI, unknown>, t.NullC]>;
+    }>]>, t.PartialC<{
+        txTimeoutSeconds: t.NumberC;
+    }>]>;
+    BTC: t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+        network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+        logger: import("@faast/ts-common").LoggerC;
+    }>, t.PartialC<{
+        server: t.UnionC<[t.StringC, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
+    }>]>, t.PartialC<{
+        addressType: t.Type<import("@faast/bitcoin-payments").AddressType, import("@faast/bitcoin-payments").AddressType, unknown>;
+        minTxFee: t.TypeC<{
+            feeRate: t.StringC;
+            feeRateType: t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>;
+        }>;
+        dustThreshold: t.NumberC;
+        networkMinRelayFee: t.NumberC;
+    }>]>;
+}>;
+export declare type CoinPaymentsBaseAssetConfigs = t.TypeOf<typeof CoinPaymentsBaseAssetConfigs>;
 export declare const CoinPaymentsAssetConfigs: t.TypeC<{
     TRX: t.UnionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;

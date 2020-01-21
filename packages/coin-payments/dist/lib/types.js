@@ -1,10 +1,17 @@
 import * as t from 'io-ts';
 import { Logger } from '@faast/ts-common';
 import { NetworkTypeT } from '@faast/payments-common';
-import { TronPaymentsConfig } from '@faast/tron-payments';
-import { RipplePaymentsConfig } from '@faast/ripple-payments';
-import { StellarPaymentsConfig } from '@faast/stellar-payments';
-import { BitcoinPaymentsConfig } from '@faast/bitcoin-payments';
+import { TronPaymentsConfig, BaseTronPaymentsConfig } from '@faast/tron-payments';
+import { RipplePaymentsConfig, BaseRipplePaymentsConfig } from '@faast/ripple-payments';
+import { StellarPaymentsConfig, BaseStellarPaymentsConfig } from '@faast/stellar-payments';
+import { BitcoinPaymentsConfig, BaseBitcoinPaymentsConfig } from '@faast/bitcoin-payments';
+const baseAssetConfigCodecs = {
+    TRX: BaseTronPaymentsConfig,
+    XRP: BaseRipplePaymentsConfig,
+    XLM: BaseStellarPaymentsConfig,
+    BTC: BaseBitcoinPaymentsConfig,
+};
+export const CoinPaymentsBaseAssetConfigs = t.type(baseAssetConfigCodecs, 'CoinPaymentsBaseAssetConfigs');
 const assetConfigCodecs = {
     TRX: TronPaymentsConfig,
     XRP: RipplePaymentsConfig,

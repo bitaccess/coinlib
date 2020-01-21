@@ -4,6 +4,13 @@
   (global = global || self, factory(global.faastCoinPayments = {}, global.t, global.tsCommon, global.paymentsCommon, global.tronPayments, global.ripplePayments, global.stellarPayments, global.bitcoinPayments, global.bip32));
 }(this, (function (exports, t, tsCommon, paymentsCommon, tronPayments, ripplePayments, stellarPayments, bitcoinPayments, bip32) { 'use strict';
 
+  const baseAssetConfigCodecs = {
+      TRX: tronPayments.BaseTronPaymentsConfig,
+      XRP: ripplePayments.BaseRipplePaymentsConfig,
+      XLM: stellarPayments.BaseStellarPaymentsConfig,
+      BTC: bitcoinPayments.BaseBitcoinPaymentsConfig,
+  };
+  const CoinPaymentsBaseAssetConfigs = t.type(baseAssetConfigCodecs, 'CoinPaymentsBaseAssetConfigs');
   const assetConfigCodecs = {
       TRX: tronPayments.TronPaymentsConfig,
       XRP: ripplePayments.RipplePaymentsConfig,
@@ -108,6 +115,7 @@
   });
   exports.CoinPayments = CoinPayments;
   exports.CoinPaymentsAssetConfigs = CoinPaymentsAssetConfigs;
+  exports.CoinPaymentsBaseAssetConfigs = CoinPaymentsBaseAssetConfigs;
   exports.CoinPaymentsConfig = CoinPaymentsConfig;
   exports.PAYMENTS_FACTORIES = PAYMENTS_FACTORIES;
   exports.SUPPORTED_ASSET_SYMBOLS = SUPPORTED_ASSET_SYMBOLS;

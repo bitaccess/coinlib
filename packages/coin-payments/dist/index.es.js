@@ -2,12 +2,19 @@ import { type, partial, string, keyof } from 'io-ts';
 import { Logger, assertType } from '@faast/ts-common';
 import { NetworkTypeT, NetworkType } from '@faast/payments-common';
 export * from '@faast/payments-common';
-import { TronPaymentsConfig, TronPaymentsFactory } from '@faast/tron-payments';
-import { RipplePaymentsConfig, RipplePaymentsFactory } from '@faast/ripple-payments';
-import { StellarPaymentsConfig, StellarPaymentsFactory } from '@faast/stellar-payments';
-import { BitcoinPaymentsConfig, BitcoinPaymentsFactory } from '@faast/bitcoin-payments';
+import { BaseTronPaymentsConfig, TronPaymentsConfig, TronPaymentsFactory } from '@faast/tron-payments';
+import { BaseRipplePaymentsConfig, RipplePaymentsConfig, RipplePaymentsFactory } from '@faast/ripple-payments';
+import { BaseStellarPaymentsConfig, StellarPaymentsConfig, StellarPaymentsFactory } from '@faast/stellar-payments';
+import { BaseBitcoinPaymentsConfig, BitcoinPaymentsConfig, BitcoinPaymentsFactory } from '@faast/bitcoin-payments';
 import { fromSeed } from 'bip32';
 
+const baseAssetConfigCodecs = {
+    TRX: BaseTronPaymentsConfig,
+    XRP: BaseRipplePaymentsConfig,
+    XLM: BaseStellarPaymentsConfig,
+    BTC: BaseBitcoinPaymentsConfig,
+};
+const CoinPaymentsBaseAssetConfigs = type(baseAssetConfigCodecs, 'CoinPaymentsBaseAssetConfigs');
 const assetConfigCodecs = {
     TRX: TronPaymentsConfig,
     XRP: RipplePaymentsConfig,
@@ -102,5 +109,5 @@ class CoinPayments {
     }
 }
 
-export { CoinPayments, CoinPaymentsAssetConfigs, CoinPaymentsConfig, PAYMENTS_FACTORIES, SUPPORTED_ASSET_SYMBOLS, SupportedCoinPaymentsSymbol };
+export { CoinPayments, CoinPaymentsAssetConfigs, CoinPaymentsBaseAssetConfigs, CoinPaymentsConfig, PAYMENTS_FACTORIES, SUPPORTED_ASSET_SYMBOLS, SupportedCoinPaymentsSymbol };
 //# sourceMappingURL=index.es.js.map
