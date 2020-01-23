@@ -1,7 +1,7 @@
 import { CoinPayments, SUPPORTED_ASSET_SYMBOLS } from '../src'
 import { HdTronPayments, TronPaymentsFactory } from '@faast/tron-payments'
 import { omit } from 'lodash'
-import { NetworkType } from '../../payments-common/src/types';
+import { NetworkType } from '@faast/payments-common/src/types'
 
 const TRX_XPUB = 'xpub6BfusYhSxkNBEVoXKgecUo69gdz3ghgpa1oHBxpB18Q8rGGQSEfPpfEGYFGg5x6sS8oRu1mMmb3PhDLekpCoLY5bSwJqDAnrq4pzFVSzH3m'
 const XLM_HOT = 'GB6NPF4YDMGKDOOOIJXTDGYZGTXBF5DBENSR44QTHYT7IVEF7BYYYOCS'
