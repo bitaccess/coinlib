@@ -73,7 +73,7 @@
     "@faast/ts-common": "^0.6.0",
     "base-x": "^3.0.6",
     "bignumber.js": "^9.0.0",
-    "bip32": "^2.0.4",
+    "bip32": "^2.0.5",
     "io-ts": "^1.10.4",
     "lodash": "^4.17.15",
     "promise-retry": "^1.1.1",
