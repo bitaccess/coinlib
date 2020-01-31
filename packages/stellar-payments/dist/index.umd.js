@@ -99,8 +99,8 @@
   function isStellarLedger(x) {
       return tsCommon.isObject(x) && x.hasOwnProperty('successful_transaction_count');
   }
-  function isStellarTransaction(x) {
-      return tsCommon.isObject(x) && x.hasOwnProperty('source_account');
+  function isStellarTransactionRecord(x) {
+      return tsCommon.isObject(x) && lodash.isFunction(x.ledger);
   }
   function padLeft(x, n, v) {
       while (x.length < n) {
@@ -190,7 +190,7 @@
           return ledger;
       }
       async _normalizeTxOperation(tx) {
-          const opPage = await this._retryDced(() => tx.operations());
+          const opPage = await this._retryDced(() => this.getApi().operations().forTransaction(tx.id).call());
           const op = opPage.records.find(({ type }) => type === 'create_account' || type === 'payment');
           if (!op) {
               throw new Error(`Cannot normalize stellar tx - operation not found for transaction ${tx.id}`);
@@ -424,7 +424,7 @@
               if (txPage.records) {
                   tx = txPage.records[0];
               }
-              else if (isStellarTransaction(txPage)) {
+              else if (isStellarTransactionRecord(txPage)) {
                   tx = txPage;
               }
               else {

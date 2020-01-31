@@ -3,7 +3,7 @@ import promiseRetry from 'promise-retry';
 import { isString, isObject, isNil } from '@faast/ts-common';
 import { StellarServerAPI } from './types';
 import { DEFAULT_TESTNET_SERVER, DEFAULT_MAINNET_SERVER } from './constants';
-import { omitBy } from 'lodash';
+import { omitBy, isFunction } from 'lodash';
 export function isMatchingError(e, partialMessages) {
     const messageLower = e.toString().toLowerCase();
     return partialMessages.some(pm => messageLower.includes(pm.toLowerCase()));
@@ -19,6 +19,9 @@ export function isStellarLedger(x) {
 }
 export function isStellarTransaction(x) {
     return isObject(x) && x.hasOwnProperty('source_account');
+}
+export function isStellarTransactionRecord(x) {
+    return isObject(x) && isFunction(x.ledger);
 }
 export function padLeft(x, n, v) {
     while (x.length < n) {

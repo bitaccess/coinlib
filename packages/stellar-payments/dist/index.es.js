@@ -2,7 +2,7 @@ import { BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransac
 export { CreateTransactionOptions } from '@faast/payments-common';
 import { extendCodec, instanceofCodec, nullable, isNil, isObject, isString as isString$1, assertType, DelegateLogger, toBigNumber, Numeric } from '@faast/ts-common';
 import BigNumber from 'bignumber.js';
-import { omitBy, omit } from 'lodash';
+import { isFunction, omitBy, omit } from 'lodash';
 import { Server, StrKey, Networks, Transaction, Account, Operation, Asset, TransactionBuilder, Memo, Keypair } from 'stellar-sdk';
 import { union, string, nullType, number, type, partial, boolean, object } from 'io-ts';
 import { isString, isUndefined } from 'util';
@@ -102,8 +102,8 @@ function omitHidden(o) {
 function isStellarLedger(x) {
     return isObject(x) && x.hasOwnProperty('successful_transaction_count');
 }
-function isStellarTransaction(x) {
-    return isObject(x) && x.hasOwnProperty('source_account');
+function isStellarTransactionRecord(x) {
+    return isObject(x) && isFunction(x.ledger);
 }
 function padLeft(x, n, v) {
     while (x.length < n) {
@@ -193,7 +193,7 @@ class StellarConnected {
         return ledger;
     }
     async _normalizeTxOperation(tx) {
-        const opPage = await this._retryDced(() => tx.operations());
+        const opPage = await this._retryDced(() => this.getApi().operations().forTransaction(tx.id).call());
         const op = opPage.records.find(({ type }) => type === 'create_account' || type === 'payment');
         if (!op) {
             throw new Error(`Cannot normalize stellar tx - operation not found for transaction ${tx.id}`);
@@ -427,7 +427,7 @@ class BaseStellarPayments extends StellarPaymentsUtils {
             if (txPage.records) {
                 tx = txPage.records[0];
             }
-            else if (isStellarTransaction(txPage)) {
+            else if (isStellarTransactionRecord(txPage)) {
                 tx = txPage;
             }
             else {

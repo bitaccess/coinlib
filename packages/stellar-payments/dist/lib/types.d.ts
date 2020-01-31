@@ -1,9 +1,13 @@
 import * as t from 'io-ts';
 import { CreateTransactionOptions, Payport, FromTo } from '@faast/payments-common';
 import * as Stellar from 'stellar-sdk';
+declare type NonFunctionPropertyNames<T> = {
+    [K in keyof T]: T[K] extends Function ? never : K;
+}[keyof T];
+declare type NonFunctionProperties<T> = Pick<T, NonFunctionPropertyNames<T>>;
 export declare type StellarCollectionPage<T extends Stellar.Horizon.BaseResponse<never>> = Stellar.ServerApi.CollectionPage<T>;
-export declare type StellarRawTransaction = Stellar.ServerApi.TransactionRecord;
-export declare type StellarRawLedger = Stellar.ServerApi.LedgerRecord;
+export declare type StellarRawTransaction = NonFunctionProperties<Stellar.ServerApi.TransactionRecord>;
+export declare type StellarRawLedger = NonFunctionProperties<Stellar.ServerApi.LedgerRecord>;
 export { StellarRawTransaction as StellarTransaction, StellarRawLedger as StellarLedger, CreateTransactionOptions };
 export declare class StellarServerAPI extends Stellar.Server {
 }

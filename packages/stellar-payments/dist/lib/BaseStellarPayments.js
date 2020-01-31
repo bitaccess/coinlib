@@ -7,7 +7,7 @@ import { StellarUnsignedTransaction, StellarSignedTransaction, } from './types';
 import { StellarPaymentsUtils } from './StellarPaymentsUtil';
 import { DEFAULT_CREATE_TRANSACTION_OPTIONS, MIN_BALANCE, NOT_FOUND_ERRORS, DEFAULT_TX_TIMEOUT_SECONDS, DEFAULT_FEE_LEVEL, } from './constants';
 import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers';
-import { isStellarTransaction, serializePayport, omitHidden, isMatchingError } from './utils';
+import { serializePayport, omitHidden, isMatchingError, isStellarTransactionRecord } from './utils';
 export class BaseStellarPayments extends StellarPaymentsUtils {
     constructor(config) {
         super(config);
@@ -167,7 +167,7 @@ export class BaseStellarPayments extends StellarPaymentsUtils {
             if (txPage.records) {
                 tx = txPage.records[0];
             }
-            else if (isStellarTransaction(txPage)) {
+            else if (isStellarTransactionRecord(txPage)) {
                 tx = txPage;
             }
             else {
