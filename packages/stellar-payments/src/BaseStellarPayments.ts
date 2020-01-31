@@ -13,7 +13,7 @@ import {
   PaymentsErrorCode,
   NetworkType,
 } from '@faast/payments-common'
-import { assertType, isNil, Numeric, isString, toBigNumber } from '@faast/ts-common'
+import { assertType, isNil, Numeric, isString, toBigNumber, isObject } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
 import { omit, omitBy } from 'lodash'
 import * as Stellar from 'stellar-sdk'
@@ -38,7 +38,8 @@ import {
   DEFAULT_FEE_LEVEL,
 } from './constants'
 import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers'
-import { isStellarTransaction, serializePayport, omitHidden, isMatchingError } from './utils'
+import { isStellarTransaction, serializePayport, omitHidden, isMatchingError, isStellarTransactionRecord } from './utils';
+import { isFunction } from 'util'
 
 export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConfig> extends StellarPaymentsUtils
   implements
@@ -236,7 +237,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       const txPage = await this._retryDced(() => this.getApi().transactions().transaction(txId).call())
       if (txPage.records) {
         tx = txPage.records[0]
-      } else if (isStellarTransaction(txPage)) {
+      } else if (isStellarTransactionRecord(txPage)) {
         tx = txPage
       } else {
         throw new Error(`Transaction not found ${txId}`)

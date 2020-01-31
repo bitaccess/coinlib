@@ -5,7 +5,7 @@ import { Logger, isString, isObject, isNil } from '@faast/ts-common'
 
 import { BaseStellarConfig, StellarRawTransaction, StellarLedger, StellarTransaction, StellarServerAPI } from './types'
 import { DEFAULT_TESTNET_SERVER, DEFAULT_MAINNET_SERVER } from './constants'
-import { omitBy } from 'lodash'
+import { omitBy, isFunction } from 'lodash'
 
 export function isMatchingError(e: Error, partialMessages: string[]) {
   const messageLower = e.toString().toLowerCase()
@@ -26,6 +26,10 @@ export function isStellarLedger(x: unknown): x is StellarLedger {
 
 export function isStellarTransaction(x: unknown): x is StellarTransaction {
   return isObject(x) && x.hasOwnProperty('source_account')
+}
+
+export function isStellarTransactionRecord(x: unknown): x is Stellar.ServerApi.TransactionRecord {
+  return isObject(x) && isFunction((x as any).ledger)
 }
 
 export function padLeft(x: string, n: number, v: string): string {

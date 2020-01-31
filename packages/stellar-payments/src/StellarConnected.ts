@@ -62,7 +62,7 @@ export abstract class StellarConnected {
   async _normalizeTxOperation(
     tx: StellarRawTransaction,
   ): Promise<{ amount: BigNumber, fee: BigNumber, fromAddress: string, toAddress: string }> {
-    const opPage = await this._retryDced(() => tx.operations())
+    const opPage = await this._retryDced(() => this.getApi().operations().forTransaction(tx.id).call())
     const op = opPage.records.find(({ type }) => type === 'create_account' || type === 'payment')
     if (!op) {
       throw new Error(`Cannot normalize stellar tx - operation not found for transaction ${tx.id}`)

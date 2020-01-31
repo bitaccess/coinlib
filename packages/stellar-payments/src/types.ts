@@ -12,9 +12,12 @@ import {
 } from '@faast/payments-common'
 import * as Stellar from 'stellar-sdk'
 
+type NonFunctionPropertyNames<T> = { [K in keyof T]: T[K] extends Function ? never : K }[keyof T]
+type NonFunctionProperties<T> = Pick<T, NonFunctionPropertyNames<T>>
+
 export type StellarCollectionPage<T extends Stellar.Horizon.BaseResponse<never>> = Stellar.ServerApi.CollectionPage<T>
-export type StellarRawTransaction = Stellar.ServerApi.TransactionRecord
-export type StellarRawLedger = Stellar.ServerApi.LedgerRecord
+export type StellarRawTransaction = NonFunctionProperties<Stellar.ServerApi.TransactionRecord>
+export type StellarRawLedger = NonFunctionProperties<Stellar.ServerApi.LedgerRecord>
 
 export { StellarRawTransaction as StellarTransaction, StellarRawLedger as StellarLedger, CreateTransactionOptions }
 
