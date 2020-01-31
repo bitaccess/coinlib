@@ -60,3 +60,25 @@ See [@faast/coin-payments README](./packages/coin-payments/README.md) for usage.
 - [@faast/tron-payments](./packages/tron-payments)
 - [@faast/stellar-payments](./packages/stellar-payments)
 - [@faast/ripple-payments](./packages/ripple-payments)
+
+## Publishing new version
+
+*Note*: Never use `npm version`, it doesn't work with monorepo
+
+### Version types
+
+- `patch` - fixes only, no feature or breaking changes
+- `minor` - feature changes
+- `major` - breaking changes
+
+### Steps to publish
+
+1. Run tests `npm run test`
+2. Boostrap packages `npm run bs`
+3. Create version commit and publish to npm `lerna publish (patch|minor|major)`
+
+or
+
+3. Create a new version commit `lerna version (patch|minor|major)`
+4. Publish to npm `lerna publish from-git`
+
