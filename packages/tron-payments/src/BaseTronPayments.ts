@@ -339,7 +339,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
     return false
   }
 
-  async getAvailableUtxos() {
+  async getUtxos() {
     return []
   }
 

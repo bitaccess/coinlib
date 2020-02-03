@@ -190,7 +190,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     return false
   }
 
-  async getAvailableUtxos() {
+  async getUtxos() {
     return []
   }
 

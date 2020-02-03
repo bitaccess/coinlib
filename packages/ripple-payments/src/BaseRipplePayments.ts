@@ -208,7 +208,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     return false
   }
 
-  async getAvailableUtxos() {
+  async getUtxos() {
     return []
   }
 

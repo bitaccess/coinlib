@@ -109,7 +109,11 @@ export interface BasePayments<
 
   usesUtxos(): boolean
 
-  getAvailableUtxos(payport: ResolveablePayport): Promise<UtxoInfo[]>
+  /**
+   * Get the unspent transaction outputs for the provided payport/address. Returns an empty list if utxos
+   * not used by the network.
+   */
+  getUtxos(payport: ResolveablePayport): Promise<UtxoInfo[]>
 
   usesSequenceNumber(): boolean
 

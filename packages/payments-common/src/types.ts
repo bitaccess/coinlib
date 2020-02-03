@@ -99,7 +99,7 @@ export const CreateTransactionOptions = extendCodec(
   {
     sequenceNumber: Numeric,
     payportBalance: Numeric,
-    availableUtxos: t.array(UtxoInfo),
+    utxos: t.array(UtxoInfo),
     useAllUtxos: t.boolean,
   },
   'CreateTransactionOptions',
