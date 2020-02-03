@@ -382,7 +382,7 @@
               toPayport,
           };
       }
-      async buildPaymentTx(utxos, desiredOutputs, changeAddress, desiredFeeRate, useAllUtxos = false) {
+      async buildPaymentTx(allUtxos, desiredOutputs, changeAddress, desiredFeeRate, useAllUtxos = false) {
           let outputTotal = 0;
           const outputs = desiredOutputs.map(({ address, value }) => ({
               address,
@@ -404,14 +404,14 @@
           let feeSat = 0;
           let amountWithFee = outputTotal + feeSat;
           if (useAllUtxos) {
-              inputUtxos = utxos;
-              inputTotal = this.toBaseDenominationNumber(this._sumUtxoValue(utxos));
+              inputUtxos = allUtxos;
+              inputTotal = this.toBaseDenominationNumber(this._sumUtxoValue(allUtxos));
               feeSat = this._calculatTxFeeSatoshis(desiredFeeRate, inputUtxos.length, outputCount);
               amountWithFee = outputTotal + feeSat;
               this.logger.debug('buildPaymentTx', { inputTotal, feeSat, amountWithFee });
           }
           else {
-              const sortedUtxos = sortUtxos(utxos);
+              const sortedUtxos = sortUtxos(allUtxos);
               for (const utxo of sortedUtxos) {
                   inputUtxos.push(utxo);
                   inputTotal = inputTotal + this.toBaseDenominationNumber(utxo.value);
@@ -466,13 +466,13 @@
               throw new Error(`Invalid ${this.coinSymbol} amount provided to createTransaction: ${desiredAmount}`);
           }
           const { fromIndex, fromAddress, fromExtraId, toIndex, toAddress, toExtraId, } = await this.resolveFromTo(from, to);
-          const utxos = tsCommon.isUndefined(options.utxos)
+          const allUtxos = tsCommon.isUndefined(options.utxos)
               ? await this.getUtxos(from)
               : options.utxos;
-          this.logger.debug('createTransaction utxos', utxos);
+          this.logger.debug('createTransaction allUtxos', allUtxos);
           const { targetFeeLevel, targetFeeRate, targetFeeRateType } = await this.resolveFeeOption(options);
           this.logger.debug(`createTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`);
-          const paymentTx = await this.buildPaymentTx(utxos, [{ address: toAddress, value: desiredAmount.toString() }], fromAddress, { feeRate: targetFeeRate, feeRateType: targetFeeRateType }, options.useAllUtxos);
+          const paymentTx = await this.buildPaymentTx(allUtxos, [{ address: toAddress, value: desiredAmount.toString() }], fromAddress, { feeRate: targetFeeRate, feeRateType: targetFeeRateType }, options.useAllUtxos);
           this.logger.debug('createTransaction data', paymentTx);
           const feeMain = paymentTx.fee;
           const actualAmount = paymentTx.outputs[0].value;
@@ -491,24 +491,25 @@
               targetFeeRateType,
               fee: feeMain,
               sequenceNumber: null,
+              inputUtxos: paymentTx.inputs,
               data: paymentTx,
           };
       }
       async createSweepTransaction(from, to, options = {}) {
           this.logger.debug('createSweepTransaction', from, to, options);
-          const utxos = tsCommon.isUndefined(options.utxos)
+          const allUtxos = tsCommon.isUndefined(options.utxos)
               ? await this.getUtxos(from)
               : options.utxos;
-          if (utxos.length === 0) {
+          if (allUtxos.length === 0) {
               throw new Error('No utxos to sweep');
           }
-          const amount = this._sumUtxoValue(utxos);
+          const amount = this._sumUtxoValue(allUtxos);
           if (!this.isSweepableBalance(amount)) {
               throw new Error(`Balance ${amount} too low to sweep`);
           }
           return this.createTransaction(from, to, amount, {
               ...options,
-              utxos,
+              utxos: allUtxos,
               useAllUtxos: true,
           });
       }
