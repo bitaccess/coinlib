@@ -245,7 +245,7 @@ export declare const RippleCreateTransactionOptions: t.IntersectionC<[t.Intersec
 }>]>, t.PartialC<{
     sequenceNumber: t.UnionC<[t.StringC, t.NumberC, import("@faast/ts-common").BigNumberC]>;
     payportBalance: t.UnionC<[t.StringC, t.NumberC, import("@faast/ts-common").BigNumberC]>;
-    availableUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
+    utxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
         txid: t.StringC;
         vout: t.NumberC;
         value: t.StringC;

@@ -373,7 +373,7 @@ class BaseRipplePayments extends RipplePaymentsUtils {
     usesUtxos() {
         return false;
     }
-    async getAvailableUtxos() {
+    async getUtxos() {
         return [];
     }
     usesSequenceNumber() {

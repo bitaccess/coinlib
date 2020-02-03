@@ -351,7 +351,7 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
     usesUtxos() {
         return true;
     }
-    async getAvailableUtxos(payport) {
+    async getUtxos(payport) {
         const { address } = await this.resolvePayport(payport);
         let utxosRaw = await this.getApi().getUtxosForAddress(address);
         const utxos = utxosRaw.map((data) => {
@@ -389,7 +389,7 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
             toPayport,
         };
     }
-    async buildPaymentTx(availableUtxos, desiredOutputs, changeAddress, desiredFeeRate, useAllUtxos = false) {
+    async buildPaymentTx(utxos, desiredOutputs, changeAddress, desiredFeeRate, useAllUtxos = false) {
         let outputTotal = 0;
         const outputs = desiredOutputs.map(({ address, value }) => ({
             address,
@@ -411,14 +411,14 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
         let feeSat = 0;
         let amountWithFee = outputTotal + feeSat;
         if (useAllUtxos) {
-            inputUtxos = availableUtxos;
-            inputTotal = this.toBaseDenominationNumber(this._sumUtxoValue(availableUtxos));
+            inputUtxos = utxos;
+            inputTotal = this.toBaseDenominationNumber(this._sumUtxoValue(utxos));
             feeSat = this._calculatTxFeeSatoshis(desiredFeeRate, inputUtxos.length, outputCount);
             amountWithFee = outputTotal + feeSat;
             this.logger.debug('buildPaymentTx', { inputTotal, feeSat, amountWithFee });
         }
         else {
-            const sortedUtxos = sortUtxos(availableUtxos);
+            const sortedUtxos = sortUtxos(utxos);
             for (const utxo of sortedUtxos) {
                 inputUtxos.push(utxo);
                 inputTotal = inputTotal + this.toBaseDenominationNumber(utxo.value);
@@ -473,13 +473,13 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
             throw new Error(`Invalid ${this.coinSymbol} amount provided to createTransaction: ${desiredAmount}`);
         }
         const { fromIndex, fromAddress, fromExtraId, toIndex, toAddress, toExtraId, } = await this.resolveFromTo(from, to);
-        const availableUtxos = tsCommon.isUndefined(options.availableUtxos)
-            ? await this.getAvailableUtxos(from)
-            : options.availableUtxos;
-        this.logger.debug('createTransaction availableUtxos', availableUtxos);
+        const utxos = tsCommon.isUndefined(options.utxos)
+            ? await this.getUtxos(from)
+            : options.utxos;
+        this.logger.debug('createTransaction utxos', utxos);
         const { targetFeeLevel, targetFeeRate, targetFeeRateType } = await this.resolveFeeOption(options);
         this.logger.debug(`createTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`);
-        const paymentTx = await this.buildPaymentTx(availableUtxos, [{ address: toAddress, value: desiredAmount.toString() }], fromAddress, { feeRate: targetFeeRate, feeRateType: targetFeeRateType }, options.useAllUtxos);
+        const paymentTx = await this.buildPaymentTx(utxos, [{ address: toAddress, value: desiredAmount.toString() }], fromAddress, { feeRate: targetFeeRate, feeRateType: targetFeeRateType }, options.useAllUtxos);
         this.logger.debug('createTransaction data', paymentTx);
         const feeMain = paymentTx.fee;
         const actualAmount = paymentTx.outputs[0].value;
@@ -503,19 +503,19 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
     }
     async createSweepTransaction(from, to, options = {}) {
         this.logger.debug('createSweepTransaction', from, to, options);
-        const availableUtxos = tsCommon.isUndefined(options.availableUtxos)
-            ? await this.getAvailableUtxos(from)
-            : options.availableUtxos;
-        if (availableUtxos.length === 0) {
+        const utxos = tsCommon.isUndefined(options.utxos)
+            ? await this.getUtxos(from)
+            : options.utxos;
+        if (utxos.length === 0) {
             throw new Error('No utxos to sweep');
         }
-        const amount = this._sumUtxoValue(availableUtxos);
+        const amount = this._sumUtxoValue(utxos);
         if (!this.isSweepableBalance(amount)) {
             throw new Error(`Balance ${amount} too low to sweep`);
         }
         return this.createTransaction(from, to, amount, {
             ...options,
-            availableUtxos,
+            utxos,
             useAllUtxos: true,
         });
     }

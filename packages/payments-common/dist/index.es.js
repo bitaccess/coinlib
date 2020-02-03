@@ -57,7 +57,7 @@ const UtxoInfo = requiredOptionalCodec({
 const CreateTransactionOptions = extendCodec(FeeOption, {}, {
     sequenceNumber: Numeric,
     payportBalance: Numeric,
-    availableUtxos: array(UtxoInfo),
+    utxos: array(UtxoInfo),
     useAllUtxos: boolean,
 }, 'CreateTransactionOptions');
 const GetPayportOptions = partial({}, 'GetPayportOptions');

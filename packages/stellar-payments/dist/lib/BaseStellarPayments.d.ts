@@ -27,7 +27,7 @@ export declare abstract class BaseStellarPayments<Config extends BaseStellarPaym
     loadAccountOrThrow(address: string): Promise<Stellar.AccountResponse>;
     getBalance(payportOrIndex: ResolveablePayport): Promise<BalanceResult>;
     usesUtxos(): boolean;
-    getAvailableUtxos(): Promise<never[]>;
+    getUtxos(): Promise<never[]>;
     usesSequenceNumber(): boolean;
     getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<string>;
     resolveIndexFromAddressAndMemo(address: string, memo?: string): number | null;

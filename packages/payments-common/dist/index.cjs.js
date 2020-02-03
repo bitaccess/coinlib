@@ -60,7 +60,7 @@ const UtxoInfo = tsCommon.requiredOptionalCodec({
 const CreateTransactionOptions = tsCommon.extendCodec(FeeOption, {}, {
     sequenceNumber: tsCommon.Numeric,
     payportBalance: tsCommon.Numeric,
-    availableUtxos: t.array(UtxoInfo),
+    utxos: t.array(UtxoInfo),
     useAllUtxos: t.boolean,
 }, 'CreateTransactionOptions');
 const GetPayportOptions = t.partial({}, 'GetPayportOptions');

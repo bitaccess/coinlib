@@ -16,7 +16,7 @@ export interface BasePayments<Config extends BaseConfig, UnsignedTransaction ext
     getBalance<O extends object>(payport: ResolveablePayport, options?: O): Promise<BalanceResult>;
     isSweepableBalance(balance: string, payport?: ResolveablePayport): boolean;
     usesUtxos(): boolean;
-    getAvailableUtxos(payport: ResolveablePayport): Promise<UtxoInfo[]>;
+    getUtxos(payport: ResolveablePayport): Promise<UtxoInfo[]>;
     usesSequenceNumber(): boolean;
     getNextSequenceNumber(payport: ResolveablePayport): Promise<string | null>;
     getTransactionInfo<O extends object>(txId: string, payport?: ResolveablePayport, options?: O): Promise<TransactionInfo>;

@@ -372,7 +372,7 @@
       usesUtxos() {
           return false;
       }
-      async getAvailableUtxos() {
+      async getUtxos() {
           return [];
       }
       canSweepBalance(balanceSun) {

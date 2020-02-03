@@ -28,7 +28,7 @@ export declare abstract class BaseTronPayments<Config extends BaseTronPaymentsCo
     usesSequenceNumber(): boolean;
     getNextSequenceNumber(): Promise<null>;
     usesUtxos(): boolean;
-    getAvailableUtxos(): Promise<never[]>;
+    getUtxos(): Promise<never[]>;
     private canSweepBalance;
     private extractTxFields;
     resolvePayport(payport: ResolveablePayport): Promise<Payport>;

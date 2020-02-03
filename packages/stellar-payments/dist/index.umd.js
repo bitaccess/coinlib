@@ -380,7 +380,7 @@
       usesUtxos() {
           return false;
       }
-      async getAvailableUtxos() {
+      async getUtxos() {
           return [];
       }
       usesSequenceNumber() {

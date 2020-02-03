@@ -31,12 +31,12 @@ export declare abstract class BitcoinishPayments<Config extends BaseConfig> exte
     resolveFeeOption(feeOption: FeeOption): Promise<ResolvedFeeOption>;
     getBalance(payport: ResolveablePayport): Promise<BalanceResult>;
     usesUtxos(): boolean;
-    getAvailableUtxos(payport: ResolveablePayport): Promise<UtxoInfo[]>;
+    getUtxos(payport: ResolveablePayport): Promise<UtxoInfo[]>;
     _sumUtxoValue(utxos: UtxoInfo[]): BigNumber;
     usesSequenceNumber(): boolean;
     getNextSequenceNumber(): Promise<null>;
     resolveFromTo(from: number, to: ResolveablePayport): Promise<FromTo>;
-    buildPaymentTx(availableUtxos: UtxoInfo[], desiredOutputs: Array<BitcoinishTxOutput>, changeAddress: string, desiredFeeRate: FeeRate, useAllUtxos?: boolean): Promise<BitcoinishPaymentTx>;
+    buildPaymentTx(utxos: UtxoInfo[], desiredOutputs: Array<BitcoinishTxOutput>, changeAddress: string, desiredFeeRate: FeeRate, useAllUtxos?: boolean): Promise<BitcoinishPaymentTx>;
     createTransaction(from: number, to: ResolveablePayport, amountNumeric: Numeric, options?: CreateTransactionOptions): Promise<BitcoinishUnsignedTransaction>;
     createSweepTransaction(from: number, to: ResolveablePayport, options?: CreateTransactionOptions): Promise<BitcoinishUnsignedTransaction>;
     broadcastTransaction(tx: BitcoinishSignedTransaction): Promise<BitcoinishBroadcastResult>;

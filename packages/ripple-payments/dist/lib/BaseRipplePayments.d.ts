@@ -35,7 +35,7 @@ export declare abstract class BaseRipplePayments<Config extends BaseRipplePaymen
     } | undefined>;
     getBalance(payportOrIndex: ResolveablePayport): Promise<BalanceResult>;
     usesUtxos(): boolean;
-    getAvailableUtxos(): Promise<never[]>;
+    getUtxos(): Promise<never[]>;
     usesSequenceNumber(): boolean;
     getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<string>;
     resolveIndexFromAdjustment(adjustment: Adjustment): number | null;
