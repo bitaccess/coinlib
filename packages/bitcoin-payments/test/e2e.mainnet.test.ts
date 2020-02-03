@@ -108,6 +108,7 @@ function assertTxInfo(actual: BitcoinTransactionInfo, expected: BitcoinTransacti
     expect(tx.toAddress).toEqual(address3)
     expect(tx.fromIndex).toEqual(0)
     expect(tx.toIndex).toEqual(3)
+    expect(tx.inputUtxos).toBeTruthy()
   })
   it('create sweep transaction to an internal address', async () => {
     const tx = await payments.createSweepTransaction(0, { address: address3 })
@@ -117,6 +118,7 @@ function assertTxInfo(actual: BitcoinTransactionInfo, expected: BitcoinTransacti
     expect(tx.toAddress).toEqual(address3)
     expect(tx.fromIndex).toEqual(0)
     expect(tx.toIndex).toEqual(null)
+    expect(tx.inputUtxos).toBeTruthy()
   })
   it('create sweep transaction to an external address', async () => {
     const tx = await payments.createSweepTransaction(0, { address: EXTERNAL_ADDRESS })
@@ -126,6 +128,7 @@ function assertTxInfo(actual: BitcoinTransactionInfo, expected: BitcoinTransacti
     expect(tx.toAddress).toEqual(EXTERNAL_ADDRESS)
     expect(tx.fromIndex).toEqual(0)
     expect(tx.toIndex).toEqual(null)
+    expect(tx.inputUtxos).toBeTruthy()
   })
 
   it('create send transaction to an index', async () => {
@@ -137,6 +140,7 @@ function assertTxInfo(actual: BitcoinTransactionInfo, expected: BitcoinTransacti
     expect(tx.toAddress).toEqual(address3)
     expect(tx.fromIndex).toEqual(0)
     expect(tx.toIndex).toEqual(3)
+    expect(tx.inputUtxos).toBeTruthy()
   })
   it('create send transaction to an internal address', async () => {
     const amount = '0.00005'
@@ -147,6 +151,7 @@ function assertTxInfo(actual: BitcoinTransactionInfo, expected: BitcoinTransacti
     expect(tx.toAddress).toEqual(address3)
     expect(tx.fromIndex).toEqual(0)
     expect(tx.toIndex).toEqual(null)
+    expect(tx.inputUtxos).toBeTruthy()
   })
 
   async function pollUntilEnded(signedTx: BitcoinSignedTransaction) {

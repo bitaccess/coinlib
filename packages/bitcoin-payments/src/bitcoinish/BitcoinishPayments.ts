@@ -221,7 +221,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
    * then converted back to strings before being returned.
    */
   async buildPaymentTx(
-    utxos: UtxoInfo[],
+    allUtxos: UtxoInfo[],
     desiredOutputs: Array<BitcoinishTxOutput>,
     changeAddress: string,
     desiredFeeRate: FeeRate,
@@ -251,13 +251,13 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     let feeSat = 0 // Total fee is recalculated when adding each input
     let amountWithFee = outputTotal + feeSat
     if (useAllUtxos) {
-      inputUtxos = utxos
-      inputTotal = this.toBaseDenominationNumber(this._sumUtxoValue(utxos))
+      inputUtxos = allUtxos
+      inputTotal = this.toBaseDenominationNumber(this._sumUtxoValue(allUtxos))
       feeSat = this._calculatTxFeeSatoshis(desiredFeeRate, inputUtxos.length, outputCount)
       amountWithFee = outputTotal + feeSat
       this.logger.debug('buildPaymentTx', { inputTotal, feeSat, amountWithFee })
     } else {
-      const sortedUtxos = sortUtxos(utxos)
+      const sortedUtxos = sortUtxos(allUtxos)
       for (const utxo of sortedUtxos) {
         inputUtxos.push(utxo)
         inputTotal = inputTotal + this.toBaseDenominationNumber(utxo.value)
@@ -320,16 +320,16 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       fromIndex, fromAddress, fromExtraId, toIndex, toAddress, toExtraId,
     } = await this.resolveFromTo(from, to)
 
-    const utxos = isUndefined(options.utxos)
+    const allUtxos = isUndefined(options.utxos)
       ? await this.getUtxos(from)
       : options.utxos
-      this.logger.debug('createTransaction utxos', utxos)
+      this.logger.debug('createTransaction allUtxos', allUtxos)
 
     const { targetFeeLevel, targetFeeRate, targetFeeRateType } = await this.resolveFeeOption(options)
     this.logger.debug(`createTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`)
 
     const paymentTx = await this.buildPaymentTx(
-      utxos,
+      allUtxos,
       [{ address: toAddress, value: desiredAmount.toString() }],
       fromAddress,
       { feeRate: targetFeeRate, feeRateType: targetFeeRateType },
@@ -355,6 +355,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       targetFeeRateType,
       fee: feeMain,
       sequenceNumber: null,
+      inputUtxos: paymentTx.inputs,
       data: paymentTx,
     }
   }
@@ -365,19 +366,19 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     options: CreateTransactionOptions = {},
   ): Promise<BitcoinishUnsignedTransaction> {
     this.logger.debug('createSweepTransaction', from, to, options)
-    const utxos = isUndefined(options.utxos)
+    const allUtxos = isUndefined(options.utxos)
       ? await this.getUtxos(from)
       : options.utxos
-    if (utxos.length === 0) {
+    if (allUtxos.length === 0) {
       throw new Error('No utxos to sweep')
     }
-    const amount = this._sumUtxoValue(utxos)
+    const amount = this._sumUtxoValue(allUtxos)
     if (!this.isSweepableBalance(amount)) {
       throw new Error(`Balance ${amount} too low to sweep`)
     }
     return this.createTransaction(from, to, amount, {
       ...options,
-      utxos,
+      utxos: allUtxos,
       useAllUtxos: true,
     })
   }
