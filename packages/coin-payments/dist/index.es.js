@@ -3,9 +3,17 @@ import { Logger, assertType } from '@faast/ts-common';
 import { NetworkTypeT, NetworkType } from '@faast/payments-common';
 export * from '@faast/payments-common';
 import { BaseTronPaymentsConfig, TronPaymentsConfig, TronPaymentsFactory } from '@faast/tron-payments';
+import * as tronPayments from '@faast/tron-payments';
+export { tronPayments as Tron };
 import { BaseRipplePaymentsConfig, RipplePaymentsConfig, RipplePaymentsFactory } from '@faast/ripple-payments';
+import * as ripplePayments from '@faast/ripple-payments';
+export { ripplePayments as Ripple };
 import { BaseStellarPaymentsConfig, StellarPaymentsConfig, StellarPaymentsFactory } from '@faast/stellar-payments';
+import * as stellarPayments from '@faast/stellar-payments';
+export { stellarPayments as Stellar };
 import { BaseBitcoinPaymentsConfig, BitcoinPaymentsConfig, BitcoinPaymentsFactory } from '@faast/bitcoin-payments';
+import * as bitcoinPayments from '@faast/bitcoin-payments';
+export { bitcoinPayments as Bitcoin };
 import { fromSeed } from 'bip32';
 
 const baseAssetConfigCodecs = {

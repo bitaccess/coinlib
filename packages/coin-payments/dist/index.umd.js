@@ -113,6 +113,10 @@
       }
     });
   });
+  exports.Tron = tronPayments;
+  exports.Ripple = ripplePayments;
+  exports.Stellar = stellarPayments;
+  exports.Bitcoin = bitcoinPayments;
   exports.CoinPayments = CoinPayments;
   exports.CoinPaymentsAssetConfigs = CoinPaymentsAssetConfigs;
   exports.CoinPaymentsBaseAssetConfigs = CoinPaymentsBaseAssetConfigs;
