@@ -1,4 +1,5 @@
 import * as t from 'io-ts'
+import { requiredOptionalCodec } from '@faast/ts-common';
 import {
   requiredOptionalCodec,
   extendCodec,
@@ -25,8 +26,19 @@ export const BaseConfig = t.partial(
 )
 export type BaseConfig = t.TypeOf<typeof BaseConfig>
 
-export const AddressOrIndex = t.union([t.string, t.number], 'AddressOrIndex')
-export type AddressOrIndex = t.TypeOf<typeof AddressOrIndex>
+export const Payport = requiredOptionalCodec(
+  {
+    address: t.string,
+  },
+  {
+    extraId: nullable(t.string),
+  },
+  'Payport',
+)
+export type Payport = t.TypeOf<typeof Payport>
+
+export const ResolveablePayport = t.union([Payport, t.string, t.number], 'ResolveablePayport')
+export type ResolveablePayport = t.TypeOf<typeof ResolveablePayport>
 
 export enum FeeLevel {
   Custom = 'custom',
@@ -93,6 +105,17 @@ export const UtxoInfo = requiredOptionalCodec(
 )
 export type UtxoInfo = t.TypeOf<typeof UtxoInfo>
 
+export const WeightedChangeOutput = requiredOptionalCodec(
+  {
+    payport: ResolveablePayport,
+  },
+  {
+    weight: t.number,
+  },
+  'WeightedChangeOutput',
+)
+export type WeightedChangeOutput = t.TypeOf<typeof WeightedChangeOutput>
+
 export const CreateTransactionOptions = extendCodec(
   FeeOption,
   {},
@@ -101,6 +124,7 @@ export const CreateTransactionOptions = extendCodec(
     payportBalance: Numeric,
     utxos: t.array(UtxoInfo),
     useAllUtxos: t.boolean,
+    changeOutputs: t.array(WeightedChangeOutput),
   },
   'CreateTransactionOptions',
 )
@@ -225,17 +249,6 @@ export const BaseBroadcastResult = t.type(
 )
 export type BaseBroadcastResult = t.TypeOf<typeof BaseBroadcastResult>
 
-export const Payport = requiredOptionalCodec(
-  {
-    address: t.string,
-  },
-  {
-    extraId: nullable(t.string),
-  },
-  'Payport',
-)
-export type Payport = t.TypeOf<typeof Payport>
-
 export const BalanceActivityType = t.union([t.literal('in'), t.literal('out')], 'BalanceActivityType')
 export type BalanceActivityType = t.TypeOf<typeof BalanceActivityType>
 
@@ -277,9 +290,6 @@ export type FromTo = Pick<
   BaseUnsignedTransaction,
   'fromAddress' | 'fromIndex' | 'fromExtraId' | 'toAddress' | 'toIndex' | 'toExtraId'
 > & { fromPayport: Payport; toPayport: Payport }
-
-export const ResolveablePayport = t.union([Payport, t.string, t.number], 'ResolveablePayport')
-export type ResolveablePayport = t.TypeOf<typeof ResolveablePayport>
 
 export const RetrieveBalanceActivitiesResult = t.type(
   {

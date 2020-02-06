@@ -48,13 +48,36 @@ export const BitcoinishTxOutput = t.type({
 }, 'BitcoinishTxOutput')
 export type BitcoinishTxOutput = t.TypeOf<typeof BitcoinishTxOutput>
 
-export const BitcoinishPaymentTx = t.type({
-  inputs: t.array(UtxoInfo),
-  outputs: t.array(BitcoinishTxOutput),
-  fee: t.string,
-  change: t.string,
-  changeAddress: nullable(t.string),
-}, 'BitcoinishPaymentTx')
+export const BitcoinishWeightedChangeOutput = t.type({
+  address: t.string,
+  weight: t.number,
+}, 'BitcoinishWeightedChangeOutput')
+export type BitcoinishWeightedChangeOutput = t.TypeOf<typeof BitcoinishWeightedChangeOutput>
+
+/**
+ * An object representing a Bitcoin like transaction (UTXO based) with inputs and outputs.
+ *
+ * The externalOutputs and changeOutputs fields are optional for back compat. Single change output
+ * transactions use the changeAddress field. Multi change outputs transactions will leave
+ * changeAddress null.
+ */
+export const BitcoinishPaymentTx = requiredOptionalCodec(
+  {
+    inputs: t.array(UtxoInfo),
+    // All external and change outputs
+    outputs: t.array(BitcoinishTxOutput),
+    fee: t.string,
+    change: t.string,
+    changeAddress: nullable(t.string),
+  },
+  {
+    // Outputs specified by transaction creator
+    externalOutputs: t.array(BitcoinishTxOutput),
+    // Transactions with multiple change outputs
+    changeOutputs: t.array(BitcoinishTxOutput),
+  },
+  'BitcoinishPaymentTx'
+)
 export type BitcoinishPaymentTx = t.TypeOf<typeof BitcoinishPaymentTx>
 
 export const BitcoinishUnsignedTransaction = extendCodec(
