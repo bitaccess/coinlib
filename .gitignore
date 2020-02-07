@@ -9,10 +9,10 @@
 .nyc_output
 .rpt2_cache/
 .vscode
-compiled/
-coverage/
-dist/
-docs/
-node_modules/
+**/compiled/
+**/coverage/
+**/dist/
+**/docs/
+**/node_modules/
 simple.ts
-vendor/
+**/vendor/
