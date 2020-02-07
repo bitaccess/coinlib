@@ -14,8 +14,8 @@ const nock = require('nock')
 const GAS_STATION_URL = 'https://gasstation.test.url'
 const PARITY_URL = 'https://parity.test.url'
 const INFURA_URL = 'https://infura.test.url'
-const nockG = nock(GAS_STATION_URL);
-const nockP = nock(PARITY_URL);
+const nockG = nock(GAS_STATION_URL)
+const nockP = nock(PARITY_URL)
 const nockI = nock(INFURA_URL)
 
 const logger = new TestLogger('HdEthereumPaymentsTest')
@@ -28,7 +28,7 @@ const CONFIG = {
   hdKey: hdAccount.rootChild[0].xkeys.xprv,
   logger,
 }
-const INSTANCE_KEYS = deriveSignatory(hdAccount.rootChild[0].xkeys.xprv).xkeys;
+const INSTANCE_KEYS = deriveSignatory(hdAccount.rootChild[0].xkeys.xprv).xkeys
 
 import {
   getGasStationResponse,
@@ -229,7 +229,7 @@ describe('HdEthereumPayments', () => {
     describe('getNextSequenceNumber', () => {
       test('returns nonce for account', async () => {
         const parityMock = getNextNonceMocks(1, FROM_ADDRESS, '0x1b')
-        nockP.post(/.*/, parityMock.req).reply(200, parityMock.res);
+        nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
 
         const transactionCountMocks = getTransactionCountMocks(2, FROM_ADDRESS, '0x1a')
         nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
@@ -242,7 +242,7 @@ describe('HdEthereumPayments', () => {
       test('returns transaction by id (not included into block)', async () => {
         const txId = '0x9fc76417374aa880d4449a1f7f31ec597f00b1f6f3dd2d66f4c9c6c445836d8b'
         const blockId = '0xef95f2f1ed3ca60b048b4bf67cde2195961e0bba6f70bcbea9a2c4e133e34b46'
-        const amount = '123450000000000000';
+        const amount = '123450000000000000'
 
         const transactionByHashMock = getTransactionByHashMocks(3, txId, blockId, FROM_ADDRESS, TO_ADDRESS, amount)
         nockI.post(/.*/, transactionByHashMock.req).reply(200, transactionByHashMock.res)
@@ -425,7 +425,7 @@ describe('HdEthereumPayments', () => {
 
     describe('createTransaction', () => {
       test('creates transaction object if account has sufficient balance', async () => {
-        const from = 1;
+        const from = 1
         const to = { address: TO_ADDRESS }
         const amountEth = '0.005'
 
@@ -440,7 +440,7 @@ describe('HdEthereumPayments', () => {
         nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
         const parityMock = getNextNonceMocks(1, FROM_ADDRESS, '0x1b')
-        nockP.post(/.*/, parityMock.req).reply(200, parityMock.res);
+        nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
 
         const res = await hdEP.createTransaction(from, to, amountEth)
 
@@ -472,7 +472,7 @@ describe('HdEthereumPayments', () => {
       })
 
       test('creates transaction object if account has insufficient balance', async () => {
-        const from = 1;
+        const from = 1
         const to = { address: TO_ADDRESS }
         const amountEth = '50000'
 
@@ -488,7 +488,7 @@ describe('HdEthereumPayments', () => {
         nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
         const parityMock = getNextNonceMocks(1, FROM_ADDRESS, '0x1b')
-        nockP.post(/.*/, parityMock.req).reply(200, parityMock.res);
+        nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
 
         let err: string = ''
         try {
@@ -502,9 +502,9 @@ describe('HdEthereumPayments', () => {
 
     describe('createSweepTransaction', () => {
       test('creates transaction object if account has sufficient balance', async () => {
-        const from = 1;
+        const from = 1
         const to = { address: '0x6295eE1B4F6dD65047762F924Ecd367c17eaBf8f' }
-        const balance = '142334532324980082';
+        const balance = '142334532324980082'
 
         // nock for get balance
         const balanceMocks = getBalanceMocks(18, FROM_ADDRESS, balance)
@@ -517,12 +517,12 @@ describe('HdEthereumPayments', () => {
         nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
         const parityMock = getNextNonceMocks(1, FROM_ADDRESS, '0x1b')
-        nockP.post(/.*/, parityMock.req).reply(200, parityMock.res);
+        nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
 
         const res = await hdEP.createSweepTransaction(from, to)
 
-        const feeEth = '0.0063';
-        const transactionValueEth = (new BigNumber(hdEP.toMainDenomination(balance))).minus(feeEth).toString();
+        const feeEth = '0.0063'
+        const transactionValueEth = (new BigNumber(hdEP.toMainDenomination(balance))).minus(feeEth).toString()
 
         expect(res).toStrictEqual({
           id: '',
@@ -559,7 +559,7 @@ describe('HdEthereumPayments', () => {
       })
 
       test('creates transaction object if account has insufficient balance', async () => {
-        const from = 1;
+        const from = 1
         const to = { address: TO_ADDRESS }
 
         // nock for get balance
@@ -573,7 +573,7 @@ describe('HdEthereumPayments', () => {
         nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
         const parityMock = getNextNonceMocks(1, FROM_ADDRESS, '0x1b')
-        nockP.post(/.*/, parityMock.req).reply(200, parityMock.res);
+        nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
 
         let err: string = ''
         try {
@@ -587,7 +587,7 @@ describe('HdEthereumPayments', () => {
 
     describe('signTransaction', () => {
       test('signs transaction and returns data', async () => {
-        const from = 1;
+        const from = 1
         const to = { address: TO_ADDRESS }
         const amountEth = '0.576'
 
@@ -615,7 +615,7 @@ describe('HdEthereumPayments', () => {
           }
         }
 
-        const res = await hdEP.signTransaction(unsignedTx);
+        const res = await hdEP.signTransaction(unsignedTx)
 
         expect(res).toStrictEqual({
           id: '7ac268307b4a9851fc8821c5eec447741226d3b07664be31bf45c3cb6dae4f1d',
@@ -652,7 +652,7 @@ describe('HdEthereumPayments', () => {
         const blockId = '0xef95f2f1ed3ca60b048b4bf67cde2195961e0bba6f70bcbea9a2c4e133e34b46'
         const rawTx = '0xf86c1b8545d964b80082523c94f7d2eac7b9e0f55ec49c892815e6355517bc63db8801e33c7f8ff555728026a08faf1b3facae286a360982c0e3015c09e08a3408187c578b59aa365ca36bf5e9a019a7c5ed66a3aa0ccc3d189cbf6ae701c68bedef1b6276cab128d02038c9fe01'
 
-        const from = 1;
+        const from = 1
         const to = { address: TO_ADDRESS }
         const amountEth = '0.576'
 
@@ -730,7 +730,7 @@ describe('HdEthereumPayments', () => {
 
     describe('getPublicConfig', () => {
       test('returns public part of the provided config data', () => {
-        const pubConf = hdEP.getPublicConfig();
+        const pubConf = hdEP.getPublicConfig()
         expect(pubConf).toStrictEqual({
           network: NetworkType.Testnet,
           gasStation: CONFIG.gasStation,

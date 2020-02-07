@@ -44,8 +44,8 @@ export abstract class BaseEthereumPayments
   extends EthereumPaymentsUtils
 implements BasePayments
   <Config, EthereumUnsignedTransaction, EthereumSignedTransaction, EthereumBroadcastResult, EthereumTransactionInfo> {
-  private eth: any;
-  private gasStation: any;
+  private eth: any
+  private gasStation: any
   private config: Config
 
   constructor(config: Config) {
@@ -176,7 +176,7 @@ implements BasePayments
   }
 
   async getNextSequenceNumber(payport: ResolveablePayport) {
-    const resolvedPayport = await this.resolvePayport(payport);
+    const resolvedPayport = await this.resolvePayport(payport)
     const sequenceNumber = await this.gasStation.getNonce(resolvedPayport.address)
 
     return sequenceNumber
@@ -185,17 +185,17 @@ implements BasePayments
   async getTransactionInfo(txid: string): Promise<EthereumTransactionInfo> {
     // XXX it is suggested to keep 12 confirmations
     // https://ethereum.stackexchange.com/questions/319/what-number-of-confirmations-is-considered-secure-in-ethereum
-    const minConfirmations = MIN_CONFIRMATIONS;
+    const minConfirmations = MIN_CONFIRMATIONS
     const tx = await this.eth.getTransaction(txid)
-    const currentBlockNumber = await this.eth.getBlockNumber();
+    const currentBlockNumber = await this.eth.getBlockNumber()
     const txInfo = await this.eth.getTransactionReceipt(txid)
 
-    const feeEth = this.toMainDenomination((new BigNumber(tx.gasPrice)).multipliedBy(tx.gas));
+    const feeEth = this.toMainDenomination((new BigNumber(tx.gasPrice)).multipliedBy(tx.gas))
 
-    let txBlock: any = null;
-    let isConfirmed = false;
-    let confirmationTimestamp: Date | null = null;
-    let confirmations: any = null;
+    let txBlock: any = null
+    let isConfirmed = false
+    let confirmationTimestamp: Date | null = null
+    let confirmations: any = null
 
     if (tx.blockNumber) {
       confirmations = new BigNumber(currentBlockNumber).minus(tx.blockNumber)
@@ -262,9 +262,9 @@ implements BasePayments
 
     const unsignedRaw = cloneDeep(unsignedTx.data)
 
-    const tx = new Tx(unsignedRaw);
+    const tx = new Tx(unsignedRaw)
     const key = Buffer.from(fromPrivateKey.slice(2), 'hex')
-    tx.sign(key);
+    tx.sign(key)
 
     return {
       ...unsignedTx,
@@ -302,7 +302,7 @@ implements BasePayments
     amountEth: string = 'max',
     options: TransactionOptions = {}
   ): Promise<EthereumUnsignedTransaction> {
-    const sweepFlag = amountEth === 'max' ? true : false;
+    const sweepFlag = amountEth === 'max' ? true : false
 
     const fromTo = await this.resolveFromTo(from, to)
     const feeOption = await this.resolveFeeOption(options)
@@ -312,7 +312,7 @@ implements BasePayments
     const feeWei = new BigNumber(feeOption.feeBase)
     const balanceWei = this.toBaseDenomination(balanceEth)
 
-    let amountWei: BigNumber;
+    let amountWei: BigNumber
     if (sweepFlag) {
       amountWei = (new BigNumber(balanceWei)).minus(feeWei)
       if (amountWei.isLessThan(0)) {

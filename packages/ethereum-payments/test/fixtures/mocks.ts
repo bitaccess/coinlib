@@ -1,6 +1,6 @@
 interface Mock {
-  req: Object;
-  res: Object;
+  req: Object
+  res: Object
 }
 
 export function getNextNonceMocks (id: number, address: string, nonce: string): Mock {

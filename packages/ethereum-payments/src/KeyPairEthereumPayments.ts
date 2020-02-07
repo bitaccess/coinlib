@@ -21,7 +21,7 @@ export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereu
       }
 
       const i = Number.parseInt(key)
-      let address: string;
+      let address: string
       let pkey: string | null = null
 
       if (web3.utils.isAddress(value)) {

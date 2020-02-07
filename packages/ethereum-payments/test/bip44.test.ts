@@ -3,7 +3,7 @@ import { hdAccount } from './fixtures/accounts'
 
 describe('bip44', () => {
   test ('generateNewKeys', () => {
-    const keys = deriveSignatory();
+    const keys = deriveSignatory()
 
     expect(keys.address)
     expect(keys.xkeys.xpub).toMatch(/^xpub.+$/)

@@ -2,9 +2,10 @@ import BigNumber from 'bignumber.js'
 import server from 'ganache-core'
 import {
   FeeRateType,
-  FeeLevel, } from '@faast/payments-common'
+  FeeLevel,
+  NetworkType,
+} from '@faast/payments-common'
 
-import { NetworkType } from '@faast/payments-common'
 import { TestLogger } from '../../../common/testUtils'
 
 import EthereumPaymentsFactory from '../src/EthereumPaymentsFactory'
@@ -47,7 +48,7 @@ jest.setTimeout(100000)
 describe('end to end tests', () => {
   let ethNode: any
   beforeAll(() => {
-    ethNode = server.server(ganacheConfig);
+    ethNode = server.server(ganacheConfig)
     ethNode.listen(LOCAL_PORT)
   })
 

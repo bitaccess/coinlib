@@ -18,7 +18,7 @@ const CONFIG = {
   keyPairs: [ hdAccount.rootChild[0].xkeys.xprv, hdAccount.rootChild[0].keys.prv, hdAccount.rootChild[0].address, undefined, null ],
   logger,
 }
-const DERIVED_SIGNATORY = deriveSignatory(hdAccount.rootChild[0].xkeys.xprv);
+const DERIVED_SIGNATORY = deriveSignatory(hdAccount.rootChild[0].xkeys.xprv)
 
 // methods from base
 describe('KeyPairEthereumPayments', () => {
@@ -44,7 +44,7 @@ describe('KeyPairEthereumPayments', () => {
 
     describe('getPublicConfig', () => {
       test('returns public part of the provided config data', () => {
-        const pubConf = kpEP.getPublicConfig();
+        const pubConf = kpEP.getPublicConfig()
         expect(pubConf).toStrictEqual({
           network: NetworkType.Testnet,
           gasStation: CONFIG.gasStation,

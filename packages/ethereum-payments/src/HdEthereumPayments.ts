@@ -20,7 +20,7 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
   }
 
   static generateNewKeys(): EthereumSignatory {
-    return deriveSignatory();
+    return deriveSignatory()
   }
 
   getXpub(): string {

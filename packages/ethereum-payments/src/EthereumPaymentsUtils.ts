@@ -33,7 +33,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   }
 
   async isValidExtraId(extraId: unknown): Promise<boolean> {
-    return false;
+    return false
   }
 
   // XXX Payport methods can be moved to payments-common
@@ -67,7 +67,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
 
   isValidPrivateKey(prv: string): boolean {
     try {
-      return !!web3.eth.accounts.privateKeyToAccount(prv);
+      return !!web3.eth.accounts.privateKeyToAccount(prv)
     } catch (e) {
       return false
     }
@@ -81,7 +81,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
       key = `0x${prv}`
     }
 
-    return web3.eth.accounts.privateKeyToAccount(key).address;
+    return web3.eth.accounts.privateKeyToAccount(key).address
   }
 
 

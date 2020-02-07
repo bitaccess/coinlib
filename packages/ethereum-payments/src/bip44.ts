@@ -1,10 +1,10 @@
 import { EthereumSignatory } from './types'
-import { pubToAddress } from 'ethereumjs-util';
+import { pubToAddress } from 'ethereumjs-util'
 import { fromBase58, fromSeed } from 'bip32'
 import crypto from 'crypto'
 
 import { ec as EC } from 'elliptic'
-const ec = new EC('secp256k1');
+const ec = new EC('secp256k1')
 
 class EthereumBIP44 {
   static fromExtKey(xkey: string) {
@@ -25,14 +25,14 @@ class EthereumBIP44 {
       "0'",  // wallet
       '0'    // 0 - public, 1 = private
         // index
-    ];
+    ]
 
     this.key = hdKey
   }
 
   getAddress(index?: number): string {
     const derived = this.deriveByIndex(index)
-    let address = pubToAddress(derived.publicKey, true);
+    let address = pubToAddress(derived.publicKey, true)
 
     return `0x${address.toString('hex')}`
   }
@@ -42,7 +42,7 @@ class EthereumBIP44 {
     if (!derived.privateKey) {
       return ''
     }
-    return `0x${derived.privateKey.toString('hex')}`;
+    return `0x${derived.privateKey.toString('hex')}`
   }
 
   getPublicKey(index?: number): string {
@@ -63,14 +63,16 @@ class EthereumBIP44 {
     if (typeof index === 'undefined') {
       return this.key
     }
-    const path = this.parts.slice(this.key.depth);
-    const keyPath = path.length > 0 ? path.join('/') + '/' : '';
-    return this.key.derivePath(`${keyPath}${index.toString()}`);
+    const path = this.parts.slice(this.key.depth)
+    const keyPath = path.length > 0 ? path.join('/') + '/' : ''
+    return this.key.derivePath(`${keyPath}${index.toString()}`)
   }
 }
 
 export function deriveSignatory(xkey?: string, index?: number): EthereumSignatory {
-  const wallet = xkey ? EthereumBIP44.fromExtKey(xkey) : EthereumBIP44.fromExtKey(fromSeed(crypto.randomBytes(32)).toBase58());
+  const wallet = xkey ?
+    EthereumBIP44.fromExtKey(xkey) :
+    EthereumBIP44.fromExtKey(fromSeed(crypto.randomBytes(32)).toBase58())
 
   return {
     address: wallet.getAddress(index),

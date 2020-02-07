@@ -20,7 +20,7 @@ import {
 const keys = t.type({
     pub: t.string,
     prv: t.string,
-});
+})
 
 const xkeys = t.type({
   xprv: t.string,
