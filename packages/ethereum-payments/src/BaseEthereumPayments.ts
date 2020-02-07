@@ -1,6 +1,6 @@
 import { BigNumber } from 'bignumber.js'
 import { Transaction as Tx } from 'ethereumjs-tx'
-const Web3 = require('web3')
+import Web3 from 'web3'
 import { Eth } from 'web3-eth'
 import { cloneDeep } from 'lodash'
 import {
@@ -53,7 +53,7 @@ implements BasePayments
     super(config)
 
     this.config = config
-    this.eth = (new Web3(config.fullNode, null, { transactionConfirmationBlocks: MIN_CONFIRMATIONS })).eth
+    this.eth = (new (Web3 as any )(config.fullNode, null, { transactionConfirmationBlocks: MIN_CONFIRMATIONS })).eth
     this.gasStation = new NetworkData(config.gasStation, config.parityNode, config.fullNode)
   }
 
