@@ -46,7 +46,7 @@ export abstract class BaseEthereumPayments
 implements BasePayments
   <Config, EthereumUnsignedTransaction, EthereumSignedTransaction, EthereumBroadcastResult, EthereumTransactionInfo> {
   private eth: Eth
-  private gasStation: any
+  private gasStation: NetworkData
   private config: Config
 
   constructor(config: Config) {
@@ -355,7 +355,7 @@ implements BasePayments
       targetFeeLevel: feeOption.targetFeeLevel,
       targetFeeRate: feeOption.targetFeeRate,
       targetFeeRateType: feeOption.targetFeeRateType,
-      sequenceNumber: nonce,
+      sequenceNumber: nonce.toString(),
       data: transactionObject,
     }
   }
