@@ -190,7 +190,7 @@ implements BasePayments
     const currentBlockNumber = await this.eth.getBlockNumber()
     const txInfo = await this.eth.getTransactionReceipt(txid)
 
-    const feeEth = this.toMainDenomination((new BigNumber(tx.gasPrice)).multipliedBy(tx.gas))
+    const feeEth = this.toMainDenomination((new BigNumber(tx.gasPrice)).multipliedBy(txInfo.gasUsed))
 
     let txBlock: any = null
     let isConfirmed = false

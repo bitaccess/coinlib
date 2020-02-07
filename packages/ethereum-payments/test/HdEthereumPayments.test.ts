@@ -267,7 +267,7 @@ describe('HdEthereumPayments', () => {
           toExtraId: null,
           fromIndex: null,
           toIndex: null,
-          fee: '0.628318',
+          fee: '0.042',
           sequenceNumber: 2,
           isExecuted: true,
           isConfirmed: false,
@@ -284,7 +284,7 @@ describe('HdEthereumPayments', () => {
             from: FROM_ADDRESS,
             to: TO_ADDRESS,
             value: '123450000000000000',
-            gas: 314159,
+            gas: 21000,
             gasPrice: '2000000000000',
             input: '0x57cb2fc4',
             currentBlock: 3,
@@ -292,7 +292,7 @@ describe('HdEthereumPayments', () => {
             transactionHash: txId,
             contractAddress: null,
             cumulativeGasUsed: 314159,
-            gasUsed: 30234,
+            gasUsed: 21000,
             logs: [ ],
           }
         })
@@ -329,7 +329,7 @@ describe('HdEthereumPayments', () => {
           toExtraId: null,
           fromIndex: null,
           toIndex: null,
-          fee: '0.628318',
+          fee: '0.042',
           sequenceNumber: 2,
           isExecuted: true,
           isConfirmed: true,
@@ -346,7 +346,7 @@ describe('HdEthereumPayments', () => {
             from: FROM_ADDRESS,
             to: TO_ADDRESS,
             value: '123450000000000000',
-            gas: 314159,
+            gas: 21000,
             gasPrice: '2000000000000',
             input: '0x57cb2fc4',
             currentBlock: 4,
@@ -354,7 +354,7 @@ describe('HdEthereumPayments', () => {
             transactionHash: txId,
             contractAddress: null,
             cumulativeGasUsed: 314159,
-            gasUsed: 30234,
+            gasUsed: 21000,
             logs: [ ],
           }
         })
@@ -391,7 +391,7 @@ describe('HdEthereumPayments', () => {
           toExtraId: null,
           fromIndex: null,
           toIndex: null,
-          fee: '0.628318',
+          fee: '0.042',
           sequenceNumber: 2,
           isExecuted: true,
           isConfirmed: true,
@@ -406,7 +406,7 @@ describe('HdEthereumPayments', () => {
             blockNumber: 3,
             contractAddress: null,
             cumulativeGasUsed: 314159,
-            gasUsed: 30234,
+            gasUsed: 21000,
             logs: [],
             status: false,
             transactionHash: txId,
@@ -414,7 +414,7 @@ describe('HdEthereumPayments', () => {
             from: FROM_ADDRESS,
             to: TO_ADDRESS,
             value: '123450000000000000',
-            gas: 314159,
+            gas: 21000,
             gasPrice: '2000000000000',
             input: '0x57cb2fc4',
             currentBlock: 4
@@ -702,7 +702,7 @@ describe('HdEthereumPayments', () => {
           blockNumber: 3,
           contractAddress: null,
           cumulativeGasUsed: 314159,
-          gasUsed: 30234,
+          gasUsed: 21000,
           logs: []
         })
       })

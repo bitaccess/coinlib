@@ -222,7 +222,7 @@ function getTransactionReceiptResponse(id: number, status: string, blockNumber: 
       blockNumber,
       contractAddress: null,
       cumulativeGasUsed: 314159,
-      gasUsed: 30234,
+      gasUsed: 21000,
       logs: [ ],
     }
   }
@@ -250,7 +250,7 @@ function getTransactionByHashResponse(id: number, txHash: string, blockHash: str
       from,
       to,
       value,
-      gas: 314159,
+      gas: 21000,
       gasPrice: '2000000000000',
       input: '0x57cb2fc4'
     }
@@ -302,7 +302,7 @@ function getBlockByNumberResponse(id: number, blockNumber: string, blockHash: st
       size: 616,
       extraData: '0x',
       gasLimit: 3141592,
-      gasUsed: 21662,
+      gasUsed: 21000,
       timestamp: 1429287689,
       transactions: txHashes,
       uncles: []
