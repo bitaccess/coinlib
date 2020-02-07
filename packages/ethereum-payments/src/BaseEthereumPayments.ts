@@ -1,6 +1,7 @@
 import { BigNumber } from 'bignumber.js'
 import { Transaction as Tx } from 'ethereumjs-tx'
 const Web3 = require('web3')
+import { Eth } from 'web3-eth'
 import { cloneDeep } from 'lodash'
 import {
   BalanceResult,
@@ -44,7 +45,7 @@ export abstract class BaseEthereumPayments
   extends EthereumPaymentsUtils
 implements BasePayments
   <Config, EthereumUnsignedTransaction, EthereumSignedTransaction, EthereumBroadcastResult, EthereumTransactionInfo> {
-  private eth: any
+  private eth: Eth
   private gasStation: any
   private config: Config
 
@@ -285,8 +286,15 @@ implements BasePayments
       // sends rpc requests with hex of serialized transaction, receives id and checks tx receipt by id
       const res = await this.eth.sendSignedTransaction(txHex)
       return {
-        ...res,
-        id: res.transactionHash
+        id: res.transactionHash,
+        transactionIndex: res.transactionIndex,
+        blockHash: res.blockHash,
+        blockNumber: res.blockNumber,
+        from: res.from,
+        to: res.to,
+        gasUsed: res.gasUsed,
+        cumulativeGasUsed: res.cumulativeGasUsed,
+        status: res.status,
       }
     } catch (e) {
       this.logger.warn(`Ethereum broadcast tx unsuccessful ${tx.id}: ${e.message}`)

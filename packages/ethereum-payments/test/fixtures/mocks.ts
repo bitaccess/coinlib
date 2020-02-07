@@ -31,10 +31,10 @@ export function getSendRawTransactionMocks(id: number, rawTx: string, txHash: st
   }
 }
 
-export function getTransactionReceiptMocks(id: number, status: string, blockNumber: string, txHash: string, blockHash: string): Mock {
+export function getTransactionReceiptMocks(id: number, from: string, to: string, status: string, blockNumber: string, txHash: string, blockHash: string): Mock {
   return {
     req: getTransactionReceiptRequest(id, txHash),
-    res: getTransactionReceiptResponse(id, status, blockNumber, txHash, blockHash)
+    res: getTransactionReceiptResponse(id, from, to, status, blockNumber, txHash, blockHash)
   }
 }
 
@@ -210,11 +210,13 @@ function getTransactionReceiptRequest(id: number, txHash: string): Object {
   }
 }
 
-function getTransactionReceiptResponse(id: number, status: string, blockNumber: string, txHash: string, blockHash: string): Object {
+function getTransactionReceiptResponse(id: number, from: string, to:string, status: string, blockNumber: string, txHash: string, blockHash: string): Object {
   return {
     jsonrpc: '2.0',
     id,
     result: {
+      from,
+      to,
       status,
       transactionHash: txHash,
       transactionIndex: 0,

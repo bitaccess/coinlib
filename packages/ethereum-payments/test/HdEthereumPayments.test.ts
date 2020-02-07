@@ -250,7 +250,7 @@ describe('HdEthereumPayments', () => {
         const blockNumberNock = getBlockNumberMocks(4, '0x3')
         nockI.post(/.*/, blockNumberNock.req).reply(200, blockNumberNock.res)
 
-        const mockTransactionReceipt = getTransactionReceiptMocks(5, '0x1', '0x3', txId, blockId)
+        const mockTransactionReceipt = getTransactionReceiptMocks(5, FROM_ADDRESS, TO_ADDRESS, '0x1', '0x3', txId, blockId)
         nockI.post(/.*/, mockTransactionReceipt.req).reply(200, mockTransactionReceipt.res)
 
         const res = await hdEP.getTransactionInfo(txId)
@@ -309,7 +309,7 @@ describe('HdEthereumPayments', () => {
         const blockNumberNock = getBlockNumberMocks(7, '0x4')
         nockI.post(/.*/, blockNumberNock.req).reply(200, blockNumberNock.res)
 
-        const mockTransactionReceipt = getTransactionReceiptMocks(8, '0x1', '0x3', txId, blockId)
+        const mockTransactionReceipt = getTransactionReceiptMocks(8, FROM_ADDRESS, TO_ADDRESS, '0x1', '0x3', txId, blockId)
         nockI.post(/.*/, mockTransactionReceipt.req).reply(200, mockTransactionReceipt.res)
 
         const mockBlockByNumber = getBlockByNumberMocks(9, '0x3', blockId, [txId])
@@ -371,7 +371,7 @@ describe('HdEthereumPayments', () => {
         const blockNumberNock = getBlockNumberMocks(11, '0x4')
         nockI.post(/.*/, blockNumberNock.req).reply(200, blockNumberNock.res)
 
-        const mockTransactionReceipt = getTransactionReceiptMocks(12, '0x0', '0x3', txId, blockId)
+        const mockTransactionReceipt = getTransactionReceiptMocks(12, FROM_ADDRESS, TO_ADDRESS, '0x0', '0x3', txId, blockId)
         nockI.post(/.*/, mockTransactionReceipt.req).reply(200, mockTransactionReceipt.res)
 
         const mockBlockByNumber = getBlockByNumberMocks(13, '0x3', blockId, [txId])
@@ -688,7 +688,7 @@ describe('HdEthereumPayments', () => {
         nockI.post(/.*/, rawTxMock.req).reply(200, rawTxMock.res)
 
         // checks tx receipt by id
-        const mockTransactionReceipt = getTransactionReceiptMocks(23, '0x1', '0x3', txId, blockId)
+        const mockTransactionReceipt = getTransactionReceiptMocks(23, FROM_ADDRESS, TO_ADDRESS, '0x1', '0x3', txId, blockId)
         nockI.post(/.*/, mockTransactionReceipt.req).reply(200, mockTransactionReceipt.res)
 
         const res = await hdEP.broadcastTransaction(signedTx)
@@ -696,14 +696,13 @@ describe('HdEthereumPayments', () => {
         expect(res).toStrictEqual({
           id: txId,
           status: true,
-          transactionHash: txId,
           transactionIndex: 0,
+          from: FROM_ADDRESS,
+          to: TO_ADDRESS,
           blockHash: blockId,
           blockNumber: 3,
-          contractAddress: null,
           cumulativeGasUsed: 314159,
           gasUsed: 21000,
-          logs: []
         })
       })
     })
