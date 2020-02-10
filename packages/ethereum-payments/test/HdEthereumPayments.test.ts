@@ -145,15 +145,59 @@ describe('HdEthereumPayments', () => {
     })
 
     describe('resolveFeeOption', () => {
-      test('input parameter is feeOptions', async () => {
+      /*
+       * 1 ETH = 100
+       * WeigasForTX = 5
+       * GasPriceLWei = 1;
+       * GasPriceMWei = 2;
+       * GasPriceHWei = 3;
+       * { feeLevel: FeeLevel.Low } => { targetFeeRate: 1, targetFeeRateType: BasePerWeight, feeMain: 0.05,  feeBase: 5,  targetFeeLevel: FeeLevel.Low, gasPrice: 1 }
+       * { feeLevel: FeeLevel.Medium } => { targetFeeRate: 2, targetFeeRateType: BasePerWeight, feeMain: 0.1, feeBase: 10, targetFeeLevel: FeeLevel.Medium, gasPrice: 2 }
+       * { feeLevel: FeeLevel.High } => { targetFeeRate: 3, targetFeeRateType: BasePerWeight, feeMain: 0.15, feeBase: 15, targetFeeLevel: FeeLevel.High, gasPrice: 3 }
+       * { feeRate: '200000', feeRateType: FeeRateType.Base } => { targetFeeRate: 200000, targetFeeRateType: Base, feeBase: 200000, feeMain: 200, targetFeeLevel: FeeLevel.Custom, gasPrice: 200000 / 5 }
+       * { feeRate: '0.2', feeRateType: FeeRateType.Main } => { targetFeeRate: 0.2, targetFeeRateType: Main, feeBase: 20, feeMain: 0.2, targetFeeLevel: FeeLevel.Custom, gasPrice: 20 / 5 }
+       * { feeRate: '200', feeRateType: FeeRateType.BasePerWeight } => { targetFeeRate: 200, targetFeeRateType: BasePerWeight, feeBase: 200 * 5, feeMain: 2 * 5, targetFeeLevel: FeeLevel.Custom, gasPrice: 200 }
+       * { feeLevel: FeeLevel.Custom, feeRate: '200000', feeRateType: FeeRateType.Base } => { targetFeeRate: 200000, targetFeeRateType: Base, feeBase: 200000, feeMain: 200, targetFeeLevel: FeeLevel.Custom, gasPrice: 200000 / 5 }
+       * { feeLevel: FeeLevel.Custom, feeRate: '0.2', feeRateType: FeeRateType.Main } => { targetFeeRate: 0.2, targetFeeRateType: Main, feeBase: 20, feeMain: 0.2, targetFeeLevel: FeeLevel.Custom, gasPrice: 20 / 5 }
+       * { feeLevel: FeeLevel.Custom, feeRate: '200', feeRateType: FeeRateType.BasePerWeight } => { targetFeeRate: 200, targetFeeRateType: BasePerWeight, feeBase: 200 * 5, feeMain: 2 * 5, targetFeeLevel: FeeLevel.Custom, gasPrice: 200 }
+       */
+      test('fallback to default for {} as an input', async () => {
+        nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
+
+        const res = await hdEP.resolveFeeOption({ })
+        expect(res).toStrictEqual({
+          targetFeeRate: '300000000000',
+          gasPrice: '300000000000',
+          targetFeeLevel: 'medium',
+          targetFeeRateType: FeeRateType.BasePerWeight,
+          feeBase: '6300000000000000',
+          feeMain: '0.0063'
+        })
+      })
+
+      test('input parameter has property feeLevel', async () => {
+        nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
+
+        const res = await hdEP.resolveFeeOption({ feeLevel: FeeLevel.Low })
+        expect(res).toStrictEqual({
+          targetFeeRate: '100000000000',
+          gasPrice: '100000000000',
+          targetFeeLevel: FeeLevel.Low,
+          targetFeeRateType: FeeRateType.BasePerWeight,
+          feeBase: '2100000000000000',
+          feeMain: '0.0021',
+        })
+      })
+
+      test('input parameter has feeOptions', async () => {
         const resMain = await hdEP.resolveFeeOption({
           feeRate: '1',
           feeRateType: FeeRateType.Main,
         } as FeeOption)
         expect(resMain).toStrictEqual({
-          gasPrice: '0.00004761904761904762',
-          targetFeeLevel: 'custom',
           targetFeeRate: '1',
+          gasPrice: '47619047619047.62',
+          targetFeeLevel: 'custom',
           targetFeeRateType: FeeRateType.Main,
           feeBase: '1000000000000000000',
           feeMain: '1',
@@ -164,42 +208,15 @@ describe('HdEthereumPayments', () => {
           feeRateType: FeeRateType.Base,
         } as FeeOption)
         expect(resBase).toStrictEqual({
+          targetFeeRate: '1',
           gasPrice: '0.00004761904761904762',
           targetFeeLevel: 'custom',
-          targetFeeRate: '1',
           targetFeeRateType: FeeRateType.Base,
           feeBase: '1',
           feeMain: '1e-18',
         })
       })
 
-      test('input parameter has property feeLevel', async () => {
-        nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
-
-        const res = await hdEP.resolveFeeOption({ feeLevel: FeeLevel.Low })
-        expect(res).toStrictEqual({
-          gasPrice: '100000000000',
-          targetFeeLevel: 'low',
-          targetFeeRate: '2100000000000000',
-          targetFeeRateType: FeeRateType.Base,
-          feeBase: '2100000000000000',
-          feeMain: '0.0021',
-        })
-      })
-
-      test('fallback to default for {} as an input', async () => {
-        nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
-
-        const res = await hdEP.resolveFeeOption({ })
-        expect(res).toStrictEqual({
-          gasPrice: '300000000000',
-          targetFeeLevel: 'medium',
-          targetFeeRate: '6300000000000000',
-          targetFeeRateType: FeeRateType.Base,
-          feeBase: '6300000000000000',
-          feeMain: '0.0063'
-        })
-      })
     })
 
     describe('requiresBalanceMonitor', () => {
@@ -455,8 +472,8 @@ describe('HdEthereumPayments', () => {
           amount: amountEth,
           fee: '0.0063',
           targetFeeLevel: 'medium',
-          targetFeeRate: '6300000000000000',
-          targetFeeRateType: 'base',
+          targetFeeRate: '300000000000',
+          targetFeeRateType: 'base/weight',
           sequenceNumber: '27',
           data: {
             from: FROM_ADDRESS,
@@ -535,8 +552,8 @@ describe('HdEthereumPayments', () => {
           amount: transactionValueEth,
           fee: feeEth,
           targetFeeLevel: 'medium',
-          targetFeeRate: '6300000000000000',
-          targetFeeRateType: 'base',
+          targetFeeRate: '300000000000',
+          targetFeeRateType: 'base/weight',
           sequenceNumber: '27',
           data: {
             from: FROM_ADDRESS,

@@ -104,29 +104,47 @@ implements BasePayments
   }
 
   async resolveFeeOption(feeOption: FeeOption): Promise<EthereumResolvedFeeOption> {
+    let res: Promise<EthereumResolvedFeeOption> | EthereumResolvedFeeOption
     if (isType(FeeOptionCustom, feeOption)) {
-      const isFeeBase = (feeOption.feeRateType === FeeRateType.Base)
-      return {
-        targetFeeLevel:    feeOption.feeLevel || FeeLevel.Custom,
-        targetFeeRate:     feeOption.feeRate,
-        targetFeeRateType: feeOption.feeRateType,
-        feeMain:           isFeeBase ? this.toMainDenomination(feeOption.feeRate) : feeOption.feeRate,
-        feeBase:           isFeeBase ? feeOption.feeRate : this.toBaseDenomination(feeOption.feeRate),
-        gasPrice: (new BigNumber(feeOption.feeRate)).dividedBy(ETHEREUM_TRANSFER_COST).toString(),
-      }
+      res = this.resolveCustomFeeOption(feeOption)
+    } else {
+      res = await this.resolveLeveledFeeOption(feeOption)
     }
 
-    const targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL
-    const gasPrice = await this.gasStation.getGasPrice(FEE_LEVEL_MAP[targetFeeLevel])
-    const targetFeeRate = (new BigNumber(gasPrice)).multipliedBy(ETHEREUM_TRANSFER_COST).toString()
+    return res
+  }
+
+  private resolveCustomFeeOption(feeOption: FeeOptionCustom): EthereumResolvedFeeOption {
+    const isWeight = (feeOption.feeRateType === FeeRateType.BasePerWeight)
+    const isMain = (feeOption.feeRateType === FeeRateType.Main)
+
+    const gasPrice =
+      isWeight ? feeOption.feeRate : (new BigNumber(feeOption.feeRate)).dividedBy(ETHEREUM_TRANSFER_COST).toString()
+    const fee =
+      isWeight ? (new BigNumber(feeOption.feeRate)).multipliedBy(ETHEREUM_TRANSFER_COST).toString() : feeOption.feeRate
 
     return {
-      targetFeeLevel,
+      targetFeeRate:     feeOption.feeRate,
+      targetFeeLevel:    FeeLevel.Custom,
+      targetFeeRateType: feeOption.feeRateType,
+      feeBase:           isMain ? this.toBaseDenomination(fee) : fee,
+      feeMain:           isMain ? fee : this.toMainDenomination(fee),
+      gasPrice:          isMain ? this.toBaseDenomination(gasPrice) : gasPrice,
+    }
+  }
+
+  private async resolveLeveledFeeOption(feeOption: FeeOption): Promise<EthereumResolvedFeeOption> {
+    const targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL
+    const targetFeeRate = await this.gasStation.getGasPrice(FEE_LEVEL_MAP[targetFeeLevel])
+    const feeBase = (new BigNumber(targetFeeRate)).multipliedBy(ETHEREUM_TRANSFER_COST).toString()
+
+    return {
       targetFeeRate,
-      targetFeeRateType: FeeRateType.Base,
-      feeBase: targetFeeRate,
-      feeMain: this.toMainDenomination(targetFeeRate),
-      gasPrice,
+      targetFeeLevel,
+      targetFeeRateType: FeeRateType.BasePerWeight,
+      feeBase,
+      feeMain: this.toMainDenomination(feeBase),
+      gasPrice: targetFeeRate,
     }
   }
 
@@ -139,6 +157,10 @@ implements BasePayments
   }
 
   async getAvailableUtxos() {
+    return []
+  }
+
+  async getUtxos() {
     return []
   }
 
@@ -313,7 +335,7 @@ implements BasePayments
     const sweepFlag = amountEth === 'max' ? true : false
 
     const fromTo = await this.resolveFromTo(from, to)
-    const feeOption = await this.resolveFeeOption(options)
+    const feeOption = await this.resolveFeeOption(options as FeeOption)
     const { confirmedBalance: balanceEth } = await this.getBalance(fromTo.fromPayport)
     const nonce = options.sequenceNumber || await this.getNextSequenceNumber(from)
 
@@ -338,7 +360,7 @@ implements BasePayments
       to:       fromTo.toAddress,
       value:    `0x${amountWei.toString(16)}`,
       gas:      `0x${(new BigNumber(ETHEREUM_TRANSFER_COST)).toString(16)}`,
-      gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
+      gasPrice: `0x${(new BigNumber(feeOption.targetFeeRate)).toString(16)}`,
       nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
     }
 
