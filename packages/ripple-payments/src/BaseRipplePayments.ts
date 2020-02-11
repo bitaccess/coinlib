@@ -11,6 +11,7 @@ import {
   ResolveablePayport,
   PaymentsError,
   PaymentsErrorCode,
+  isMatchingError,
 } from '@faast/payments-common'
 import { assertType, isNil, Numeric, isUndefined } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
@@ -368,25 +369,40 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     const maxLedgerVersionOffset =
       options.maxLedgerVersionOffset || this.config.maxLedgerVersionOffset || DEFAULT_MAX_LEDGER_VERSION_OFFSET
     const amountString = amount.toString()
-    const addressBalances = await this.getBalance({ address: fromAddress })
-    const addressBalance = new BigNumber(addressBalances.confirmedBalance)
-    const actualBalance = addressBalance.plus(MIN_BALANCE)
-    if (addressBalance.lt(0)) {
+    const fromAddressBalances = await this.getBalance({ address: fromAddress })
+    const fromAddressBalance = new BigNumber(fromAddressBalances.confirmedBalance).plus(MIN_BALANCE)
+    if (fromAddressBalance.lt(MIN_BALANCE)) {
       throw new Error(
-        `Cannot send from ripple address that has less than ${MIN_BALANCE} XRP: ${fromAddress} (${actualBalance} XRP)`,
+        `Cannot send from ripple address that has less than ${MIN_BALANCE} XRP: ${fromAddress} (${fromAddressBalance} XRP)`,
       )
     }
     const totalValue = amount.plus(feeMain)
-    if (addressBalance.minus(totalValue).lt(0)) {
+    if (fromAddressBalance.minus(totalValue).lt(MIN_BALANCE)) {
       throw new Error(
         `Cannot send ${amountString} XRP with fee of ${feeMain} XRP because it would reduce the balance below ` +
-          `the minimum required balance of ${MIN_BALANCE} XRP: ${fromAddress} (${actualBalance} XRP)`,
+          `the minimum required balance of ${MIN_BALANCE} XRP: ${fromAddress} (${fromAddressBalance} XRP)`,
       )
     }
     if (typeof fromExtraId === 'string' && totalValue.gt(payportBalance)) {
       throw new Error(
         `Insufficient payport balance of ${payportBalance} XRP to send ${amountString} XRP ` +
           `with fee of ${feeMain} XRP: ${serializePayport(fromPayport)}`,
+      )
+    }
+    let toAddressBalance
+    try {
+      const toAddressBalances = await this.getBalance({ address: toAddress })
+      toAddressBalance = new BigNumber(toAddressBalances.confirmedBalance).plus(MIN_BALANCE)
+    } catch (e) {
+      if (isMatchingError(e, NOT_FOUND_ERRORS)) {
+        toAddressBalance = new BigNumber(0)
+      } else {
+        throw e
+      }
+    }
+    if (toAddressBalance.lt(MIN_BALANCE) && amount.lt(MIN_BALANCE)) {
+      throw new Error(
+        `Cannot send ${amountString} XRP to recipient ${toAddress} because address requires a balance of at least ${MIN_BALANCE} XRP to receive funds`
       )
     }
     const preparedTx = await this._retryDced(() =>

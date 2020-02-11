@@ -2,6 +2,7 @@ import { TransactionStatus, BalanceActivity, NetworkType, GetBalanceActivityOpti
 import BigNumber from 'bignumber.js'
 import { omit, sortBy } from 'lodash'
 
+import { hdAccount } from './fixtures/accounts'
 import {
   setupTestnetPayments,
   delay,
@@ -14,6 +15,9 @@ import {
   ADDRESS_REGEX, RippleSignedTransaction, AccountRipplePayments,
   RippleTransactionInfo, RippleBalanceMonitor,
 } from '../src'
+import { deriveSignatory } from '../src/bip44'
+
+const UNACTIVATED_ADDRESS = deriveSignatory(hdAccount.XPUB, 12439585).address
 
 jest.setTimeout(60 * 1000)
 
@@ -98,6 +102,15 @@ describe('e2e', () => {
       expect(Number.parseInt(balances.confirmedBalance)).toBeGreaterThan(0)
       expect(balances.unconfirmedBalance).toBe('0')
       expect(balances.sweepable).toBe(true)
+    })
+    it('should throw when account not activated', async () => {
+      await expect(rp.getBalance(UNACTIVATED_ADDRESS)).rejects.toThrow('Account not found.')
+    })
+  })
+
+  describe('createTransaction', () => {
+    it('throws when sending less than 20 XRP to unactivated account', async () => {
+      await expect(rp.createTransaction(0, UNACTIVATED_ADDRESS, '10')).rejects.toThrow('Cannot send')
     })
   })
 
