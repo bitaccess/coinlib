@@ -367,7 +367,7 @@ implements BasePayments
       to:       fromTo.toAddress,
       value:    `0x${amountWei.toString(16)}`,
       gas:      `0x${(new BigNumber(ETHEREUM_TRANSFER_COST)).toString(16)}`,
-      gasPrice: `0x${(new BigNumber(feeOption.targetFeeRate)).toString(16)}`,
+      gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
       nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
     }
 
