@@ -80,10 +80,14 @@
     "@types/request-promise-native": "^1.0.17",
     "bignumber.js": "^9.0.0",
     "bip32": "^2.0.5",
+    "elliptic": "^6.5.2",
+    "ethereumjs-tx": "^2.1.2",
     "ethereumjs-util": "^6.2.0",
     "io-ts": "^1.10.4",
     "lodash": "^4.17.15",
+    "request-promise-native": "^1.0.8",
     "web3": "^1.2.4",
+    "web3-core": "^1.2.6",
     "web3-eth": "^1.2.4"
   }
 }
