@@ -118,10 +118,17 @@ implements BasePayments
     const isWeight = (feeOption.feeRateType === FeeRateType.BasePerWeight)
     const isMain = (feeOption.feeRateType === FeeRateType.Main)
 
-    const gasPrice =
-      isWeight ? feeOption.feeRate : (new BigNumber(feeOption.feeRate)).dividedBy(ETHEREUM_TRANSFER_COST).toString()
-    const fee =
-      isWeight ? (new BigNumber(feeOption.feeRate)).multipliedBy(ETHEREUM_TRANSFER_COST).toString() : feeOption.feeRate
+    let gasPrice = isWeight
+      ? feeOption.feeRate
+      : (new BigNumber(feeOption.feeRate)).dividedBy(ETHEREUM_TRANSFER_COST).toString()
+    const fee = isWeight
+      ? (new BigNumber(feeOption.feeRate)).multipliedBy(ETHEREUM_TRANSFER_COST).toString()
+      : feeOption.feeRate
+
+    // HACK rounding must be perfromed toBaseDenominationString from payments-common
+    if (isMain) {
+      gasPrice = (new BigNumber(this.toBaseDenomination(gasPrice))).toFixed(0, 7)
+    }
 
     return {
       targetFeeRate:     feeOption.feeRate,
@@ -129,7 +136,7 @@ implements BasePayments
       targetFeeRateType: feeOption.feeRateType,
       feeBase:           isMain ? this.toBaseDenomination(fee) : fee,
       feeMain:           isMain ? fee : this.toMainDenomination(fee),
-      gasPrice:          isMain ? this.toBaseDenomination(gasPrice) : gasPrice,
+      gasPrice
     }
   }
 

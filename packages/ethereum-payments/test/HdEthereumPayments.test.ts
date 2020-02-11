@@ -196,7 +196,7 @@ describe('HdEthereumPayments', () => {
         } as FeeOption)
         expect(resMain).toStrictEqual({
           targetFeeRate: '1',
-          gasPrice: '47619047619047.62',
+          gasPrice: '47619047619048',
           targetFeeLevel: 'custom',
           targetFeeRateType: FeeRateType.Main,
           feeBase: '1000000000000000000',
