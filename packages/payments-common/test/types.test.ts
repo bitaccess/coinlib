@@ -80,24 +80,47 @@ describe('types', () => {
   test('BaseSignedTransaction throws on invalid', () => {
     expect(() => assertType(BaseSignedTransaction, {})).toThrow()
   })
-  test('BaseTransactionInfo validates successfully', () => {
-    assertType(BaseTransactionInfo, {
-      status: 'unsigned',
-      id: 'id',
-      fromAddress: 'address',
-      toAddress: 'address',
-      toExtraId: null,
-      fromIndex: 0,
-      toIndex: 1,
-      amount: '0.1234',
-      fee: '0.1234',
-      sequenceNumber: null,
-      isExecuted: false,
-      isConfirmed: false,
-      confirmations: 0,
-      confirmationId: '0',
-      confirmationTimestamp: new Date(),
-      data: {},
+  describe('BaseTransactionInfo', () => {
+    test('validates successfully', () => {
+      assertType(BaseTransactionInfo, {
+        status: 'unsigned',
+        id: 'id',
+        fromAddress: 'address',
+        toAddress: 'address',
+        toExtraId: null,
+        fromIndex: 0,
+        toIndex: 1,
+        amount: '0.1234',
+        fee: '0.1234',
+        sequenceNumber: null,
+        isExecuted: false,
+        isConfirmed: false,
+        confirmations: 0,
+        confirmationId: '0',
+        confirmationTimestamp: new Date(),
+        data: {},
+      })
+    })
+    test('validates with confirmationNumber of type number successfully', () => {
+      assertType(BaseTransactionInfo, {
+        status: 'unsigned',
+        id: 'id',
+        fromAddress: 'address',
+        toAddress: 'address',
+        toExtraId: null,
+        fromIndex: 0,
+        toIndex: 1,
+        amount: '0.1234',
+        fee: '0.1234',
+        sequenceNumber: null,
+        isExecuted: false,
+        isConfirmed: false,
+        confirmations: 0,
+        confirmationId: '0',
+        confirmationTimestamp: new Date(),
+        data: {},
+        confirmationNumber: 0
+      })
     })
   })
   test('BaseTransactionInfo throws on invalid', () => {

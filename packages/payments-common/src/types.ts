@@ -206,12 +206,12 @@ export const BaseTransactionInfo = extendCodec(
     isExecuted: t.boolean, // true if transaction didn't fail (eg TRX/ETH contract succeeded)
     isConfirmed: t.boolean,
     confirmations: t.number, // 0 if not confirmed
-    confirmationId: nullable(t.string), // eg block number or hash. null if not confirmed
+    confirmationId: nullable(t.string), // eg block/ledger hash. null if not confirmed
     confirmationTimestamp: nullable(DateT), // block timestamp. null if timestamp unavailable or unconfirmed
     data: t.object,
   },
   {
-    confirmationNumber: t.string, // eg block number
+    confirmationNumber: t.union([t.string, t.number]) // eg block number
   },
   'BaseTransactionInfo',
 )
