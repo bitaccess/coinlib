@@ -165,6 +165,10 @@ const RetrieveBalanceActivitiesResult = type({
     to: string,
 }, 'RetrieveBalanceActivitiesResult');
 
+function isMatchingError(e, partialMessages) {
+    const messageLower = e.toString().toLowerCase();
+    return partialMessages.some(pm => messageLower.includes(pm.toLowerCase()));
+}
 function createUnitConverters(decimals) {
     const basePerMain = new BigNumber(10).pow(decimals);
     function toMainDenominationBigNumber(baseNumeric) {
@@ -223,5 +227,5 @@ class PaymentsError extends Error {
     }
 }
 
-export { AddressOrIndex, AutoFeeLevels, BalanceActivity, BalanceActivityCallback, BalanceActivityType, BalanceMonitorConfig, BalanceResult, BaseBroadcastResult, BaseConfig, BaseSignedTransaction, BaseTransactionInfo, BaseUnsignedTransaction, CreateTransactionOptions, FeeLevel, FeeLevelT, FeeOption, FeeOptionCustom, FeeOptionLevel, FeeRate, FeeRateType, FeeRateTypeT, GetBalanceActivityOptions, GetPayportOptions, NetworkType, NetworkTypeT, PaymentsError, PaymentsErrorCode, Payport, ResolveablePayport, ResolvedFeeOption, RetrieveBalanceActivitiesResult, TransactionCommon, TransactionStatus, TransactionStatusT, UtxoInfo, createUnitConverters };
+export { AddressOrIndex, AutoFeeLevels, BalanceActivity, BalanceActivityCallback, BalanceActivityType, BalanceMonitorConfig, BalanceResult, BaseBroadcastResult, BaseConfig, BaseSignedTransaction, BaseTransactionInfo, BaseUnsignedTransaction, CreateTransactionOptions, FeeLevel, FeeLevelT, FeeOption, FeeOptionCustom, FeeOptionLevel, FeeRate, FeeRateType, FeeRateTypeT, GetBalanceActivityOptions, GetPayportOptions, NetworkType, NetworkTypeT, PaymentsError, PaymentsErrorCode, Payport, ResolveablePayport, ResolvedFeeOption, RetrieveBalanceActivitiesResult, TransactionCommon, TransactionStatus, TransactionStatusT, UtxoInfo, createUnitConverters, isMatchingError };
 //# sourceMappingURL=index.es.js.map

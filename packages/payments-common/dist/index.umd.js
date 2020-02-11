@@ -165,6 +165,10 @@
       to: t.string,
   }, 'RetrieveBalanceActivitiesResult');
 
+  function isMatchingError(e, partialMessages) {
+      const messageLower = e.toString().toLowerCase();
+      return partialMessages.some(pm => messageLower.includes(pm.toLowerCase()));
+  }
   function createUnitConverters(decimals) {
       const basePerMain = new BigNumber(10).pow(decimals);
       function toMainDenominationBigNumber(baseNumeric) {
@@ -253,6 +257,7 @@
   exports.TransactionStatusT = TransactionStatusT;
   exports.UtxoInfo = UtxoInfo;
   exports.createUnitConverters = createUnitConverters;
+  exports.isMatchingError = isMatchingError;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

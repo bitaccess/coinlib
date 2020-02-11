@@ -1,8 +1,8 @@
 import * as Stellar from 'stellar-sdk';
-import { NetworkType, Payport } from '@faast/payments-common';
+import { NetworkType, Payport, isMatchingError } from '@faast/payments-common';
 import { Logger } from '@faast/ts-common';
 import { BaseStellarConfig, StellarLedger, StellarTransaction, StellarServerAPI } from './types';
-export declare function isMatchingError(e: Error, partialMessages: string[]): boolean;
+export { isMatchingError };
 export declare function serializePayport(payport: Payport): string;
 export declare function omitHidden(o: object): object;
 export declare function isStellarLedger(x: unknown): x is StellarLedger;

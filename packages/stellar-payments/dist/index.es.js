@@ -1,4 +1,4 @@
-import { BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, CreateTransactionOptions, FeeLevel, NetworkType, createUnitConverters, Payport, TransactionStatus, FeeRateType } from '@faast/payments-common';
+import { BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransactionInfo, BaseBroadcastResult, CreateTransactionOptions, FeeLevel, NetworkType, createUnitConverters, isMatchingError, Payport, TransactionStatus, FeeRateType } from '@faast/payments-common';
 export { CreateTransactionOptions } from '@faast/payments-common';
 import { extendCodec, instanceofCodec, nullable, isNil, isObject, isString as isString$1, assertType, DelegateLogger, toBigNumber, Numeric } from '@faast/ts-common';
 import BigNumber from 'bignumber.js';
@@ -89,10 +89,6 @@ function assertValidExtraIdOrNil(extraId) {
     }
 }
 
-function isMatchingError(e, partialMessages) {
-    const messageLower = e.toString().toLowerCase();
-    return partialMessages.some(pm => messageLower.includes(pm.toLowerCase()));
-}
 function serializePayport(payport) {
     return isNil(payport.extraId) ? payport.address : `${payport.address}/${payport.extraId}`;
 }

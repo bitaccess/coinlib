@@ -167,6 +167,10 @@ const RetrieveBalanceActivitiesResult = t.type({
     to: t.string,
 }, 'RetrieveBalanceActivitiesResult');
 
+function isMatchingError(e, partialMessages) {
+    const messageLower = e.toString().toLowerCase();
+    return partialMessages.some(pm => messageLower.includes(pm.toLowerCase()));
+}
 function createUnitConverters(decimals) {
     const basePerMain = new BigNumber(10).pow(decimals);
     function toMainDenominationBigNumber(baseNumeric) {
@@ -255,4 +259,5 @@ exports.TransactionCommon = TransactionCommon;
 exports.TransactionStatusT = TransactionStatusT;
 exports.UtxoInfo = UtxoInfo;
 exports.createUnitConverters = createUnitConverters;
+exports.isMatchingError = isMatchingError;
 //# sourceMappingURL=index.cjs.js.map

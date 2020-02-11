@@ -1,13 +1,10 @@
-import { NetworkType } from '@faast/payments-common';
+import { NetworkType, isMatchingError } from '@faast/payments-common';
 import promiseRetry from 'promise-retry';
 import { isString, isObject, isNil } from '@faast/ts-common';
 import { StellarServerAPI } from './types';
 import { DEFAULT_TESTNET_SERVER, DEFAULT_MAINNET_SERVER } from './constants';
 import { omitBy, isFunction } from 'lodash';
-export function isMatchingError(e, partialMessages) {
-    const messageLower = e.toString().toLowerCase();
-    return partialMessages.some(pm => messageLower.includes(pm.toLowerCase()));
-}
+export { isMatchingError };
 export function serializePayport(payport) {
     return isNil(payport.extraId) ? payport.address : `${payport.address}/${payport.extraId}`;
 }

@@ -94,10 +94,6 @@ function assertValidExtraIdOrNil(extraId) {
     }
 }
 
-function isMatchingError(e, partialMessages) {
-    const messageLower = e.toString().toLowerCase();
-    return partialMessages.some(pm => messageLower.includes(pm.toLowerCase()));
-}
 function serializePayport(payport) {
     return tsCommon.isNil(payport.extraId) ? payport.address : `${payport.address}/${payport.extraId}`;
 }
@@ -144,7 +140,7 @@ const MAX_RETRIES = 3;
 function retryIfDisconnected(fn, stellarApi, logger) {
     return promiseRetry((retry, attempt) => {
         return fn().catch(async (e) => {
-            if (isMatchingError(e, RETRYABLE_ERRORS)) {
+            if (paymentsCommon.isMatchingError(e, RETRYABLE_ERRORS)) {
                 logger.log(`Retryable error during stellar server call, retrying ${MAX_RETRIES - attempt} more times`, e.toString());
                 retry(e);
             }
@@ -353,7 +349,7 @@ class BaseStellarPayments extends StellarPaymentsUtils {
             accountInfo = await this._retryDced(() => this.getApi().loadAccount(address));
         }
         catch (e) {
-            if (isMatchingError(e, NOT_FOUND_ERRORS)) {
+            if (paymentsCommon.isMatchingError(e, NOT_FOUND_ERRORS)) {
                 this.logger.debug('api.loadAccount account not found', address);
                 return null;
             }

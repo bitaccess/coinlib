@@ -1,4 +1,5 @@
 import BigNumber from 'bignumber.js';
+export declare function isMatchingError(e: Error, partialMessages: string[]): boolean;
 export declare function createUnitConverters(decimals: number): {
     toMainDenominationBigNumber: (baseNumeric: string | number | BigNumber) => BigNumber;
     toMainDenominationNumber: (baseNumeric: string | number | BigNumber) => number;
