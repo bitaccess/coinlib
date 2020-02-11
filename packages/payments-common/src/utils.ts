@@ -1,6 +1,11 @@
 import BigNumber from 'bignumber.js'
 import { Numeric } from '@faast/ts-common'
 
+export function isMatchingError(e: Error, partialMessages: string[]) {
+  const messageLower = e.toString().toLowerCase()
+  return partialMessages.some(pm => messageLower.includes(pm.toLowerCase()))
+}
+
 export function createUnitConverters(decimals: number) {
   const basePerMain = new BigNumber(10).pow(decimals)
 

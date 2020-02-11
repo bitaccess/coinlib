@@ -1,5 +1,5 @@
 import * as Stellar from 'stellar-sdk'
-import { NetworkType, Payport } from '@faast/payments-common'
+import { NetworkType, Payport, isMatchingError } from '@faast/payments-common'
 import promiseRetry from 'promise-retry'
 import { Logger, isString, isObject, isNil } from '@faast/ts-common'
 
@@ -7,10 +7,7 @@ import { BaseStellarConfig, StellarRawTransaction, StellarLedger, StellarTransac
 import { DEFAULT_TESTNET_SERVER, DEFAULT_MAINNET_SERVER } from './constants'
 import { omitBy, isFunction } from 'lodash'
 
-export function isMatchingError(e: Error, partialMessages: string[]) {
-  const messageLower = e.toString().toLowerCase()
-  return partialMessages.some(pm => messageLower.includes(pm.toLowerCase()))
-}
+export { isMatchingError }
 
 export function serializePayport(payport: Payport): string {
   return isNil(payport.extraId) ? payport.address : `${payport.address}/${payport.extraId}`
