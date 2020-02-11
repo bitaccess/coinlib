@@ -126,7 +126,7 @@ export const BaseTransactionInfo = extendCodec(TransactionCommon, {
     confirmationTimestamp: nullable(DateT),
     data: t.object,
 }, {
-    confirmationNumber: t.string,
+    confirmationNumber: t.union([t.string, t.number])
 }, 'BaseTransactionInfo');
 export const BaseBroadcastResult = t.type({
     id: t.string,

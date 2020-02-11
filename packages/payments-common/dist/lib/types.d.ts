@@ -227,7 +227,7 @@ export declare const BaseTransactionInfo: t.IntersectionC<[t.IntersectionC<[t.Ty
     confirmationTimestamp: t.UnionC<[import("@faast/ts-common").DateC, t.NullC]>;
     data: t.ObjectC;
 }>, t.PartialC<{
-    confirmationNumber: t.StringC;
+    confirmationNumber: t.UnionC<[t.StringC, t.NumberC]>;
 }>]>;
 export declare type BaseTransactionInfo = t.TypeOf<typeof BaseTransactionInfo>;
 export declare const BaseBroadcastResult: t.TypeC<{

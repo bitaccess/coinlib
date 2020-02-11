@@ -128,7 +128,7 @@
       confirmationTimestamp: tsCommon.nullable(tsCommon.DateT),
       data: t.object,
   }, {
-      confirmationNumber: t.string,
+      confirmationNumber: t.union([t.string, t.number])
   }, 'BaseTransactionInfo');
   const BaseBroadcastResult = t.type({
       id: t.string,

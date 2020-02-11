@@ -159,7 +159,7 @@ export declare const TronTransactionInfo: t.IntersectionC<[t.IntersectionC<[t.Ty
     confirmationTimestamp: t.UnionC<[import("@faast/ts-common").DateC, t.NullC]>;
     data: t.ObjectC;
 }>, t.PartialC<{
-    confirmationNumber: t.StringC;
+    confirmationNumber: t.UnionC<[t.StringC, t.NumberC]>;
 }>]>;
 export declare type TronTransactionInfo = t.TypeOf<typeof TronTransactionInfo>;
 export declare const TronBroadcastResult: t.IntersectionC<[t.TypeC<{
