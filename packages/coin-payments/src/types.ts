@@ -1,11 +1,22 @@
 import * as t from 'io-ts'
 import { extendCodec, Logger } from '@faast/ts-common'
 import { NetworkTypeT } from '@faast/payments-common'
-import { TronPaymentsConfig } from '@faast/tron-payments'
-import { RipplePaymentsConfig } from '@faast/ripple-payments'
-import { StellarPaymentsConfig } from '@faast/stellar-payments'
-import { BitcoinPaymentsConfig } from '@faast/bitcoin-payments'
-import { EthereumPaymentsConfig } from '@faast/ethereum-payments'
+import { TronPaymentsConfig, BaseTronPaymentsConfig } from '@faast/tron-payments'
+import { RipplePaymentsConfig, BaseRipplePaymentsConfig } from '@faast/ripple-payments'
+import { StellarPaymentsConfig, BaseStellarPaymentsConfig } from '@faast/stellar-payments'
+import { BitcoinPaymentsConfig, BaseBitcoinPaymentsConfig } from '@faast/bitcoin-payments'
+import { EthereumPaymentsConfig, BaseEthereumPaymentsConfig } from '@faast/ethereum-payments'
+
+const baseAssetConfigCodecs = {
+  TRX: BaseTronPaymentsConfig,
+  XRP: BaseRipplePaymentsConfig,
+  XLM: BaseStellarPaymentsConfig,
+  BTC: BaseBitcoinPaymentsConfig,
+  ETH: BaseEthereumPaymentsConfig,
+}
+
+export const CoinPaymentsBaseAssetConfigs = t.type(baseAssetConfigCodecs, 'CoinPaymentsBaseAssetConfigs')
+export type CoinPaymentsBaseAssetConfigs = t.TypeOf<typeof CoinPaymentsBaseAssetConfigs>
 
 const assetConfigCodecs = {
   TRX: TronPaymentsConfig,
