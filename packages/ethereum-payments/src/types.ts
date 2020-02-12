@@ -125,3 +125,24 @@ export const EthereumResolvedFeeOption = extendCodec(
   'EthereumResolvedFeeOption'
 )
 export type EthereumResolvedFeeOption = t.TypeOf<typeof EthereumResolvedFeeOption>
+
+const BnRounding = t.union([
+  t.literal(1),
+  t.literal(2),
+  t.literal(3),
+  t.literal(4),
+  t.literal(5),
+  t.literal(6),
+  t.literal(7),
+  t.literal(8),
+])
+
+export const BaseDenominationOptions = extendCodec(
+  t.object,
+  {},
+  {
+    rounding: BnRounding
+  },
+  'BaseDenominationOptions')
+
+export type BaseDenominationOptions = t.TypeOf<typeof BaseDenominationOptions>

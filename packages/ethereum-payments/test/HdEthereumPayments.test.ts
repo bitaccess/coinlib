@@ -213,7 +213,7 @@ describe('HdEthereumPayments', () => {
           targetFeeLevel: 'custom',
           targetFeeRateType: FeeRateType.Base,
           feeBase: '1',
-          feeMain: '1e-18',
+          feeMain: '0.000000000000000001',
         })
       })
 
@@ -235,7 +235,7 @@ describe('HdEthereumPayments', () => {
         const res = await hdEP.getBalance({ address: FROM_ADDRESS })
 
         expect(res).toStrictEqual({
-          confirmedBalance: '1e-11',
+          confirmedBalance: '0.00000000001',
           unconfirmedBalance: '0',
           sweepable: true,
         })

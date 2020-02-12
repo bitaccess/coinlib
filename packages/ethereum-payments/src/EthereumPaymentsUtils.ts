@@ -1,5 +1,6 @@
 import Web3 from 'web3'
 const web3 = new Web3()
+import { BigNumber } from 'bignumber.js'
 
 import { PaymentsUtils, Payport, createUnitConverters } from '@faast/payments-common'
 import {
@@ -10,7 +11,10 @@ import {
   assertType
 } from '@faast/ts-common'
 import { PACKAGE_NAME, DECIMAL_PLACES } from './constants'
-import { BaseEthereumPaymentsConfig } from './types'
+import {
+  BaseEthereumPaymentsConfig,
+  BaseDenominationOptions,
+} from './types'
 import { isValidXkey } from './bip44'
 
 export class EthereumPaymentsUtils implements PaymentsUtils {
@@ -20,12 +24,16 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
     this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
   }
 
-  toBaseDenomination(amount: Numeric): string {
-    return this._toBaseDenominationString(amount)
+  toBaseDenomination(amount: Numeric, options?: BaseDenominationOptions): string {
+    const eth = (new BigNumber(amount)).toFixed(DECIMAL_PLACES, options ? options.rounding : undefined)
+
+    return web3.utils.toWei(eth)
   }
 
-  toMainDenomination(amount: Numeric): string {
-    return this._toMainDenominationString(amount)
+  toMainDenomination(amount: Numeric, options?: BaseDenominationOptions): string {
+    const wei = (new BigNumber(amount)).toFixed(0, options ? options.rounding : undefined)
+
+    return web3.utils.fromWei(wei)
   }
 
   async isValidAddress(address: string): Promise<boolean> {
@@ -83,11 +91,6 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
 
     return web3.eth.accounts.privateKeyToAccount(key).address
   }
-
-
-  private _toMainDenominationString = createUnitConverters(DECIMAL_PLACES).toMainDenominationString
-
-  private _toBaseDenominationString = createUnitConverters(DECIMAL_PLACES).toBaseDenominationString
 
   private async _getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
     try {

@@ -104,31 +104,21 @@ implements BasePayments
   }
 
   async resolveFeeOption(feeOption: FeeOption): Promise<EthereumResolvedFeeOption> {
-    let res: Promise<EthereumResolvedFeeOption> | EthereumResolvedFeeOption
-    if (isType(FeeOptionCustom, feeOption)) {
-      res = this.resolveCustomFeeOption(feeOption)
-    } else {
-      res = await this.resolveLeveledFeeOption(feeOption)
-    }
-
-    return res
+    return isType(FeeOptionCustom, feeOption)
+      ? this.resolveCustomFeeOption(feeOption)
+      : this.resolveLeveledFeeOption(feeOption)
   }
 
   private resolveCustomFeeOption(feeOption: FeeOptionCustom): EthereumResolvedFeeOption {
     const isWeight = (feeOption.feeRateType === FeeRateType.BasePerWeight)
     const isMain = (feeOption.feeRateType === FeeRateType.Main)
 
-    let gasPrice = isWeight
+    const gasPrice = isWeight
       ? feeOption.feeRate
       : (new BigNumber(feeOption.feeRate)).dividedBy(ETHEREUM_TRANSFER_COST).toString()
     const fee = isWeight
       ? (new BigNumber(feeOption.feeRate)).multipliedBy(ETHEREUM_TRANSFER_COST).toString()
       : feeOption.feeRate
-
-    // HACK rounding must be perfromed toBaseDenominationString from payments-common
-    if (isMain) {
-      gasPrice = (new BigNumber(this.toBaseDenomination(gasPrice))).toFixed(0, 7)
-    }
 
     return {
       targetFeeRate:     feeOption.feeRate,
@@ -136,7 +126,7 @@ implements BasePayments
       targetFeeRateType: feeOption.feeRateType,
       feeBase:           isMain ? this.toBaseDenomination(fee) : fee,
       feeMain:           isMain ? fee : this.toMainDenomination(fee),
-      gasPrice
+      gasPrice:          isMain ? this.toBaseDenomination(gasPrice, { rounding: 7 }) : gasPrice
     }
   }
 
