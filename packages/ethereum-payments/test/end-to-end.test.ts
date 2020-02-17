@@ -10,6 +10,7 @@ import { TestLogger } from '../../../common/testUtils'
 
 import EthereumPaymentsFactory from '../src/EthereumPaymentsFactory'
 import { hdAccount } from './fixtures/accounts'
+import { deriveSignatory } from '../src/bip44'
 
 const LOCAL_NODE = 'http://localhost'
 const LOCAL_PORT = 8545
@@ -21,33 +22,35 @@ const factory = new EthereumPaymentsFactory()
 const HD_CONFIG = {
   network: NetworkType.Testnet,
   fullNode: `${LOCAL_NODE}:${LOCAL_PORT}`,
-  hdKey: hdAccount.rootChild[1].xkeys.xprv,
+  hdKey: hdAccount.root.KEYS.xprv,
   logger,
 }
 
-const ganacheConfig = {
-  accounts: [
-    {
-      balance: 0xde0b6b3a7640000, // 1 ETH
-      secretKey: hdAccount.child1Child[1].keys.prv
-    },
-    {
-      balance: 0x0,
-      secretKey: hdAccount.child0Child[0].keys.prv
-    },
-  ],
-}
-
-const source = hdAccount.child1Child[1]
-const target = hdAccount.child0Child[0]
+const source = hdAccount.child0Child[0]
+const target = deriveSignatory()
 
 const hd = factory.forConfig(HD_CONFIG)
+
 let expectedBalance: string
 
 jest.setTimeout(100000)
 describe('end to end tests', () => {
   let ethNode: any
-  beforeAll(() => {
+  beforeAll(async () => {
+  const ganacheConfig = {
+    accounts: [
+      {
+        balance: 0xde0b6b3a7640000, // 1 ETH
+        secretKey: source.keys.prv
+      },
+      {
+        balance: 0x0,
+        secretKey: target.keys.prv
+      },
+    ],
+  }
+
+
     ethNode = server.server(ganacheConfig)
     ethNode.listen(LOCAL_PORT)
   })
@@ -56,9 +59,10 @@ describe('end to end tests', () => {
     ethNode.close()
   })
 
+
   describe('HD payments', () => {
     test('normal transaction', async () => {
-      const unsignedTx = await hd.createTransaction(1, { address: target.address }, '0.5', {
+      const unsignedTx = await hd.createTransaction(0, { address: target.address }, '0.5', {
         sequenceNumber: 0
       })
       const signedTx = await hd.signTransaction(unsignedTx)
@@ -85,7 +89,7 @@ describe('end to end tests', () => {
     })
 
     test('sweep transaction', async () => {
-      const unsignedTx = await hd.createSweepTransaction(1, { address: target.address })
+      const unsignedTx = await hd.createSweepTransaction(0, { address: target.address })
       const signedTx = await hd.signTransaction(unsignedTx)
       const expectedSweepedBalance = (new BigNumber(expectedBalance))
         .plus('0.5')

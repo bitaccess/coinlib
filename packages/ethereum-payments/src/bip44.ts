@@ -69,6 +69,7 @@ class EthereumBIP44 {
   }
 }
 
+// XXX if index is not provided, derived key will be hardened
 export function deriveSignatory(xkey?: string, index?: number): EthereumSignatory {
   const wallet = xkey ?
     EthereumBIP44.fromExtKey(xkey) :

@@ -4,6 +4,7 @@ import { KeyPairEthereumPayments } from '../src/KeyPairEthereumPayments'
 import { HdEthereumPaymentsConfig, KeyPairEthereumPaymentsConfig } from '../src/types'
 
 import { hdAccount } from './fixtures/accounts'
+import { deriveSignatory } from '../src/bip44'
 
 describe('EthereumPaymentsFactory', () => {
   const factory = new EthereumPaymentsFactory()
@@ -12,7 +13,7 @@ describe('EthereumPaymentsFactory', () => {
     const hdP = factory.forConfig(config)
 
     expect(hdP).toBeInstanceOf(HdEthereumPayments)
-    expect(hdP.getPublicConfig()).toStrictEqual({ hdKey: hdAccount.rootChild[0].xkeys.xpub })
+    expect(hdP.getPublicConfig()).toStrictEqual({ hdKey: deriveSignatory(hdAccount.rootChild[0].xkeys.xpub, 0).xkeys.xpub })
   })
 
   it('should instantiate KeyPairEthereumPayments', () => {

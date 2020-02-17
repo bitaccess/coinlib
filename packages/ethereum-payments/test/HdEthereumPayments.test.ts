@@ -28,7 +28,8 @@ const CONFIG = {
   hdKey: hdAccount.rootChild[0].xkeys.xprv,
   logger,
 }
-const INSTANCE_KEYS = deriveSignatory(hdAccount.rootChild[0].xkeys.xprv).xkeys
+
+const INSTANCE_KEYS = deriveSignatory(hdAccount.rootChild[0].xkeys.xprv, 0)
 
 import {
   getGasStationResponse,
@@ -45,7 +46,7 @@ import {
 function getChildAddress(xkey: string, index: number): string {
   return deriveSignatory(xkey, index).address
 }
-const FROM_ADDRESS = getChildAddress(hdAccount.rootChild[0].xkeys.xprv, 1)
+const FROM_ADDRESS = getChildAddress(INSTANCE_KEYS.xkeys.xprv, 1)
 const TO_ADDRESS   = getChildAddress(hdAccount.rootChild[1].xkeys.xprv, 1)
 
 // methods from base
@@ -635,7 +636,7 @@ describe('HdEthereumPayments', () => {
         const res = await hdEP.signTransaction(unsignedTx)
 
         expect(res).toStrictEqual({
-          id: '7ac268307b4a9851fc8821c5eec447741226d3b07664be31bf45c3cb6dae4f1d',
+          id: '60856c7b897771cc1119be10c7a6fca533b37b6119f0bbe80ab1615c10a9ee73',
           status: 'signed',
           fromAddress: FROM_ADDRESS,
           toAddress: to.address,
@@ -655,9 +656,9 @@ describe('HdEthereumPayments', () => {
             TO_ADDRESS,
             '0x01e33c7f8ff55572',
             '0x',
-            '0x26',
-            '0x8faf1b3facae286a360982c0e3015c09e08a3408187c578b59aa365ca36bf5e9',
-            '0x19a7c5ed66a3aa0ccc3d189cbf6ae701c68bedef1b6276cab128d02038c9fe01',
+            '0x25',
+            '0x7eab0db705f4edeb4a681b901b48bab095cf38edb99848afe7f264a2241a8017',
+            '0x4616d893f557f41103f91912fff3343f0782149cd5f6554e04d8ef2836a88262',
           ]
         })
       })
@@ -740,7 +741,7 @@ describe('HdEthereumPayments', () => {
 
     describe('getXpub', () => {
       test('returns xpub derived by 0th index from xkey provided in config', () => {
-        expect(hdEP.getXpub()).toBe(INSTANCE_KEYS.xpub)
+        expect(hdEP.getXpub()).toBe(INSTANCE_KEYS.xkeys.xpub)
       })
     })
 
@@ -751,20 +752,20 @@ describe('HdEthereumPayments', () => {
           network: NetworkType.Testnet,
           gasStation: CONFIG.gasStation,
           parityNode: CONFIG.parityNode,
-          hdKey: INSTANCE_KEYS.xpub,
+          hdKey: INSTANCE_KEYS.xkeys.xpub,
         })
       })
     })
 
     describe('getAccountId', () => {
       test('returns xpub regardless of index', () => {
-        expect(hdEP.getAccountId(1320842)).toBe(INSTANCE_KEYS.xpub)
+        expect(hdEP.getAccountId(1320842)).toBe(INSTANCE_KEYS.xkeys.xpub)
       })
     })
 
     describe('getAccountIds', () => {
       test('returns array with xpub as only element', () => {
-        expect(hdEP.getAccountIds()).toStrictEqual([INSTANCE_KEYS.xpub])
+        expect(hdEP.getAccountIds()).toStrictEqual([INSTANCE_KEYS.xkeys.xpub])
       })
     })
 
@@ -779,7 +780,7 @@ describe('HdEthereumPayments', () => {
 
     describe('getPrivateKey', () => {
       test('returns prv', async () => {
-        expect(await hdEP.getPrivateKey(0)).toBe(deriveSignatory(INSTANCE_KEYS.xprv, 0).keys.prv)
+        expect(await hdEP.getPrivateKey(0)).toBe(deriveSignatory(INSTANCE_KEYS.xkeys.xprv, 0).keys.prv)
       })
     })
   })

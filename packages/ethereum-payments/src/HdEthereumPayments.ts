@@ -11,7 +11,7 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
   constructor(config: HdEthereumPaymentsConfig) {
     super(config)
     try {
-      const signatory = deriveSignatory(config.hdKey)
+      const signatory = deriveSignatory(config.hdKey, 0)
       this.xpub = signatory.xkeys.xpub
       this.xprv = signatory.xkeys.xprv
     } catch (e) {
@@ -43,8 +43,7 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
   }
 
   async getPayport(index: number): Promise<Payport> {
-    const xpub = this.getXpub()
-    const { address } = deriveSignatory(xpub, index)
+    const { address } = deriveSignatory(this.getXpub(), index)
     if (!await this.isValidAddress(address)) {
       // This should never happen
       throw new Error(`Cannot get address ${index} - validation failed for derived address`)

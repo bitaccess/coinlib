@@ -29,6 +29,7 @@ export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereu
       } else if (this.isValidPrivateKey(value)) {
         address = this.privateKeyToAddress(value).toLowerCase()
       } else if (this.isValidXprv(value)) {
+        // XXX hardened
         const signatory = deriveSignatory(value)
         address = signatory.address
         pkey = signatory.keys.prv
