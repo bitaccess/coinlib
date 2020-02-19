@@ -218,14 +218,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
   }
 
-  async test1(p: Promise<number>): Promise<number | null> {
-    try {
-      return await p
-    } catch (e) {
-      return null
-    }
-  }
-
   /** buildPaymentTx uses satoshi number for convenient math, but we want strings externally */
   private convertOutputsToExternalFormat(outputs: Array<{ address: string, satoshis: number }>): BitcoinishTxOutput[] {
     return outputs.map(({ address, satoshis }) => ({ address, value: this.toMainDenominationString(satoshis) }))
@@ -248,7 +240,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     // The maximum # of outputs this tx will have. It could have less if some change outputs are dropped
     // for being too small.
     const maxOutputCount = desiredOutputs.length + changeOutputWeights.length
-    let outputTotal = 0
+    let outputTotal = 0 // sum of non change output value in satoshis
     const externalOutputs = desiredOutputs.map(({ address, value }) => ({
       address,
       satoshis: this.toBaseDenominationNumber(value),
@@ -275,7 +267,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       inputTotal = this.toBaseDenominationNumber(this._sumUtxoValue(allUtxos))
       feeSat = this._calculatTxFeeSatoshis(desiredFeeRate, inputUtxos.length, maxOutputCount)
       amountWithFee = outputTotal + feeSat
-      this.logger.debug('buildPaymentTx', { inputTotal, feeSat, amountWithFee })
     } else {
       const sortedUtxos = sortUtxos(allUtxos)
       for (const utxo of sortedUtxos) {
