@@ -5,7 +5,6 @@ import {
   WeightedChangeOutput,
 } from '@faast/payments-common'
 import { isUndefined, isType, Numeric, toBigNumber } from '@faast/ts-common'
-import BigNumber from 'bignumber.js'
 import { get } from 'lodash'
 
 import {
@@ -18,7 +17,7 @@ import {
   BitcoinishTxOutput,
   BitcoinishWeightedChangeOutput,
 } from './types'
-import { sortUtxos, estimateTxFee } from './utils'
+import { estimateTxFee, sumUtxoValue, sortUtxos } from './utils';
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
 
 export abstract class BitcoinishPayments<Config extends BaseConfig> extends BitcoinishPaymentsUtils
@@ -92,38 +91,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
   }
 
-  _feeRateToSatoshis(
-    { feeRate, feeRateType }: FeeRate,
-    inputCount: number,
-    outputCount: number,
-  ): number {
-    if (feeRateType === FeeRateType.BasePerWeight) {
-      return estimateTxFee(Number.parseFloat(feeRate), inputCount, outputCount, this.isSegwit)
-    } else if (feeRateType === FeeRateType.Main) {
-      return this.toBaseDenominationNumber(feeRate)
-    }
-    return Number.parseFloat(feeRate)
-  }
-
-  _calculatTxFeeSatoshis(
-    targetRate: FeeRate,
-    inputCount: number,
-    outputCount: number,
-  ) {
-    let feeSat = this._feeRateToSatoshis(targetRate, inputCount, outputCount)
-    // Ensure calculated fee is above network minimum
-    if (this.minTxFee) {
-      const minTxFeeSat = this._feeRateToSatoshis(this.minTxFee, inputCount, outputCount)
-      if (feeSat < minTxFeeSat) {
-        feeSat = minTxFeeSat
-      }
-    }
-    if (feeSat < this.networkMinRelayFee) {
-      feeSat = this.networkMinRelayFee
-    }
-    return Math.ceil(feeSat)
-  }
-
   async resolveFeeOption(
     feeOption: FeeOption,
   ): Promise<ResolvedFeeOption> {
@@ -188,13 +155,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     return utxos
   }
 
-  /**
-   * Sum the utxos values (main denomination)
-   */
-  _sumUtxoValue(utxos: UtxoInfo[]): BigNumber {
-    return utxos.reduce((total, { value }) => toBigNumber(value).plus(total), new BigNumber(0))
-  }
-
   usesSequenceNumber() {
     return false
   }
@@ -223,6 +183,98 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     return outputs.map(({ address, satoshis }) => ({ address, value: this.toMainDenominationString(satoshis) }))
   }
 
+  private feeRateToSatoshis(
+    { feeRate, feeRateType }: FeeRate,
+    inputCount: number,
+    outputCount: number,
+  ): number {
+    if (feeRateType === FeeRateType.BasePerWeight) {
+      return estimateTxFee(Number.parseFloat(feeRate), inputCount, outputCount, this.isSegwit)
+    } else if (feeRateType === FeeRateType.Main) {
+      return this.toBaseDenominationNumber(feeRate)
+    }
+    return Number.parseFloat(feeRate)
+  }
+
+  private calculateTxFeeSatoshis(
+    targetRate: FeeRate,
+    inputCount: number,
+    outputCount: number,
+  ) {
+    let feeSat = this.feeRateToSatoshis(targetRate, inputCount, outputCount)
+    // Ensure calculated fee is above configured minimum
+    if (this.minTxFee) {
+      const minTxFeeSat = this.feeRateToSatoshis(this.minTxFee, inputCount, outputCount)
+      if (feeSat < minTxFeeSat) {
+        feeSat = minTxFeeSat
+      }
+    }
+    if (feeSat < this.networkMinRelayFee) {
+      feeSat = this.networkMinRelayFee
+    }
+    return Math.ceil(feeSat)
+  }
+
+  private selectInputUtxos(
+    availableUtxos: UtxoInfo[], outputTotal: number, outputCount: number, feeRate: FeeRate, useAllUtxos: boolean,
+  ): { selectedUtxos: UtxoInfo[], selectedTotalSat: number, feeSat: number } {
+    // Convert values to satoshis for convenient math
+    const utxos: Array<UtxoInfo & { satoshis: number }> = []
+    let utxosTotalSat = 0
+    for (const utxo of availableUtxos) {
+      const satoshis = this.toBaseDenominationNumber(utxo.value)
+      utxosTotalSat += satoshis
+      utxos.push({
+        ...utxo,
+        satoshis,
+      })
+    }
+
+    if (useAllUtxos) { // Sweeping case
+      return {
+        selectedUtxos: utxos,
+        selectedTotalSat: utxosTotalSat,
+        feeSat: this.calculateTxFeeSatoshis(feeRate, utxos.length, outputCount)
+      }
+    } else { // Sending amount case
+      // First try to find a single input that covers output without creating change
+      const idealSolutionFeeSat = this.calculateTxFeeSatoshis(feeRate, 1, outputCount)
+      const idealSolutionMinSat = outputTotal + idealSolutionFeeSat
+      const idealSolutionMaxSat = idealSolutionMinSat + this.dustThreshold
+      for (const utxo of utxos) {
+        if (utxo.satoshis >= idealSolutionMinSat && utxo.satoshis <= idealSolutionMaxSat) {
+          this.logger.log(
+            `Found ideal ${this.coinSymbol} input utxo solution to send ${outputTotal} sat using single utxo ${utxo.txid}:${utxo.vout}`
+          )
+          return {
+            selectedUtxos: [utxo],
+            selectedTotalSat: utxo.satoshis,
+            feeSat: idealSolutionFeeSat,
+          }
+        }
+      }
+
+      // Select by accumulating smallest utxos first until we cover output + fees
+      let selectedUtxos = []
+      let selectedTotalSat = 0 // Total input sat is accumulated as inputs are added
+      let feeSat = 0 // Total fee is recalculated when adding each input
+      const sortedUtxos = sortUtxos(utxos)
+      for (const utxo of sortedUtxos) {
+        selectedUtxos.push(utxo)
+        selectedTotalSat += utxo.satoshis
+        feeSat = this.calculateTxFeeSatoshis(feeRate, selectedUtxos.length, outputCount)
+        if (selectedTotalSat >= outputTotal + feeSat) {
+          break
+        }
+      }
+      return {
+        selectedUtxos,
+        selectedTotalSat,
+        feeSat,
+      }
+    }
+  }
+
   /**
    * Build a simple payment transaction.
    * Note: fee will be subtracted from first output when attempting to send entire account balance
@@ -231,7 +283,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
    * then converted back to strings before being returned.
    */
   async buildPaymentTx(
-    allUtxos: UtxoInfo[],
+    availableUtxos: UtxoInfo[],
     desiredOutputs: BitcoinishTxOutput[],
     changeOutputWeights: BitcoinishWeightedChangeOutput[],
     desiredFeeRate: FeeRate,
@@ -240,7 +292,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     // The maximum # of outputs this tx will have. It could have less if some change outputs are dropped
     // for being too small.
     const maxOutputCount = desiredOutputs.length + changeOutputWeights.length
-    let outputTotal = 0 // sum of non change output value in satoshis
+    // sum of non change output value in satoshis
+    let outputTotal = 0
+    // Convert output values to satoshis for convenient math
     const externalOutputs = desiredOutputs.map(({ address, value }) => ({
       address,
       satoshis: this.toBaseDenominationNumber(value),
@@ -252,33 +306,26 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         throw new Error(`Invalid ${this.coinSymbol} address ${address} provided for output ${i}`)
       }
       if (satoshis <= 0) {
-        throw new Error(`Invalid ${this.coinSymbol} amount ${satoshis} provided for output ${i}`)
+        throw new Error(`Invalid ${this.coinSymbol} amount ${satoshis} provided for output ${i} (${address})`)
       }
       outputTotal += satoshis
     }
-
-    /* Select inputs and calculate appropriate fee */
-    let inputUtxos = []
-    let inputTotal = 0
-    let feeSat = 0 // Total fee is recalculated when adding each input
-    let amountWithFee = outputTotal + feeSat
-    if (useAllUtxos) {
-      inputUtxos = allUtxos
-      inputTotal = this.toBaseDenominationNumber(this._sumUtxoValue(allUtxos))
-      feeSat = this._calculatTxFeeSatoshis(desiredFeeRate, inputUtxos.length, maxOutputCount)
-      amountWithFee = outputTotal + feeSat
-    } else {
-      const sortedUtxos = sortUtxos(allUtxos)
-      for (const utxo of sortedUtxos) {
-        inputUtxos.push(utxo)
-        inputTotal = inputTotal + this.toBaseDenominationNumber(utxo.value)
-        feeSat = this._calculatTxFeeSatoshis(desiredFeeRate, inputUtxos.length, maxOutputCount)
-        amountWithFee = outputTotal + feeSat
-        if (inputTotal >= amountWithFee) {
-          break
-        }
+    for (let i = 0; i < changeOutputWeights.length; i++) {
+      const { address, weight } = changeOutputWeights[i]
+      if (!await this.isValidAddress(address)) {
+        throw new Error (`Invalid ${this.coinSymbol} address ${address} provided for change output ${i}`)
+      }
+      if (weight <= 0) {
+        throw new Error(`Invalid ${this.coinSymbol} weight ${weight} provided for change output ${i} (${address})`)
       }
     }
+
+    /* Select inputs and calculate appropriate fee */
+    let { selectedUtxos: inputUtxos, selectedTotalSat: inputTotal, feeSat } = this.selectInputUtxos(
+      availableUtxos, outputTotal, maxOutputCount, desiredFeeRate, useAllUtxos,
+    )
+    let amountWithFee = outputTotal + feeSat
+
     if (amountWithFee > inputTotal) {
       const amountWithSymbol = `${this.toMainDenominationString(outputTotal)} ${this.coinSymbol}`
       if (outputTotal === inputTotal) {
@@ -312,7 +359,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         throw new Error(`${this.coinSymbol} buildPaymentTx - transaction has change of ${totalChangeSat} sat but change outputs not provided`)
       }
       const totalChangeWeight = changeOutputWeights.reduce((total, { weight }) => total += weight, 0)
-      let totalChangeAllocated = 0 // Total of all change outputs we actually include (omitting dust)
+      let totalChangeAllocated = 0 // Total sat of all change outputs we actually include (omitting dust)
       for (let i = 0; i < changeOutputWeights.length; i++) {
         const { address, weight } = changeOutputWeights[i]
         // Distribute change proportional to each change outputs weight. Floored to not exceed inputTotal
@@ -448,7 +495,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     if (allUtxos.length === 0) {
       throw new Error('No utxos to sweep')
     }
-    const amount = this._sumUtxoValue(allUtxos)
+    const amount = sumUtxoValue(allUtxos)
     if (!this.isSweepableBalance(amount)) {
       throw new Error(`Balance ${amount} too low to sweep`)
     }
