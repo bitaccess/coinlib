@@ -1,5 +1,4 @@
 import * as t from 'io-ts'
-import { requiredOptionalCodec } from '@faast/ts-common';
 import {
   requiredOptionalCodec,
   extendCodec,
@@ -105,11 +104,9 @@ export const UtxoInfo = requiredOptionalCodec(
 )
 export type UtxoInfo = t.TypeOf<typeof UtxoInfo>
 
-export const WeightedChangeOutput = requiredOptionalCodec(
+export const WeightedChangeOutput = t.type(
   {
-    payport: ResolveablePayport,
-  },
-  {
+    address: t.string,
     weight: t.number,
   },
   'WeightedChangeOutput',
@@ -120,11 +117,14 @@ export const CreateTransactionOptions = extendCodec(
   FeeOption,
   {},
   {
-    sequenceNumber: Numeric,
-    payportBalance: Numeric,
-    utxos: t.array(UtxoInfo),
-    useAllUtxos: t.boolean,
-    changeOutputs: t.array(WeightedChangeOutput),
+    sequenceNumber: Numeric, // Ripple/Stellar/Ethereum sequence number or nonce
+    payportBalance: Numeric, // Spendable balance at the from payport (useful in conjunction with a BalanceMonitor)
+    utxos: t.array(UtxoInfo), // Available utxos - ones that can be used
+    allUtxos: t.array(UtxoInfo), // All utxos reported by network
+    useAllUtxos: t.boolean, // Uses all available utxos
+    useUnconfirmedUtxos: t.boolean, // true if unconfirmed utxos should be used
+    targetUtxoPoolSize: t.number, // # of available utxos to try and maintain
+    minChange: Numeric, // Soft minimum for each change generated to maintain utxo pool
   },
   'CreateTransactionOptions',
 )

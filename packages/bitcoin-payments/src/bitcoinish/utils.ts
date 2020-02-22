@@ -131,3 +131,7 @@ export function sortUtxos<T extends UtxoInfo>(utxoList: T[]): T[] {
   result.sort((a, b) => toBigNumber(a.value).minus(b.value).toNumber()) // Ascending order by value
   return result
 }
+
+export function isConfirmedUtxo(utxo: UtxoInfo): boolean {
+  return Boolean(utxo.confirmations || utxo.height)
+}

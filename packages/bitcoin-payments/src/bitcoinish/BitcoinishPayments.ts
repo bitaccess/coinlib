@@ -4,8 +4,9 @@ import {
   BalanceResult, FromTo, TransactionStatus, CreateTransactionOptions, BaseConfig,
   WeightedChangeOutput,
 } from '@faast/payments-common'
-import { isUndefined, isType, Numeric, toBigNumber } from '@faast/ts-common'
+import { isUndefined, isType, Numeric, toBigNumber, assertType, isNumber } from '@faast/ts-common'
 import { get } from 'lodash'
+import * as t from 'io-ts'
 
 import {
   BitcoinishUnsignedTransaction,
@@ -16,8 +17,9 @@ import {
   BitcoinishPaymentTx,
   BitcoinishTxOutput,
   BitcoinishWeightedChangeOutput,
+  PayportOutput,
 } from './types'
-import { estimateTxFee, sumUtxoValue, sortUtxos } from './utils';
+import { estimateTxFee, sumUtxoValue, sortUtxos, isConfirmedUtxo } from './utils'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
 
 export abstract class BitcoinishPayments<Config extends BaseConfig> extends BitcoinishPaymentsUtils
@@ -282,53 +284,68 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
    * serialization. Within this function they're converted to JS Numbers for convenient arithmetic
    * then converted back to strings before being returned.
    */
-  async buildPaymentTx(
-    availableUtxos: UtxoInfo[],
+  async buildPaymentTx(params: {
+    providedUtxos: UtxoInfo[], // Utxos not already taken by unbroadcast txs
+    allUtxos: UtxoInfo[], // All utxos as reported by network
     desiredOutputs: BitcoinishTxOutput[],
-    changeOutputWeights: BitcoinishWeightedChangeOutput[],
+    changeAddress: string,
     desiredFeeRate: FeeRate,
-    useAllUtxos: boolean = false,
-  ): Promise<BitcoinishPaymentTx> {
+    useAllUtxos?: boolean,
+    useUnconfirmedUtxos?: boolean,
+    minChange?: Numeric, // Main denomination
+    targetUtxoPoolSize?: number,
+  }): Promise<Required<BitcoinishPaymentTx>> {
+    const {
+      providedUtxos, allUtxos, desiredOutputs, changeAddress, desiredFeeRate,
+    } = params
+    const useAllUtxos = isUndefined(params.useAllUtxos) ? false : params.useAllUtxos
+    const useUnconfirmedUtxos = isUndefined(params.useUnconfirmedUtxos) ? false : params.useUnconfirmedUtxos
+    const targetUtxoPoolSize = isUndefined(params.targetUtxoPoolSize) ? 1 : params.targetUtxoPoolSize
+    let minChange = toBigNumber(isUndefined(params.minChange) ? this.dustThreshold : params.minChange)
+    if (minChange.lt(0)) {
+      throw new Error(`buildPaymentTx - invalid minChange amount ${minChange}, must be positive`)
+    }
     // The maximum # of outputs this tx will have. It could have less if some change outputs are dropped
     // for being too small.
-    const maxOutputCount = desiredOutputs.length + changeOutputWeights.length
+    const maxOutputCount = desiredOutputs.length + targetUtxoPoolSize
     // sum of non change output value in satoshis
     let outputTotal = 0
     // Convert output values to satoshis for convenient math
-    const externalOutputs = desiredOutputs.map(({ address, value }) => ({
-      address,
-      satoshis: this.toBaseDenominationNumber(value),
-    }))
-    for (let i = 0; i < externalOutputs.length; i++) {
-      const { address, satoshis } = externalOutputs[i]
+    const externalOutputs: Array<{ address: string, satoshis: number }> = []
+    for (let i = 0; i < desiredOutputs.length; i++) {
+      const { address, value } = desiredOutputs[i]
       // validate
       if (!await this.isValidAddress(address)) {
         throw new Error(`Invalid ${this.coinSymbol} address ${address} provided for output ${i}`)
       }
-      if (satoshis <= 0) {
-        throw new Error(`Invalid ${this.coinSymbol} amount ${satoshis} provided for output ${i} (${address})`)
+      const satoshis = this.toBaseDenominationNumber(value)
+      if (isNaN(satoshis)) {
+        throw new Error(`Invalid ${this.coinSymbol} value (${value}) provided to createMultiOutputTransaction output ${i} (${address})`)
       }
+      if (satoshis <= 0) {
+        throw new Error(`Invalid ${this.coinSymbol} positive value (${value}) provided for output ${i} (${address})`)
+      }
+      externalOutputs.push({ address, satoshis })
       outputTotal += satoshis
     }
-    for (let i = 0; i < changeOutputWeights.length; i++) {
-      const { address, weight } = changeOutputWeights[i]
-      if (!await this.isValidAddress(address)) {
-        throw new Error (`Invalid ${this.coinSymbol} address ${address} provided for change output ${i}`)
-      }
-      if (weight <= 0) {
-        throw new Error(`Invalid ${this.coinSymbol} weight ${weight} provided for change output ${i} (${address})`)
-      }
+    if (!await this.isValidAddress(changeAddress)) {
+      throw new Error (`Invalid ${this.coinSymbol} change address ${changeAddress} provided`)
     }
 
     /* Select inputs and calculate appropriate fee */
+    const availableUtxos = !useUnconfirmedUtxos
+      ? providedUtxos.filter(isConfirmedUtxo)
+      : providedUtxos
     let { selectedUtxos: inputUtxos, selectedTotalSat: inputTotal, feeSat } = this.selectInputUtxos(
       availableUtxos, outputTotal, maxOutputCount, desiredFeeRate, useAllUtxos,
     )
     let amountWithFee = outputTotal + feeSat
 
+
+    /** Account for insuffient inputs and sweeping cases */
     if (amountWithFee > inputTotal) {
       const amountWithSymbol = `${this.toMainDenominationString(outputTotal)} ${this.coinSymbol}`
-      if (outputTotal === inputTotal) {
+      if (outputTotal === inputTotal) { // sweeping
         // Share the fee across all outputs. This may increase the fee by as much as 1 sat per output, negligible
         const feeShare = Math.ceil(feeSat / externalOutputs.length)
         feeSat = feeShare * externalOutputs.length
@@ -336,7 +353,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
           `Attempting to send entire ${amountWithSymbol} balance. ` +
           `Subtracting fee of ${feeSat} sat from ${externalOutputs.length} outputs (${feeShare} sat each)`
         )
-        amountWithFee = inputTotal
         for (let i = 0; i < externalOutputs.length; i++) {
           const externalOutput = externalOutputs[i]
           externalOutput.satoshis -= feeShare
@@ -344,20 +360,29 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
             throw new Error(`${this.coinSymbol} output ${i} for ${externalOutput.satoshis} sat minus ${feeShare} sat fee share is below dust threshold`)
           }
         }
+        amountWithFee = inputTotal
         outputTotal -= feeSat
-      } else {
+      } else { // insufficient utxos
         const { feeRate, feeRateType } = desiredFeeRate
         const feeText = `${feeRate} ${feeRateType}${feeRateType === FeeRateType.BasePerWeight ? ` (${this.toMainDenominationString(feeSat)})` : ''}`
         throw new Error(`You do not have enough UTXOs (${this.toMainDenominationString(inputTotal)}) to send ${amountWithSymbol} with ${feeText} fee`)
       }
     }
 
+    /** Change handling */
+
     let totalChangeSat = inputTotal - amountWithFee
     let changeOutputs: Array<{ address: string, satoshis: number}> = []
     if (totalChangeSat > this.dustThreshold) { // Avoid creating dust outputs
-      if (changeOutputWeights.length === 0) {
-        throw new Error(`${this.coinSymbol} buildPaymentTx - transaction has change of ${totalChangeSat} sat but change outputs not provided`)
-      }
+
+      // Don't use availableUtxo.length here because unconfirmed still count towards pool count
+      const remainingUtxoCount = providedUtxos.length - inputUtxos.length
+      // Determine how many change outputs to use to maintain target pool size
+      const targetChangeOutputCount = remainingUtxoCount < targetUtxoPoolSize
+        ? targetUtxoPoolSize - remainingUtxoCount
+        : 1
+
+      const changeOutputWeights = this.createWeightedChangeOutputs(targetChangeOutputCount, changeAddress)
       const totalChangeWeight = changeOutputWeights.reduce((total, { weight }) => total += weight, 0)
       let totalChangeAllocated = 0 // Total sat of all change outputs we actually include (omitting dust)
       for (let i = 0; i < changeOutputWeights.length; i++) {
@@ -403,76 +428,91 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       outputs: [...externalOutputsResult, ...changeOutputsResult],
       fee: this.toMainDenominationString(feeSat),
       change: this.toMainDenominationString(totalChangeSat),
-      changeAddress: changeOutputs.length === 1 ? changeOutputs[0].address : null,
+      changeAddress: changeOutputs.length === 1 ? changeOutputs[0].address : null, // back compat
       changeOutputs: changeOutputsResult,
       externalOutputs: externalOutputsResult,
+      externalOutputTotal: this.toMainDenominationString(outputTotal),
     }
   }
 
-  async resolveWeightedChangeOutputs(
-    changeOutputs: WeightedChangeOutput[],
-  ): Promise<BitcoinishWeightedChangeOutput[]> {
-    return Promise.all(changeOutputs.map(async ({ payport, weight }, i) => {
-      try {
-        const { address } = await this.resolvePayport(payport)
-        return {
-          address,
-          weight: isUndefined(weight) ? 1 : weight,
-        }
-      } catch (e) {
-        throw new Error(`Cannot resolve payport of changeOutput[${i}] - ${e.message}`)
-      }
-    }))
+  /**
+   * Creates a list of change addresses with an exponential weight distribution to use for
+   * maintaining a pool of utxos.
+   */
+  private createWeightedChangeOutputs(
+    changeOutputCount: number,
+    changeAddress: string,
+  ): BitcoinishWeightedChangeOutput[] {
+    const result: BitcoinishWeightedChangeOutput[] = []
+    for (let i = 0; i < changeOutputCount; i++) {
+      result.push({ address: changeAddress, weight: 2 ** i })
+    }
+    return result
   }
 
   async createTransaction(
     from: number,
     to: ResolveablePayport,
-    amountNumeric: Numeric,
+    amount: Numeric,
+    options?: CreateTransactionOptions,
+  ): Promise<BitcoinishUnsignedTransaction> {
+    return this.createMultiOutputTransaction(from, [{ payport: to, amount }], options)
+  }
+
+  async createMultiOutputTransaction(
+    from: number,
+    to: PayportOutput[],
     options: CreateTransactionOptions = {},
   ): Promise<BitcoinishUnsignedTransaction> {
-    this.logger.debug('createTransaction', from, to, amountNumeric)
-    const desiredAmount = toBigNumber(amountNumeric)
-    if (desiredAmount.isNaN() || desiredAmount.lte(0)) {
-      throw new Error(`Invalid ${this.coinSymbol} amount provided to createTransaction: ${desiredAmount}`)
-    }
-    const {
-      fromIndex, fromAddress, fromExtraId, toIndex, toAddress, toExtraId,
-    } = await this.resolveFromTo(from, to)
+    assertType(t.array(PayportOutput), to)
+    this.logger.debug('createMultiOutputTransaction', from, to, options)
 
-    const allUtxos = isUndefined(options.utxos)
-      ? await this.getUtxos(from)
-      : options.utxos
-      this.logger.debug('createTransaction allUtxos', allUtxos)
+    const allUtxos = options.allUtxos || await this.getUtxos(from)
+    this.logger.debug('createMultiOutputTransaction allUtxos', allUtxos)
+
+    const providedUtxos = options.utxos || allUtxos
+    this.logger.debug('createMultiOutputTransaction providedUtxos', providedUtxos)
+
+    const { address: fromAddress } = await this.resolvePayport(from)
+
+    const desiredOutputs = await Promise.all(to.map(async ({ payport, amount }) => ({
+      address: (await this.resolvePayport(payport)).address,
+      value: String(amount),
+    })))
 
     const { targetFeeLevel, targetFeeRate, targetFeeRateType } = await this.resolveFeeOption(options)
     this.logger.debug(`createTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`)
 
-    const changeOutputs = options.changeOutputs
-      ? await this.resolveWeightedChangeOutputs(options.changeOutputs)
-      : [{ address: fromAddress, weight: 1 }]
-    const paymentTx = await this.buildPaymentTx(
+    const paymentTx = await this.buildPaymentTx({
+      providedUtxos,
       allUtxos,
-      [{ address: toAddress, value: desiredAmount.toString() }],
-      changeOutputs,
-      { feeRate: targetFeeRate, feeRateType: targetFeeRateType },
-      options.useAllUtxos,
-    )
+      desiredOutputs,
+      changeAddress: fromAddress,
+      desiredFeeRate: { feeRate: targetFeeRate, feeRateType: targetFeeRateType },
+      useAllUtxos: options.useAllUtxos,
+      targetUtxoPoolSize: options.targetUtxoPoolSize,
+    })
     this.logger.debug('createTransaction data', paymentTx)
     const feeMain = paymentTx.fee
 
-    const actualAmount = paymentTx.outputs[0].value
+    let resultToAddress = 'multi'
+    let resultToIndex = null
+    if (paymentTx.externalOutputs.length === 1) {
+      const onlyOutput = paymentTx.externalOutputs[0]
+      resultToAddress = onlyOutput.address
+      resultToIndex = isNumber(to[0].payport) ? to[0].payport : null
+    }
 
     return {
       status: TransactionStatus.Unsigned,
       id: null,
-      fromIndex,
+      fromIndex: from,
       fromAddress,
-      fromExtraId,
-      toIndex,
-      toAddress,
-      toExtraId,
-      amount: actualAmount,
+      fromExtraId: null,
+      toIndex: resultToIndex,
+      toAddress: resultToAddress,
+      toExtraId: null,
+      amount: paymentTx.externalOutputTotal,
       targetFeeLevel,
       targetFeeRate,
       targetFeeRateType,
@@ -489,21 +529,24 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     options: CreateTransactionOptions = {},
   ): Promise<BitcoinishUnsignedTransaction> {
     this.logger.debug('createSweepTransaction', from, to, options)
-    const allUtxos = isUndefined(options.utxos)
-      ? await this.getUtxos(from)
-      : options.utxos
-    if (allUtxos.length === 0) {
-      throw new Error('No utxos to sweep')
+
+    const allUtxos = await this.getUtxos(from)
+    const availableUtxos = isUndefined(options.utxos) ? allUtxos : options.utxos
+
+    if (availableUtxos.length === 0) {
+      throw new Error('No available utxos to sweep')
     }
-    const amount = sumUtxoValue(allUtxos)
-    if (!this.isSweepableBalance(amount)) {
-      throw new Error(`Balance ${amount} too low to sweep`)
+    const outputAmount = sumUtxoValue(availableUtxos)
+    if (!this.isSweepableBalance(outputAmount)) {
+      throw new Error(`Available utxo total ${outputAmount} ${this.coinSymbol} too low to sweep`)
     }
-    return this.createTransaction(from, to, amount, {
+    const updatedOptions = {
       ...options,
-      utxos: allUtxos,
+      utxos: availableUtxos,
       useAllUtxos: true,
-    })
+      allUtxos, // Pass this in to avoid duplicate network requests
+    }
+    return this.createTransaction(from, to, outputAmount, updatedOptions)
   }
 
   async broadcastTransaction(tx: BitcoinishSignedTransaction): Promise<BitcoinishBroadcastResult> {

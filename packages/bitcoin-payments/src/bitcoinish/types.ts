@@ -1,9 +1,9 @@
 import * as t from 'io-ts'
 import {
   BaseUnsignedTransaction, BaseSignedTransaction, FeeRate, AutoFeeLevels,
-  BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, NetworkTypeT,
+  BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, NetworkTypeT, ResolveablePayport,
 } from '@faast/payments-common'
-import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger } from '@faast/ts-common'
+import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger, Numeric } from '@faast/ts-common'
 import { Network as BitcoinjsNetwork } from 'bitcoinjs-lib'
 import { BlockbookBitcoin, BlockInfoBitcoin } from 'blockbook-client'
 
@@ -73,6 +73,8 @@ export const BitcoinishPaymentTx = requiredOptionalCodec(
   {
     // Outputs specified by transaction creator
     externalOutputs: t.array(BitcoinishTxOutput),
+    // Total of external outputs in main denom
+    externalOutputTotal: t.string,
     // Transactions with multiple change outputs
     changeOutputs: t.array(BitcoinishTxOutput),
   },
@@ -105,3 +107,9 @@ export type BitcoinishBroadcastResult = t.TypeOf<typeof BitcoinishBroadcastResul
 
 export const BitcoinishBlock = BlockInfoBitcoin
 export type BitcoinishBlock = BlockInfoBitcoin
+
+export const PayportOutput = t.type({
+  payport: ResolveablePayport,
+  amount: Numeric,
+}, 'PayportOutput')
+export type PayportOutput = t.TypeOf<typeof PayportOutput>
