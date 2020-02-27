@@ -43,11 +43,8 @@ import {
   getBlockNumberMocks,
 } from './fixtures/mocks'
 
-function getChildAddress(xkey: string, index: number): string {
-  return deriveSignatory(xkey, index).address
-}
-const FROM_ADDRESS = getChildAddress(INSTANCE_KEYS.xkeys.xprv, 1)
-const TO_ADDRESS   = getChildAddress(hdAccount.rootChild[1].xkeys.xprv, 1)
+const FROM_ADDRESS = deriveSignatory(INSTANCE_KEYS.xkeys.xprv, 1).address
+const TO_ADDRESS   = hdAccount.rootChild[1].address
 
 // methods from base
 describe('HdEthereumPayments', () => {
@@ -289,7 +286,7 @@ describe('HdEthereumPayments', () => {
           sequenceNumber: 2,
           isExecuted: true,
           isConfirmed: false,
-          confirmations: '0',
+          confirmations: 0,
           confirmationId: blockId,
           confirmationTimestamp: null,
           status: 'pending',
@@ -351,7 +348,7 @@ describe('HdEthereumPayments', () => {
           sequenceNumber: 2,
           isExecuted: true,
           isConfirmed: true,
-          confirmations: '1',
+          confirmations: 1,
           confirmationId: blockId,
           confirmationTimestamp: new Date('1970-01-17T13:01:27.689Z'),
           status: 'confirmed',
@@ -413,7 +410,7 @@ describe('HdEthereumPayments', () => {
           sequenceNumber: 2,
           isExecuted: true,
           isConfirmed: true,
-          confirmations: '1',
+          confirmations: 1,
           confirmationId: blockId,
           confirmationTimestamp: new Date('1970-01-17T13:01:27.689Z'),
           status: 'failed',
@@ -636,7 +633,7 @@ describe('HdEthereumPayments', () => {
         const res = await hdEP.signTransaction(unsignedTx)
 
         expect(res).toStrictEqual({
-          id: '60856c7b897771cc1119be10c7a6fca533b37b6119f0bbe80ab1615c10a9ee73',
+          id: '3137b3336975aabfcf141469727d8d805f5e6d343de7fcc93e61d8d19d5d238f',
           status: 'signed',
           fromAddress: FROM_ADDRESS,
           toAddress: to.address,
@@ -656,9 +653,9 @@ describe('HdEthereumPayments', () => {
             TO_ADDRESS,
             '0x01e33c7f8ff55572',
             '0x',
-            '0x25',
-            '0x7eab0db705f4edeb4a681b901b48bab095cf38edb99848afe7f264a2241a8017',
-            '0x4616d893f557f41103f91912fff3343f0782149cd5f6554e04d8ef2836a88262',
+            '0x29',
+            '0xa7dafa27f75d1fd50e8544a0f1f31ac4275a65855b05585fdbe2796fab967e5a',
+            '0x57b626e4f993d1e2152fb0fa1ca72943aacaf27d56adca2f3f195ab90d253d73',
           ]
         })
       })
@@ -666,9 +663,9 @@ describe('HdEthereumPayments', () => {
 
     describe('broadcastTransaction', () => {
       test('sends signed transaction', async () => {
-        const txId = '7ac268307b4a9851fc8821c5eec447741226d3b07664be31bf45c3cb6dae4f1d'
+        const txId = '2d57a8e6d02a195d87d948f207d8740dacb4a8f39546754e2c0142c036643355'
+        const rawTx = '0xf86c0185746a528800825208948f0bb36577b19da9826fc726fec2b4943c45e01488069e4a05f56240008029a0961ab2c131cfb09bbb1d71825615d30634889f95b62390473d1691ba419f86f8a0514d1b9d42888a01cb5cfb7aba6623f4caad4b952943f243c644b3e7aaf409b3'
         const blockId = '0xef95f2f1ed3ca60b048b4bf67cde2195961e0bba6f70bcbea9a2c4e133e34b46'
-        const rawTx = '0xf86c1b8545d964b80082523c94f7d2eac7b9e0f55ec49c892815e6355517bc63db8801e33c7f8ff555728026a08faf1b3facae286a360982c0e3015c09e08a3408187c578b59aa365ca36bf5e9a019a7c5ed66a3aa0ccc3d189cbf6ae701c68bedef1b6276cab128d02038c9fe01'
 
         const from = 1
         const to = { address: TO_ADDRESS }
@@ -680,24 +677,24 @@ describe('HdEthereumPayments', () => {
           fromAddress: FROM_ADDRESS,
           toAddress: to.address,
           toExtraId: null,
-          fromIndex: 1,
+          fromIndex: 0,
           toIndex: null,
           amount: amountEth,
-          fee: '0.0063156',
+          fee: '0.0021',
           targetFeeLevel: 'medium',
-          targetFeeRate: '0',
-          targetFeeRateType: 'base',
+          targetFeeRate: '100000000000',
+          targetFeeRateType: 'base/weight',
           sequenceNumber: '27',
           data: [
-            '0x1b',
-            '0x45d964b800',
-            '0x523c',
+            '0x01',
+            '0x746a528800',
+            '0x5208',
             TO_ADDRESS,
-            '0x01e33c7f8ff55572',
+            '0x069e4a05f5624000',
             '0x',
-            '0x26',
-            '0x8faf1b3facae286a360982c0e3015c09e08a3408187c578b59aa365ca36bf5e9',
-            '0x19a7c5ed66a3aa0ccc3d189cbf6ae701c68bedef1b6276cab128d02038c9fe01',
+            '0x29',
+            '0x961ab2c131cfb09bbb1d71825615d30634889f95b62390473d1691ba419f86f8',
+            '0x514d1b9d42888a01cb5cfb7aba6623f4caad4b952943f243c644b3e7aaf409b3',
           ]
         }
 

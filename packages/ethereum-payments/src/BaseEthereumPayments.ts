@@ -17,6 +17,7 @@ import {
   PaymentsError,
   PaymentsErrorCode,
   CreateTransactionOptions as TransactionOptions,
+  NetworkType,
 } from '@faast/payments-common'
 import { isType } from '@faast/ts-common'
 
@@ -243,7 +244,7 @@ implements BasePayments
       sequenceNumber: tx.nonce,
       isExecuted: !!tx.blockNumber,
       isConfirmed,
-      confirmations: confirmations.toString(),
+      confirmations: confirmations.toNumber(),
       confirmationId: tx.blockHash,
       confirmationTimestamp,
       status,
@@ -282,7 +283,8 @@ implements BasePayments
 
     const unsignedRaw = cloneDeep(unsignedTx.data)
 
-    const tx = new Tx(unsignedRaw)
+    const extraParam = this.config.network === NetworkType.Testnet ?  {chain :'ropsten'} : undefined
+    const tx = new Tx(unsignedRaw, extraParam)
     const key = Buffer.from(fromPrivateKey.slice(2), 'hex')
     tx.sign(key)
 
@@ -299,7 +301,8 @@ implements BasePayments
       throw new Error(`Tx ${tx.id} has not status ${TransactionStatus.Signed}`)
     }
 
-    const txHex = '0x'+(new Tx(tx.data)).serialize().toString('hex')
+    const extraParam = this.config.network === NetworkType.Testnet ?  {chain :'ropsten'} : undefined
+    const txHex = '0x'+(new Tx(tx.data, extraParam)).serialize().toString('hex')
 
     try {
       // sends rpc requests with hex of serialized transaction, receives id and checks tx receipt by id

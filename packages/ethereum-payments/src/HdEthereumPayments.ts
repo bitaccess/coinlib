@@ -11,9 +11,15 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
   constructor(config: HdEthereumPaymentsConfig) {
     super(config)
     try {
-      const signatory = deriveSignatory(config.hdKey, 0)
-      this.xpub = signatory.xkeys.xpub
-      this.xprv = signatory.xkeys.xprv
+      this.xprv = ''
+      this.xpub = ''
+      if (this.isValidXpub(config.hdKey)) {
+        this.xpub = config.hdKey
+      } else if (this.isValidXprv(config.hdKey)) {
+        this.xprv = config.hdKey
+        this.xpub = deriveSignatory(config.hdKey, 0).xkeys.xpub
+      }
+
     } catch (e) {
       throw new Error(`Account must be a valid xprv or xpub: ${e.message}`)
     }
@@ -56,7 +62,7 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
       throw new Error(`Cannot get private key ${index} - HdEthereumPayments was created with an xpub`)
     }
 
-    return deriveSignatory(this.xprv, index).keys.prv
+    return deriveSignatory(deriveSignatory(this.xprv, 0).xkeys.xprv, index).keys.prv
   }
 }
 
