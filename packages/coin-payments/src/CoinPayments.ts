@@ -30,6 +30,9 @@ export class CoinPayments {
       if (!assetConfig) {
         return
       }
+      // Clone to avoid mutating external objects
+      assetConfig = { ...assetConfig }
+
       if (config.network) {
         assetConfig.network = config.network
       }
