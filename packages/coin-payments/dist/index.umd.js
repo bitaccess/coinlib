@@ -58,6 +58,7 @@
               if (!assetConfig) {
                   return;
               }
+              assetConfig = { ...assetConfig };
               if (config.network) {
                   assetConfig.network = config.network;
               }
