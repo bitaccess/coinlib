@@ -646,17 +646,9 @@ describe('HdEthereumPayments', () => {
           targetFeeRate: '0',
           targetFeeRateType: 'base',
           sequenceNumber: '27',
-          data: [
-            '0x1b',
-            '0x45d964b800',
-            '0x523c',
-            TO_ADDRESS,
-            '0x01e33c7f8ff55572',
-            '0x',
-            '0x29',
-            '0xa7dafa27f75d1fd50e8544a0f1f31ac4275a65855b05585fdbe2796fab967e5a',
-            '0x57b626e4f993d1e2152fb0fa1ca72943aacaf27d56adca2f3f195ab90d253d73',
-          ]
+          data: {
+            hex: '0xf86c1b8545d964b80082523c948f0bb36577b19da9826fc726fec2b4943c45e0148801e33c7f8ff555728029a0a7dafa27f75d1fd50e8544a0f1f31ac4275a65855b05585fdbe2796fab967e5aa057b626e4f993d1e2152fb0fa1ca72943aacaf27d56adca2f3f195ab90d253d73'
+          }
         })
       })
     })
@@ -685,17 +677,7 @@ describe('HdEthereumPayments', () => {
           targetFeeRate: '100000000000',
           targetFeeRateType: 'base/weight',
           sequenceNumber: '27',
-          data: [
-            '0x01',
-            '0x746a528800',
-            '0x5208',
-            TO_ADDRESS,
-            '0x069e4a05f5624000',
-            '0x',
-            '0x29',
-            '0x961ab2c131cfb09bbb1d71825615d30634889f95b62390473d1691ba419f86f8',
-            '0x514d1b9d42888a01cb5cfb7aba6623f4caad4b952943f243c644b3e7aaf409b3',
-          ]
+          data: { hex: rawTx }
         }
 
         // sends rpc request with transaction and receives id

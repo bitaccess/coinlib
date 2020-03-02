@@ -292,7 +292,9 @@ implements BasePayments
       ...unsignedTx,
       id: tx.hash().toString('hex'),
       status: TransactionStatus.Signed,
-      data: tx.toJSON()
+      data: {
+        hex: '0x'+tx.serialize().toString('hex')
+      }
     }
   }
 
@@ -301,12 +303,9 @@ implements BasePayments
       throw new Error(`Tx ${tx.id} has not status ${TransactionStatus.Signed}`)
     }
 
-    const extraParam = this.config.network === NetworkType.Testnet ?  {chain :'ropsten'} : undefined
-    const txHex = '0x'+(new Tx(tx.data, extraParam)).serialize().toString('hex')
-
     try {
       // sends rpc requests with hex of serialized transaction, receives id and checks tx receipt by id
-      const res = await this.eth.sendSignedTransaction(txHex)
+      const res = await this.eth.sendSignedTransaction(tx.data.hex)
       return {
         id: res.transactionHash,
         transactionIndex: res.transactionIndex,

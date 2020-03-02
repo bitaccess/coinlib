@@ -88,7 +88,11 @@ export type EthereumUnsignedTransaction = t.TypeOf<typeof EthereumUnsignedTransa
 
 export const EthereumSignedTransaction = extendCodec(
   BaseSignedTransaction,
-  {},
+  {
+    data: t.type({
+      hex: t.string
+    }),
+  },
   {},
   'EthereumSignedTransaction'
 )
