@@ -66,6 +66,7 @@
     "typescript": "^3.7.2"
   },
   "dependencies": {
+    "@faast/ethereum-payments": "^2.0.0",
     "@faast/bitcoin-payments": "^0.19.10",
     "@faast/payments-common": "^0.19.10",
     "@faast/ripple-payments": "^0.19.10",
