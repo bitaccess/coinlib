@@ -38,6 +38,14 @@ export declare const CoinPaymentsBaseAssetConfigs: t.TypeC<{
         dustThreshold: t.NumberC;
         networkMinRelayFee: t.NumberC;
     }>]>;
+    ETH: t.IntersectionC<[t.PartialC<{
+        network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+        logger: import("@faast/ts-common").LoggerC;
+    }>, t.PartialC<{
+        fullNode: t.UnionC<[t.StringC, t.UndefinedC]>;
+        parityNode: t.UnionC<[t.StringC, t.UndefinedC]>;
+        gasStation: t.UnionC<[t.StringC, t.UndefinedC]>;
+    }>]>;
 }>;
 export declare type CoinPaymentsBaseAssetConfigs = t.TypeOf<typeof CoinPaymentsBaseAssetConfigs>;
 export declare const CoinPaymentsAssetConfigs: t.TypeC<{
@@ -136,6 +144,25 @@ export declare const CoinPaymentsAssetConfigs: t.TypeC<{
     }>, t.PartialC<{
         derivationPath: t.StringC;
     }>]>;
+    ETH: t.UnionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+        network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+        logger: import("@faast/ts-common").LoggerC;
+    }>, t.PartialC<{
+        fullNode: t.UnionC<[t.StringC, t.UndefinedC]>;
+        parityNode: t.UnionC<[t.StringC, t.UndefinedC]>;
+        gasStation: t.UnionC<[t.StringC, t.UndefinedC]>;
+    }>]>, t.TypeC<{
+        hdKey: t.StringC;
+    }>]>, t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+        network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+        logger: import("@faast/ts-common").LoggerC;
+    }>, t.PartialC<{
+        fullNode: t.UnionC<[t.StringC, t.UndefinedC]>;
+        parityNode: t.UnionC<[t.StringC, t.UndefinedC]>;
+        gasStation: t.UnionC<[t.StringC, t.UndefinedC]>;
+    }>]>, t.TypeC<{
+        keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>]>;
+    }>]>]>;
 }>;
 export declare type CoinPaymentsAssetConfigs = t.TypeOf<typeof CoinPaymentsAssetConfigs>;
 export declare const CoinPaymentsConfig: t.PartialC<{
@@ -237,6 +264,25 @@ export declare const CoinPaymentsConfig: t.PartialC<{
     }>, t.PartialC<{
         derivationPath: t.StringC;
     }>]>;
+    ETH: t.UnionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+        network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+        logger: import("@faast/ts-common").LoggerC;
+    }>, t.PartialC<{
+        fullNode: t.UnionC<[t.StringC, t.UndefinedC]>;
+        parityNode: t.UnionC<[t.StringC, t.UndefinedC]>;
+        gasStation: t.UnionC<[t.StringC, t.UndefinedC]>;
+    }>]>, t.TypeC<{
+        hdKey: t.StringC;
+    }>]>, t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+        network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+        logger: import("@faast/ts-common").LoggerC;
+    }>, t.PartialC<{
+        fullNode: t.UnionC<[t.StringC, t.UndefinedC]>;
+        parityNode: t.UnionC<[t.StringC, t.UndefinedC]>;
+        gasStation: t.UnionC<[t.StringC, t.UndefinedC]>;
+    }>]>, t.TypeC<{
+        keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>]>;
+    }>]>]>;
 }>;
 export declare type CoinPaymentsConfig = t.TypeOf<typeof CoinPaymentsConfig>;
 export declare const SupportedCoinPaymentsSymbol: t.KeyofC<{
@@ -335,5 +381,24 @@ export declare const SupportedCoinPaymentsSymbol: t.KeyofC<{
     }>, t.PartialC<{
         derivationPath: t.StringC;
     }>]>;
+    ETH: t.UnionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+        network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+        logger: import("@faast/ts-common").LoggerC;
+    }>, t.PartialC<{
+        fullNode: t.UnionC<[t.StringC, t.UndefinedC]>;
+        parityNode: t.UnionC<[t.StringC, t.UndefinedC]>;
+        gasStation: t.UnionC<[t.StringC, t.UndefinedC]>;
+    }>]>, t.TypeC<{
+        hdKey: t.StringC;
+    }>]>, t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+        network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+        logger: import("@faast/ts-common").LoggerC;
+    }>, t.PartialC<{
+        fullNode: t.UnionC<[t.StringC, t.UndefinedC]>;
+        parityNode: t.UnionC<[t.StringC, t.UndefinedC]>;
+        gasStation: t.UnionC<[t.StringC, t.UndefinedC]>;
+    }>]>, t.TypeC<{
+        keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>]>;
+    }>]>]>;
 }>;
 export declare type SupportedCoinPaymentsSymbol = t.TypeOf<typeof SupportedCoinPaymentsSymbol>;

@@ -9,6 +9,7 @@ var tronPayments = require('@faast/tron-payments');
 var ripplePayments = require('@faast/ripple-payments');
 var stellarPayments = require('@faast/stellar-payments');
 var bitcoinPayments = require('@faast/bitcoin-payments');
+var ethereumPayments = require('@faast/ethereum-payments');
 var bip32 = require('bip32');
 
 const baseAssetConfigCodecs = {
@@ -16,6 +17,7 @@ const baseAssetConfigCodecs = {
     XRP: ripplePayments.BaseRipplePaymentsConfig,
     XLM: stellarPayments.BaseStellarPaymentsConfig,
     BTC: bitcoinPayments.BaseBitcoinPaymentsConfig,
+    ETH: ethereumPayments.BaseEthereumPaymentsConfig,
 };
 const CoinPaymentsBaseAssetConfigs = t.type(baseAssetConfigCodecs, 'CoinPaymentsBaseAssetConfigs');
 const assetConfigCodecs = {
@@ -23,6 +25,7 @@ const assetConfigCodecs = {
     XRP: ripplePayments.RipplePaymentsConfig,
     XLM: stellarPayments.StellarPaymentsConfig,
     BTC: bitcoinPayments.BitcoinPaymentsConfig,
+    ETH: ethereumPayments.EthereumPaymentsConfig,
 };
 const CoinPaymentsAssetConfigs = t.type(assetConfigCodecs, 'CoinPaymentsAssetConfigs');
 const CoinPaymentsConfig = t.partial({
@@ -42,6 +45,7 @@ const PAYMENTS_FACTORIES = {
     XRP: new ripplePayments.RipplePaymentsFactory(),
     XLM: new stellarPayments.StellarPaymentsFactory(),
     BTC: new bitcoinPayments.BitcoinPaymentsFactory(),
+    ETH: new ethereumPayments.EthereumPaymentsFactory(),
 };
 const SUPPORTED_ASSET_SYMBOLS = keysOf(PAYMENTS_FACTORIES);
 

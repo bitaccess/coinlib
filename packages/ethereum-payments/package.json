@@ -73,7 +73,7 @@
     "typescript": "^3.7.2"
   },
   "dependencies": {
-    "@faast/payments-common": "^0.19.8",
+    "@faast/payments-common": "^2.0.0",
     "@faast/ts-common": "^0.6.0",
     "@types/bip32": "^2.0.0",
     "@types/elliptic": "^6.4.12",

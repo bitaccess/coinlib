@@ -14,6 +14,7 @@ export { stellarPayments as Stellar };
 import { BaseBitcoinPaymentsConfig, BitcoinPaymentsConfig, BitcoinPaymentsFactory } from '@faast/bitcoin-payments';
 import * as bitcoinPayments from '@faast/bitcoin-payments';
 export { bitcoinPayments as Bitcoin };
+import { BaseEthereumPaymentsConfig, EthereumPaymentsConfig, EthereumPaymentsFactory } from '@faast/ethereum-payments';
 import { fromSeed } from 'bip32';
 
 const baseAssetConfigCodecs = {
@@ -21,6 +22,7 @@ const baseAssetConfigCodecs = {
     XRP: BaseRipplePaymentsConfig,
     XLM: BaseStellarPaymentsConfig,
     BTC: BaseBitcoinPaymentsConfig,
+    ETH: BaseEthereumPaymentsConfig,
 };
 const CoinPaymentsBaseAssetConfigs = type(baseAssetConfigCodecs, 'CoinPaymentsBaseAssetConfigs');
 const assetConfigCodecs = {
@@ -28,6 +30,7 @@ const assetConfigCodecs = {
     XRP: RipplePaymentsConfig,
     XLM: StellarPaymentsConfig,
     BTC: BitcoinPaymentsConfig,
+    ETH: EthereumPaymentsConfig,
 };
 const CoinPaymentsAssetConfigs = type(assetConfigCodecs, 'CoinPaymentsAssetConfigs');
 const CoinPaymentsConfig = partial({
@@ -47,6 +50,7 @@ const PAYMENTS_FACTORIES = {
     XRP: new RipplePaymentsFactory(),
     XLM: new StellarPaymentsFactory(),
     BTC: new BitcoinPaymentsFactory(),
+    ETH: new EthereumPaymentsFactory(),
 };
 const SUPPORTED_ASSET_SYMBOLS = keysOf(PAYMENTS_FACTORIES);
 
