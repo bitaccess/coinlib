@@ -7,7 +7,7 @@ import { StellarUnsignedTransaction, StellarSignedTransaction, } from './types';
 import { StellarPaymentsUtils } from './StellarPaymentsUtil';
 import { DEFAULT_CREATE_TRANSACTION_OPTIONS, MIN_BALANCE, NOT_FOUND_ERRORS, DEFAULT_TX_TIMEOUT_SECONDS, DEFAULT_FEE_LEVEL, } from './constants';
 import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers';
-import { serializePayport, omitHidden, isMatchingError, isStellarTransactionRecord } from './utils';
+import { serializePayport, omitHidden, isMatchingError } from './utils';
 export class BaseStellarPayments extends StellarPaymentsUtils {
     constructor(config) {
         super(config);
@@ -163,16 +163,7 @@ export class BaseStellarPayments extends StellarPaymentsUtils {
     async getTransactionInfo(txId) {
         let tx;
         try {
-            const txPage = await this._retryDced(() => this.getApi().transactions().transaction(txId).call());
-            if (txPage.records) {
-                tx = txPage.records[0];
-            }
-            else if (isStellarTransactionRecord(txPage)) {
-                tx = txPage;
-            }
-            else {
-                throw new Error(`Transaction not found ${txId}`);
-            }
+            tx = await this._retryDced(() => this.getApi().transactions().transaction(txId).call());
         }
         catch (e) {
             const eString = e.toString();
@@ -241,12 +232,12 @@ export class BaseStellarPayments extends StellarPaymentsUtils {
         else {
             targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL;
             const feeStats = await this._retryDced(() => this.getApi().feeStats());
-            feeBase = feeStats.p10_accepted_fee;
+            feeBase = feeStats.fee_charged.p10;
             if (targetFeeLevel === FeeLevel.Medium) {
-                feeBase = feeStats.p50_accepted_fee;
+                feeBase = feeStats.fee_charged.p50;
             }
             else if (targetFeeLevel === FeeLevel.High) {
-                feeBase = feeStats.p95_accepted_fee;
+                feeBase = feeStats.fee_charged.p95;
             }
             feeMain = this.toMainDenomination(feeBase);
             targetFeeRate = feeMain;

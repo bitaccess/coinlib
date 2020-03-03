@@ -2,7 +2,7 @@ import { BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, BaseTransac
 export { CreateTransactionOptions } from '@faast/payments-common';
 import { extendCodec, instanceofCodec, nullable, isNil, isObject, isString as isString$1, assertType, DelegateLogger, toBigNumber, Numeric } from '@faast/ts-common';
 import BigNumber from 'bignumber.js';
-import { isFunction, omitBy, omit } from 'lodash';
+import { omitBy, omit } from 'lodash';
 import { Server, StrKey, Networks, Transaction, Account, Operation, Asset, TransactionBuilder, Memo, Keypair } from 'stellar-sdk';
 import { union, string, nullType, number, type, partial, boolean, object } from 'io-ts';
 import { isString, isUndefined } from 'util';
@@ -97,9 +97,6 @@ function omitHidden(o) {
 }
 function isStellarLedger(x) {
     return isObject(x) && x.hasOwnProperty('successful_transaction_count');
-}
-function isStellarTransactionRecord(x) {
-    return isObject(x) && isFunction(x.ledger);
 }
 function padLeft(x, n, v) {
     while (x.length < n) {
@@ -213,7 +210,7 @@ class StellarConnected {
         else {
             throw new Error(`Cannot normalize stellar tx - Unsupported stellar operation type ${op.type}`);
         }
-        const fee = toMainDenominationBigNumber(tx.fee_paid);
+        const fee = toMainDenominationBigNumber(tx.fee_charged);
         return { amount: new BigNumber(amount), fee, fromAddress, toAddress };
     }
 }
@@ -419,16 +416,7 @@ class BaseStellarPayments extends StellarPaymentsUtils {
     async getTransactionInfo(txId) {
         let tx;
         try {
-            const txPage = await this._retryDced(() => this.getApi().transactions().transaction(txId).call());
-            if (txPage.records) {
-                tx = txPage.records[0];
-            }
-            else if (isStellarTransactionRecord(txPage)) {
-                tx = txPage;
-            }
-            else {
-                throw new Error(`Transaction not found ${txId}`);
-            }
+            tx = await this._retryDced(() => this.getApi().transactions().transaction(txId).call());
         }
         catch (e) {
             const eString = e.toString();
@@ -497,12 +485,12 @@ class BaseStellarPayments extends StellarPaymentsUtils {
         else {
             targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL;
             const feeStats = await this._retryDced(() => this.getApi().feeStats());
-            feeBase = feeStats.p10_accepted_fee;
+            feeBase = feeStats.fee_charged.p10;
             if (targetFeeLevel === FeeLevel.Medium) {
-                feeBase = feeStats.p50_accepted_fee;
+                feeBase = feeStats.fee_charged.p50;
             }
             else if (targetFeeLevel === FeeLevel.High) {
-                feeBase = feeStats.p95_accepted_fee;
+                feeBase = feeStats.fee_charged.p95;
             }
             feeMain = this.toMainDenomination(feeBase);
             targetFeeRate = feeMain;
