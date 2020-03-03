@@ -71,7 +71,7 @@ export class StellarConnected {
         else {
             throw new Error(`Cannot normalize stellar tx - Unsupported stellar operation type ${op.type}`);
         }
-        const fee = toMainDenominationBigNumber(tx.fee_paid);
+        const fee = toMainDenominationBigNumber(tx.fee_charged);
         return { amount: new BigNumber(amount), fee, fromAddress, toAddress };
     }
 }
