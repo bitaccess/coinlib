@@ -234,14 +234,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
   async getTransactionInfo(txId: string): Promise<StellarTransactionInfo> {
     let tx: Stellar.ServerApi.TransactionRecord
     try {
-      const txPage = await this._retryDced(() => this.getApi().transactions().transaction(txId).call())
-      if (txPage.records) {
-        tx = txPage.records[0]
-      } else if (isStellarTransactionRecord(txPage)) {
-        tx = txPage
-      } else {
-        throw new Error(`Transaction not found ${txId}`)
-      }
+      tx = await this._retryDced(() => this.getApi().transactions().transaction(txId).call())
     } catch (e) {
       const eString = e.toString()
       if (NOT_FOUND_ERRORS.some(type => eString.includes(type))) {
@@ -308,11 +301,11 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     } else {
       targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL
       const feeStats = await this._retryDced(() => this.getApi().feeStats())
-      feeBase = feeStats.p10_accepted_fee
+      feeBase = feeStats.fee_charged.p10
       if (targetFeeLevel === FeeLevel.Medium) {
-        feeBase = feeStats.p50_accepted_fee
+        feeBase = feeStats.fee_charged.p50
       } else if (targetFeeLevel === FeeLevel.High) {
-        feeBase = feeStats.p95_accepted_fee
+        feeBase = feeStats.fee_charged.p95
       }
       feeMain = this.toMainDenomination(feeBase)
       targetFeeRate = feeMain
