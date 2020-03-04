@@ -22,13 +22,21 @@ function resolveServer(server, network) {
             api: new blockbookClient.BlockbookBitcoin({
                 nodes: [server],
             }),
-            server,
+            server: [server],
         };
     }
     else if (server instanceof blockbookClient.BlockbookBitcoin) {
         return {
             api: server,
-            server: server.nodes[0] || '',
+            server: server.nodes,
+        };
+    }
+    else if (Array.isArray(server)) {
+        return {
+            api: new blockbookClient.BlockbookBitcoin({
+                nodes: server,
+            }),
+            server,
         };
     }
     else {
@@ -130,7 +138,12 @@ function sortUtxos(utxoList) {
 
 class BlockbookServerAPI extends blockbookClient.BlockbookBitcoin {
 }
-const BlockbookConfigServer = t.union([t.string, tsCommon.instanceofCodec(BlockbookServerAPI), t.null], 'BlockbookConfigServer');
+const BlockbookConfigServer = t.union([
+    t.string,
+    t.array(t.string),
+    tsCommon.instanceofCodec(BlockbookServerAPI),
+    t.null,
+], 'BlockbookConfigServer');
 const BlockbookConnectedConfig = tsCommon.requiredOptionalCodec({
     network: paymentsCommon.NetworkTypeT,
     server: BlockbookConfigServer,
@@ -622,8 +635,12 @@ const DEFAULT_DERIVATION_PATHS = {
 const DEFAULT_NETWORK = paymentsCommon.NetworkType.Mainnet;
 const NETWORK_MAINNET = bitcoin.networks.bitcoin;
 const NETWORK_TESTNET = bitcoin.networks.testnet;
-const DEFAULT_MAINNET_SERVER = process.env.BITCOIN_SERVER_URL || 'https://btc1.trezor.io';
-const DEFAULT_TESTNET_SERVER = process.env.BITCOIN_TESTNET_SERVER_URL || 'https://tbtc1.trezor.io';
+const DEFAULT_MAINNET_SERVER = process.env.BITCOIN_SERVER_URL
+    ? process.env.BITCOIN_SERVER_URL.split(',')
+    : ['https://btc1.trezor.io', 'https://btc2.trezor.io'];
+const DEFAULT_TESTNET_SERVER = process.env.BITCOIN_TESTNET_SERVER_URL
+    ? process.env.BITCOIN_TESTNET_SERVER_URL.split(',')
+    : ['https://tbtc1.trezor.io', 'https://tbtc2.trezor.io'];
 const DEFAULT_FEE_LEVEL = paymentsCommon.FeeLevel.Medium;
 const DEFAULT_SAT_PER_BYTE_LEVELS = {
     [paymentsCommon.FeeLevel.High]: 50,

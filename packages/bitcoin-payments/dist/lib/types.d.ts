@@ -14,14 +14,14 @@ export declare const BitcoinPaymentsUtilsConfig: t.IntersectionC<[t.PartialC<{
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
     logger: import("@faast/ts-common").LoggerC;
 }>, t.PartialC<{
-    server: t.UnionC<[t.StringC, t.Type<import("./bitcoinish").BlockbookServerAPI, import("./bitcoinish").BlockbookServerAPI, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("./bitcoinish").BlockbookServerAPI, import("./bitcoinish").BlockbookServerAPI, unknown>, t.NullC]>;
 }>]>;
 export declare type BitcoinPaymentsUtilsConfig = t.TypeOf<typeof BitcoinPaymentsUtilsConfig>;
 export declare const BaseBitcoinPaymentsConfig: t.IntersectionC<[t.IntersectionC<[t.PartialC<{
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
     logger: import("@faast/ts-common").LoggerC;
 }>, t.PartialC<{
-    server: t.UnionC<[t.StringC, t.Type<import("./bitcoinish").BlockbookServerAPI, import("./bitcoinish").BlockbookServerAPI, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("./bitcoinish").BlockbookServerAPI, import("./bitcoinish").BlockbookServerAPI, unknown>, t.NullC]>;
 }>]>, t.PartialC<{
     addressType: t.Type<AddressType, AddressType, unknown>;
     minTxFee: t.TypeC<{
@@ -36,7 +36,7 @@ export declare const HdBitcoinPaymentsConfig: t.IntersectionC<[t.IntersectionC<[
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
     logger: import("@faast/ts-common").LoggerC;
 }>, t.PartialC<{
-    server: t.UnionC<[t.StringC, t.Type<import("./bitcoinish").BlockbookServerAPI, import("./bitcoinish").BlockbookServerAPI, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("./bitcoinish").BlockbookServerAPI, import("./bitcoinish").BlockbookServerAPI, unknown>, t.NullC]>;
 }>]>, t.PartialC<{
     addressType: t.Type<AddressType, AddressType, unknown>;
     minTxFee: t.TypeC<{
@@ -55,7 +55,7 @@ export declare const BitcoinPaymentsConfig: t.IntersectionC<[t.IntersectionC<[t.
     network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
     logger: import("@faast/ts-common").LoggerC;
 }>, t.PartialC<{
-    server: t.UnionC<[t.StringC, t.Type<import("./bitcoinish").BlockbookServerAPI, import("./bitcoinish").BlockbookServerAPI, unknown>, t.NullC]>;
+    server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("./bitcoinish").BlockbookServerAPI, import("./bitcoinish").BlockbookServerAPI, unknown>, t.NullC]>;
 }>]>, t.PartialC<{
     addressType: t.Type<AddressType, AddressType, unknown>;
     minTxFee: t.TypeC<{

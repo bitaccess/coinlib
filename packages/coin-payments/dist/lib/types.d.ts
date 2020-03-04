@@ -28,7 +28,7 @@ export declare const CoinPaymentsBaseAssetConfigs: t.TypeC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
-        server: t.UnionC<[t.StringC, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
+        server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
         addressType: t.Type<import("@faast/bitcoin-payments").AddressType, import("@faast/bitcoin-payments").AddressType, unknown>;
         minTxFee: t.TypeC<{
@@ -122,7 +122,7 @@ export declare const CoinPaymentsAssetConfigs: t.TypeC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
-        server: t.UnionC<[t.StringC, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
+        server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
         addressType: t.Type<import("@faast/bitcoin-payments").AddressType, import("@faast/bitcoin-payments").AddressType, unknown>;
         minTxFee: t.TypeC<{
@@ -223,7 +223,7 @@ export declare const CoinPaymentsConfig: t.PartialC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
-        server: t.UnionC<[t.StringC, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
+        server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
         addressType: t.Type<import("@faast/bitcoin-payments").AddressType, import("@faast/bitcoin-payments").AddressType, unknown>;
         minTxFee: t.TypeC<{
@@ -321,7 +321,7 @@ export declare const SupportedCoinPaymentsSymbol: t.KeyofC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
-        server: t.UnionC<[t.StringC, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
+        server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
         addressType: t.Type<import("@faast/bitcoin-payments").AddressType, import("@faast/bitcoin-payments").AddressType, unknown>;
         minTxFee: t.TypeC<{

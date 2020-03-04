@@ -5,7 +5,12 @@ import { BlockbookBitcoin, BlockInfoBitcoin } from 'blockbook-client';
 export { UtxoInfo };
 export class BlockbookServerAPI extends BlockbookBitcoin {
 }
-export const BlockbookConfigServer = t.union([t.string, instanceofCodec(BlockbookServerAPI), t.null], 'BlockbookConfigServer');
+export const BlockbookConfigServer = t.union([
+    t.string,
+    t.array(t.string),
+    instanceofCodec(BlockbookServerAPI),
+    t.null,
+], 'BlockbookConfigServer');
 export const BlockbookConnectedConfig = requiredOptionalCodec({
     network: NetworkTypeT,
     server: BlockbookConfigServer,
