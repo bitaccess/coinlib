@@ -10,7 +10,7 @@ export abstract class BlockbookConnected {
   networkType: NetworkType
   logger: Logger
   api: BlockbookBitcoin | null
-  server: string | null
+  server: string[] | null
 
   constructor(config: BlockbookConnectedConfig) {
     assertType(BlockbookConnectedConfig, config)

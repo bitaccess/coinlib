@@ -6,19 +6,26 @@ import promiseRetry from 'promise-retry'
 
 export function resolveServer(server: BlockbookConnectedConfig['server'], network: NetworkType): {
   api: BlockbookBitcoin
-  server: string | null
+  server: string[] | null
 } {
   if (isString(server)) {
     return {
       api: new BlockbookBitcoin({
         nodes: [server],
       }),
-      server,
+      server: [server],
     }
   } else if (server instanceof BlockbookBitcoin) {
     return {
       api: server,
-      server: server.nodes[0] || '',
+      server: server.nodes,
+    }
+  } else if (Array.isArray(server)) {
+    return {
+      api: new BlockbookBitcoin({
+        nodes: server,
+      }),
+      server,
     }
   } else {
     // null server arg -> offline mode
