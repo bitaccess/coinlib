@@ -148,7 +148,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       const { value, height, lockTime } = data
       return {
         ...data,
-        satoshis: value,
+        satoshis: Number.parseInt(value),
         value: this.toMainDenominationString(value),
         height: isUndefined(height) ? undefined : String(height),
         lockTime: isUndefined(lockTime) ? undefined : String(lockTime),
@@ -224,7 +224,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const utxos: Array<UtxoInfo & { satoshis: number }> = []
     let utxosTotalSat = 0
     for (const utxo of availableUtxos) {
-      const satoshis = this.toBaseDenominationNumber(utxo.value)
+      const satoshis = Math.floor(utxo.satoshis || this.toBaseDenominationNumber(utxo.value))
       utxosTotalSat += satoshis
       utxos.push({
         ...utxo,
@@ -285,7 +285,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
    * then converted back to strings before being returned.
    */
   async buildPaymentTx(params: {
-    providedUtxos: UtxoInfo[], // Utxos not already taken by unbroadcast txs
+    unusedUtxos: UtxoInfo[], // Utxos not already taken by unbroadcast txs
     allUtxos: UtxoInfo[], // All utxos as reported by network
     desiredOutputs: BitcoinishTxOutput[],
     changeAddress: string,
@@ -296,15 +296,16 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     targetUtxoPoolSize?: number,
   }): Promise<Required<BitcoinishPaymentTx>> {
     const {
-      providedUtxos, allUtxos, desiredOutputs, changeAddress, desiredFeeRate,
+      unusedUtxos, allUtxos, desiredOutputs, changeAddress, desiredFeeRate,
     } = params
     const useAllUtxos = isUndefined(params.useAllUtxos) ? false : params.useAllUtxos
     const useUnconfirmedUtxos = isUndefined(params.useUnconfirmedUtxos) ? false : params.useUnconfirmedUtxos
     const targetUtxoPoolSize = isUndefined(params.targetUtxoPoolSize) ? 1 : params.targetUtxoPoolSize
-    let minChange = toBigNumber(isUndefined(params.minChange) ? this.dustThreshold : params.minChange)
+    const minChange = toBigNumber(isUndefined(params.minChange) ? this.dustThreshold : params.minChange)
     if (minChange.lt(0)) {
       throw new Error(`buildPaymentTx - invalid minChange amount ${minChange}, must be positive`)
     }
+    const minChangeSat = this.toBaseDenominationNumber(minChange)
     // The maximum # of outputs this tx will have. It could have less if some change outputs are dropped
     // for being too small.
     const maxOutputCount = desiredOutputs.length + targetUtxoPoolSize
@@ -334,49 +335,53 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
     /* Select inputs and calculate appropriate fee */
     const availableUtxos = !useUnconfirmedUtxos
-      ? providedUtxos.filter(isConfirmedUtxo)
-      : providedUtxos
+      ? unusedUtxos.filter(isConfirmedUtxo)
+      : unusedUtxos
     let { selectedUtxos: inputUtxos, selectedTotalSat: inputTotal, feeSat } = this.selectInputUtxos(
       availableUtxos, outputTotal, maxOutputCount, desiredFeeRate, useAllUtxos,
     )
     let amountWithFee = outputTotal + feeSat
 
-
     /** Account for insuffient inputs and sweeping cases */
     if (amountWithFee > inputTotal) {
-      const amountWithSymbol = `${this.toMainDenominationString(outputTotal)} ${this.coinSymbol}`
       if (outputTotal === inputTotal) { // sweeping
         // Share the fee across all outputs. This may increase the fee by as much as 1 sat per output, negligible
         const feeShare = Math.ceil(feeSat / externalOutputs.length)
         feeSat = feeShare * externalOutputs.length
         this.logger.log(
-          `Attempting to send entire ${amountWithSymbol} balance. ` +
+          `${this.coinSymbol} buildPaymentTx - Attempting to send entire ${outputTotal} sat balance. ` +
           `Subtracting fee of ${feeSat} sat from ${externalOutputs.length} outputs (${feeShare} sat each)`
         )
         for (let i = 0; i < externalOutputs.length; i++) {
           const externalOutput = externalOutputs[i]
           externalOutput.satoshis -= feeShare
           if (externalOutput.satoshis <= this.dustThreshold) {
-            throw new Error(`${this.coinSymbol} output ${i} for ${externalOutput.satoshis} sat minus ${feeShare} sat fee share is below dust threshold`)
+            throw new Error(
+              `${this.coinSymbol} buildPaymentTx - output ${i} for ${externalOutput.satoshis} ` +
+              `sat minus ${feeShare} sat fee share is below dust threshold`
+            )
           }
         }
         amountWithFee = inputTotal
         outputTotal -= feeSat
       } else { // insufficient utxos
-        const { feeRate, feeRateType } = desiredFeeRate
-        const feeText = `${feeRate} ${feeRateType}${feeRateType === FeeRateType.BasePerWeight ? ` (${this.toMainDenominationString(feeSat)})` : ''}`
-        throw new Error(`You do not have enough UTXOs (${this.toMainDenominationString(inputTotal)}) to send ${amountWithSymbol} with ${feeText} fee`)
+        throw new Error(
+          `${this.coinSymbol} buildPaymentTx - You do not have enough UTXOs (${inputTotal} sat) ` +
+          `to send ${outputTotal} sat with ${feeSat} sat fee`
+        )
       }
     }
 
     /** Change handling */
 
     let totalChangeSat = inputTotal - amountWithFee
+
+    this.logger.debug('buildPaymentTx', { inputTotal, feeSat, outputTotal, totalChangeSat })
     let changeOutputs: Array<{ address: string, satoshis: number}> = []
     if (totalChangeSat > this.dustThreshold) { // Avoid creating dust outputs
 
       // Don't use availableUtxo.length here because unconfirmed still count towards pool count
-      const remainingUtxoCount = providedUtxos.length - inputUtxos.length
+      const remainingUtxoCount = unusedUtxos.length - inputUtxos.length
       // Determine how many change outputs to use to maintain target pool size
       const targetChangeOutputCount = remainingUtxoCount < targetUtxoPoolSize
         ? targetUtxoPoolSize - remainingUtxoCount
@@ -389,15 +394,17 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         const { address, weight } = changeOutputWeights[i]
         // Distribute change proportional to each change outputs weight. Floored to not exceed inputTotal
         const changeSat = Math.floor(totalChangeSat * (weight / totalChangeWeight))
-        if (changeSat <= this.dustThreshold) {
+        if (changeSat <= this.dustThreshold || changeSat < minChangeSat) {
           this.logger.log(
-            `${this.coinSymbol} buildPaymentTx - desired change output ${i} is below dust threshold, will redistribute to other outputs or add to fee`
+            `${this.coinSymbol} buildPaymentTx - desired change output ${i} is below dust threshold or minChange, ` +
+            'will redistribute to other change outputs or add to fee'
           )
         } else {
           changeOutputs.push({ address, satoshis: changeSat })
-          totalChangeAllocated = changeSat
+          totalChangeAllocated += changeSat
         }
       }
+      this.logger.debug({ changeOutputWeights, totalChangeWeight, totalChangeAllocated, changeOutputs })
       // If due to rounding or omitting dust outputs our real change total is different, adjust fees accordingly
       let looseChange = totalChangeSat - totalChangeAllocated
       if (looseChange < 0) {
@@ -409,6 +416,10 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
           changeOutputs[i].satoshis += extraSatPerChangeOutput
         }
         looseChange -= extraSatPerChangeOutput * changeOutputs.length
+      } else if (changeOutputs.length === 0 && looseChange > this.dustThreshold) {
+        this.logger.log(`${this.coinSymbol} buildPaymentTx - allocated looseChange towards single ${looseChange} sat change output`)
+        changeOutputs.push({ address: changeAddress, satoshis: looseChange })
+        looseChange = 0
       }
       feeSat += looseChange
       totalChangeSat -= looseChange
@@ -418,7 +429,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       )
       feeSat += totalChangeSat
       totalChangeSat = 0
-    } else {
+    } else if (totalChangeSat < 0) {
       throw new Error(`${this.coinSymbol} buildPaymentTx - totalChangeSat is negative when building tx, this shouldnt happen!`)
     }
     const externalOutputsResult = this.convertOutputsToExternalFormat(externalOutputs)
@@ -470,8 +481,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const allUtxos = options.allUtxos || await this.getUtxos(from)
     this.logger.debug('createMultiOutputTransaction allUtxos', allUtxos)
 
-    const providedUtxos = options.utxos || allUtxos
-    this.logger.debug('createMultiOutputTransaction providedUtxos', providedUtxos)
+    const unusedUtxos = options.utxos || allUtxos
+    this.logger.debug('createMultiOutputTransaction unusedUtxos', unusedUtxos)
 
     const { address: fromAddress } = await this.resolvePayport(from)
 
@@ -484,7 +495,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     this.logger.debug(`createTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`)
 
     const paymentTx = await this.buildPaymentTx({
-      providedUtxos,
+      unusedUtxos,
       allUtxos,
       desiredOutputs,
       changeAddress: fromAddress,
