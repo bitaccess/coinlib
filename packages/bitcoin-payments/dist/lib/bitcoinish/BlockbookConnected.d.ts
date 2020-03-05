@@ -6,7 +6,7 @@ export declare abstract class BlockbookConnected {
     networkType: NetworkType;
     logger: Logger;
     api: BlockbookBitcoin | null;
-    server: string | null;
+    server: string[] | null;
     constructor(config: BlockbookConnectedConfig);
     getApi(): BlockbookBitcoin;
     init(): Promise<void>;

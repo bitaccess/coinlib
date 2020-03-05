@@ -17,8 +17,8 @@ export declare const DEFAULT_DERIVATION_PATHS: {
 export declare const DEFAULT_NETWORK = NetworkType.Mainnet;
 export declare const NETWORK_MAINNET: networks.Network;
 export declare const NETWORK_TESTNET: networks.Network;
-export declare const DEFAULT_MAINNET_SERVER: string;
-export declare const DEFAULT_TESTNET_SERVER: string;
+export declare const DEFAULT_MAINNET_SERVER: string[];
+export declare const DEFAULT_TESTNET_SERVER: string[];
 export declare const DEFAULT_FEE_LEVEL = FeeLevel.Medium;
 export declare const DEFAULT_SAT_PER_BYTE_LEVELS: {
     [FeeLevel.High]: number;

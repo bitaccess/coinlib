@@ -4,7 +4,7 @@ import { BlockbookBitcoin } from 'blockbook-client';
 import { Logger } from '@faast/ts-common';
 export declare function resolveServer(server: BlockbookConnectedConfig['server'], network: NetworkType): {
     api: BlockbookBitcoin;
-    server: string | null;
+    server: string[] | null;
 };
 export declare function retryIfDisconnected<T>(fn: () => Promise<T>, api: BlockbookBitcoin, logger: Logger): Promise<T>;
 export declare function estimateTxSize(inputsCount: number, outputsCount: number, handleSegwit: boolean): {

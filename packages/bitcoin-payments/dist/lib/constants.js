@@ -17,8 +17,12 @@ export const DEFAULT_DERIVATION_PATHS = {
 export const DEFAULT_NETWORK = NetworkType.Mainnet;
 export const NETWORK_MAINNET = networks.bitcoin;
 export const NETWORK_TESTNET = networks.testnet;
-export const DEFAULT_MAINNET_SERVER = process.env.BITCOIN_SERVER_URL || 'https://btc1.trezor.io';
-export const DEFAULT_TESTNET_SERVER = process.env.BITCOIN_TESTNET_SERVER_URL || 'https://tbtc1.trezor.io';
+export const DEFAULT_MAINNET_SERVER = process.env.BITCOIN_SERVER_URL
+    ? process.env.BITCOIN_SERVER_URL.split(',')
+    : ['https://btc1.trezor.io', 'https://btc2.trezor.io'];
+export const DEFAULT_TESTNET_SERVER = process.env.BITCOIN_TESTNET_SERVER_URL
+    ? process.env.BITCOIN_TESTNET_SERVER_URL.split(',')
+    : ['https://tbtc1.trezor.io', 'https://tbtc2.trezor.io'];
 export const DEFAULT_FEE_LEVEL = FeeLevel.Medium;
 export const DEFAULT_SAT_PER_BYTE_LEVELS = {
     [FeeLevel.High]: 50,

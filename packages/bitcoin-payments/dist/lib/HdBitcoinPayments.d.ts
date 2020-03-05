@@ -15,7 +15,7 @@ export declare class HdBitcoinPayments extends BaseBitcoinPayments<HdBitcoinPaym
         addressType: import("./types").AddressType;
         network?: import("@faast/payments-common").NetworkType | undefined;
         logger?: import("@faast/ts-common").Logger | undefined;
-        server?: string | import("./types").BlockbookServerAPI | null | undefined;
+        server?: string | import("./types").BlockbookServerAPI | string[] | null | undefined;
         minTxFee?: {
             feeRate: string;
             feeRateType: import("@faast/payments-common").FeeRateType;

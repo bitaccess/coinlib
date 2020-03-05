@@ -7,13 +7,21 @@ export function resolveServer(server, network) {
             api: new BlockbookBitcoin({
                 nodes: [server],
             }),
-            server,
+            server: [server],
         };
     }
     else if (server instanceof BlockbookBitcoin) {
         return {
             api: server,
-            server: server.nodes[0] || '',
+            server: server.nodes,
+        };
+    }
+    else if (Array.isArray(server)) {
+        return {
+            api: new BlockbookBitcoin({
+                nodes: server,
+            }),
+            server,
         };
     }
     else {

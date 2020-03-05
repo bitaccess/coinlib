@@ -3,7 +3,7 @@ import { NetworkTypeT, UtxoInfo, BaseUnsignedTransaction, BaseSignedTransaction,
 export { UtxoInfo } from '@faast/payments-common';
 import request from 'request-promise-native';
 import bs58 from 'bs58';
-import { union, string, null as null$1, type, array, number } from 'io-ts';
+import { union, string, array, null as null$1, type, number } from 'io-ts';
 import { toBigNumber, isMatchingError, isString, instanceofCodec, requiredOptionalCodec, nullable, Logger, extendCodec, assertType, DelegateLogger, isNil, isUndefined, isType, enumCodec } from '@faast/ts-common';
 import { BlockbookBitcoin, BlockInfoBitcoin } from 'blockbook-client';
 import BigNumber from 'bignumber.js';
@@ -17,13 +17,21 @@ function resolveServer(server, network) {
             api: new BlockbookBitcoin({
                 nodes: [server],
             }),
-            server,
+            server: [server],
         };
     }
     else if (server instanceof BlockbookBitcoin) {
         return {
             api: server,
-            server: server.nodes[0] || '',
+            server: server.nodes,
+        };
+    }
+    else if (Array.isArray(server)) {
+        return {
+            api: new BlockbookBitcoin({
+                nodes: server,
+            }),
+            server,
         };
     }
     else {
@@ -125,7 +133,12 @@ function sortUtxos(utxoList) {
 
 class BlockbookServerAPI extends BlockbookBitcoin {
 }
-const BlockbookConfigServer = union([string, instanceofCodec(BlockbookServerAPI), null$1], 'BlockbookConfigServer');
+const BlockbookConfigServer = union([
+    string,
+    array(string),
+    instanceofCodec(BlockbookServerAPI),
+    null$1,
+], 'BlockbookConfigServer');
 const BlockbookConnectedConfig = requiredOptionalCodec({
     network: NetworkTypeT,
     server: BlockbookConfigServer,
@@ -618,8 +631,12 @@ const DEFAULT_DERIVATION_PATHS = {
 const DEFAULT_NETWORK = NetworkType.Mainnet;
 const NETWORK_MAINNET = networks.bitcoin;
 const NETWORK_TESTNET = networks.testnet;
-const DEFAULT_MAINNET_SERVER = process.env.BITCOIN_SERVER_URL || 'https://btc1.trezor.io';
-const DEFAULT_TESTNET_SERVER = process.env.BITCOIN_TESTNET_SERVER_URL || 'https://tbtc1.trezor.io';
+const DEFAULT_MAINNET_SERVER = process.env.BITCOIN_SERVER_URL
+    ? process.env.BITCOIN_SERVER_URL.split(',')
+    : ['https://btc1.trezor.io', 'https://btc2.trezor.io'];
+const DEFAULT_TESTNET_SERVER = process.env.BITCOIN_TESTNET_SERVER_URL
+    ? process.env.BITCOIN_TESTNET_SERVER_URL.split(',')
+    : ['https://tbtc1.trezor.io', 'https://tbtc2.trezor.io'];
 const DEFAULT_FEE_LEVEL = FeeLevel.Medium;
 const DEFAULT_SAT_PER_BYTE_LEVELS = {
     [FeeLevel.High]: 50,
