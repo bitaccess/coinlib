@@ -1,7 +1,6 @@
 import { BasePayments, UtxoInfo, FeeRate, FeeOption, ResolvedFeeOption, AutoFeeLevels, Payport, ResolveablePayport, BalanceResult, FromTo, CreateTransactionOptions, BaseConfig } from '@faast/payments-common';
 import { Numeric } from '@faast/ts-common';
-import BigNumber from 'bignumber.js';
-import { BitcoinishUnsignedTransaction, BitcoinishSignedTransaction, BitcoinishBroadcastResult, BitcoinishTransactionInfo, BitcoinishPaymentsConfig, BitcoinishPaymentTx, BitcoinishTxOutput } from './types';
+import { BitcoinishUnsignedTransaction, BitcoinishSignedTransaction, BitcoinishBroadcastResult, BitcoinishTransactionInfo, BitcoinishPaymentsConfig, BitcoinishPaymentTx, BitcoinishTxOutput, PayportOutput } from './types';
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils';
 export declare abstract class BitcoinishPayments<Config extends BaseConfig> extends BitcoinishPaymentsUtils implements BasePayments<Config, BitcoinishUnsignedTransaction, BitcoinishSignedTransaction, BitcoinishBroadcastResult, BitcoinishTransactionInfo> {
     coinSymbol: string;
@@ -11,6 +10,8 @@ export declare abstract class BitcoinishPayments<Config extends BaseConfig> exte
     networkMinRelayFee: number;
     isSegwit: boolean;
     defaultFeeLevel: AutoFeeLevels;
+    targetUtxoPoolSize: number;
+    minChangeSat: number;
     constructor(config: BitcoinishPaymentsConfig);
     abstract getFullConfig(): Config;
     abstract getPublicConfig(): Config;
@@ -26,18 +27,28 @@ export declare abstract class BitcoinishPayments<Config extends BaseConfig> exte
     isSweepableBalance(balance: Numeric): boolean;
     getPayport(index: number): Promise<Payport>;
     resolvePayport(payport: ResolveablePayport): Promise<Payport>;
-    _feeRateToSatoshis({ feeRate, feeRateType }: FeeRate, inputCount: number, outputCount: number): number;
-    _calculatTxFeeSatoshis(targetRate: FeeRate, inputCount: number, outputCount: number): number;
     resolveFeeOption(feeOption: FeeOption): Promise<ResolvedFeeOption>;
     getBalance(payport: ResolveablePayport): Promise<BalanceResult>;
     usesUtxos(): boolean;
     getUtxos(payport: ResolveablePayport): Promise<UtxoInfo[]>;
-    _sumUtxoValue(utxos: UtxoInfo[]): BigNumber;
     usesSequenceNumber(): boolean;
     getNextSequenceNumber(): Promise<null>;
     resolveFromTo(from: number, to: ResolveablePayport): Promise<FromTo>;
-    buildPaymentTx(allUtxos: UtxoInfo[], desiredOutputs: Array<BitcoinishTxOutput>, changeAddress: string, desiredFeeRate: FeeRate, useAllUtxos?: boolean): Promise<BitcoinishPaymentTx>;
-    createTransaction(from: number, to: ResolveablePayport, amountNumeric: Numeric, options?: CreateTransactionOptions): Promise<BitcoinishUnsignedTransaction>;
+    private convertOutputsToExternalFormat;
+    private feeRateToSatoshis;
+    private calculateTxFeeSatoshis;
+    private selectInputUtxos;
+    buildPaymentTx(params: {
+        unusedUtxos: UtxoInfo[];
+        desiredOutputs: BitcoinishTxOutput[];
+        changeAddress: string;
+        desiredFeeRate: FeeRate;
+        useAllUtxos?: boolean;
+        useUnconfirmedUtxos?: boolean;
+    }): Promise<Required<BitcoinishPaymentTx>>;
+    private createWeightedChangeOutputs;
+    createTransaction(from: number, to: ResolveablePayport, amount: Numeric, options?: CreateTransactionOptions): Promise<BitcoinishUnsignedTransaction>;
+    createMultiOutputTransaction(from: number, to: PayportOutput[], options?: CreateTransactionOptions): Promise<BitcoinishUnsignedTransaction>;
     createSweepTransaction(from: number, to: ResolveablePayport, options?: CreateTransactionOptions): Promise<BitcoinishUnsignedTransaction>;
     broadcastTransaction(tx: BitcoinishSignedTransaction): Promise<BitcoinishBroadcastResult>;
     getTransactionInfo(txId: string): Promise<BitcoinishTransactionInfo>;

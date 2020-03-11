@@ -1,5 +1,5 @@
-import { partial, union, string, number, keyof, type, literal, boolean, array, object } from 'io-ts';
-import { enumCodec, Logger, extendCodec, requiredOptionalCodec, Numeric, nullable, DateT, functionT } from '@faast/ts-common';
+import { partial, string, union, number, keyof, type, literal, boolean, array, object } from 'io-ts';
+import { enumCodec, Logger, requiredOptionalCodec, nullable, extendCodec, Numeric, DateT, functionT } from '@faast/ts-common';
 import BigNumber from 'bignumber.js';
 
 var NetworkType;
@@ -12,7 +12,12 @@ const BaseConfig = partial({
     network: NetworkTypeT,
     logger: Logger,
 }, 'BaseConfig');
-const AddressOrIndex = union([string, number], 'AddressOrIndex');
+const Payport = requiredOptionalCodec({
+    address: string,
+}, {
+    extraId: nullable(string),
+}, 'Payport');
+const ResolveablePayport = union([Payport, string, number], 'ResolveablePayport');
 var FeeLevel;
 (function (FeeLevel) {
     FeeLevel["Custom"] = "custom";
@@ -49,16 +54,22 @@ const UtxoInfo = requiredOptionalCodec({
     vout: number,
     value: string,
 }, {
+    satoshis: number,
     confirmations: number,
     height: string,
     lockTime: string,
     coinbase: boolean,
 }, 'UtxoInfo');
+const WeightedChangeOutput = type({
+    address: string,
+    weight: number,
+}, 'WeightedChangeOutput');
 const CreateTransactionOptions = extendCodec(FeeOption, {}, {
     sequenceNumber: Numeric,
     payportBalance: Numeric,
     utxos: array(UtxoInfo),
     useAllUtxos: boolean,
+    useUnconfirmedUtxos: boolean,
 }, 'CreateTransactionOptions');
 const GetPayportOptions = partial({}, 'GetPayportOptions');
 const ResolvedFeeOption = type({
@@ -133,11 +144,6 @@ const BaseTransactionInfo = extendCodec(TransactionCommon, {
 const BaseBroadcastResult = type({
     id: string,
 }, 'BaseBroadcastResult');
-const Payport = requiredOptionalCodec({
-    address: string,
-}, {
-    extraId: nullable(string),
-}, 'Payport');
 const BalanceActivityType = union([literal('in'), literal('out')], 'BalanceActivityType');
 const BalanceActivity = type({
     type: BalanceActivityType,
@@ -159,7 +165,6 @@ const GetBalanceActivityOptions = partial({
     to: union([Numeric, BalanceActivity]),
 }, 'GetBalanceActivityOptions');
 const BalanceActivityCallback = functionT('BalanceActivityCallback');
-const ResolveablePayport = union([Payport, string, number], 'ResolveablePayport');
 const RetrieveBalanceActivitiesResult = type({
     from: string,
     to: string,
@@ -227,5 +232,5 @@ class PaymentsError extends Error {
     }
 }
 
-export { AddressOrIndex, AutoFeeLevels, BalanceActivity, BalanceActivityCallback, BalanceActivityType, BalanceMonitorConfig, BalanceResult, BaseBroadcastResult, BaseConfig, BaseSignedTransaction, BaseTransactionInfo, BaseUnsignedTransaction, CreateTransactionOptions, FeeLevel, FeeLevelT, FeeOption, FeeOptionCustom, FeeOptionLevel, FeeRate, FeeRateType, FeeRateTypeT, GetBalanceActivityOptions, GetPayportOptions, NetworkType, NetworkTypeT, PaymentsError, PaymentsErrorCode, Payport, ResolveablePayport, ResolvedFeeOption, RetrieveBalanceActivitiesResult, TransactionCommon, TransactionStatus, TransactionStatusT, UtxoInfo, createUnitConverters, isMatchingError };
+export { AutoFeeLevels, BalanceActivity, BalanceActivityCallback, BalanceActivityType, BalanceMonitorConfig, BalanceResult, BaseBroadcastResult, BaseConfig, BaseSignedTransaction, BaseTransactionInfo, BaseUnsignedTransaction, CreateTransactionOptions, FeeLevel, FeeLevelT, FeeOption, FeeOptionCustom, FeeOptionLevel, FeeRate, FeeRateType, FeeRateTypeT, GetBalanceActivityOptions, GetPayportOptions, NetworkType, NetworkTypeT, PaymentsError, PaymentsErrorCode, Payport, ResolveablePayport, ResolvedFeeOption, RetrieveBalanceActivitiesResult, TransactionCommon, TransactionStatus, TransactionStatusT, UtxoInfo, WeightedChangeOutput, createUnitConverters, isMatchingError };
 //# sourceMappingURL=index.es.js.map

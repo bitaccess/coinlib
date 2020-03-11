@@ -1,5 +1,6 @@
 import * as t from 'io-ts';
 import { FeeRate, AutoFeeLevels, UtxoInfo } from '@faast/payments-common';
+import { Numeric } from '@faast/ts-common';
 import { Network as BitcoinjsNetwork } from 'bitcoinjs-lib';
 import { BlockbookBitcoin, BlockInfoBitcoin } from 'blockbook-client';
 export { BitcoinjsNetwork, UtxoInfo };
@@ -26,18 +27,26 @@ export declare type BitcoinishPaymentsConfig = BitcoinishPaymentsUtilsConfig & {
     networkMinRelayFee: number;
     isSegwit: boolean;
     defaultFeeLevel: AutoFeeLevels;
+    targetUtxoPoolSize?: number;
+    minChange?: Numeric;
 };
 export declare const BitcoinishTxOutput: t.TypeC<{
     address: t.StringC;
     value: t.StringC;
 }>;
 export declare type BitcoinishTxOutput = t.TypeOf<typeof BitcoinishTxOutput>;
-export declare const BitcoinishPaymentTx: t.TypeC<{
+export declare const BitcoinishWeightedChangeOutput: t.TypeC<{
+    address: t.StringC;
+    weight: t.NumberC;
+}>;
+export declare type BitcoinishWeightedChangeOutput = t.TypeOf<typeof BitcoinishWeightedChangeOutput>;
+export declare const BitcoinishPaymentTx: t.IntersectionC<[t.TypeC<{
     inputs: t.ArrayC<t.IntersectionC<[t.TypeC<{
         txid: t.StringC;
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
+        satoshis: t.NumberC;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -50,7 +59,17 @@ export declare const BitcoinishPaymentTx: t.TypeC<{
     fee: t.StringC;
     change: t.StringC;
     changeAddress: t.UnionC<[t.StringC, t.NullC]>;
-}>;
+}>, t.PartialC<{
+    externalOutputs: t.ArrayC<t.TypeC<{
+        address: t.StringC;
+        value: t.StringC;
+    }>>;
+    externalOutputTotal: t.StringC;
+    changeOutputs: t.ArrayC<t.TypeC<{
+        address: t.StringC;
+        value: t.StringC;
+    }>>;
+}>]>;
 export declare type BitcoinishPaymentTx = t.TypeOf<typeof BitcoinishPaymentTx>;
 export declare const BitcoinishUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.TypeC<{
     status: t.Type<import("@faast/payments-common").TransactionStatus, import("@faast/payments-common").TransactionStatus, unknown>;
@@ -78,6 +97,7 @@ export declare const BitcoinishUnsignedTransaction: t.IntersectionC<[t.Intersect
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
+        satoshis: t.NumberC;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -117,6 +137,7 @@ export declare const BitcoinishSignedTransaction: t.IntersectionC<[t.Intersectio
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
+        satoshis: t.NumberC;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -338,3 +359,12 @@ export declare const BitcoinishBlock: t.IntersectionC<[t.IntersectionC<[t.TypeC<
     }>]>>;
 }>]>;
 export declare type BitcoinishBlock = BlockInfoBitcoin;
+export declare const PayportOutput: t.TypeC<{
+    payport: t.UnionC<[t.IntersectionC<[t.TypeC<{
+        address: t.StringC;
+    }>, t.PartialC<{
+        extraId: t.UnionC<[t.StringC, t.NullC]>;
+    }>]>, t.StringC, t.NumberC]>;
+    amount: t.UnionC<[t.StringC, t.NumberC, import("@faast/ts-common").BigNumberC]>;
+}>;
+export declare type PayportOutput = t.TypeOf<typeof PayportOutput>;

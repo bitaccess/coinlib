@@ -5,3 +5,4 @@ export * from './helpers';
 export * from './HdBitcoinPayments';
 export * from './BitcoinPaymentsUtils';
 export * from './BitcoinPaymentsFactory';
+export * from './bitcoinish';

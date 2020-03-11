@@ -105,19 +105,15 @@ export function estimateTxFee(satPerByte, inputsCount, outputsCount, handleSegwi
     const mean = Math.ceil((min + max) / 2);
     return mean * satPerByte;
 }
+export function sumUtxoValue(utxos) {
+    return utxos.reduce((total, { value }) => total.plus(value), toBigNumber(0));
+}
 export function sortUtxos(utxoList) {
-    const matureList = [];
-    const immatureList = [];
-    utxoList.forEach((utxo) => {
-        if (utxo.confirmations && utxo.confirmations >= 6) {
-            matureList.push(utxo);
-        }
-        else {
-            immatureList.push(utxo);
-        }
-    });
-    matureList.sort((a, b) => toBigNumber(a.value).minus(b.value).toNumber());
-    immatureList.sort((a, b) => (b.confirmations || 0) - (a.confirmations || 0));
-    return matureList.concat(immatureList);
+    const result = [...utxoList];
+    result.sort((a, b) => toBigNumber(a.value).minus(b.value).toNumber());
+    return result;
+}
+export function isConfirmedUtxo(utxo) {
+    return Boolean(utxo.confirmations || utxo.height);
 }
 //# sourceMappingURL=utils.js.map

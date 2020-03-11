@@ -22,6 +22,8 @@ export declare class HdBitcoinPayments extends BaseBitcoinPayments<HdBitcoinPaym
         } | undefined;
         dustThreshold?: number | undefined;
         networkMinRelayFee?: number | undefined;
+        targetUtxoPoolSize?: number | undefined;
+        minChange?: string | undefined;
         hdKey: string;
     };
     getPublicConfig(): {
@@ -34,6 +36,8 @@ export declare class HdBitcoinPayments extends BaseBitcoinPayments<HdBitcoinPaym
         } | undefined;
         dustThreshold?: number | undefined;
         networkMinRelayFee?: number | undefined;
+        targetUtxoPoolSize?: number | undefined;
+        minChange?: string | undefined;
         derivationPath: string;
     };
     getAccountId(index: number): string;

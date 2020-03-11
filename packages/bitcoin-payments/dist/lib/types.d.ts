@@ -30,6 +30,8 @@ export declare const BaseBitcoinPaymentsConfig: t.IntersectionC<[t.IntersectionC
     }>;
     dustThreshold: t.NumberC;
     networkMinRelayFee: t.NumberC;
+    targetUtxoPoolSize: t.NumberC;
+    minChange: t.StringC;
 }>]>;
 export declare type BaseBitcoinPaymentsConfig = t.TypeOf<typeof BaseBitcoinPaymentsConfig>;
 export declare const HdBitcoinPaymentsConfig: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
@@ -45,6 +47,8 @@ export declare const HdBitcoinPaymentsConfig: t.IntersectionC<[t.IntersectionC<[
     }>;
     dustThreshold: t.NumberC;
     networkMinRelayFee: t.NumberC;
+    targetUtxoPoolSize: t.NumberC;
+    minChange: t.StringC;
 }>]>, t.TypeC<{
     hdKey: t.StringC;
 }>, t.PartialC<{
@@ -64,18 +68,21 @@ export declare const BitcoinPaymentsConfig: t.IntersectionC<[t.IntersectionC<[t.
     }>;
     dustThreshold: t.NumberC;
     networkMinRelayFee: t.NumberC;
+    targetUtxoPoolSize: t.NumberC;
+    minChange: t.StringC;
 }>]>, t.TypeC<{
     hdKey: t.StringC;
 }>, t.PartialC<{
     derivationPath: t.StringC;
 }>]>;
 export declare type BitcoinPaymentsConfig = t.TypeOf<typeof BitcoinPaymentsConfig>;
-export declare const BitcoinUnsignedTransactionData: t.TypeC<{
+export declare const BitcoinUnsignedTransactionData: t.IntersectionC<[t.TypeC<{
     inputs: t.ArrayC<t.IntersectionC<[t.TypeC<{
         txid: t.StringC;
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
+        satoshis: t.NumberC;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -88,7 +95,17 @@ export declare const BitcoinUnsignedTransactionData: t.TypeC<{
     fee: t.StringC;
     change: t.StringC;
     changeAddress: t.UnionC<[t.StringC, t.NullC]>;
-}>;
+}>, t.PartialC<{
+    externalOutputs: t.ArrayC<t.TypeC<{
+        address: t.StringC;
+        value: t.StringC;
+    }>>;
+    externalOutputTotal: t.StringC;
+    changeOutputs: t.ArrayC<t.TypeC<{
+        address: t.StringC;
+        value: t.StringC;
+    }>>;
+}>]>;
 export declare type BitcoinUnsignedTransactionData = t.TypeOf<typeof BitcoinUnsignedTransactionData>;
 export declare const BitcoinUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.TypeC<{
     status: t.Type<import("@faast/payments-common").TransactionStatus, import("@faast/payments-common").TransactionStatus, unknown>;
@@ -116,6 +133,7 @@ export declare const BitcoinUnsignedTransaction: t.IntersectionC<[t.Intersection
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
+        satoshis: t.NumberC;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -127,12 +145,13 @@ export declare const BitcoinUnsignedTransaction: t.IntersectionC<[t.Intersection
 }>]>, t.TypeC<{
     amount: t.StringC;
     fee: t.StringC;
-    data: t.TypeC<{
+    data: t.IntersectionC<[t.TypeC<{
         inputs: t.ArrayC<t.IntersectionC<[t.TypeC<{
             txid: t.StringC;
             vout: t.NumberC;
             value: t.StringC;
         }>, t.PartialC<{
+            satoshis: t.NumberC;
             confirmations: t.NumberC;
             height: t.StringC;
             lockTime: t.StringC;
@@ -145,7 +164,17 @@ export declare const BitcoinUnsignedTransaction: t.IntersectionC<[t.Intersection
         fee: t.StringC;
         change: t.StringC;
         changeAddress: t.UnionC<[t.StringC, t.NullC]>;
-    }>;
+    }>, t.PartialC<{
+        externalOutputs: t.ArrayC<t.TypeC<{
+            address: t.StringC;
+            value: t.StringC;
+        }>>;
+        externalOutputTotal: t.StringC;
+        changeOutputs: t.ArrayC<t.TypeC<{
+            address: t.StringC;
+            value: t.StringC;
+        }>>;
+    }>]>;
 }>]>;
 export declare type BitcoinUnsignedTransaction = t.TypeOf<typeof BitcoinUnsignedTransaction>;
 export declare const BitcoinSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.TypeC<{
@@ -174,6 +203,7 @@ export declare const BitcoinSignedTransaction: t.IntersectionC<[t.IntersectionC<
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
+        satoshis: t.NumberC;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;

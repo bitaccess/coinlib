@@ -9,8 +9,18 @@ export declare const BaseConfig: t.PartialC<{
     logger: import("@faast/ts-common").LoggerC;
 }>;
 export declare type BaseConfig = t.TypeOf<typeof BaseConfig>;
-export declare const AddressOrIndex: t.UnionC<[t.StringC, t.NumberC]>;
-export declare type AddressOrIndex = t.TypeOf<typeof AddressOrIndex>;
+export declare const Payport: t.IntersectionC<[t.TypeC<{
+    address: t.StringC;
+}>, t.PartialC<{
+    extraId: t.UnionC<[t.StringC, t.NullC]>;
+}>]>;
+export declare type Payport = t.TypeOf<typeof Payport>;
+export declare const ResolveablePayport: t.UnionC<[t.IntersectionC<[t.TypeC<{
+    address: t.StringC;
+}>, t.PartialC<{
+    extraId: t.UnionC<[t.StringC, t.NullC]>;
+}>]>, t.StringC, t.NumberC]>;
+export declare type ResolveablePayport = t.TypeOf<typeof ResolveablePayport>;
 export declare enum FeeLevel {
     Custom = "custom",
     Low = "low",
@@ -60,12 +70,18 @@ export declare const UtxoInfo: t.IntersectionC<[t.TypeC<{
     vout: t.NumberC;
     value: t.StringC;
 }>, t.PartialC<{
+    satoshis: t.NumberC;
     confirmations: t.NumberC;
     height: t.StringC;
     lockTime: t.StringC;
     coinbase: t.BooleanC;
 }>]>;
 export declare type UtxoInfo = t.TypeOf<typeof UtxoInfo>;
+export declare const WeightedChangeOutput: t.TypeC<{
+    address: t.StringC;
+    weight: t.NumberC;
+}>;
+export declare type WeightedChangeOutput = t.TypeOf<typeof WeightedChangeOutput>;
 export declare const CreateTransactionOptions: t.IntersectionC<[t.UnionC<[t.IntersectionC<[t.TypeC<{
     feeRate: t.StringC;
     feeRateType: t.Type<FeeRateType, FeeRateType, unknown>;
@@ -81,12 +97,14 @@ export declare const CreateTransactionOptions: t.IntersectionC<[t.UnionC<[t.Inte
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
+        satoshis: t.NumberC;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
         coinbase: t.BooleanC;
     }>]>>;
     useAllUtxos: t.BooleanC;
+    useUnconfirmedUtxos: t.BooleanC;
 }>]>;
 export declare type CreateTransactionOptions = t.TypeOf<typeof CreateTransactionOptions>;
 export declare const GetPayportOptions: t.PartialC<{}>;
@@ -154,6 +172,7 @@ export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
+        satoshis: t.NumberC;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -190,6 +209,7 @@ export declare const BaseSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
+        satoshis: t.NumberC;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -234,12 +254,6 @@ export declare const BaseBroadcastResult: t.TypeC<{
     id: t.StringC;
 }>;
 export declare type BaseBroadcastResult = t.TypeOf<typeof BaseBroadcastResult>;
-export declare const Payport: t.IntersectionC<[t.TypeC<{
-    address: t.StringC;
-}>, t.PartialC<{
-    extraId: t.UnionC<[t.StringC, t.NullC]>;
-}>]>;
-export declare type Payport = t.TypeOf<typeof Payport>;
 export declare const BalanceActivityType: t.UnionC<[t.LiteralC<"in">, t.LiteralC<"out">]>;
 export declare type BalanceActivityType = t.TypeOf<typeof BalanceActivityType>;
 export declare const BalanceActivity: t.TypeC<{
@@ -299,12 +313,6 @@ export declare type FromTo = Pick<BaseUnsignedTransaction, 'fromAddress' | 'from
     fromPayport: Payport;
     toPayport: Payport;
 };
-export declare const ResolveablePayport: t.UnionC<[t.IntersectionC<[t.TypeC<{
-    address: t.StringC;
-}>, t.PartialC<{
-    extraId: t.UnionC<[t.StringC, t.NullC]>;
-}>]>, t.StringC, t.NumberC]>;
-export declare type ResolveablePayport = t.TypeOf<typeof ResolveablePayport>;
 export declare const RetrieveBalanceActivitiesResult: t.TypeC<{
     from: t.StringC;
     to: t.StringC;

@@ -134,6 +134,7 @@ export declare const StellarUnsignedTransaction: t.IntersectionC<[t.Intersection
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
+        satoshis: t.NumberC;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -173,6 +174,7 @@ export declare const StellarSignedTransaction: t.IntersectionC<[t.IntersectionC<
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
+        satoshis: t.NumberC;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -237,12 +239,14 @@ export declare const StellarCreateTransactionOptions: t.IntersectionC<[t.Interse
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
+        satoshis: t.NumberC;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
         coinbase: t.BooleanC;
     }>]>>;
     useAllUtxos: t.BooleanC;
+    useUnconfirmedUtxos: t.BooleanC;
 }>]>, t.PartialC<{
     timeoutSeconds: t.NumberC;
 }>]>;

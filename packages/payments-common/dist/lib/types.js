@@ -10,7 +10,12 @@ export const BaseConfig = t.partial({
     network: NetworkTypeT,
     logger: Logger,
 }, 'BaseConfig');
-export const AddressOrIndex = t.union([t.string, t.number], 'AddressOrIndex');
+export const Payport = requiredOptionalCodec({
+    address: t.string,
+}, {
+    extraId: nullable(t.string),
+}, 'Payport');
+export const ResolveablePayport = t.union([Payport, t.string, t.number], 'ResolveablePayport');
 export var FeeLevel;
 (function (FeeLevel) {
     FeeLevel["Custom"] = "custom";
@@ -47,16 +52,22 @@ export const UtxoInfo = requiredOptionalCodec({
     vout: t.number,
     value: t.string,
 }, {
+    satoshis: t.number,
     confirmations: t.number,
     height: t.string,
     lockTime: t.string,
     coinbase: t.boolean,
 }, 'UtxoInfo');
+export const WeightedChangeOutput = t.type({
+    address: t.string,
+    weight: t.number,
+}, 'WeightedChangeOutput');
 export const CreateTransactionOptions = extendCodec(FeeOption, {}, {
     sequenceNumber: Numeric,
     payportBalance: Numeric,
     utxos: t.array(UtxoInfo),
     useAllUtxos: t.boolean,
+    useUnconfirmedUtxos: t.boolean,
 }, 'CreateTransactionOptions');
 export const GetPayportOptions = t.partial({}, 'GetPayportOptions');
 export const ResolvedFeeOption = t.type({
@@ -131,11 +142,6 @@ export const BaseTransactionInfo = extendCodec(TransactionCommon, {
 export const BaseBroadcastResult = t.type({
     id: t.string,
 }, 'BaseBroadcastResult');
-export const Payport = requiredOptionalCodec({
-    address: t.string,
-}, {
-    extraId: nullable(t.string),
-}, 'Payport');
 export const BalanceActivityType = t.union([t.literal('in'), t.literal('out')], 'BalanceActivityType');
 export const BalanceActivity = t.type({
     type: BalanceActivityType,
@@ -157,7 +163,6 @@ export const GetBalanceActivityOptions = t.partial({
     to: t.union([Numeric, BalanceActivity]),
 }, 'GetBalanceActivityOptions');
 export const BalanceActivityCallback = functionT('BalanceActivityCallback');
-export const ResolveablePayport = t.union([Payport, t.string, t.number], 'ResolveablePayport');
 export const RetrieveBalanceActivitiesResult = t.type({
     from: t.string,
     to: t.string,

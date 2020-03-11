@@ -20,6 +20,8 @@ export const BaseBitcoinPaymentsConfig = extendCodec(BitcoinPaymentsUtilsConfig,
     minTxFee: FeeRate,
     dustThreshold: t.number,
     networkMinRelayFee: t.number,
+    targetUtxoPoolSize: t.number,
+    minChange: t.string,
 }, 'BaseBitcoinPaymentsConfig');
 export const HdBitcoinPaymentsConfig = extendCodec(BaseBitcoinPaymentsConfig, {
     hdKey: t.string,

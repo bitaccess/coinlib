@@ -11,10 +11,59 @@ var bs58 = _interopDefault(require('bs58'));
 var t = require('io-ts');
 var tsCommon = require('@faast/ts-common');
 var blockbookClient = require('blockbook-client');
-var BigNumber = _interopDefault(require('bignumber.js'));
 var lodash = require('lodash');
 var promiseRetry = _interopDefault(require('promise-retry'));
 var bip32 = require('bip32');
+
+class BlockbookServerAPI extends blockbookClient.BlockbookBitcoin {
+}
+const BlockbookConfigServer = t.union([
+    t.string,
+    t.array(t.string),
+    tsCommon.instanceofCodec(BlockbookServerAPI),
+    t.null,
+], 'BlockbookConfigServer');
+const BlockbookConnectedConfig = tsCommon.requiredOptionalCodec({
+    network: paymentsCommon.NetworkTypeT,
+    server: BlockbookConfigServer,
+}, {
+    logger: tsCommon.nullable(tsCommon.Logger),
+}, 'BlockbookConnectedConfig');
+const BitcoinishTxOutput = t.type({
+    address: t.string,
+    value: t.string,
+}, 'BitcoinishTxOutput');
+const BitcoinishWeightedChangeOutput = t.type({
+    address: t.string,
+    weight: t.number,
+}, 'BitcoinishWeightedChangeOutput');
+const BitcoinishPaymentTx = tsCommon.requiredOptionalCodec({
+    inputs: t.array(paymentsCommon.UtxoInfo),
+    outputs: t.array(BitcoinishTxOutput),
+    fee: t.string,
+    change: t.string,
+    changeAddress: tsCommon.nullable(t.string),
+}, {
+    externalOutputs: t.array(BitcoinishTxOutput),
+    externalOutputTotal: t.string,
+    changeOutputs: t.array(BitcoinishTxOutput),
+}, 'BitcoinishPaymentTx');
+const BitcoinishUnsignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseUnsignedTransaction, {
+    amount: t.string,
+    fee: t.string,
+}, 'BitcoinishUnsignedTransaction');
+const BitcoinishSignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseSignedTransaction, {
+    data: t.type({
+        hex: t.string,
+    }),
+}, {}, 'BitcoinishSignedTransaction');
+const BitcoinishTransactionInfo = tsCommon.extendCodec(paymentsCommon.BaseTransactionInfo, {}, {}, 'BitcoinishTransactionInfo');
+const BitcoinishBroadcastResult = tsCommon.extendCodec(paymentsCommon.BaseBroadcastResult, {}, {}, 'BitcoinishBroadcastResult');
+const BitcoinishBlock = blockbookClient.BlockInfoBitcoin;
+const PayportOutput = t.type({
+    payport: paymentsCommon.ResolveablePayport,
+    amount: tsCommon.Numeric,
+}, 'PayportOutput');
 
 function resolveServer(server, network) {
     if (tsCommon.isString(server)) {
@@ -120,59 +169,17 @@ function estimateTxFee(satPerByte, inputsCount, outputsCount, handleSegwit) {
     const mean = Math.ceil((min + max) / 2);
     return mean * satPerByte;
 }
+function sumUtxoValue(utxos) {
+    return utxos.reduce((total, { value }) => total.plus(value), tsCommon.toBigNumber(0));
+}
 function sortUtxos(utxoList) {
-    const matureList = [];
-    const immatureList = [];
-    utxoList.forEach((utxo) => {
-        if (utxo.confirmations && utxo.confirmations >= 6) {
-            matureList.push(utxo);
-        }
-        else {
-            immatureList.push(utxo);
-        }
-    });
-    matureList.sort((a, b) => tsCommon.toBigNumber(a.value).minus(b.value).toNumber());
-    immatureList.sort((a, b) => (b.confirmations || 0) - (a.confirmations || 0));
-    return matureList.concat(immatureList);
+    const result = [...utxoList];
+    result.sort((a, b) => tsCommon.toBigNumber(a.value).minus(b.value).toNumber());
+    return result;
 }
-
-class BlockbookServerAPI extends blockbookClient.BlockbookBitcoin {
+function isConfirmedUtxo(utxo) {
+    return Boolean(utxo.confirmations || utxo.height);
 }
-const BlockbookConfigServer = t.union([
-    t.string,
-    t.array(t.string),
-    tsCommon.instanceofCodec(BlockbookServerAPI),
-    t.null,
-], 'BlockbookConfigServer');
-const BlockbookConnectedConfig = tsCommon.requiredOptionalCodec({
-    network: paymentsCommon.NetworkTypeT,
-    server: BlockbookConfigServer,
-}, {
-    logger: tsCommon.nullable(tsCommon.Logger),
-}, 'BlockbookConnectedConfig');
-const BitcoinishTxOutput = t.type({
-    address: t.string,
-    value: t.string,
-}, 'BitcoinishTxOutput');
-const BitcoinishPaymentTx = t.type({
-    inputs: t.array(paymentsCommon.UtxoInfo),
-    outputs: t.array(BitcoinishTxOutput),
-    fee: t.string,
-    change: t.string,
-    changeAddress: tsCommon.nullable(t.string),
-}, 'BitcoinishPaymentTx');
-const BitcoinishUnsignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseUnsignedTransaction, {
-    amount: t.string,
-    fee: t.string,
-}, 'BitcoinishUnsignedTransaction');
-const BitcoinishSignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseSignedTransaction, {
-    data: t.type({
-        hex: t.string,
-    }),
-}, {}, 'BitcoinishSignedTransaction');
-const BitcoinishTransactionInfo = tsCommon.extendCodec(paymentsCommon.BaseTransactionInfo, {}, {}, 'BitcoinishTransactionInfo');
-const BitcoinishBroadcastResult = tsCommon.extendCodec(paymentsCommon.BaseBroadcastResult, {}, {}, 'BitcoinishBroadcastResult');
-const BitcoinishBlock = blockbookClient.BlockInfoBitcoin;
 
 class BlockbookConnected {
     constructor(config) {
@@ -266,6 +273,12 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
         this.networkMinRelayFee = config.networkMinRelayFee;
         this.isSegwit = config.isSegwit;
         this.defaultFeeLevel = config.defaultFeeLevel;
+        this.targetUtxoPoolSize = tsCommon.isUndefined(config.targetUtxoPoolSize) ? 1 : config.targetUtxoPoolSize;
+        const minChange = tsCommon.toBigNumber(tsCommon.isUndefined(config.minChange) ? 0 : config.minChange);
+        if (minChange.lt(0)) {
+            throw new Error(`invalid minChange amount ${config.minChange}, must be positive`);
+        }
+        this.minChangeSat = this.toBaseDenominationNumber(minChange);
     }
     async init() { }
     async destroy() { }
@@ -297,28 +310,6 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
         else {
             throw new Error('Invalid payport');
         }
-    }
-    _feeRateToSatoshis({ feeRate, feeRateType }, inputCount, outputCount) {
-        if (feeRateType === paymentsCommon.FeeRateType.BasePerWeight) {
-            return estimateTxFee(Number.parseFloat(feeRate), inputCount, outputCount, this.isSegwit);
-        }
-        else if (feeRateType === paymentsCommon.FeeRateType.Main) {
-            return this.toBaseDenominationNumber(feeRate);
-        }
-        return Number.parseFloat(feeRate);
-    }
-    _calculatTxFeeSatoshis(targetRate, inputCount, outputCount) {
-        let feeSat = this._feeRateToSatoshis(targetRate, inputCount, outputCount);
-        if (this.minTxFee) {
-            const minTxFeeSat = this._feeRateToSatoshis(this.minTxFee, inputCount, outputCount);
-            if (feeSat < minTxFeeSat) {
-                feeSat = minTxFeeSat;
-            }
-        }
-        if (feeSat < this.networkMinRelayFee) {
-            feeSat = this.networkMinRelayFee;
-        }
-        return Math.ceil(feeSat);
     }
     async resolveFeeOption(feeOption) {
         let targetLevel;
@@ -371,16 +362,13 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
             const { value, height, lockTime } = data;
             return {
                 ...data,
-                satoshis: value,
+                satoshis: Number.parseInt(value),
                 value: this.toMainDenominationString(value),
                 height: tsCommon.isUndefined(height) ? undefined : String(height),
                 lockTime: tsCommon.isUndefined(lockTime) ? undefined : String(lockTime),
             };
         });
         return utxos;
-    }
-    _sumUtxoValue(utxos) {
-        return utxos.reduce((total, { value }) => tsCommon.toBigNumber(value).plus(total), new BigNumber(0));
     }
     usesSequenceNumber() {
         return false;
@@ -402,110 +390,247 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
             toPayport,
         };
     }
-    async buildPaymentTx(allUtxos, desiredOutputs, changeAddress, desiredFeeRate, useAllUtxos = false) {
-        let outputTotal = 0;
-        const outputs = desiredOutputs.map(({ address, value }) => ({
-            address,
-            satoshis: this.toBaseDenominationNumber(value),
-        }));
-        for (let i = 0; i < outputs.length; i++) {
-            const { address, satoshis } = outputs[i];
-            if (!await this.isValidAddress(address)) {
-                throw new Error(`Invalid ${this.coinSymbol} address ${address} provided for output ${i}`);
-            }
-            if (satoshis <= 0) {
-                throw new Error(`Invalid ${this.coinSymbol} amount ${satoshis} provided for output ${i}`);
-            }
-            outputTotal += satoshis;
+    convertOutputsToExternalFormat(outputs) {
+        return outputs.map(({ address, satoshis }) => ({ address, value: this.toMainDenominationString(satoshis) }));
+    }
+    feeRateToSatoshis({ feeRate, feeRateType }, inputCount, outputCount) {
+        if (feeRateType === paymentsCommon.FeeRateType.BasePerWeight) {
+            return estimateTxFee(Number.parseFloat(feeRate), inputCount, outputCount, this.isSegwit);
         }
-        const outputCount = outputs.length + 1;
-        let inputUtxos = [];
-        let inputTotal = 0;
-        let feeSat = 0;
-        let amountWithFee = outputTotal + feeSat;
+        else if (feeRateType === paymentsCommon.FeeRateType.Main) {
+            return this.toBaseDenominationNumber(feeRate);
+        }
+        return Number.parseFloat(feeRate);
+    }
+    calculateTxFeeSatoshis(targetRate, inputCount, outputCount) {
+        let feeSat = this.feeRateToSatoshis(targetRate, inputCount, outputCount);
+        if (this.minTxFee) {
+            const minTxFeeSat = this.feeRateToSatoshis(this.minTxFee, inputCount, outputCount);
+            if (feeSat < minTxFeeSat) {
+                feeSat = minTxFeeSat;
+            }
+        }
+        if (feeSat < this.networkMinRelayFee) {
+            feeSat = this.networkMinRelayFee;
+        }
+        return Math.ceil(feeSat);
+    }
+    selectInputUtxos(availableUtxos, outputTotal, outputCount, feeRate, useAllUtxos) {
+        const utxos = [];
+        let utxosTotalSat = 0;
+        for (const utxo of availableUtxos) {
+            const satoshis = Math.floor(utxo.satoshis || this.toBaseDenominationNumber(utxo.value));
+            utxosTotalSat += satoshis;
+            utxos.push({
+                ...utxo,
+                satoshis,
+            });
+        }
         if (useAllUtxos) {
-            inputUtxos = allUtxos;
-            inputTotal = this.toBaseDenominationNumber(this._sumUtxoValue(allUtxos));
-            feeSat = this._calculatTxFeeSatoshis(desiredFeeRate, inputUtxos.length, outputCount);
-            amountWithFee = outputTotal + feeSat;
-            this.logger.debug('buildPaymentTx', { inputTotal, feeSat, amountWithFee });
+            return {
+                selectedUtxos: utxos,
+                selectedTotalSat: utxosTotalSat,
+                feeSat: this.calculateTxFeeSatoshis(feeRate, utxos.length, outputCount)
+            };
         }
         else {
-            const sortedUtxos = sortUtxos(allUtxos);
+            const idealSolutionFeeSat = this.calculateTxFeeSatoshis(feeRate, 1, outputCount);
+            const idealSolutionMinSat = outputTotal + idealSolutionFeeSat;
+            const idealSolutionMaxSat = idealSolutionMinSat + this.dustThreshold;
+            for (const utxo of utxos) {
+                if (utxo.satoshis >= idealSolutionMinSat && utxo.satoshis <= idealSolutionMaxSat) {
+                    this.logger.log(`Found ideal ${this.coinSymbol} input utxo solution to send ${outputTotal} sat using single utxo ${utxo.txid}:${utxo.vout}`);
+                    return {
+                        selectedUtxos: [utxo],
+                        selectedTotalSat: utxo.satoshis,
+                        feeSat: idealSolutionFeeSat,
+                    };
+                }
+            }
+            let selectedUtxos = [];
+            let selectedTotalSat = 0;
+            let feeSat = 0;
+            const sortedUtxos = sortUtxos(utxos);
             for (const utxo of sortedUtxos) {
-                inputUtxos.push(utxo);
-                inputTotal = inputTotal + this.toBaseDenominationNumber(utxo.value);
-                feeSat = this._calculatTxFeeSatoshis(desiredFeeRate, inputUtxos.length, outputCount);
-                amountWithFee = outputTotal + feeSat;
-                if (inputTotal >= amountWithFee) {
+                selectedUtxos.push(utxo);
+                selectedTotalSat += utxo.satoshis;
+                feeSat = this.calculateTxFeeSatoshis(feeRate, selectedUtxos.length, outputCount);
+                if (selectedTotalSat >= outputTotal + feeSat) {
                     break;
                 }
             }
+            return {
+                selectedUtxos,
+                selectedTotalSat,
+                feeSat,
+            };
         }
+    }
+    async buildPaymentTx(params) {
+        const { unusedUtxos, desiredOutputs, changeAddress, desiredFeeRate, } = params;
+        const useAllUtxos = tsCommon.isUndefined(params.useAllUtxos) ? false : params.useAllUtxos;
+        const useUnconfirmedUtxos = tsCommon.isUndefined(params.useUnconfirmedUtxos) ? false : params.useUnconfirmedUtxos;
+        const maxOutputCount = desiredOutputs.length + this.targetUtxoPoolSize;
+        let outputTotal = 0;
+        const externalOutputs = [];
+        for (let i = 0; i < desiredOutputs.length; i++) {
+            const { address, value } = desiredOutputs[i];
+            if (!await this.isValidAddress(address)) {
+                throw new Error(`Invalid ${this.coinSymbol} address ${address} provided for output ${i}`);
+            }
+            const satoshis = this.toBaseDenominationNumber(value);
+            if (isNaN(satoshis)) {
+                throw new Error(`Invalid ${this.coinSymbol} value (${value}) provided to createMultiOutputTransaction output ${i} (${address})`);
+            }
+            if (satoshis <= 0) {
+                throw new Error(`Invalid ${this.coinSymbol} positive value (${value}) provided for output ${i} (${address})`);
+            }
+            externalOutputs.push({ address, satoshis });
+            outputTotal += satoshis;
+        }
+        if (!await this.isValidAddress(changeAddress)) {
+            throw new Error(`Invalid ${this.coinSymbol} change address ${changeAddress} provided`);
+        }
+        const availableUtxos = !useUnconfirmedUtxos
+            ? unusedUtxos.filter(isConfirmedUtxo)
+            : unusedUtxos;
+        let { selectedUtxos: inputUtxos, selectedTotalSat: inputTotal, feeSat } = this.selectInputUtxos(availableUtxos, outputTotal, maxOutputCount, desiredFeeRate, useAllUtxos);
+        let amountWithFee = outputTotal + feeSat;
         if (amountWithFee > inputTotal) {
-            const amountWithSymbol = `${this.toMainDenominationString(outputTotal)} ${this.coinSymbol}`;
             if (outputTotal === inputTotal) {
-                this.logger.debug(`Attempting to send entire ${amountWithSymbol} balance. ` +
-                    `Subtracting fee of ${feeSat} sat from first output.`);
-                amountWithFee = outputTotal;
-                outputs[0].satoshis -= feeSat;
-                outputTotal -= feeSat;
-                if (outputs[0].satoshis <= this.dustThreshold) {
-                    throw new Error(`First ${this.coinSymbol} output minus fee is below dust threshold`);
+                const feeShare = Math.ceil(feeSat / externalOutputs.length);
+                feeSat = feeShare * externalOutputs.length;
+                this.logger.log(`${this.coinSymbol} buildPaymentTx - Attempting to send entire ${outputTotal} sat balance. ` +
+                    `Subtracting fee of ${feeSat} sat from ${externalOutputs.length} outputs (${feeShare} sat each)`);
+                for (let i = 0; i < externalOutputs.length; i++) {
+                    const externalOutput = externalOutputs[i];
+                    externalOutput.satoshis -= feeShare;
+                    if (externalOutput.satoshis <= this.dustThreshold) {
+                        throw new Error(`${this.coinSymbol} buildPaymentTx - output ${i} for ${externalOutput.satoshis} ` +
+                            `sat minus ${feeShare} sat fee share is below dust threshold`);
+                    }
                 }
+                amountWithFee = inputTotal;
+                outputTotal -= feeSat;
             }
             else {
-                const { feeRate, feeRateType } = desiredFeeRate;
-                const feeText = `${feeRate} ${feeRateType}${feeRateType === paymentsCommon.FeeRateType.BasePerWeight ? ` (${this.toMainDenominationString(feeSat)})` : ''}`;
-                throw new Error(`You do not have enough UTXOs (${this.toMainDenominationString(inputTotal)}) to send ${amountWithSymbol} with ${feeText} fee`);
+                throw new Error(`${this.coinSymbol} buildPaymentTx - You do not have enough UTXOs (${inputTotal} sat) ` +
+                    `to send ${outputTotal} sat with ${feeSat} sat fee`);
             }
         }
-        let changeSat = inputTotal - amountWithFee;
-        let change = this.toMainDenominationString(changeSat);
-        if (changeSat > this.dustThreshold) {
-            outputs.push({ address: changeAddress, satoshis: changeSat });
+        let totalChangeSat = inputTotal - amountWithFee;
+        this.logger.debug('buildPaymentTx', { inputTotal, feeSat, outputTotal, totalChangeSat });
+        let changeOutputs = [];
+        if (totalChangeSat > this.dustThreshold) {
+            const remainingUtxoCount = unusedUtxos.length - inputUtxos.length;
+            const targetChangeOutputCount = remainingUtxoCount < this.targetUtxoPoolSize
+                ? this.targetUtxoPoolSize - remainingUtxoCount
+                : 1;
+            const changeOutputWeights = this.createWeightedChangeOutputs(targetChangeOutputCount, changeAddress);
+            const totalChangeWeight = changeOutputWeights.reduce((total, { weight }) => total += weight, 0);
+            let totalChangeAllocated = 0;
+            for (let i = 0; i < changeOutputWeights.length; i++) {
+                const { address, weight } = changeOutputWeights[i];
+                const changeSat = Math.floor(totalChangeSat * (weight / totalChangeWeight));
+                if (changeSat <= this.dustThreshold || changeSat < this.minChangeSat) {
+                    this.logger.log(`${this.coinSymbol} buildPaymentTx - desired change output ${i} is below dust threshold or minChange, ` +
+                        'will redistribute to other change outputs or add to fee');
+                }
+                else {
+                    changeOutputs.push({ address, satoshis: changeSat });
+                    totalChangeAllocated += changeSat;
+                }
+            }
+            this.logger.debug({ changeOutputWeights, totalChangeWeight, totalChangeAllocated, changeOutputs });
+            let looseChange = totalChangeSat - totalChangeAllocated;
+            if (looseChange < 0) {
+                throw new Error(`${this.coinSymbol} buildPaymentTx - looseChange should never be negative!`);
+            }
+            else if (changeOutputs.length > 0 && looseChange / changeOutputs.length > 1) {
+                const extraSatPerChangeOutput = Math.floor(looseChange / changeOutputs.length);
+                this.logger.log(`${this.coinSymbol} buildPaymentTx - redistributing looseChange of ${extraSatPerChangeOutput} per change output`);
+                for (let i = 0; i < changeOutputs.length; i++) {
+                    changeOutputs[i].satoshis += extraSatPerChangeOutput;
+                }
+                looseChange -= extraSatPerChangeOutput * changeOutputs.length;
+            }
+            else if (changeOutputs.length === 0 && looseChange > this.dustThreshold) {
+                this.logger.log(`${this.coinSymbol} buildPaymentTx - allocated looseChange towards single ${looseChange} sat change output`);
+                changeOutputs.push({ address: changeAddress, satoshis: looseChange });
+                looseChange = 0;
+            }
+            feeSat += looseChange;
+            totalChangeSat -= looseChange;
         }
-        else if (changeSat > 0) {
-            this.logger.log(`${this.coinSymbol} change of ${changeSat} sat is below dustThreshold of ${this.dustThreshold}, adding to fee`);
-            feeSat += changeSat;
-            changeSat = 0;
-            change = '0';
+        else if (totalChangeSat > 0) {
+            this.logger.log(`${this.coinSymbol} buildPaymentTx - change of ${totalChangeSat} sat is below dustThreshold of ${this.dustThreshold}, adding to fee`);
+            feeSat += totalChangeSat;
+            totalChangeSat = 0;
         }
+        else if (totalChangeSat < 0) {
+            throw new Error(`${this.coinSymbol} buildPaymentTx - totalChangeSat is negative when building tx, this shouldnt happen!`);
+        }
+        const externalOutputsResult = this.convertOutputsToExternalFormat(externalOutputs);
+        const changeOutputsResult = this.convertOutputsToExternalFormat(changeOutputs);
         return {
             inputs: inputUtxos,
-            outputs: outputs.map(({ address, satoshis }) => ({ address, value: this.toMainDenominationString(satoshis) })),
+            outputs: [...externalOutputsResult, ...changeOutputsResult],
             fee: this.toMainDenominationString(feeSat),
-            change,
-            changeAddress,
+            change: this.toMainDenominationString(totalChangeSat),
+            changeAddress: changeOutputs.length === 1 ? changeOutputs[0].address : null,
+            changeOutputs: changeOutputsResult,
+            externalOutputs: externalOutputsResult,
+            externalOutputTotal: this.toMainDenominationString(outputTotal),
         };
     }
-    async createTransaction(from, to, amountNumeric, options = {}) {
-        this.logger.debug('createTransaction', from, to, amountNumeric);
-        const desiredAmount = tsCommon.toBigNumber(amountNumeric);
-        if (desiredAmount.isNaN() || desiredAmount.lte(0)) {
-            throw new Error(`Invalid ${this.coinSymbol} amount provided to createTransaction: ${desiredAmount}`);
+    createWeightedChangeOutputs(changeOutputCount, changeAddress) {
+        const result = [];
+        for (let i = 0; i < changeOutputCount; i++) {
+            result.push({ address: changeAddress, weight: 2 ** i });
         }
-        const { fromIndex, fromAddress, fromExtraId, toIndex, toAddress, toExtraId, } = await this.resolveFromTo(from, to);
-        const allUtxos = tsCommon.isUndefined(options.utxos)
-            ? await this.getUtxos(from)
-            : options.utxos;
-        this.logger.debug('createTransaction allUtxos', allUtxos);
+        return result;
+    }
+    async createTransaction(from, to, amount, options) {
+        return this.createMultiOutputTransaction(from, [{ payport: to, amount }], options);
+    }
+    async createMultiOutputTransaction(from, to, options = {}) {
+        tsCommon.assertType(t.array(PayportOutput), to);
+        this.logger.debug('createMultiOutputTransaction', from, to, options);
+        const unusedUtxos = options.utxos || await this.getUtxos(from);
+        this.logger.debug('createMultiOutputTransaction unusedUtxos', unusedUtxos);
+        const { address: fromAddress } = await this.resolvePayport(from);
+        const desiredOutputs = await Promise.all(to.map(async ({ payport, amount }) => ({
+            address: (await this.resolvePayport(payport)).address,
+            value: String(amount),
+        })));
         const { targetFeeLevel, targetFeeRate, targetFeeRateType } = await this.resolveFeeOption(options);
         this.logger.debug(`createTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`);
-        const paymentTx = await this.buildPaymentTx(allUtxos, [{ address: toAddress, value: desiredAmount.toString() }], fromAddress, { feeRate: targetFeeRate, feeRateType: targetFeeRateType }, options.useAllUtxos);
+        const paymentTx = await this.buildPaymentTx({
+            unusedUtxos,
+            desiredOutputs,
+            changeAddress: fromAddress,
+            desiredFeeRate: { feeRate: targetFeeRate, feeRateType: targetFeeRateType },
+            useAllUtxos: options.useAllUtxos,
+        });
         this.logger.debug('createTransaction data', paymentTx);
         const feeMain = paymentTx.fee;
-        const actualAmount = paymentTx.outputs[0].value;
+        let resultToAddress = 'multi';
+        let resultToIndex = null;
+        if (paymentTx.externalOutputs.length === 1) {
+            const onlyOutput = paymentTx.externalOutputs[0];
+            resultToAddress = onlyOutput.address;
+            resultToIndex = tsCommon.isNumber(to[0].payport) ? to[0].payport : null;
+        }
         return {
             status: paymentsCommon.TransactionStatus.Unsigned,
             id: null,
-            fromIndex,
+            fromIndex: from,
             fromAddress,
-            fromExtraId,
-            toIndex,
-            toAddress,
-            toExtraId,
-            amount: actualAmount,
+            fromExtraId: null,
+            toIndex: resultToIndex,
+            toAddress: resultToAddress,
+            toExtraId: null,
+            amount: paymentTx.externalOutputTotal,
             targetFeeLevel,
             targetFeeRate,
             targetFeeRateType,
@@ -517,21 +642,23 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
     }
     async createSweepTransaction(from, to, options = {}) {
         this.logger.debug('createSweepTransaction', from, to, options);
-        const allUtxos = tsCommon.isUndefined(options.utxos)
+        const availableUtxos = tsCommon.isUndefined(options.utxos)
             ? await this.getUtxos(from)
             : options.utxos;
-        if (allUtxos.length === 0) {
-            throw new Error('No utxos to sweep');
+        if (availableUtxos.length === 0) {
+            throw new Error('No available utxos to sweep');
         }
-        const amount = this._sumUtxoValue(allUtxos);
-        if (!this.isSweepableBalance(amount)) {
-            throw new Error(`Balance ${amount} too low to sweep`);
+        const outputAmount = sumUtxoValue(availableUtxos);
+        if (!this.isSweepableBalance(outputAmount)) {
+            throw new Error(`Available utxo total ${outputAmount} ${this.coinSymbol} too low to sweep`);
         }
-        return this.createTransaction(from, to, amount, {
+        const updatedOptions = {
+            useUnconfirmedUtxos: true,
             ...options,
-            utxos: allUtxos,
+            utxos: availableUtxos,
             useAllUtxos: true,
-        });
+        };
+        return this.createTransaction(from, to, outputAmount, updatedOptions);
     }
     async broadcastTransaction(tx) {
         const txId = await this._retryDced(() => this.getApi().sendTx(tx.data.hex));
@@ -597,6 +724,8 @@ const BaseBitcoinPaymentsConfig = tsCommon.extendCodec(BitcoinPaymentsUtilsConfi
     minTxFee: paymentsCommon.FeeRate,
     dustThreshold: t.number,
     networkMinRelayFee: t.number,
+    targetUtxoPoolSize: t.number,
+    minChange: t.string,
 }, 'BaseBitcoinPaymentsConfig');
 const HdBitcoinPaymentsConfig = tsCommon.extendCodec(BaseBitcoinPaymentsConfig, {
     hdKey: t.string,
@@ -963,11 +1092,15 @@ exports.BitcoinUnsignedTransactionData = BitcoinUnsignedTransactionData;
 exports.BitcoinishBlock = BitcoinishBlock;
 exports.BitcoinishBroadcastResult = BitcoinishBroadcastResult;
 exports.BitcoinishPaymentTx = BitcoinishPaymentTx;
+exports.BitcoinishPayments = BitcoinishPayments;
+exports.BitcoinishPaymentsUtils = BitcoinishPaymentsUtils;
 exports.BitcoinishSignedTransaction = BitcoinishSignedTransaction;
 exports.BitcoinishTransactionInfo = BitcoinishTransactionInfo;
 exports.BitcoinishTxOutput = BitcoinishTxOutput;
 exports.BitcoinishUnsignedTransaction = BitcoinishUnsignedTransaction;
+exports.BitcoinishWeightedChangeOutput = BitcoinishWeightedChangeOutput;
 exports.BlockbookConfigServer = BlockbookConfigServer;
+exports.BlockbookConnected = BlockbookConnected;
 exports.BlockbookConnectedConfig = BlockbookConnectedConfig;
 exports.BlockbookServerAPI = BlockbookServerAPI;
 exports.COIN_NAME = COIN_NAME;
@@ -988,6 +1121,7 @@ exports.HdBitcoinPaymentsConfig = HdBitcoinPaymentsConfig;
 exports.NETWORK_MAINNET = NETWORK_MAINNET;
 exports.NETWORK_TESTNET = NETWORK_TESTNET;
 exports.PACKAGE_NAME = PACKAGE_NAME;
+exports.PayportOutput = PayportOutput;
 exports.isValidAddress = isValidAddress;
 exports.isValidExtraId = isValidExtraId;
 exports.isValidPrivateKey = isValidPrivateKey;

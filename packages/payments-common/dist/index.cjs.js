@@ -17,7 +17,12 @@ const BaseConfig = t.partial({
     network: NetworkTypeT,
     logger: tsCommon.Logger,
 }, 'BaseConfig');
-const AddressOrIndex = t.union([t.string, t.number], 'AddressOrIndex');
+const Payport = tsCommon.requiredOptionalCodec({
+    address: t.string,
+}, {
+    extraId: tsCommon.nullable(t.string),
+}, 'Payport');
+const ResolveablePayport = t.union([Payport, t.string, t.number], 'ResolveablePayport');
 (function (FeeLevel) {
     FeeLevel["Custom"] = "custom";
     FeeLevel["Low"] = "low";
@@ -52,16 +57,22 @@ const UtxoInfo = tsCommon.requiredOptionalCodec({
     vout: t.number,
     value: t.string,
 }, {
+    satoshis: t.number,
     confirmations: t.number,
     height: t.string,
     lockTime: t.string,
     coinbase: t.boolean,
 }, 'UtxoInfo');
+const WeightedChangeOutput = t.type({
+    address: t.string,
+    weight: t.number,
+}, 'WeightedChangeOutput');
 const CreateTransactionOptions = tsCommon.extendCodec(FeeOption, {}, {
     sequenceNumber: tsCommon.Numeric,
     payportBalance: tsCommon.Numeric,
     utxos: t.array(UtxoInfo),
     useAllUtxos: t.boolean,
+    useUnconfirmedUtxos: t.boolean,
 }, 'CreateTransactionOptions');
 const GetPayportOptions = t.partial({}, 'GetPayportOptions');
 const ResolvedFeeOption = t.type({
@@ -135,11 +146,6 @@ const BaseTransactionInfo = tsCommon.extendCodec(TransactionCommon, {
 const BaseBroadcastResult = t.type({
     id: t.string,
 }, 'BaseBroadcastResult');
-const Payport = tsCommon.requiredOptionalCodec({
-    address: t.string,
-}, {
-    extraId: tsCommon.nullable(t.string),
-}, 'Payport');
 const BalanceActivityType = t.union([t.literal('in'), t.literal('out')], 'BalanceActivityType');
 const BalanceActivity = t.type({
     type: BalanceActivityType,
@@ -161,7 +167,6 @@ const GetBalanceActivityOptions = t.partial({
     to: t.union([tsCommon.Numeric, BalanceActivity]),
 }, 'GetBalanceActivityOptions');
 const BalanceActivityCallback = tsCommon.functionT('BalanceActivityCallback');
-const ResolveablePayport = t.union([Payport, t.string, t.number], 'ResolveablePayport');
 const RetrieveBalanceActivitiesResult = t.type({
     from: t.string,
     to: t.string,
@@ -228,7 +233,6 @@ class PaymentsError extends Error {
     }
 }
 
-exports.AddressOrIndex = AddressOrIndex;
 exports.AutoFeeLevels = AutoFeeLevels;
 exports.BalanceActivity = BalanceActivity;
 exports.BalanceActivityCallback = BalanceActivityCallback;
@@ -258,6 +262,7 @@ exports.RetrieveBalanceActivitiesResult = RetrieveBalanceActivitiesResult;
 exports.TransactionCommon = TransactionCommon;
 exports.TransactionStatusT = TransactionStatusT;
 exports.UtxoInfo = UtxoInfo;
+exports.WeightedChangeOutput = WeightedChangeOutput;
 exports.createUnitConverters = createUnitConverters;
 exports.isMatchingError = isMatchingError;
 //# sourceMappingURL=index.cjs.js.map
