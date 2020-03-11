@@ -233,7 +233,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const utxos: Array<UtxoInfo & { satoshis: number }> = []
     let utxosTotalSat = 0
     for (const utxo of availableUtxos) {
-      const satoshis = Math.floor(utxo.satoshis || this.toBaseDenominationNumber(utxo.value))
+      const satoshis = isUndefined(utxo.satoshis)
+        ? this.toBaseDenominationNumber(utxo.value)
+        : toBigNumber(utxo.satoshis).integerValue(BigNumber.ROUND_DOWN).toNumber()
       utxosTotalSat += satoshis
       utxos.push({
         ...utxo,
