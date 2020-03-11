@@ -1,9 +1,9 @@
 import * as t from 'io-ts'
 import {
   BaseUnsignedTransaction, BaseSignedTransaction, FeeRate, AutoFeeLevels,
-  BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, NetworkTypeT,
+  BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, NetworkTypeT, ResolveablePayport,
 } from '@faast/payments-common'
-import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger } from '@faast/ts-common'
+import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger, Numeric } from '@faast/ts-common'
 import { Network as BitcoinjsNetwork } from 'bitcoinjs-lib'
 import { BlockbookBitcoin, BlockInfoBitcoin } from 'blockbook-client'
 
@@ -45,6 +45,8 @@ export type BitcoinishPaymentsConfig = BitcoinishPaymentsUtilsConfig & {
   networkMinRelayFee: number,
   isSegwit: boolean,
   defaultFeeLevel: AutoFeeLevels,
+  targetUtxoPoolSize?: number, // # of available utxos to try and maintain
+  minChange?: Numeric, // Soft minimum for each change generated to maintain utxo pool
 }
 
 export const BitcoinishTxOutput = t.type({
@@ -53,13 +55,38 @@ export const BitcoinishTxOutput = t.type({
 }, 'BitcoinishTxOutput')
 export type BitcoinishTxOutput = t.TypeOf<typeof BitcoinishTxOutput>
 
-export const BitcoinishPaymentTx = t.type({
-  inputs: t.array(UtxoInfo),
-  outputs: t.array(BitcoinishTxOutput),
-  fee: t.string,
-  change: t.string,
-  changeAddress: nullable(t.string),
-}, 'BitcoinishPaymentTx')
+export const BitcoinishWeightedChangeOutput = t.type({
+  address: t.string,
+  weight: t.number,
+}, 'BitcoinishWeightedChangeOutput')
+export type BitcoinishWeightedChangeOutput = t.TypeOf<typeof BitcoinishWeightedChangeOutput>
+
+/**
+ * An object representing a Bitcoin like transaction (UTXO based) with inputs and outputs.
+ *
+ * The externalOutputs and changeOutputs fields are optional for back compat. Single change output
+ * transactions use the changeAddress field. Multi change outputs transactions will leave
+ * changeAddress null.
+ */
+export const BitcoinishPaymentTx = requiredOptionalCodec(
+  {
+    inputs: t.array(UtxoInfo),
+    // All external and change outputs
+    outputs: t.array(BitcoinishTxOutput),
+    fee: t.string,
+    change: t.string,
+    changeAddress: nullable(t.string),
+  },
+  {
+    // Outputs specified by transaction creator
+    externalOutputs: t.array(BitcoinishTxOutput),
+    // Total of external outputs in main denom
+    externalOutputTotal: t.string,
+    // Transactions with multiple change outputs
+    changeOutputs: t.array(BitcoinishTxOutput),
+  },
+  'BitcoinishPaymentTx'
+)
 export type BitcoinishPaymentTx = t.TypeOf<typeof BitcoinishPaymentTx>
 
 export const BitcoinishUnsignedTransaction = extendCodec(
@@ -87,3 +114,9 @@ export type BitcoinishBroadcastResult = t.TypeOf<typeof BitcoinishBroadcastResul
 
 export const BitcoinishBlock = BlockInfoBitcoin
 export type BitcoinishBlock = BlockInfoBitcoin
+
+export const PayportOutput = t.type({
+  payport: ResolveablePayport,
+  amount: Numeric,
+}, 'PayportOutput')
+export type PayportOutput = t.TypeOf<typeof PayportOutput>

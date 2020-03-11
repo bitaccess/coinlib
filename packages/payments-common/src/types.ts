@@ -25,8 +25,19 @@ export const BaseConfig = t.partial(
 )
 export type BaseConfig = t.TypeOf<typeof BaseConfig>
 
-export const AddressOrIndex = t.union([t.string, t.number], 'AddressOrIndex')
-export type AddressOrIndex = t.TypeOf<typeof AddressOrIndex>
+export const Payport = requiredOptionalCodec(
+  {
+    address: t.string,
+  },
+  {
+    extraId: nullable(t.string),
+  },
+  'Payport',
+)
+export type Payport = t.TypeOf<typeof Payport>
+
+export const ResolveablePayport = t.union([Payport, t.string, t.number], 'ResolveablePayport')
+export type ResolveablePayport = t.TypeOf<typeof ResolveablePayport>
 
 export enum FeeLevel {
   Custom = 'custom',
@@ -84,6 +95,7 @@ export const UtxoInfo = requiredOptionalCodec(
     value: t.string, // main denomination
   },
   {
+    satoshis: t.number,
     confirmations: t.number,
     height: t.string,
     lockTime: t.string,
@@ -93,14 +105,24 @@ export const UtxoInfo = requiredOptionalCodec(
 )
 export type UtxoInfo = t.TypeOf<typeof UtxoInfo>
 
+export const WeightedChangeOutput = t.type(
+  {
+    address: t.string,
+    weight: t.number,
+  },
+  'WeightedChangeOutput',
+)
+export type WeightedChangeOutput = t.TypeOf<typeof WeightedChangeOutput>
+
 export const CreateTransactionOptions = extendCodec(
   FeeOption,
   {},
   {
-    sequenceNumber: Numeric,
-    payportBalance: Numeric,
-    utxos: t.array(UtxoInfo),
-    useAllUtxos: t.boolean,
+    sequenceNumber: Numeric, // Ripple/Stellar/Ethereum sequence number or nonce
+    payportBalance: Numeric, // Spendable balance at the from payport (useful in conjunction with a BalanceMonitor)
+    utxos: t.array(UtxoInfo), // Available utxos - ones that can be used
+    useAllUtxos: t.boolean, // Uses all available utxos (sweep)
+    useUnconfirmedUtxos: t.boolean,
   },
   'CreateTransactionOptions',
 )
@@ -225,17 +247,6 @@ export const BaseBroadcastResult = t.type(
 )
 export type BaseBroadcastResult = t.TypeOf<typeof BaseBroadcastResult>
 
-export const Payport = requiredOptionalCodec(
-  {
-    address: t.string,
-  },
-  {
-    extraId: nullable(t.string),
-  },
-  'Payport',
-)
-export type Payport = t.TypeOf<typeof Payport>
-
 export const BalanceActivityType = t.union([t.literal('in'), t.literal('out')], 'BalanceActivityType')
 export type BalanceActivityType = t.TypeOf<typeof BalanceActivityType>
 
@@ -277,9 +288,6 @@ export type FromTo = Pick<
   BaseUnsignedTransaction,
   'fromAddress' | 'fromIndex' | 'fromExtraId' | 'toAddress' | 'toIndex' | 'toExtraId'
 > & { fromPayport: Payport; toPayport: Payport }
-
-export const ResolveablePayport = t.union([Payport, t.string, t.number], 'ResolveablePayport')
-export type ResolveablePayport = t.TypeOf<typeof ResolveablePayport>
 
 export const RetrieveBalanceActivitiesResult = t.type(
   {

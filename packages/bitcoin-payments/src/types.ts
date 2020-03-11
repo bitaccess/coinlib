@@ -3,7 +3,7 @@ import {
   BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, FeeRate,
   BaseTransactionInfo, BaseBroadcastResult, UtxoInfo,
 } from '@faast/payments-common'
-import { extendCodec, enumCodec } from '@faast/ts-common'
+import { extendCodec, enumCodec, Numeric } from '@faast/ts-common'
 import { Network as BitcoinjsNetwork } from 'bitcoinjs-lib'
 import { BlockInfoBitcoin } from 'blockbook-client'
 import { BitcoinishPaymentTx, BlockbookConfigServer } from './bitcoinish'
@@ -36,6 +36,8 @@ export const BaseBitcoinPaymentsConfig = extendCodec(
     minTxFee: FeeRate,
     dustThreshold: t.number,
     networkMinRelayFee: t.number,
+    targetUtxoPoolSize: t.number, // # of available utxos to try and maintain
+    minChange: t.string, // Soft minimum for each change generated to maintain utxo pool
   },
   'BaseBitcoinPaymentsConfig',
 )

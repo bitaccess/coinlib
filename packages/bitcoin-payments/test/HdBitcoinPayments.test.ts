@@ -1,17 +1,158 @@
-import { NetworkType } from '@faast/payments-common'
+import { NetworkType, FeeRateType } from '@faast/payments-common';
 
 import {
   HdBitcoinPayments, HdBitcoinPaymentsConfig, AddressType,
 } from '../src'
 
 import { EXTERNAL_ADDRESS, signedTx_valid, signedTx_invalid, accountsByAddressType, AccountFixture } from './fixtures'
-import { logger } from './utils'
+import { logger, makeUtxos, makeOutputs } from './utils'
+import { toBigNumber } from '@faast/ts-common';
 
 describe('HdBitcoinPayments', () => {
 
   describe('static', () => {
     it('should throw on invalid hdKey', () => {
       expect(() => new HdBitcoinPayments({ hdKey: 'invalid' })).toThrow()
+    })
+  })
+
+  describe('buildPaymentTx', () => {
+    const account = accountsByAddressType.p2wpkh
+    const changeAddress = account.addresses[0]
+    const feeMain = '0.001'
+    const desiredFeeRate = { feeRate: feeMain, feeRateType: FeeRateType.Main }
+    const minChange = '0.01'
+    const targetUtxoPoolSize = 4
+    const payments = new HdBitcoinPayments({
+      hdKey: account.xpub,
+      addressType: AddressType.SegwitNative,
+      logger,
+      minChange,
+      targetUtxoPoolSize,
+    })
+    it('sweep from single confirmed utxo', async () => {
+      const utxos = makeUtxos(['0.05'], ['0.06'])
+      const outputs = [{ address: EXTERNAL_ADDRESS, value: '0.05' }]
+      const paymentTx = await payments.buildPaymentTx({
+        unusedUtxos: utxos,
+        desiredOutputs: outputs,
+        changeAddress,
+        desiredFeeRate,
+        useAllUtxos: true,
+        useUnconfirmedUtxos: false,
+      })
+      const expectedOutputs = [{ address: EXTERNAL_ADDRESS, value: '0.049' }]
+      expect(paymentTx.inputs).toEqual([utxos[0]])
+      expect(paymentTx.outputs).toEqual(expectedOutputs)
+      expect(paymentTx.changeOutputs).toEqual([])
+      expect(paymentTx.externalOutputs).toEqual(expectedOutputs)
+      expect(paymentTx.externalOutputTotal).toBe('0.049')
+      expect(paymentTx.change).toBe('0')
+      expect(paymentTx.changeAddress).toBe(null)
+      expect(paymentTx.fee).toBe(feeMain)
+    })
+    it('sweep from multiple confirmed and unconfirmed utxo', async () => {
+      const utxos = makeUtxos(['0.05', '0.1'], ['2.2'])
+      const outputs = [{ address: EXTERNAL_ADDRESS, value: '2.35' }]
+      const paymentTx = await payments.buildPaymentTx({
+        unusedUtxos: utxos,
+        desiredOutputs: outputs,
+        changeAddress,
+        desiredFeeRate,
+        useAllUtxos: true,
+        useUnconfirmedUtxos: true,
+      })
+      const expectedOutputs = [{ address: EXTERNAL_ADDRESS, value: '2.349' }]
+      expect(paymentTx.inputs).toEqual(utxos)
+      expect(paymentTx.outputs).toEqual(expectedOutputs)
+      expect(paymentTx.changeOutputs).toEqual([])
+      expect(paymentTx.externalOutputs).toEqual(expectedOutputs)
+      expect(paymentTx.externalOutputTotal).toBe('2.349')
+      expect(paymentTx.change).toBe('0')
+      expect(paymentTx.changeAddress).toBe(null)
+      expect(paymentTx.fee).toBe(feeMain)
+    })
+    it('send using single ideal utxo', async () => {
+      const utxos = makeUtxos(['0.1', '0.8', '1.5'], ['3'])
+      const outputs = [{ address: EXTERNAL_ADDRESS, value: '0.799' }]
+      const paymentTx = await payments.buildPaymentTx({
+        unusedUtxos: utxos,
+        desiredOutputs: outputs,
+        changeAddress,
+        desiredFeeRate,
+        useAllUtxos: false,
+        useUnconfirmedUtxos: false,
+      })
+      expect(paymentTx.inputs).toEqual([utxos[1]])
+      expect(paymentTx.outputs).toEqual(outputs)
+      expect(paymentTx.changeOutputs).toEqual([])
+      expect(paymentTx.externalOutputs).toEqual(outputs)
+      expect(paymentTx.externalOutputTotal).toBe('0.799')
+      expect(paymentTx.change).toBe('0')
+      expect(paymentTx.changeAddress).toBe(null)
+      expect(paymentTx.fee).toBe(feeMain)
+    })
+    it('send using multiple utxos with single small change output', async () => {
+      const utxos = makeUtxos(['1', '1.001'], ['3'])
+      const outputs = [{ address: EXTERNAL_ADDRESS, value: '1.995' }]
+      const paymentTx = await payments.buildPaymentTx({
+        unusedUtxos: utxos,
+        desiredOutputs: outputs,
+        changeAddress,
+        desiredFeeRate,
+        useAllUtxos: false,
+        useUnconfirmedUtxos: false,
+      })
+      const changeOutputs = makeOutputs(changeAddress, '0.005')
+      expect(paymentTx.inputs).toEqual(utxos.slice(0,2))
+      expect(paymentTx.outputs).toEqual([...outputs, ...changeOutputs])
+      expect(paymentTx.changeOutputs).toEqual(changeOutputs)
+      expect(paymentTx.externalOutputs).toEqual(outputs)
+      expect(paymentTx.externalOutputTotal).toBe('1.995')
+      expect(paymentTx.change).toBe('0.005')
+      expect(paymentTx.changeAddress).toBe(changeAddress)
+      expect(paymentTx.fee).toBe(feeMain)
+    })
+    it('send using multiple utxos with multiple change outputs', async () => {
+      const utxos = makeUtxos(['1', '1.001', '1.7'], ['4'])
+      const outputs = [{ address: EXTERNAL_ADDRESS, value: '3' }]
+      const paymentTx = await payments.buildPaymentTx({
+        unusedUtxos: utxos,
+        desiredOutputs: outputs,
+        changeAddress,
+        desiredFeeRate,
+        useAllUtxos: false,
+        useUnconfirmedUtxos: false,
+      })
+      const changeOutputs = makeOutputs(changeAddress, '0.1', '0.2', '0.4')
+      expect(paymentTx.inputs).toEqual(utxos.slice(0,3))
+      expect(paymentTx.outputs).toEqual([...outputs, ...changeOutputs])
+      expect(paymentTx.changeOutputs).toEqual(changeOutputs)
+      expect(paymentTx.externalOutputs).toEqual(outputs)
+      expect(paymentTx.externalOutputTotal).toBe('3')
+      expect(paymentTx.change).toBe('0.7')
+      expect(paymentTx.changeAddress).toBe(null)
+      expect(paymentTx.fee).toBe(feeMain)
+    })
+    it('change below dust threshold gets added to fee', async () => {
+      const utxos = makeUtxos(['1', '1.001'])
+      const outputs = [{ address: EXTERNAL_ADDRESS, value: '1.999999' }]
+      const paymentTx = await payments.buildPaymentTx({
+        unusedUtxos: utxos,
+        desiredOutputs: outputs,
+        changeAddress,
+        desiredFeeRate,
+        useAllUtxos: false,
+        useUnconfirmedUtxos: false,
+      })
+      expect(paymentTx.inputs).toEqual(utxos)
+      expect(paymentTx.outputs).toEqual(outputs)
+      expect(paymentTx.changeOutputs).toEqual([])
+      expect(paymentTx.externalOutputs).toEqual(outputs)
+      expect(paymentTx.externalOutputTotal).toBe('1.999999')
+      expect(paymentTx.change).toBe('0')
+      expect(paymentTx.changeAddress).toBe(null)
+      expect(paymentTx.fee).toBe(toBigNumber(feeMain).plus('0.000001').toString())
     })
   })
 

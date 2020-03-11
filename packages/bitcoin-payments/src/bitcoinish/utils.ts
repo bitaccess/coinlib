@@ -3,6 +3,7 @@ import { BlockbookConnectedConfig } from './types'
 import { BlockbookBitcoin } from 'blockbook-client'
 import { isString, Logger, isMatchingError, toBigNumber } from '@faast/ts-common'
 import promiseRetry from 'promise-retry'
+import BigNumber from 'bignumber.js'
 
 export function resolveServer(server: BlockbookConnectedConfig['server'], network: NetworkType): {
   api: BlockbookBitcoin
@@ -123,19 +124,21 @@ export function estimateTxFee (satPerByte: number, inputsCount: number, outputsC
 }
 
 /**
+ * Sum the utxos values (main denomination)
+ */
+export function sumUtxoValue(utxos: UtxoInfo[]): BigNumber {
+  return utxos.reduce((total, { value }) => total.plus(value), toBigNumber(0))
+}
+
+/**
  * Sort the utxos for input selection
  */
-export function sortUtxos(utxoList: UtxoInfo[]): UtxoInfo[] {
-  const matureList: UtxoInfo[] = []
-  const immatureList: UtxoInfo[] = []
-  utxoList.forEach((utxo) => {
-    if (utxo.confirmations && utxo.confirmations >= 6) {
-      matureList.push(utxo)
-    } else {
-      immatureList.push(utxo)
-    }
-  })
-  matureList.sort((a, b) => toBigNumber(a.value).minus(b.value).toNumber()) // Ascending order by value
-  immatureList.sort((a, b) => (b.confirmations || 0) - (a.confirmations || 0)) // Descending order by confirmations
-  return matureList.concat(immatureList)
+export function sortUtxos<T extends UtxoInfo>(utxoList: T[]): T[] {
+  const result = [...utxoList]
+  result.sort((a, b) => toBigNumber(a.value).minus(b.value).toNumber()) // Ascending order by value
+  return result
+}
+
+export function isConfirmedUtxo(utxo: UtxoInfo): boolean {
+  return Boolean(utxo.confirmations || utxo.height)
 }
