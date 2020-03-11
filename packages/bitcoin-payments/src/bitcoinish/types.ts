@@ -40,6 +40,8 @@ export type BitcoinishPaymentsConfig = BitcoinishPaymentsUtilsConfig & {
   networkMinRelayFee: number,
   isSegwit: boolean,
   defaultFeeLevel: AutoFeeLevels,
+  targetUtxoPoolSize?: number, // # of available utxos to try and maintain
+  minChange?: Numeric, // Soft minimum for each change generated to maintain utxo pool
 }
 
 export const BitcoinishTxOutput = t.type({

@@ -121,11 +121,8 @@ export const CreateTransactionOptions = extendCodec(
     sequenceNumber: Numeric, // Ripple/Stellar/Ethereum sequence number or nonce
     payportBalance: Numeric, // Spendable balance at the from payport (useful in conjunction with a BalanceMonitor)
     utxos: t.array(UtxoInfo), // Available utxos - ones that can be used
-    allUtxos: t.array(UtxoInfo), // All utxos reported by network
-    useAllUtxos: t.boolean, // Uses all available utxos
-    useUnconfirmedUtxos: t.boolean, // true if unconfirmed utxos should be used
-    targetUtxoPoolSize: t.number, // # of available utxos to try and maintain
-    minChange: Numeric, // Soft minimum for each change generated to maintain utxo pool
+    useAllUtxos: t.boolean, // Uses all available utxos (sweep)
+    useUnconfirmedUtxos: t.boolean,
   },
   'CreateTransactionOptions',
 )

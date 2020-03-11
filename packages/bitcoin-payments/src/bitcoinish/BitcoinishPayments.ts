@@ -21,6 +21,7 @@ import {
 } from './types'
 import { estimateTxFee, sumUtxoValue, sortUtxos, isConfirmedUtxo } from './utils'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
+import BigNumber from 'bignumber.js'
 
 export abstract class BitcoinishPayments<Config extends BaseConfig> extends BitcoinishPaymentsUtils
   implements BasePayments<
@@ -33,10 +34,12 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   coinSymbol: string
   coinName: string
   minTxFee?: FeeRate
-  dustThreshold: number
-  networkMinRelayFee: number
+  dustThreshold: number // base denom
+  networkMinRelayFee: number // base denom
   isSegwit: boolean
   defaultFeeLevel: AutoFeeLevels
+  targetUtxoPoolSize: number
+  minChangeSat: number
 
   constructor(config: BitcoinishPaymentsConfig) {
     super(config)
@@ -49,6 +52,12 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     this.networkMinRelayFee = config.networkMinRelayFee
     this.isSegwit = config.isSegwit
     this.defaultFeeLevel = config.defaultFeeLevel
+    this.targetUtxoPoolSize = isUndefined(config.targetUtxoPoolSize) ? 1 : config.targetUtxoPoolSize
+    const minChange = toBigNumber(isUndefined(config.minChange) ? 0 : config.minChange)
+    if (minChange.lt(0)) {
+      throw new Error(`invalid minChange amount ${config.minChange}, must be positive`)
+    }
+    this.minChangeSat = this.toBaseDenominationNumber(minChange)
   }
 
   abstract getFullConfig(): Config
@@ -285,30 +294,21 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
    * then converted back to strings before being returned.
    */
   async buildPaymentTx(params: {
-    unusedUtxos: UtxoInfo[], // Utxos not already taken by unbroadcast txs
-    allUtxos: UtxoInfo[], // All utxos as reported by network
+    unusedUtxos: UtxoInfo[], // Utxos not already taken by pending txs
     desiredOutputs: BitcoinishTxOutput[],
     changeAddress: string,
     desiredFeeRate: FeeRate,
     useAllUtxos?: boolean,
-    useUnconfirmedUtxos?: boolean,
-    minChange?: Numeric, // Main denomination
-    targetUtxoPoolSize?: number,
+    useUnconfirmedUtxos?: boolean, // true if unconfirmed utxos should be used
   }): Promise<Required<BitcoinishPaymentTx>> {
     const {
-      unusedUtxos, allUtxos, desiredOutputs, changeAddress, desiredFeeRate,
+      unusedUtxos, desiredOutputs, changeAddress, desiredFeeRate,
     } = params
     const useAllUtxos = isUndefined(params.useAllUtxos) ? false : params.useAllUtxos
     const useUnconfirmedUtxos = isUndefined(params.useUnconfirmedUtxos) ? false : params.useUnconfirmedUtxos
-    const targetUtxoPoolSize = isUndefined(params.targetUtxoPoolSize) ? 1 : params.targetUtxoPoolSize
-    const minChange = toBigNumber(isUndefined(params.minChange) ? this.dustThreshold : params.minChange)
-    if (minChange.lt(0)) {
-      throw new Error(`buildPaymentTx - invalid minChange amount ${minChange}, must be positive`)
-    }
-    const minChangeSat = this.toBaseDenominationNumber(minChange)
     // The maximum # of outputs this tx will have. It could have less if some change outputs are dropped
     // for being too small.
-    const maxOutputCount = desiredOutputs.length + targetUtxoPoolSize
+    const maxOutputCount = desiredOutputs.length + this.targetUtxoPoolSize
     // sum of non change output value in satoshis
     let outputTotal = 0
     // Convert output values to satoshis for convenient math
@@ -383,8 +383,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       // Don't use availableUtxo.length here because unconfirmed still count towards pool count
       const remainingUtxoCount = unusedUtxos.length - inputUtxos.length
       // Determine how many change outputs to use to maintain target pool size
-      const targetChangeOutputCount = remainingUtxoCount < targetUtxoPoolSize
-        ? targetUtxoPoolSize - remainingUtxoCount
+      const targetChangeOutputCount = remainingUtxoCount < this.targetUtxoPoolSize
+        ? this.targetUtxoPoolSize - remainingUtxoCount
         : 1
 
       const changeOutputWeights = this.createWeightedChangeOutputs(targetChangeOutputCount, changeAddress)
@@ -394,7 +394,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         const { address, weight } = changeOutputWeights[i]
         // Distribute change proportional to each change outputs weight. Floored to not exceed inputTotal
         const changeSat = Math.floor(totalChangeSat * (weight / totalChangeWeight))
-        if (changeSat <= this.dustThreshold || changeSat < minChangeSat) {
+        if (changeSat <= this.dustThreshold || changeSat < this.minChangeSat) {
           this.logger.log(
             `${this.coinSymbol} buildPaymentTx - desired change output ${i} is below dust threshold or minChange, ` +
             'will redistribute to other change outputs or add to fee'
@@ -478,10 +478,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     assertType(t.array(PayportOutput), to)
     this.logger.debug('createMultiOutputTransaction', from, to, options)
 
-    const allUtxos = options.allUtxos || await this.getUtxos(from)
-    this.logger.debug('createMultiOutputTransaction allUtxos', allUtxos)
-
-    const unusedUtxos = options.utxos || allUtxos
+    const unusedUtxos = options.utxos || await this.getUtxos(from)
     this.logger.debug('createMultiOutputTransaction unusedUtxos', unusedUtxos)
 
     const { address: fromAddress } = await this.resolvePayport(from)
@@ -496,12 +493,10 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
     const paymentTx = await this.buildPaymentTx({
       unusedUtxos,
-      allUtxos,
       desiredOutputs,
       changeAddress: fromAddress,
       desiredFeeRate: { feeRate: targetFeeRate, feeRateType: targetFeeRateType },
       useAllUtxos: options.useAllUtxos,
-      targetUtxoPoolSize: options.targetUtxoPoolSize,
     })
     this.logger.debug('createTransaction data', paymentTx)
     const feeMain = paymentTx.fee
@@ -541,8 +536,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   ): Promise<BitcoinishUnsignedTransaction> {
     this.logger.debug('createSweepTransaction', from, to, options)
 
-    const allUtxos = await this.getUtxos(from)
-    const availableUtxos = isUndefined(options.utxos) ? allUtxos : options.utxos
+    const availableUtxos = isUndefined(options.utxos)
+      ? await this.getUtxos(from)
+      : options.utxos
 
     if (availableUtxos.length === 0) {
       throw new Error('No available utxos to sweep')
@@ -552,10 +548,10 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       throw new Error(`Available utxo total ${outputAmount} ${this.coinSymbol} too low to sweep`)
     }
     const updatedOptions = {
+      useUnconfirmedUtxos: true,
       ...options,
       utxos: availableUtxos,
       useAllUtxos: true,
-      allUtxos, // Pass this in to avoid duplicate network requests
     }
     return this.createTransaction(from, to, outputAmount, updatedOptions)
   }

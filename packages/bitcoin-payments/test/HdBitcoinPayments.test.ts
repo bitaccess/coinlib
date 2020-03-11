@@ -21,26 +21,25 @@ describe('HdBitcoinPayments', () => {
     const changeAddress = account.addresses[0]
     const feeMain = '0.001'
     const desiredFeeRate = { feeRate: feeMain, feeRateType: FeeRateType.Main }
-    const minChange = 0.01
+    const minChange = '0.01'
     const targetUtxoPoolSize = 4
     const payments = new HdBitcoinPayments({
       hdKey: account.xpub,
       addressType: AddressType.SegwitNative,
       logger,
+      minChange,
+      targetUtxoPoolSize,
     })
     it('sweep from single confirmed utxo', async () => {
       const utxos = makeUtxos(['0.05'], ['0.06'])
       const outputs = [{ address: EXTERNAL_ADDRESS, value: '0.05' }]
       const paymentTx = await payments.buildPaymentTx({
         unusedUtxos: utxos,
-        allUtxos: utxos,
         desiredOutputs: outputs,
         changeAddress,
         desiredFeeRate,
         useAllUtxos: true,
         useUnconfirmedUtxos: false,
-        minChange,
-        targetUtxoPoolSize,
       })
       const expectedOutputs = [{ address: EXTERNAL_ADDRESS, value: '0.049' }]
       expect(paymentTx.inputs).toEqual([utxos[0]])
@@ -57,14 +56,11 @@ describe('HdBitcoinPayments', () => {
       const outputs = [{ address: EXTERNAL_ADDRESS, value: '2.35' }]
       const paymentTx = await payments.buildPaymentTx({
         unusedUtxos: utxos,
-        allUtxos: utxos,
         desiredOutputs: outputs,
         changeAddress,
         desiredFeeRate,
         useAllUtxos: true,
         useUnconfirmedUtxos: true,
-        minChange,
-        targetUtxoPoolSize,
       })
       const expectedOutputs = [{ address: EXTERNAL_ADDRESS, value: '2.349' }]
       expect(paymentTx.inputs).toEqual(utxos)
@@ -81,14 +77,11 @@ describe('HdBitcoinPayments', () => {
       const outputs = [{ address: EXTERNAL_ADDRESS, value: '0.799' }]
       const paymentTx = await payments.buildPaymentTx({
         unusedUtxos: utxos,
-        allUtxos: utxos,
         desiredOutputs: outputs,
         changeAddress,
         desiredFeeRate,
         useAllUtxos: false,
         useUnconfirmedUtxos: false,
-        minChange,
-        targetUtxoPoolSize,
       })
       expect(paymentTx.inputs).toEqual([utxos[1]])
       expect(paymentTx.outputs).toEqual(outputs)
@@ -104,14 +97,11 @@ describe('HdBitcoinPayments', () => {
       const outputs = [{ address: EXTERNAL_ADDRESS, value: '1.995' }]
       const paymentTx = await payments.buildPaymentTx({
         unusedUtxos: utxos,
-        allUtxos: utxos,
         desiredOutputs: outputs,
         changeAddress,
         desiredFeeRate,
         useAllUtxos: false,
         useUnconfirmedUtxos: false,
-        minChange,
-        targetUtxoPoolSize,
       })
       const changeOutputs = makeOutputs(changeAddress, '0.005')
       expect(paymentTx.inputs).toEqual(utxos.slice(0,2))
@@ -128,14 +118,11 @@ describe('HdBitcoinPayments', () => {
       const outputs = [{ address: EXTERNAL_ADDRESS, value: '3' }]
       const paymentTx = await payments.buildPaymentTx({
         unusedUtxos: utxos,
-        allUtxos: utxos,
         desiredOutputs: outputs,
         changeAddress,
         desiredFeeRate,
         useAllUtxos: false,
         useUnconfirmedUtxos: false,
-        minChange,
-        targetUtxoPoolSize,
       })
       const changeOutputs = makeOutputs(changeAddress, '0.1', '0.2', '0.4')
       expect(paymentTx.inputs).toEqual(utxos.slice(0,3))
@@ -152,14 +139,11 @@ describe('HdBitcoinPayments', () => {
       const outputs = [{ address: EXTERNAL_ADDRESS, value: '1.999999' }]
       const paymentTx = await payments.buildPaymentTx({
         unusedUtxos: utxos,
-        allUtxos: utxos,
         desiredOutputs: outputs,
         changeAddress,
         desiredFeeRate,
         useAllUtxos: false,
         useUnconfirmedUtxos: false,
-        minChange,
-        targetUtxoPoolSize,
       })
       expect(paymentTx.inputs).toEqual(utxos)
       expect(paymentTx.outputs).toEqual(outputs)
