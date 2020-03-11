@@ -37,6 +37,8 @@ export declare const CoinPaymentsBaseAssetConfigs: t.TypeC<{
         }>;
         dustThreshold: t.NumberC;
         networkMinRelayFee: t.NumberC;
+        targetUtxoPoolSize: t.NumberC;
+        minChange: t.StringC;
     }>]>;
     ETH: t.IntersectionC<[t.PartialC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
@@ -139,6 +141,8 @@ export declare const CoinPaymentsAssetConfigs: t.TypeC<{
         }>;
         dustThreshold: t.NumberC;
         networkMinRelayFee: t.NumberC;
+        targetUtxoPoolSize: t.NumberC;
+        minChange: t.StringC;
     }>]>, t.TypeC<{
         hdKey: t.StringC;
     }>, t.PartialC<{
@@ -259,6 +263,8 @@ export declare const CoinPaymentsConfig: t.PartialC<{
         }>;
         dustThreshold: t.NumberC;
         networkMinRelayFee: t.NumberC;
+        targetUtxoPoolSize: t.NumberC;
+        minChange: t.StringC;
     }>]>, t.TypeC<{
         hdKey: t.StringC;
     }>, t.PartialC<{
@@ -376,6 +382,8 @@ export declare const SupportedCoinPaymentsSymbol: t.KeyofC<{
         }>;
         dustThreshold: t.NumberC;
         networkMinRelayFee: t.NumberC;
+        targetUtxoPoolSize: t.NumberC;
+        minChange: t.StringC;
     }>]>, t.TypeC<{
         hdKey: t.StringC;
     }>, t.PartialC<{
