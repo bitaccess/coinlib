@@ -16,7 +16,7 @@ describe('HdBitcoinPayments', () => {
     })
   })
 
-  describe.only('buildPaymentTx', () => {
+  describe('buildPaymentTx', () => {
     const account = accountsByAddressType.p2wpkh
     const changeAddress = account.addresses[0]
     const feeMain = '0.001'

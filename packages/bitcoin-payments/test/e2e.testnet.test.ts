@@ -125,7 +125,7 @@ if (fs.existsSync(secretXprvFilePath)) {
 
       jest.setTimeout(300 * 1000)
 
-      it.only('end to end sweep', async () => {
+      it('end to end sweep', async () => {
         const indicesToTry = [5, 6]
         const balances: { [i: number]: BalanceResult } = {}
         let indexToSweep: number = -1
