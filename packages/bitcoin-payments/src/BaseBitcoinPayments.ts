@@ -1,6 +1,6 @@
-import { payments as bjsPayments, TransactionBuilder, ECPairInterface as ECPair } from 'bitcoinjs-lib'
+import { payments as bjsPayments, Psbt, ECPairInterface as ECPair } from 'bitcoinjs-lib'
 import {
-  NetworkType, FeeRateType, FeeRate, TransactionStatus, AutoFeeLevels
+  NetworkType, FeeRateType, FeeRate, TransactionStatus, AutoFeeLevels, UtxoInfo
 } from '@faast/payments-common'
 
 import { getBlockcypherFeeEstimate, toBitcoinishConfig } from './utils'
@@ -14,13 +14,16 @@ import {
 import { toBaseDenominationNumber, isValidAddress } from './helpers'
 import { BitcoinishPayments } from './bitcoinish'
 import { KeyPair } from './bip44'
+import { Address } from 'cluster'
 
 export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConfig> extends BitcoinishPayments<Config> {
   readonly addressType: AddressType
+  readonly maximumFeeRate?: number
 
   constructor(config: BaseBitcoinPaymentsConfig) {
     super(toBitcoinishConfig(config))
     this.addressType = config.addressType || DEFAULT_ADDRESS_TYPE
+    this.maximumFeeRate = config.maximumFeeRate
   }
 
   abstract getKeyPair(index: number): KeyPair
@@ -45,40 +48,86 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     }
   }
 
+  async getInputData(
+    utxo: UtxoInfo,
+    payment: any,
+    isSegwit: boolean,
+    addressType: AddressType,
+  ): Promise<any> {
+    const utx = await this.getApi().getTx(utxo.txid)
+    const result: any = {
+      hash: utxo.txid,
+      index: utxo.vout,
+    }
+    if (isSegwit) {
+      // for segwit inputs, you only need the output script and value as an object.
+      const rawUtxo = utx.vout[utxo.vout]
+      const { hex: scriptPubKey } = rawUtxo
+      if (!scriptPubKey) {
+        throw new Error(`Cannot get scriptPubKey for utxo ${utxo.txid}:${utxo.vout}`)
+      }
+      const utxoValue = this.toBaseDenominationNumber(utxo.value)
+      if (String(utxoValue) !== rawUtxo.value) {
+        throw new Error(`Utxo ${utxo.txid}:${utxo.vout} has mismatched value - ${utxoValue} sat expected but network reports ${rawUtxo.value} sat`)
+      }
+      result.witnessUtxo = {
+        script: Buffer.from(scriptPubKey, 'hex'),
+        value: utxoValue,
+      }
+    } else {
+      // for non segwit inputs, you must pass the full transaction buffer
+      if (!utx.hex) {
+        throw new Error(`Cannot get raw hex of tx for utxo ${utxo.txid}:${utxo.vout}`)
+      }
+      result.nonWitnessUtxo = Buffer.from(utx.hex, 'hex')
+    }
+    if (addressType === AddressType.SegwitP2SH) {
+      result.redeemScript = payment.redeem.output
+    }
+    return result
+  }
+
   async signTransaction(tx: BitcoinishUnsignedTransaction): Promise<BitcoinishSignedTransaction> {
     const keyPair = this.getKeyPair(tx.fromIndex)
     const { inputs, outputs } = tx.data as BitcoinishPaymentTx
 
-    let redeemScript = undefined
-    let prevOutScript = undefined
-    if (this.addressType === AddressType.SegwitP2SH) {
-      redeemScript = bjsPayments.p2wpkh({ pubkey: keyPair.publicKey }).output
+    const bjsPaymentParams = { pubkey: keyPair.publicKey, network: this.bitcoinjsNetwork }
+    let bjsPayment
+    if (this.addressType === AddressType.Legacy) {
+      bjsPayment = bjsPayments.p2pkh(bjsPaymentParams)
+    } else if (this.addressType === AddressType.SegwitP2SH) {
+      bjsPayment = bjsPayments.p2sh({
+        redeem: bjsPayments.p2wpkh(bjsPaymentParams),
+        network: this.bitcoinjsNetwork,
+      })
     } else if (this.addressType === AddressType.SegwitNative) {
-      prevOutScript = bjsPayments.p2wpkh({ pubkey: keyPair.publicKey }).output
+      bjsPayment = bjsPayments.p2wpkh(bjsPaymentParams)
+    } else {
+      throw new Error(`Unsupported AddressType ${this.addressType}`)
     }
 
-    let builder = new TransactionBuilder(this.bitcoinjsNetwork)
+    let psbt = new Psbt({
+      network: this.bitcoinjsNetwork,
+      maximumFeeRate: this.maximumFeeRate,
+    })
+    for (let input of inputs) {
+      psbt.addInput(await this.getInputData(input, bjsPayment, this.isSegwit, this.addressType))
+    }
     for (let output of outputs) {
-      builder.addOutput(output.address, toBaseDenominationNumber(output.value))
+      psbt.addOutput({
+        address: output.address,
+        value: toBaseDenominationNumber(output.value)
+      })
     }
-    for (let i = 0; i < inputs.length; i++) {
-      const input = inputs[i]
-      builder.addInput(input.txid, input.vout, undefined, prevOutScript)
+    await psbt.signAllInputsAsync(keyPair)
+
+    if (!psbt.validateSignaturesOfAllInputs()) {
+      throw new Error('Failed to validate signatures of all inputs')
     }
-    // Must add all inputs before signing them
-    for (let i = 0; i < inputs.length; i++) {
-      const input = inputs[i]
-      builder.sign(
-        i,
-        keyPair,
-        redeemScript,
-        undefined, // undefined for simple Segwit
-        toBaseDenominationNumber(input.value)
-      )
-    }
-    const built = builder.build()
-    const txId = built.getId()
-    const txHex = built.toHex()
+    psbt.finalizeAllInputs()
+    const signedTx = psbt.extractTransaction()
+    const txId = signedTx.getId()
+    const txHex = signedTx.toHex()
     return {
       ...tx,
       status: TransactionStatus.Signed,

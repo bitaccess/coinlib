@@ -38,6 +38,7 @@ export const BaseBitcoinPaymentsConfig = extendCodec(
     networkMinRelayFee: t.number,
     targetUtxoPoolSize: t.number, // # of available utxos to try and maintain
     minChange: t.string, // Soft minimum for each change generated to maintain utxo pool
+    maximumFeeRate: t.number, // Hard sat/byte fee cap passed to Psbt constructor
   },
   'BaseBitcoinPaymentsConfig',
 )
