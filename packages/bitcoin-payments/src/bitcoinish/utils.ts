@@ -140,5 +140,5 @@ export function sortUtxos<T extends UtxoInfo>(utxoList: T[]): T[] {
 }
 
 export function isConfirmedUtxo(utxo: UtxoInfo): boolean {
-  return Boolean(utxo.confirmations || utxo.height)
+  return Boolean((utxo.confirmations && utxo.confirmations > 0) || (utxo.height && Number.parseInt(utxo.height) > 0))
 }

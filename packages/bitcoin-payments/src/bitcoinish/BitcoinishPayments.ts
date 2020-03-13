@@ -574,7 +574,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const confirmationId = tx.blockHash || null
     const confirmationNumber = tx.blockHeight ? String(tx.blockHeight) : undefined
     const confirmationTimestamp = tx.blockTime ? new Date(tx.blockTime * 1000) : null
-    const isConfirmed = Boolean(confirmationNumber)
+    const isConfirmed = Boolean(tx.confirmations && tx.confirmations > 0)
     const status = isConfirmed ? TransactionStatus.Confirmed : TransactionStatus.Pending
     const amountSat = get(tx, 'vout.0.value', tx.value)
     const amount = this.toMainDenominationString(amountSat)
