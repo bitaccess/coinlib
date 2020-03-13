@@ -172,7 +172,7 @@
       return result;
   }
   function isConfirmedUtxo(utxo) {
-      return Boolean(utxo.confirmations || utxo.height);
+      return Boolean((utxo.confirmations && utxo.confirmations > 0) || (utxo.height && Number.parseInt(utxo.height) > 0));
   }
 
   class BlockbookConnected {
@@ -671,7 +671,7 @@
           const confirmationId = tx.blockHash || null;
           const confirmationNumber = tx.blockHeight ? String(tx.blockHeight) : undefined;
           const confirmationTimestamp = tx.blockTime ? new Date(tx.blockTime * 1000) : null;
-          const isConfirmed = Boolean(confirmationNumber);
+          const isConfirmed = Boolean(tx.confirmations && tx.confirmations > 0);
           const status = isConfirmed ? paymentsCommon.TransactionStatus.Confirmed : paymentsCommon.TransactionStatus.Pending;
           const amountSat = lodash.get(tx, 'vout.0.value', tx.value);
           const amount = this.toMainDenominationString(amountSat);

@@ -114,6 +114,6 @@ export function sortUtxos(utxoList) {
     return result;
 }
 export function isConfirmedUtxo(utxo) {
-    return Boolean(utxo.confirmations || utxo.height);
+    return Boolean((utxo.confirmations && utxo.confirmations > 0) || (utxo.height && Number.parseInt(utxo.height) > 0));
 }
 //# sourceMappingURL=utils.js.map
