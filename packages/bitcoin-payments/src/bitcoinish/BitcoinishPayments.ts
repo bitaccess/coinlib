@@ -559,12 +559,22 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   async broadcastTransaction(tx: BitcoinishSignedTransaction): Promise<BitcoinishBroadcastResult> {
-    const txId = await this._retryDced(() => this.getApi().sendTx(tx.data.hex))
-    if (tx.id !== txId) {
-      this.logger.warn(`Broadcasted ${this.coinSymbol} txid ${txId} doesn't match original txid ${tx.id}`)
+    let txId: string
+    try {
+      txId = await this._retryDced(() => this.getApi().sendTx(tx.data.hex))
+      if (tx.id !== txId) {
+        this.logger.warn(`Broadcasted ${this.coinSymbol} txid ${txId} doesn't match original txid ${tx.id}`)
+      }
+    } catch(e) {
+      const message = e.message || ''
+      if (message.startsWith('-27')) {
+        txId = tx.id
+      } else {
+        throw e
+      }
     }
     return {
-      id: txId,
+      id: tx.id,
     }
   }
 
