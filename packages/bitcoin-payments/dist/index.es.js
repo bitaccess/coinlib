@@ -8,6 +8,7 @@ import { instanceofCodec, requiredOptionalCodec, nullable, Logger, extendCodec, 
 import { BlockbookBitcoin, BlockInfoBitcoin } from 'blockbook-client';
 import { get, omit } from 'lodash';
 import promiseRetry from 'promise-retry';
+import BigNumber from 'bignumber.js';
 import { fromBase58 } from 'bip32';
 
 class BlockbookServerAPI extends BlockbookBitcoin {
@@ -414,7 +415,9 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
         const utxos = [];
         let utxosTotalSat = 0;
         for (const utxo of availableUtxos) {
-            const satoshis = Math.floor(utxo.satoshis || this.toBaseDenominationNumber(utxo.value));
+            const satoshis = isUndefined(utxo.satoshis)
+                ? this.toBaseDenominationNumber(utxo.value)
+                : toBigNumber(utxo.satoshis).integerValue(BigNumber.ROUND_DOWN).toNumber();
             utxosTotalSat += satoshis;
             utxos.push({
                 ...utxo,

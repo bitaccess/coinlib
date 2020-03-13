@@ -88,6 +88,7 @@ export declare const EthereumUnsignedTransaction: t.IntersectionC<[t.Intersectio
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
+        satoshis: t.NumberC;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -128,6 +129,7 @@ export declare const EthereumSignedTransaction: t.IntersectionC<[t.IntersectionC
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
+        satoshis: t.NumberC;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;

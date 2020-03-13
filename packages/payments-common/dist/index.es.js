@@ -54,7 +54,7 @@ const UtxoInfo = requiredOptionalCodec({
     vout: number,
     value: string,
 }, {
-    satoshis: number,
+    satoshis: union([number, string]),
     confirmations: number,
     height: string,
     lockTime: string,

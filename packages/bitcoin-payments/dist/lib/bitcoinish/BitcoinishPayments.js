@@ -5,6 +5,7 @@ import * as t from 'io-ts';
 import { PayportOutput, } from './types';
 import { estimateTxFee, sumUtxoValue, sortUtxos, isConfirmedUtxo } from './utils';
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils';
+import BigNumber from 'bignumber.js';
 export class BitcoinishPayments extends BitcoinishPaymentsUtils {
     constructor(config) {
         super(config);
@@ -163,7 +164,9 @@ export class BitcoinishPayments extends BitcoinishPaymentsUtils {
         const utxos = [];
         let utxosTotalSat = 0;
         for (const utxo of availableUtxos) {
-            const satoshis = Math.floor(utxo.satoshis || this.toBaseDenominationNumber(utxo.value));
+            const satoshis = isUndefined(utxo.satoshis)
+                ? this.toBaseDenominationNumber(utxo.value)
+                : toBigNumber(utxo.satoshis).integerValue(BigNumber.ROUND_DOWN).toNumber();
             utxosTotalSat += satoshis;
             utxos.push({
                 ...utxo,

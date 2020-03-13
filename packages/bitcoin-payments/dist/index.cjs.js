@@ -13,6 +13,7 @@ var tsCommon = require('@faast/ts-common');
 var blockbookClient = require('blockbook-client');
 var lodash = require('lodash');
 var promiseRetry = _interopDefault(require('promise-retry'));
+var BigNumber = _interopDefault(require('bignumber.js'));
 var bip32 = require('bip32');
 
 class BlockbookServerAPI extends blockbookClient.BlockbookBitcoin {
@@ -419,7 +420,9 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
         const utxos = [];
         let utxosTotalSat = 0;
         for (const utxo of availableUtxos) {
-            const satoshis = Math.floor(utxo.satoshis || this.toBaseDenominationNumber(utxo.value));
+            const satoshis = tsCommon.isUndefined(utxo.satoshis)
+                ? this.toBaseDenominationNumber(utxo.value)
+                : tsCommon.toBigNumber(utxo.satoshis).integerValue(BigNumber.ROUND_DOWN).toNumber();
             utxosTotalSat += satoshis;
             utxos.push({
                 ...utxo,

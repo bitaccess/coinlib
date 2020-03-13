@@ -1,12 +1,13 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('bitcoinjs-lib'), require('@faast/payments-common'), require('request-promise-native'), require('bs58'), require('io-ts'), require('@faast/ts-common'), require('blockbook-client'), require('lodash'), require('promise-retry'), require('bip32')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'bitcoinjs-lib', '@faast/payments-common', 'request-promise-native', 'bs58', 'io-ts', '@faast/ts-common', 'blockbook-client', 'lodash', 'promise-retry', 'bip32'], factory) :
-  (global = global || self, factory(global.faastBitcoinPayments = {}, global.bitcoin, global.paymentsCommon, global.request, global.bs58, global.t, global.tsCommon, global.blockbookClient, global.lodash, global.promiseRetry, global.bip32));
-}(this, (function (exports, bitcoin, paymentsCommon, request, bs58, t, tsCommon, blockbookClient, lodash, promiseRetry, bip32) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('bitcoinjs-lib'), require('@faast/payments-common'), require('request-promise-native'), require('bs58'), require('io-ts'), require('@faast/ts-common'), require('blockbook-client'), require('lodash'), require('promise-retry'), require('bignumber.js'), require('bip32')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'bitcoinjs-lib', '@faast/payments-common', 'request-promise-native', 'bs58', 'io-ts', '@faast/ts-common', 'blockbook-client', 'lodash', 'promise-retry', 'bignumber.js', 'bip32'], factory) :
+  (global = global || self, factory(global.faastBitcoinPayments = {}, global.bitcoin, global.paymentsCommon, global.request, global.bs58, global.t, global.tsCommon, global.blockbookClient, global.lodash, global.promiseRetry, global.BigNumber, global.bip32));
+}(this, (function (exports, bitcoin, paymentsCommon, request, bs58, t, tsCommon, blockbookClient, lodash, promiseRetry, BigNumber, bip32) { 'use strict';
 
   request = request && request.hasOwnProperty('default') ? request['default'] : request;
   bs58 = bs58 && bs58.hasOwnProperty('default') ? bs58['default'] : bs58;
   promiseRetry = promiseRetry && promiseRetry.hasOwnProperty('default') ? promiseRetry['default'] : promiseRetry;
+  BigNumber = BigNumber && BigNumber.hasOwnProperty('default') ? BigNumber['default'] : BigNumber;
 
   class BlockbookServerAPI extends blockbookClient.BlockbookBitcoin {
   }
@@ -412,7 +413,9 @@
           const utxos = [];
           let utxosTotalSat = 0;
           for (const utxo of availableUtxos) {
-              const satoshis = Math.floor(utxo.satoshis || this.toBaseDenominationNumber(utxo.value));
+              const satoshis = tsCommon.isUndefined(utxo.satoshis)
+                  ? this.toBaseDenominationNumber(utxo.value)
+                  : tsCommon.toBigNumber(utxo.satoshis).integerValue(BigNumber.ROUND_DOWN).toNumber();
               utxosTotalSat += satoshis;
               utxos.push({
                   ...utxo,
