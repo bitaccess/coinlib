@@ -9,7 +9,7 @@ import {
   BitcoinishSignedTransaction, AddressType,
 } from './types'
 import {
-  DEFAULT_SAT_PER_BYTE_LEVELS, DEFAULT_ADDRESS_TYPE,
+  DEFAULT_SAT_PER_BYTE_LEVELS, DEFAULT_ADDRESS_TYPE, BITCOIN_SEQUENCE_RBF,
 } from './constants'
 import { toBaseDenominationNumber, isValidAddress } from './helpers'
 import { BitcoinishPayments } from './bitcoinish'
@@ -63,7 +63,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     }
     for (let i = 0; i < inputs.length; i++) {
       const input = inputs[i]
-      builder.addInput(input.txid, input.vout, undefined, prevOutScript)
+      builder.addInput(input.txid, input.vout, BITCOIN_SEQUENCE_RBF, prevOutScript)
     }
     // Must add all inputs before signing them
     for (let i = 0; i < inputs.length; i++) {
