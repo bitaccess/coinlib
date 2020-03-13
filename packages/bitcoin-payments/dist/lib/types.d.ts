@@ -82,7 +82,7 @@ export declare const BitcoinUnsignedTransactionData: t.IntersectionC<[t.TypeC<{
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
-        satoshis: t.NumberC;
+        satoshis: t.UnionC<[t.NumberC, t.StringC]>;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -133,7 +133,7 @@ export declare const BitcoinUnsignedTransaction: t.IntersectionC<[t.Intersection
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
-        satoshis: t.NumberC;
+        satoshis: t.UnionC<[t.NumberC, t.StringC]>;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -151,7 +151,7 @@ export declare const BitcoinUnsignedTransaction: t.IntersectionC<[t.Intersection
             vout: t.NumberC;
             value: t.StringC;
         }>, t.PartialC<{
-            satoshis: t.NumberC;
+            satoshis: t.UnionC<[t.NumberC, t.StringC]>;
             confirmations: t.NumberC;
             height: t.StringC;
             lockTime: t.StringC;
@@ -203,7 +203,7 @@ export declare const BitcoinSignedTransaction: t.IntersectionC<[t.IntersectionC<
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
-        satoshis: t.NumberC;
+        satoshis: t.UnionC<[t.NumberC, t.StringC]>;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;

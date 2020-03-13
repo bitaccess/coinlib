@@ -46,7 +46,7 @@ export declare const BitcoinishPaymentTx: t.IntersectionC<[t.TypeC<{
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
-        satoshis: t.NumberC;
+        satoshis: t.UnionC<[t.NumberC, t.StringC]>;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -97,7 +97,7 @@ export declare const BitcoinishUnsignedTransaction: t.IntersectionC<[t.Intersect
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
-        satoshis: t.NumberC;
+        satoshis: t.UnionC<[t.NumberC, t.StringC]>;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -137,7 +137,7 @@ export declare const BitcoinishSignedTransaction: t.IntersectionC<[t.Intersectio
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
-        satoshis: t.NumberC;
+        satoshis: t.UnionC<[t.NumberC, t.StringC]>;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;

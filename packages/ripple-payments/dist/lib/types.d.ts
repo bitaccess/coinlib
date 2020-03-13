@@ -145,7 +145,7 @@ export declare const RippleUnsignedTransaction: t.IntersectionC<[t.IntersectionC
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
-        satoshis: t.NumberC;
+        satoshis: t.UnionC<[t.NumberC, t.StringC]>;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -185,7 +185,7 @@ export declare const RippleSignedTransaction: t.IntersectionC<[t.IntersectionC<[
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
-        satoshis: t.NumberC;
+        satoshis: t.UnionC<[t.NumberC, t.StringC]>;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -252,7 +252,7 @@ export declare const RippleCreateTransactionOptions: t.IntersectionC<[t.Intersec
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
-        satoshis: t.NumberC;
+        satoshis: t.UnionC<[t.NumberC, t.StringC]>;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;

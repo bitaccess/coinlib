@@ -82,7 +82,7 @@ export declare const TronUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
-        satoshis: t.NumberC;
+        satoshis: t.UnionC<[t.NumberC, t.StringC]>;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -123,7 +123,7 @@ export declare const TronSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
-        satoshis: t.NumberC;
+        satoshis: t.UnionC<[t.NumberC, t.StringC]>;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;

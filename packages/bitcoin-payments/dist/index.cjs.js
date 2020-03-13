@@ -664,12 +664,24 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
         return this.createTransaction(from, to, outputAmount, updatedOptions);
     }
     async broadcastTransaction(tx) {
-        const txId = await this._retryDced(() => this.getApi().sendTx(tx.data.hex));
-        if (tx.id !== txId) {
-            this.logger.warn(`Broadcasted ${this.coinSymbol} txid ${txId} doesn't match original txid ${tx.id}`);
+        let txId;
+        try {
+            txId = await this._retryDced(() => this.getApi().sendTx(tx.data.hex));
+            if (tx.id !== txId) {
+                this.logger.warn(`Broadcasted ${this.coinSymbol} txid ${txId} doesn't match original txid ${tx.id}`);
+            }
+        }
+        catch (e) {
+            const message = e.message || '';
+            if (message.startsWith('-27')) {
+                txId = tx.id;
+            }
+            else {
+                throw e;
+            }
         }
         return {
-            id: txId,
+            id: tx.id,
         };
     }
     async getTransactionInfo(txId) {
@@ -757,6 +769,7 @@ const COIN_SYMBOL = 'BTC';
 const COIN_NAME = 'Bitcoin';
 const DEFAULT_DUST_THRESHOLD = 546;
 const DEFAULT_NETWORK_MIN_RELAY_FEE = 1000;
+const BITCOIN_SEQUENCE_RBF = 0xFFFFFFFD;
 const DEFAULT_MIN_TX_FEE = 5;
 const DEFAULT_ADDRESS_TYPE = exports.AddressType.SegwitNative;
 const DEFAULT_DERIVATION_PATHS = {
@@ -939,7 +952,7 @@ class BaseBitcoinPayments extends BitcoinishPayments {
         }
         for (let i = 0; i < inputs.length; i++) {
             const input = inputs[i];
-            builder.addInput(input.txid, input.vout, undefined, prevOutScript);
+            builder.addInput(input.txid, input.vout, BITCOIN_SEQUENCE_RBF, prevOutScript);
         }
         for (let i = 0; i < inputs.length; i++) {
             const input = inputs[i];
@@ -1080,6 +1093,7 @@ Object.defineProperty(exports, 'UtxoInfo', {
   }
 });
 exports.AddressTypeT = AddressTypeT;
+exports.BITCOIN_SEQUENCE_RBF = BITCOIN_SEQUENCE_RBF;
 exports.BaseBitcoinPayments = BaseBitcoinPayments;
 exports.BaseBitcoinPaymentsConfig = BaseBitcoinPaymentsConfig;
 exports.BitcoinBlock = BitcoinBlock;
