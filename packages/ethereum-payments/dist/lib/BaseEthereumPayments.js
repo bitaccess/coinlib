@@ -139,10 +139,10 @@ export class BaseEthereumPayments extends EthereumPaymentsUtils {
         let txBlock = null;
         let isConfirmed = false;
         let confirmationTimestamp = null;
-        let confirmations = null;
+        let confirmations = 0;
         if (tx.blockNumber) {
-            confirmations = new BigNumber(currentBlockNumber).minus(tx.blockNumber);
-            if (confirmations.isGreaterThan(minConfirmations)) {
+            confirmations = currentBlockNumber - tx.blockNumber;
+            if (confirmations > minConfirmations) {
                 isConfirmed = true;
                 txBlock = await this.eth.getBlock(tx.blockNumber);
                 confirmationTimestamp = new Date(txBlock.timestamp);
@@ -164,7 +164,7 @@ export class BaseEthereumPayments extends EthereumPaymentsUtils {
             sequenceNumber: tx.nonce,
             isExecuted,
             isConfirmed,
-            confirmations: confirmations.toNumber(),
+            confirmations,
             confirmationId: tx.blockHash,
             confirmationTimestamp,
             status,
