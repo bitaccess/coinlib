@@ -8,10 +8,7 @@ export declare function resolveServer(server: BlockbookConnectedConfig['server']
     server: string[] | null;
 };
 export declare function retryIfDisconnected<T>(fn: () => Promise<T>, api: BlockbookBitcoin, logger: Logger): Promise<T>;
-export declare function estimateTxSize(inputsCount: number, outputsCount: number, handleSegwit: boolean): {
-    min: number;
-    max: number;
-};
+export declare function estimateTxSize(inputsCount: number, outputsCount: number, handleSegwit: boolean): number;
 export declare function estimateTxFee(satPerByte: number, inputsCount: number, outputsCount: number, handleSegwit: boolean): number;
 export declare function sumUtxoValue(utxos: UtxoInfo[]): BigNumber;
 export declare function sortUtxos<T extends UtxoInfo>(utxoList: T[]): T[];
