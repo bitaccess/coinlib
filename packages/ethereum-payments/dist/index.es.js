@@ -9,7 +9,7 @@ import { pubToAddress } from 'ethereumjs-util';
 import { fromSeed, fromBase58 } from 'bip32';
 import crypto from 'crypto';
 import { ec as ec$1 } from 'elliptic';
-import { type, string, union, null as null$1, undefined as undefined$1, array, record, number, boolean, literal, object } from 'io-ts';
+import { type, string, union, null as null$1, undefined as undefined$1, array, record, number, literal, object } from 'io-ts';
 
 const PACKAGE_NAME = 'ethereum-payments';
 const DECIMAL_PLACES = 18;
@@ -487,22 +487,19 @@ class BaseEthereumPayments extends EthereumPaymentsUtils {
             }
         };
     }
+    sendSignedTransactionQuick(txHex) {
+        return new Promise((resolve, reject) => this.eth.sendSignedTransaction(txHex)
+            .on('transactionHash', resolve)
+            .on('error', reject));
+    }
     async broadcastTransaction(tx) {
         if (tx.status !== TransactionStatus.Signed) {
             throw new Error(`Tx ${tx.id} has not status ${TransactionStatus.Signed}`);
         }
         try {
-            const res = await this.eth.sendSignedTransaction(tx.data.hex);
+            const txId = await this.sendSignedTransactionQuick(tx.data.hex);
             return {
-                id: res.transactionHash,
-                transactionIndex: res.transactionIndex,
-                blockHash: res.blockHash,
-                blockNumber: res.blockNumber,
-                from: res.from,
-                to: res.to,
-                gasUsed: res.gasUsed,
-                cumulativeGasUsed: res.cumulativeGasUsed,
-                status: res.status,
+                id: txId,
             };
         }
         catch (e) {
@@ -715,16 +712,7 @@ const EthereumSignedTransaction = extendCodec(BaseSignedTransaction, {
     }),
 }, {}, 'EthereumSignedTransaction');
 const EthereumTransactionInfo = extendCodec(BaseTransactionInfo, {}, {}, 'EthereumTransactionInfo');
-const EthereumBroadcastResult = extendCodec(BaseBroadcastResult, {
-    transactionIndex: number,
-    blockHash: string,
-    blockNumber: number,
-    from: string,
-    to: string,
-    gasUsed: number,
-    cumulativeGasUsed: number,
-    status: boolean,
-}, 'EthereumBroadcastResult');
+const EthereumBroadcastResult = extendCodec(BaseBroadcastResult, {}, 'EthereumBroadcastResult');
 const EthereumResolvedFeeOption = extendCodec(ResolvedFeeOption, {
     gasPrice: string,
 }, 'EthereumResolvedFeeOption');

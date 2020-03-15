@@ -39,16 +39,7 @@ export const EthereumSignedTransaction = extendCodec(BaseSignedTransaction, {
     }),
 }, {}, 'EthereumSignedTransaction');
 export const EthereumTransactionInfo = extendCodec(BaseTransactionInfo, {}, {}, 'EthereumTransactionInfo');
-export const EthereumBroadcastResult = extendCodec(BaseBroadcastResult, {
-    transactionIndex: t.number,
-    blockHash: t.string,
-    blockNumber: t.number,
-    from: t.string,
-    to: t.string,
-    gasUsed: t.number,
-    cumulativeGasUsed: t.number,
-    status: t.boolean,
-}, 'EthereumBroadcastResult');
+export const EthereumBroadcastResult = extendCodec(BaseBroadcastResult, {}, 'EthereumBroadcastResult');
 export const EthereumResolvedFeeOption = extendCodec(ResolvedFeeOption, {
     gasPrice: t.string,
 }, 'EthereumResolvedFeeOption');

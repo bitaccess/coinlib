@@ -198,22 +198,19 @@ export class BaseEthereumPayments extends EthereumPaymentsUtils {
             }
         };
     }
+    sendSignedTransactionQuick(txHex) {
+        return new Promise((resolve, reject) => this.eth.sendSignedTransaction(txHex)
+            .on('transactionHash', resolve)
+            .on('error', reject));
+    }
     async broadcastTransaction(tx) {
         if (tx.status !== TransactionStatus.Signed) {
             throw new Error(`Tx ${tx.id} has not status ${TransactionStatus.Signed}`);
         }
         try {
-            const res = await this.eth.sendSignedTransaction(tx.data.hex);
+            const txId = await this.sendSignedTransactionQuick(tx.data.hex);
             return {
-                id: res.transactionHash,
-                transactionIndex: res.transactionIndex,
-                blockHash: res.blockHash,
-                blockNumber: res.blockNumber,
-                from: res.from,
-                to: res.to,
-                gasUsed: res.gasUsed,
-                cumulativeGasUsed: res.cumulativeGasUsed,
-                status: res.status,
+                id: txId,
             };
         }
         catch (e) {

@@ -483,22 +483,19 @@
               }
           };
       }
+      sendSignedTransactionQuick(txHex) {
+          return new Promise((resolve, reject) => this.eth.sendSignedTransaction(txHex)
+              .on('transactionHash', resolve)
+              .on('error', reject));
+      }
       async broadcastTransaction(tx) {
           if (tx.status !== paymentsCommon.TransactionStatus.Signed) {
               throw new Error(`Tx ${tx.id} has not status ${paymentsCommon.TransactionStatus.Signed}`);
           }
           try {
-              const res = await this.eth.sendSignedTransaction(tx.data.hex);
+              const txId = await this.sendSignedTransactionQuick(tx.data.hex);
               return {
-                  id: res.transactionHash,
-                  transactionIndex: res.transactionIndex,
-                  blockHash: res.blockHash,
-                  blockNumber: res.blockNumber,
-                  from: res.from,
-                  to: res.to,
-                  gasUsed: res.gasUsed,
-                  cumulativeGasUsed: res.cumulativeGasUsed,
-                  status: res.status,
+                  id: txId,
               };
           }
           catch (e) {
@@ -711,16 +708,7 @@
       }),
   }, {}, 'EthereumSignedTransaction');
   const EthereumTransactionInfo = tsCommon.extendCodec(paymentsCommon.BaseTransactionInfo, {}, {}, 'EthereumTransactionInfo');
-  const EthereumBroadcastResult = tsCommon.extendCodec(paymentsCommon.BaseBroadcastResult, {
-      transactionIndex: t.number,
-      blockHash: t.string,
-      blockNumber: t.number,
-      from: t.string,
-      to: t.string,
-      gasUsed: t.number,
-      cumulativeGasUsed: t.number,
-      status: t.boolean,
-  }, 'EthereumBroadcastResult');
+  const EthereumBroadcastResult = tsCommon.extendCodec(paymentsCommon.BaseBroadcastResult, {}, 'EthereumBroadcastResult');
   const EthereumResolvedFeeOption = tsCommon.extendCodec(paymentsCommon.ResolvedFeeOption, {
       gasPrice: t.string,
   }, 'EthereumResolvedFeeOption');

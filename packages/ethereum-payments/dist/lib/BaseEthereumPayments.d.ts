@@ -30,6 +30,7 @@ export declare abstract class BaseEthereumPayments<Config extends BaseEthereumPa
     createTransaction(from: number, to: ResolveablePayport, amountEth: string, options?: TransactionOptions): Promise<EthereumUnsignedTransaction>;
     createSweepTransaction(from: number, to: ResolveablePayport, options?: TransactionOptions): Promise<EthereumUnsignedTransaction>;
     signTransaction(unsignedTx: EthereumUnsignedTransaction): Promise<EthereumSignedTransaction>;
+    private sendSignedTransactionQuick;
     broadcastTransaction(tx: EthereumSignedTransaction): Promise<EthereumBroadcastResult>;
     abstract getPrivateKey(index: number): Promise<string>;
     private createTransactionObject;
