@@ -213,7 +213,7 @@ implements BasePayments
 
     const gasUsed = txInfo ? txInfo.gasUsed : tx.gas
     const feeEth = this.toMainDenomination((new BigNumber(tx.gasPrice)).multipliedBy(gasUsed))
-    const isExecuted = txInfo && txInfo.status
+    const isExecuted = Boolean(txInfo && txInfo.status)
 
     let txBlock: any = null
     let isConfirmed = false
