@@ -408,7 +408,7 @@ describe('HdEthereumPayments', () => {
           toIndex: null,
           fee: '0.042',
           sequenceNumber: 2,
-          isExecuted: true,
+          isExecuted: false,
           isConfirmed: true,
           confirmations: 1,
           confirmationId: blockId,
