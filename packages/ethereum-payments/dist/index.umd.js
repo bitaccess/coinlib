@@ -420,7 +420,7 @@
           const txInfo = await this.eth.getTransactionReceipt(txid);
           const gasUsed = txInfo ? txInfo.gasUsed : tx.gas;
           const feeEth = this.toMainDenomination((new bignumber_js.BigNumber(tx.gasPrice)).multipliedBy(gasUsed));
-          const isExecuted = txInfo && txInfo.status;
+          const isExecuted = Boolean(txInfo && txInfo.status);
           let txBlock = null;
           let isConfirmed = false;
           let confirmationTimestamp = null;
