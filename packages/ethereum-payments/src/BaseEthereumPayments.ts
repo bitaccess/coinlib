@@ -298,24 +298,22 @@ implements BasePayments
     }
   }
 
+  /** sends rpc request with hex of serialized transaction without waiting for receipt (ie confirmations) */
+  private sendSignedTransactionQuick(txHex: string): Promise<string> {
+    return new Promise((resolve, reject) => this.eth.sendSignedTransaction(txHex)
+        .on('transactionHash', resolve)
+        .on('error', reject))
+  }
+
   async broadcastTransaction(tx: EthereumSignedTransaction): Promise<EthereumBroadcastResult> {
     if (tx.status !== TransactionStatus.Signed) {
       throw new Error(`Tx ${tx.id} has not status ${TransactionStatus.Signed}`)
     }
 
     try {
-      // sends rpc requests with hex of serialized transaction, receives id and checks tx receipt by id
-      const res = await this.eth.sendSignedTransaction(tx.data.hex)
+      const txId = await this.sendSignedTransactionQuick(tx.data.hex)
       return {
-        id: res.transactionHash,
-        transactionIndex: res.transactionIndex,
-        blockHash: res.blockHash,
-        blockNumber: res.blockNumber,
-        from: res.from,
-        to: res.to,
-        gasUsed: res.gasUsed,
-        cumulativeGasUsed: res.cumulativeGasUsed,
-        status: res.status,
+        id: txId,
       }
     } catch (e) {
       this.logger.warn(`Ethereum broadcast tx unsuccessful ${tx.id}: ${e.message}`)

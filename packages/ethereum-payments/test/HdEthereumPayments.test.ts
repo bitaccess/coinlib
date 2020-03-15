@@ -692,14 +692,6 @@ describe('HdEthereumPayments', () => {
 
         expect(res).toStrictEqual({
           id: txId,
-          status: true,
-          transactionIndex: 0,
-          from: FROM_ADDRESS,
-          to: TO_ADDRESS,
-          blockHash: blockId,
-          blockNumber: 3,
-          cumulativeGasUsed: 314159,
-          gasUsed: 21000,
         })
       })
     })

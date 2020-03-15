@@ -107,16 +107,7 @@ export type EthereumTransactionInfo = t.TypeOf<typeof EthereumTransactionInfo>
 
 export const EthereumBroadcastResult = extendCodec(
   BaseBroadcastResult,
-  {
-    transactionIndex: t.number,
-    blockHash: t.string,
-    blockNumber: t.number,
-    from: t.string,
-    to: t.string,
-    gasUsed: t.number,
-    cumulativeGasUsed: t.number,
-    status: t.boolean,
-  },
+  {},
   'EthereumBroadcastResult',
 )
 export type EthereumBroadcastResult = t.TypeOf<typeof EthereumBroadcastResult>
