@@ -428,7 +428,9 @@ class BaseEthereumPayments extends EthereumPaymentsUtils {
         const tx = await this.eth.getTransaction(txid);
         const currentBlockNumber = await this.eth.getBlockNumber();
         const txInfo = await this.eth.getTransactionReceipt(txid);
-        const feeEth = this.toMainDenomination((new bignumber_js.BigNumber(tx.gasPrice)).multipliedBy(txInfo.gasUsed));
+        const gasUsed = txInfo ? txInfo.gasUsed : tx.gas;
+        const feeEth = this.toMainDenomination((new bignumber_js.BigNumber(tx.gasPrice)).multipliedBy(gasUsed));
+        const isExecuted = txInfo && txInfo.status;
         let txBlock = null;
         let isConfirmed = false;
         let confirmationTimestamp = null;
@@ -442,7 +444,7 @@ class BaseEthereumPayments extends EthereumPaymentsUtils {
             }
         }
         let status = paymentsCommon.TransactionStatus.Pending;
-        if (isConfirmed) {
+        if (isConfirmed && txInfo) {
             status = txInfo.status ? paymentsCommon.TransactionStatus.Confirmed : paymentsCommon.TransactionStatus.Failed;
         }
         return {
@@ -455,7 +457,7 @@ class BaseEthereumPayments extends EthereumPaymentsUtils {
             toIndex: null,
             fee: feeEth,
             sequenceNumber: tx.nonce,
-            isExecuted: !!tx.blockNumber,
+            isExecuted,
             isConfirmed,
             confirmations: confirmations.toNumber(),
             confirmationId: tx.blockHash,
@@ -463,7 +465,7 @@ class BaseEthereumPayments extends EthereumPaymentsUtils {
             status,
             data: {
                 ...tx,
-                ...txInfo,
+                ...(txInfo || {}),
                 currentBlock: currentBlockNumber
             },
         };

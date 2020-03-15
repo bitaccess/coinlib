@@ -418,7 +418,9 @@
           const tx = await this.eth.getTransaction(txid);
           const currentBlockNumber = await this.eth.getBlockNumber();
           const txInfo = await this.eth.getTransactionReceipt(txid);
-          const feeEth = this.toMainDenomination((new bignumber_js.BigNumber(tx.gasPrice)).multipliedBy(txInfo.gasUsed));
+          const gasUsed = txInfo ? txInfo.gasUsed : tx.gas;
+          const feeEth = this.toMainDenomination((new bignumber_js.BigNumber(tx.gasPrice)).multipliedBy(gasUsed));
+          const isExecuted = txInfo && txInfo.status;
           let txBlock = null;
           let isConfirmed = false;
           let confirmationTimestamp = null;
@@ -432,7 +434,7 @@
               }
           }
           let status = paymentsCommon.TransactionStatus.Pending;
-          if (isConfirmed) {
+          if (isConfirmed && txInfo) {
               status = txInfo.status ? paymentsCommon.TransactionStatus.Confirmed : paymentsCommon.TransactionStatus.Failed;
           }
           return {
@@ -445,7 +447,7 @@
               toIndex: null,
               fee: feeEth,
               sequenceNumber: tx.nonce,
-              isExecuted: !!tx.blockNumber,
+              isExecuted,
               isConfirmed,
               confirmations: confirmations.toNumber(),
               confirmationId: tx.blockHash,
@@ -453,7 +455,7 @@
               status,
               data: {
                   ...tx,
-                  ...txInfo,
+                  ...(txInfo || {}),
                   currentBlock: currentBlockNumber
               },
           };
