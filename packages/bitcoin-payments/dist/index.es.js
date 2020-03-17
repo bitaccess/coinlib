@@ -558,6 +558,7 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
             changeAddress: fromAddress,
             desiredFeeRate: { feeRate: targetFeeRate, feeRateType: targetFeeRateType },
             useAllUtxos: options.useAllUtxos,
+            useUnconfirmedUtxos: options.useUnconfirmedUtxos,
         });
         this.logger.debug('createTransaction data', paymentTx);
         const feeMain = paymentTx.fee;
