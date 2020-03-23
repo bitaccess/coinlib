@@ -319,6 +319,9 @@ implements BasePayments
       }
     } catch (e) {
       this.logger.warn(`Ethereum broadcast tx unsuccessful ${tx.id}: ${e.message}`)
+      if (e.message === 'nonce too low') {
+        throw new PaymentsError(PaymentsErrorCode.TxSequenceCollision, e.message)
+      }
       throw new Error(`Ethereum broadcast tx unsuccessful: ${tx.id} ${e.message}`)
     }
   }
