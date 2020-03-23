@@ -259,7 +259,7 @@ describe('HdEthereumPayments', () => {
         const blockId = '0xef95f2f1ed3ca60b048b4bf67cde2195961e0bba6f70bcbea9a2c4e133e34b46'
         const amount = '123450000000000000'
 
-        const transactionByHashMock = getTransactionByHashMocks(3, txId, blockId, FROM_ADDRESS, TO_ADDRESS, amount)
+        const transactionByHashMock = getTransactionByHashMocks(3, txId, blockId, 3, FROM_ADDRESS, TO_ADDRESS, amount)
         nockI.post(/.*/, transactionByHashMock.req).reply(200, transactionByHashMock.res)
 
         const blockNumberNock = getBlockNumberMocks(4, '0x3')
@@ -318,7 +318,7 @@ describe('HdEthereumPayments', () => {
         const blockId = '0xef95f2f1ed3ca60b048b4bf67cde2195961e0bba6f70bcbea9a2c4e133e34b46'
         const amount = '123450000000000000'
 
-        const transactionByHashMock = getTransactionByHashMocks(6, txId, blockId, FROM_ADDRESS, TO_ADDRESS, amount)
+        const transactionByHashMock = getTransactionByHashMocks(6, txId, blockId, 3, FROM_ADDRESS, TO_ADDRESS, amount)
         nockI.post(/.*/, transactionByHashMock.req).reply(200, transactionByHashMock.res)
 
         const blockNumberNock = getBlockNumberMocks(7, '0x4')
@@ -380,7 +380,7 @@ describe('HdEthereumPayments', () => {
         const blockId = '0xef95f2f1ed3ca60b048b4bf67cde2195961e0bba6f70bcbea9a2c4e133e34b46'
         const amount = '123450000000000000'
 
-        const transactionByHashMock = getTransactionByHashMocks(10, txId, blockId, FROM_ADDRESS, TO_ADDRESS, amount)
+        const transactionByHashMock = getTransactionByHashMocks(10, txId, blockId, 3, FROM_ADDRESS, TO_ADDRESS, amount)
         nockI.post(/.*/, transactionByHashMock.req).reply(200, transactionByHashMock.res)
 
         const blockNumberNock = getBlockNumberMocks(11, '0x4')
@@ -436,6 +436,68 @@ describe('HdEthereumPayments', () => {
           }
         })
       })
+
+      test('returns transaction by id (not included into block and pending)', async () => {
+        const txId = '0x9fc76417374aa880d4449a1f7f31ec597f00b1f6f3dd2d66f4c9c6c445836d8b'
+        const amount = '123450000000000000'
+
+        const transactionByHashMock = getTransactionByHashMocks(14, txId, null, null, FROM_ADDRESS, TO_ADDRESS, amount)
+        nockI.post(/.*/, transactionByHashMock.req).reply(200, transactionByHashMock.res)
+
+        const blockNumberNock = getBlockNumberMocks(15, '0x4')
+        nockI.post(/.*/, blockNumberNock.req).reply(200, blockNumberNock.res)
+
+        const mockTransactionReceipt = getTransactionReceiptMocks(16, FROM_ADDRESS, TO_ADDRESS, '0x0', '0x3', txId, null)
+        nockI.post(/.*/, mockTransactionReceipt.req).reply(200, {
+          id: 16,
+          jsonrpc: '2.0',
+          result: null
+        })
+
+        const res = await hdEP.getTransactionInfo(txId)
+        res.toAddress = res.toAddress.toLowerCase()
+        res.data.to = res.data.to.toLowerCase()
+        res.fromAddress = res.fromAddress.toLowerCase()
+        res.data.from = res.data.from.toLowerCase()
+
+        expect(res).toStrictEqual({
+          id: txId,
+          amount: '0.12345',
+          toAddress: TO_ADDRESS,
+          fromAddress: FROM_ADDRESS,
+          toExtraId: null,
+          fromIndex: null,
+          toIndex: null,
+          fee: '0.042',
+          sequenceNumber: 2,
+          isExecuted: false,
+          isConfirmed: false,
+          confirmations: 0,
+          confirmationId: null,
+          confirmationTimestamp: null,
+          status: 'pending',
+          data: {
+            hash: txId,
+            status: true,
+            nonce: 2,
+            blockHash: '',
+            blockNumber: 0,
+            cumulativeGasUsed: 0,
+            gas: 21000,
+            gasUsed: 21000,
+            logs: [],
+            logsBloom: '',
+            transactionHash: txId,
+            transactionIndex: 0,
+            from: FROM_ADDRESS,
+            to: TO_ADDRESS,
+            value: '123450000000000000',
+            gasPrice: '2000000000000',
+            input: '0x57cb2fc4',
+            currentBlock: 4
+          }
+        })
+      })
     })
 
     describe('createTransaction', () => {
@@ -445,13 +507,13 @@ describe('HdEthereumPayments', () => {
         const amountEth = '0.005'
 
         // nock for get balance
-        const balanceMocks = getBalanceMocks(14, FROM_ADDRESS, '9999999999999999999999999999')
+        const balanceMocks = getBalanceMocks(17, FROM_ADDRESS, '9999999999999999999999999999')
         nockI.post(/.*/, balanceMocks.req).reply(200, balanceMocks.res)
 
         // nock for gas station
         nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
-        const transactionCountMocks = getTransactionCountMocks(15, FROM_ADDRESS, '0x1a')
+        const transactionCountMocks = getTransactionCountMocks(18, FROM_ADDRESS, '0x1a')
         nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
         const parityMock = getNextNonceMocks(1, FROM_ADDRESS, '0x1b')
@@ -492,14 +554,14 @@ describe('HdEthereumPayments', () => {
         const amountEth = '50000'
 
         // nock for get balance
-        const balanceMocks = getBalanceMocks(16, FROM_ADDRESS, '49999')
+        const balanceMocks = getBalanceMocks(19, FROM_ADDRESS, '49999')
         nockI.post(/.*/, balanceMocks.req).reply(200, balanceMocks.res)
 
         // nock for gas station
         // XXX did not go to gas station for some reason?
         nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
-        const transactionCountMocks = getTransactionCountMocks(17, FROM_ADDRESS, '0x1a')
+        const transactionCountMocks = getTransactionCountMocks(20, FROM_ADDRESS, '0x1a')
         nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
         const parityMock = getNextNonceMocks(1, FROM_ADDRESS, '0x1b')
@@ -522,13 +584,13 @@ describe('HdEthereumPayments', () => {
         const balance = '142334532324980082'
 
         // nock for get balance
-        const balanceMocks = getBalanceMocks(18, FROM_ADDRESS, balance)
+        const balanceMocks = getBalanceMocks(21, FROM_ADDRESS, balance)
         nockI.post(/.*/, balanceMocks.req).reply(200, balanceMocks.res)
 
         // nock for gas station
         nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
-        const transactionCountMocks = getTransactionCountMocks(19, FROM_ADDRESS, '0x1a')
+        const transactionCountMocks = getTransactionCountMocks(22, FROM_ADDRESS, '0x1a')
         nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
         const parityMock = getNextNonceMocks(1, FROM_ADDRESS, '0x1b')
@@ -578,13 +640,13 @@ describe('HdEthereumPayments', () => {
         const to = { address: TO_ADDRESS }
 
         // nock for get balance
-        const balanceMocks = getBalanceMocks(20, FROM_ADDRESS, '999')
+        const balanceMocks = getBalanceMocks(23, FROM_ADDRESS, '999')
         nockI.post(/.*/, balanceMocks.req).reply(200, balanceMocks.res)
 
         // nock for gas station
         nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
-        const transactionCountMocks = getTransactionCountMocks(21, FROM_ADDRESS, '0x1a')
+        const transactionCountMocks = getTransactionCountMocks(24, FROM_ADDRESS, '0x1a')
         nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
         const parityMock = getNextNonceMocks(1, FROM_ADDRESS, '0x1b')
@@ -681,11 +743,11 @@ describe('HdEthereumPayments', () => {
         }
 
         // sends rpc request with transaction and receives id
-        const rawTxMock = getSendRawTransactionMocks(22, rawTx, txId)
+        const rawTxMock = getSendRawTransactionMocks(25, rawTx, txId)
         nockI.post(/.*/, rawTxMock.req).reply(200, rawTxMock.res)
 
         // checks tx receipt by id
-        const mockTransactionReceipt = getTransactionReceiptMocks(23, FROM_ADDRESS, TO_ADDRESS, '0x1', '0x3', txId, blockId)
+        const mockTransactionReceipt = getTransactionReceiptMocks(26, FROM_ADDRESS, TO_ADDRESS, '0x1', '0x3', txId, blockId)
         nockI.post(/.*/, mockTransactionReceipt.req).reply(200, mockTransactionReceipt.res)
 
         const res = await hdEP.broadcastTransaction(signedTx)

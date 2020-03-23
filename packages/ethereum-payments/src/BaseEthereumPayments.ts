@@ -1,6 +1,7 @@
 import { BigNumber } from 'bignumber.js'
 import { Transaction as Tx } from 'ethereumjs-tx'
 import Web3 from 'web3'
+import { TransactionReceipt } from 'web3-core';
 import { Eth } from 'web3-eth'
 import { cloneDeep } from 'lodash'
 import {
@@ -209,17 +210,52 @@ implements BasePayments
     const minConfirmations = MIN_CONFIRMATIONS
     const tx = await this.eth.getTransaction(txid)
     const currentBlockNumber = await this.eth.getBlockNumber()
-    const txInfo = await this.eth.getTransactionReceipt(txid) // Can be null
+    let txInfo: TransactionReceipt | null = await this.eth.getTransactionReceipt(txid)
 
-    const gasUsed = txInfo ? txInfo.gasUsed : tx.gas
-    const feeEth = this.toMainDenomination((new BigNumber(tx.gasPrice)).multipliedBy(gasUsed))
-    const isExecuted = Boolean(txInfo && txInfo.status)
+    // NOTE: for the sake of consistent schema return
+    if (!txInfo) {
+      txInfo = {
+        transactionHash: tx.hash,
+        from: tx.from || '',
+        to: tx.to || '',
+        status: true,
+        blockNumber: 0,
+        cumulativeGasUsed: 0,
+        gasUsed: parseInt(ETHEREUM_TRANSFER_COST, 10),
+        transactionIndex: 0,
+        blockHash: '',
+        logs: [],
+        logsBloom: ''
+      }
+
+      return {
+        id: txid,
+        amount: this.toMainDenomination(tx.value),
+        toAddress: tx.to,
+        fromAddress: tx.from,
+        toExtraId: null,
+        fromIndex: null,
+        toIndex: null,
+        fee: this.toMainDenomination((new BigNumber(tx.gasPrice)).multipliedBy(tx.gas)),
+        sequenceNumber: tx.nonce,
+        isExecuted: false,
+        isConfirmed: false,
+        confirmations: 0,
+        confirmationId: null,
+        confirmationTimestamp: null,
+        status: TransactionStatus.Pending,
+        data: {
+          ...tx,
+          ...txInfo,
+          currentBlock: currentBlockNumber
+        },
+      }
+    }
 
     let txBlock: any = null
     let isConfirmed = false
     let confirmationTimestamp: Date | null = null
     let confirmations = 0
-
     if (tx.blockNumber) {
       confirmations = currentBlockNumber - tx.blockNumber
       if (confirmations > minConfirmations) {
@@ -230,7 +266,7 @@ implements BasePayments
     }
 
     let status: TransactionStatus = TransactionStatus.Pending
-    if (isConfirmed && txInfo) {
+    if (isConfirmed) {
       status = txInfo.status ? TransactionStatus.Confirmed : TransactionStatus.Failed
     }
 
@@ -242,9 +278,9 @@ implements BasePayments
       toExtraId: null,
       fromIndex: null,
       toIndex: null,
-      fee: feeEth,
+      fee: this.toMainDenomination((new BigNumber(tx.gasPrice)).multipliedBy(txInfo.gasUsed)),
       sequenceNumber: tx.nonce,
-      isExecuted,
+      isExecuted: txInfo.status,
       isConfirmed,
       confirmations,
       confirmationId: tx.blockHash,
@@ -252,7 +288,7 @@ implements BasePayments
       status,
       data: {
         ...tx,
-        ...(txInfo || {}),
+        ...txInfo,
         currentBlock: currentBlockNumber
       },
     }
@@ -300,8 +336,7 @@ implements BasePayments
     }
   }
 
-  /** sends rpc request with hex of serialized transaction without waiting for receipt (ie confirmations) */
-  private sendSignedTransactionQuick(txHex: string): Promise<string> {
+  private sendTransactionWithoutConfirmation(txHex: string): Promise<string> {
     return new Promise((resolve, reject) => this.eth.sendSignedTransaction(txHex)
         .on('transactionHash', resolve)
         .on('error', reject))
@@ -313,7 +348,7 @@ implements BasePayments
     }
 
     try {
-      const txId = await this.sendSignedTransactionQuick(tx.data.hex)
+      const txId = await this.sendTransactionWithoutConfirmation(tx.data.hex)
       return {
         id: txId,
       }
