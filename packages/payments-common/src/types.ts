@@ -8,7 +8,13 @@ import {
   Logger,
   functionT,
   Numeric,
+  optional,
 } from '@faast/ts-common'
+
+export type MaybePromise<T> = Promise<T> | T
+
+export const NullableOptionalString = t.union([t.string, t.null, t.undefined])
+export type NullableOptionalString = t.TypeOf<typeof NullableOptionalString>
 
 export enum NetworkType {
   Mainnet = 'mainnet',
@@ -24,6 +30,12 @@ export const BaseConfig = t.partial(
   'BaseConfig',
 )
 export type BaseConfig = t.TypeOf<typeof BaseConfig>
+
+export const KeyPairsConfigParam = t.union([
+  t.array(NullableOptionalString),
+  t.record(t.number, NullableOptionalString)
+], 'KeyPairsConfigParam')
+export type KeyPairsConfigParam = t.TypeOf<typeof KeyPairsConfigParam>
 
 export const Payport = requiredOptionalCodec(
   {
