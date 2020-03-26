@@ -6,15 +6,13 @@ import {
 import { getBlockcypherFeeEstimate, toBitcoinishConfig } from './utils'
 import {
   BaseBitcoinPaymentsConfig, BitcoinishUnsignedTransaction, BitcoinishPaymentTx,
-  BitcoinishSignedTransaction, AddressType,
+  BitcoinishSignedTransaction, AddressType, KeyPair,
 } from './types'
 import {
   DEFAULT_SAT_PER_BYTE_LEVELS, DEFAULT_ADDRESS_TYPE,
 } from './constants'
-import { toBaseDenominationNumber, isValidAddress } from './helpers'
+import { toBaseDenominationNumber, isValidAddress, isValidPrivateKey, isValidPublicKey } from './helpers'
 import { BitcoinishPayments } from './bitcoinish'
-import { KeyPair } from './bip44'
-import { Address } from 'cluster'
 
 export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConfig> extends BitcoinishPayments<Config> {
   readonly addressType: AddressType
@@ -28,8 +26,16 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
 
   abstract getKeyPair(index: number): KeyPair
 
-  async isValidAddress(address: string): Promise<boolean> {
+  isValidAddress(address: string): boolean {
     return isValidAddress(address, this.bitcoinjsNetwork)
+  }
+
+  isValidPrivateKey(privateKey: string): boolean {
+    return isValidPrivateKey(privateKey, this.bitcoinjsNetwork)
+  }
+
+  isValidPublicKey(publicKey: string): boolean {
+    return isValidPublicKey(publicKey, this.bitcoinjsNetwork)
   }
 
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
@@ -87,8 +93,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     return result
   }
 
-  async signTransaction(tx: BitcoinishUnsignedTransaction): Promise<BitcoinishSignedTransaction> {
-    const keyPair = this.getKeyPair(tx.fromIndex)
+  async buildPsbt(tx: BitcoinishUnsignedTransaction, keyPair: KeyPair): Promise<Psbt> {
     const { inputs, outputs } = tx.data as BitcoinishPaymentTx
 
     const bjsPaymentParams = { pubkey: keyPair.publicKey, network: this.bitcoinjsNetwork }
@@ -119,6 +124,13 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
         value: toBaseDenominationNumber(output.value)
       })
     }
+    return psbt
+  }
+
+  async signTransaction(tx: BitcoinishUnsignedTransaction): Promise<BitcoinishSignedTransaction> {
+    const keyPair = this.getKeyPair(tx.fromIndex)
+    const psbt = await this.buildPsbt(tx, keyPair)
+
     await psbt.signAllInputsAsync(keyPair)
 
     if (!psbt.validateSignaturesOfAllInputs()) {

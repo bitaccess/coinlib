@@ -64,7 +64,7 @@ export type BitcoinishWeightedChangeOutput = t.TypeOf<typeof BitcoinishWeightedC
 /**
  * An object representing a Bitcoin like transaction (UTXO based) with inputs and outputs.
  *
- * The externalOutputs and changeOutputs fields are optional for back compat. Single change output
+ * The externalOutputs, changeOutputs, and hex fields are optional for back compat. Single change output
  * transactions use the changeAddress field. Multi change outputs transactions will leave
  * changeAddress null.
  */
@@ -84,6 +84,8 @@ export const BitcoinishPaymentTx = requiredOptionalCodec(
     externalOutputTotal: t.string,
     // Transactions with multiple change outputs
     changeOutputs: t.array(BitcoinishTxOutput),
+    // Unsigned tx serialized as hex string (if implementation allows, empty string otherwise)
+    hex: t.string,
   },
   'BitcoinishPaymentTx'
 )

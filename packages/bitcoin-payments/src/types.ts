@@ -1,15 +1,19 @@
 import * as t from 'io-ts'
 import {
   BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, FeeRate,
-  BaseTransactionInfo, BaseBroadcastResult, UtxoInfo,
+  BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, KeyPairsConfigParam,
 } from '@faast/payments-common'
 import { extendCodec, enumCodec, Numeric } from '@faast/ts-common'
-import { Network as BitcoinjsNetwork } from 'bitcoinjs-lib'
+import { Network as BitcoinjsNetwork, Signer } from 'bitcoinjs-lib'
 import { BlockInfoBitcoin } from 'blockbook-client'
 import { BitcoinishPaymentTx, BlockbookConfigServer } from './bitcoinish'
 
 export { BitcoinjsNetwork, UtxoInfo }
 export * from './bitcoinish/types'
+
+export type KeyPair = Signer & {
+  privateKey?: Buffer | undefined
+}
 
 export enum AddressType {
   Legacy = 'p2pkh',
@@ -56,8 +60,16 @@ export const HdBitcoinPaymentsConfig = extendCodec(
 )
 export type HdBitcoinPaymentsConfig = t.TypeOf<typeof HdBitcoinPaymentsConfig>
 
-// TODO: Add KeyPairBitcoinPaymentsConfig as a union to this once it exists
-export const BitcoinPaymentsConfig = HdBitcoinPaymentsConfig
+export const KeyPairBitcoinPaymentsConfig = extendCodec(
+  BaseBitcoinPaymentsConfig,
+  {
+    keyPairs: KeyPairsConfigParam,
+  },
+  'KeyPairBitcoinPaymentsConfig',
+)
+export type KeyPairBitcoinPaymentsConfig = t.TypeOf<typeof KeyPairBitcoinPaymentsConfig>
+
+export const BitcoinPaymentsConfig = t.union([HdBitcoinPaymentsConfig, KeyPairBitcoinPaymentsConfig], 'BitcoinPaymentsConfig')
 export type BitcoinPaymentsConfig = t.TypeOf<typeof BitcoinPaymentsConfig>
 
 export const BitcoinUnsignedTransactionData = BitcoinishPaymentTx

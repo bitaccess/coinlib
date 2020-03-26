@@ -1,14 +1,9 @@
 import bitcoin, { ECPair } from 'bitcoinjs-lib'
 import { BIP32Interface as HDNode, fromBase58 } from 'bip32'
-import { BitcoinjsNetwork, AddressType } from './types'
+import { BitcoinjsNetwork, AddressType, KeyPair } from './types'
 import { publicKeyToAddress } from './helpers'
 
 export { HDNode }
-
-export type KeyPair = ECPair.Signer & {
-  privateKey?: Buffer | undefined
-  toWIF(): string
-}
 
 /**
  * Split full path into array of indices
@@ -38,7 +33,7 @@ export function deriveHDNode(hdKey: string, derivationPath: string, network: Bit
   return node
 }
 
-export function deriveKeyPair(baseNode: HDNode, index: number, network: BitcoinjsNetwork): KeyPair {
+export function deriveKeyPair(baseNode: HDNode, index: number, network: BitcoinjsNetwork) {
   return baseNode.derive(0).derive(index)
 }
 

@@ -18,7 +18,7 @@ export class HdBitcoinPayments extends BaseBitcoinPayments<HdBitcoinPaymentsConf
   readonly xprv: string | null
   readonly hdNode: HDNode
 
-  constructor(public config: HdBitcoinPaymentsConfig) {
+  constructor(private config: HdBitcoinPaymentsConfig) {
     super(config)
     assertType(HdBitcoinPaymentsConfig, config)
     this.derivationPath = config.derivationPath || DEFAULT_DERIVATION_PATHS[this.addressType]
@@ -80,9 +80,6 @@ export class HdBitcoinPayments extends BaseBitcoinPayments<HdBitcoinPaymentsConf
   }
 
   getKeyPair(index: number) {
-    if (!this.xprv) {
-      throw new Error(`Cannot get private key ${index} - HdBitcoinPayments was created with an xpub`)
-    }
     return deriveKeyPair(this.hdNode, index, this.bitcoinjsNetwork)
   }
 }

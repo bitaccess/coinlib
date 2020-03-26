@@ -1,4 +1,4 @@
-import { PaymentsUtils, Payport, createUnitConverters } from '@faast/payments-common'
+import { PaymentsUtils, Payport, createUnitConverters, MaybePromise } from '@faast/payments-common'
 import { Network as BitcoinjsNetwork } from 'bitcoinjs-lib'
 import { isNil, assertType, Numeric, isUndefined } from '@faast/ts-common'
 import { BlockbookConnected } from './BlockbookConnected'
@@ -24,11 +24,11 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     this.toBaseDenominationBigNumber = unitConverters.toBaseDenominationBigNumber
   }
 
-  async isValidExtraId(extraId: string): Promise<boolean> {
+  isValidExtraId(extraId: string): boolean {
     return false // utxo coins don't use extraIds
   }
 
-  abstract async isValidAddress(address: string): Promise<boolean>
+  abstract isValidAddress(address: string): MaybePromise<boolean>
 
   private async _getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
     const { address, extraId } = payport

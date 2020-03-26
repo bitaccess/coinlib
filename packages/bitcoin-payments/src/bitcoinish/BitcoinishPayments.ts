@@ -3,8 +3,9 @@ import {
   ResolvedFeeOption, FeeLevel, AutoFeeLevels, Payport, ResolveablePayport,
   BalanceResult, FromTo, TransactionStatus, CreateTransactionOptions, BaseConfig,
   WeightedChangeOutput,
+  MaybePromise,
 } from '@faast/payments-common'
-import { isUndefined, isType, Numeric, toBigNumber, assertType, isNumber } from '@faast/ts-common'
+import { isUndefined, isType, Numeric, toBigNumber, assertType, isNumber, isString } from '@faast/ts-common'
 import { get } from 'lodash'
 import * as t from 'io-ts'
 
@@ -66,7 +67,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   abstract getAccountIds(): string[]
   abstract getAddress(index: number): string
   abstract getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate>
-  abstract isValidAddress(address: string): Promise<boolean>
+  abstract isValidAddress(address: string): MaybePromise<boolean>
   abstract signTransaction(tx: BitcoinishUnsignedTransaction): Promise<BitcoinishSignedTransaction>
 
   async init() {}
@@ -233,7 +234,11 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const utxos: Array<UtxoInfo & { satoshis: number }> = []
     let utxosTotalSat = 0
     for (const utxo of availableUtxos) {
-      const satoshis = Math.floor(utxo.satoshis || this.toBaseDenominationNumber(utxo.value))
+      const satoshis = Math.floor(isUndefined(utxo.satoshis)
+        ? this.toBaseDenominationNumber(utxo.value)
+        : (isString(utxo.satoshis)
+          ? toBigNumber(utxo.satoshis).toNumber()
+          : utxo.satoshis))
       utxosTotalSat += satoshis
       utxos.push({
         ...utxo,
@@ -284,6 +289,17 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         feeSat,
       }
     }
+  }
+
+  /**
+   * Serialize the payment tx into an hex string format representing the unsigned transaction.
+   *
+   * By default return empty string because it's coin dependent. Implementors can override this
+   * with coin specific implementation (eg using Psbt for bitcoin). If coin doesn't have an unsigned
+   * serialized tx format (ie most coins other than BTC) then leave as empty string.
+   */
+  async serializePaymentTx(paymentTx: BitcoinishPaymentTx): Promise<string> {
+    return ''
   }
 
   /**
@@ -434,7 +450,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
     const externalOutputsResult = this.convertOutputsToExternalFormat(externalOutputs)
     const changeOutputsResult = this.convertOutputsToExternalFormat(changeOutputs)
-    return {
+    const paymentTx = {
       inputs: inputUtxos,
       outputs: [...externalOutputsResult, ...changeOutputsResult],
       fee: this.toMainDenominationString(feeSat),
@@ -443,6 +459,11 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       changeOutputs: changeOutputsResult,
       externalOutputs: externalOutputsResult,
       externalOutputTotal: this.toMainDenominationString(outputTotal),
+    }
+    const paymentTxHex = await this.serializePaymentTx(paymentTx)
+    return {
+      ...paymentTx,
+      hex: paymentTxHex,
     }
   }
 
