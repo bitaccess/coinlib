@@ -1,4 +1,4 @@
-import { payments as bjsPayments, Psbt, ECPairInterface as ECPair } from 'bitcoinjs-lib'
+import { payments as bjsPayments, Psbt, ECPairInterface } from 'bitcoinjs-lib'
 import {
   NetworkType, FeeRateType, FeeRate, TransactionStatus, AutoFeeLevels, UtxoInfo
 } from '@faast/payments-common'
@@ -6,7 +6,7 @@ import {
 import { getBlockcypherFeeEstimate, toBitcoinishConfig } from './utils'
 import {
   BaseBitcoinPaymentsConfig, BitcoinishUnsignedTransaction, BitcoinishPaymentTx,
-  BitcoinishSignedTransaction, AddressType, KeyPair,
+  BitcoinishSignedTransaction, AddressType, BitcoinjsKeyPair,
 } from './types'
 import {
   DEFAULT_SAT_PER_BYTE_LEVELS, DEFAULT_ADDRESS_TYPE,
@@ -24,7 +24,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     this.maximumFeeRate = config.maximumFeeRate
   }
 
-  abstract getKeyPair(index: number): KeyPair
+  abstract getKeyPair(index: number): BitcoinjsKeyPair
 
   isValidAddress(address: string): boolean {
     return isValidAddress(address, this.bitcoinjsNetwork)
@@ -93,10 +93,24 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     return result
   }
 
-  async buildPsbt(tx: BitcoinishUnsignedTransaction, keyPair: KeyPair): Promise<Psbt> {
-    const { inputs, outputs } = tx.data as BitcoinishPaymentTx
+  get psbtOptions() {
+    return {
+      network: this.bitcoinjsNetwork,
+      maximumFeeRate: this.maximumFeeRate,
+    }
+  }
 
-    const bjsPaymentParams = { pubkey: keyPair.publicKey, network: this.bitcoinjsNetwork }
+  async getOrBuildPsbt(paymentTx: BitcoinishPaymentTx, pubkey: Buffer): Promise<Psbt> {
+    if (paymentTx.hex) {
+      return Psbt.fromHex(paymentTx.hex, this.psbtOptions)
+    }
+    return this.buildPsbt(paymentTx, pubkey)
+  }
+
+  async buildPsbt(paymentTx: BitcoinishPaymentTx, pubkey: Buffer): Promise<Psbt> {
+    const { inputs, outputs } = paymentTx
+
+    const bjsPaymentParams = { pubkey, network: this.bitcoinjsNetwork }
     let bjsPayment
     if (this.addressType === AddressType.Legacy) {
       bjsPayment = bjsPayments.p2pkh(bjsPaymentParams)
@@ -111,10 +125,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
       throw new Error(`Unsupported AddressType ${this.addressType}`)
     }
 
-    let psbt = new Psbt({
-      network: this.bitcoinjsNetwork,
-      maximumFeeRate: this.maximumFeeRate,
-    })
+    let psbt = new Psbt(this.psbtOptions)
     for (let input of inputs) {
       psbt.addInput(await this.getInputData(input, bjsPayment, this.isSegwit, this.addressType))
     }
@@ -127,9 +138,16 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     return psbt
   }
 
+  async serializePaymentTx(tx: BitcoinishPaymentTx, fromIndex: number): Promise<string> {
+    const keyPair = this.getKeyPair(fromIndex)
+    const psbt = await this.buildPsbt(tx, keyPair.publicKey)
+    return psbt.extractTransaction().toHex()
+  }
+
   async signTransaction(tx: BitcoinishUnsignedTransaction): Promise<BitcoinishSignedTransaction> {
     const keyPair = this.getKeyPair(tx.fromIndex)
-    const psbt = await this.buildPsbt(tx, keyPair)
+    const paymentTx = tx.data as BitcoinishPaymentTx
+    const psbt = await this.buildPsbt(paymentTx, keyPair.publicKey)
 
     await psbt.signAllInputsAsync(keyPair)
 

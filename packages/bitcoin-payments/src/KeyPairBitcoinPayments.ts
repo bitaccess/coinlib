@@ -1,5 +1,5 @@
 import { BaseBitcoinPayments } from './BaseBitcoinPayments'
-import { KeyPairBitcoinPaymentsConfig, KeyPair } from './types'
+import { KeyPairBitcoinPaymentsConfig, BitcoinjsKeyPair } from './types'
 import { omit } from 'lodash'
 import {
   isValidPrivateKey,
@@ -58,7 +58,7 @@ export class KeyPairBitcoinPayments extends BaseBitcoinPayments<KeyPairBitcoinPa
 
   getPublicConfig(): KeyPairBitcoinPaymentsConfig {
     return {
-      ...omit(this.getFullConfig(), ['logger', 'fullNode', 'solidityNode', 'eventServer', 'keyPairs']),
+      ...omit(this.getFullConfig(), ['logger', 'server', 'keyPairs']),
       keyPairs: this.addresses,
     }
   }
@@ -75,7 +75,7 @@ export class KeyPairBitcoinPayments extends BaseBitcoinPayments<KeyPairBitcoinPa
     return Object.keys(this.addressIndices)
   }
 
-  getKeyPair(index: number): KeyPair {
+  getKeyPair(index: number): BitcoinjsKeyPair {
     const privateKey = this.privateKeys[index]
     if (privateKey) {
       return privateKeyToKeyPair(privateKey, this.bitcoinjsNetwork)

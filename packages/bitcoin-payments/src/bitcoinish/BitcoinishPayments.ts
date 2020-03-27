@@ -298,7 +298,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
    * with coin specific implementation (eg using Psbt for bitcoin). If coin doesn't have an unsigned
    * serialized tx format (ie most coins other than BTC) then leave as empty string.
    */
-  async serializePaymentTx(paymentTx: BitcoinishPaymentTx): Promise<string> {
+  async serializePaymentTx(paymentTx: BitcoinishPaymentTx, fromIndex: number): Promise<string> {
     return ''
   }
 
@@ -450,7 +450,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
     const externalOutputsResult = this.convertOutputsToExternalFormat(externalOutputs)
     const changeOutputsResult = this.convertOutputsToExternalFormat(changeOutputs)
-    const paymentTx = {
+    return {
       inputs: inputUtxos,
       outputs: [...externalOutputsResult, ...changeOutputsResult],
       fee: this.toMainDenominationString(feeSat),
@@ -459,11 +459,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       changeOutputs: changeOutputsResult,
       externalOutputs: externalOutputsResult,
       externalOutputTotal: this.toMainDenominationString(outputTotal),
-    }
-    const paymentTxHex = await this.serializePaymentTx(paymentTx)
-    return {
-      ...paymentTx,
-      hex: paymentTxHex,
+      hex: '',
     }
   }
 
@@ -510,7 +506,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     })))
 
     const { targetFeeLevel, targetFeeRate, targetFeeRateType } = await this.resolveFeeOption(options)
-    this.logger.debug(`createTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`)
+    this.logger.debug(`createMultiOutputTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`)
 
     const paymentTx = await this.buildPaymentTx({
       unusedUtxos,
@@ -519,7 +515,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       desiredFeeRate: { feeRate: targetFeeRate, feeRateType: targetFeeRateType },
       useAllUtxos: options.useAllUtxos,
     })
-    this.logger.debug('createTransaction data', paymentTx)
+    const unsignedTxHex = await this.serializePaymentTx(paymentTx, from)
+    paymentTx.hex = unsignedTxHex
+    this.logger.debug('createMultiOutputTransaction data', paymentTx)
     const feeMain = paymentTx.fee
 
     let resultToAddress = 'multi'

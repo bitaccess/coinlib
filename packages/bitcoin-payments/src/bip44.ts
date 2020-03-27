@@ -1,6 +1,6 @@
 import bitcoin, { ECPair } from 'bitcoinjs-lib'
 import { BIP32Interface as HDNode, fromBase58 } from 'bip32'
-import { BitcoinjsNetwork, AddressType, KeyPair } from './types'
+import { BitcoinjsNetwork, AddressType, BitcoinjsKeyPair } from './types'
 import { publicKeyToAddress } from './helpers'
 
 export { HDNode }
@@ -33,7 +33,7 @@ export function deriveHDNode(hdKey: string, derivationPath: string, network: Bit
   return node
 }
 
-export function deriveKeyPair(baseNode: HDNode, index: number, network: BitcoinjsNetwork) {
+export function deriveKeyPair(baseNode: HDNode, index: number, network: BitcoinjsNetwork): BitcoinjsKeyPair {
   return baseNode.derive(0).derive(index)
 }
 

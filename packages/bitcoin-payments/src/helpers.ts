@@ -1,7 +1,7 @@
 import { createUnitConverters } from '@faast/payments-common'
 import * as bitcoin from 'bitcoinjs-lib'
 import * as bip32 from 'bip32'
-import { BitcoinjsNetwork, AddressType, KeyPair } from './types';
+import { BitcoinjsNetwork, AddressType, BitcoinjsKeyPair } from './types'
 import { DECIMAL_PLACES } from './constants'
 import { isString } from '@faast/ts-common';
 
@@ -104,11 +104,11 @@ export function publicKeyToAddress(
   return address
 }
 
-export function publicKeyToKeyPair(publicKey: string | Buffer, network: BitcoinjsNetwork): KeyPair {
+export function publicKeyToKeyPair(publicKey: string | Buffer, network: BitcoinjsNetwork): BitcoinjsKeyPair {
   return bitcoin.ECPair.fromPublicKey(publicKeyToBuffer(publicKey), { network })
 }
 
-export function privateKeyToKeyPair(privateKey: string, network: BitcoinjsNetwork): KeyPair {
+export function privateKeyToKeyPair(privateKey: string, network: BitcoinjsNetwork): BitcoinjsKeyPair {
   return bitcoin.ECPair.fromWIF(privateKey, network)
 }
 
