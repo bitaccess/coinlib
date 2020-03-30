@@ -14,9 +14,8 @@ import {
   ResolveablePayport,
   PaymentsError,
   PaymentsErrorCode,
-  GetPayportOptions,
 } from '@faast/payments-common'
-import { isType, DelegateLogger, Logger } from '@faast/ts-common'
+import { isType } from '@faast/ts-common'
 
 import {
   TronTransactionInfo,
@@ -35,9 +34,9 @@ import {
   DEFAULT_SOLIDITY_NODE,
   MIN_BALANCE_SUN,
   MIN_BALANCE_TRX,
-  PACKAGE_NAME,
   DEFAULT_FEE_LEVEL,
   EXPIRATION_FUDGE_MS,
+  TX_EXPIRATION_EXTENSION_SECONDS,
 } from './constants'
 import { TronPaymentsUtils } from './TronPaymentsUtils'
 
@@ -111,6 +110,12 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
     }
   }
 
+  async buildUnsignedTx(toAddress: string, amountSun: number, fromAddress: string): Promise<TronTransaction> {
+    let tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)
+    tx = await this.tronweb.transactionBuilder.extendExpiration(tx, TX_EXPIRATION_EXTENSION_SECONDS)
+    return tx
+  }
+
   async createSweepTransaction(
     from: number,
     to: ResolveablePayport,
@@ -133,7 +138,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
       }
       const amountSun = balanceSun - feeSun - MIN_BALANCE_SUN
       const amountTrx = this.toMainDenomination(amountSun)
-      const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)
+      const tx = await this.buildUnsignedTx(toAddress, amountSun, fromAddress)
       return {
         status: TransactionStatus.Unsigned,
         id: tx.txID,
@@ -177,7 +182,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
             `while maintaining a minimum required balance of ${MIN_BALANCE_TRX}`,
         )
       }
-      const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress)
+      const tx = await this.buildUnsignedTx(toAddress, amountSun, fromAddress)
       return {
         status: TransactionStatus.Unsigned,
         id: tx.txID,
