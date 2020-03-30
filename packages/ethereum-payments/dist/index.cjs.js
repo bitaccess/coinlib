@@ -427,10 +427,44 @@ class BaseEthereumPayments extends EthereumPaymentsUtils {
         const minConfirmations = MIN_CONFIRMATIONS;
         const tx = await this.eth.getTransaction(txid);
         const currentBlockNumber = await this.eth.getBlockNumber();
-        const txInfo = await this.eth.getTransactionReceipt(txid);
-        const gasUsed = txInfo ? txInfo.gasUsed : tx.gas;
-        const feeEth = this.toMainDenomination((new bignumber_js.BigNumber(tx.gasPrice)).multipliedBy(gasUsed));
-        const isExecuted = Boolean(txInfo && txInfo.status);
+        let txInfo = await this.eth.getTransactionReceipt(txid);
+        if (!txInfo) {
+            txInfo = {
+                transactionHash: tx.hash,
+                from: tx.from || '',
+                to: tx.to || '',
+                status: true,
+                blockNumber: 0,
+                cumulativeGasUsed: 0,
+                gasUsed: parseInt(ETHEREUM_TRANSFER_COST, 10),
+                transactionIndex: 0,
+                blockHash: '',
+                logs: [],
+                logsBloom: ''
+            };
+            return {
+                id: txid,
+                amount: this.toMainDenomination(tx.value),
+                toAddress: tx.to,
+                fromAddress: tx.from,
+                toExtraId: null,
+                fromIndex: null,
+                toIndex: null,
+                fee: this.toMainDenomination((new bignumber_js.BigNumber(tx.gasPrice)).multipliedBy(tx.gas)),
+                sequenceNumber: tx.nonce,
+                isExecuted: false,
+                isConfirmed: false,
+                confirmations: 0,
+                confirmationId: null,
+                confirmationTimestamp: null,
+                status: paymentsCommon.TransactionStatus.Pending,
+                data: {
+                    ...tx,
+                    ...txInfo,
+                    currentBlock: currentBlockNumber
+                },
+            };
+        }
         let txBlock = null;
         let isConfirmed = false;
         let confirmationTimestamp = null;
@@ -444,7 +478,7 @@ class BaseEthereumPayments extends EthereumPaymentsUtils {
             }
         }
         let status = paymentsCommon.TransactionStatus.Pending;
-        if (isConfirmed && txInfo) {
+        if (isConfirmed) {
             status = txInfo.status ? paymentsCommon.TransactionStatus.Confirmed : paymentsCommon.TransactionStatus.Failed;
         }
         return {
@@ -455,9 +489,9 @@ class BaseEthereumPayments extends EthereumPaymentsUtils {
             toExtraId: null,
             fromIndex: null,
             toIndex: null,
-            fee: feeEth,
+            fee: this.toMainDenomination((new bignumber_js.BigNumber(tx.gasPrice)).multipliedBy(txInfo.gasUsed)),
             sequenceNumber: tx.nonce,
-            isExecuted,
+            isExecuted: txInfo.status,
             isConfirmed,
             confirmations,
             confirmationId: tx.blockHash,
@@ -465,7 +499,7 @@ class BaseEthereumPayments extends EthereumPaymentsUtils {
             status,
             data: {
                 ...tx,
-                ...(txInfo || {}),
+                ...txInfo,
                 currentBlock: currentBlockNumber
             },
         };
@@ -495,7 +529,7 @@ class BaseEthereumPayments extends EthereumPaymentsUtils {
             }
         };
     }
-    sendSignedTransactionQuick(txHex) {
+    sendTransactionWithoutConfirmation(txHex) {
         return new Promise((resolve, reject) => this.eth.sendSignedTransaction(txHex)
             .on('transactionHash', resolve)
             .on('error', reject));
@@ -505,13 +539,16 @@ class BaseEthereumPayments extends EthereumPaymentsUtils {
             throw new Error(`Tx ${tx.id} has not status ${paymentsCommon.TransactionStatus.Signed}`);
         }
         try {
-            const txId = await this.sendSignedTransactionQuick(tx.data.hex);
+            const txId = await this.sendTransactionWithoutConfirmation(tx.data.hex);
             return {
                 id: txId,
             };
         }
         catch (e) {
             this.logger.warn(`Ethereum broadcast tx unsuccessful ${tx.id}: ${e.message}`);
+            if (e.message === 'nonce too low') {
+                throw new paymentsCommon.PaymentsError(paymentsCommon.PaymentsErrorCode.TxSequenceCollision, e.message);
+            }
             throw new Error(`Ethereum broadcast tx unsuccessful: ${tx.id} ${e.message}`);
         }
     }
