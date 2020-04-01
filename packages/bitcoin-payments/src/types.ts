@@ -3,10 +3,11 @@ import {
   BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, FeeRate,
   BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, KeyPairsConfigParam,
 } from '@faast/payments-common'
-import { extendCodec, enumCodec, Numeric, requiredOptionalCodec } from '@faast/ts-common';
+import { extendCodec, enumCodec, Numeric, requiredOptionalCodec, functionT } from '@faast/ts-common';
 import { Network as BitcoinjsNetwork, Signer as BitcoinjsSigner } from 'bitcoinjs-lib';
 import { BlockInfoBitcoin } from 'blockbook-client'
-import { BitcoinishPaymentTx, BlockbookConfigServer } from './bitcoinish'
+import { BitcoinishPaymentTx, BlockbookConfigServer, BitcoinishUnsignedTransaction } from './bitcoinish'
+import { RippleSignedTransaction } from '../../ripple-payments/src/types';
 
 export { BitcoinjsNetwork, UtxoInfo }
 export * from './bitcoinish/types'
@@ -70,20 +71,17 @@ export const KeyPairBitcoinPaymentsConfig = extendCodec(
 )
 export type KeyPairBitcoinPaymentsConfig = t.TypeOf<typeof KeyPairBitcoinPaymentsConfig>
 
-export const MultisigSignerKey = t.union([
-  t.type({
-    publicKey: t.string,
-  }),
-  t.type({
-    privateKey: t.string,
-  })
-], 'MultisigSignerKey')
-export type MultisigSignerKey = t.TypeOf<typeof MultisigSignerKey>
+export const SinglesigBitcoinPaymentsConfig = t.union([
+  HdBitcoinPaymentsConfig,
+  KeyPairBitcoinPaymentsConfig,
+], 'SinglesigBitcoinPaymentsConfig')
+export type SinglesigBitcoinPaymentsConfig = t.TypeOf<typeof SinglesigBitcoinPaymentsConfig>
 
 export const MultisigBitcoinPaymentsConfig = extendCodec(
   BaseBitcoinPaymentsConfig,
   {
-    signers: t.array(MultisigSignerKey),
+    m: t.number,
+    signers: t.array(SinglesigBitcoinPaymentsConfig),
   },
   'MultisigBitcoinPaymentsConfig',
 )
@@ -99,6 +97,28 @@ export type BitcoinPaymentsConfig = t.TypeOf<typeof BitcoinPaymentsConfig>
 export const BitcoinUnsignedTransactionData = BitcoinishPaymentTx
 export type BitcoinUnsignedTransactionData = t.TypeOf<typeof BitcoinUnsignedTransactionData>
 
+export const BitcoinMultisigDataSigner = requiredOptionalCodec(
+  {
+    accountId: t.string,
+    index: t.number,
+    publicKey: t.string,
+  },
+  {
+    signed: t.boolean,
+  },
+  'BitcoinMultisigDataSigner',
+)
+export type BitcoinMultisigDataSigner = t.TypeOf<typeof BitcoinMultisigDataSigner>
+
+export const BitcoinMultisigData = t.type(
+  {
+    m: t.number,
+    signers: t.array(BitcoinMultisigDataSigner),
+  },
+  'BitcoinMultisigData',
+)
+export type BitcoinMultisigData = t.TypeOf<typeof BitcoinMultisigData>
+
 export const BitcoinUnsignedTransaction = extendCodec(
   BaseUnsignedTransaction,
   {
@@ -106,15 +126,36 @@ export const BitcoinUnsignedTransaction = extendCodec(
     fee: t.string,
     data: BitcoinUnsignedTransactionData,
   },
+  {
+    multisigData: BitcoinMultisigData,
+  },
   'BitcoinUnsignedTransaction',
 )
 export type BitcoinUnsignedTransaction = t.TypeOf<typeof BitcoinUnsignedTransaction>
 
-export const BitcoinSignedTransaction = extendCodec(BaseSignedTransaction, {
-  data: t.type({
+export const BitcoinSignedTransactionData = requiredOptionalCodec(
+  {
     hex: t.string,
-  }),
-}, {}, 'BitcoinSignedTransaction')
+  },
+  {
+    // true if hex is a partially signed transaction
+    partial: t.boolean,
+    psbt: t.string,
+  },
+  'BitcoinSignedTransactionData',
+)
+export type BitcoinSignedTransactionData = t.TypeOf<typeof BitcoinSignedTransactionData>
+
+export const BitcoinSignedTransaction = extendCodec(
+  BaseSignedTransaction,
+  {
+    data: BitcoinSignedTransactionData,
+  },
+  {
+    multisigData: BitcoinMultisigData,
+  },
+  'BitcoinSignedTransaction',
+)
 export type BitcoinSignedTransaction = t.TypeOf<typeof BitcoinSignedTransaction>
 
 export const BitcoinTransactionInfo = extendCodec(BaseTransactionInfo, {}, {}, 'BitcoinTransactionInfo')

@@ -7,12 +7,12 @@ import { xprvToXpub, deriveAddress, HDNode, deriveHDNode, deriveKeyPair } from '
 import {
   HdBitcoinPaymentsConfig,
 } from './types'
-import { BaseBitcoinPayments } from './BaseBitcoinPayments'
+import { SinglesigBitcoinPayments } from './SinglesigBitcoinPayments'
 import { DEFAULT_DERIVATION_PATHS } from './constants'
 import { isValidXprv, isValidXpub, validateHdKey } from './helpers';
 import { bip32MagicNumberToPrefix } from './utils'
 
-export class HdBitcoinPayments extends BaseBitcoinPayments<HdBitcoinPaymentsConfig> {
+export class HdBitcoinPayments extends SinglesigBitcoinPayments<HdBitcoinPaymentsConfig> {
   readonly derivationPath: string
   readonly xpub: string
   readonly xprv: string | null
@@ -71,7 +71,7 @@ export class HdBitcoinPayments extends BaseBitcoinPayments<HdBitcoinPaymentsConf
   getAccountId(index: number): string {
     return this.xpub
   }
-  getAccountIds(): string[] {
+  getAccountIds(index?: number): string[] {
     return [this.xpub]
   }
 

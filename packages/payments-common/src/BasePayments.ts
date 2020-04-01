@@ -68,8 +68,12 @@ export interface BasePayments<
 
   /**
    * Return identifiers for all accounts configured.
+   *
+   * Optionally, if an index is provided, only return accounts at that index. This
+   * will always be an array of length one for single sig payments, but will have more
+   * than one for multi sig implementations.
    */
-  getAccountIds(): string[]
+  getAccountIds(index?: number): string[]
 
   /**
    * Return identifier for account used for payport at `index` (an xpub or address works).

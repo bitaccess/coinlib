@@ -171,6 +171,18 @@ export enum TransactionStatus {
 }
 export const TransactionStatusT = enumCodec<TransactionStatus>(TransactionStatus, 'TransactionStatus')
 
+export const TransactionOutput = requiredOptionalCodec(
+  {
+    address: t.string,
+    value: t.string,
+  },
+  {
+    extraId: nullable(t.string),
+  },
+  'TransactionOutput',
+)
+export type TransactionOutput = t.TypeOf<typeof TransactionOutput>
+
 export const TransactionCommon = requiredOptionalCodec(
   {
     status: TransactionStatusT,
@@ -186,6 +198,8 @@ export const TransactionCommon = requiredOptionalCodec(
     fromExtraId: nullable(t.string), // eg ripple sender tag
     toExtraId: nullable(t.string), // eg Monero payment ID or ripple destination tag
     sequenceNumber: nullable(t.union([t.string, t.number])), // eg Ethereum nonce or ripple sequence
+    inputUtxos: t.array(UtxoInfo),
+    externalOutputs: t.array(TransactionOutput)
   },
   'TransactionCommon',
 )
@@ -200,9 +214,6 @@ const UnsignedCommon = extendCodec(
     targetFeeLevel: FeeLevelT,
     targetFeeRate: nullable(t.string),
     targetFeeRateType: nullable(FeeRateTypeT),
-  },
-  {
-    inputUtxos: t.array(UtxoInfo),
   },
   'UnsignedCommon',
 )

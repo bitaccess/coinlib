@@ -64,7 +64,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   abstract getFullConfig(): Config
   abstract getPublicConfig(): Config
   abstract getAccountId(index: number): string
-  abstract getAccountIds(): string[]
+  abstract getAccountIds(index?: number): string[]
   abstract getAddress(index: number): string
   abstract getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate>
   abstract isValidAddress(address: string): MaybePromise<boolean>
@@ -520,7 +520,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     this.logger.debug('createMultiOutputTransaction data', paymentTx)
     const feeMain = paymentTx.fee
 
-    let resultToAddress = 'multi'
+    let resultToAddress = 'batch'
     let resultToIndex = null
     if (paymentTx.externalOutputs.length === 1) {
       const onlyOutput = paymentTx.externalOutputs[0]
@@ -544,6 +544,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       fee: feeMain,
       sequenceNumber: null,
       inputUtxos: paymentTx.inputs,
+      externalOutputs: paymentTx.externalOutputs,
       data: paymentTx,
     }
   }

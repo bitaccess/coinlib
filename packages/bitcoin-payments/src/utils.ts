@@ -1,8 +1,9 @@
 import { NetworkType, FeeLevel, FeeRateType, AutoFeeLevels } from '@faast/payments-common'
 import request from 'request-promise-native'
 import bs58 from 'bs58'
-import { AddressType, BaseBitcoinPaymentsConfig } from './types'
+import { AddressType, BaseBitcoinPaymentsConfig, BitcoinUnsignedTransaction, BitcoinSignedTransaction } from './types';
 import { BitcoinishPaymentsConfig } from './bitcoinish'
+import crypto from 'crypto';
 import {
   DEFAULT_NETWORK,
   NETWORK_TESTNET,

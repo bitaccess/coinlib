@@ -1,4 +1,4 @@
-import { BaseBitcoinPayments } from './BaseBitcoinPayments'
+import { SinglesigBitcoinPayments } from './SinglesigBitcoinPayments'
 import { KeyPairBitcoinPaymentsConfig, BitcoinjsKeyPair } from './types'
 import { omit } from 'lodash'
 import {
@@ -9,8 +9,9 @@ import {
   publicKeyToKeyPair,
   publicKeyToString,
 } from './helpers'
+import { isUndefined } from '@faast/ts-common'
 
-export class KeyPairBitcoinPayments extends BaseBitcoinPayments<KeyPairBitcoinPaymentsConfig> {
+export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitcoinPaymentsConfig> {
   readonly publicKeys: { [index: number]: string | undefined } = {}
   readonly privateKeys: { [index: number]: string | null | undefined } = {}
   readonly addresses: { [index: number]: string | undefined } = {}
@@ -59,19 +60,22 @@ export class KeyPairBitcoinPayments extends BaseBitcoinPayments<KeyPairBitcoinPa
   getPublicConfig(): KeyPairBitcoinPaymentsConfig {
     return {
       ...omit(this.getFullConfig(), ['logger', 'server', 'keyPairs']),
-      keyPairs: this.addresses,
+      keyPairs: this.publicKeys,
     }
   }
 
   getAccountId(index: number): string {
-    const accountId = this.addresses[index] || ''
+    const accountId = this.publicKeys[index] || ''
     if (!accountId) {
       throw new Error(`No KeyPairBitcoinPayments account configured at index ${index}`)
     }
     return accountId
   }
 
-  getAccountIds(): string[] {
+  getAccountIds(index?: number): string[] {
+    if (!isUndefined(index)) {
+      return [this.getAccountId(index)]
+    }
     return Object.keys(this.addressIndices)
   }
 
