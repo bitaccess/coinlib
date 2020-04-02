@@ -5,7 +5,6 @@ import {
   BitcoinUnsignedTransaction,
   BitcoinSignedTransaction,
   PayportOutput,
-  BitcoinishUnsignedTransaction,
   BitcoinMultisigData,
 } from './types'
 import { omit } from 'lodash'
@@ -100,7 +99,7 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
     to: ResolveablePayport,
     amount: Numeric,
     options?: CreateTransactionOptions,
-  ): Promise<BitcoinishUnsignedTransaction> {
+  ): Promise<BitcoinUnsignedTransaction> {
     const tx = super.createTransaction(from, to, amount, options)
     return {
       ...tx,
@@ -124,7 +123,7 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
     from: number,
     to: ResolveablePayport,
     options: CreateTransactionOptions = {},
-  ): Promise<BitcoinishUnsignedTransaction> {
+  ): Promise<BitcoinUnsignedTransaction> {
     const tx = super.createSweepTransaction(from, to, options)
     return {
       ...tx,

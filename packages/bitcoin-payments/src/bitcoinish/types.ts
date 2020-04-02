@@ -96,6 +96,7 @@ export const BitcoinishUnsignedTransaction = extendCodec(
   {
     amount: t.string,
     fee: t.string,
+    data: BitcoinishPaymentTx,
   },
   'BitcoinishUnsignedTransaction',
 )

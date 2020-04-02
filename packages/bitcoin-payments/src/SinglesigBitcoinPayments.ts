@@ -76,7 +76,7 @@ export abstract class SinglesigBitcoinPayments<Config extends BaseBitcoinPayment
   async serializePaymentTx(tx: BitcoinishPaymentTx, fromIndex: number): Promise<string> {
     const keyPair = this.getKeyPair(fromIndex)
     const psbt = await this.buildSinglesigPsbt(tx, keyPair.publicKey)
-    return psbt.extractTransaction().toHex()
+    return psbt.toHex()
   }
 
   async signMultisigTransaction(

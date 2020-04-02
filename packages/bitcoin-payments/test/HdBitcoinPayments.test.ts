@@ -4,9 +4,9 @@ import {
   HdBitcoinPayments, HdBitcoinPaymentsConfig, AddressType,
 } from '../src'
 
-import { EXTERNAL_ADDRESS, signedTx_valid, signedTx_invalid, accountsByAddressType, AccountFixture } from './fixtures'
+import { EXTERNAL_ADDRESS, accountsByAddressType, AccountFixture } from './fixtures'
 import { logger, makeUtxos, makeOutputs } from './utils'
-import { toBigNumber } from '@faast/ts-common';
+import { toBigNumber } from '@faast/ts-common'
 
 describe('HdBitcoinPayments', () => {
 
