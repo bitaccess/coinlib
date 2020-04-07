@@ -21,8 +21,25 @@ export enum AddressType {
   Legacy = 'p2pkh',
   SegwitP2SH = 'p2sh-p2wpkh',
   SegwitNative = 'p2wpkh',
+  MultisigLegacy = 'p2sh-p2ms',
+  MultisigSegwitP2SH = 'p2sh-p2wsh-p2ms',
+  MultisigSegwitNative = 'p2wsh-p2ms'
 }
 export const AddressTypeT = enumCodec<AddressType>(AddressType, 'AddressType')
+
+export const SinglesigAddressType = t.keyof({
+  [AddressType.Legacy]: null,
+  [AddressType.SegwitP2SH]: null,
+  [AddressType.SegwitNative]: null,
+}, 'SinglesigAddressType')
+export type SinglesigAddressType = t.TypeOf<typeof SinglesigAddressType>
+
+export const MultisigAddressType = t.keyof({
+  [AddressType.MultisigLegacy]: null,
+  [AddressType.MultisigSegwitP2SH]: null,
+  [AddressType.MultisigSegwitNative]: null,
+}, 'MultisigAddressType')
+export type MultisigAddressType = t.TypeOf<typeof MultisigAddressType>
 
 export const BitcoinPaymentsUtilsConfig = extendCodec(
   BaseConfig,
@@ -38,7 +55,6 @@ export const BaseBitcoinPaymentsConfig = extendCodec(
   BitcoinPaymentsUtilsConfig,
   {},
   {
-    addressType: AddressTypeT,
     minTxFee: FeeRate,
     dustThreshold: t.number,
     networkMinRelayFee: t.number,
@@ -56,6 +72,7 @@ export const HdBitcoinPaymentsConfig = extendCodec(
     hdKey: t.string,
   },
   {
+    addressType: SinglesigAddressType,
     derivationPath: t.string,
   },
   'HdBitcoinPaymentsConfig',
@@ -66,6 +83,9 @@ export const KeyPairBitcoinPaymentsConfig = extendCodec(
   BaseBitcoinPaymentsConfig,
   {
     keyPairs: KeyPairsConfigParam,
+  },
+  {
+    addressType: SinglesigAddressType,
   },
   'KeyPairBitcoinPaymentsConfig',
 )
@@ -82,6 +102,9 @@ export const MultisigBitcoinPaymentsConfig = extendCodec(
   {
     m: t.number,
     signers: t.array(SinglesigBitcoinPaymentsConfig),
+  },
+  {
+    addressType: MultisigAddressType,
   },
   'MultisigBitcoinPaymentsConfig',
 )
@@ -138,9 +161,10 @@ export const BitcoinSignedTransactionData = requiredOptionalCodec(
     hex: t.string,
   },
   {
-    // true if hex is a partially signed transaction
+    // true if `hex` is a partially signed transaction, false if it's finalized
     partial: t.boolean,
-    psbt: t.string,
+    // sha256 hash of the unsignedHex data for facilitating multisig tx combining
+    unsignedTxHash: t.string,
   },
   'BitcoinSignedTransactionData',
 )

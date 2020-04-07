@@ -1,7 +1,7 @@
 import { createUnitConverters } from '@faast/payments-common'
 import * as bitcoin from 'bitcoinjs-lib'
 import * as bip32 from 'bip32'
-import { BitcoinjsNetwork, AddressType, BitcoinjsKeyPair } from './types'
+import { BitcoinjsNetwork, AddressType, BitcoinjsKeyPair, MultisigAddressType, SinglesigAddressType } from './types'
 import { DECIMAL_PLACES } from './constants'
 import { isString } from '@faast/ts-common';
 
@@ -78,25 +78,59 @@ export function publicKeyToString(publicKey: string | Buffer): string {
   return isString(publicKey) ? publicKey : publicKey.toString('hex')
 }
 
+export function getMultisigPaymentScript(
+  network: BitcoinjsNetwork,
+  addressType: MultisigAddressType,
+  pubkeys: Buffer[],
+  m: number,
+): bitcoin.payments.Payment {
+  const scriptParams = {
+    network,
+    redeem: bitcoin.payments.p2ms({
+      pubkeys: pubkeys.sort(),
+      m,
+      network,
+    })
+  }
+  switch(addressType) {
+    case AddressType.MultisigLegacy:
+      return bitcoin.payments.p2sh(scriptParams)
+    case AddressType.MultisigSegwitNative:
+      return bitcoin.payments.p2wsh(scriptParams)
+    case AddressType.MultisigSegwitP2SH:
+      return bitcoin.payments.p2sh({
+        redeem: bitcoin.payments.p2wsh(scriptParams),
+        network,
+      })
+  }
+}
+
+export function getSinglesigPaymentScript(
+  network: BitcoinjsNetwork,
+  addressType: SinglesigAddressType,
+  pubkey: Buffer,
+): bitcoin.payments.Payment {
+  const scriptParams = { network, pubkey }
+  switch(addressType) {
+    case AddressType.Legacy:
+      return bitcoin.payments.p2pkh(scriptParams)
+    case AddressType.SegwitNative:
+      return bitcoin.payments.p2wpkh(scriptParams)
+    case AddressType.SegwitP2SH:
+      return bitcoin.payments.p2sh({
+        redeem: bitcoin.payments.p2wpkh(scriptParams),
+        network,
+      })
+  }
+}
+
 export function publicKeyToAddress(
   publicKey: string | Buffer,
   network: BitcoinjsNetwork,
-  addressType: AddressType,
+  addressType: SinglesigAddressType,
 ): string {
   const pubkey = publicKeyToBuffer(publicKey)
-  let script: bitcoin.payments.Payment
-  if (addressType === AddressType.Legacy) {
-    script = bitcoin.payments.p2pkh({ network, pubkey })
-  } else { // type is segwit
-    script = bitcoin.payments.p2wpkh({ network, pubkey })
-
-    if (addressType === AddressType.SegwitP2SH) {
-      script = bitcoin.payments.p2sh({
-        network,
-        redeem: script
-      })
-    }
-  }
+  const script = getSinglesigPaymentScript(network, addressType, pubkey)
   const { address } = script
   if (!address) {
     throw new Error('bitcoinjs-lib address derivation returned falsy value')
@@ -112,7 +146,7 @@ export function privateKeyToKeyPair(privateKey: string, network: BitcoinjsNetwor
   return bitcoin.ECPair.fromWIF(privateKey, network)
 }
 
-export function privateKeyToAddress(privateKey: string, network: BitcoinjsNetwork, addressType: AddressType) {
+export function privateKeyToAddress(privateKey: string, network: BitcoinjsNetwork, addressType: SinglesigAddressType) {
   const keyPair = privateKeyToKeyPair(privateKey, network)
   return publicKeyToAddress(keyPair.publicKey, network, addressType)
 }

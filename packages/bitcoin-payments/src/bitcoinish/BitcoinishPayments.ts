@@ -17,12 +17,12 @@ import {
   BitcoinishPaymentsConfig,
   BitcoinishPaymentTx,
   BitcoinishTxOutput,
+  BitcoinishTxOutputSatoshis,
   BitcoinishWeightedChangeOutput,
   PayportOutput,
 } from './types'
-import { estimateTxFee, sumUtxoValue, sortUtxos, isConfirmedUtxo } from './utils'
+import { estimateTxFee, sumUtxoValue, sortUtxos, isConfirmedUtxo, sha256FromHex } from './utils';
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
-import BigNumber from 'bignumber.js'
 
 export abstract class BitcoinishPayments<Config extends BaseConfig> extends BitcoinishPaymentsUtils
   implements BasePayments<
@@ -37,7 +37,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   minTxFee?: FeeRate
   dustThreshold: number // base denom
   networkMinRelayFee: number // base denom
-  isSegwit: boolean
   defaultFeeLevel: AutoFeeLevels
   targetUtxoPoolSize: number
   minChangeSat: number
@@ -51,7 +50,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     this.minTxFee = config.minTxFee
     this.dustThreshold = config.dustThreshold
     this.networkMinRelayFee = config.networkMinRelayFee
-    this.isSegwit = config.isSegwit
     this.defaultFeeLevel = config.defaultFeeLevel
     this.targetUtxoPoolSize = isUndefined(config.targetUtxoPoolSize) ? 1 : config.targetUtxoPoolSize
     const minChange = toBigNumber(isUndefined(config.minChange) ? 0 : config.minChange)
@@ -201,7 +199,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     outputCount: number,
   ): number {
     if (feeRateType === FeeRateType.BasePerWeight) {
-      return estimateTxFee(Number.parseFloat(feeRate), inputCount, outputCount, this.isSegwit)
+      return estimateTxFee(Number.parseFloat(feeRate), inputCount, outputCount, true)
     } else if (feeRateType === FeeRateType.Main) {
       return this.toBaseDenominationNumber(feeRate)
     }
@@ -328,7 +326,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     // sum of non change output value in satoshis
     let outputTotal = 0
     // Convert output values to satoshis for convenient math
-    const externalOutputs: Array<{ address: string, satoshis: number }> = []
+    const externalOutputs: BitcoinishTxOutputSatoshis[] = []
     for (let i = 0; i < desiredOutputs.length; i++) {
       const { address, value } = desiredOutputs[i]
       // validate
@@ -393,7 +391,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     let totalChangeSat = inputTotal - amountWithFee
 
     this.logger.debug('buildPaymentTx', { inputTotal, feeSat, outputTotal, totalChangeSat })
-    let changeOutputs: Array<{ address: string, satoshis: number}> = []
+    let changeOutputs: BitcoinishTxOutputSatoshis[] = []
     if (totalChangeSat > this.dustThreshold) { // Avoid creating dust outputs
 
       // Don't use availableUtxo.length here because unconfirmed still count towards pool count
@@ -450,16 +448,18 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
     const externalOutputsResult = this.convertOutputsToExternalFormat(externalOutputs)
     const changeOutputsResult = this.convertOutputsToExternalFormat(changeOutputs)
+    const outputsResult = [...externalOutputsResult, ...changeOutputsResult]
     return {
       inputs: inputUtxos,
-      outputs: [...externalOutputsResult, ...changeOutputsResult],
+      outputs: outputsResult,
       fee: this.toMainDenominationString(feeSat),
       change: this.toMainDenominationString(totalChangeSat),
       changeAddress: changeOutputs.length === 1 ? changeOutputs[0].address : null, // back compat
       changeOutputs: changeOutputsResult,
       externalOutputs: externalOutputsResult,
       externalOutputTotal: this.toMainDenominationString(outputTotal),
-      hex: '',
+      rawHex: '',
+      rawHash: '',
     }
   }
 
@@ -516,7 +516,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       useAllUtxos: options.useAllUtxos,
     })
     const unsignedTxHex = await this.serializePaymentTx(paymentTx, from)
-    paymentTx.hex = unsignedTxHex
+    paymentTx.rawHex = unsignedTxHex
+    paymentTx.rawHash = sha256FromHex(unsignedTxHex)
     this.logger.debug('createMultiOutputTransaction data', paymentTx)
     const feeMain = paymentTx.fee
 

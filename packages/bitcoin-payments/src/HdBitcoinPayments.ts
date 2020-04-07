@@ -4,11 +4,9 @@ import {
 } from '@faast/ts-common'
 import bs58 from 'bs58'
 import { xprvToXpub, deriveAddress, HDNode, deriveHDNode, deriveKeyPair } from './bip44'
-import {
-  HdBitcoinPaymentsConfig,
-} from './types'
+import { HdBitcoinPaymentsConfig, SinglesigAddressType } from './types'
 import { SinglesigBitcoinPayments } from './SinglesigBitcoinPayments'
-import { DEFAULT_DERIVATION_PATHS } from './constants'
+import { DEFAULT_DERIVATION_PATHS, DEFAULT_SINGLESIG_ADDRESS_TYPE } from './constants'
 import { isValidXprv, isValidXpub, validateHdKey } from './helpers';
 import { bip32MagicNumberToPrefix } from './utils'
 
@@ -54,15 +52,16 @@ export class HdBitcoinPayments extends SinglesigBitcoinPayments<HdBitcoinPayment
     return isValidXpub(xpub, this.bitcoinjsNetwork)
   }
 
-  getFullConfig() {
+  getFullConfig(): HdBitcoinPaymentsConfig {
     return {
       ...this.config,
-      derivationPath: this.derivationPath,
+      network: this.networkType,
       addressType: this.addressType,
+      derivationPath: this.derivationPath,
     }
   }
 
-  getPublicConfig() {
+  getPublicConfig(): HdBitcoinPaymentsConfig {
     return {
       ...omit(this.getFullConfig(), ['logger', 'server', 'hdKey']),
       hdKey: this.xpub,

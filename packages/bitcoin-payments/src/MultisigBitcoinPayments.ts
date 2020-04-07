@@ -6,22 +6,26 @@ import {
   BitcoinSignedTransaction,
   PayportOutput,
   BitcoinMultisigData,
+  MultisigAddressType,
 } from './types'
 import { omit } from 'lodash'
 import { HdBitcoinPayments } from './HdBitcoinPayments'
 import { KeyPairBitcoinPayments } from './KeyPairBitcoinPayments'
 import * as bitcoin from 'bitcoinjs-lib'
 import { CreateTransactionOptions, ResolveablePayport } from '@faast/payments-common'
-import { publicKeyToString } from './helpers'
+import { publicKeyToString, getMultisigPaymentScript } from './helpers';
 import { Numeric } from '@faast/ts-common'
+import { DEFAULT_MULTISIG_ADDRESS_TYPE } from './constants';
 
 export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoinPaymentsConfig> {
 
+  addressType: MultisigAddressType
   m: number
   signers: (HdBitcoinPayments | KeyPairBitcoinPayments)[]
 
   constructor(private config: MultisigBitcoinPaymentsConfig) {
     super(config)
+    this.addressType = config.addressType || DEFAULT_MULTISIG_ADDRESS_TYPE
     this.m = config.m
     this.signers = config.signers.map((signerConfig, i) => {
       signerConfig = {
@@ -41,7 +45,11 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
   }
 
   getFullConfig(): MultisigBitcoinPaymentsConfig {
-    return this.config
+    return {
+      ...this.config,
+      network: this.networkType,
+      addressType: this.addressType,
+    }
   }
 
   getPublicConfig(): MultisigBitcoinPaymentsConfig {
@@ -59,20 +67,12 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
     return this.signers.reduce((result, signer) => ([...result, ...signer.getAccountIds(index)]), [] as string[])
   }
 
-  private getPaymentScript(index: number) {
-    const pubkeys = this.signers.map((signer) => signer.getKeyPair(index).publicKey).sort()
-    const script = bitcoin.payments.p2sh({
-      network: this.bitcoinjsNetwork,
-      redeem: bitcoin.payments.p2wsh({
-        network: this.bitcoinjsNetwork,
-        redeem: bitcoin.payments.p2ms({
-          network: this.bitcoinjsNetwork,
-          m: this.m,
-          pubkeys,
-        })
-      })
-    })
-    return script
+  getSignerPublicKeys(index: number) {
+    return this.signers.map((signer) => signer.getKeyPair(index).publicKey)
+  }
+
+  getPaymentScript(index: number) {
+    return getMultisigPaymentScript(this.bitcoinjsNetwork, this.addressType, this.getSignerPublicKeys(index), this.m)
   }
 
   getAddress(index: number): string {
@@ -100,7 +100,7 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
     amount: Numeric,
     options?: CreateTransactionOptions,
   ): Promise<BitcoinUnsignedTransaction> {
-    const tx = super.createTransaction(from, to, amount, options)
+    const tx = await super.createTransaction(from, to, amount, options)
     return {
       ...tx,
       multisigData: this.getMultisigData(from),
@@ -112,7 +112,7 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
     to: PayportOutput[],
     options: CreateTransactionOptions = {},
   ): Promise<BitcoinUnsignedTransaction> {
-    const tx = super.createMultiOutputTransaction(from, to, options)
+    const tx = await super.createMultiOutputTransaction(from, to, options)
     return {
       ...tx,
       multisigData: this.getMultisigData(from),
@@ -124,37 +124,57 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
     to: ResolveablePayport,
     options: CreateTransactionOptions = {},
   ): Promise<BitcoinUnsignedTransaction> {
-    const tx = super.createSweepTransaction(from, to, options)
+    const tx = await super.createSweepTransaction(from, to, options)
     return {
       ...tx,
       multisigData: this.getMultisigData(from),
     }
   }
 
+  getSignedPubKeys(multisigData: BitcoinMultisigData): string[] {
+    return multisigData.signers.filter(({ signed }) => signed).map(({ publicKey }) => publicKey)
+  }
+
   async combinePartiallySignedTransactions(txs: BitcoinSignedTransaction[]): Promise<BitcoinSignedTransaction> {
     if (txs.length < 2) {
       throw new Error(`Cannot combine ${txs.length} transactions, need at least 2`)
     }
-    const baseTx = txs[0]
-    const signedPubKeys = new Set()
+    const unsignedTxHash = txs[0].data.unsignedTxHash
     for (let i = 0; i < txs.length; i++) {
       const tx = txs[i]
-      const { multisigData } = tx
+      const { multisigData, inputUtxos, externalOutputs } = tx
       if (!multisigData) {
-        throw new Error(`tx ${i} cannot be combined because it has no multisigData`)
+        throw new Error(`Cannot combine signed multisig tx ${i} because multisigData is ${multisigData}`)
       }
-      for (let signer of multisigData.signers) {
-        if (signer.signed) {
-          signedPubKeys.add(signer.publicKey)
-        }
+      if (!inputUtxos) {
+        throw new Error(`Cannot combine signed multisig tx ${i} because inputUtxos field is missing`)
+      }
+      if (!externalOutputs) {
+        throw new Error(`Cannot combine signed multisig tx ${i} because externalOutputs field is missing`)
+      }
+      if (tx.data.unsignedTxHash !== unsignedTxHash) {
+        throw new Error(`Cannot combine signed multisig tx ${i} because unsignedTxHash is ${tx.data.unsignedTxHash} when expecting ${unsignedTxHash}`)
+      }
+      if (!tx.data.partial) {
+        throw new Error(`Cannot combine signed multisig tx ${i} because partial is ${tx.data.partial}`)
       }
     }
+
+    const baseTx = txs[0]
     const baseTxMultisigData = baseTx.multisigData!
+    const { m } = baseTxMultisigData
+    const signedPubKeys = new Set(this.getSignedPubKeys(baseTxMultisigData))
+
     let combinedPsbt = this.decodePsbt(baseTx)
     for (let i = 1; i < txs.length; i++) {
+      if (signedPubKeys.size >= m) {
+        this.logger.debug('Already received enough signatures, not combining')
+        break
+      }
       const tx = txs[i]
       const psbt = this.decodePsbt(tx)
       combinedPsbt.combine(psbt)
+      this.getSignedPubKeys(tx.multisigData!).forEach((pubkey) => signedPubKeys.add(pubkey))
     }
     const combinedHex = combinedPsbt.toHex()
     const combinedSignerData = baseTxMultisigData.signers.map((signer) => {
@@ -166,7 +186,6 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
       }
       return signer
     })
-    const m = baseTxMultisigData.m
     if (signedPubKeys.size >= m) {
       if (!combinedPsbt.validateSignaturesOfAllInputs()) {
         throw new Error('combined psbt signature validation failed')
@@ -183,9 +202,9 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
           signers: combinedSignerData,
         },
         data: {
-          psbt: combinedHex,
           hex: finalizedHex,
           partial: false,
+          unsignedTxHash,
         }
       }
     } else {
@@ -198,6 +217,7 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
         data: {
           hex: combinedHex,
           partial: true,
+          unsignedTxHash,
         }
       }
     }

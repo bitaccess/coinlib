@@ -1,9 +1,10 @@
 import { NetworkType, UtxoInfo } from '@faast/payments-common'
-import { BlockbookConnectedConfig } from './types'
+import { BlockbookConnectedConfig, BitcoinishTxOutput, BitcoinishTxOutputSatoshis } from './types';
 import { BlockbookBitcoin } from 'blockbook-client'
 import { isString, Logger, isMatchingError, toBigNumber } from '@faast/ts-common'
 import promiseRetry from 'promise-retry'
 import BigNumber from 'bignumber.js'
+import crypto from 'crypto'
 
 export function resolveServer(server: BlockbookConnectedConfig['server'], network: NetworkType): {
   api: BlockbookBitcoin
@@ -141,4 +142,10 @@ export function sortUtxos<T extends UtxoInfo>(utxoList: T[]): T[] {
 
 export function isConfirmedUtxo(utxo: UtxoInfo): boolean {
   return Boolean(utxo.confirmations || utxo.height)
+}
+
+export function sha256FromHex(hex: string): string {
+  return hex
+    ? crypto.createHash('sha256').update(Buffer.from(hex, 'hex')).digest('hex')
+    : ''
 }

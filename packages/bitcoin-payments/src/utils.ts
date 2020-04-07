@@ -1,16 +1,15 @@
 import { NetworkType, FeeLevel, FeeRateType, AutoFeeLevels } from '@faast/payments-common'
 import request from 'request-promise-native'
 import bs58 from 'bs58'
-import { AddressType, BaseBitcoinPaymentsConfig, BitcoinUnsignedTransaction, BitcoinSignedTransaction } from './types';
+import crypto from 'crypto'
+import { BaseBitcoinPaymentsConfig } from './types'
 import { BitcoinishPaymentsConfig } from './bitcoinish'
-import crypto from 'crypto';
 import {
   DEFAULT_NETWORK,
   NETWORK_TESTNET,
   NETWORK_MAINNET,
   DEFAULT_TESTNET_SERVER,
   DEFAULT_MAINNET_SERVER,
-  DEFAULT_ADDRESS_TYPE,
   COIN_SYMBOL,
   COIN_NAME,
   DECIMAL_PLACES,
@@ -44,13 +43,11 @@ export function toBitcoinishConfig<T extends BaseBitcoinPaymentsConfig>(config: 
     ...DEFAULT_BITCOINISH_CONFIG,
     ...config,
     network: config.network || DEFAULT_NETWORK,
-    addressType: config.addressType || DEFAULT_ADDRESS_TYPE,
   }
-  const { network, server, addressType } = configWithDefaults
+  const { network, server } = configWithDefaults
   return {
     ...configWithDefaults,
     bitcoinjsNetwork: network === NetworkType.Testnet ? NETWORK_TESTNET : NETWORK_MAINNET,
-    isSegwit: addressType === AddressType.SegwitNative || addressType === AddressType.SegwitP2SH,
     server: typeof server !== 'undefined'
       ? server
       : (network === NetworkType.Testnet

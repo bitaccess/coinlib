@@ -1,7 +1,8 @@
-import { payments as bjsPayments, Psbt } from 'bitcoinjs-lib'
+import * as bitcoin from 'bitcoinjs-lib'
 import {
   TransactionStatus,
 } from '@faast/payments-common'
+import crypto from 'crypto'
 
 import {
   BaseBitcoinPaymentsConfig,
@@ -9,74 +10,35 @@ import {
   AddressType,
   BitcoinjsKeyPair,
   BitcoinUnsignedTransaction,
-  BitcoinSignedTransaction
+  BitcoinSignedTransaction,
+  SinglesigBitcoinPaymentsConfig,
+  SinglesigAddressType,
 } from './types'
-import {
-  DEFAULT_ADDRESS_TYPE,
-} from './constants'
-import { toBaseDenominationNumber, publicKeyToString } from './helpers'
+import { toBaseDenominationNumber, publicKeyToString, getSinglesigPaymentScript } from './helpers'
 import { BaseBitcoinPayments } from './BaseBitcoinPayments'
+import { DEFAULT_SINGLESIG_ADDRESS_TYPE } from './constants'
 
-export abstract class SinglesigBitcoinPayments<Config extends BaseBitcoinPaymentsConfig = BaseBitcoinPaymentsConfig>
+export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPaymentsConfig>
   extends BaseBitcoinPayments<Config> {
 
-  readonly addressType: AddressType
+  addressType: SinglesigAddressType
 
-  constructor(config: BaseBitcoinPaymentsConfig) {
+  constructor(config: SinglesigBitcoinPaymentsConfig) {
     super(config)
-    this.addressType = config.addressType || DEFAULT_ADDRESS_TYPE
+    this.addressType = config.addressType || DEFAULT_SINGLESIG_ADDRESS_TYPE
   }
 
   abstract getKeyPair(index: number): BitcoinjsKeyPair
 
-  async getOrBuildPsbt(paymentTx: BitcoinishPaymentTx, pubkey: Buffer): Promise<Psbt> {
-    if (paymentTx.hex) {
-      return Psbt.fromHex(paymentTx.hex, this.psbtOptions)
-    }
-    return this.buildSinglesigPsbt(paymentTx, pubkey)
+  getPaymentScript(index: number) {
+    return getSinglesigPaymentScript(this.bitcoinjsNetwork, this.addressType, this.getKeyPair(index).publicKey)
   }
 
-  async buildSinglesigPsbt(paymentTx: BitcoinishPaymentTx, pubkey: Buffer): Promise<Psbt> {
-    const { inputs, outputs } = paymentTx
-
-    const bjsPaymentParams = { pubkey, network: this.bitcoinjsNetwork }
-    let bjsPayment
-    if (this.addressType === AddressType.Legacy) {
-      bjsPayment = bjsPayments.p2pkh(bjsPaymentParams)
-    } else if (this.addressType === AddressType.SegwitP2SH) {
-      bjsPayment = bjsPayments.p2sh({
-        redeem: bjsPayments.p2wpkh(bjsPaymentParams),
-        network: this.bitcoinjsNetwork,
-      })
-    } else if (this.addressType === AddressType.SegwitNative) {
-      bjsPayment = bjsPayments.p2wpkh(bjsPaymentParams)
-    } else {
-      throw new Error(`Unsupported AddressType ${this.addressType}`)
+  async getOrBuildPsbt(paymentTx: BitcoinishPaymentTx, fromIndex: number): Promise<bitcoin.Psbt> {
+    if (paymentTx.rawHex) {
+      return bitcoin.Psbt.fromHex(paymentTx.rawHex, this.psbtOptions)
     }
-
-    let psbt = new Psbt(this.psbtOptions)
-    for (let input of inputs) {
-      const redeemType = this.addressType === AddressType.SegwitP2SH ? 'p2sh' : undefined
-      psbt.addInput(await this.getPsbtInputData(
-        input,
-        bjsPayment,
-        this.isSegwit,
-        redeemType,
-      ))
-    }
-    for (let output of outputs) {
-      psbt.addOutput({
-        address: output.address,
-        value: toBaseDenominationNumber(output.value)
-      })
-    }
-    return psbt
-  }
-
-  async serializePaymentTx(tx: BitcoinishPaymentTx, fromIndex: number): Promise<string> {
-    const keyPair = this.getKeyPair(fromIndex)
-    const psbt = await this.buildSinglesigPsbt(tx, keyPair.publicKey)
-    return psbt.toHex()
+    return this.buildPsbt(paymentTx, fromIndex)
   }
 
   async signMultisigTransaction(
@@ -86,11 +48,11 @@ export abstract class SinglesigBitcoinPayments<Config extends BaseBitcoinPayment
     if (!multisigData) {
       throw new Error('Not a multisig tx')
     }
-    const txHex = data.hex
+    const txHex = data.rawHex
     if (!txHex) {
       throw new Error('Cannot sign multisig tx without unsigned tx hex')
     }
-    const psbt = Psbt.fromHex(txHex, this.psbtOptions)
+    const psbt = bitcoin.Psbt.fromHex(txHex, this.psbtOptions)
     const accountIds = this.getAccountIds()
     const updatedSignersData: typeof multisigData.signers = []
     let totalSignaturesAdded = 0
@@ -129,6 +91,7 @@ export abstract class SinglesigBitcoinPayments<Config extends BaseBitcoinPayment
       data: {
         hex: newTxHex,
         partial: true,
+        unsignedTxHash: data.rawHash,
       }
     }
   }
@@ -137,10 +100,10 @@ export abstract class SinglesigBitcoinPayments<Config extends BaseBitcoinPayment
     if (tx.multisigData) {
       return this.signMultisigTransaction(tx)
     } else {
-      const keyPair = this.getKeyPair(tx.fromIndex)
       const paymentTx = tx.data as BitcoinishPaymentTx
-      const psbt = await this.buildSinglesigPsbt(paymentTx, keyPair.publicKey)
+      const psbt = await this.getOrBuildPsbt(paymentTx, tx.fromIndex)
 
+      const keyPair = this.getKeyPair(tx.fromIndex)
       await psbt.signAllInputsAsync(keyPair)
 
       if (!psbt.validateSignaturesOfAllInputs()) {
@@ -157,6 +120,7 @@ export abstract class SinglesigBitcoinPayments<Config extends BaseBitcoinPayment
         data: {
           hex: txHex,
           partial: false,
+          unsignedTxHash: tx.data.rawHash,
         },
       }
     }

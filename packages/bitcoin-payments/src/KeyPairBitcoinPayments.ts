@@ -9,13 +9,12 @@ import {
   publicKeyToKeyPair,
   publicKeyToString,
 } from './helpers'
-import { isUndefined } from '@faast/ts-common'
+import { isUndefined, isString } from '@faast/ts-common'
 
 export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitcoinPaymentsConfig> {
   readonly publicKeys: { [index: number]: string | undefined } = {}
   readonly privateKeys: { [index: number]: string | null | undefined } = {}
   readonly addresses: { [index: number]: string | undefined } = {}
-  readonly addressIndices: { [address: string]: number | undefined } = {}
 
   constructor(private config: KeyPairBitcoinPaymentsConfig) {
     super(config)
@@ -39,20 +38,17 @@ export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitc
       }
 
       const address = publicKeyToAddress(publicKey, this.bitcoinjsNetwork, this.addressType)
-      if (typeof this.addressIndices[address] === 'number') {
-        return
-      }
 
       this.publicKeys[i] = publicKeyToString(publicKey)
       this.privateKeys[i] = privateKey
       this.addresses[i] = address
-      this.addressIndices[address] = i
     })
   }
 
   getFullConfig(): KeyPairBitcoinPaymentsConfig {
     return {
       ...this.config,
+      network: this.networkType,
       addressType: this.addressType,
     }
   }
@@ -76,7 +72,7 @@ export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitc
     if (!isUndefined(index)) {
       return [this.getAccountId(index)]
     }
-    return Object.keys(this.addressIndices)
+    return Object.values(this.publicKeys).filter(isString)
   }
 
   getKeyPair(index: number): BitcoinjsKeyPair {

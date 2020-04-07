@@ -1,4 +1,4 @@
-import { Psbt } from 'bitcoinjs-lib'
+import * as bitcoin from 'bitcoinjs-lib'
 import {
   FeeRateType, FeeRate, AutoFeeLevels, UtxoInfo
 } from '@faast/payments-common'
@@ -7,20 +7,25 @@ import { getBlockcypherFeeEstimate, toBitcoinishConfig } from './utils'
 import {
   BaseBitcoinPaymentsConfig,
   BitcoinSignedTransaction,
+  AddressType,
 } from './types'
 import {
   DEFAULT_SAT_PER_BYTE_LEVELS,
 } from './constants'
 import { isValidAddress, isValidPrivateKey, isValidPublicKey } from './helpers'
-import { BitcoinishPayments } from './bitcoinish'
+import { BitcoinishPayments, BitcoinishPaymentTx } from './bitcoinish'
 
 export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConfig> extends BitcoinishPayments<Config> {
+
   readonly maximumFeeRate?: number
 
   constructor(config: BaseBitcoinPaymentsConfig) {
     super(toBitcoinishConfig(config))
     this.maximumFeeRate = config.maximumFeeRate
   }
+
+  abstract getPaymentScript(index: number): bitcoin.payments.Payment
+  abstract addressType: AddressType
 
   isValidAddress(address: string): boolean {
     return isValidAddress(address, this.bitcoinjsNetwork)
@@ -52,15 +57,15 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
 
   async getPsbtInputData(
     utxo: UtxoInfo,
-    payment: any,
-    isSegwit: boolean,
-    redeemType?: 'p2sh' | 'p2wsh' | 'p2sh-p2wsh',
+    paymentScript: bitcoin.payments.Payment,
+    addressType: AddressType,
   ): Promise<any> {
     const utx = await this.getApi().getTx(utxo.txid)
     const result: any = {
       hash: utxo.txid,
       index: utxo.vout,
     }
+    const isSegwit = (/p2wpkh|p2wsh/).test(addressType)
     if (isSegwit) {
       // for segwit inputs, you only need the output script and value as an object.
       const rawUtxo = utx.vout[utxo.vout]
@@ -83,17 +88,13 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
       }
       result.nonWitnessUtxo = Buffer.from(utx.hex, 'hex')
     }
-    switch (redeemType) {
-      case 'p2sh':
-        result.redeemScript = payment.redeem.output;
-        break;
-      case 'p2wsh':
-        result.witnessScript = payment.redeem.output;
-        break;
-      case 'p2sh-p2wsh':
-        result.witnessScript = payment.redeem.redeem.output;
-        result.redeemScript = payment.redeem.output;
-        break;
+    if (addressType.startsWith('p2sh-p2wsh')) {
+      result.witnessScript = paymentScript.redeem!.redeem!.output
+      result.redeemScript = paymentScript.redeem!.output
+    } else if (addressType.startsWith('p2sh')) {
+      result.redeemScript = paymentScript.redeem!.output
+    } else if (addressType.startsWith('p2wsh')) {
+      result.witnessScript = paymentScript.redeem!.output
     }
     return result
   }
@@ -105,12 +106,36 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     }
   }
 
-  decodePsbt(tx: BitcoinSignedTransaction): Psbt {
-    const hex = tx.data.partial ? tx.data.hex : tx.data.psbt
-    if (!hex) {
-      throw new Error('Cannot decode finalized tx without psbt data')
+  async buildPsbt(paymentTx: BitcoinishPaymentTx, fromIndex: number): Promise<bitcoin.Psbt> {
+    const { inputs, outputs } = paymentTx
+    const inputPaymentScript = this.getPaymentScript(fromIndex)
+
+    let psbt = new bitcoin.Psbt(this.psbtOptions)
+    for (let input of inputs) {
+      psbt.addInput(await this.getPsbtInputData(
+        input,
+        inputPaymentScript,
+        this.addressType,
+      ))
     }
-    return Psbt.fromHex(hex, this.psbtOptions)
+    for (let output of outputs) {
+      psbt.addOutput({
+        address: output.address,
+        value: this.toBaseDenominationNumber(output.value)
+      })
+    }
+    return psbt
+  }
+
+  async serializePaymentTx(tx: BitcoinishPaymentTx, fromIndex: number): Promise<string> {
+    return (await this.buildPsbt(tx, fromIndex)).toHex()
+  }
+
+  decodePsbt(tx: BitcoinSignedTransaction): bitcoin.Psbt {
+    if (!tx.data.partial) {
+      throw new Error('Cannot decode psbt of a finalized tx')
+    }
+    return bitcoin.Psbt.fromHex(tx.data.hex, this.psbtOptions)
   }
 
 }
