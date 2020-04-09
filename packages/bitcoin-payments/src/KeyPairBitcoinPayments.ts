@@ -28,9 +28,9 @@ export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitc
       let publicKey: string | Buffer
       let privateKey: string | null = null
 
-      if (isValidPublicKey(value, this.bitcoinjsNetwork)) {
+      if (this.isValidPublicKey(value)) {
         publicKey = value
-      } else if (isValidPrivateKey(value, this.bitcoinjsNetwork)) {
+      } else if (this.isValidPrivateKey(value)) {
         publicKey = privateKeyToKeyPair(value, this.bitcoinjsNetwork).publicKey
         privateKey = value
       } else {
