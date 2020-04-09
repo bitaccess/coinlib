@@ -284,7 +284,8 @@ implements BasePayments
       toIndex: null,
       fee: this.toMainDenomination((new BigNumber(tx.gasPrice)).multipliedBy(txInfo.gasUsed)),
       sequenceNumber: tx.nonce,
-      isExecuted: txInfo.status,
+      // XXX if tx was confirmed but not accepted by network isExecuted must be false
+      isExecuted: status !== TransactionStatus.Failed,
       isConfirmed,
       confirmations,
       confirmationId: tx.blockHash,
