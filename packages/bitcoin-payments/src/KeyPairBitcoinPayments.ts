@@ -2,8 +2,6 @@ import { SinglesigBitcoinPayments } from './SinglesigBitcoinPayments'
 import { KeyPairBitcoinPaymentsConfig, BitcoinjsKeyPair } from './types'
 import { omit } from 'lodash'
 import {
-  isValidPrivateKey,
-  isValidPublicKey,
   privateKeyToKeyPair,
   publicKeyToAddress,
   publicKeyToKeyPair,
