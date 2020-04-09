@@ -216,10 +216,13 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     if (this.minTxFee) {
       const minTxFeeSat = this.feeRateToSatoshis(this.minTxFee, inputCount, outputCount)
       if (feeSat < minTxFeeSat) {
+        this.logger.debug(`Using min tx fee of ${minTxFeeSat} sat (${this.minTxFee} sat/byte) instead of ${feeSat} sat`)
         feeSat = minTxFeeSat
       }
     }
+    // Ensure calculated fee is above network relay minimum
     if (feeSat < this.networkMinRelayFee) {
+      this.logger.debug(`Using network min relay fee of ${this.networkMinRelayFee} sat instead of ${feeSat} sat`)
       feeSat = this.networkMinRelayFee
     }
     return Math.ceil(feeSat)
