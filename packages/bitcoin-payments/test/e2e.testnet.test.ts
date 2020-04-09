@@ -10,6 +10,7 @@ import {
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 import fixtures from './fixtures/singlesigTestnet'
+import { HdBitcoinPaymentsConfig } from '../src/types';
 
 const SECRET_XPRV_FILE = 'test/keys/testnet.key'
 
@@ -35,7 +36,9 @@ const addressTypesToTest: SinglesigAddressType[] = [
   AddressType.SegwitNative,
 ];
 
-(!secretXprv ? describe.skip : describe)('e2e testnet', () => {
+const describeAll = !secretXprv ? describe.skip : describe
+
+describeAll('e2e testnet', () => {
   let testsComplete = false
 
   afterAll(() => {
@@ -46,12 +49,15 @@ const addressTypesToTest: SinglesigAddressType[] = [
     const { xpub, addresses } = fixtures[addressType]
 
     describe(addressType, () => {
-      const payments = new HdBitcoinPayments({
+      const paymentsConfig: HdBitcoinPaymentsConfig = {
         hdKey: secretXprv,
         network: NetworkType.Testnet,
         addressType,
         logger,
-      })
+        minChange: '0.01',
+        targetUtxoPoolSize: 5,
+      }
+      const payments = new HdBitcoinPayments(paymentsConfig)
       it('get correct xpub', async () => {
         expect(payments.xpub).toEqual(xpub)
       })

@@ -36,7 +36,9 @@ function assertTxInfo(actual: BitcoinTransactionInfo, expected: BitcoinTransacti
   expectEqualOmit(actual, expected, ['data.confirmations', 'confirmations'])
 }
 
-(!secretXprv ? describe.skip : describe)('e2e mainnet', () => {
+const describeAll = !secretXprv ? describe.skip : describe
+
+describeAll('e2e mainnet', () => {
   let testsComplete = false
 
   afterAll(() => {
@@ -107,7 +109,7 @@ function assertTxInfo(actual: BitcoinTransactionInfo, expected: BitcoinTransacti
   })
 
   it('creates transaction with custom fee', async () => {
-    const fee = '0.00001'
+    const fee = '0.00005'
     const tx = await payments.createSweepTransaction(0, 3, { feeRate: fee, feeRateType: FeeRateType.Main })
     expect(tx.fee).toBe(fee)
   })

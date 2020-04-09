@@ -1,7 +1,7 @@
 import { NetworkType, FeeRateType } from '@faast/payments-common';
 
 import {
-  HdBitcoinPayments, HdBitcoinPaymentsConfig, AddressType,
+  HdBitcoinPayments, HdBitcoinPaymentsConfig, AddressType, SinglesigAddressType,
 } from '../src'
 
 import { EXTERNAL_ADDRESS, accountsByAddressType, AccountFixture } from './fixtures'
@@ -157,13 +157,13 @@ describe('HdBitcoinPayments', () => {
   })
 
   for (let k in accountsByAddressType) {
-    const addressType = k as AddressType
+    const addressType = k as SinglesigAddressType
     const accountFixture = accountsByAddressType[addressType]
 
     describe(addressType, () => {
 
       describe('hardcoded xpub', () => {
-        const config = {
+        const config: HdBitcoinPaymentsConfig = {
           hdKey: accountFixture.xpub,
           network: NetworkType.Mainnet,
           addressType,
@@ -175,10 +175,10 @@ describe('HdBitcoinPayments', () => {
       })
 
       describe('hardcoded xprv', () => {
-        const config = {
+        const config: HdBitcoinPaymentsConfig = {
           hdKey: accountFixture.xprv,
-          addressType,
           network: NetworkType.Mainnet,
+          addressType,
           logger,
         }
         const payments = new HdBitcoinPayments(config)
