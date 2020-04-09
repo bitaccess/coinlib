@@ -127,8 +127,11 @@ export function estimateTxFee (satPerByte: number, inputsCount: number, outputsC
 /**
  * Sum the utxos values (main denomination)
  */
-export function sumUtxoValue(utxos: UtxoInfo[]): BigNumber {
-  return utxos.reduce((total, { value }) => total.plus(value), toBigNumber(0))
+export function sumUtxoValue(utxos: UtxoInfo[], includeUnconfirmed?: boolean): BigNumber {
+  const filtered = (includeUnconfirmed
+    ? utxos.filter(isConfirmedUtxo)
+    : utxos)
+  return filtered.reduce((total, { value }) => total.plus(value), toBigNumber(0))
 }
 
 /**

@@ -564,7 +564,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     if (availableUtxos.length === 0) {
       throw new Error('No available utxos to sweep')
     }
-    const outputAmount = sumUtxoValue(availableUtxos)
+    const outputAmount = sumUtxoValue(availableUtxos, options.useUnconfirmedUtxos)
     if (!this.isSweepableBalance(outputAmount)) {
       throw new Error(`Available utxo total ${outputAmount} ${this.coinSymbol} too low to sweep`)
     }
