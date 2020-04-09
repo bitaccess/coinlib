@@ -1,6 +1,6 @@
 {
   "name": "@faast/bitcoin-payments",
-  "version": "2.1.0",
+  "version": "2.1.10",
   "description": "Library to assist in processing bitcoin payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -70,12 +70,13 @@
     "rollup-plugin-typescript2": "^0.24.3",
     "ts-jest": "^24.1.0",
     "ts-node": "^8.4.1",
+    "tsconfig-paths": "^3.9.0",
     "tslint": "^5.20.0",
     "typedoc": "^0.15.0",
     "typescript": "^3.7.2"
   },
   "dependencies": {
-    "@faast/payments-common": "^2.1.0",
+    "@faast/payments-common": "^2.1.2",
     "@faast/ts-common": "^0.6.0",
     "bignumber.js": "^9.0.0",
     "bip32": "^2.0.5",

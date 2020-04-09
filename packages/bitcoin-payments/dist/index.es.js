@@ -8,6 +8,7 @@ import { instanceofCodec, requiredOptionalCodec, nullable, Logger, extendCodec, 
 import { BlockbookBitcoin, BlockInfoBitcoin } from 'blockbook-client';
 import { get, omit } from 'lodash';
 import promiseRetry from 'promise-retry';
+import BigNumber from 'bignumber.js';
 import { fromBase58 } from 'bip32';
 
 class BlockbookServerAPI extends BlockbookBitcoin {
@@ -108,61 +109,10 @@ function retryIfDisconnected(fn, api, logger) {
     });
 }
 function estimateTxSize(inputsCount, outputsCount, handleSegwit) {
-    let maxNoWitness;
-    let maxSize;
-    let maxWitness;
-    let minNoWitness;
-    let minSize;
-    let minWitness;
-    let varintLength;
-    if (inputsCount < 0xfd) {
-        varintLength = 1;
-    }
-    else if (inputsCount < 0xffff) {
-        varintLength = 3;
-    }
-    else {
-        varintLength = 5;
-    }
-    if (handleSegwit) {
-        minNoWitness =
-            varintLength + 4 + 2 + 59 * inputsCount + 1 + 31 * outputsCount + 4;
-        maxNoWitness =
-            varintLength + 4 + 2 + 59 * inputsCount + 1 + 33 * outputsCount + 4;
-        minWitness =
-            varintLength +
-                4 +
-                2 +
-                59 * inputsCount +
-                1 +
-                31 * outputsCount +
-                4 +
-                106 * inputsCount;
-        maxWitness =
-            varintLength +
-                4 +
-                2 +
-                59 * inputsCount +
-                1 +
-                33 * outputsCount +
-                4 +
-                108 * inputsCount;
-        minSize = (minNoWitness * 3 + minWitness) / 4;
-        maxSize = (maxNoWitness * 3 + maxWitness) / 4;
-    }
-    else {
-        minSize = varintLength + 4 + 146 * inputsCount + 1 + 31 * outputsCount + 4;
-        maxSize = varintLength + 4 + 148 * inputsCount + 1 + 33 * outputsCount + 4;
-    }
-    return {
-        min: minSize,
-        max: maxSize
-    };
+    return 10 + (148 * inputsCount) + (34 * outputsCount);
 }
 function estimateTxFee(satPerByte, inputsCount, outputsCount, handleSegwit) {
-    const { min, max } = estimateTxSize(inputsCount, outputsCount, handleSegwit);
-    const mean = Math.ceil((min + max) / 2);
-    return mean * satPerByte;
+    return estimateTxSize(inputsCount, outputsCount) * satPerByte;
 }
 function sumUtxoValue(utxos) {
     return utxos.reduce((total, { value }) => total.plus(value), toBigNumber(0));
@@ -173,7 +123,7 @@ function sortUtxos(utxoList) {
     return result;
 }
 function isConfirmedUtxo(utxo) {
-    return Boolean(utxo.confirmations || utxo.height);
+    return Boolean((utxo.confirmations && utxo.confirmations > 0) || (utxo.height && Number.parseInt(utxo.height) > 0));
 }
 
 class BlockbookConnected {
@@ -414,7 +364,9 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
         const utxos = [];
         let utxosTotalSat = 0;
         for (const utxo of availableUtxos) {
-            const satoshis = Math.floor(utxo.satoshis || this.toBaseDenominationNumber(utxo.value));
+            const satoshis = isUndefined(utxo.satoshis)
+                ? this.toBaseDenominationNumber(utxo.value)
+                : toBigNumber(utxo.satoshis).integerValue(BigNumber.ROUND_DOWN).toNumber();
             utxosTotalSat += satoshis;
             utxos.push({
                 ...utxo,
@@ -606,6 +558,7 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
             changeAddress: fromAddress,
             desiredFeeRate: { feeRate: targetFeeRate, feeRateType: targetFeeRateType },
             useAllUtxos: options.useAllUtxos,
+            useUnconfirmedUtxos: options.useUnconfirmedUtxos,
         });
         this.logger.debug('createTransaction data', paymentTx);
         const feeMain = paymentTx.fee;
@@ -656,12 +609,24 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
         return this.createTransaction(from, to, outputAmount, updatedOptions);
     }
     async broadcastTransaction(tx) {
-        const txId = await this._retryDced(() => this.getApi().sendTx(tx.data.hex));
-        if (tx.id !== txId) {
-            this.logger.warn(`Broadcasted ${this.coinSymbol} txid ${txId} doesn't match original txid ${tx.id}`);
+        let txId;
+        try {
+            txId = await this._retryDced(() => this.getApi().sendTx(tx.data.hex));
+            if (tx.id !== txId) {
+                this.logger.warn(`Broadcasted ${this.coinSymbol} txid ${txId} doesn't match original txid ${tx.id}`);
+            }
+        }
+        catch (e) {
+            const message = e.message || '';
+            if (message.startsWith('-27')) {
+                txId = tx.id;
+            }
+            else {
+                throw e;
+            }
         }
         return {
-            id: txId,
+            id: tx.id,
         };
     }
     async getTransactionInfo(txId) {
@@ -670,7 +635,7 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
         const confirmationId = tx.blockHash || null;
         const confirmationNumber = tx.blockHeight ? String(tx.blockHeight) : undefined;
         const confirmationTimestamp = tx.blockTime ? new Date(tx.blockTime * 1000) : null;
-        const isConfirmed = Boolean(confirmationNumber);
+        const isConfirmed = Boolean(tx.confirmations && tx.confirmations > 0);
         const status = isConfirmed ? TransactionStatus.Confirmed : TransactionStatus.Pending;
         const amountSat = get(tx, 'vout.0.value', tx.value);
         const amount = this.toMainDenominationString(amountSat);
@@ -750,6 +715,7 @@ const COIN_SYMBOL = 'BTC';
 const COIN_NAME = 'Bitcoin';
 const DEFAULT_DUST_THRESHOLD = 546;
 const DEFAULT_NETWORK_MIN_RELAY_FEE = 1000;
+const BITCOIN_SEQUENCE_RBF = 0xFFFFFFFD;
 const DEFAULT_MIN_TX_FEE = 5;
 const DEFAULT_ADDRESS_TYPE = AddressType.SegwitNative;
 const DEFAULT_DERIVATION_PATHS = {
@@ -932,7 +898,7 @@ class BaseBitcoinPayments extends BitcoinishPayments {
         }
         for (let i = 0; i < inputs.length; i++) {
             const input = inputs[i];
-            builder.addInput(input.txid, input.vout, undefined, prevOutScript);
+            builder.addInput(input.txid, input.vout, BITCOIN_SEQUENCE_RBF, prevOutScript);
         }
         for (let i = 0; i < inputs.length; i++) {
             const input = inputs[i];
@@ -1066,5 +1032,5 @@ class BitcoinPaymentsFactory {
     }
 }
 
-export { AddressType, AddressTypeT, BaseBitcoinPayments, BaseBitcoinPaymentsConfig, BitcoinBlock, BitcoinBroadcastResult, BitcoinPaymentsConfig, BitcoinPaymentsFactory, BitcoinPaymentsUtils, BitcoinPaymentsUtilsConfig, BitcoinSignedTransaction, BitcoinTransactionInfo, BitcoinUnsignedTransaction, BitcoinUnsignedTransactionData, BitcoinishBlock, BitcoinishBroadcastResult, BitcoinishPaymentTx, BitcoinishPayments, BitcoinishPaymentsUtils, BitcoinishSignedTransaction, BitcoinishTransactionInfo, BitcoinishTxOutput, BitcoinishUnsignedTransaction, BitcoinishWeightedChangeOutput, BlockbookConfigServer, BlockbookConnected, BlockbookConnectedConfig, BlockbookServerAPI, COIN_NAME, COIN_SYMBOL, DECIMAL_PLACES, DEFAULT_ADDRESS_TYPE, DEFAULT_DERIVATION_PATHS, DEFAULT_DUST_THRESHOLD, DEFAULT_FEE_LEVEL, DEFAULT_MAINNET_SERVER, DEFAULT_MIN_TX_FEE, DEFAULT_NETWORK, DEFAULT_NETWORK_MIN_RELAY_FEE, DEFAULT_SAT_PER_BYTE_LEVELS, DEFAULT_TESTNET_SERVER, HdBitcoinPayments, HdBitcoinPaymentsConfig, NETWORK_MAINNET, NETWORK_TESTNET, PACKAGE_NAME, PayportOutput, isValidAddress, isValidExtraId, isValidPrivateKey, isValidXprv, isValidXpub, privateKeyToAddress, publicKeyToAddress, toBaseDenominationBigNumber, toBaseDenominationNumber, toBaseDenominationString, toMainDenominationBigNumber, toMainDenominationNumber, toMainDenominationString, validateHdKey };
+export { AddressType, AddressTypeT, BITCOIN_SEQUENCE_RBF, BaseBitcoinPayments, BaseBitcoinPaymentsConfig, BitcoinBlock, BitcoinBroadcastResult, BitcoinPaymentsConfig, BitcoinPaymentsFactory, BitcoinPaymentsUtils, BitcoinPaymentsUtilsConfig, BitcoinSignedTransaction, BitcoinTransactionInfo, BitcoinUnsignedTransaction, BitcoinUnsignedTransactionData, BitcoinishBlock, BitcoinishBroadcastResult, BitcoinishPaymentTx, BitcoinishPayments, BitcoinishPaymentsUtils, BitcoinishSignedTransaction, BitcoinishTransactionInfo, BitcoinishTxOutput, BitcoinishUnsignedTransaction, BitcoinishWeightedChangeOutput, BlockbookConfigServer, BlockbookConnected, BlockbookConnectedConfig, BlockbookServerAPI, COIN_NAME, COIN_SYMBOL, DECIMAL_PLACES, DEFAULT_ADDRESS_TYPE, DEFAULT_DERIVATION_PATHS, DEFAULT_DUST_THRESHOLD, DEFAULT_FEE_LEVEL, DEFAULT_MAINNET_SERVER, DEFAULT_MIN_TX_FEE, DEFAULT_NETWORK, DEFAULT_NETWORK_MIN_RELAY_FEE, DEFAULT_SAT_PER_BYTE_LEVELS, DEFAULT_TESTNET_SERVER, HdBitcoinPayments, HdBitcoinPaymentsConfig, NETWORK_MAINNET, NETWORK_TESTNET, PACKAGE_NAME, PayportOutput, isValidAddress, isValidExtraId, isValidPrivateKey, isValidXprv, isValidXpub, privateKeyToAddress, publicKeyToAddress, toBaseDenominationBigNumber, toBaseDenominationNumber, toBaseDenominationString, toMainDenominationBigNumber, toMainDenominationNumber, toMainDenominationString, validateHdKey };
 //# sourceMappingURL=index.es.js.map

@@ -514,6 +514,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       changeAddress: fromAddress,
       desiredFeeRate: { feeRate: targetFeeRate, feeRateType: targetFeeRateType },
       useAllUtxos: options.useAllUtxos,
+      useUnconfirmedUtxos: options.useUnconfirmedUtxos,
     })
     const unsignedTxHex = await this.serializePaymentTx(paymentTx, from)
     paymentTx.rawHex = unsignedTxHex
@@ -578,12 +579,22 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   async broadcastTransaction(tx: BitcoinishSignedTransaction): Promise<BitcoinishBroadcastResult> {
-    const txId = await this._retryDced(() => this.getApi().sendTx(tx.data.hex))
-    if (tx.id !== txId) {
-      this.logger.warn(`Broadcasted ${this.coinSymbol} txid ${txId} doesn't match original txid ${tx.id}`)
+    let txId: string
+    try {
+      txId = await this._retryDced(() => this.getApi().sendTx(tx.data.hex))
+      if (tx.id !== txId) {
+        this.logger.warn(`Broadcasted ${this.coinSymbol} txid ${txId} doesn't match original txid ${tx.id}`)
+      }
+    } catch(e) {
+      const message = e.message || ''
+      if (message.startsWith('-27')) {
+        txId = tx.id
+      } else {
+        throw e
+      }
     }
     return {
-      id: txId,
+      id: tx.id,
     }
   }
 
@@ -593,7 +604,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const confirmationId = tx.blockHash || null
     const confirmationNumber = tx.blockHeight ? String(tx.blockHeight) : undefined
     const confirmationTimestamp = tx.blockTime ? new Date(tx.blockTime * 1000) : null
-    const isConfirmed = Boolean(confirmationNumber)
+    const isConfirmed = Boolean(tx.confirmations && tx.confirmations > 0)
     const status = isConfirmed ? TransactionStatus.Confirmed : TransactionStatus.Pending
     const amountSat = get(tx, 'vout.0.value', tx.value)
     const amount = this.toMainDenominationString(amountSat)

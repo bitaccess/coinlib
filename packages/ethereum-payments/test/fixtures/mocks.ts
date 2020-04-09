@@ -31,17 +31,17 @@ export function getSendRawTransactionMocks(id: number, rawTx: string, txHash: st
   }
 }
 
-export function getTransactionReceiptMocks(id: number, from: string, to: string, status: string, blockNumber: string, txHash: string, blockHash: string): Mock {
+export function getTransactionReceiptMocks(id: number, from: string, to: string, status: string, blockNumber: string | null, txHash: string, blockHash: string | null): Mock {
   return {
     req: getTransactionReceiptRequest(id, txHash),
     res: getTransactionReceiptResponse(id, from, to, status, blockNumber, txHash, blockHash)
   }
 }
 
-export function getTransactionByHashMocks(id: number, txHash: string, blockHash: string, from: string, to: string, value: string): Mock {
+export function getTransactionByHashMocks(id: number, txHash: string, blockHash: string | null, blockNumber: number | null, from: string, to: string, value: string): Mock {
   return {
     req: getTransactionByHashRequest(id, txHash),
-    res: getTransactionByHashResponse(id, txHash, blockHash, from, to, value)
+    res: getTransactionByHashResponse(id, txHash, blockHash, blockNumber, from, to, value)
   }
 }
 
@@ -210,7 +210,7 @@ function getTransactionReceiptRequest(id: number, txHash: string): Object {
   }
 }
 
-function getTransactionReceiptResponse(id: number, from: string, to:string, status: string, blockNumber: string, txHash: string, blockHash: string): Object {
+function getTransactionReceiptResponse(id: number, from: string, to:string, status: string, blockNumber: string | null, txHash: string, blockHash: string | null): Object {
   return {
     jsonrpc: '2.0',
     id,
@@ -239,7 +239,7 @@ function getTransactionByHashRequest(id: number, txHash: string): Object {
   }
 }
 
-function getTransactionByHashResponse(id: number, txHash: string, blockHash: string, from: string, to: string, value: string): Object {
+function getTransactionByHashResponse(id: number, txHash: string, blockHash: string | null, blockNumber: number | null, from: string, to: string, value: string): Object {
   return {
     jsonrpc:'2.0',
     id,
@@ -247,7 +247,7 @@ function getTransactionByHashResponse(id: number, txHash: string, blockHash: str
       hash: txHash,
       nonce: 2,
       blockHash,
-      blockNumber: 3,
+      blockNumber,
       transactionIndex: 0,
       from,
       to,

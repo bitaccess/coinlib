@@ -7,6 +7,7 @@ export const COIN_SYMBOL = 'BTC';
 export const COIN_NAME = 'Bitcoin';
 export const DEFAULT_DUST_THRESHOLD = 546;
 export const DEFAULT_NETWORK_MIN_RELAY_FEE = 1000;
+export const BITCOIN_SEQUENCE_RBF = 0xFFFFFFFD;
 export const DEFAULT_MIN_TX_FEE = 5;
 export const DEFAULT_ADDRESS_TYPE = AddressType.SegwitNative;
 export const DEFAULT_DERIVATION_PATHS = {

@@ -2,7 +2,7 @@ import { payments as bjsPayments, TransactionBuilder } from 'bitcoinjs-lib';
 import { FeeRateType, TransactionStatus } from '@faast/payments-common';
 import { getBlockcypherFeeEstimate, toBitcoinishConfig } from './utils';
 import { AddressType, } from './types';
-import { DEFAULT_SAT_PER_BYTE_LEVELS, DEFAULT_ADDRESS_TYPE, } from './constants';
+import { DEFAULT_SAT_PER_BYTE_LEVELS, DEFAULT_ADDRESS_TYPE, BITCOIN_SEQUENCE_RBF, } from './constants';
 import { toBaseDenominationNumber, isValidAddress } from './helpers';
 import { BitcoinishPayments } from './bitcoinish';
 export class BaseBitcoinPayments extends BitcoinishPayments {
@@ -44,7 +44,7 @@ export class BaseBitcoinPayments extends BitcoinishPayments {
         }
         for (let i = 0; i < inputs.length; i++) {
             const input = inputs[i];
-            builder.addInput(input.txid, input.vout, undefined, prevOutScript);
+            builder.addInput(input.txid, input.vout, BITCOIN_SEQUENCE_RBF, prevOutScript);
         }
         for (let i = 0; i < inputs.length; i++) {
             const input = inputs[i];

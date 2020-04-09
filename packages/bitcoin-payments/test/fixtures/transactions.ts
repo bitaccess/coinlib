@@ -43,6 +43,7 @@ export const txInfo_e10d7: BitcoinTransactionInfo = {
         'txid': '10f2df27f4e15b55a6314c9151f94d5ff5fa5cb2d616c31f173d7e048e73cd5c',
         'value': '192247666',
         'vout': 1,
+        'isAddress': true,
       },
     ],
     'vout': [
@@ -55,6 +56,7 @@ export const txInfo_e10d7: BitcoinTransactionInfo = {
         'n': 0,
         'spent': true,
         'value': '26407945',
+        'isAddress': true,
       },
       {
         'addresses': [
@@ -65,6 +67,7 @@ export const txInfo_e10d7: BitcoinTransactionInfo = {
         'n': 1,
         'spent': true,
         'value': '165822921',
+        'isAddress': true,
       },
     ],
   }

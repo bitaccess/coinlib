@@ -10,7 +10,7 @@ import {
   AddressType,
 } from './types'
 import {
-  DEFAULT_SAT_PER_BYTE_LEVELS,
+  DEFAULT_SAT_PER_BYTE_LEVELS, BITCOIN_SEQUENCE_RBF,
 } from './constants'
 import { isValidAddress, isValidPrivateKey, isValidPublicKey } from './helpers'
 import { BitcoinishPayments, BitcoinishPaymentTx } from './bitcoinish'
@@ -64,6 +64,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     const result: any = {
       hash: utxo.txid,
       index: utxo.vout,
+      sequence: BITCOIN_SEQUENCE_RBF,
     }
     const isSegwit = (/p2wpkh|p2wsh/).test(addressType)
     if (isSegwit) {

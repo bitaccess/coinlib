@@ -4,7 +4,7 @@ import { TransactionStatus, FeeLevel, FeeRateType, FeeOptionCustom, PaymentsErro
 import { isType } from '@faast/ts-common';
 import { toBaseDenominationNumber, isValidAddress } from './helpers';
 import { toError } from './utils';
-import { DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE, MIN_BALANCE_SUN, MIN_BALANCE_TRX, DEFAULT_FEE_LEVEL, EXPIRATION_FUDGE_MS, } from './constants';
+import { DEFAULT_FULL_NODE, DEFAULT_EVENT_SERVER, DEFAULT_SOLIDITY_NODE, MIN_BALANCE_SUN, MIN_BALANCE_TRX, DEFAULT_FEE_LEVEL, EXPIRATION_FUDGE_MS, TX_EXPIRATION_EXTENSION_SECONDS, } from './constants';
 import { TronPaymentsUtils } from './TronPaymentsUtils';
 export class BaseTronPayments extends TronPaymentsUtils {
     constructor(config) {
@@ -54,6 +54,11 @@ export class BaseTronPayments extends TronPaymentsUtils {
             feeMain: '0',
         };
     }
+    async buildUnsignedTx(toAddress, amountSun, fromAddress) {
+        let tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress);
+        tx = await this.tronweb.transactionBuilder.extendExpiration(tx, TX_EXPIRATION_EXTENSION_SECONDS);
+        return tx;
+    }
     async createSweepTransaction(from, to, options = {}) {
         this.logger.debug('createSweepTransaction', from, to);
         try {
@@ -68,7 +73,7 @@ export class BaseTronPayments extends TronPaymentsUtils {
             }
             const amountSun = balanceSun - feeSun - MIN_BALANCE_SUN;
             const amountTrx = this.toMainDenomination(amountSun);
-            const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress);
+            const tx = await this.buildUnsignedTx(toAddress, amountSun, fromAddress);
             return {
                 status: TransactionStatus.Unsigned,
                 id: tx.txID,
@@ -103,7 +108,7 @@ export class BaseTronPayments extends TronPaymentsUtils {
                 throw new Error(`Insufficient balance (${balanceTrx}) to send ${amountTrx} including fee of ${feeMain} ` +
                     `while maintaining a minimum required balance of ${MIN_BALANCE_TRX}`);
             }
-            const tx = await this.tronweb.transactionBuilder.sendTrx(toAddress, amountSun, fromAddress);
+            const tx = await this.buildUnsignedTx(toAddress, amountSun, fromAddress);
             return {
                 status: TransactionStatus.Unsigned,
                 id: tx.txID,

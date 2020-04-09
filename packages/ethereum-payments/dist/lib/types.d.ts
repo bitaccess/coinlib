@@ -88,6 +88,7 @@ export declare const EthereumUnsignedTransaction: t.IntersectionC<[t.Intersectio
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
+        satoshis: t.UnionC<[t.NumberC, t.StringC]>;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -128,6 +129,7 @@ export declare const EthereumSignedTransaction: t.IntersectionC<[t.IntersectionC
         vout: t.NumberC;
         value: t.StringC;
     }>, t.PartialC<{
+        satoshis: t.UnionC<[t.NumberC, t.StringC]>;
         confirmations: t.NumberC;
         height: t.StringC;
         lockTime: t.StringC;
@@ -172,18 +174,9 @@ export declare const EthereumTransactionInfo: t.IntersectionC<[t.IntersectionC<[
     confirmationNumber: t.UnionC<[t.StringC, t.NumberC]>;
 }>]>;
 export declare type EthereumTransactionInfo = t.TypeOf<typeof EthereumTransactionInfo>;
-export declare const EthereumBroadcastResult: t.IntersectionC<[t.TypeC<{
+export declare const EthereumBroadcastResult: t.TypeC<{
     id: t.StringC;
-}>, t.TypeC<{
-    transactionIndex: t.NumberC;
-    blockHash: t.StringC;
-    blockNumber: t.NumberC;
-    from: t.StringC;
-    to: t.StringC;
-    gasUsed: t.NumberC;
-    cumulativeGasUsed: t.NumberC;
-    status: t.BooleanC;
-}>]>;
+}>;
 export declare type EthereumBroadcastResult = t.TypeOf<typeof EthereumBroadcastResult>;
 export declare const EthereumResolvedFeeOption: t.IntersectionC<[t.TypeC<{
     targetFeeLevel: t.Type<import("@faast/payments-common").FeeLevel, import("@faast/payments-common").FeeLevel, unknown>;

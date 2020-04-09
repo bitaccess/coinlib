@@ -107,7 +107,7 @@ export const UtxoInfo = requiredOptionalCodec(
     value: t.string, // main denomination
   },
   {
-    satoshis: t.number,
+    satoshis: t.union([t.number, t.string]),
     confirmations: t.number,
     height: t.string,
     lockTime: t.string,

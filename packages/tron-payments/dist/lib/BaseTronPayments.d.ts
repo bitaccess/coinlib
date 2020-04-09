@@ -1,4 +1,4 @@
-import TronWeb from 'tronweb';
+import TronWeb, { Transaction as TronTransaction } from 'tronweb';
 import { BalanceResult, BasePayments, FeeOption, ResolvedFeeOption, Payport, FromTo, ResolveablePayport } from '@faast/payments-common';
 import { TronTransactionInfo, TronUnsignedTransaction, TronSignedTransaction, TronBroadcastResult, CreateTransactionOptions, BaseTronPaymentsConfig } from './types';
 import { TronPaymentsUtils } from './TronPaymentsUtils';
@@ -19,6 +19,7 @@ export declare abstract class BaseTronPayments<Config extends BaseTronPaymentsCo
     requiresBalanceMonitor(): boolean;
     getBalance(resolveablePayport: ResolveablePayport): Promise<BalanceResult>;
     resolveFeeOption(feeOption: FeeOption): Promise<ResolvedFeeOption>;
+    buildUnsignedTx(toAddress: string, amountSun: number, fromAddress: string): Promise<TronTransaction>;
     createSweepTransaction(from: number, to: ResolveablePayport, options?: CreateTransactionOptions): Promise<TronUnsignedTransaction>;
     createTransaction(from: number, to: ResolveablePayport, amountTrx: string, options?: CreateTransactionOptions): Promise<TronUnsignedTransaction>;
     signTransaction(unsignedTx: TronUnsignedTransaction): Promise<TronSignedTransaction>;

@@ -5,6 +5,7 @@ import * as t from 'io-ts';
 import { PayportOutput, } from './types';
 import { estimateTxFee, sumUtxoValue, sortUtxos, isConfirmedUtxo } from './utils';
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils';
+import BigNumber from 'bignumber.js';
 export class BitcoinishPayments extends BitcoinishPaymentsUtils {
     constructor(config) {
         super(config);
@@ -163,7 +164,9 @@ export class BitcoinishPayments extends BitcoinishPaymentsUtils {
         const utxos = [];
         let utxosTotalSat = 0;
         for (const utxo of availableUtxos) {
-            const satoshis = Math.floor(utxo.satoshis || this.toBaseDenominationNumber(utxo.value));
+            const satoshis = isUndefined(utxo.satoshis)
+                ? this.toBaseDenominationNumber(utxo.value)
+                : toBigNumber(utxo.satoshis).integerValue(BigNumber.ROUND_DOWN).toNumber();
             utxosTotalSat += satoshis;
             utxos.push({
                 ...utxo,
@@ -355,6 +358,7 @@ export class BitcoinishPayments extends BitcoinishPaymentsUtils {
             changeAddress: fromAddress,
             desiredFeeRate: { feeRate: targetFeeRate, feeRateType: targetFeeRateType },
             useAllUtxos: options.useAllUtxos,
+            useUnconfirmedUtxos: options.useUnconfirmedUtxos,
         });
         this.logger.debug('createTransaction data', paymentTx);
         const feeMain = paymentTx.fee;
@@ -405,12 +409,24 @@ export class BitcoinishPayments extends BitcoinishPaymentsUtils {
         return this.createTransaction(from, to, outputAmount, updatedOptions);
     }
     async broadcastTransaction(tx) {
-        const txId = await this._retryDced(() => this.getApi().sendTx(tx.data.hex));
-        if (tx.id !== txId) {
-            this.logger.warn(`Broadcasted ${this.coinSymbol} txid ${txId} doesn't match original txid ${tx.id}`);
+        let txId;
+        try {
+            txId = await this._retryDced(() => this.getApi().sendTx(tx.data.hex));
+            if (tx.id !== txId) {
+                this.logger.warn(`Broadcasted ${this.coinSymbol} txid ${txId} doesn't match original txid ${tx.id}`);
+            }
+        }
+        catch (e) {
+            const message = e.message || '';
+            if (message.startsWith('-27')) {
+                txId = tx.id;
+            }
+            else {
+                throw e;
+            }
         }
         return {
-            id: txId,
+            id: tx.id,
         };
     }
     async getTransactionInfo(txId) {
@@ -419,7 +435,7 @@ export class BitcoinishPayments extends BitcoinishPaymentsUtils {
         const confirmationId = tx.blockHash || null;
         const confirmationNumber = tx.blockHeight ? String(tx.blockHeight) : undefined;
         const confirmationTimestamp = tx.blockTime ? new Date(tx.blockTime * 1000) : null;
-        const isConfirmed = Boolean(confirmationNumber);
+        const isConfirmed = Boolean(tx.confirmations && tx.confirmations > 0);
         const status = isConfirmed ? TransactionStatus.Confirmed : TransactionStatus.Pending;
         const amountSat = get(tx, 'vout.0.value', tx.value);
         const amount = this.toMainDenominationString(amountSat);

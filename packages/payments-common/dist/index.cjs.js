@@ -57,7 +57,7 @@ const UtxoInfo = tsCommon.requiredOptionalCodec({
     vout: t.number,
     value: t.string,
 }, {
-    satoshis: t.number,
+    satoshis: t.union([t.number, t.string]),
     confirmations: t.number,
     height: t.string,
     lockTime: t.string,

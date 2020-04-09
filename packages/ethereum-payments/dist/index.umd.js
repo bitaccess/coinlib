@@ -417,15 +417,51 @@
           const minConfirmations = MIN_CONFIRMATIONS;
           const tx = await this.eth.getTransaction(txid);
           const currentBlockNumber = await this.eth.getBlockNumber();
-          const txInfo = await this.eth.getTransactionReceipt(txid);
-          const feeEth = this.toMainDenomination((new bignumber_js.BigNumber(tx.gasPrice)).multipliedBy(txInfo.gasUsed));
+          let txInfo = await this.eth.getTransactionReceipt(txid);
+          if (!txInfo) {
+              txInfo = {
+                  transactionHash: tx.hash,
+                  from: tx.from || '',
+                  to: tx.to || '',
+                  status: true,
+                  blockNumber: 0,
+                  cumulativeGasUsed: 0,
+                  gasUsed: parseInt(ETHEREUM_TRANSFER_COST, 10),
+                  transactionIndex: 0,
+                  blockHash: '',
+                  logs: [],
+                  logsBloom: ''
+              };
+              return {
+                  id: txid,
+                  amount: this.toMainDenomination(tx.value),
+                  toAddress: tx.to,
+                  fromAddress: tx.from,
+                  toExtraId: null,
+                  fromIndex: null,
+                  toIndex: null,
+                  fee: this.toMainDenomination((new bignumber_js.BigNumber(tx.gasPrice)).multipliedBy(tx.gas)),
+                  sequenceNumber: tx.nonce,
+                  isExecuted: false,
+                  isConfirmed: false,
+                  confirmations: 0,
+                  confirmationId: null,
+                  confirmationTimestamp: null,
+                  status: paymentsCommon.TransactionStatus.Pending,
+                  data: {
+                      ...tx,
+                      ...txInfo,
+                      currentBlock: currentBlockNumber
+                  },
+              };
+          }
           let txBlock = null;
           let isConfirmed = false;
           let confirmationTimestamp = null;
-          let confirmations = null;
+          let confirmations = 0;
           if (tx.blockNumber) {
-              confirmations = new bignumber_js.BigNumber(currentBlockNumber).minus(tx.blockNumber);
-              if (confirmations.isGreaterThan(minConfirmations)) {
+              confirmations = currentBlockNumber - tx.blockNumber;
+              if (confirmations > minConfirmations) {
                   isConfirmed = true;
                   txBlock = await this.eth.getBlock(tx.blockNumber);
                   confirmationTimestamp = new Date(txBlock.timestamp);
@@ -443,11 +479,11 @@
               toExtraId: null,
               fromIndex: null,
               toIndex: null,
-              fee: feeEth,
+              fee: this.toMainDenomination((new bignumber_js.BigNumber(tx.gasPrice)).multipliedBy(txInfo.gasUsed)),
               sequenceNumber: tx.nonce,
-              isExecuted: !!tx.blockNumber,
+              isExecuted: txInfo.status,
               isConfirmed,
-              confirmations: confirmations.toNumber(),
+              confirmations,
               confirmationId: tx.blockHash,
               confirmationTimestamp,
               status,
@@ -483,26 +519,26 @@
               }
           };
       }
+      sendTransactionWithoutConfirmation(txHex) {
+          return new Promise((resolve, reject) => this.eth.sendSignedTransaction(txHex)
+              .on('transactionHash', resolve)
+              .on('error', reject));
+      }
       async broadcastTransaction(tx) {
           if (tx.status !== paymentsCommon.TransactionStatus.Signed) {
               throw new Error(`Tx ${tx.id} has not status ${paymentsCommon.TransactionStatus.Signed}`);
           }
           try {
-              const res = await this.eth.sendSignedTransaction(tx.data.hex);
+              const txId = await this.sendTransactionWithoutConfirmation(tx.data.hex);
               return {
-                  id: res.transactionHash,
-                  transactionIndex: res.transactionIndex,
-                  blockHash: res.blockHash,
-                  blockNumber: res.blockNumber,
-                  from: res.from,
-                  to: res.to,
-                  gasUsed: res.gasUsed,
-                  cumulativeGasUsed: res.cumulativeGasUsed,
-                  status: res.status,
+                  id: txId,
               };
           }
           catch (e) {
               this.logger.warn(`Ethereum broadcast tx unsuccessful ${tx.id}: ${e.message}`);
+              if (e.message === 'nonce too low') {
+                  throw new paymentsCommon.PaymentsError(paymentsCommon.PaymentsErrorCode.TxSequenceCollision, e.message);
+              }
               throw new Error(`Ethereum broadcast tx unsuccessful: ${tx.id} ${e.message}`);
           }
       }
@@ -711,16 +747,7 @@
       }),
   }, {}, 'EthereumSignedTransaction');
   const EthereumTransactionInfo = tsCommon.extendCodec(paymentsCommon.BaseTransactionInfo, {}, {}, 'EthereumTransactionInfo');
-  const EthereumBroadcastResult = tsCommon.extendCodec(paymentsCommon.BaseBroadcastResult, {
-      transactionIndex: t.number,
-      blockHash: t.string,
-      blockNumber: t.number,
-      from: t.string,
-      to: t.string,
-      gasUsed: t.number,
-      cumulativeGasUsed: t.number,
-      status: t.boolean,
-  }, 'EthereumBroadcastResult');
+  const EthereumBroadcastResult = tsCommon.extendCodec(paymentsCommon.BaseBroadcastResult, {}, 'EthereumBroadcastResult');
   const EthereumResolvedFeeOption = tsCommon.extendCodec(paymentsCommon.ResolvedFeeOption, {
       gasPrice: t.string,
   }, 'EthereumResolvedFeeOption');

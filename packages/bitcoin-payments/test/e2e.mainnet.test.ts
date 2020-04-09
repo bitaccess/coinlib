@@ -54,6 +54,17 @@ function assertTxInfo(actual: BitcoinTransactionInfo, expected: BitcoinTransacti
   const address3 = 'bc1q2qsxsvwx2tmrfqqg8f58qgu9swn3zau809tzty'
   const xpub =
     'xpub6CMNrExwWj5nM3zYW8fXmZ1LrhrAuggZQAnBeWKiMQdK9tBWd1Ed6f2g94uJ4VwmX74uT6wzmFKqSvCGb3aoX33NQnoGPf7Bk8Yg9LM6VVH'
+  const address0utxos = [
+    {
+      'txid': '34ce1e85a6a934bcb2f08f833835db008274c1b59f236edba2f87c0ce21bc10b',
+      'vout': 0,
+      'value': '0.00011',
+      'satoshis': 11000,
+      'height': 613152,
+      'confirmations': 8753
+    }
+  ]
+
 
   it('get correct xpub', async () => {
     expect(payments.xpub).toEqual(xpub)
@@ -122,6 +133,23 @@ function assertTxInfo(actual: BitcoinTransactionInfo, expected: BitcoinTransacti
   })
   it('create sweep transaction to an external address', async () => {
     const tx = await payments.createSweepTransaction(0, { address: EXTERNAL_ADDRESS })
+    expect(tx).toBeDefined()
+    expect(toBigNumber(tx.amount).plus(tx.fee).toString()).toEqual(address0balance)
+    expect(tx.fromAddress).toEqual(address0)
+    expect(tx.toAddress).toEqual(EXTERNAL_ADDRESS)
+    expect(tx.fromIndex).toEqual(0)
+    expect(tx.toIndex).toEqual(null)
+    expect(tx.inputUtxos).toBeTruthy()
+  })
+  it('create sweep transaction to an external address with unconfirmed utxos', async () => {
+    const tx = await payments.createSweepTransaction(0, { address: EXTERNAL_ADDRESS }, {
+      useUnconfirmedUtxos: true,
+      utxos: [{
+        ...address0utxos[0],
+        height: undefined,
+        confirmations: undefined,
+      }],
+    })
     expect(tx).toBeDefined()
     expect(toBigNumber(tx.amount).plus(tx.fee).toString()).toEqual(address0balance)
     expect(tx.fromAddress).toEqual(address0)

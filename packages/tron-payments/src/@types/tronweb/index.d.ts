@@ -238,6 +238,7 @@ declare module 'tronweb' {
     transactionBuilder: {
       sendTrx(to: string, amountInSun: number, from: string): Promise<Transaction>
       sendToken(to: string, amount: number, tokenID: string, from: string): Promise<Transaction>
+      extendExpiration(transaction: Transaction, extension: number): Promise<Transaction>
     }
   }
 }
