@@ -479,7 +479,10 @@ class BaseEthereumPayments extends EthereumPaymentsUtils {
         }
         let status = paymentsCommon.TransactionStatus.Pending;
         if (isConfirmed) {
-            status = txInfo.status ? paymentsCommon.TransactionStatus.Confirmed : paymentsCommon.TransactionStatus.Failed;
+            status = paymentsCommon.TransactionStatus.Confirmed;
+            if (txInfo.hasOwnProperty('status') && (txInfo.status === false || txInfo.status.toString() === 'false')) {
+                status = paymentsCommon.TransactionStatus.Failed;
+            }
         }
         return {
             id: txid,
@@ -491,7 +494,7 @@ class BaseEthereumPayments extends EthereumPaymentsUtils {
             toIndex: null,
             fee: this.toMainDenomination((new bignumber_js.BigNumber(tx.gasPrice)).multipliedBy(txInfo.gasUsed)),
             sequenceNumber: tx.nonce,
-            isExecuted: txInfo.status,
+            isExecuted: status !== paymentsCommon.TransactionStatus.Failed,
             isConfirmed,
             confirmations,
             confirmationId: tx.blockHash,
