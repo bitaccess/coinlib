@@ -67,12 +67,17 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
     return this.signers.reduce((result, signer) => ([...result, ...signer.getAccountIds(index)]), [] as string[])
   }
 
-  getSignerPublicKeys(index: number) {
+  getSignerPublicKeyBuffers(index: number): Buffer[] {
     return this.signers.map((signer) => signer.getKeyPair(index).publicKey)
   }
 
-  getPaymentScript(index: number) {
-    return getMultisigPaymentScript(this.bitcoinjsNetwork, this.addressType, this.getSignerPublicKeys(index), this.m)
+  getPaymentScript(index: number): bitcoin.payments.Payment {
+    return getMultisigPaymentScript(
+      this.bitcoinjsNetwork,
+      this.addressType,
+      this.getSignerPublicKeyBuffers(index),
+      this.m,
+    )
   }
 
   getAddress(index: number): string {
@@ -131,53 +136,24 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
     }
   }
 
-  getSignedPubKeys(multisigData: BitcoinMultisigData): string[] {
+  private deserializeSignedTxPsbt(tx: BitcoinSignedTransaction): bitcoin.Psbt {
+    if (!tx.data.partial) {
+      throw new Error('Cannot decode psbt of a finalized tx')
+    }
+    return bitcoin.Psbt.fromHex(tx.data.hex, this.psbtOptions)
+  }
+
+  /** Get public keys of all signers with `signed === true` */
+  private getPublicKeysOfSigned(multisigData: BitcoinMultisigData): string[] {
     return multisigData.signers.filter(({ signed }) => signed).map(({ publicKey }) => publicKey)
   }
 
-  async combinePartiallySignedTransactions(txs: BitcoinSignedTransaction[]): Promise<BitcoinSignedTransaction> {
-    if (txs.length < 2) {
-      throw new Error(`Cannot combine ${txs.length} transactions, need at least 2`)
-    }
-    const unsignedTxHash = txs[0].data.unsignedTxHash
-    for (let i = 0; i < txs.length; i++) {
-      const tx = txs[i]
-      const { multisigData, inputUtxos, externalOutputs } = tx
-      if (!multisigData) {
-        throw new Error(`Cannot combine signed multisig tx ${i} because multisigData is ${multisigData}`)
-      }
-      if (!inputUtxos) {
-        throw new Error(`Cannot combine signed multisig tx ${i} because inputUtxos field is missing`)
-      }
-      if (!externalOutputs) {
-        throw new Error(`Cannot combine signed multisig tx ${i} because externalOutputs field is missing`)
-      }
-      if (tx.data.unsignedTxHash !== unsignedTxHash) {
-        throw new Error(`Cannot combine signed multisig tx ${i} because unsignedTxHash is ${tx.data.unsignedTxHash} when expecting ${unsignedTxHash}`)
-      }
-      if (!tx.data.partial) {
-        throw new Error(`Cannot combine signed multisig tx ${i} because partial is ${tx.data.partial}`)
-      }
-    }
-
-    const baseTx = txs[0]
-    const baseTxMultisigData = baseTx.multisigData!
-    const { m } = baseTxMultisigData
-    const signedPubKeys = new Set(this.getSignedPubKeys(baseTxMultisigData))
-
-    let combinedPsbt = this.decodePsbt(baseTx)
-    for (let i = 1; i < txs.length; i++) {
-      if (signedPubKeys.size >= m) {
-        this.logger.debug('Already received enough signatures, not combining')
-        break
-      }
-      const tx = txs[i]
-      const psbt = this.decodePsbt(tx)
-      combinedPsbt.combine(psbt)
-      this.getSignedPubKeys(tx.multisigData!).forEach((pubkey) => signedPubKeys.add(pubkey))
-    }
-    const combinedHex = combinedPsbt.toHex()
-    const combinedSignerData = baseTxMultisigData.signers.map((signer) => {
+  /** Set `signed` field to `true` of any signer with public key in `signedPubKeys` */
+  private setMultisigSignersAsSigned(
+    multisigData: BitcoinMultisigData,
+    signedPubKeys: Set<string>,
+  ): BitcoinMultisigData {
+    const combinedSignerData = multisigData.signers.map((signer) => {
       if (signedPubKeys.has(signer.publicKey)) {
         return {
           ...signer,
@@ -186,39 +162,63 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
       }
       return signer
     })
+    return {
+      ...multisigData,
+      signers: combinedSignerData,
+    }
+  }
+
+  /**
+   * Combines two of more partially signed transactions. Once the required # of signatures is reached (`m`)
+   * the transaction is validated and finalized.
+   */
+  async combinePartiallySignedTransactions(txs: BitcoinSignedTransaction[]): Promise<BitcoinSignedTransaction> {
+    if (txs.length < 2) {
+      throw new Error(`Cannot combine ${txs.length} transactions, need at least 2`)
+    }
+
+    const unsignedTxHash = txs[0].data.unsignedTxHash
+    txs.forEach(({ multisigData, inputUtxos, externalOutputs, data }, i) => {
+      if (!multisigData) throw new Error(`Cannot combine signed multisig tx ${i} because multisigData is ${multisigData}`)
+      if (!inputUtxos) throw new Error(`Cannot combine signed multisig tx ${i} because inputUtxos field is missing`)
+      if (!externalOutputs) throw new Error(`Cannot combine signed multisig tx ${i} because externalOutputs field is missing`)
+      if (data.unsignedTxHash !== unsignedTxHash) throw new Error(`Cannot combine signed multisig tx ${i} because unsignedTxHash is ${data.unsignedTxHash} when expecting ${unsignedTxHash}`)
+      if (!data.partial) throw new Error(`Cannot combine signed multisig tx ${i} because partial is ${data.partial}`)
+    })
+
+    const baseTx = txs[0]
+    const baseTxMultisigData = baseTx.multisigData!
+    const { m } = baseTxMultisigData
+    const signedPubKeys = new Set(this.getPublicKeysOfSigned(baseTxMultisigData))
+
+    let combinedPsbt = this.deserializeSignedTxPsbt(baseTx)
+    for (let i = 1; i < txs.length; i++) {
+      if (signedPubKeys.size >= m) {
+        this.logger.debug('Already received enough signatures, not combining')
+        break
+      }
+      const tx = txs[i]
+      const psbt = this.deserializeSignedTxPsbt(tx)
+      combinedPsbt.combine(psbt)
+      this.getPublicKeysOfSigned(tx.multisigData!).forEach((pubkey) => signedPubKeys.add(pubkey))
+    }
+    const combinedHex = combinedPsbt.toHex()
+    const combinedMultisigData = this.setMultisigSignersAsSigned(baseTxMultisigData, signedPubKeys)
+
     if (signedPubKeys.size >= m) {
-      if (!combinedPsbt.validateSignaturesOfAllInputs()) {
-        throw new Error('combined psbt signature validation failed')
-      }
-      combinedPsbt.finalizeAllInputs()
-      const extractedTx = combinedPsbt.extractTransaction()
-      const txId = extractedTx.getId()
-      const finalizedHex = extractedTx.toHex()
+      const finalizedTx = this.validateAndFinalizeSignedTx(baseTx, combinedPsbt)
       return {
-        ...baseTx,
-        id: txId,
-        multisigData: {
-          ...baseTxMultisigData,
-          signers: combinedSignerData,
-        },
-        data: {
-          hex: finalizedHex,
-          partial: false,
-          unsignedTxHash,
-        }
+        ...finalizedTx,
+        multisigData: combinedMultisigData,
       }
-    } else {
-      return {
-        ...baseTx,
-        multisigData: {
-          ...baseTxMultisigData,
-          signers: combinedSignerData,
-        },
-        data: {
-          hex: combinedHex,
-          partial: true,
-          unsignedTxHash,
-        }
+    }
+    return {
+      ...baseTx,
+      multisigData: combinedMultisigData,
+      data: {
+        hex: combinedHex,
+        partial: true,
+        unsignedTxHash,
       }
     }
   }

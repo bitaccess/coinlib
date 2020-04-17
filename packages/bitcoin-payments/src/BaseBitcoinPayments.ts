@@ -1,13 +1,16 @@
 import * as bitcoin from 'bitcoinjs-lib'
 import {
-  FeeRateType, FeeRate, AutoFeeLevels, UtxoInfo
+  FeeRateType, FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus
 } from '@faast/payments-common'
 
 import { getBlockcypherFeeEstimate, toBitcoinishConfig } from './utils'
 import {
   BaseBitcoinPaymentsConfig,
+  BitcoinUnsignedTransaction,
+  BitcoinSignedTransactionData,
   BitcoinSignedTransaction,
   AddressType,
+  PsbtInputData,
 } from './types'
 import {
   DEFAULT_SAT_PER_BYTE_LEVELS, BITCOIN_SEQUENCE_RBF,
@@ -59,24 +62,23 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     utxo: UtxoInfo,
     paymentScript: bitcoin.payments.Payment,
     addressType: AddressType,
-  ): Promise<any> {
+  ): Promise<PsbtInputData> {
     const utx = await this.getApi().getTx(utxo.txid)
-    const result: any = {
+    const result: PsbtInputData = {
       hash: utxo.txid,
       index: utxo.vout,
       sequence: BITCOIN_SEQUENCE_RBF,
     }
-    const isSegwit = (/p2wpkh|p2wsh/).test(addressType)
-    if (isSegwit) {
+    if ((/p2wpkh|p2wsh/).test(addressType)) {
       // for segwit inputs, you only need the output script and value as an object.
       const rawUtxo = utx.vout[utxo.vout]
-      const { hex: scriptPubKey } = rawUtxo
+      const { hex: scriptPubKey, value: rawValue } = rawUtxo
       if (!scriptPubKey) {
         throw new Error(`Cannot get scriptPubKey for utxo ${utxo.txid}:${utxo.vout}`)
       }
       const utxoValue = this.toBaseDenominationNumber(utxo.value)
-      if (String(utxoValue) !== rawUtxo.value) {
-        throw new Error(`Utxo ${utxo.txid}:${utxo.vout} has mismatched value - ${utxoValue} sat expected but network reports ${rawUtxo.value} sat`)
+      if (String(utxoValue) !== rawValue) {
+        throw new Error(`Utxo ${utxo.txid}:${utxo.vout} has mismatched value - ${utxoValue} sat expected but network reports ${rawValue} sat`)
       }
       result.witnessUtxo = {
         script: Buffer.from(scriptPubKey, 'hex'),
@@ -132,11 +134,29 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     return (await this.buildPsbt(tx, fromIndex)).toHex()
   }
 
-  decodePsbt(tx: BitcoinSignedTransaction): bitcoin.Psbt {
-    if (!tx.data.partial) {
-      throw new Error('Cannot decode psbt of a finalized tx')
+  async validateAndFinalizeSignedTx(
+    tx: BitcoinSignedTransaction | BitcoinUnsignedTransaction,
+    psbt: bitcoin.Psbt,
+  ): Promise<BitcoinSignedTransaction> {
+    if (!psbt.validateSignaturesOfAllInputs()) {
+      throw new Error('Failed to validate signatures of all inputs')
     }
-    return bitcoin.Psbt.fromHex(tx.data.hex, this.psbtOptions)
+    psbt.finalizeAllInputs()
+    const signedTx = psbt.extractTransaction()
+    const txId = signedTx.getId()
+    const txHex = signedTx.toHex()
+    const txData = tx.data
+    const unsignedTxHash = BitcoinSignedTransactionData.is(txData) ? txData.unsignedTxHash : txData.rawHash
+    return {
+      ...tx,
+      status: TransactionStatus.Signed,
+      id: txId,
+      data: {
+        hex: txHex,
+        partial: false,
+        unsignedTxHash,
+      },
+    }
   }
 
 }

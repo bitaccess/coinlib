@@ -68,6 +68,15 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   abstract isValidAddress(address: string): MaybePromise<boolean>
   abstract signTransaction(tx: BitcoinishUnsignedTransaction): Promise<BitcoinishSignedTransaction>
 
+  /**
+   * Serialize the payment tx into an hex string format representing the unsigned transaction.
+   *
+   * By default return empty string because it's coin dependent. Implementors can override this
+   * with coin specific implementation (eg using Psbt for bitcoin). If coin doesn't have an unsigned
+   * serialized tx format (ie most coins other than BTC) then leave as empty string.
+   */
+  abstract serializePaymentTx(paymentTx: BitcoinishPaymentTx, fromIndex: number): Promise<string>
+
   async init() {}
   async destroy() {}
 
@@ -235,11 +244,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const utxos: Array<UtxoInfo & { satoshis: number }> = []
     let utxosTotalSat = 0
     for (const utxo of availableUtxos) {
-      const satoshis = Math.floor(isUndefined(utxo.satoshis)
+      const satoshis = isUndefined(utxo.satoshis)
         ? this.toBaseDenominationNumber(utxo.value)
-        : (isString(utxo.satoshis)
-          ? toBigNumber(utxo.satoshis).toNumber()
-          : utxo.satoshis))
+        : toBigNumber(utxo.satoshis).toNumber()
       utxosTotalSat += satoshis
       utxos.push({
         ...utxo,
@@ -290,17 +297,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         feeSat,
       }
     }
-  }
-
-  /**
-   * Serialize the payment tx into an hex string format representing the unsigned transaction.
-   *
-   * By default return empty string because it's coin dependent. Implementors can override this
-   * with coin specific implementation (eg using Psbt for bitcoin). If coin doesn't have an unsigned
-   * serialized tx format (ie most coins other than BTC) then leave as empty string.
-   */
-  async serializePaymentTx(paymentTx: BitcoinishPaymentTx, fromIndex: number): Promise<string> {
-    return ''
   }
 
   /**

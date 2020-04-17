@@ -3,11 +3,11 @@ import {
   BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, FeeRate,
   BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, KeyPairsConfigParam,
 } from '@faast/payments-common'
-import { extendCodec, enumCodec, Numeric, requiredOptionalCodec, functionT } from '@faast/ts-common';
-import { Network as BitcoinjsNetwork, Signer as BitcoinjsSigner } from 'bitcoinjs-lib';
+import { extendCodec, enumCodec, requiredOptionalCodec } from '@faast/ts-common'
+import { Network as BitcoinjsNetwork, Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
 import { BlockInfoBitcoin } from 'blockbook-client'
-import { BitcoinishPaymentTx, BlockbookConfigServer, BitcoinishUnsignedTransaction } from './bitcoinish'
-import { RippleSignedTransaction } from '../../ripple-payments/src/types';
+import { BitcoinishPaymentTx, BlockbookConfigServer } from './bitcoinish'
+import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
 
 export { BitcoinjsNetwork, UtxoInfo }
 export * from './bitcoinish/types'
@@ -16,6 +16,8 @@ export type BitcoinjsKeyPair = BitcoinjsSigner & {
   privateKey?: Buffer
   toWIF(): string
 }
+
+export interface PsbtInputData extends PsbtInput, TransactionInput {}
 
 export enum AddressType {
   Legacy = 'p2pkh',

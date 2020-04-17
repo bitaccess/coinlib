@@ -45,14 +45,12 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
     tx: BitcoinUnsignedTransaction,
   ): Promise<BitcoinSignedTransaction> {
     const { multisigData, data } = tx
-    if (!multisigData) {
-      throw new Error('Not a multisig tx')
-    }
-    const txHex = data.rawHex
-    if (!txHex) {
-      throw new Error('Cannot sign multisig tx without unsigned tx hex')
-    }
-    const psbt = bitcoin.Psbt.fromHex(txHex, this.psbtOptions)
+    const { rawHex } = data
+
+    if (!multisigData) throw new Error('Not a multisig tx')
+    if (!rawHex) throw new Error('Cannot sign multisig tx without unsigned tx hex')
+
+    const psbt = bitcoin.Psbt.fromHex(rawHex, this.psbtOptions)
     const accountIds = this.getAccountIds()
     const updatedSignersData: typeof multisigData.signers = []
     let totalSignaturesAdded = 0
@@ -69,7 +67,7 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
           + `multisigData has ${signer.publicKey} but keyPair has ${publicKeyString}`
         )
       }
-      await psbt.signAllInputsAsync(keyPair)
+      psbt.signAllInputs(keyPair)
       updatedSignersData.push({
         ...signer,
         signed: true,
@@ -99,30 +97,13 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
   async signTransaction(tx: BitcoinUnsignedTransaction): Promise<BitcoinSignedTransaction> {
     if (tx.multisigData) {
       return this.signMultisigTransaction(tx)
-    } else {
-      const paymentTx = tx.data as BitcoinishPaymentTx
-      const psbt = await this.getOrBuildPsbt(paymentTx, tx.fromIndex)
-
-      const keyPair = this.getKeyPair(tx.fromIndex)
-      await psbt.signAllInputsAsync(keyPair)
-
-      if (!psbt.validateSignaturesOfAllInputs()) {
-        throw new Error('Failed to validate signatures of all inputs')
-      }
-      psbt.finalizeAllInputs()
-      const signedTx = psbt.extractTransaction()
-      const txId = signedTx.getId()
-      const txHex = signedTx.toHex()
-      return {
-        ...tx,
-        status: TransactionStatus.Signed,
-        id: txId,
-        data: {
-          hex: txHex,
-          partial: false,
-          unsignedTxHash: tx.data.rawHash,
-        },
-      }
     }
+    const paymentTx = tx.data as BitcoinishPaymentTx
+    const psbt = await this.getOrBuildPsbt(paymentTx, tx.fromIndex)
+
+    const keyPair = this.getKeyPair(tx.fromIndex)
+    psbt.signAllInputs(keyPair)
+
+    return this.validateAndFinalizeSignedTx(tx, psbt)
   }
 }
