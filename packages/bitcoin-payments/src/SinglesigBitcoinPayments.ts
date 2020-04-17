@@ -34,16 +34,9 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
     return getSinglesigPaymentScript(this.bitcoinjsNetwork, this.addressType, this.getKeyPair(index).publicKey)
   }
 
-  async getOrBuildPsbt(paymentTx: BitcoinishPaymentTx, fromIndex: number): Promise<bitcoin.Psbt> {
-    if (paymentTx.rawHex) {
-      return bitcoin.Psbt.fromHex(paymentTx.rawHex, this.psbtOptions)
-    }
-    return this.buildPsbt(paymentTx, fromIndex)
-  }
-
-  async signMultisigTransaction(
+  signMultisigTransaction(
     tx: BitcoinUnsignedTransaction,
-  ): Promise<BitcoinSignedTransaction> {
+  ): BitcoinSignedTransaction {
     const { multisigData, data } = tx
     const { rawHex } = data
 
@@ -99,7 +92,10 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
       return this.signMultisigTransaction(tx)
     }
     const paymentTx = tx.data as BitcoinishPaymentTx
-    const psbt = await this.getOrBuildPsbt(paymentTx, tx.fromIndex)
+    if (!paymentTx.rawHex) {
+      throw new Error('Cannot sign bitcoin tx without rawHex')
+    }
+    const psbt = bitcoin.Psbt.fromHex(paymentTx.rawHex, this.psbtOptions)
 
     const keyPair = this.getKeyPair(tx.fromIndex)
     psbt.signAllInputs(keyPair)

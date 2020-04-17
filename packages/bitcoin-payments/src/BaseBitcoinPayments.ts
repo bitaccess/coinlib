@@ -134,10 +134,10 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     return (await this.buildPsbt(tx, fromIndex)).toHex()
   }
 
-  async validateAndFinalizeSignedTx(
+  validateAndFinalizeSignedTx(
     tx: BitcoinSignedTransaction | BitcoinUnsignedTransaction,
     psbt: bitcoin.Psbt,
-  ): Promise<BitcoinSignedTransaction> {
+  ): BitcoinSignedTransaction {
     if (!psbt.validateSignaturesOfAllInputs()) {
       throw new Error('Failed to validate signatures of all inputs')
     }

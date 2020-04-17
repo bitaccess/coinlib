@@ -8,6 +8,8 @@ import { EXTERNAL_ADDRESS, accountsByAddressType, AccountFixture } from './fixtu
 import { logger, makeUtxos, makeOutputs } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 
+jest.setTimeout(30 * 1000)
+
 describe('HdBitcoinPayments', () => {
 
   describe('static', () => {
