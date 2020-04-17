@@ -3,6 +3,7 @@
     "../../tslint.json"
   ],
   "rules": {
-    "deprecation": false
+    "deprecation": false,
+    "await-promise": false
   }
 }
