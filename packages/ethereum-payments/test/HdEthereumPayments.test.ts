@@ -164,12 +164,12 @@ describe('HdEthereumPayments', () => {
 
         const res = await hdEP.resolveFeeOption({ })
         expect(res).toStrictEqual({
-          targetFeeRate: '300000000000',
-          gasPrice: '300000000000',
+          targetFeeRate: '3000000000',
+          gasPrice: '3000000000',
           targetFeeLevel: 'medium',
           targetFeeRateType: FeeRateType.BasePerWeight,
-          feeBase: '6300000000000000',
-          feeMain: '0.0063'
+          feeBase: '63000000000000',
+          feeMain: '0.000063'
         })
       })
 
@@ -178,12 +178,12 @@ describe('HdEthereumPayments', () => {
 
         const res = await hdEP.resolveFeeOption({ feeLevel: FeeLevel.Low })
         expect(res).toStrictEqual({
-          targetFeeRate: '100000000000',
-          gasPrice: '100000000000',
+          targetFeeRate: '1000000000',
+          gasPrice: '1000000000',
           targetFeeLevel: FeeLevel.Low,
           targetFeeRateType: FeeRateType.BasePerWeight,
-          feeBase: '2100000000000000',
-          feeMain: '0.0021',
+          feeBase: '21000000000000',
+          feeMain: '0.000021',
         })
       })
 
@@ -534,9 +534,9 @@ describe('HdEthereumPayments', () => {
           fromIndex: 1,
           toIndex: null,
           amount: amountEth,
-          fee: '0.0063',
+          fee: '0.000063',
           targetFeeLevel: 'medium',
-          targetFeeRate: '300000000000',
+          targetFeeRate: '3000000000',
           targetFeeRateType: 'base/weight',
           sequenceNumber: '27',
           data: {
@@ -544,7 +544,7 @@ describe('HdEthereumPayments', () => {
             to: TO_ADDRESS,
             value: '0x11c37937e08000',
             gas: '0x5208',
-            gasPrice: '0x45d964b800',
+            gasPrice: '0xb2d05e00',
             nonce: '0x1b'
           }
         })
@@ -602,7 +602,7 @@ describe('HdEthereumPayments', () => {
 
         const res = await hdEP.createSweepTransaction(from, to)
 
-        const feeEth = '0.0063'
+        const feeEth = '0.000063'
         const transactionValueEth = (new BigNumber(hdEP.toMainDenomination(balance))).minus(feeEth).toString()
 
         expect(res).toStrictEqual({
@@ -616,15 +616,15 @@ describe('HdEthereumPayments', () => {
           amount: transactionValueEth,
           fee: feeEth,
           targetFeeLevel: 'medium',
-          targetFeeRate: '300000000000',
+          targetFeeRate: '3000000000',
           targetFeeRateType: 'base/weight',
           sequenceNumber: '27',
           data: {
             from: FROM_ADDRESS,
             to: to.address,
-            value: '0x1e34aafb86ab572',
+            value: '0x1f9733471e18572',
             gas: '0x5208',
-            gasPrice: '0x45d964b800',
+            gasPrice: '0xb2d05e00',
             nonce: '0x1b'
           }
         })

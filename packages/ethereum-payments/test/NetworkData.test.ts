@@ -46,7 +46,7 @@ describe('NetworkData', () => {
     const res = await networkData.getNetworkData('ETHEREUM_TRANSFER', from, to, 'SLOW')
 
     expect(res).toEqual({
-      'pricePerGasUnit': '100000000000',
+      'pricePerGasUnit': '1000000000',
       'amountOfGas': '21000',
       'nonce': '27',
     })
