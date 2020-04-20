@@ -290,6 +290,7 @@ describe('HdEthereumPayments', () => {
           confirmationId: blockId,
           confirmationTimestamp: null,
           status: 'pending',
+          currentBlockNumber: 3,
           data: {
             hash: txId,
             nonce: 2,
@@ -352,6 +353,7 @@ describe('HdEthereumPayments', () => {
           confirmationId: blockId,
           confirmationTimestamp: new Date('1970-01-17T13:01:27.689Z'),
           status: 'confirmed',
+          currentBlockNumber: 4,
           data: {
             hash: txId,
             nonce: 2,
@@ -414,6 +416,7 @@ describe('HdEthereumPayments', () => {
           confirmationId: blockId,
           confirmationTimestamp: new Date('1970-01-17T13:01:27.689Z'),
           status: 'failed',
+          currentBlockNumber: 4,
           data: {
             hash: txId,
             nonce: 2,
@@ -476,6 +479,7 @@ describe('HdEthereumPayments', () => {
           confirmationId: null,
           confirmationTimestamp: null,
           status: 'pending',
+          currentBlockNumber: 4,
           data: {
             hash: txId,
             status: true,

@@ -243,6 +243,7 @@ implements BasePayments
         confirmations: 0,
         confirmationId: null,
         confirmationTimestamp: null,
+        currentBlockNumber: currentBlockNumber,
         status: TransactionStatus.Pending,
         data: {
           ...tx,
@@ -291,6 +292,7 @@ implements BasePayments
       confirmationId: tx.blockHash,
       confirmationTimestamp,
       status,
+      currentBlockNumber: currentBlockNumber,
       data: {
         ...tx,
         ...txInfo,
