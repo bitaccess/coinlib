@@ -1,8 +1,14 @@
 import { PaymentsFactory } from '@faast/payments-common'
 
-import { BitcoinPaymentsConfig, HdBitcoinPaymentsConfig, KeyPairBitcoinPaymentsConfig } from './types'
+import {
+  BitcoinPaymentsConfig,
+  HdBitcoinPaymentsConfig,
+  KeyPairBitcoinPaymentsConfig,
+  MultisigBitcoinPaymentsConfig,
+} from './types'
 import { HdBitcoinPayments } from './HdBitcoinPayments'
 import { KeyPairBitcoinPayments } from './KeyPairBitcoinPayments'
+import { MultisigBitcoinPayments } from './MultisigBitcoinPayments'
 
 export class BitcoinPaymentsFactory implements PaymentsFactory<BitcoinPaymentsConfig> {
   forConfig(config: BitcoinPaymentsConfig) {
@@ -11,6 +17,9 @@ export class BitcoinPaymentsFactory implements PaymentsFactory<BitcoinPaymentsCo
     }
     if (KeyPairBitcoinPaymentsConfig.is(config)) {
       return new KeyPairBitcoinPayments(config)
+    }
+    if (MultisigBitcoinPaymentsConfig.is(config)) {
+      return new MultisigBitcoinPayments(config)
     }
     throw new Error('Cannot instantiate bitcoin payments for unsupported config')
   }
