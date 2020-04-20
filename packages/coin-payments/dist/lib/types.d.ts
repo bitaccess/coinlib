@@ -30,7 +30,6 @@ export declare const CoinPaymentsBaseAssetConfigs: t.TypeC<{
     }>, t.PartialC<{
         server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
-        addressType: t.Type<import("@faast/bitcoin-payments").AddressType, import("@faast/bitcoin-payments").AddressType, unknown>;
         minTxFee: t.TypeC<{
             feeRate: t.StringC;
             feeRateType: t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>;
@@ -39,6 +38,7 @@ export declare const CoinPaymentsBaseAssetConfigs: t.TypeC<{
         networkMinRelayFee: t.NumberC;
         targetUtxoPoolSize: t.NumberC;
         minChange: t.StringC;
+        maximumFeeRate: t.NumberC;
     }>]>;
     ETH: t.IntersectionC<[t.PartialC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
@@ -128,13 +128,12 @@ export declare const CoinPaymentsAssetConfigs: t.TypeC<{
             secret: t.StringC;
         }>]>;
     }>]>]>;
-    BTC: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+    BTC: t.UnionC<[t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
         server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
-        addressType: t.Type<import("@faast/bitcoin-payments").AddressType, import("@faast/bitcoin-payments").AddressType, unknown>;
         minTxFee: t.TypeC<{
             feeRate: t.StringC;
             feeRateType: t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>;
@@ -143,11 +142,91 @@ export declare const CoinPaymentsAssetConfigs: t.TypeC<{
         networkMinRelayFee: t.NumberC;
         targetUtxoPoolSize: t.NumberC;
         minChange: t.StringC;
+        maximumFeeRate: t.NumberC;
     }>]>, t.TypeC<{
         hdKey: t.StringC;
     }>, t.PartialC<{
+        addressType: t.Type<import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, unknown>;
         derivationPath: t.StringC;
-    }>]>;
+    }>]>, t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+        network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+        logger: import("@faast/ts-common").LoggerC;
+    }>, t.PartialC<{
+        server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
+    }>]>, t.PartialC<{
+        minTxFee: t.TypeC<{
+            feeRate: t.StringC;
+            feeRateType: t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>;
+        }>;
+        dustThreshold: t.NumberC;
+        networkMinRelayFee: t.NumberC;
+        targetUtxoPoolSize: t.NumberC;
+        minChange: t.StringC;
+        maximumFeeRate: t.NumberC;
+    }>]>, t.TypeC<{
+        keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>]>;
+    }>, t.PartialC<{
+        addressType: t.Type<import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, unknown>;
+    }>]>, t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+        network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+        logger: import("@faast/ts-common").LoggerC;
+    }>, t.PartialC<{
+        server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
+    }>]>, t.PartialC<{
+        minTxFee: t.TypeC<{
+            feeRate: t.StringC;
+            feeRateType: t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>;
+        }>;
+        dustThreshold: t.NumberC;
+        networkMinRelayFee: t.NumberC;
+        targetUtxoPoolSize: t.NumberC;
+        minChange: t.StringC;
+        maximumFeeRate: t.NumberC;
+    }>]>, t.TypeC<{
+        m: t.NumberC;
+        signers: t.ArrayC<t.UnionC<[t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+            network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+            logger: import("@faast/ts-common").LoggerC;
+        }>, t.PartialC<{
+            server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
+        }>]>, t.PartialC<{
+            minTxFee: t.TypeC<{
+                feeRate: t.StringC;
+                feeRateType: t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>;
+            }>;
+            dustThreshold: t.NumberC;
+            networkMinRelayFee: t.NumberC;
+            targetUtxoPoolSize: t.NumberC;
+            minChange: t.StringC;
+            maximumFeeRate: t.NumberC;
+        }>]>, t.TypeC<{
+            hdKey: t.StringC;
+        }>, t.PartialC<{
+            addressType: t.Type<import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, unknown>;
+            derivationPath: t.StringC;
+        }>]>, t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+            network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+            logger: import("@faast/ts-common").LoggerC;
+        }>, t.PartialC<{
+            server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
+        }>]>, t.PartialC<{
+            minTxFee: t.TypeC<{
+                feeRate: t.StringC;
+                feeRateType: t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>;
+            }>;
+            dustThreshold: t.NumberC;
+            networkMinRelayFee: t.NumberC;
+            targetUtxoPoolSize: t.NumberC;
+            minChange: t.StringC;
+            maximumFeeRate: t.NumberC;
+        }>]>, t.TypeC<{
+            keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>]>;
+        }>, t.PartialC<{
+            addressType: t.Type<import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, unknown>;
+        }>]>]>>;
+    }>, t.PartialC<{
+        addressType: t.Type<import("@faast/bitcoin-payments").AddressType.MultisigLegacy | import("@faast/bitcoin-payments").AddressType.MultisigSegwitP2SH | import("@faast/bitcoin-payments").AddressType.MultisigSegwitNative, import("@faast/bitcoin-payments").AddressType.MultisigLegacy | import("@faast/bitcoin-payments").AddressType.MultisigSegwitP2SH | import("@faast/bitcoin-payments").AddressType.MultisigSegwitNative, unknown>;
+    }>]>]>;
     ETH: t.UnionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
@@ -250,13 +329,12 @@ export declare const CoinPaymentsConfig: t.PartialC<{
             secret: t.StringC;
         }>]>;
     }>]>]>;
-    BTC: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+    BTC: t.UnionC<[t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
         server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
-        addressType: t.Type<import("@faast/bitcoin-payments").AddressType, import("@faast/bitcoin-payments").AddressType, unknown>;
         minTxFee: t.TypeC<{
             feeRate: t.StringC;
             feeRateType: t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>;
@@ -265,11 +343,91 @@ export declare const CoinPaymentsConfig: t.PartialC<{
         networkMinRelayFee: t.NumberC;
         targetUtxoPoolSize: t.NumberC;
         minChange: t.StringC;
+        maximumFeeRate: t.NumberC;
     }>]>, t.TypeC<{
         hdKey: t.StringC;
     }>, t.PartialC<{
+        addressType: t.Type<import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, unknown>;
         derivationPath: t.StringC;
-    }>]>;
+    }>]>, t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+        network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+        logger: import("@faast/ts-common").LoggerC;
+    }>, t.PartialC<{
+        server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
+    }>]>, t.PartialC<{
+        minTxFee: t.TypeC<{
+            feeRate: t.StringC;
+            feeRateType: t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>;
+        }>;
+        dustThreshold: t.NumberC;
+        networkMinRelayFee: t.NumberC;
+        targetUtxoPoolSize: t.NumberC;
+        minChange: t.StringC;
+        maximumFeeRate: t.NumberC;
+    }>]>, t.TypeC<{
+        keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>]>;
+    }>, t.PartialC<{
+        addressType: t.Type<import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, unknown>;
+    }>]>, t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+        network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+        logger: import("@faast/ts-common").LoggerC;
+    }>, t.PartialC<{
+        server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
+    }>]>, t.PartialC<{
+        minTxFee: t.TypeC<{
+            feeRate: t.StringC;
+            feeRateType: t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>;
+        }>;
+        dustThreshold: t.NumberC;
+        networkMinRelayFee: t.NumberC;
+        targetUtxoPoolSize: t.NumberC;
+        minChange: t.StringC;
+        maximumFeeRate: t.NumberC;
+    }>]>, t.TypeC<{
+        m: t.NumberC;
+        signers: t.ArrayC<t.UnionC<[t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+            network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+            logger: import("@faast/ts-common").LoggerC;
+        }>, t.PartialC<{
+            server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
+        }>]>, t.PartialC<{
+            minTxFee: t.TypeC<{
+                feeRate: t.StringC;
+                feeRateType: t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>;
+            }>;
+            dustThreshold: t.NumberC;
+            networkMinRelayFee: t.NumberC;
+            targetUtxoPoolSize: t.NumberC;
+            minChange: t.StringC;
+            maximumFeeRate: t.NumberC;
+        }>]>, t.TypeC<{
+            hdKey: t.StringC;
+        }>, t.PartialC<{
+            addressType: t.Type<import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, unknown>;
+            derivationPath: t.StringC;
+        }>]>, t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+            network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+            logger: import("@faast/ts-common").LoggerC;
+        }>, t.PartialC<{
+            server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
+        }>]>, t.PartialC<{
+            minTxFee: t.TypeC<{
+                feeRate: t.StringC;
+                feeRateType: t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>;
+            }>;
+            dustThreshold: t.NumberC;
+            networkMinRelayFee: t.NumberC;
+            targetUtxoPoolSize: t.NumberC;
+            minChange: t.StringC;
+            maximumFeeRate: t.NumberC;
+        }>]>, t.TypeC<{
+            keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>]>;
+        }>, t.PartialC<{
+            addressType: t.Type<import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, unknown>;
+        }>]>]>>;
+    }>, t.PartialC<{
+        addressType: t.Type<import("@faast/bitcoin-payments").AddressType.MultisigLegacy | import("@faast/bitcoin-payments").AddressType.MultisigSegwitP2SH | import("@faast/bitcoin-payments").AddressType.MultisigSegwitNative, import("@faast/bitcoin-payments").AddressType.MultisigLegacy | import("@faast/bitcoin-payments").AddressType.MultisigSegwitP2SH | import("@faast/bitcoin-payments").AddressType.MultisigSegwitNative, unknown>;
+    }>]>]>;
     ETH: t.UnionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
@@ -369,13 +527,12 @@ export declare const SupportedCoinPaymentsSymbol: t.KeyofC<{
             secret: t.StringC;
         }>]>;
     }>]>]>;
-    BTC: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+    BTC: t.UnionC<[t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;
     }>, t.PartialC<{
         server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
     }>]>, t.PartialC<{
-        addressType: t.Type<import("@faast/bitcoin-payments").AddressType, import("@faast/bitcoin-payments").AddressType, unknown>;
         minTxFee: t.TypeC<{
             feeRate: t.StringC;
             feeRateType: t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>;
@@ -384,11 +541,91 @@ export declare const SupportedCoinPaymentsSymbol: t.KeyofC<{
         networkMinRelayFee: t.NumberC;
         targetUtxoPoolSize: t.NumberC;
         minChange: t.StringC;
+        maximumFeeRate: t.NumberC;
     }>]>, t.TypeC<{
         hdKey: t.StringC;
     }>, t.PartialC<{
+        addressType: t.Type<import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, unknown>;
         derivationPath: t.StringC;
-    }>]>;
+    }>]>, t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+        network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+        logger: import("@faast/ts-common").LoggerC;
+    }>, t.PartialC<{
+        server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
+    }>]>, t.PartialC<{
+        minTxFee: t.TypeC<{
+            feeRate: t.StringC;
+            feeRateType: t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>;
+        }>;
+        dustThreshold: t.NumberC;
+        networkMinRelayFee: t.NumberC;
+        targetUtxoPoolSize: t.NumberC;
+        minChange: t.StringC;
+        maximumFeeRate: t.NumberC;
+    }>]>, t.TypeC<{
+        keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>]>;
+    }>, t.PartialC<{
+        addressType: t.Type<import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, unknown>;
+    }>]>, t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+        network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+        logger: import("@faast/ts-common").LoggerC;
+    }>, t.PartialC<{
+        server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
+    }>]>, t.PartialC<{
+        minTxFee: t.TypeC<{
+            feeRate: t.StringC;
+            feeRateType: t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>;
+        }>;
+        dustThreshold: t.NumberC;
+        networkMinRelayFee: t.NumberC;
+        targetUtxoPoolSize: t.NumberC;
+        minChange: t.StringC;
+        maximumFeeRate: t.NumberC;
+    }>]>, t.TypeC<{
+        m: t.NumberC;
+        signers: t.ArrayC<t.UnionC<[t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+            network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+            logger: import("@faast/ts-common").LoggerC;
+        }>, t.PartialC<{
+            server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
+        }>]>, t.PartialC<{
+            minTxFee: t.TypeC<{
+                feeRate: t.StringC;
+                feeRateType: t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>;
+            }>;
+            dustThreshold: t.NumberC;
+            networkMinRelayFee: t.NumberC;
+            targetUtxoPoolSize: t.NumberC;
+            minChange: t.StringC;
+            maximumFeeRate: t.NumberC;
+        }>]>, t.TypeC<{
+            hdKey: t.StringC;
+        }>, t.PartialC<{
+            addressType: t.Type<import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, unknown>;
+            derivationPath: t.StringC;
+        }>]>, t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+            network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
+            logger: import("@faast/ts-common").LoggerC;
+        }>, t.PartialC<{
+            server: t.UnionC<[t.StringC, t.ArrayC<t.StringC>, t.Type<import("@faast/bitcoin-payments").BlockbookServerAPI, import("@faast/bitcoin-payments").BlockbookServerAPI, unknown>, t.NullC]>;
+        }>]>, t.PartialC<{
+            minTxFee: t.TypeC<{
+                feeRate: t.StringC;
+                feeRateType: t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>;
+            }>;
+            dustThreshold: t.NumberC;
+            networkMinRelayFee: t.NumberC;
+            targetUtxoPoolSize: t.NumberC;
+            minChange: t.StringC;
+            maximumFeeRate: t.NumberC;
+        }>]>, t.TypeC<{
+            keyPairs: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>]>;
+        }>, t.PartialC<{
+            addressType: t.Type<import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, import("@faast/bitcoin-payments").AddressType.Legacy | import("@faast/bitcoin-payments").AddressType.SegwitP2SH | import("@faast/bitcoin-payments").AddressType.SegwitNative, unknown>;
+        }>]>]>>;
+    }>, t.PartialC<{
+        addressType: t.Type<import("@faast/bitcoin-payments").AddressType.MultisigLegacy | import("@faast/bitcoin-payments").AddressType.MultisigSegwitP2SH | import("@faast/bitcoin-payments").AddressType.MultisigSegwitNative, import("@faast/bitcoin-payments").AddressType.MultisigLegacy | import("@faast/bitcoin-payments").AddressType.MultisigSegwitP2SH | import("@faast/bitcoin-payments").AddressType.MultisigSegwitNative, unknown>;
+    }>]>]>;
     ETH: t.UnionC<[t.IntersectionC<[t.IntersectionC<[t.PartialC<{
         network: t.Type<import("@faast/payments-common").NetworkType, import("@faast/payments-common").NetworkType, unknown>;
         logger: import("@faast/ts-common").LoggerC;

@@ -1,11 +1,11 @@
 import { Numeric } from '@faast/ts-common';
-import { Payport } from './types';
+import { Payport, MaybePromise } from './types';
 export interface PaymentsUtils {
     toMainDenomination<O extends object>(amount: Numeric, options?: O): string;
     toBaseDenomination<O extends object>(amount: Numeric, options?: O): string;
-    isValidAddress<O extends object>(address: string, options?: O): Promise<boolean>;
-    isValidExtraId<O extends object>(extraId: string, options?: O): Promise<boolean>;
-    isValidPayport<O extends object>(payport: Payport, options?: O): Promise<boolean>;
-    validatePayport<O extends object>(payport: Payport, options?: O): Promise<void>;
-    getPayportValidationMessage<O extends object>(payport: Payport, options?: O): Promise<string | undefined>;
+    isValidAddress<O extends object>(address: string, options?: O): MaybePromise<boolean>;
+    isValidExtraId<O extends object>(extraId: string, options?: O): MaybePromise<boolean>;
+    isValidPayport<O extends object>(payport: Payport, options?: O): MaybePromise<boolean>;
+    validatePayport<O extends object>(payport: Payport, options?: O): MaybePromise<void>;
+    getPayportValidationMessage<O extends object>(payport: Payport, options?: O): MaybePromise<string | undefined>;
 }

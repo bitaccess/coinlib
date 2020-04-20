@@ -1,8 +1,7 @@
 import { NetworkType, FeeRateType } from '@faast/payments-common';
 import request from 'request-promise-native';
 import bs58 from 'bs58';
-import { AddressType } from './types';
-import { DEFAULT_NETWORK, NETWORK_TESTNET, NETWORK_MAINNET, DEFAULT_TESTNET_SERVER, DEFAULT_MAINNET_SERVER, DEFAULT_ADDRESS_TYPE, COIN_SYMBOL, COIN_NAME, DECIMAL_PLACES, DEFAULT_DUST_THRESHOLD, DEFAULT_NETWORK_MIN_RELAY_FEE, DEFAULT_MIN_TX_FEE, DEFAULT_FEE_LEVEL, } from './constants';
+import { DEFAULT_NETWORK, NETWORK_TESTNET, NETWORK_MAINNET, DEFAULT_TESTNET_SERVER, DEFAULT_MAINNET_SERVER, COIN_SYMBOL, COIN_NAME, DECIMAL_PLACES, DEFAULT_DUST_THRESHOLD, DEFAULT_NETWORK_MIN_RELAY_FEE, DEFAULT_MIN_TX_FEE, DEFAULT_FEE_LEVEL, } from './constants';
 const DEFAULT_BITCOINISH_CONFIG = {
     coinSymbol: COIN_SYMBOL,
     coinName: COIN_NAME,
@@ -25,13 +24,11 @@ export function toBitcoinishConfig(config) {
         ...DEFAULT_BITCOINISH_CONFIG,
         ...config,
         network: config.network || DEFAULT_NETWORK,
-        addressType: config.addressType || DEFAULT_ADDRESS_TYPE,
     };
-    const { network, server, addressType } = configWithDefaults;
+    const { network, server } = configWithDefaults;
     return {
         ...configWithDefaults,
         bitcoinjsNetwork: network === NetworkType.Testnet ? NETWORK_TESTNET : NETWORK_MAINNET,
-        isSegwit: addressType === AddressType.SegwitNative || addressType === AddressType.SegwitP2SH,
         server: typeof server !== 'undefined'
             ? server
             : (network === NetworkType.Testnet

@@ -2401,10 +2401,10 @@ img {
 					<a href="basebitcoinpayments.html#dustthreshold" class="tsd-kind-icon">dust<wbr>Threshold</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
-					<a href="basebitcoinpayments.html#issegwit" class="tsd-kind-icon">is<wbr>Segwit</a>
-				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 					<a href="basebitcoinpayments.html#logger" class="tsd-kind-icon">logger</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-class">
+					<a href="basebitcoinpayments.html#maximumfeerate" class="tsd-kind-icon">maximum<wbr>Fee<wbr>Rate</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 					<a href="basebitcoinpayments.html#minchangesat" class="tsd-kind-icon">min<wbr>Change<wbr>Sat</a>
@@ -2442,6 +2442,9 @@ img {
 				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 					<a href="basebitcoinpayments.html#tomaindenominationstring" class="tsd-kind-icon">to<wbr>Main<wbr>Denomination<wbr>String</a>
 				</li>
+				<li class=" tsd-kind-get-signature tsd-parent-kind-class">
+					<a href="basebitcoinpayments.html#psbtoptions" class="tsd-kind-icon">psbt<wbr>Options</a>
+				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited">
 					<a href="basebitcoinpayments.html#_retrydced" class="tsd-kind-icon">_retry<wbr>Dced</a>
 				</li>
@@ -2450,6 +2453,9 @@ img {
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="basebitcoinpayments.html#buildpaymenttx" class="tsd-kind-icon">build<wbr>Payment<wbr>Tx</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="basebitcoinpayments.html#buildpsbt" class="tsd-kind-icon">build<wbr>Psbt</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="basebitcoinpayments.html#createmultioutputtransaction" class="tsd-kind-icon">create<wbr>Multi<wbr>Output<wbr>Transaction</a>
@@ -2487,17 +2493,20 @@ img {
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="basebitcoinpayments.html#getfullconfig" class="tsd-kind-icon">get<wbr>Full<wbr>Config</a>
 				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-class">
-					<a href="basebitcoinpayments.html#getkeypair" class="tsd-kind-icon">get<wbr>Key<wbr>Pair</a>
-				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="basebitcoinpayments.html#getnextsequencenumber" class="tsd-kind-icon">get<wbr>Next<wbr>Sequence<wbr>Number</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="basebitcoinpayments.html#getpaymentscript" class="tsd-kind-icon">get<wbr>Payment<wbr>Script</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="basebitcoinpayments.html#getpayport" class="tsd-kind-icon">get<wbr>Payport</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="basebitcoinpayments.html#getpayportvalidationmessage" class="tsd-kind-icon">get<wbr>Payport<wbr>Validation<wbr>Message</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="basebitcoinpayments.html#getpsbtinputdata" class="tsd-kind-icon">get<wbr>Psbt<wbr>Input<wbr>Data</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="basebitcoinpayments.html#getpublicconfig" class="tsd-kind-icon">get<wbr>Public<wbr>Config</a>
@@ -2523,6 +2532,12 @@ img {
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="basebitcoinpayments.html#isvalidpayport" class="tsd-kind-icon">is<wbr>Valid<wbr>Payport</a>
 				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="basebitcoinpayments.html#isvalidprivatekey" class="tsd-kind-icon">is<wbr>Valid<wbr>Private<wbr>Key</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="basebitcoinpayments.html#isvalidpublickey" class="tsd-kind-icon">is<wbr>Valid<wbr>Public<wbr>Key</a>
+				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="basebitcoinpayments.html#requiresbalancemonitor" class="tsd-kind-icon">requires<wbr>Balance<wbr>Monitor</a>
 				</li>
@@ -2536,6 +2551,9 @@ img {
 					<a href="basebitcoinpayments.html#resolvepayport" class="tsd-kind-icon">resolve<wbr>Payport</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+					<a href="basebitcoinpayments.html#serializepaymenttx" class="tsd-kind-icon">serialize<wbr>Payment<wbr>Tx</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="basebitcoinpayments.html#signtransaction" class="tsd-kind-icon">sign<wbr>Transaction</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
@@ -2549,6 +2567,9 @@ img {
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="basebitcoinpayments.html#usesutxos" class="tsd-kind-icon">uses<wbr>Utxos</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="basebitcoinpayments.html#validateandfinalizesignedtx" class="tsd-kind-icon">validate<wbr>And<wbr>Finalize<wbr>Signed<wbr>Tx</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="basebitcoinpayments.html#validatepayport" class="tsd-kind-icon">validate<wbr>Payport</a>
@@ -2577,7 +2598,10 @@ img {
 							<span class="target">BaseBitcoinPayments</span>
 							<ul class="tsd-hierarchy">
 								<li>
-									<a href="hdbitcoinpayments.html" class="tsd-signature-type">HdBitcoinPayments</a>
+									<a href="singlesigbitcoinpayments.html" class="tsd-signature-type">SinglesigBitcoinPayments</a>
+								</li>
+								<li>
+									<a href="multisigbitcoinpayments.html" class="tsd-signature-type">MultisigBitcoinPayments</a>
 								</li>
 							</ul>
 						</li>
@@ -2613,8 +2637,8 @@ img {
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#decimals" class="tsd-kind-icon">decimals</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#defaultfeelevel" class="tsd-kind-icon">default<wbr>Fee<wbr>Level</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#dustthreshold" class="tsd-kind-icon">dust<wbr>Threshold</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#issegwit" class="tsd-kind-icon">is<wbr>Segwit</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#logger" class="tsd-kind-icon">logger</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class"><a href="basebitcoinpayments.html#maximumfeerate" class="tsd-kind-icon">maximum<wbr>Fee<wbr>Rate</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#minchangesat" class="tsd-kind-icon">min<wbr>Change<wbr>Sat</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#mintxfee" class="tsd-kind-icon">min<wbr>TxFee</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#networkminrelayfee" class="tsd-kind-icon">network<wbr>Min<wbr>Relay<wbr>Fee</a></li>
@@ -2630,11 +2654,18 @@ img {
 						</ul>
 					</section>
 					<section class="tsd-index-section ">
+						<h3>Accessors</h3>
+						<ul class="tsd-index-list">
+							<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="basebitcoinpayments.html#psbtoptions" class="tsd-kind-icon">psbt<wbr>Options</a></li>
+						</ul>
+					</section>
+					<section class="tsd-index-section ">
 						<h3>Methods</h3>
 						<ul class="tsd-index-list">
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited"><a href="basebitcoinpayments.html#_retrydced" class="tsd-kind-icon">_retry<wbr>Dced</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#broadcasttransaction" class="tsd-kind-icon">broadcast<wbr>Transaction</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#buildpaymenttx" class="tsd-kind-icon">build<wbr>Payment<wbr>Tx</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="basebitcoinpayments.html#buildpsbt" class="tsd-kind-icon">build<wbr>Psbt</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#createmultioutputtransaction" class="tsd-kind-icon">create<wbr>Multi<wbr>Output<wbr>Transaction</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#createsweeptransaction" class="tsd-kind-icon">create<wbr>Sweep<wbr>Transaction</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#createtransaction" class="tsd-kind-icon">create<wbr>Transaction</a></li>
@@ -2647,10 +2678,11 @@ img {
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#getblock" class="tsd-kind-icon">get<wbr>Block</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="basebitcoinpayments.html#getfeeraterecommendation" class="tsd-kind-icon">get<wbr>Fee<wbr>Rate<wbr>Recommendation</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#getfullconfig" class="tsd-kind-icon">get<wbr>Full<wbr>Config</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-class"><a href="basebitcoinpayments.html#getkeypair" class="tsd-kind-icon">get<wbr>Key<wbr>Pair</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#getnextsequencenumber" class="tsd-kind-icon">get<wbr>Next<wbr>Sequence<wbr>Number</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="basebitcoinpayments.html#getpaymentscript" class="tsd-kind-icon">get<wbr>Payment<wbr>Script</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#getpayport" class="tsd-kind-icon">get<wbr>Payport</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#getpayportvalidationmessage" class="tsd-kind-icon">get<wbr>Payport<wbr>Validation<wbr>Message</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="basebitcoinpayments.html#getpsbtinputdata" class="tsd-kind-icon">get<wbr>Psbt<wbr>Input<wbr>Data</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#getpublicconfig" class="tsd-kind-icon">get<wbr>Public<wbr>Config</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#gettransactioninfo" class="tsd-kind-icon">get<wbr>Transaction<wbr>Info</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#getutxos" class="tsd-kind-icon">get<wbr>Utxos</a></li>
@@ -2659,15 +2691,19 @@ img {
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="basebitcoinpayments.html#isvalidaddress" class="tsd-kind-icon">is<wbr>Valid<wbr>Address</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#isvalidextraid" class="tsd-kind-icon">is<wbr>Valid<wbr>Extra<wbr>Id</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#isvalidpayport" class="tsd-kind-icon">is<wbr>Valid<wbr>Payport</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="basebitcoinpayments.html#isvalidprivatekey" class="tsd-kind-icon">is<wbr>Valid<wbr>Private<wbr>Key</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="basebitcoinpayments.html#isvalidpublickey" class="tsd-kind-icon">is<wbr>Valid<wbr>Public<wbr>Key</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#requiresbalancemonitor" class="tsd-kind-icon">requires<wbr>Balance<wbr>Monitor</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#resolvefeeoption" class="tsd-kind-icon">resolve<wbr>Fee<wbr>Option</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#resolvefromto" class="tsd-kind-icon">resolve<wbr>From<wbr>To</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#resolvepayport" class="tsd-kind-icon">resolve<wbr>Payport</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="basebitcoinpayments.html#signtransaction" class="tsd-kind-icon">sign<wbr>Transaction</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="basebitcoinpayments.html#serializepaymenttx" class="tsd-kind-icon">serialize<wbr>Payment<wbr>Tx</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#signtransaction" class="tsd-kind-icon">sign<wbr>Transaction</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#tobasedenomination" class="tsd-kind-icon">to<wbr>Base<wbr>Denomination</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#tomaindenomination" class="tsd-kind-icon">to<wbr>Main<wbr>Denomination</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#usessequencenumber" class="tsd-kind-icon">uses<wbr>Sequence<wbr>Number</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#usesutxos" class="tsd-kind-icon">uses<wbr>Utxos</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="basebitcoinpayments.html#validateandfinalizesignedtx" class="tsd-kind-icon">validate<wbr>And<wbr>Finalize<wbr>Signed<wbr>Tx</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="basebitcoinpayments.html#validatepayport" class="tsd-kind-icon">validate<wbr>Payport</a></li>
 						</ul>
 					</section>
@@ -2687,7 +2723,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Overrides <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#constructor">constructor</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L19">bitcoin-payments/src/BaseBitcoinPayments.ts:19</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L23">src/BaseBitcoinPayments.ts:23</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2705,11 +2741,11 @@ img {
 			<h2>Properties</h2>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 				<a name="addresstype" class="tsd-anchor"></a>
-				<h3>address<wbr>Type</h3>
+				<h3><span class="tsd-flag ts-flagAbstract">Abstract</span> address<wbr>Type</h3>
 				<div class="tsd-signature tsd-kind-icon">address<wbr>Type<span class="tsd-signature-symbol">:</span> <a href="../enums/addresstype.html" class="tsd-signature-type">AddressType</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L19">bitcoin-payments/src/BaseBitcoinPayments.ts:19</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L31">src/BaseBitcoinPayments.ts:31</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2720,7 +2756,7 @@ img {
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="blockbookconnected.html">BlockbookConnected</a>.<a href="blockbookconnected.html#api">api</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BlockbookConnected.ts#L12">bitcoin-payments/src/bitcoinish/BlockbookConnected.ts:12</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BlockbookConnected.ts#L12">src/bitcoinish/BlockbookConnected.ts:12</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2731,7 +2767,7 @@ img {
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="bitcoinishpaymentsutils.html">BitcoinishPaymentsUtils</a>.<a href="bitcoinishpaymentsutils.html#bitcoinjsnetwork">bitcoinjsNetwork</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L12">bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts:12</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L12">src/bitcoinish/BitcoinishPaymentsUtils.ts:12</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2742,7 +2778,7 @@ img {
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#coinname">coinName</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L35">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:35</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L36">src/bitcoinish/BitcoinishPayments.ts:36</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2753,7 +2789,7 @@ img {
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#coinsymbol">coinSymbol</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L34">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:34</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L35">src/bitcoinish/BitcoinishPayments.ts:35</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2764,7 +2800,7 @@ img {
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="bitcoinishpaymentsutils.html">BitcoinishPaymentsUtils</a>.<a href="bitcoinishpaymentsutils.html#decimals">decimals</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L11">bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts:11</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L11">src/bitcoinish/BitcoinishPaymentsUtils.ts:11</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2775,7 +2811,7 @@ img {
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#defaultfeelevel">defaultFeeLevel</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L40">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:40</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L40">src/bitcoinish/BitcoinishPayments.ts:40</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2786,18 +2822,7 @@ img {
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#dustthreshold">dustThreshold</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L37">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:37</a></li>
-					</ul>
-				</aside>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
-				<a name="issegwit" class="tsd-anchor"></a>
-				<h3>is<wbr>Segwit</h3>
-				<div class="tsd-signature tsd-kind-icon">is<wbr>Segwit<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
-				<aside class="tsd-sources">
-					<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#issegwit">isSegwit</a></p>
-					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L39">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:39</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L38">src/bitcoinish/BitcoinishPayments.ts:38</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2808,7 +2833,17 @@ img {
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="blockbookconnected.html">BlockbookConnected</a>.<a href="blockbookconnected.html#logger">logger</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BlockbookConnected.ts#L11">bitcoin-payments/src/bitcoinish/BlockbookConnected.ts:11</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BlockbookConnected.ts#L11">src/bitcoinish/BlockbookConnected.ts:11</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+				<a name="maximumfeerate" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> maximum<wbr>Fee<wbr>Rate</h3>
+				<div class="tsd-signature tsd-kind-icon">maximum<wbr>Fee<wbr>Rate<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L23">src/BaseBitcoinPayments.ts:23</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2819,7 +2854,7 @@ img {
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#minchangesat">minChangeSat</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L42">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:42</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L42">src/bitcoinish/BitcoinishPayments.ts:42</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2830,7 +2865,7 @@ img {
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#mintxfee">minTxFee</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L36">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:36</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L37">src/bitcoinish/BitcoinishPayments.ts:37</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2841,7 +2876,7 @@ img {
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#networkminrelayfee">networkMinRelayFee</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L38">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:38</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L39">src/bitcoinish/BitcoinishPayments.ts:39</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2852,7 +2887,7 @@ img {
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="blockbookconnected.html">BlockbookConnected</a>.<a href="blockbookconnected.html#networktype">networkType</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BlockbookConnected.ts#L10">bitcoin-payments/src/bitcoinish/BlockbookConnected.ts:10</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BlockbookConnected.ts#L10">src/bitcoinish/BlockbookConnected.ts:10</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2863,7 +2898,7 @@ img {
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="blockbookconnected.html">BlockbookConnected</a>.<a href="blockbookconnected.html#server">server</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BlockbookConnected.ts#L13">bitcoin-payments/src/bitcoinish/BlockbookConnected.ts:13</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BlockbookConnected.ts#L13">src/bitcoinish/BlockbookConnected.ts:13</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2874,73 +2909,212 @@ img {
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#targetutxopoolsize">targetUtxoPoolSize</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L41">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:41</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L41">src/bitcoinish/BitcoinishPayments.ts:41</a></li>
 					</ul>
 				</aside>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 				<a name="tobasedenominationbignumber" class="tsd-anchor"></a>
 				<h3>to<wbr>Base<wbr>Denomination<wbr>Big<wbr>Number</h3>
-				<div class="tsd-signature tsd-kind-icon">to<wbr>Base<wbr>Denomination<wbr>Big<wbr>Number<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">toMainDenominationBigNumber</span></div>
+				<div class="tsd-signature tsd-kind-icon">to<wbr>Base<wbr>Denomination<wbr>Big<wbr>Number<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="bitcoinishpaymentsutils.html">BitcoinishPaymentsUtils</a>.<a href="bitcoinishpaymentsutils.html#tobasedenominationbignumber">toBaseDenominationBigNumber</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L78">bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts:78</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L78">src/bitcoinish/BitcoinishPaymentsUtils.ts:78</a></li>
 					</ul>
 				</aside>
+				<div class="tsd-type-declaration">
+					<h4>Type declaration</h4>
+					<ul class="tsd-parameters">
+						<li class="tsd-parameter-siganture">
+							<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property tsd-is-not-exported">
+								<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>baseNumeric<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">BigNumber</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">BigNumber</span></li>
+							</ul>
+							<ul class="tsd-descriptions">
+								<li class="tsd-description">
+									<h4 class="tsd-parameters-title">Parameters</h4>
+									<ul class="tsd-parameters">
+										<li>
+											<h5>baseNumeric: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">BigNumber</span></h5>
+										</li>
+									</ul>
+									<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">BigNumber</span></h4>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 				<a name="tobasedenominationnumber" class="tsd-anchor"></a>
 				<h3>to<wbr>Base<wbr>Denomination<wbr>Number</h3>
-				<div class="tsd-signature tsd-kind-icon">to<wbr>Base<wbr>Denomination<wbr>Number<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">toMainDenominationNumber</span></div>
+				<div class="tsd-signature tsd-kind-icon">to<wbr>Base<wbr>Denomination<wbr>Number<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="bitcoinishpaymentsutils.html">BitcoinishPaymentsUtils</a>.<a href="bitcoinishpaymentsutils.html#tobasedenominationnumber">toBaseDenominationNumber</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L77">bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts:77</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L77">src/bitcoinish/BitcoinishPaymentsUtils.ts:77</a></li>
 					</ul>
 				</aside>
+				<div class="tsd-type-declaration">
+					<h4>Type declaration</h4>
+					<ul class="tsd-parameters">
+						<li class="tsd-parameter-siganture">
+							<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property tsd-is-not-exported">
+								<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>baseNumeric<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">BigNumber</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+							</ul>
+							<ul class="tsd-descriptions">
+								<li class="tsd-description">
+									<h4 class="tsd-parameters-title">Parameters</h4>
+									<ul class="tsd-parameters">
+										<li>
+											<h5>baseNumeric: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">BigNumber</span></h5>
+										</li>
+									</ul>
+									<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 				<a name="tobasedenominationstring" class="tsd-anchor"></a>
 				<h3>to<wbr>Base<wbr>Denomination<wbr>String</h3>
-				<div class="tsd-signature tsd-kind-icon">to<wbr>Base<wbr>Denomination<wbr>String<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">toMainDenominationString</span></div>
+				<div class="tsd-signature tsd-kind-icon">to<wbr>Base<wbr>Denomination<wbr>String<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="bitcoinishpaymentsutils.html">BitcoinishPaymentsUtils</a>.<a href="bitcoinishpaymentsutils.html#tobasedenominationstring">toBaseDenominationString</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L76">bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts:76</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L76">src/bitcoinish/BitcoinishPaymentsUtils.ts:76</a></li>
 					</ul>
 				</aside>
+				<div class="tsd-type-declaration">
+					<h4>Type declaration</h4>
+					<ul class="tsd-parameters">
+						<li class="tsd-parameter-siganture">
+							<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property tsd-is-not-exported">
+								<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>baseNumeric<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">BigNumber</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+							</ul>
+							<ul class="tsd-descriptions">
+								<li class="tsd-description">
+									<h4 class="tsd-parameters-title">Parameters</h4>
+									<ul class="tsd-parameters">
+										<li>
+											<h5>baseNumeric: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">BigNumber</span></h5>
+										</li>
+									</ul>
+									<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 				<a name="tomaindenominationbignumber" class="tsd-anchor"></a>
 				<h3>to<wbr>Main<wbr>Denomination<wbr>Big<wbr>Number</h3>
-				<div class="tsd-signature tsd-kind-icon">to<wbr>Main<wbr>Denomination<wbr>Big<wbr>Number<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">toMainDenominationBigNumber</span></div>
+				<div class="tsd-signature tsd-kind-icon">to<wbr>Main<wbr>Denomination<wbr>Big<wbr>Number<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="bitcoinishpaymentsutils.html">BitcoinishPaymentsUtils</a>.<a href="bitcoinishpaymentsutils.html#tomaindenominationbignumber">toMainDenominationBigNumber</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L74">bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts:74</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L74">src/bitcoinish/BitcoinishPaymentsUtils.ts:74</a></li>
 					</ul>
 				</aside>
+				<div class="tsd-type-declaration">
+					<h4>Type declaration</h4>
+					<ul class="tsd-parameters">
+						<li class="tsd-parameter-siganture">
+							<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property tsd-is-not-exported">
+								<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>baseNumeric<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">BigNumber</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">BigNumber</span></li>
+							</ul>
+							<ul class="tsd-descriptions">
+								<li class="tsd-description">
+									<h4 class="tsd-parameters-title">Parameters</h4>
+									<ul class="tsd-parameters">
+										<li>
+											<h5>baseNumeric: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">BigNumber</span></h5>
+										</li>
+									</ul>
+									<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">BigNumber</span></h4>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 				<a name="tomaindenominationnumber" class="tsd-anchor"></a>
 				<h3>to<wbr>Main<wbr>Denomination<wbr>Number</h3>
-				<div class="tsd-signature tsd-kind-icon">to<wbr>Main<wbr>Denomination<wbr>Number<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">toMainDenominationNumber</span></div>
+				<div class="tsd-signature tsd-kind-icon">to<wbr>Main<wbr>Denomination<wbr>Number<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="bitcoinishpaymentsutils.html">BitcoinishPaymentsUtils</a>.<a href="bitcoinishpaymentsutils.html#tomaindenominationnumber">toMainDenominationNumber</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L73">bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts:73</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L73">src/bitcoinish/BitcoinishPaymentsUtils.ts:73</a></li>
 					</ul>
 				</aside>
+				<div class="tsd-type-declaration">
+					<h4>Type declaration</h4>
+					<ul class="tsd-parameters">
+						<li class="tsd-parameter-siganture">
+							<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property tsd-is-not-exported">
+								<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>baseNumeric<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">BigNumber</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+							</ul>
+							<ul class="tsd-descriptions">
+								<li class="tsd-description">
+									<h4 class="tsd-parameters-title">Parameters</h4>
+									<ul class="tsd-parameters">
+										<li>
+											<h5>baseNumeric: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">BigNumber</span></h5>
+										</li>
+									</ul>
+									<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 				<a name="tomaindenominationstring" class="tsd-anchor"></a>
 				<h3>to<wbr>Main<wbr>Denomination<wbr>String</h3>
-				<div class="tsd-signature tsd-kind-icon">to<wbr>Main<wbr>Denomination<wbr>String<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">toMainDenominationString</span></div>
+				<div class="tsd-signature tsd-kind-icon">to<wbr>Main<wbr>Denomination<wbr>String<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 				<aside class="tsd-sources">
 					<p>Inherited from <a href="bitcoinishpaymentsutils.html">BitcoinishPaymentsUtils</a>.<a href="bitcoinishpaymentsutils.html#tomaindenominationstring">toMainDenominationString</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L72">bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts:72</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L72">src/bitcoinish/BitcoinishPaymentsUtils.ts:72</a></li>
+					</ul>
+				</aside>
+				<div class="tsd-type-declaration">
+					<h4>Type declaration</h4>
+					<ul class="tsd-parameters">
+						<li class="tsd-parameter-siganture">
+							<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property tsd-is-not-exported">
+								<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>baseNumeric<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">BigNumber</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+							</ul>
+							<ul class="tsd-descriptions">
+								<li class="tsd-description">
+									<h4 class="tsd-parameters-title">Parameters</h4>
+									<ul class="tsd-parameters">
+										<li>
+											<h5>baseNumeric: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">BigNumber</span></h5>
+										</li>
+									</ul>
+									<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
+			</section>
+		</section>
+		<section class="tsd-panel-group tsd-member-group ">
+			<h2>Accessors</h2>
+			<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
+				<a name="psbtoptions" class="tsd-anchor"></a>
+				<h3>psbt<wbr>Options</h3>
+				<div class="tsd-signature tsd-kind-icon">psbt<wbr>Options<span class="tsd-signature-symbol">:</span> </div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L105">src/BaseBitcoinPayments.ts:105</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2958,7 +3132,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="blockbookconnected.html">BlockbookConnected</a>.<a href="blockbookconnected.html#_retrydced">_retryDced</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BlockbookConnected.ts#L35">bitcoin-payments/src/bitcoinish/BlockbookConnected.ts:35</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BlockbookConnected.ts#L35">src/bitcoinish/BlockbookConnected.ts:35</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -3000,7 +3174,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#broadcasttransaction">broadcastTransaction</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L562">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:562</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L580">src/bitcoinish/BitcoinishPayments.ts:580</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3024,7 +3198,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#buildpaymenttx">buildPaymentTx</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L298">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:298</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L309">src/bitcoinish/BitcoinishPayments.ts:309</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3066,6 +3240,32 @@ img {
 					</li>
 				</ul>
 			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="buildpsbt" class="tsd-anchor"></a>
+				<h3>build<wbr>Psbt</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">build<wbr>Psbt<span class="tsd-signature-symbol">(</span>paymentTx<span class="tsd-signature-symbol">: </span><a href="../globals.html#bitcoinishpaymenttx" class="tsd-signature-type">BitcoinishPaymentTx</a>, fromIndex<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Psbt</span><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L112">src/BaseBitcoinPayments.ts:112</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>paymentTx: <a href="../globals.html#bitcoinishpaymenttx" class="tsd-signature-type">BitcoinishPaymentTx</a></h5>
+							</li>
+							<li>
+								<h5>fromIndex: <span class="tsd-signature-type">number</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Psbt</span><span class="tsd-signature-symbol">&gt;</span></h4>
+					</li>
+				</ul>
+			</section>
 			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 				<a name="createmultioutputtransaction" class="tsd-anchor"></a>
 				<h3>create<wbr>Multi<wbr>Output<wbr>Transaction</h3>
@@ -3077,7 +3277,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#createmultioutputtransaction">createMultiOutputTransaction</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L475">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:475</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L489">src/bitcoinish/BitcoinishPayments.ts:489</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3107,7 +3307,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#createsweeptransaction">createSweepTransaction</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L535">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:535</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L553">src/bitcoinish/BitcoinishPayments.ts:553</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3137,7 +3337,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#createtransaction">createTransaction</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L466">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:466</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L480">src/bitcoinish/BitcoinishPayments.ts:480</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3171,7 +3371,7 @@ img {
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#destroy">destroy</a></p>
 							<p>Overrides <a href="blockbookconnected.html">BlockbookConnected</a>.<a href="blockbookconnected.html#destroy">destroy</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L73">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:73</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L81">src/bitcoinish/BitcoinishPayments.ts:81</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -3189,7 +3389,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#getaccountid">getAccountId</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L65">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:65</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L64">src/bitcoinish/BitcoinishPayments.ts:64</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3206,16 +3406,22 @@ img {
 				<a name="getaccountids" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagAbstract">Abstract</span> get<wbr>Account<wbr>Ids</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Account<wbr>Ids<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></li>
+					<li class="tsd-signature tsd-kind-icon">get<wbr>Account<wbr>Ids<span class="tsd-signature-symbol">(</span>index<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#getaccountids">getAccountIds</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L66">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:66</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L65">src/bitcoinish/BitcoinishPayments.ts:65</a></li>
 							</ul>
 						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> index: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
+							</li>
+						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4>
 					</li>
 				</ul>
@@ -3231,7 +3437,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#getaddress">getAddress</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L67">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:67</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L66">src/bitcoinish/BitcoinishPayments.ts:66</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3255,7 +3461,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="blockbookconnected.html">BlockbookConnected</a>.<a href="blockbookconnected.html#getapi">getApi</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BlockbookConnected.ts#L24">bitcoin-payments/src/bitcoinish/BlockbookConnected.ts:24</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BlockbookConnected.ts#L24">src/bitcoinish/BlockbookConnected.ts:24</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">BlockbookBitcoin</span></h4>
@@ -3273,7 +3479,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#getbalance">getBalance</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L136">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:136</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L144">src/bitcoinish/BitcoinishPayments.ts:144</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3297,7 +3503,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpaymentsutils.html">BitcoinishPaymentsUtils</a>.<a href="bitcoinishpaymentsutils.html#getblock">getBlock</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L80">bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts:80</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L80">src/bitcoinish/BitcoinishPaymentsUtils.ts:80</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3321,7 +3527,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Overrides <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#getfeeraterecommendation">getFeeRateRecommendation</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L32">bitcoin-payments/src/BaseBitcoinPayments.ts:32</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L45">src/BaseBitcoinPayments.ts:45</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3345,33 +3551,10 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#getfullconfig">getFullConfig</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L63">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:63</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L62">src/bitcoinish/BitcoinishPayments.ts:62</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Config</span></h4>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-				<a name="getkeypair" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagAbstract">Abstract</span> get<wbr>Key<wbr>Pair</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Key<wbr>Pair<span class="tsd-signature-symbol">(</span>index<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../globals.html#keypair" class="tsd-signature-type">KeyPair</a></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L26">bitcoin-payments/src/BaseBitcoinPayments.ts:26</a></li>
-							</ul>
-						</aside>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>index: <span class="tsd-signature-type">number</span></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <a href="../globals.html#keypair" class="tsd-signature-type">KeyPair</a></h4>
 					</li>
 				</ul>
 			</section>
@@ -3386,10 +3569,33 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#getnextsequencenumber">getNextSequenceNumber</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L173">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:173</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L181">src/bitcoinish/BitcoinishPayments.ts:181</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">&gt;</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="getpaymentscript" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagAbstract">Abstract</span> get<wbr>Payment<wbr>Script</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">get<wbr>Payment<wbr>Script<span class="tsd-signature-symbol">(</span>index<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Payment</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L30">src/BaseBitcoinPayments.ts:30</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>index: <span class="tsd-signature-type">number</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Payment</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -3404,7 +3610,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#getpayport">getPayport</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L83">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:83</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L91">src/bitcoinish/BitcoinishPayments.ts:91</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3428,7 +3634,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpaymentsutils.html">BitcoinishPaymentsUtils</a>.<a href="bitcoinishpaymentsutils.html#getpayportvalidationmessage">getPayportValidationMessage</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L43">bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts:43</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L43">src/bitcoinish/BitcoinishPaymentsUtils.ts:43</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3438,6 +3644,35 @@ img {
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">&gt;</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="getpsbtinputdata" class="tsd-anchor"></a>
+				<h3>get<wbr>Psbt<wbr>Input<wbr>Data</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">get<wbr>Psbt<wbr>Input<wbr>Data<span class="tsd-signature-symbol">(</span>utxo<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">UtxoInfo</span>, paymentScript<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Payment</span>, addressType<span class="tsd-signature-symbol">: </span><a href="../enums/addresstype.html" class="tsd-signature-type">AddressType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/psbtinputdata.html" class="tsd-signature-type">PsbtInputData</a><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L61">src/BaseBitcoinPayments.ts:61</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>utxo: <span class="tsd-signature-type">UtxoInfo</span></h5>
+							</li>
+							<li>
+								<h5>paymentScript: <span class="tsd-signature-type">Payment</span></h5>
+							</li>
+							<li>
+								<h5>addressType: <a href="../enums/addresstype.html" class="tsd-signature-type">AddressType</a></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/psbtinputdata.html" class="tsd-signature-type">PsbtInputData</a><span class="tsd-signature-symbol">&gt;</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -3452,7 +3687,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#getpublicconfig">getPublicConfig</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L64">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:64</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L63">src/bitcoinish/BitcoinishPayments.ts:63</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Config</span></h4>
@@ -3470,7 +3705,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#gettransactioninfo">getTransactionInfo</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L582">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:582</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L600">src/bitcoinish/BitcoinishPayments.ts:600</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3494,7 +3729,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#getutxos">getUtxos</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L153">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:153</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L161">src/bitcoinish/BitcoinishPayments.ts:161</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3519,7 +3754,7 @@ img {
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#init">init</a></p>
 							<p>Overrides <a href="blockbookconnected.html">BlockbookConnected</a>.<a href="blockbookconnected.html#init">init</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L72">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:72</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L80">src/bitcoinish/BitcoinishPayments.ts:80</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -3537,7 +3772,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#issweepablebalance">isSweepableBalance</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L79">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:79</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L87">src/bitcoinish/BitcoinishPayments.ts:87</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3554,14 +3789,14 @@ img {
 				<a name="isvalidaddress" class="tsd-anchor"></a>
 				<h3>is<wbr>Valid<wbr>Address</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
-					<li class="tsd-signature tsd-kind-icon">is<wbr>Valid<wbr>Address<span class="tsd-signature-symbol">(</span>address<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">is<wbr>Valid<wbr>Address<span class="tsd-signature-symbol">(</span>address<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<p>Overrides <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#isvalidaddress">isValidAddress</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L28">bitcoin-payments/src/BaseBitcoinPayments.ts:28</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L33">src/BaseBitcoinPayments.ts:33</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3570,7 +3805,7 @@ img {
 								<h5>address: <span class="tsd-signature-type">string</span></h5>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -3578,14 +3813,14 @@ img {
 				<a name="isvalidextraid" class="tsd-anchor"></a>
 				<h3>is<wbr>Valid<wbr>Extra<wbr>Id</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-					<li class="tsd-signature tsd-kind-icon">is<wbr>Valid<wbr>Extra<wbr>Id<span class="tsd-signature-symbol">(</span>extraId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">is<wbr>Valid<wbr>Extra<wbr>Id<span class="tsd-signature-symbol">(</span>extraId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpaymentsutils.html">BitcoinishPaymentsUtils</a>.<a href="bitcoinishpaymentsutils.html#isvalidextraid">isValidExtraId</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L27">bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts:27</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L27">src/bitcoinish/BitcoinishPaymentsUtils.ts:27</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3594,7 +3829,7 @@ img {
 								<h5>extraId: <span class="tsd-signature-type">string</span></h5>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -3609,7 +3844,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpaymentsutils.html">BitcoinishPaymentsUtils</a>.<a href="bitcoinishpaymentsutils.html#isvalidpayport">isValidPayport</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L60">bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts:60</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L60">src/bitcoinish/BitcoinishPaymentsUtils.ts:60</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3619,6 +3854,52 @@ img {
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="isvalidprivatekey" class="tsd-anchor"></a>
+				<h3>is<wbr>Valid<wbr>Private<wbr>Key</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">is<wbr>Valid<wbr>Private<wbr>Key<span class="tsd-signature-symbol">(</span>privateKey<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L37">src/BaseBitcoinPayments.ts:37</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>privateKey: <span class="tsd-signature-type">string</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="isvalidpublickey" class="tsd-anchor"></a>
+				<h3>is<wbr>Valid<wbr>Public<wbr>Key</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">is<wbr>Valid<wbr>Public<wbr>Key<span class="tsd-signature-symbol">(</span>publicKey<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L41">src/BaseBitcoinPayments.ts:41</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>publicKey: <span class="tsd-signature-type">string</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 					</li>
 				</ul>
 			</section>
@@ -3633,7 +3914,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#requiresbalancemonitor">requiresBalanceMonitor</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L75">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:75</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L83">src/bitcoinish/BitcoinishPayments.ts:83</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -3651,7 +3932,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#resolvefeeoption">resolveFeeOption</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L105">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:105</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L113">src/bitcoinish/BitcoinishPayments.ts:113</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3675,7 +3956,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#resolvefromto">resolveFromTo</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L177">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:177</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L185">src/bitcoinish/BitcoinishPayments.ts:185</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3702,7 +3983,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#resolvepayport">resolvePayport</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L87">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:87</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L95">src/bitcoinish/BitcoinishPayments.ts:95</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3716,17 +3997,44 @@ img {
 				</ul>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
-				<a name="signtransaction" class="tsd-anchor"></a>
-				<h3>sign<wbr>Transaction</h3>
+				<a name="serializepaymenttx" class="tsd-anchor"></a>
+				<h3>serialize<wbr>Payment<wbr>Tx</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+					<li class="tsd-signature tsd-kind-icon">serialize<wbr>Payment<wbr>Tx<span class="tsd-signature-symbol">(</span>tx<span class="tsd-signature-symbol">: </span><a href="../globals.html#bitcoinishpaymenttx" class="tsd-signature-type">BitcoinishPaymentTx</a>, fromIndex<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<p>Overrides <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#serializepaymenttx">serializePaymentTx</a></p>
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L133">src/BaseBitcoinPayments.ts:133</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>tx: <a href="../globals.html#bitcoinishpaymenttx" class="tsd-signature-type">BitcoinishPaymentTx</a></h5>
+							</li>
+							<li>
+								<h5>fromIndex: <span class="tsd-signature-type">number</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+				<a name="signtransaction" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagAbstract">Abstract</span> sign<wbr>Transaction</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<li class="tsd-signature tsd-kind-icon">sign<wbr>Transaction<span class="tsd-signature-symbol">(</span>tx<span class="tsd-signature-symbol">: </span><a href="../globals.html#bitcoinishunsignedtransaction" class="tsd-signature-type">BitcoinishUnsignedTransaction</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../globals.html#bitcoinishsignedtransaction" class="tsd-signature-type">BitcoinishSignedTransaction</a><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Overrides <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#signtransaction">signTransaction</a></p>
+							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#signtransaction">signTransaction</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L48">bitcoin-payments/src/BaseBitcoinPayments.ts:48</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L69">src/bitcoinish/BitcoinishPayments.ts:69</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3750,7 +4058,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpaymentsutils.html">BitcoinishPaymentsUtils</a>.<a href="bitcoinishpaymentsutils.html#tobasedenomination">toBaseDenomination</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L68">bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts:68</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L68">src/bitcoinish/BitcoinishPaymentsUtils.ts:68</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3774,7 +4082,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpaymentsutils.html">BitcoinishPaymentsUtils</a>.<a href="bitcoinishpaymentsutils.html#tomaindenomination">toMainDenomination</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L64">bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts:64</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L64">src/bitcoinish/BitcoinishPaymentsUtils.ts:64</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3798,7 +4106,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#usessequencenumber">usesSequenceNumber</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L169">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:169</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L177">src/bitcoinish/BitcoinishPayments.ts:177</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -3816,10 +4124,36 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpayments.html">BitcoinishPayments</a>.<a href="bitcoinishpayments.html#usesutxos">usesUtxos</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L149">bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts:149</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPayments.ts#L157">src/bitcoinish/BitcoinishPayments.ts:157</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="validateandfinalizesignedtx" class="tsd-anchor"></a>
+				<h3>validate<wbr>And<wbr>Finalize<wbr>Signed<wbr>Tx</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">validate<wbr>And<wbr>Finalize<wbr>Signed<wbr>Tx<span class="tsd-signature-symbol">(</span>tx<span class="tsd-signature-symbol">: </span><a href="../globals.html#bitcoinsignedtransaction" class="tsd-signature-type">BitcoinSignedTransaction</a><span class="tsd-signature-symbol"> | </span><a href="../globals.html#bitcoinunsignedtransaction" class="tsd-signature-type">BitcoinUnsignedTransaction</a>, psbt<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Psbt</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../globals.html#bitcoinsignedtransaction" class="tsd-signature-type">BitcoinSignedTransaction</a></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/BaseBitcoinPayments.ts#L137">src/BaseBitcoinPayments.ts:137</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>tx: <a href="../globals.html#bitcoinsignedtransaction" class="tsd-signature-type">BitcoinSignedTransaction</a><span class="tsd-signature-symbol"> | </span><a href="../globals.html#bitcoinunsignedtransaction" class="tsd-signature-type">BitcoinUnsignedTransaction</a></h5>
+							</li>
+							<li>
+								<h5>psbt: <span class="tsd-signature-type">Psbt</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <a href="../globals.html#bitcoinsignedtransaction" class="tsd-signature-type">BitcoinSignedTransaction</a></h4>
 					</li>
 				</ul>
 			</section>
@@ -3834,7 +4168,7 @@ img {
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="bitcoinishpaymentsutils.html">BitcoinishPaymentsUtils</a>.<a href="bitcoinishpaymentsutils.html#validatepayport">validatePayport</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L52">bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts:52</a></li>
+								<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/bitcoinish/BitcoinishPaymentsUtils.ts#L52">src/bitcoinish/BitcoinishPaymentsUtils.ts:52</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>

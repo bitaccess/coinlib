@@ -10,6 +10,7 @@ export declare function resolveServer(server: BlockbookConnectedConfig['server']
 export declare function retryIfDisconnected<T>(fn: () => Promise<T>, api: BlockbookBitcoin, logger: Logger): Promise<T>;
 export declare function estimateTxSize(inputsCount: number, outputsCount: number, handleSegwit: boolean): number;
 export declare function estimateTxFee(satPerByte: number, inputsCount: number, outputsCount: number, handleSegwit: boolean): number;
-export declare function sumUtxoValue(utxos: UtxoInfo[]): BigNumber;
+export declare function sumUtxoValue(utxos: UtxoInfo[], includeUnconfirmed?: boolean): BigNumber;
 export declare function sortUtxos<T extends UtxoInfo>(utxoList: T[]): T[];
 export declare function isConfirmedUtxo(utxo: UtxoInfo): boolean;
+export declare function sha256FromHex(hex: string): string;

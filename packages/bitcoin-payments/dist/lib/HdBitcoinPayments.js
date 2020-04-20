@@ -1,12 +1,12 @@
 import { omit } from 'lodash';
 import { assertType, } from '@faast/ts-common';
 import { xprvToXpub, deriveAddress, deriveHDNode, deriveKeyPair } from './bip44';
-import { HdBitcoinPaymentsConfig, } from './types';
-import { BaseBitcoinPayments } from './BaseBitcoinPayments';
+import { HdBitcoinPaymentsConfig } from './types';
+import { SinglesigBitcoinPayments } from './SinglesigBitcoinPayments';
 import { DEFAULT_DERIVATION_PATHS } from './constants';
 import { isValidXprv, isValidXpub, validateHdKey } from './helpers';
 import { bip32MagicNumberToPrefix } from './utils';
-export class HdBitcoinPayments extends BaseBitcoinPayments {
+export class HdBitcoinPayments extends SinglesigBitcoinPayments {
     constructor(config) {
         super(config);
         this.config = config;
@@ -44,8 +44,9 @@ export class HdBitcoinPayments extends BaseBitcoinPayments {
     getFullConfig() {
         return {
             ...this.config,
-            derivationPath: this.derivationPath,
+            network: this.networkType,
             addressType: this.addressType,
+            derivationPath: this.derivationPath,
         };
     }
     getPublicConfig() {
@@ -57,16 +58,13 @@ export class HdBitcoinPayments extends BaseBitcoinPayments {
     getAccountId(index) {
         return this.xpub;
     }
-    getAccountIds() {
+    getAccountIds(index) {
         return [this.xpub];
     }
     getAddress(index) {
         return deriveAddress(this.hdNode, index, this.bitcoinjsNetwork, this.addressType);
     }
     getKeyPair(index) {
-        if (!this.xprv) {
-            throw new Error(`Cannot get private key ${index} - HdBitcoinPayments was created with an xpub`);
-        }
         return deriveKeyPair(this.hdNode, index, this.bitcoinjsNetwork);
     }
 }

@@ -14,7 +14,7 @@ export class BitcoinishPaymentsUtils extends BlockbookConnected {
         this.toBaseDenominationNumber = unitConverters.toBaseDenominationNumber;
         this.toBaseDenominationBigNumber = unitConverters.toBaseDenominationBigNumber;
     }
-    async isValidExtraId(extraId) {
+    isValidExtraId(extraId) {
         return false;
     }
     async _getPayportValidationMessage(payport) {

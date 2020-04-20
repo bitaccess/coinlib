@@ -132,14 +132,6 @@ export declare const RippleUnsignedTransaction: t.IntersectionC<[t.IntersectionC
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
     sequenceNumber: t.UnionC<[t.UnionC<[t.StringC, t.NumberC]>, t.NullC]>;
-}>]>, t.TypeC<{
-    fromAddress: t.StringC;
-    toAddress: t.StringC;
-    fromIndex: t.NumberC;
-    targetFeeLevel: t.Type<import("@faast/payments-common").FeeLevel, import("@faast/payments-common").FeeLevel, unknown>;
-    targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
-    targetFeeRateType: t.UnionC<[t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>, t.NullC]>;
-}>, t.PartialC<{
     inputUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
         txid: t.StringC;
         vout: t.NumberC;
@@ -151,6 +143,19 @@ export declare const RippleUnsignedTransaction: t.IntersectionC<[t.IntersectionC
         lockTime: t.StringC;
         coinbase: t.BooleanC;
     }>]>>;
+    externalOutputs: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        address: t.StringC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        extraId: t.UnionC<[t.StringC, t.NullC]>;
+    }>]>>;
+}>]>, t.TypeC<{
+    fromAddress: t.StringC;
+    toAddress: t.StringC;
+    fromIndex: t.NumberC;
+    targetFeeLevel: t.Type<import("@faast/payments-common").FeeLevel, import("@faast/payments-common").FeeLevel, unknown>;
+    targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
+    targetFeeRateType: t.UnionC<[t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>, t.NullC]>;
 }>]>, t.TypeC<{
     status: t.LiteralC<import("@faast/payments-common").TransactionStatus.Unsigned>;
     data: t.ObjectC;
@@ -172,14 +177,6 @@ export declare const RippleSignedTransaction: t.IntersectionC<[t.IntersectionC<[
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
     sequenceNumber: t.UnionC<[t.UnionC<[t.StringC, t.NumberC]>, t.NullC]>;
-}>]>, t.TypeC<{
-    fromAddress: t.StringC;
-    toAddress: t.StringC;
-    fromIndex: t.NumberC;
-    targetFeeLevel: t.Type<import("@faast/payments-common").FeeLevel, import("@faast/payments-common").FeeLevel, unknown>;
-    targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
-    targetFeeRateType: t.UnionC<[t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>, t.NullC]>;
-}>, t.PartialC<{
     inputUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
         txid: t.StringC;
         vout: t.NumberC;
@@ -191,6 +188,19 @@ export declare const RippleSignedTransaction: t.IntersectionC<[t.IntersectionC<[
         lockTime: t.StringC;
         coinbase: t.BooleanC;
     }>]>>;
+    externalOutputs: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        address: t.StringC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        extraId: t.UnionC<[t.StringC, t.NullC]>;
+    }>]>>;
+}>]>, t.TypeC<{
+    fromAddress: t.StringC;
+    toAddress: t.StringC;
+    fromIndex: t.NumberC;
+    targetFeeLevel: t.Type<import("@faast/payments-common").FeeLevel, import("@faast/payments-common").FeeLevel, unknown>;
+    targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
+    targetFeeRateType: t.UnionC<[t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>, t.NullC]>;
 }>]>, t.TypeC<{
     status: t.LiteralC<import("@faast/payments-common").TransactionStatus.Signed>;
     id: t.StringC;
@@ -214,6 +224,23 @@ export declare const RippleTransactionInfo: t.IntersectionC<[t.IntersectionC<[t.
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
     sequenceNumber: t.UnionC<[t.UnionC<[t.StringC, t.NumberC]>, t.NullC]>;
+    inputUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        txid: t.StringC;
+        vout: t.NumberC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        satoshis: t.UnionC<[t.NumberC, t.StringC]>;
+        confirmations: t.NumberC;
+        height: t.StringC;
+        lockTime: t.StringC;
+        coinbase: t.BooleanC;
+    }>]>>;
+    externalOutputs: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        address: t.StringC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        extraId: t.UnionC<[t.StringC, t.NullC]>;
+    }>]>>;
 }>]>, t.TypeC<{
     id: t.StringC;
     amount: t.StringC;

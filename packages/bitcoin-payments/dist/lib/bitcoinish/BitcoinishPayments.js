@@ -3,9 +3,8 @@ import { isUndefined, isType, toBigNumber, assertType, isNumber } from '@faast/t
 import { get } from 'lodash';
 import * as t from 'io-ts';
 import { PayportOutput, } from './types';
-import { estimateTxFee, sumUtxoValue, sortUtxos, isConfirmedUtxo } from './utils';
+import { estimateTxFee, sumUtxoValue, sortUtxos, isConfirmedUtxo, sha256FromHex } from './utils';
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils';
-import BigNumber from 'bignumber.js';
 export class BitcoinishPayments extends BitcoinishPaymentsUtils {
     constructor(config) {
         super(config);
@@ -16,7 +15,6 @@ export class BitcoinishPayments extends BitcoinishPaymentsUtils {
         this.minTxFee = config.minTxFee;
         this.dustThreshold = config.dustThreshold;
         this.networkMinRelayFee = config.networkMinRelayFee;
-        this.isSegwit = config.isSegwit;
         this.defaultFeeLevel = config.defaultFeeLevel;
         this.targetUtxoPoolSize = isUndefined(config.targetUtxoPoolSize) ? 1 : config.targetUtxoPoolSize;
         const minChange = toBigNumber(isUndefined(config.minChange) ? 0 : config.minChange);
@@ -140,7 +138,7 @@ export class BitcoinishPayments extends BitcoinishPaymentsUtils {
     }
     feeRateToSatoshis({ feeRate, feeRateType }, inputCount, outputCount) {
         if (feeRateType === FeeRateType.BasePerWeight) {
-            return estimateTxFee(Number.parseFloat(feeRate), inputCount, outputCount, this.isSegwit);
+            return estimateTxFee(Number.parseFloat(feeRate), inputCount, outputCount, true);
         }
         else if (feeRateType === FeeRateType.Main) {
             return this.toBaseDenominationNumber(feeRate);
@@ -152,10 +150,12 @@ export class BitcoinishPayments extends BitcoinishPaymentsUtils {
         if (this.minTxFee) {
             const minTxFeeSat = this.feeRateToSatoshis(this.minTxFee, inputCount, outputCount);
             if (feeSat < minTxFeeSat) {
+                this.logger.debug(`Using min tx fee of ${minTxFeeSat} sat (${this.minTxFee} sat/byte) instead of ${feeSat} sat`);
                 feeSat = minTxFeeSat;
             }
         }
         if (feeSat < this.networkMinRelayFee) {
+            this.logger.debug(`Using network min relay fee of ${this.networkMinRelayFee} sat instead of ${feeSat} sat`);
             feeSat = this.networkMinRelayFee;
         }
         return Math.ceil(feeSat);
@@ -166,7 +166,7 @@ export class BitcoinishPayments extends BitcoinishPaymentsUtils {
         for (const utxo of availableUtxos) {
             const satoshis = isUndefined(utxo.satoshis)
                 ? this.toBaseDenominationNumber(utxo.value)
-                : toBigNumber(utxo.satoshis).integerValue(BigNumber.ROUND_DOWN).toNumber();
+                : toBigNumber(utxo.satoshis).toNumber();
             utxosTotalSat += satoshis;
             utxos.push({
                 ...utxo,
@@ -319,15 +319,18 @@ export class BitcoinishPayments extends BitcoinishPaymentsUtils {
         }
         const externalOutputsResult = this.convertOutputsToExternalFormat(externalOutputs);
         const changeOutputsResult = this.convertOutputsToExternalFormat(changeOutputs);
+        const outputsResult = [...externalOutputsResult, ...changeOutputsResult];
         return {
             inputs: inputUtxos,
-            outputs: [...externalOutputsResult, ...changeOutputsResult],
+            outputs: outputsResult,
             fee: this.toMainDenominationString(feeSat),
             change: this.toMainDenominationString(totalChangeSat),
             changeAddress: changeOutputs.length === 1 ? changeOutputs[0].address : null,
             changeOutputs: changeOutputsResult,
             externalOutputs: externalOutputsResult,
             externalOutputTotal: this.toMainDenominationString(outputTotal),
+            rawHex: '',
+            rawHash: '',
         };
     }
     createWeightedChangeOutputs(changeOutputCount, changeAddress) {
@@ -351,7 +354,7 @@ export class BitcoinishPayments extends BitcoinishPaymentsUtils {
             value: String(amount),
         })));
         const { targetFeeLevel, targetFeeRate, targetFeeRateType } = await this.resolveFeeOption(options);
-        this.logger.debug(`createTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`);
+        this.logger.debug(`createMultiOutputTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`);
         const paymentTx = await this.buildPaymentTx({
             unusedUtxos,
             desiredOutputs,
@@ -360,9 +363,12 @@ export class BitcoinishPayments extends BitcoinishPaymentsUtils {
             useAllUtxos: options.useAllUtxos,
             useUnconfirmedUtxos: options.useUnconfirmedUtxos,
         });
-        this.logger.debug('createTransaction data', paymentTx);
+        const unsignedTxHex = await this.serializePaymentTx(paymentTx, from);
+        paymentTx.rawHex = unsignedTxHex;
+        paymentTx.rawHash = sha256FromHex(unsignedTxHex);
+        this.logger.debug('createMultiOutputTransaction data', paymentTx);
         const feeMain = paymentTx.fee;
-        let resultToAddress = 'multi';
+        let resultToAddress = 'batch';
         let resultToIndex = null;
         if (paymentTx.externalOutputs.length === 1) {
             const onlyOutput = paymentTx.externalOutputs[0];
@@ -385,6 +391,7 @@ export class BitcoinishPayments extends BitcoinishPaymentsUtils {
             fee: feeMain,
             sequenceNumber: null,
             inputUtxos: paymentTx.inputs,
+            externalOutputs: paymentTx.externalOutputs,
             data: paymentTx,
         };
     }
@@ -396,7 +403,7 @@ export class BitcoinishPayments extends BitcoinishPaymentsUtils {
         if (availableUtxos.length === 0) {
             throw new Error('No available utxos to sweep');
         }
-        const outputAmount = sumUtxoValue(availableUtxos);
+        const outputAmount = sumUtxoValue(availableUtxos, options.useUnconfirmedUtxos);
         if (!this.isSweepableBalance(outputAmount)) {
             throw new Error(`Available utxo total ${outputAmount} ${this.coinSymbol} too low to sweep`);
         }

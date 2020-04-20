@@ -1,7 +1,8 @@
-import { partial, string, union, number, keyof, type, literal, boolean, array, object } from 'io-ts';
+import { union, string, null as null$1, undefined as undefined$1, partial, array, record, number, keyof, type, literal, boolean, object } from 'io-ts';
 import { enumCodec, Logger, requiredOptionalCodec, nullable, extendCodec, Numeric, DateT, functionT } from '@faast/ts-common';
 import BigNumber from 'bignumber.js';
 
+const NullableOptionalString = union([string, null$1, undefined$1]);
 var NetworkType;
 (function (NetworkType) {
     NetworkType["Mainnet"] = "mainnet";
@@ -12,6 +13,10 @@ const BaseConfig = partial({
     network: NetworkTypeT,
     logger: Logger,
 }, 'BaseConfig');
+const KeyPairsConfigParam = union([
+    array(NullableOptionalString),
+    record(number, NullableOptionalString)
+], 'KeyPairsConfigParam');
 const Payport = requiredOptionalCodec({
     address: string,
 }, {
@@ -93,6 +98,12 @@ var TransactionStatus;
     TransactionStatus["Failed"] = "failed";
 })(TransactionStatus || (TransactionStatus = {}));
 const TransactionStatusT = enumCodec(TransactionStatus, 'TransactionStatus');
+const TransactionOutput = requiredOptionalCodec({
+    address: string,
+    value: string,
+}, {
+    extraId: nullable(string),
+}, 'TransactionOutput');
 const TransactionCommon = requiredOptionalCodec({
     status: TransactionStatusT,
     id: nullable(string),
@@ -106,6 +117,8 @@ const TransactionCommon = requiredOptionalCodec({
     fromExtraId: nullable(string),
     toExtraId: nullable(string),
     sequenceNumber: nullable(union([string, number])),
+    inputUtxos: array(UtxoInfo),
+    externalOutputs: array(TransactionOutput)
 }, 'TransactionCommon');
 const UnsignedCommon = extendCodec(TransactionCommon, {
     fromAddress: string,
@@ -114,8 +127,6 @@ const UnsignedCommon = extendCodec(TransactionCommon, {
     targetFeeLevel: FeeLevelT,
     targetFeeRate: nullable(string),
     targetFeeRateType: nullable(FeeRateTypeT),
-}, {
-    inputUtxos: array(UtxoInfo),
 }, 'UnsignedCommon');
 const BaseUnsignedTransaction = extendCodec(UnsignedCommon, {
     status: literal(TransactionStatus.Unsigned),
@@ -233,5 +244,5 @@ class PaymentsError extends Error {
     }
 }
 
-export { AutoFeeLevels, BalanceActivity, BalanceActivityCallback, BalanceActivityType, BalanceMonitorConfig, BalanceResult, BaseBroadcastResult, BaseConfig, BaseSignedTransaction, BaseTransactionInfo, BaseUnsignedTransaction, CreateTransactionOptions, FeeLevel, FeeLevelT, FeeOption, FeeOptionCustom, FeeOptionLevel, FeeRate, FeeRateType, FeeRateTypeT, GetBalanceActivityOptions, GetPayportOptions, NetworkType, NetworkTypeT, PaymentsError, PaymentsErrorCode, Payport, ResolveablePayport, ResolvedFeeOption, RetrieveBalanceActivitiesResult, TransactionCommon, TransactionStatus, TransactionStatusT, UtxoInfo, WeightedChangeOutput, createUnitConverters, isMatchingError };
+export { AutoFeeLevels, BalanceActivity, BalanceActivityCallback, BalanceActivityType, BalanceMonitorConfig, BalanceResult, BaseBroadcastResult, BaseConfig, BaseSignedTransaction, BaseTransactionInfo, BaseUnsignedTransaction, CreateTransactionOptions, FeeLevel, FeeLevelT, FeeOption, FeeOptionCustom, FeeOptionLevel, FeeRate, FeeRateType, FeeRateTypeT, GetBalanceActivityOptions, GetPayportOptions, KeyPairsConfigParam, NetworkType, NetworkTypeT, NullableOptionalString, PaymentsError, PaymentsErrorCode, Payport, ResolveablePayport, ResolvedFeeOption, RetrieveBalanceActivitiesResult, TransactionCommon, TransactionOutput, TransactionStatus, TransactionStatusT, UtxoInfo, WeightedChangeOutput, createUnitConverters, isMatchingError };
 //# sourceMappingURL=index.es.js.map

@@ -2377,6 +2377,15 @@ img {
 					<a href="addresstype.html#legacy" class="tsd-kind-icon">Legacy</a>
 				</li>
 				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+					<a href="addresstype.html#multisiglegacy" class="tsd-kind-icon">Multisig<wbr>Legacy</a>
+				</li>
+				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+					<a href="addresstype.html#multisigsegwitnative" class="tsd-kind-icon">Multisig<wbr>Segwit<wbr>Native</a>
+				</li>
+				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+					<a href="addresstype.html#multisigsegwitp2sh" class="tsd-kind-icon">Multisig<wbr>Segwit<wbr>P2SH</a>
+				</li>
+				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
 					<a href="addresstype.html#segwitnative" class="tsd-kind-icon">Segwit<wbr>Native</a>
 				</li>
 				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
@@ -2396,6 +2405,9 @@ img {
 						<h3>Enumeration members</h3>
 						<ul class="tsd-index-list">
 							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="addresstype.html#legacy" class="tsd-kind-icon">Legacy</a></li>
+							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="addresstype.html#multisiglegacy" class="tsd-kind-icon">Multisig<wbr>Legacy</a></li>
+							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="addresstype.html#multisigsegwitnative" class="tsd-kind-icon">Multisig<wbr>Segwit<wbr>Native</a></li>
+							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="addresstype.html#multisigsegwitp2sh" class="tsd-kind-icon">Multisig<wbr>Segwit<wbr>P2SH</a></li>
 							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="addresstype.html#segwitnative" class="tsd-kind-icon">Segwit<wbr>Native</a></li>
 							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="addresstype.html#segwitp2sh" class="tsd-kind-icon">Segwit<wbr>P2SH</a></li>
 						</ul>
@@ -2411,7 +2423,37 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Legacy<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;p2pkh&quot;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/types.ts#L15">bitcoin-payments/src/types.ts:15</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/types.ts#L23">src/types.ts:23</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+				<a name="multisiglegacy" class="tsd-anchor"></a>
+				<h3>Multisig<wbr>Legacy</h3>
+				<div class="tsd-signature tsd-kind-icon">Multisig<wbr>Legacy<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;p2sh-p2ms&quot;</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/types.ts#L26">src/types.ts:26</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+				<a name="multisigsegwitnative" class="tsd-anchor"></a>
+				<h3>Multisig<wbr>Segwit<wbr>Native</h3>
+				<div class="tsd-signature tsd-kind-icon">Multisig<wbr>Segwit<wbr>Native<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;p2wsh-p2ms&quot;</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/types.ts#L28">src/types.ts:28</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+				<a name="multisigsegwitp2sh" class="tsd-anchor"></a>
+				<h3>Multisig<wbr>Segwit<wbr>P2SH</h3>
+				<div class="tsd-signature tsd-kind-icon">Multisig<wbr>Segwit<wbr>P2SH<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;p2sh-p2wsh-p2ms&quot;</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/types.ts#L27">src/types.ts:27</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2421,7 +2463,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Segwit<wbr>Native<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;p2wpkh&quot;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/types.ts#L17">bitcoin-payments/src/types.ts:17</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/types.ts#L25">src/types.ts:25</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2431,7 +2473,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">Segwit<wbr>P2SH<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;p2sh-p2wpkh&quot;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/8408d5d/packages/bitcoin-payments/src/types.ts#L16">bitcoin-payments/src/types.ts:16</a></li>
+						<li>Defined in <a href="https://github.com/go-faast/coin-payments/blob/129e1db/packages/bitcoin-payments/src/types.ts#L24">src/types.ts:24</a></li>
 					</ul>
 				</aside>
 			</section>

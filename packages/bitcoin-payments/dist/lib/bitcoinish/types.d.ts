@@ -25,7 +25,6 @@ export declare type BitcoinishPaymentsConfig = BitcoinishPaymentsUtilsConfig & {
     minTxFee: FeeRate;
     dustThreshold: number;
     networkMinRelayFee: number;
-    isSegwit: boolean;
     defaultFeeLevel: AutoFeeLevels;
     targetUtxoPoolSize?: number;
     minChange?: Numeric;
@@ -35,6 +34,11 @@ export declare const BitcoinishTxOutput: t.TypeC<{
     value: t.StringC;
 }>;
 export declare type BitcoinishTxOutput = t.TypeOf<typeof BitcoinishTxOutput>;
+export declare const BitcoinishTxOutputSatoshis: t.TypeC<{
+    address: t.StringC;
+    satoshis: t.NumberC;
+}>;
+export declare type BitcoinishTxOutputSatoshis = t.TypeOf<typeof BitcoinishTxOutputSatoshis>;
 export declare const BitcoinishWeightedChangeOutput: t.TypeC<{
     address: t.StringC;
     weight: t.NumberC;
@@ -69,6 +73,8 @@ export declare const BitcoinishPaymentTx: t.IntersectionC<[t.TypeC<{
         address: t.StringC;
         value: t.StringC;
     }>>;
+    rawHex: t.StringC;
+    rawHash: t.StringC;
 }>]>;
 export declare type BitcoinishPaymentTx = t.TypeOf<typeof BitcoinishPaymentTx>;
 export declare const BitcoinishUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.TypeC<{
@@ -84,14 +90,6 @@ export declare const BitcoinishUnsignedTransaction: t.IntersectionC<[t.Intersect
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
     sequenceNumber: t.UnionC<[t.UnionC<[t.StringC, t.NumberC]>, t.NullC]>;
-}>]>, t.TypeC<{
-    fromAddress: t.StringC;
-    toAddress: t.StringC;
-    fromIndex: t.NumberC;
-    targetFeeLevel: t.Type<import("@faast/payments-common").FeeLevel, import("@faast/payments-common").FeeLevel, unknown>;
-    targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
-    targetFeeRateType: t.UnionC<[t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>, t.NullC]>;
-}>, t.PartialC<{
     inputUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
         txid: t.StringC;
         vout: t.NumberC;
@@ -103,12 +101,57 @@ export declare const BitcoinishUnsignedTransaction: t.IntersectionC<[t.Intersect
         lockTime: t.StringC;
         coinbase: t.BooleanC;
     }>]>>;
+    externalOutputs: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        address: t.StringC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        extraId: t.UnionC<[t.StringC, t.NullC]>;
+    }>]>>;
+}>]>, t.TypeC<{
+    fromAddress: t.StringC;
+    toAddress: t.StringC;
+    fromIndex: t.NumberC;
+    targetFeeLevel: t.Type<import("@faast/payments-common").FeeLevel, import("@faast/payments-common").FeeLevel, unknown>;
+    targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
+    targetFeeRateType: t.UnionC<[t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>, t.NullC]>;
 }>]>, t.TypeC<{
     status: t.LiteralC<import("@faast/payments-common").TransactionStatus.Unsigned>;
     data: t.ObjectC;
 }>]>, t.TypeC<{
     amount: t.StringC;
     fee: t.StringC;
+    data: t.IntersectionC<[t.TypeC<{
+        inputs: t.ArrayC<t.IntersectionC<[t.TypeC<{
+            txid: t.StringC;
+            vout: t.NumberC;
+            value: t.StringC;
+        }>, t.PartialC<{
+            satoshis: t.UnionC<[t.NumberC, t.StringC]>;
+            confirmations: t.NumberC;
+            height: t.StringC;
+            lockTime: t.StringC;
+            coinbase: t.BooleanC;
+        }>]>>;
+        outputs: t.ArrayC<t.TypeC<{
+            address: t.StringC;
+            value: t.StringC;
+        }>>;
+        fee: t.StringC;
+        change: t.StringC;
+        changeAddress: t.UnionC<[t.StringC, t.NullC]>;
+    }>, t.PartialC<{
+        externalOutputs: t.ArrayC<t.TypeC<{
+            address: t.StringC;
+            value: t.StringC;
+        }>>;
+        externalOutputTotal: t.StringC;
+        changeOutputs: t.ArrayC<t.TypeC<{
+            address: t.StringC;
+            value: t.StringC;
+        }>>;
+        rawHex: t.StringC;
+        rawHash: t.StringC;
+    }>]>;
 }>]>;
 export declare type BitcoinishUnsignedTransaction = t.TypeOf<typeof BitcoinishUnsignedTransaction>;
 export declare const BitcoinishSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.TypeC<{
@@ -124,14 +167,6 @@ export declare const BitcoinishSignedTransaction: t.IntersectionC<[t.Intersectio
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
     sequenceNumber: t.UnionC<[t.UnionC<[t.StringC, t.NumberC]>, t.NullC]>;
-}>]>, t.TypeC<{
-    fromAddress: t.StringC;
-    toAddress: t.StringC;
-    fromIndex: t.NumberC;
-    targetFeeLevel: t.Type<import("@faast/payments-common").FeeLevel, import("@faast/payments-common").FeeLevel, unknown>;
-    targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
-    targetFeeRateType: t.UnionC<[t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>, t.NullC]>;
-}>, t.PartialC<{
     inputUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
         txid: t.StringC;
         vout: t.NumberC;
@@ -143,6 +178,19 @@ export declare const BitcoinishSignedTransaction: t.IntersectionC<[t.Intersectio
         lockTime: t.StringC;
         coinbase: t.BooleanC;
     }>]>>;
+    externalOutputs: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        address: t.StringC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        extraId: t.UnionC<[t.StringC, t.NullC]>;
+    }>]>>;
+}>]>, t.TypeC<{
+    fromAddress: t.StringC;
+    toAddress: t.StringC;
+    fromIndex: t.NumberC;
+    targetFeeLevel: t.Type<import("@faast/payments-common").FeeLevel, import("@faast/payments-common").FeeLevel, unknown>;
+    targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
+    targetFeeRateType: t.UnionC<[t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>, t.NullC]>;
 }>]>, t.TypeC<{
     status: t.LiteralC<import("@faast/payments-common").TransactionStatus.Signed>;
     id: t.StringC;
@@ -168,6 +216,23 @@ export declare const BitcoinishTransactionInfo: t.IntersectionC<[t.IntersectionC
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
     sequenceNumber: t.UnionC<[t.UnionC<[t.StringC, t.NumberC]>, t.NullC]>;
+    inputUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        txid: t.StringC;
+        vout: t.NumberC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        satoshis: t.UnionC<[t.NumberC, t.StringC]>;
+        confirmations: t.NumberC;
+        height: t.StringC;
+        lockTime: t.StringC;
+        coinbase: t.BooleanC;
+    }>]>>;
+    externalOutputs: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        address: t.StringC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        extraId: t.UnionC<[t.StringC, t.NullC]>;
+    }>]>>;
 }>]>, t.TypeC<{
     id: t.StringC;
     amount: t.StringC;

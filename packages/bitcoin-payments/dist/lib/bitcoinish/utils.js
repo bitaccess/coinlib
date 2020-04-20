@@ -1,6 +1,7 @@
 import { BlockbookBitcoin } from 'blockbook-client';
 import { isString, isMatchingError, toBigNumber } from '@faast/ts-common';
 import promiseRetry from 'promise-retry';
+import crypto from 'crypto';
 export function resolveServer(server, network) {
     if (isString(server)) {
         return {
@@ -54,8 +55,9 @@ export function estimateTxSize(inputsCount, outputsCount, handleSegwit) {
 export function estimateTxFee(satPerByte, inputsCount, outputsCount, handleSegwit) {
     return estimateTxSize(inputsCount, outputsCount, handleSegwit) * satPerByte;
 }
-export function sumUtxoValue(utxos) {
-    return utxos.reduce((total, { value }) => total.plus(value), toBigNumber(0));
+export function sumUtxoValue(utxos, includeUnconfirmed) {
+    const filtered = includeUnconfirmed ? utxos : utxos.filter(isConfirmedUtxo);
+    return filtered.reduce((total, { value }) => total.plus(value), toBigNumber(0));
 }
 export function sortUtxos(utxoList) {
     const result = [...utxoList];
@@ -64,5 +66,10 @@ export function sortUtxos(utxoList) {
 }
 export function isConfirmedUtxo(utxo) {
     return Boolean((utxo.confirmations && utxo.confirmations > 0) || (utxo.height && Number.parseInt(utxo.height) > 0));
+}
+export function sha256FromHex(hex) {
+    return hex
+        ? crypto.createHash('sha256').update(Buffer.from(hex, 'hex')).digest('hex')
+        : '';
 }
 //# sourceMappingURL=utils.js.map

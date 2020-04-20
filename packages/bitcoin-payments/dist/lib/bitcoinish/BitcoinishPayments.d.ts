@@ -1,4 +1,4 @@
-import { BasePayments, UtxoInfo, FeeRate, FeeOption, ResolvedFeeOption, AutoFeeLevels, Payport, ResolveablePayport, BalanceResult, FromTo, CreateTransactionOptions, BaseConfig } from '@faast/payments-common';
+import { BasePayments, UtxoInfo, FeeRate, FeeOption, ResolvedFeeOption, AutoFeeLevels, Payport, ResolveablePayport, BalanceResult, FromTo, CreateTransactionOptions, BaseConfig, MaybePromise } from '@faast/payments-common';
 import { Numeric } from '@faast/ts-common';
 import { BitcoinishUnsignedTransaction, BitcoinishSignedTransaction, BitcoinishBroadcastResult, BitcoinishTransactionInfo, BitcoinishPaymentsConfig, BitcoinishPaymentTx, BitcoinishTxOutput, PayportOutput } from './types';
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils';
@@ -8,7 +8,6 @@ export declare abstract class BitcoinishPayments<Config extends BaseConfig> exte
     minTxFee?: FeeRate;
     dustThreshold: number;
     networkMinRelayFee: number;
-    isSegwit: boolean;
     defaultFeeLevel: AutoFeeLevels;
     targetUtxoPoolSize: number;
     minChangeSat: number;
@@ -16,11 +15,12 @@ export declare abstract class BitcoinishPayments<Config extends BaseConfig> exte
     abstract getFullConfig(): Config;
     abstract getPublicConfig(): Config;
     abstract getAccountId(index: number): string;
-    abstract getAccountIds(): string[];
+    abstract getAccountIds(index?: number): string[];
     abstract getAddress(index: number): string;
     abstract getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate>;
-    abstract isValidAddress(address: string): Promise<boolean>;
+    abstract isValidAddress(address: string): MaybePromise<boolean>;
     abstract signTransaction(tx: BitcoinishUnsignedTransaction): Promise<BitcoinishSignedTransaction>;
+    abstract serializePaymentTx(paymentTx: BitcoinishPaymentTx, fromIndex: number): Promise<string>;
     init(): Promise<void>;
     destroy(): Promise<void>;
     requiresBalanceMonitor(): boolean;

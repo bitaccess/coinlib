@@ -13,7 +13,7 @@ var tsCommon = require('@faast/ts-common');
 var blockbookClient = require('blockbook-client');
 var lodash = require('lodash');
 var promiseRetry = _interopDefault(require('promise-retry'));
-var BigNumber = _interopDefault(require('bignumber.js'));
+var crypto = _interopDefault(require('crypto'));
 var bip32 = require('bip32');
 
 class BlockbookServerAPI extends blockbookClient.BlockbookBitcoin {
@@ -34,6 +34,10 @@ const BitcoinishTxOutput = t.type({
     address: t.string,
     value: t.string,
 }, 'BitcoinishTxOutput');
+const BitcoinishTxOutputSatoshis = t.type({
+    address: t.string,
+    satoshis: t.number,
+}, 'BitcoinishTxOutputSatoshis');
 const BitcoinishWeightedChangeOutput = t.type({
     address: t.string,
     weight: t.number,
@@ -48,10 +52,13 @@ const BitcoinishPaymentTx = tsCommon.requiredOptionalCodec({
     externalOutputs: t.array(BitcoinishTxOutput),
     externalOutputTotal: t.string,
     changeOutputs: t.array(BitcoinishTxOutput),
+    rawHex: t.string,
+    rawHash: t.string,
 }, 'BitcoinishPaymentTx');
 const BitcoinishUnsignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseUnsignedTransaction, {
     amount: t.string,
     fee: t.string,
+    data: BitcoinishPaymentTx,
 }, 'BitcoinishUnsignedTransaction');
 const BitcoinishSignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseSignedTransaction, {
     data: t.type({
@@ -119,8 +126,9 @@ function estimateTxSize(inputsCount, outputsCount, handleSegwit) {
 function estimateTxFee(satPerByte, inputsCount, outputsCount, handleSegwit) {
     return estimateTxSize(inputsCount, outputsCount) * satPerByte;
 }
-function sumUtxoValue(utxos) {
-    return utxos.reduce((total, { value }) => total.plus(value), tsCommon.toBigNumber(0));
+function sumUtxoValue(utxos, includeUnconfirmed) {
+    const filtered = includeUnconfirmed ? utxos : utxos.filter(isConfirmedUtxo);
+    return filtered.reduce((total, { value }) => total.plus(value), tsCommon.toBigNumber(0));
 }
 function sortUtxos(utxoList) {
     const result = [...utxoList];
@@ -129,6 +137,11 @@ function sortUtxos(utxoList) {
 }
 function isConfirmedUtxo(utxo) {
     return Boolean((utxo.confirmations && utxo.confirmations > 0) || (utxo.height && Number.parseInt(utxo.height) > 0));
+}
+function sha256FromHex(hex) {
+    return hex
+        ? crypto.createHash('sha256').update(Buffer.from(hex, 'hex')).digest('hex')
+        : '';
 }
 
 class BlockbookConnected {
@@ -166,7 +179,7 @@ class BitcoinishPaymentsUtils extends BlockbookConnected {
         this.toBaseDenominationNumber = unitConverters.toBaseDenominationNumber;
         this.toBaseDenominationBigNumber = unitConverters.toBaseDenominationBigNumber;
     }
-    async isValidExtraId(extraId) {
+    isValidExtraId(extraId) {
         return false;
     }
     async _getPayportValidationMessage(payport) {
@@ -221,7 +234,6 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
         this.minTxFee = config.minTxFee;
         this.dustThreshold = config.dustThreshold;
         this.networkMinRelayFee = config.networkMinRelayFee;
-        this.isSegwit = config.isSegwit;
         this.defaultFeeLevel = config.defaultFeeLevel;
         this.targetUtxoPoolSize = tsCommon.isUndefined(config.targetUtxoPoolSize) ? 1 : config.targetUtxoPoolSize;
         const minChange = tsCommon.toBigNumber(tsCommon.isUndefined(config.minChange) ? 0 : config.minChange);
@@ -345,7 +357,7 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
     }
     feeRateToSatoshis({ feeRate, feeRateType }, inputCount, outputCount) {
         if (feeRateType === paymentsCommon.FeeRateType.BasePerWeight) {
-            return estimateTxFee(Number.parseFloat(feeRate), inputCount, outputCount, this.isSegwit);
+            return estimateTxFee(Number.parseFloat(feeRate), inputCount, outputCount);
         }
         else if (feeRateType === paymentsCommon.FeeRateType.Main) {
             return this.toBaseDenominationNumber(feeRate);
@@ -357,10 +369,12 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
         if (this.minTxFee) {
             const minTxFeeSat = this.feeRateToSatoshis(this.minTxFee, inputCount, outputCount);
             if (feeSat < minTxFeeSat) {
+                this.logger.debug(`Using min tx fee of ${minTxFeeSat} sat (${this.minTxFee} sat/byte) instead of ${feeSat} sat`);
                 feeSat = minTxFeeSat;
             }
         }
         if (feeSat < this.networkMinRelayFee) {
+            this.logger.debug(`Using network min relay fee of ${this.networkMinRelayFee} sat instead of ${feeSat} sat`);
             feeSat = this.networkMinRelayFee;
         }
         return Math.ceil(feeSat);
@@ -371,7 +385,7 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
         for (const utxo of availableUtxos) {
             const satoshis = tsCommon.isUndefined(utxo.satoshis)
                 ? this.toBaseDenominationNumber(utxo.value)
-                : tsCommon.toBigNumber(utxo.satoshis).integerValue(BigNumber.ROUND_DOWN).toNumber();
+                : tsCommon.toBigNumber(utxo.satoshis).toNumber();
             utxosTotalSat += satoshis;
             utxos.push({
                 ...utxo,
@@ -524,15 +538,18 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
         }
         const externalOutputsResult = this.convertOutputsToExternalFormat(externalOutputs);
         const changeOutputsResult = this.convertOutputsToExternalFormat(changeOutputs);
+        const outputsResult = [...externalOutputsResult, ...changeOutputsResult];
         return {
             inputs: inputUtxos,
-            outputs: [...externalOutputsResult, ...changeOutputsResult],
+            outputs: outputsResult,
             fee: this.toMainDenominationString(feeSat),
             change: this.toMainDenominationString(totalChangeSat),
             changeAddress: changeOutputs.length === 1 ? changeOutputs[0].address : null,
             changeOutputs: changeOutputsResult,
             externalOutputs: externalOutputsResult,
             externalOutputTotal: this.toMainDenominationString(outputTotal),
+            rawHex: '',
+            rawHash: '',
         };
     }
     createWeightedChangeOutputs(changeOutputCount, changeAddress) {
@@ -556,7 +573,7 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
             value: String(amount),
         })));
         const { targetFeeLevel, targetFeeRate, targetFeeRateType } = await this.resolveFeeOption(options);
-        this.logger.debug(`createTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`);
+        this.logger.debug(`createMultiOutputTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`);
         const paymentTx = await this.buildPaymentTx({
             unusedUtxos,
             desiredOutputs,
@@ -565,9 +582,12 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
             useAllUtxos: options.useAllUtxos,
             useUnconfirmedUtxos: options.useUnconfirmedUtxos,
         });
-        this.logger.debug('createTransaction data', paymentTx);
+        const unsignedTxHex = await this.serializePaymentTx(paymentTx, from);
+        paymentTx.rawHex = unsignedTxHex;
+        paymentTx.rawHash = sha256FromHex(unsignedTxHex);
+        this.logger.debug('createMultiOutputTransaction data', paymentTx);
         const feeMain = paymentTx.fee;
-        let resultToAddress = 'multi';
+        let resultToAddress = 'batch';
         let resultToIndex = null;
         if (paymentTx.externalOutputs.length === 1) {
             const onlyOutput = paymentTx.externalOutputs[0];
@@ -590,6 +610,7 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
             fee: feeMain,
             sequenceNumber: null,
             inputUtxos: paymentTx.inputs,
+            externalOutputs: paymentTx.externalOutputs,
             data: paymentTx,
         };
     }
@@ -601,7 +622,7 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
         if (availableUtxos.length === 0) {
             throw new Error('No available utxos to sweep');
         }
-        const outputAmount = sumUtxoValue(availableUtxos);
+        const outputAmount = sumUtxoValue(availableUtxos, options.useUnconfirmedUtxos);
         if (!this.isSweepableBalance(outputAmount)) {
             throw new Error(`Available utxo total ${outputAmount} ${this.coinSymbol} too low to sweep`);
         }
@@ -679,36 +700,90 @@ class BitcoinishPayments extends BitcoinishPaymentsUtils {
     AddressType["Legacy"] = "p2pkh";
     AddressType["SegwitP2SH"] = "p2sh-p2wpkh";
     AddressType["SegwitNative"] = "p2wpkh";
+    AddressType["MultisigLegacy"] = "p2sh-p2ms";
+    AddressType["MultisigSegwitP2SH"] = "p2sh-p2wsh-p2ms";
+    AddressType["MultisigSegwitNative"] = "p2wsh-p2ms";
 })(exports.AddressType || (exports.AddressType = {}));
 const AddressTypeT = tsCommon.enumCodec(exports.AddressType, 'AddressType');
+const SinglesigAddressTypeT = t.keyof({
+    [exports.AddressType.Legacy]: null,
+    [exports.AddressType.SegwitP2SH]: null,
+    [exports.AddressType.SegwitNative]: null,
+}, 'SinglesigAddressType');
+const SinglesigAddressType = SinglesigAddressTypeT;
+const MultisigAddressTypeT = t.keyof({
+    [exports.AddressType.MultisigLegacy]: null,
+    [exports.AddressType.MultisigSegwitP2SH]: null,
+    [exports.AddressType.MultisigSegwitNative]: null,
+}, 'MultisigAddressType');
+const MultisigAddressType = MultisigAddressTypeT;
 const BitcoinPaymentsUtilsConfig = tsCommon.extendCodec(paymentsCommon.BaseConfig, {}, {
     server: BlockbookConfigServer,
 }, 'BitcoinPaymentsUtilsConfig');
 const BaseBitcoinPaymentsConfig = tsCommon.extendCodec(BitcoinPaymentsUtilsConfig, {}, {
-    addressType: AddressTypeT,
     minTxFee: paymentsCommon.FeeRate,
     dustThreshold: t.number,
     networkMinRelayFee: t.number,
     targetUtxoPoolSize: t.number,
     minChange: t.string,
+    maximumFeeRate: t.number,
 }, 'BaseBitcoinPaymentsConfig');
 const HdBitcoinPaymentsConfig = tsCommon.extendCodec(BaseBitcoinPaymentsConfig, {
     hdKey: t.string,
 }, {
+    addressType: SinglesigAddressType,
     derivationPath: t.string,
 }, 'HdBitcoinPaymentsConfig');
-const BitcoinPaymentsConfig = HdBitcoinPaymentsConfig;
+const KeyPairBitcoinPaymentsConfig = tsCommon.extendCodec(BaseBitcoinPaymentsConfig, {
+    keyPairs: paymentsCommon.KeyPairsConfigParam,
+}, {
+    addressType: SinglesigAddressType,
+}, 'KeyPairBitcoinPaymentsConfig');
+const SinglesigBitcoinPaymentsConfig = t.union([
+    HdBitcoinPaymentsConfig,
+    KeyPairBitcoinPaymentsConfig,
+], 'SinglesigBitcoinPaymentsConfig');
+const MultisigBitcoinPaymentsConfig = tsCommon.extendCodec(BaseBitcoinPaymentsConfig, {
+    m: t.number,
+    signers: t.array(SinglesigBitcoinPaymentsConfig),
+}, {
+    addressType: MultisigAddressType,
+}, 'MultisigBitcoinPaymentsConfig');
+const BitcoinPaymentsConfig = t.union([
+    HdBitcoinPaymentsConfig,
+    KeyPairBitcoinPaymentsConfig,
+    MultisigBitcoinPaymentsConfig,
+], 'BitcoinPaymentsConfig');
 const BitcoinUnsignedTransactionData = BitcoinishPaymentTx;
+const BitcoinMultisigDataSigner = tsCommon.requiredOptionalCodec({
+    accountId: t.string,
+    index: t.number,
+    publicKey: t.string,
+}, {
+    signed: t.boolean,
+}, 'BitcoinMultisigDataSigner');
+const BitcoinMultisigData = t.type({
+    m: t.number,
+    signers: t.array(BitcoinMultisigDataSigner),
+}, 'BitcoinMultisigData');
 const BitcoinUnsignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseUnsignedTransaction, {
     amount: t.string,
     fee: t.string,
     data: BitcoinUnsignedTransactionData,
+}, {
+    multisigData: BitcoinMultisigData,
 }, 'BitcoinUnsignedTransaction');
+const BitcoinSignedTransactionData = tsCommon.requiredOptionalCodec({
+    hex: t.string,
+}, {
+    partial: t.boolean,
+    unsignedTxHash: t.string,
+}, 'BitcoinSignedTransactionData');
 const BitcoinSignedTransaction = tsCommon.extendCodec(paymentsCommon.BaseSignedTransaction, {
-    data: t.type({
-        hex: t.string,
-    }),
-}, {}, 'BitcoinSignedTransaction');
+    data: BitcoinSignedTransactionData,
+}, {
+    multisigData: BitcoinMultisigData,
+}, 'BitcoinSignedTransaction');
 const BitcoinTransactionInfo = tsCommon.extendCodec(paymentsCommon.BaseTransactionInfo, {}, {}, 'BitcoinTransactionInfo');
 const BitcoinBroadcastResult = tsCommon.extendCodec(paymentsCommon.BaseBroadcastResult, {}, {}, 'BitcoinBroadcastResult');
 const BitcoinBlock = blockbookClient.BlockInfoBitcoin;
@@ -721,7 +796,8 @@ const DEFAULT_DUST_THRESHOLD = 546;
 const DEFAULT_NETWORK_MIN_RELAY_FEE = 1000;
 const BITCOIN_SEQUENCE_RBF = 0xFFFFFFFD;
 const DEFAULT_MIN_TX_FEE = 5;
-const DEFAULT_ADDRESS_TYPE = exports.AddressType.SegwitNative;
+const DEFAULT_SINGLESIG_ADDRESS_TYPE = exports.AddressType.SegwitNative;
+const DEFAULT_MULTISIG_ADDRESS_TYPE = exports.AddressType.MultisigSegwitNative;
 const DEFAULT_DERIVATION_PATHS = {
     [exports.AddressType.Legacy]: "m/44'/0'/0'",
     [exports.AddressType.SegwitP2SH]: "m/49'/0'/0'",
@@ -765,13 +841,11 @@ function toBitcoinishConfig(config) {
         ...DEFAULT_BITCOINISH_CONFIG,
         ...config,
         network: config.network || DEFAULT_NETWORK,
-        addressType: config.addressType || DEFAULT_ADDRESS_TYPE,
     };
-    const { network, server, addressType } = configWithDefaults;
+    const { network, server } = configWithDefaults;
     return {
         ...configWithDefaults,
         bitcoinjsNetwork: network === paymentsCommon.NetworkType.Testnet ? NETWORK_TESTNET : NETWORK_MAINNET,
-        isSegwit: addressType === exports.AddressType.SegwitNative || addressType === exports.AddressType.SegwitP2SH,
         server: typeof server !== 'undefined'
             ? server
             : (network === paymentsCommon.NetworkType.Testnet
@@ -823,28 +897,70 @@ function isValidAddress(address, network) {
         return false;
     }
 }
+function isValidPublicKey(publicKey, network) {
+    try {
+        bitcoin.ECPair.fromPublicKey(publicKeyToBuffer(publicKey), { network });
+        return true;
+    }
+    catch (e) {
+        return false;
+    }
+}
 function isValidExtraId(extraId) {
     return false;
 }
-function publicKeyToAddress(publicKey, network, addressType) {
-    let script;
-    if (addressType === exports.AddressType.Legacy) {
-        script = bitcoin.payments.p2pkh({ network, pubkey: publicKey });
-    }
-    else {
-        script = bitcoin.payments.p2wpkh({ network, pubkey: publicKey });
-        if (addressType === exports.AddressType.SegwitP2SH) {
-            script = bitcoin.payments.p2sh({
+function publicKeyToBuffer(publicKey) {
+    return tsCommon.isString(publicKey) ? Buffer.from(publicKey, 'hex') : publicKey;
+}
+function publicKeyToString(publicKey) {
+    return tsCommon.isString(publicKey) ? publicKey : publicKey.toString('hex');
+}
+function getMultisigPaymentScript(network, addressType, pubkeys, m) {
+    const scriptParams = {
+        network,
+        redeem: bitcoin.payments.p2ms({
+            pubkeys: pubkeys.sort(),
+            m,
+            network,
+        })
+    };
+    switch (addressType) {
+        case exports.AddressType.MultisigLegacy:
+            return bitcoin.payments.p2sh(scriptParams);
+        case exports.AddressType.MultisigSegwitNative:
+            return bitcoin.payments.p2wsh(scriptParams);
+        case exports.AddressType.MultisigSegwitP2SH:
+            return bitcoin.payments.p2sh({
+                redeem: bitcoin.payments.p2wsh(scriptParams),
                 network,
-                redeem: script
             });
-        }
     }
+}
+function getSinglesigPaymentScript(network, addressType, pubkey) {
+    const scriptParams = { network, pubkey };
+    switch (addressType) {
+        case exports.AddressType.Legacy:
+            return bitcoin.payments.p2pkh(scriptParams);
+        case exports.AddressType.SegwitNative:
+            return bitcoin.payments.p2wpkh(scriptParams);
+        case exports.AddressType.SegwitP2SH:
+            return bitcoin.payments.p2sh({
+                redeem: bitcoin.payments.p2wpkh(scriptParams),
+                network,
+            });
+    }
+}
+function publicKeyToAddress(publicKey, network, addressType) {
+    const pubkey = publicKeyToBuffer(publicKey);
+    const script = getSinglesigPaymentScript(network, addressType, pubkey);
     const { address } = script;
     if (!address) {
         throw new Error('bitcoinjs-lib address derivation returned falsy value');
     }
     return address;
+}
+function publicKeyToKeyPair(publicKey, network) {
+    return bitcoin.ECPair.fromPublicKey(publicKeyToBuffer(publicKey), { network });
 }
 function privateKeyToKeyPair(privateKey, network) {
     return bitcoin.ECPair.fromWIF(privateKey, network);
@@ -866,10 +982,16 @@ function isValidPrivateKey(privateKey, network) {
 class BaseBitcoinPayments extends BitcoinishPayments {
     constructor(config) {
         super(toBitcoinishConfig(config));
-        this.addressType = config.addressType || DEFAULT_ADDRESS_TYPE;
+        this.maximumFeeRate = config.maximumFeeRate;
     }
-    async isValidAddress(address) {
+    isValidAddress(address) {
         return isValidAddress(address, this.bitcoinjsNetwork);
+    }
+    isValidPrivateKey(privateKey) {
+        return isValidPrivateKey(privateKey, this.bitcoinjsNetwork);
+    }
+    isValidPublicKey(publicKey) {
+        return isValidPublicKey(publicKey, this.bitcoinjsNetwork);
     }
     async getFeeRateRecommendation(feeLevel) {
         let satPerByte;
@@ -885,38 +1007,88 @@ class BaseBitcoinPayments extends BitcoinishPayments {
             feeRateType: paymentsCommon.FeeRateType.BasePerWeight,
         };
     }
-    async signTransaction(tx) {
-        const keyPair = this.getKeyPair(tx.fromIndex);
-        const { inputs, outputs } = tx.data;
-        let redeemScript = undefined;
-        let prevOutScript = undefined;
-        if (this.addressType === exports.AddressType.SegwitP2SH) {
-            redeemScript = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey }).output;
+    async getPsbtInputData(utxo, paymentScript, addressType) {
+        const utx = await this.getApi().getTx(utxo.txid);
+        const result = {
+            hash: utxo.txid,
+            index: utxo.vout,
+            sequence: BITCOIN_SEQUENCE_RBF,
+        };
+        if ((/p2wpkh|p2wsh/).test(addressType)) {
+            const rawUtxo = utx.vout[utxo.vout];
+            const { hex: scriptPubKey, value: rawValue } = rawUtxo;
+            if (!scriptPubKey) {
+                throw new Error(`Cannot get scriptPubKey for utxo ${utxo.txid}:${utxo.vout}`);
+            }
+            const utxoValue = this.toBaseDenominationNumber(utxo.value);
+            if (String(utxoValue) !== rawValue) {
+                throw new Error(`Utxo ${utxo.txid}:${utxo.vout} has mismatched value - ${utxoValue} sat expected but network reports ${rawValue} sat`);
+            }
+            result.witnessUtxo = {
+                script: Buffer.from(scriptPubKey, 'hex'),
+                value: utxoValue,
+            };
         }
-        else if (this.addressType === exports.AddressType.SegwitNative) {
-            prevOutScript = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey }).output;
+        else {
+            if (!utx.hex) {
+                throw new Error(`Cannot get raw hex of tx for utxo ${utxo.txid}:${utxo.vout}`);
+            }
+            result.nonWitnessUtxo = Buffer.from(utx.hex, 'hex');
         }
-        let builder = new bitcoin.TransactionBuilder(this.bitcoinjsNetwork);
+        if (addressType.startsWith('p2sh-p2wsh')) {
+            result.witnessScript = paymentScript.redeem.redeem.output;
+            result.redeemScript = paymentScript.redeem.output;
+        }
+        else if (addressType.startsWith('p2sh')) {
+            result.redeemScript = paymentScript.redeem.output;
+        }
+        else if (addressType.startsWith('p2wsh')) {
+            result.witnessScript = paymentScript.redeem.output;
+        }
+        return result;
+    }
+    get psbtOptions() {
+        return {
+            network: this.bitcoinjsNetwork,
+            maximumFeeRate: this.maximumFeeRate,
+        };
+    }
+    async buildPsbt(paymentTx, fromIndex) {
+        const { inputs, outputs } = paymentTx;
+        const inputPaymentScript = this.getPaymentScript(fromIndex);
+        let psbt = new bitcoin.Psbt(this.psbtOptions);
+        for (let input of inputs) {
+            psbt.addInput(await this.getPsbtInputData(input, inputPaymentScript, this.addressType));
+        }
         for (let output of outputs) {
-            builder.addOutput(output.address, toBaseDenominationNumber(output.value));
+            psbt.addOutput({
+                address: output.address,
+                value: this.toBaseDenominationNumber(output.value)
+            });
         }
-        for (let i = 0; i < inputs.length; i++) {
-            const input = inputs[i];
-            builder.addInput(input.txid, input.vout, BITCOIN_SEQUENCE_RBF, prevOutScript);
+        return psbt;
+    }
+    async serializePaymentTx(tx, fromIndex) {
+        return (await this.buildPsbt(tx, fromIndex)).toHex();
+    }
+    validateAndFinalizeSignedTx(tx, psbt) {
+        if (!psbt.validateSignaturesOfAllInputs()) {
+            throw new Error('Failed to validate signatures of all inputs');
         }
-        for (let i = 0; i < inputs.length; i++) {
-            const input = inputs[i];
-            builder.sign(i, keyPair, redeemScript, undefined, toBaseDenominationNumber(input.value));
-        }
-        const built = builder.build();
-        const txId = built.getId();
-        const txHex = built.toHex();
+        psbt.finalizeAllInputs();
+        const signedTx = psbt.extractTransaction();
+        const txId = signedTx.getId();
+        const txHex = signedTx.toHex();
+        const txData = tx.data;
+        const unsignedTxHash = BitcoinSignedTransactionData.is(txData) ? txData.unsignedTxHash : txData.rawHash;
         return {
             ...tx,
             status: paymentsCommon.TransactionStatus.Signed,
             id: txId,
             data: {
                 hex: txHex,
+                partial: false,
+                unsignedTxHash,
             },
         };
     }
@@ -950,7 +1122,78 @@ function xprvToXpub(xprv, derivationPath, network) {
     return node.neutered().toBase58();
 }
 
-class HdBitcoinPayments extends BaseBitcoinPayments {
+class SinglesigBitcoinPayments extends BaseBitcoinPayments {
+    constructor(config) {
+        super(config);
+        this.addressType = config.addressType || DEFAULT_SINGLESIG_ADDRESS_TYPE;
+    }
+    getPaymentScript(index) {
+        return getSinglesigPaymentScript(this.bitcoinjsNetwork, this.addressType, this.getKeyPair(index).publicKey);
+    }
+    signMultisigTransaction(tx) {
+        const { multisigData, data } = tx;
+        const { rawHex } = data;
+        if (!multisigData)
+            throw new Error('Not a multisig tx');
+        if (!rawHex)
+            throw new Error('Cannot sign multisig tx without unsigned tx hex');
+        const psbt = bitcoin.Psbt.fromHex(rawHex, this.psbtOptions);
+        const accountIds = this.getAccountIds();
+        const updatedSignersData = [];
+        let totalSignaturesAdded = 0;
+        for (let signer of multisigData.signers) {
+            if (!accountIds.includes(signer.accountId)) {
+                updatedSignersData.push(signer);
+                continue;
+            }
+            const keyPair = this.getKeyPair(signer.index);
+            const publicKeyString = publicKeyToString(keyPair.publicKey);
+            if (signer.publicKey !== publicKeyString) {
+                throw new Error(`Mismatched publicKey for keyPair ${signer.accountId}/${signer.index} - `
+                    + `multisigData has ${signer.publicKey} but keyPair has ${publicKeyString}`);
+            }
+            psbt.signAllInputs(keyPair);
+            updatedSignersData.push({
+                ...signer,
+                signed: true,
+            });
+            totalSignaturesAdded += 1;
+        }
+        if (totalSignaturesAdded === 0) {
+            throw new Error('Not a signer for provided multisig tx');
+        }
+        const newTxHex = psbt.toHex();
+        return {
+            ...tx,
+            id: '',
+            status: paymentsCommon.TransactionStatus.Signed,
+            multisigData: {
+                ...multisigData,
+                signers: updatedSignersData,
+            },
+            data: {
+                hex: newTxHex,
+                partial: true,
+                unsignedTxHash: data.rawHash,
+            }
+        };
+    }
+    async signTransaction(tx) {
+        if (tx.multisigData) {
+            return this.signMultisigTransaction(tx);
+        }
+        const paymentTx = tx.data;
+        if (!paymentTx.rawHex) {
+            throw new Error('Cannot sign bitcoin tx without rawHex');
+        }
+        const psbt = bitcoin.Psbt.fromHex(paymentTx.rawHex, this.psbtOptions);
+        const keyPair = this.getKeyPair(tx.fromIndex);
+        psbt.signAllInputs(keyPair);
+        return this.validateAndFinalizeSignedTx(tx, psbt);
+    }
+}
+
+class HdBitcoinPayments extends SinglesigBitcoinPayments {
     constructor(config) {
         super(config);
         this.config = config;
@@ -988,8 +1231,9 @@ class HdBitcoinPayments extends BaseBitcoinPayments {
     getFullConfig() {
         return {
             ...this.config,
-            derivationPath: this.derivationPath,
+            network: this.networkType,
             addressType: this.addressType,
+            derivationPath: this.derivationPath,
         };
     }
     getPublicConfig() {
@@ -1001,16 +1245,13 @@ class HdBitcoinPayments extends BaseBitcoinPayments {
     getAccountId(index) {
         return this.xpub;
     }
-    getAccountIds() {
+    getAccountIds(index) {
         return [this.xpub];
     }
     getAddress(index) {
         return deriveAddress(this.hdNode, index, this.bitcoinjsNetwork, this.addressType);
     }
     getKeyPair(index) {
-        if (!this.xprv) {
-            throw new Error(`Cannot get private key ${index} - HdBitcoinPayments was created with an xpub`);
-        }
         return deriveKeyPair(this.hdNode, index, this.bitcoinjsNetwork);
     }
 }
@@ -1027,10 +1268,266 @@ class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
     }
 }
 
+class KeyPairBitcoinPayments extends SinglesigBitcoinPayments {
+    constructor(config) {
+        super(config);
+        this.config = config;
+        this.publicKeys = {};
+        this.privateKeys = {};
+        this.addresses = {};
+        Object.entries(config.keyPairs).forEach(([key, value]) => {
+            if (typeof value === 'undefined' || value === null) {
+                return;
+            }
+            const i = Number.parseInt(key);
+            let publicKey;
+            let privateKey = null;
+            if (this.isValidPublicKey(value)) {
+                publicKey = value;
+            }
+            else if (this.isValidPrivateKey(value)) {
+                publicKey = privateKeyToKeyPair(value, this.bitcoinjsNetwork).publicKey;
+                privateKey = value;
+            }
+            else {
+                throw new Error(`KeyPairBitcoinPaymentsConfig.keyPairs[${i}] is not a valid ${this.networkType} private key or address`);
+            }
+            const address = publicKeyToAddress(publicKey, this.bitcoinjsNetwork, this.addressType);
+            this.publicKeys[i] = publicKeyToString(publicKey);
+            this.privateKeys[i] = privateKey;
+            this.addresses[i] = address;
+        });
+    }
+    getFullConfig() {
+        return {
+            ...this.config,
+            network: this.networkType,
+            addressType: this.addressType,
+        };
+    }
+    getPublicConfig() {
+        return {
+            ...lodash.omit(this.getFullConfig(), ['logger', 'server', 'keyPairs']),
+            keyPairs: this.publicKeys,
+        };
+    }
+    getAccountId(index) {
+        const accountId = this.publicKeys[index] || '';
+        if (!accountId) {
+            throw new Error(`No KeyPairBitcoinPayments account configured at index ${index}`);
+        }
+        return accountId;
+    }
+    getAccountIds(index) {
+        if (!tsCommon.isUndefined(index)) {
+            return [this.getAccountId(index)];
+        }
+        return Object.values(this.publicKeys).filter(tsCommon.isString);
+    }
+    getKeyPair(index) {
+        const privateKey = this.privateKeys[index];
+        if (privateKey) {
+            return privateKeyToKeyPair(privateKey, this.bitcoinjsNetwork);
+        }
+        const publicKey = this.publicKeys[index] || '';
+        if (!this.isValidPublicKey(publicKey)) {
+            throw new Error(`Cannot get publicKey ${index} - keyPair[${index}] is undefined or invalid`);
+        }
+        return publicKeyToKeyPair(publicKey, this.bitcoinjsNetwork);
+    }
+    getAddress(index) {
+        const address = this.addresses[index] || '';
+        if (!this.isValidAddress(address)) {
+            throw new Error(`Cannot get address ${index} - keyPair[${index}] is undefined or invalid address`);
+        }
+        return address;
+    }
+    getPrivateKey(index) {
+        const privateKey = this.privateKeys[index] || '';
+        if (!this.isValidPrivateKey(privateKey)) {
+            throw new Error(`Cannot get private key ${index} - keyPair[${index}] is undefined`);
+        }
+        return privateKey;
+    }
+}
+
+class MultisigBitcoinPayments extends BaseBitcoinPayments {
+    constructor(config) {
+        super(config);
+        this.config = config;
+        this.addressType = config.addressType || DEFAULT_MULTISIG_ADDRESS_TYPE;
+        this.m = config.m;
+        this.signers = config.signers.map((signerConfig, i) => {
+            signerConfig = {
+                network: this.networkType,
+                logger: this.logger,
+                ...signerConfig,
+            };
+            if (signerConfig.network !== this.networkType) {
+                throw new Error(`MultisigBitcoinPayments is on network ${this.networkType} but signer config ${i} is on ${signerConfig.network}`);
+            }
+            if (HdBitcoinPaymentsConfig.is(signerConfig)) {
+                return new HdBitcoinPayments(signerConfig);
+            }
+            else {
+                return new KeyPairBitcoinPayments(signerConfig);
+            }
+        });
+    }
+    getFullConfig() {
+        return {
+            ...this.config,
+            network: this.networkType,
+            addressType: this.addressType,
+        };
+    }
+    getPublicConfig() {
+        return {
+            ...lodash.omit(this.getFullConfig(), ['logger', 'server', 'signers']),
+            signers: this.signers.map((signer) => signer.getPublicConfig()),
+        };
+    }
+    getAccountId(index) {
+        throw new Error('Multisig payments does not have single account for an index, use getAccountIds(index) instead');
+    }
+    getAccountIds(index) {
+        return this.signers.reduce((result, signer) => ([...result, ...signer.getAccountIds(index)]), []);
+    }
+    getSignerPublicKeyBuffers(index) {
+        return this.signers.map((signer) => signer.getKeyPair(index).publicKey);
+    }
+    getPaymentScript(index) {
+        return getMultisigPaymentScript(this.bitcoinjsNetwork, this.addressType, this.getSignerPublicKeyBuffers(index), this.m);
+    }
+    getAddress(index) {
+        const { address } = this.getPaymentScript(index);
+        if (!address) {
+            throw new Error('bitcoinjs-lib address derivation returned falsy value');
+        }
+        return address;
+    }
+    getMultisigData(index) {
+        return {
+            m: this.m,
+            signers: this.signers.map((signer) => ({
+                accountId: signer.getAccountId(index),
+                index: index,
+                publicKey: publicKeyToString(signer.getKeyPair(index).publicKey)
+            }))
+        };
+    }
+    async createTransaction(from, to, amount, options) {
+        const tx = await super.createTransaction(from, to, amount, options);
+        return {
+            ...tx,
+            multisigData: this.getMultisigData(from),
+        };
+    }
+    async createMultiOutputTransaction(from, to, options = {}) {
+        const tx = await super.createMultiOutputTransaction(from, to, options);
+        return {
+            ...tx,
+            multisigData: this.getMultisigData(from),
+        };
+    }
+    async createSweepTransaction(from, to, options = {}) {
+        const tx = await super.createSweepTransaction(from, to, options);
+        return {
+            ...tx,
+            multisigData: this.getMultisigData(from),
+        };
+    }
+    deserializeSignedTxPsbt(tx) {
+        if (!tx.data.partial) {
+            throw new Error('Cannot decode psbt of a finalized tx');
+        }
+        return bitcoin.Psbt.fromHex(tx.data.hex, this.psbtOptions);
+    }
+    getPublicKeysOfSigned(multisigData) {
+        return multisigData.signers.filter(({ signed }) => signed).map(({ publicKey }) => publicKey);
+    }
+    setMultisigSignersAsSigned(multisigData, signedPubKeys) {
+        const combinedSignerData = multisigData.signers.map((signer) => {
+            if (signedPubKeys.has(signer.publicKey)) {
+                return {
+                    ...signer,
+                    signed: true,
+                };
+            }
+            return signer;
+        });
+        return {
+            ...multisigData,
+            signers: combinedSignerData,
+        };
+    }
+    async combinePartiallySignedTransactions(txs) {
+        if (txs.length < 2) {
+            throw new Error(`Cannot combine ${txs.length} transactions, need at least 2`);
+        }
+        const unsignedTxHash = txs[0].data.unsignedTxHash;
+        txs.forEach(({ multisigData, inputUtxos, externalOutputs, data }, i) => {
+            if (!multisigData)
+                throw new Error(`Cannot combine signed multisig tx ${i} because multisigData is ${multisigData}`);
+            if (!inputUtxos)
+                throw new Error(`Cannot combine signed multisig tx ${i} because inputUtxos field is missing`);
+            if (!externalOutputs)
+                throw new Error(`Cannot combine signed multisig tx ${i} because externalOutputs field is missing`);
+            if (data.unsignedTxHash !== unsignedTxHash)
+                throw new Error(`Cannot combine signed multisig tx ${i} because unsignedTxHash is ${data.unsignedTxHash} when expecting ${unsignedTxHash}`);
+            if (!data.partial)
+                throw new Error(`Cannot combine signed multisig tx ${i} because partial is ${data.partial}`);
+        });
+        const baseTx = txs[0];
+        const baseTxMultisigData = baseTx.multisigData;
+        const { m } = baseTxMultisigData;
+        const signedPubKeys = new Set(this.getPublicKeysOfSigned(baseTxMultisigData));
+        let combinedPsbt = this.deserializeSignedTxPsbt(baseTx);
+        for (let i = 1; i < txs.length; i++) {
+            if (signedPubKeys.size >= m) {
+                this.logger.debug('Already received enough signatures, not combining');
+                break;
+            }
+            const tx = txs[i];
+            const psbt = this.deserializeSignedTxPsbt(tx);
+            combinedPsbt.combine(psbt);
+            this.getPublicKeysOfSigned(tx.multisigData).forEach((pubkey) => signedPubKeys.add(pubkey));
+        }
+        const combinedHex = combinedPsbt.toHex();
+        const combinedMultisigData = this.setMultisigSignersAsSigned(baseTxMultisigData, signedPubKeys);
+        if (signedPubKeys.size >= m) {
+            const finalizedTx = this.validateAndFinalizeSignedTx(baseTx, combinedPsbt);
+            return {
+                ...finalizedTx,
+                multisigData: combinedMultisigData,
+            };
+        }
+        return {
+            ...baseTx,
+            multisigData: combinedMultisigData,
+            data: {
+                hex: combinedHex,
+                partial: true,
+                unsignedTxHash,
+            }
+        };
+    }
+    async signTransaction(tx) {
+        const partiallySignedTxs = await Promise.all(this.signers.map((signer) => signer.signTransaction(tx)));
+        return this.combinePartiallySignedTransactions(partiallySignedTxs);
+    }
+}
+
 class BitcoinPaymentsFactory {
     forConfig(config) {
         if (HdBitcoinPaymentsConfig.is(config)) {
             return new HdBitcoinPayments(config);
+        }
+        if (KeyPairBitcoinPaymentsConfig.is(config)) {
+            return new KeyPairBitcoinPayments(config);
+        }
+        if (MultisigBitcoinPaymentsConfig.is(config)) {
+            return new MultisigBitcoinPayments(config);
         }
         throw new Error('Cannot instantiate bitcoin payments for unsupported config');
     }
@@ -1048,11 +1545,14 @@ exports.BaseBitcoinPayments = BaseBitcoinPayments;
 exports.BaseBitcoinPaymentsConfig = BaseBitcoinPaymentsConfig;
 exports.BitcoinBlock = BitcoinBlock;
 exports.BitcoinBroadcastResult = BitcoinBroadcastResult;
+exports.BitcoinMultisigData = BitcoinMultisigData;
+exports.BitcoinMultisigDataSigner = BitcoinMultisigDataSigner;
 exports.BitcoinPaymentsConfig = BitcoinPaymentsConfig;
 exports.BitcoinPaymentsFactory = BitcoinPaymentsFactory;
 exports.BitcoinPaymentsUtils = BitcoinPaymentsUtils;
 exports.BitcoinPaymentsUtilsConfig = BitcoinPaymentsUtilsConfig;
 exports.BitcoinSignedTransaction = BitcoinSignedTransaction;
+exports.BitcoinSignedTransactionData = BitcoinSignedTransactionData;
 exports.BitcoinTransactionInfo = BitcoinTransactionInfo;
 exports.BitcoinUnsignedTransaction = BitcoinUnsignedTransaction;
 exports.BitcoinUnsignedTransactionData = BitcoinUnsignedTransactionData;
@@ -1064,6 +1564,7 @@ exports.BitcoinishPaymentsUtils = BitcoinishPaymentsUtils;
 exports.BitcoinishSignedTransaction = BitcoinishSignedTransaction;
 exports.BitcoinishTransactionInfo = BitcoinishTransactionInfo;
 exports.BitcoinishTxOutput = BitcoinishTxOutput;
+exports.BitcoinishTxOutputSatoshis = BitcoinishTxOutputSatoshis;
 exports.BitcoinishUnsignedTransaction = BitcoinishUnsignedTransaction;
 exports.BitcoinishWeightedChangeOutput = BitcoinishWeightedChangeOutput;
 exports.BlockbookConfigServer = BlockbookConfigServer;
@@ -1073,29 +1574,45 @@ exports.BlockbookServerAPI = BlockbookServerAPI;
 exports.COIN_NAME = COIN_NAME;
 exports.COIN_SYMBOL = COIN_SYMBOL;
 exports.DECIMAL_PLACES = DECIMAL_PLACES;
-exports.DEFAULT_ADDRESS_TYPE = DEFAULT_ADDRESS_TYPE;
 exports.DEFAULT_DERIVATION_PATHS = DEFAULT_DERIVATION_PATHS;
 exports.DEFAULT_DUST_THRESHOLD = DEFAULT_DUST_THRESHOLD;
 exports.DEFAULT_FEE_LEVEL = DEFAULT_FEE_LEVEL;
 exports.DEFAULT_MAINNET_SERVER = DEFAULT_MAINNET_SERVER;
 exports.DEFAULT_MIN_TX_FEE = DEFAULT_MIN_TX_FEE;
+exports.DEFAULT_MULTISIG_ADDRESS_TYPE = DEFAULT_MULTISIG_ADDRESS_TYPE;
 exports.DEFAULT_NETWORK = DEFAULT_NETWORK;
 exports.DEFAULT_NETWORK_MIN_RELAY_FEE = DEFAULT_NETWORK_MIN_RELAY_FEE;
 exports.DEFAULT_SAT_PER_BYTE_LEVELS = DEFAULT_SAT_PER_BYTE_LEVELS;
+exports.DEFAULT_SINGLESIG_ADDRESS_TYPE = DEFAULT_SINGLESIG_ADDRESS_TYPE;
 exports.DEFAULT_TESTNET_SERVER = DEFAULT_TESTNET_SERVER;
 exports.HdBitcoinPayments = HdBitcoinPayments;
 exports.HdBitcoinPaymentsConfig = HdBitcoinPaymentsConfig;
+exports.KeyPairBitcoinPayments = KeyPairBitcoinPayments;
+exports.KeyPairBitcoinPaymentsConfig = KeyPairBitcoinPaymentsConfig;
+exports.MultisigAddressType = MultisigAddressType;
+exports.MultisigBitcoinPayments = MultisigBitcoinPayments;
+exports.MultisigBitcoinPaymentsConfig = MultisigBitcoinPaymentsConfig;
 exports.NETWORK_MAINNET = NETWORK_MAINNET;
 exports.NETWORK_TESTNET = NETWORK_TESTNET;
 exports.PACKAGE_NAME = PACKAGE_NAME;
 exports.PayportOutput = PayportOutput;
+exports.SinglesigAddressType = SinglesigAddressType;
+exports.SinglesigBitcoinPayments = SinglesigBitcoinPayments;
+exports.SinglesigBitcoinPaymentsConfig = SinglesigBitcoinPaymentsConfig;
+exports.getMultisigPaymentScript = getMultisigPaymentScript;
+exports.getSinglesigPaymentScript = getSinglesigPaymentScript;
 exports.isValidAddress = isValidAddress;
 exports.isValidExtraId = isValidExtraId;
 exports.isValidPrivateKey = isValidPrivateKey;
+exports.isValidPublicKey = isValidPublicKey;
 exports.isValidXprv = isValidXprv;
 exports.isValidXpub = isValidXpub;
 exports.privateKeyToAddress = privateKeyToAddress;
+exports.privateKeyToKeyPair = privateKeyToKeyPair;
 exports.publicKeyToAddress = publicKeyToAddress;
+exports.publicKeyToBuffer = publicKeyToBuffer;
+exports.publicKeyToKeyPair = publicKeyToKeyPair;
+exports.publicKeyToString = publicKeyToString;
 exports.toBaseDenominationBigNumber = toBaseDenominationBigNumber;
 exports.toBaseDenominationNumber = toBaseDenominationNumber;
 exports.toBaseDenominationString = toBaseDenominationString;

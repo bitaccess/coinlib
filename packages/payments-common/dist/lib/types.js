@@ -1,5 +1,6 @@
 import * as t from 'io-ts';
 import { requiredOptionalCodec, extendCodec, enumCodec, nullable, DateT, Logger, functionT, Numeric, } from '@faast/ts-common';
+export const NullableOptionalString = t.union([t.string, t.null, t.undefined]);
 export var NetworkType;
 (function (NetworkType) {
     NetworkType["Mainnet"] = "mainnet";
@@ -10,6 +11,10 @@ export const BaseConfig = t.partial({
     network: NetworkTypeT,
     logger: Logger,
 }, 'BaseConfig');
+export const KeyPairsConfigParam = t.union([
+    t.array(NullableOptionalString),
+    t.record(t.number, NullableOptionalString)
+], 'KeyPairsConfigParam');
 export const Payport = requiredOptionalCodec({
     address: t.string,
 }, {
@@ -91,6 +96,12 @@ export var TransactionStatus;
     TransactionStatus["Failed"] = "failed";
 })(TransactionStatus || (TransactionStatus = {}));
 export const TransactionStatusT = enumCodec(TransactionStatus, 'TransactionStatus');
+export const TransactionOutput = requiredOptionalCodec({
+    address: t.string,
+    value: t.string,
+}, {
+    extraId: nullable(t.string),
+}, 'TransactionOutput');
 export const TransactionCommon = requiredOptionalCodec({
     status: TransactionStatusT,
     id: nullable(t.string),
@@ -104,6 +115,8 @@ export const TransactionCommon = requiredOptionalCodec({
     fromExtraId: nullable(t.string),
     toExtraId: nullable(t.string),
     sequenceNumber: nullable(t.union([t.string, t.number])),
+    inputUtxos: t.array(UtxoInfo),
+    externalOutputs: t.array(TransactionOutput)
 }, 'TransactionCommon');
 const UnsignedCommon = extendCodec(TransactionCommon, {
     fromAddress: t.string,
@@ -112,8 +125,6 @@ const UnsignedCommon = extendCodec(TransactionCommon, {
     targetFeeLevel: FeeLevelT,
     targetFeeRate: nullable(t.string),
     targetFeeRateType: nullable(FeeRateTypeT),
-}, {
-    inputUtxos: t.array(UtxoInfo),
 }, 'UnsignedCommon');
 export const BaseUnsignedTransaction = extendCodec(UnsignedCommon, {
     status: t.literal(TransactionStatus.Unsigned),

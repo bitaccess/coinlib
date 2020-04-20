@@ -8,6 +8,7 @@ var t = require('io-ts');
 var tsCommon = require('@faast/ts-common');
 var BigNumber = _interopDefault(require('bignumber.js'));
 
+const NullableOptionalString = t.union([t.string, t.null, t.undefined]);
 (function (NetworkType) {
     NetworkType["Mainnet"] = "mainnet";
     NetworkType["Testnet"] = "testnet";
@@ -17,6 +18,10 @@ const BaseConfig = t.partial({
     network: NetworkTypeT,
     logger: tsCommon.Logger,
 }, 'BaseConfig');
+const KeyPairsConfigParam = t.union([
+    t.array(NullableOptionalString),
+    t.record(t.number, NullableOptionalString)
+], 'KeyPairsConfigParam');
 const Payport = tsCommon.requiredOptionalCodec({
     address: t.string,
 }, {
@@ -95,6 +100,12 @@ const BalanceResult = t.type({
     TransactionStatus["Failed"] = "failed";
 })(exports.TransactionStatus || (exports.TransactionStatus = {}));
 const TransactionStatusT = tsCommon.enumCodec(exports.TransactionStatus, 'TransactionStatus');
+const TransactionOutput = tsCommon.requiredOptionalCodec({
+    address: t.string,
+    value: t.string,
+}, {
+    extraId: tsCommon.nullable(t.string),
+}, 'TransactionOutput');
 const TransactionCommon = tsCommon.requiredOptionalCodec({
     status: TransactionStatusT,
     id: tsCommon.nullable(t.string),
@@ -108,6 +119,8 @@ const TransactionCommon = tsCommon.requiredOptionalCodec({
     fromExtraId: tsCommon.nullable(t.string),
     toExtraId: tsCommon.nullable(t.string),
     sequenceNumber: tsCommon.nullable(t.union([t.string, t.number])),
+    inputUtxos: t.array(UtxoInfo),
+    externalOutputs: t.array(TransactionOutput)
 }, 'TransactionCommon');
 const UnsignedCommon = tsCommon.extendCodec(TransactionCommon, {
     fromAddress: t.string,
@@ -116,8 +129,6 @@ const UnsignedCommon = tsCommon.extendCodec(TransactionCommon, {
     targetFeeLevel: FeeLevelT,
     targetFeeRate: tsCommon.nullable(t.string),
     targetFeeRateType: tsCommon.nullable(FeeRateTypeT),
-}, {
-    inputUtxos: t.array(UtxoInfo),
 }, 'UnsignedCommon');
 const BaseUnsignedTransaction = tsCommon.extendCodec(UnsignedCommon, {
     status: t.literal(exports.TransactionStatus.Unsigned),
@@ -254,13 +265,16 @@ exports.FeeRate = FeeRate;
 exports.FeeRateTypeT = FeeRateTypeT;
 exports.GetBalanceActivityOptions = GetBalanceActivityOptions;
 exports.GetPayportOptions = GetPayportOptions;
+exports.KeyPairsConfigParam = KeyPairsConfigParam;
 exports.NetworkTypeT = NetworkTypeT;
+exports.NullableOptionalString = NullableOptionalString;
 exports.PaymentsError = PaymentsError;
 exports.Payport = Payport;
 exports.ResolveablePayport = ResolveablePayport;
 exports.ResolvedFeeOption = ResolvedFeeOption;
 exports.RetrieveBalanceActivitiesResult = RetrieveBalanceActivitiesResult;
 exports.TransactionCommon = TransactionCommon;
+exports.TransactionOutput = TransactionOutput;
 exports.TransactionStatusT = TransactionStatusT;
 exports.UtxoInfo = UtxoInfo;
 exports.WeightedChangeOutput = WeightedChangeOutput;

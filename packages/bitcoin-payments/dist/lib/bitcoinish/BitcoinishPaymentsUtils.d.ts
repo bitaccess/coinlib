@@ -1,4 +1,4 @@
-import { PaymentsUtils, Payport, createUnitConverters } from '@faast/payments-common';
+import { PaymentsUtils, Payport, createUnitConverters, MaybePromise } from '@faast/payments-common';
 import { Network as BitcoinjsNetwork } from 'bitcoinjs-lib';
 import { Numeric } from '@faast/ts-common';
 import { BlockbookConnected } from './BlockbookConnected';
@@ -8,8 +8,8 @@ export declare abstract class BitcoinishPaymentsUtils extends BlockbookConnected
     decimals: number;
     bitcoinjsNetwork: BitcoinjsNetwork;
     constructor(config: BitcoinishPaymentsUtilsConfig);
-    isValidExtraId(extraId: string): Promise<boolean>;
-    abstract isValidAddress(address: string): Promise<boolean>;
+    isValidExtraId(extraId: string): boolean;
+    abstract isValidAddress(address: string): MaybePromise<boolean>;
     private _getPayportValidationMessage;
     getPayportValidationMessage(payport: Payport): Promise<string | undefined>;
     validatePayport(payport: Payport): Promise<void>;

@@ -1,4 +1,7 @@
 import * as t from 'io-ts';
+export declare type MaybePromise<T> = Promise<T> | T;
+export declare const NullableOptionalString: t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>;
+export declare type NullableOptionalString = t.TypeOf<typeof NullableOptionalString>;
 export declare enum NetworkType {
     Mainnet = "mainnet",
     Testnet = "testnet"
@@ -9,6 +12,8 @@ export declare const BaseConfig: t.PartialC<{
     logger: import("@faast/ts-common").LoggerC;
 }>;
 export declare type BaseConfig = t.TypeOf<typeof BaseConfig>;
+export declare const KeyPairsConfigParam: t.UnionC<[t.ArrayC<t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>, t.RecordC<t.NumberC, t.UnionC<[t.StringC, t.NullC, t.UndefinedC]>>]>;
+export declare type KeyPairsConfigParam = t.TypeOf<typeof KeyPairsConfigParam>;
 export declare const Payport: t.IntersectionC<[t.TypeC<{
     address: t.StringC;
 }>, t.PartialC<{
@@ -131,6 +136,13 @@ export declare enum TransactionStatus {
     Failed = "failed"
 }
 export declare const TransactionStatusT: t.Type<TransactionStatus, TransactionStatus, unknown>;
+export declare const TransactionOutput: t.IntersectionC<[t.TypeC<{
+    address: t.StringC;
+    value: t.StringC;
+}>, t.PartialC<{
+    extraId: t.UnionC<[t.StringC, t.NullC]>;
+}>]>;
+export declare type TransactionOutput = t.TypeOf<typeof TransactionOutput>;
 export declare const TransactionCommon: t.IntersectionC<[t.TypeC<{
     status: t.Type<TransactionStatus, TransactionStatus, unknown>;
     id: t.UnionC<[t.StringC, t.NullC]>;
@@ -144,6 +156,23 @@ export declare const TransactionCommon: t.IntersectionC<[t.TypeC<{
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
     sequenceNumber: t.UnionC<[t.UnionC<[t.StringC, t.NumberC]>, t.NullC]>;
+    inputUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        txid: t.StringC;
+        vout: t.NumberC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        satoshis: t.UnionC<[t.NumberC, t.StringC]>;
+        confirmations: t.NumberC;
+        height: t.StringC;
+        lockTime: t.StringC;
+        coinbase: t.BooleanC;
+    }>]>>;
+    externalOutputs: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        address: t.StringC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        extraId: t.UnionC<[t.StringC, t.NullC]>;
+    }>]>>;
 }>]>;
 export declare type TransactionCommon = t.TypeOf<typeof TransactionCommon>;
 export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.TypeC<{
@@ -159,14 +188,6 @@ export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
     sequenceNumber: t.UnionC<[t.UnionC<[t.StringC, t.NumberC]>, t.NullC]>;
-}>]>, t.TypeC<{
-    fromAddress: t.StringC;
-    toAddress: t.StringC;
-    fromIndex: t.NumberC;
-    targetFeeLevel: t.Type<FeeLevel, FeeLevel, unknown>;
-    targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
-    targetFeeRateType: t.UnionC<[t.Type<FeeRateType, FeeRateType, unknown>, t.NullC]>;
-}>, t.PartialC<{
     inputUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
         txid: t.StringC;
         vout: t.NumberC;
@@ -178,6 +199,19 @@ export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
         lockTime: t.StringC;
         coinbase: t.BooleanC;
     }>]>>;
+    externalOutputs: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        address: t.StringC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        extraId: t.UnionC<[t.StringC, t.NullC]>;
+    }>]>>;
+}>]>, t.TypeC<{
+    fromAddress: t.StringC;
+    toAddress: t.StringC;
+    fromIndex: t.NumberC;
+    targetFeeLevel: t.Type<FeeLevel, FeeLevel, unknown>;
+    targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
+    targetFeeRateType: t.UnionC<[t.Type<FeeRateType, FeeRateType, unknown>, t.NullC]>;
 }>]>, t.TypeC<{
     status: t.LiteralC<TransactionStatus.Unsigned>;
     data: t.ObjectC;
@@ -196,14 +230,6 @@ export declare const BaseSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
     sequenceNumber: t.UnionC<[t.UnionC<[t.StringC, t.NumberC]>, t.NullC]>;
-}>]>, t.TypeC<{
-    fromAddress: t.StringC;
-    toAddress: t.StringC;
-    fromIndex: t.NumberC;
-    targetFeeLevel: t.Type<FeeLevel, FeeLevel, unknown>;
-    targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
-    targetFeeRateType: t.UnionC<[t.Type<FeeRateType, FeeRateType, unknown>, t.NullC]>;
-}>, t.PartialC<{
     inputUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
         txid: t.StringC;
         vout: t.NumberC;
@@ -215,6 +241,19 @@ export declare const BaseSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
         lockTime: t.StringC;
         coinbase: t.BooleanC;
     }>]>>;
+    externalOutputs: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        address: t.StringC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        extraId: t.UnionC<[t.StringC, t.NullC]>;
+    }>]>>;
+}>]>, t.TypeC<{
+    fromAddress: t.StringC;
+    toAddress: t.StringC;
+    fromIndex: t.NumberC;
+    targetFeeLevel: t.Type<FeeLevel, FeeLevel, unknown>;
+    targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
+    targetFeeRateType: t.UnionC<[t.Type<FeeRateType, FeeRateType, unknown>, t.NullC]>;
 }>]>, t.TypeC<{
     status: t.LiteralC<TransactionStatus.Signed>;
     id: t.StringC;
@@ -236,6 +275,23 @@ export declare const BaseTransactionInfo: t.IntersectionC<[t.IntersectionC<[t.Ty
     fromExtraId: t.UnionC<[t.StringC, t.NullC]>;
     toExtraId: t.UnionC<[t.StringC, t.NullC]>;
     sequenceNumber: t.UnionC<[t.UnionC<[t.StringC, t.NumberC]>, t.NullC]>;
+    inputUtxos: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        txid: t.StringC;
+        vout: t.NumberC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        satoshis: t.UnionC<[t.NumberC, t.StringC]>;
+        confirmations: t.NumberC;
+        height: t.StringC;
+        lockTime: t.StringC;
+        coinbase: t.BooleanC;
+    }>]>>;
+    externalOutputs: t.ArrayC<t.IntersectionC<[t.TypeC<{
+        address: t.StringC;
+        value: t.StringC;
+    }>, t.PartialC<{
+        extraId: t.UnionC<[t.StringC, t.NullC]>;
+    }>]>>;
 }>]>, t.TypeC<{
     id: t.StringC;
     amount: t.StringC;

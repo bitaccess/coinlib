@@ -9,7 +9,8 @@ export const DEFAULT_DUST_THRESHOLD = 546;
 export const DEFAULT_NETWORK_MIN_RELAY_FEE = 1000;
 export const BITCOIN_SEQUENCE_RBF = 0xFFFFFFFD;
 export const DEFAULT_MIN_TX_FEE = 5;
-export const DEFAULT_ADDRESS_TYPE = AddressType.SegwitNative;
+export const DEFAULT_SINGLESIG_ADDRESS_TYPE = AddressType.SegwitNative;
+export const DEFAULT_MULTISIG_ADDRESS_TYPE = AddressType.MultisigSegwitNative;
 export const DEFAULT_DERIVATION_PATHS = {
     [AddressType.Legacy]: "m/44'/0'/0'",
     [AddressType.SegwitP2SH]: "m/49'/0'/0'",
