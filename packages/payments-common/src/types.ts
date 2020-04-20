@@ -233,7 +233,8 @@ export const BaseTransactionInfo = extendCodec(
     data: t.object,
   },
   {
-    confirmationNumber: t.union([t.string, t.number]) // eg block number
+    currentBlockNumber: t.union([t.string, t.number]), // latest head of the blockchain
+    confirmationNumber: t.union([t.string, t.number]) // eg block number in which tx was included
   },
   'BaseTransactionInfo',
 )
