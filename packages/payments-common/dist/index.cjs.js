@@ -141,6 +141,7 @@ const BaseTransactionInfo = tsCommon.extendCodec(TransactionCommon, {
     confirmationTimestamp: tsCommon.nullable(tsCommon.DateT),
     data: t.object,
 }, {
+    currentBlockNumber: t.union([t.string, t.number]),
     confirmationNumber: t.union([t.string, t.number])
 }, 'BaseTransactionInfo');
 const BaseBroadcastResult = t.type({

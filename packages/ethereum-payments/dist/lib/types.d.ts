@@ -171,6 +171,7 @@ export declare const EthereumTransactionInfo: t.IntersectionC<[t.IntersectionC<[
     confirmationTimestamp: t.UnionC<[import("@faast/ts-common").DateC, t.NullC]>;
     data: t.ObjectC;
 }>, t.PartialC<{
+    currentBlockNumber: t.UnionC<[t.StringC, t.NumberC]>;
     confirmationNumber: t.UnionC<[t.StringC, t.NumberC]>;
 }>]>;
 export declare type EthereumTransactionInfo = t.TypeOf<typeof EthereumTransactionInfo>;

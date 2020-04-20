@@ -139,6 +139,7 @@ const BaseTransactionInfo = extendCodec(TransactionCommon, {
     confirmationTimestamp: nullable(DateT),
     data: object,
 }, {
+    currentBlockNumber: union([string, number]),
     confirmationNumber: union([string, number])
 }, 'BaseTransactionInfo');
 const BaseBroadcastResult = type({
