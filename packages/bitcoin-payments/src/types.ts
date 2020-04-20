@@ -29,19 +29,23 @@ export enum AddressType {
 }
 export const AddressTypeT = enumCodec<AddressType>(AddressType, 'AddressType')
 
-export const SinglesigAddressType = t.keyof({
+// For unclear reasons tsc throws TS4023 when this type is used in an external module.
+// Re-exporting the codec cast to the inferred type helps fix this.
+const SinglesigAddressTypeT = t.keyof({
   [AddressType.Legacy]: null,
   [AddressType.SegwitP2SH]: null,
   [AddressType.SegwitNative]: null,
 }, 'SinglesigAddressType')
-export type SinglesigAddressType = t.TypeOf<typeof SinglesigAddressType>
+export type SinglesigAddressType = t.TypeOf<typeof SinglesigAddressTypeT>
+export const SinglesigAddressType = SinglesigAddressTypeT as t.Type<SinglesigAddressType>
 
-export const MultisigAddressType = t.keyof({
+const MultisigAddressTypeT = t.keyof({
   [AddressType.MultisigLegacy]: null,
   [AddressType.MultisigSegwitP2SH]: null,
   [AddressType.MultisigSegwitNative]: null,
 }, 'MultisigAddressType')
-export type MultisigAddressType = t.TypeOf<typeof MultisigAddressType>
+export type MultisigAddressType = t.TypeOf<typeof MultisigAddressTypeT>
+export const MultisigAddressType = MultisigAddressTypeT as t.Type<MultisigAddressType>
 
 export const BitcoinPaymentsUtilsConfig = extendCodec(
   BaseConfig,
