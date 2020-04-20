@@ -31,7 +31,7 @@
     "format": "lerna run --parallel format",
     "docs": "lerna run --parallel docs",
     "prebuild": "lerna run --parallel prebuild",
-    "build": "lerna run --parallel build",
+    "build": "bin/buildall.sh",
     "pretest": "lerna run --parallel lint",
     "test": "lerna run --parallel test",
     "preversion": "bin/preversion.sh",
