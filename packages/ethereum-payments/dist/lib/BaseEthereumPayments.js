@@ -162,6 +162,7 @@ export class BaseEthereumPayments extends EthereumPaymentsUtils {
                 confirmations: 0,
                 confirmationId: null,
                 confirmationTimestamp: null,
+                currentBlockNumber: currentBlockNumber,
                 status: TransactionStatus.Pending,
                 data: {
                     ...tx,
@@ -205,6 +206,7 @@ export class BaseEthereumPayments extends EthereumPaymentsUtils {
             confirmationId: tx.blockHash,
             confirmationTimestamp,
             status,
+            currentBlockNumber: currentBlockNumber,
             data: {
                 ...tx,
                 ...txInfo,

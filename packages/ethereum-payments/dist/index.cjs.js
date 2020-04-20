@@ -140,7 +140,7 @@ class NetworkData {
             return '';
         }
         const price10xGwei = body[SPEED[speed]];
-        return (new bignumber_js.BigNumber(price10xGwei)).multipliedBy(10).multipliedBy(1e9).toString(10);
+        return (new bignumber_js.BigNumber(price10xGwei)).dividedBy(10).multipliedBy(1e9).toString(10);
     }
     async getWeb3GasPrice() {
         try {
@@ -457,6 +457,7 @@ class BaseEthereumPayments extends EthereumPaymentsUtils {
                 confirmations: 0,
                 confirmationId: null,
                 confirmationTimestamp: null,
+                currentBlockNumber: currentBlockNumber,
                 status: paymentsCommon.TransactionStatus.Pending,
                 data: {
                     ...tx,
@@ -500,6 +501,7 @@ class BaseEthereumPayments extends EthereumPaymentsUtils {
             confirmationId: tx.blockHash,
             confirmationTimestamp,
             status,
+            currentBlockNumber: currentBlockNumber,
             data: {
                 ...tx,
                 ...txInfo,

@@ -95,7 +95,7 @@ export class NetworkData {
             return '';
         }
         const price10xGwei = body[SPEED[speed]];
-        return (new BigNumber(price10xGwei)).multipliedBy(10).multipliedBy(1e9).toString(10);
+        return (new BigNumber(price10xGwei)).dividedBy(10).multipliedBy(1e9).toString(10);
     }
     async getWeb3GasPrice() {
         try {
