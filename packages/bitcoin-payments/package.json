@@ -79,6 +79,7 @@
     "@faast/payments-common": "^2.1.13",
     "@faast/ts-common": "^0.6.0",
     "bignumber.js": "^9.0.0",
+    "bip174": "^1.0.1",
     "bip32": "^2.0.5",
     "bitcoinjs-lib": "^5.1.7",
     "blockbook-client": "^0.3.5",

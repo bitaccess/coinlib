@@ -43,7 +43,6 @@ export type BitcoinishPaymentsConfig = BitcoinishPaymentsUtilsConfig & {
   minTxFee: FeeRate,
   dustThreshold: number,
   networkMinRelayFee: number,
-  isSegwit: boolean,
   defaultFeeLevel: AutoFeeLevels,
   targetUtxoPoolSize?: number, // # of available utxos to try and maintain
   minChange?: Numeric, // Soft minimum for each change generated to maintain utxo pool
@@ -55,6 +54,12 @@ export const BitcoinishTxOutput = t.type({
 }, 'BitcoinishTxOutput')
 export type BitcoinishTxOutput = t.TypeOf<typeof BitcoinishTxOutput>
 
+export const BitcoinishTxOutputSatoshis = t.type({
+  address: t.string,
+  satoshis: t.number,
+}, 'BitcoinishTxOutputSatoshis')
+export type BitcoinishTxOutputSatoshis = t.TypeOf<typeof BitcoinishTxOutputSatoshis>
+
 export const BitcoinishWeightedChangeOutput = t.type({
   address: t.string,
   weight: t.number,
@@ -64,7 +69,7 @@ export type BitcoinishWeightedChangeOutput = t.TypeOf<typeof BitcoinishWeightedC
 /**
  * An object representing a Bitcoin like transaction (UTXO based) with inputs and outputs.
  *
- * The externalOutputs and changeOutputs fields are optional for back compat. Single change output
+ * The externalOutputs, changeOutputs, and hex fields are optional for back compat. Single change output
  * transactions use the changeAddress field. Multi change outputs transactions will leave
  * changeAddress null.
  */
@@ -82,8 +87,12 @@ export const BitcoinishPaymentTx = requiredOptionalCodec(
     externalOutputs: t.array(BitcoinishTxOutput),
     // Total of external outputs in main denom
     externalOutputTotal: t.string,
-    // Transactions with multiple change outputs
+    // Outputs returning to transaction creator
     changeOutputs: t.array(BitcoinishTxOutput),
+    // Unsigned tx serialized as hex string (if implementation allows, empty string otherwise)
+    rawHex: t.string,
+    // sha256 hash of raw tx data
+    rawHash: t.string,
   },
   'BitcoinishPaymentTx'
 )
@@ -94,6 +103,7 @@ export const BitcoinishUnsignedTransaction = extendCodec(
   {
     amount: t.string,
     fee: t.string,
+    data: BitcoinishPaymentTx,
   },
   'BitcoinishUnsignedTransaction',
 )

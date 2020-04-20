@@ -8,7 +8,13 @@ import {
   Logger,
   functionT,
   Numeric,
+  optional,
 } from '@faast/ts-common'
+
+export type MaybePromise<T> = Promise<T> | T
+
+export const NullableOptionalString = t.union([t.string, t.null, t.undefined])
+export type NullableOptionalString = t.TypeOf<typeof NullableOptionalString>
 
 export enum NetworkType {
   Mainnet = 'mainnet',
@@ -24,6 +30,12 @@ export const BaseConfig = t.partial(
   'BaseConfig',
 )
 export type BaseConfig = t.TypeOf<typeof BaseConfig>
+
+export const KeyPairsConfigParam = t.union([
+  t.array(NullableOptionalString),
+  t.record(t.number, NullableOptionalString)
+], 'KeyPairsConfigParam')
+export type KeyPairsConfigParam = t.TypeOf<typeof KeyPairsConfigParam>
 
 export const Payport = requiredOptionalCodec(
   {
@@ -159,6 +171,18 @@ export enum TransactionStatus {
 }
 export const TransactionStatusT = enumCodec<TransactionStatus>(TransactionStatus, 'TransactionStatus')
 
+export const TransactionOutput = requiredOptionalCodec(
+  {
+    address: t.string,
+    value: t.string,
+  },
+  {
+    extraId: nullable(t.string),
+  },
+  'TransactionOutput',
+)
+export type TransactionOutput = t.TypeOf<typeof TransactionOutput>
+
 export const TransactionCommon = requiredOptionalCodec(
   {
     status: TransactionStatusT,
@@ -174,6 +198,8 @@ export const TransactionCommon = requiredOptionalCodec(
     fromExtraId: nullable(t.string), // eg ripple sender tag
     toExtraId: nullable(t.string), // eg Monero payment ID or ripple destination tag
     sequenceNumber: nullable(t.union([t.string, t.number])), // eg Ethereum nonce or ripple sequence
+    inputUtxos: t.array(UtxoInfo),
+    externalOutputs: t.array(TransactionOutput)
   },
   'TransactionCommon',
 )
@@ -188,9 +214,6 @@ const UnsignedCommon = extendCodec(
     targetFeeLevel: FeeLevelT,
     targetFeeRate: nullable(t.string),
     targetFeeRateType: nullable(FeeRateTypeT),
-  },
-  {
-    inputUtxos: t.array(UtxoInfo),
   },
   'UnsignedCommon',
 )

@@ -1,4 +1,4 @@
-import { AddressType } from '../../src'
+import { AddressType, SinglesigAddressType } from '../../src'
 import { ROOT_XPRV } from './bip44'
 
 // Values calculated using https://iancoleman.io/bip39/
@@ -66,7 +66,7 @@ export const nativeSegwitAccount: AccountFixture = {
   },
 }
 
-export const accountsByAddressType: { [type in AddressType]: AccountFixture } = {
+export const accountsByAddressType: { [type in SinglesigAddressType]: AccountFixture } = {
   [AddressType.Legacy]: legacyAccount,
   [AddressType.SegwitP2SH]: p2shSegwitAccount,
   [AddressType.SegwitNative]: nativeSegwitAccount,

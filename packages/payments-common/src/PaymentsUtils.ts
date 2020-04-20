@@ -1,5 +1,5 @@
 import { Numeric } from '@faast/ts-common'
-import { Payport } from './types'
+import { Payport, MaybePromise } from './types'
 
 export interface PaymentsUtils {
   /**
@@ -17,25 +17,25 @@ export interface PaymentsUtils {
   /**
    * Return true if it's a valid address.
    */
-  isValidAddress<O extends object>(address: string, options?: O): Promise<boolean>
+  isValidAddress<O extends object>(address: string, options?: O): MaybePromise<boolean>
 
   /**
    * Return true if it's a valid extra ID.
    */
-  isValidExtraId<O extends object>(extraId: string, options?: O): Promise<boolean>
+  isValidExtraId<O extends object>(extraId: string, options?: O): MaybePromise<boolean>
 
   /**
    * Return true if it's a valid payport.
    */
-  isValidPayport<O extends object>(payport: Payport, options?: O): Promise<boolean>
+  isValidPayport<O extends object>(payport: Payport, options?: O): MaybePromise<boolean>
 
   /**
    * Throw on invalid, undefined otherwise.
    */
-  validatePayport<O extends object>(payport: Payport, options?: O): Promise<void>
+  validatePayport<O extends object>(payport: Payport, options?: O): MaybePromise<void>
 
   /**
    * Return a validation message on invalid, undefined otherwise.
    */
-  getPayportValidationMessage<O extends object>(payport: Payport, options?: O): Promise<string | undefined>
+  getPayportValidationMessage<O extends object>(payport: Payport, options?: O): MaybePromise<string | undefined>
 }

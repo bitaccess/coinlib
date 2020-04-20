@@ -3,8 +3,9 @@ import {
   ResolvedFeeOption, FeeLevel, AutoFeeLevels, Payport, ResolveablePayport,
   BalanceResult, FromTo, TransactionStatus, CreateTransactionOptions, BaseConfig,
   WeightedChangeOutput,
+  MaybePromise,
 } from '@faast/payments-common'
-import { isUndefined, isType, Numeric, toBigNumber, assertType, isNumber } from '@faast/ts-common'
+import { isUndefined, isType, Numeric, toBigNumber, assertType, isNumber, isString } from '@faast/ts-common'
 import { get } from 'lodash'
 import * as t from 'io-ts'
 
@@ -16,12 +17,12 @@ import {
   BitcoinishPaymentsConfig,
   BitcoinishPaymentTx,
   BitcoinishTxOutput,
+  BitcoinishTxOutputSatoshis,
   BitcoinishWeightedChangeOutput,
   PayportOutput,
 } from './types'
-import { estimateTxFee, sumUtxoValue, sortUtxos, isConfirmedUtxo } from './utils'
+import { estimateTxFee, sumUtxoValue, sortUtxos, isConfirmedUtxo, sha256FromHex } from './utils';
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
-import BigNumber from 'bignumber.js'
 
 export abstract class BitcoinishPayments<Config extends BaseConfig> extends BitcoinishPaymentsUtils
   implements BasePayments<
@@ -36,7 +37,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   minTxFee?: FeeRate
   dustThreshold: number // base denom
   networkMinRelayFee: number // base denom
-  isSegwit: boolean
   defaultFeeLevel: AutoFeeLevels
   targetUtxoPoolSize: number
   minChangeSat: number
@@ -50,7 +50,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     this.minTxFee = config.minTxFee
     this.dustThreshold = config.dustThreshold
     this.networkMinRelayFee = config.networkMinRelayFee
-    this.isSegwit = config.isSegwit
     this.defaultFeeLevel = config.defaultFeeLevel
     this.targetUtxoPoolSize = isUndefined(config.targetUtxoPoolSize) ? 1 : config.targetUtxoPoolSize
     const minChange = toBigNumber(isUndefined(config.minChange) ? 0 : config.minChange)
@@ -63,11 +62,20 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   abstract getFullConfig(): Config
   abstract getPublicConfig(): Config
   abstract getAccountId(index: number): string
-  abstract getAccountIds(): string[]
+  abstract getAccountIds(index?: number): string[]
   abstract getAddress(index: number): string
   abstract getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate>
-  abstract isValidAddress(address: string): Promise<boolean>
+  abstract isValidAddress(address: string): MaybePromise<boolean>
   abstract signTransaction(tx: BitcoinishUnsignedTransaction): Promise<BitcoinishSignedTransaction>
+
+  /**
+   * Serialize the payment tx into an hex string format representing the unsigned transaction.
+   *
+   * By default return empty string because it's coin dependent. Implementors can override this
+   * with coin specific implementation (eg using Psbt for bitcoin). If coin doesn't have an unsigned
+   * serialized tx format (ie most coins other than BTC) then leave as empty string.
+   */
+  abstract serializePaymentTx(paymentTx: BitcoinishPaymentTx, fromIndex: number): Promise<string>
 
   async init() {}
   async destroy() {}
@@ -200,7 +208,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     outputCount: number,
   ): number {
     if (feeRateType === FeeRateType.BasePerWeight) {
-      return estimateTxFee(Number.parseFloat(feeRate), inputCount, outputCount, this.isSegwit)
+      return estimateTxFee(Number.parseFloat(feeRate), inputCount, outputCount, true)
     } else if (feeRateType === FeeRateType.Main) {
       return this.toBaseDenominationNumber(feeRate)
     }
@@ -217,10 +225,13 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     if (this.minTxFee) {
       const minTxFeeSat = this.feeRateToSatoshis(this.minTxFee, inputCount, outputCount)
       if (feeSat < minTxFeeSat) {
+        this.logger.debug(`Using min tx fee of ${minTxFeeSat} sat (${this.minTxFee} sat/byte) instead of ${feeSat} sat`)
         feeSat = minTxFeeSat
       }
     }
+    // Ensure calculated fee is above network relay minimum
     if (feeSat < this.networkMinRelayFee) {
+      this.logger.debug(`Using network min relay fee of ${this.networkMinRelayFee} sat instead of ${feeSat} sat`)
       feeSat = this.networkMinRelayFee
     }
     return Math.ceil(feeSat)
@@ -235,7 +246,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     for (const utxo of availableUtxos) {
       const satoshis = isUndefined(utxo.satoshis)
         ? this.toBaseDenominationNumber(utxo.value)
-        : toBigNumber(utxo.satoshis).integerValue(BigNumber.ROUND_DOWN).toNumber()
+        : toBigNumber(utxo.satoshis).toNumber()
       utxosTotalSat += satoshis
       utxos.push({
         ...utxo,
@@ -314,7 +325,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     // sum of non change output value in satoshis
     let outputTotal = 0
     // Convert output values to satoshis for convenient math
-    const externalOutputs: Array<{ address: string, satoshis: number }> = []
+    const externalOutputs: BitcoinishTxOutputSatoshis[] = []
     for (let i = 0; i < desiredOutputs.length; i++) {
       const { address, value } = desiredOutputs[i]
       // validate
@@ -379,7 +390,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     let totalChangeSat = inputTotal - amountWithFee
 
     this.logger.debug('buildPaymentTx', { inputTotal, feeSat, outputTotal, totalChangeSat })
-    let changeOutputs: Array<{ address: string, satoshis: number}> = []
+    let changeOutputs: BitcoinishTxOutputSatoshis[] = []
     if (totalChangeSat > this.dustThreshold) { // Avoid creating dust outputs
 
       // Don't use availableUtxo.length here because unconfirmed still count towards pool count
@@ -436,15 +447,18 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
     const externalOutputsResult = this.convertOutputsToExternalFormat(externalOutputs)
     const changeOutputsResult = this.convertOutputsToExternalFormat(changeOutputs)
+    const outputsResult = [...externalOutputsResult, ...changeOutputsResult]
     return {
       inputs: inputUtxos,
-      outputs: [...externalOutputsResult, ...changeOutputsResult],
+      outputs: outputsResult,
       fee: this.toMainDenominationString(feeSat),
       change: this.toMainDenominationString(totalChangeSat),
       changeAddress: changeOutputs.length === 1 ? changeOutputs[0].address : null, // back compat
       changeOutputs: changeOutputsResult,
       externalOutputs: externalOutputsResult,
       externalOutputTotal: this.toMainDenominationString(outputTotal),
+      rawHex: '',
+      rawHash: '',
     }
   }
 
@@ -491,7 +505,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     })))
 
     const { targetFeeLevel, targetFeeRate, targetFeeRateType } = await this.resolveFeeOption(options)
-    this.logger.debug(`createTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`)
+    this.logger.debug(`createMultiOutputTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`)
 
     const paymentTx = await this.buildPaymentTx({
       unusedUtxos,
@@ -501,10 +515,13 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       useAllUtxos: options.useAllUtxos,
       useUnconfirmedUtxos: options.useUnconfirmedUtxos,
     })
-    this.logger.debug('createTransaction data', paymentTx)
+    const unsignedTxHex = await this.serializePaymentTx(paymentTx, from)
+    paymentTx.rawHex = unsignedTxHex
+    paymentTx.rawHash = sha256FromHex(unsignedTxHex)
+    this.logger.debug('createMultiOutputTransaction data', paymentTx)
     const feeMain = paymentTx.fee
 
-    let resultToAddress = 'multi'
+    let resultToAddress = 'batch'
     let resultToIndex = null
     if (paymentTx.externalOutputs.length === 1) {
       const onlyOutput = paymentTx.externalOutputs[0]
@@ -528,6 +545,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       fee: feeMain,
       sequenceNumber: null,
       inputUtxos: paymentTx.inputs,
+      externalOutputs: paymentTx.externalOutputs,
       data: paymentTx,
     }
   }
@@ -546,7 +564,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     if (availableUtxos.length === 0) {
       throw new Error('No available utxos to sweep')
     }
-    const outputAmount = sumUtxoValue(availableUtxos)
+    const outputAmount = sumUtxoValue(availableUtxos, options.useUnconfirmedUtxos)
     if (!this.isSweepableBalance(outputAmount)) {
       throw new Error(`Available utxo total ${outputAmount} ${this.coinSymbol} too low to sweep`)
     }

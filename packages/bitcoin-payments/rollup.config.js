@@ -1,7 +1,12 @@
 const base = require('@faast/ts-config/library/rollup.config')
 const pkg = require('./package.json')
 
+const baseConfig = base(pkg)
 module.exports = {
-  ...base(pkg),
+  ...baseConfig,
+  external: [
+    ...baseConfig.external,
+    'bip174/src/lib/interfaces',
+  ]
   // overrides here
 }
