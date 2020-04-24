@@ -1,6 +1,6 @@
 import * as bitcoin from 'bitcoinjs-lib'
 import {
-  FeeRateType, FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus
+  FeeRateType, FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus, BaseMultisigData,
 } from '@faast/payments-common'
 
 import { getBlockcypherFeeEstimate, toBitcoinishConfig } from './utils'
@@ -156,6 +156,38 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
         partial: false,
         unsignedTxHash,
       },
+    }
+  }
+
+  updateMultisigTx(
+    tx: BitcoinSignedTransaction | BitcoinUnsignedTransaction,
+    psbt: bitcoin.Psbt,
+    signedAccountIds: string[],
+  ): BitcoinSignedTransaction {
+    const multisigData = tx.multisigData!
+    const combinedMultisigData: BaseMultisigData = {
+      ...multisigData,
+      signedAccountIds: [...signedAccountIds.values()]
+    }
+    if (signedAccountIds.length >= multisigData.m) {
+      const finalizedTx =  this.validateAndFinalizeSignedTx(tx, psbt)
+      return {
+        ...finalizedTx,
+        multisigData: combinedMultisigData,
+      }
+    }
+    const combinedHex = psbt.toHex()
+    const unsignedTxHash = BitcoinSignedTransactionData.is(tx.data) ? tx.data.unsignedTxHash : tx.data.rawHash
+    return {
+      ...tx,
+      id: '',
+      status: TransactionStatus.Signed,
+      multisigData: combinedMultisigData,
+      data: {
+        hex: combinedHex,
+        partial: true,
+        unsignedTxHash,
+      }
     }
   }
 

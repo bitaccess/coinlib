@@ -8,6 +8,7 @@ import { Network as BitcoinjsNetwork, Signer as BitcoinjsSigner } from 'bitcoinj
 import { BlockInfoBitcoin } from 'blockbook-client'
 import { BitcoinishPaymentTx, BlockbookConfigServer } from './bitcoinish'
 import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
+import { BaseMultisigData } from '../../payments-common/src/types';
 
 export { BitcoinjsNetwork, UtxoInfo }
 export * from './bitcoinish/types'
@@ -126,37 +127,12 @@ export type BitcoinPaymentsConfig = t.TypeOf<typeof BitcoinPaymentsConfig>
 export const BitcoinUnsignedTransactionData = BitcoinishPaymentTx
 export type BitcoinUnsignedTransactionData = t.TypeOf<typeof BitcoinUnsignedTransactionData>
 
-export const BitcoinMultisigDataSigner = requiredOptionalCodec(
-  {
-    accountId: t.string,
-    index: t.number,
-    publicKey: t.string,
-  },
-  {
-    signed: t.boolean,
-  },
-  'BitcoinMultisigDataSigner',
-)
-export type BitcoinMultisigDataSigner = t.TypeOf<typeof BitcoinMultisigDataSigner>
-
-export const BitcoinMultisigData = t.type(
-  {
-    m: t.number,
-    signers: t.array(BitcoinMultisigDataSigner),
-  },
-  'BitcoinMultisigData',
-)
-export type BitcoinMultisigData = t.TypeOf<typeof BitcoinMultisigData>
-
 export const BitcoinUnsignedTransaction = extendCodec(
   BaseUnsignedTransaction,
   {
     amount: t.string,
     fee: t.string,
     data: BitcoinUnsignedTransactionData,
-  },
-  {
-    multisigData: BitcoinMultisigData,
   },
   'BitcoinUnsignedTransaction',
 )
@@ -180,9 +156,6 @@ export const BitcoinSignedTransaction = extendCodec(
   BaseSignedTransaction,
   {
     data: BitcoinSignedTransactionData,
-  },
-  {
-    multisigData: BitcoinMultisigData,
   },
   'BitcoinSignedTransaction',
 )

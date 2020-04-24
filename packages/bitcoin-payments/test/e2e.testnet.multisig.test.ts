@@ -3,12 +3,11 @@ import {
   HdBitcoinPayments,
   AddressType,
   MultisigAddressType,
-  BitcoinMultisigData,
   MultisigBitcoinPaymentsConfig,
   KeyPairBitcoinPayments,
 } from '../src'
 import { logger } from './utils'
-import { NetworkType, TransactionStatus } from '@faast/payments-common'
+import { NetworkType, TransactionStatus, BaseMultisigData } from '@faast/payments-common'
 import path from 'path'
 import fs from 'fs'
 import { DERIVATION_PATH, ADDRESSES, M, ACCOUNT_IDS, EXTERNAL_ADDRESS } from './fixtures/multisigTestnet'
@@ -134,20 +133,20 @@ describeAll('e2e multisig testnet', () => {
       }, 30 * 1000)
 
       function assertMultisigData(
-        multisigData: BitcoinMultisigData | undefined,
+        multisigData: BaseMultisigData | undefined,
         fromIndex: number,
         expectedSignatures: number[],
       ) {
         expect(multisigData).toBeDefined()
         expect(multisigData!.m).toBe(M)
-        expect(multisigData!.signers.length).toBe(signerPayments.length)
+        expect(multisigData!.accountIds.length).toBe(signerPayments.length)
+        expect(multisigData!.signedAccountIds).toEqual(expectedSignatures.map((i) => multisigData!.accountIds[i]))
         for (let i = 0; i < signerPayments.length; i++) {
           const signerPayment = signerPayments[i]
-          const signerData = multisigData!.signers[i]
-          expect(signerData.index).toBe(fromIndex)
-          expect(signerData.accountId).toBe(signerPayment.getAccountId(fromIndex))
-          expect(signerData.publicKey).toBe(signerPayment.getKeyPair(fromIndex).publicKey.toString('hex'))
-          expect(signerData.signed).toBe(expectedSignatures.includes(i) ? true : undefined)
+          const accountId = multisigData!.accountIds[i]
+          const publicKey = multisigData!.publicKeys[i]
+          expect(accountId).toBe(signerPayment.getAccountId(fromIndex))
+          expect(publicKey).toBe(signerPayment.getKeyPair(fromIndex).publicKey.toString('hex'))
         }
       }
 
