@@ -10,7 +10,7 @@
 # Example: Github issue #23
 
 # --- COMMIT END ---
-# Tag can be 
+# Tag can be
 #    feat     (new feature)
 #    fix      (bug fix)
 #    refactor (refactoring code)
@@ -21,3 +21,5 @@
 #    dbg      (Changes in debugging code/frameworks; no production code change)
 #    license  (Edits regarding licensing; no production code change)
 #    hack     (Temporary fix to make things move forward; please avoid it)
+#    tool     (Changes to development tooling including builds/linting; no production code change)
+#    package  (Changes to package dependencies)
