@@ -43,7 +43,7 @@
     "start": "rollup -c rollup.config.ts -w",
     "test": "jest --runInBand --detectOpenHandles --bail",
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
-    "version": "npm run build && git add -Af dist docs"
+    "version": "npm run build"
   },
   "devDependencies": {
     "@faast/ts-config": "^1.3.5",

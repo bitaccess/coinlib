@@ -43,7 +43,7 @@
     "start": "rollup -c rollup.config.js -w",
     "test": "jest --runInBand --detectOpenHandles --bail",
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
-    "version": "npm run build && git add -Af dist docs"
+    "version": "npm run build"
   },
   "dependencies": {
     "@faast/payments-common": "^2.2.0",
