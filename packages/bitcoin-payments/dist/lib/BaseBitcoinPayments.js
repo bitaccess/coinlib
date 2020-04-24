@@ -1,5 +1,5 @@
 import * as bitcoin from 'bitcoinjs-lib';
-import { FeeRateType, TransactionStatus } from '@faast/payments-common';
+import { FeeRateType, TransactionStatus, } from '@faast/payments-common';
 import { getBlockcypherFeeEstimate, toBitcoinishConfig } from './utils';
 import { BitcoinSignedTransactionData, } from './types';
 import { DEFAULT_SAT_PER_BYTE_LEVELS, BITCOIN_SEQUENCE_RBF, } from './constants';
@@ -116,6 +116,33 @@ export class BaseBitcoinPayments extends BitcoinishPayments {
                 partial: false,
                 unsignedTxHash,
             },
+        };
+    }
+    updateMultisigTx(tx, psbt, signedAccountIds) {
+        const multisigData = tx.multisigData;
+        const combinedMultisigData = {
+            ...multisigData,
+            signedAccountIds: [...signedAccountIds.values()]
+        };
+        if (signedAccountIds.length >= multisigData.m) {
+            const finalizedTx = this.validateAndFinalizeSignedTx(tx, psbt);
+            return {
+                ...finalizedTx,
+                multisigData: combinedMultisigData,
+            };
+        }
+        const combinedHex = psbt.toHex();
+        const unsignedTxHash = BitcoinSignedTransactionData.is(tx.data) ? tx.data.unsignedTxHash : tx.data.rawHash;
+        return {
+            ...tx,
+            id: '',
+            status: TransactionStatus.Signed,
+            multisigData: combinedMultisigData,
+            data: {
+                hex: combinedHex,
+                partial: true,
+                unsignedTxHash,
+            }
         };
     }
 }

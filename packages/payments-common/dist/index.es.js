@@ -120,6 +120,12 @@ const TransactionCommon = requiredOptionalCodec({
     inputUtxos: array(UtxoInfo),
     externalOutputs: array(TransactionOutput)
 }, 'TransactionCommon');
+const BaseMultisigData = type({
+    m: number,
+    accountIds: array(string),
+    publicKeys: array(string),
+    signedAccountIds: array(string),
+}, 'BitcoinMultisigData');
 const UnsignedCommon = extendCodec(TransactionCommon, {
     fromAddress: string,
     toAddress: string,
@@ -127,6 +133,8 @@ const UnsignedCommon = extendCodec(TransactionCommon, {
     targetFeeLevel: FeeLevelT,
     targetFeeRate: nullable(string),
     targetFeeRateType: nullable(FeeRateTypeT),
+}, {
+    multisigData: BaseMultisigData,
 }, 'UnsignedCommon');
 const BaseUnsignedTransaction = extendCodec(UnsignedCommon, {
     status: literal(TransactionStatus.Unsigned),
@@ -244,5 +252,5 @@ class PaymentsError extends Error {
     }
 }
 
-export { AutoFeeLevels, BalanceActivity, BalanceActivityCallback, BalanceActivityType, BalanceMonitorConfig, BalanceResult, BaseBroadcastResult, BaseConfig, BaseSignedTransaction, BaseTransactionInfo, BaseUnsignedTransaction, CreateTransactionOptions, FeeLevel, FeeLevelT, FeeOption, FeeOptionCustom, FeeOptionLevel, FeeRate, FeeRateType, FeeRateTypeT, GetBalanceActivityOptions, GetPayportOptions, KeyPairsConfigParam, NetworkType, NetworkTypeT, NullableOptionalString, PaymentsError, PaymentsErrorCode, Payport, ResolveablePayport, ResolvedFeeOption, RetrieveBalanceActivitiesResult, TransactionCommon, TransactionOutput, TransactionStatus, TransactionStatusT, UtxoInfo, WeightedChangeOutput, createUnitConverters, isMatchingError };
+export { AutoFeeLevels, BalanceActivity, BalanceActivityCallback, BalanceActivityType, BalanceMonitorConfig, BalanceResult, BaseBroadcastResult, BaseConfig, BaseMultisigData, BaseSignedTransaction, BaseTransactionInfo, BaseUnsignedTransaction, CreateTransactionOptions, FeeLevel, FeeLevelT, FeeOption, FeeOptionCustom, FeeOptionLevel, FeeRate, FeeRateType, FeeRateTypeT, GetBalanceActivityOptions, GetPayportOptions, KeyPairsConfigParam, NetworkType, NetworkTypeT, NullableOptionalString, PaymentsError, PaymentsErrorCode, Payport, ResolveablePayport, ResolvedFeeOption, RetrieveBalanceActivitiesResult, TransactionCommon, TransactionOutput, TransactionStatus, TransactionStatusT, UtxoInfo, WeightedChangeOutput, createUnitConverters, isMatchingError };
 //# sourceMappingURL=index.es.js.map

@@ -118,6 +118,12 @@ export const TransactionCommon = requiredOptionalCodec({
     inputUtxos: t.array(UtxoInfo),
     externalOutputs: t.array(TransactionOutput)
 }, 'TransactionCommon');
+export const BaseMultisigData = t.type({
+    m: t.number,
+    accountIds: t.array(t.string),
+    publicKeys: t.array(t.string),
+    signedAccountIds: t.array(t.string),
+}, 'BitcoinMultisigData');
 const UnsignedCommon = extendCodec(TransactionCommon, {
     fromAddress: t.string,
     toAddress: t.string,
@@ -125,6 +131,8 @@ const UnsignedCommon = extendCodec(TransactionCommon, {
     targetFeeLevel: FeeLevelT,
     targetFeeRate: nullable(t.string),
     targetFeeRateType: nullable(FeeRateTypeT),
+}, {
+    multisigData: BaseMultisigData,
 }, 'UnsignedCommon');
 export const BaseUnsignedTransaction = extendCodec(UnsignedCommon, {
     status: t.literal(TransactionStatus.Unsigned),

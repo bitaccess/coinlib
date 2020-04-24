@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('io-ts'), require('@faast/ts-common'), require('@faast/payments-common'), require('@faast/tron-payments'), require('@faast/ripple-payments'), require('@faast/stellar-payments'), require('@faast/bitcoin-payments'), require('@faast/ethereum-payments'), require('bip32')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'io-ts', '@faast/ts-common', '@faast/payments-common', '@faast/tron-payments', '@faast/ripple-payments', '@faast/stellar-payments', '@faast/bitcoin-payments', '@faast/ethereum-payments', 'bip32'], factory) :
-  (global = global || self, factory(global.faastCoinPayments = {}, global.t, global.tsCommon, global.paymentsCommon, global.tronPayments, global.ripplePayments, global.stellarPayments, global.bitcoinPayments, global.ethereumPayments, global.bip32));
-}(this, (function (exports, t, tsCommon, paymentsCommon, tronPayments, ripplePayments, stellarPayments, bitcoinPayments, ethereumPayments, bip32) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('io-ts'), require('@faast/ts-common'), require('@faast/payments-common'), require('@faast/tron-payments'), require('@faast/ripple-payments'), require('@faast/stellar-payments'), require('@faast/bitcoin-payments'), require('@faast/ethereum-payments'), require('bip32'), require('bip39')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'io-ts', '@faast/ts-common', '@faast/payments-common', '@faast/tron-payments', '@faast/ripple-payments', '@faast/stellar-payments', '@faast/bitcoin-payments', '@faast/ethereum-payments', 'bip32', 'bip39'], factory) :
+  (global = global || self, factory(global.faastCoinPayments = {}, global.t, global.tsCommon, global.paymentsCommon, global.tronPayments, global.ripplePayments, global.stellarPayments, global.bitcoinPayments, global.ethereumPayments, global.bip32, global.bip39));
+}(this, (function (exports, t, tsCommon, paymentsCommon, tronPayments, ripplePayments, stellarPayments, bitcoinPayments, ethereumPayments, bip32, bip39) { 'use strict';
 
   const baseAssetConfigCodecs = {
       TRX: tronPayments.BaseTronPaymentsConfig,
@@ -20,13 +20,13 @@
       ETH: ethereumPayments.EthereumPaymentsConfig,
   };
   const CoinPaymentsAssetConfigs = t.type(assetConfigCodecs, 'CoinPaymentsAssetConfigs');
-  const CoinPaymentsConfig = t.partial({
-      ...assetConfigCodecs,
+  const SupportedCoinPaymentsSymbol = t.keyof(assetConfigCodecs, 'SupportedCoinPaymentsSymbol');
+  const CoinPaymentsPartialAssetConfigs = t.partial(baseAssetConfigCodecs, 'CoinPaymentsPartialAssetConfigs');
+  const CoinPaymentsConfig = tsCommon.extendCodec(CoinPaymentsPartialAssetConfigs, {}, {
       network: paymentsCommon.NetworkTypeT,
       logger: tsCommon.Logger,
       seed: t.string,
   }, 'CoinPaymentsConfig');
-  const SupportedCoinPaymentsSymbol = t.keyof(assetConfigCodecs, 'SupportedCoinPaymentsSymbol');
 
   function keysOf(o) {
       return Object.keys(o);
@@ -41,6 +41,28 @@
   };
   const SUPPORTED_ASSET_SYMBOLS = keysOf(PAYMENTS_FACTORIES);
 
+  function addSeedIfNecessary(network, seed, config) {
+      const configCodec = assetConfigCodecs[network];
+      let result = config;
+      if (configCodec.is(result)) {
+          return result;
+      }
+      result = {
+          ...config,
+          seed: seed.toString('hex')
+      };
+      if (configCodec.is(result)) {
+          return result;
+      }
+      result = {
+          ...config,
+          hdKey: bip32.fromSeed(seed).toBase58(),
+      };
+      if (configCodec.is(result)) {
+          return result;
+      }
+      throw new Error(`Invalid config provided for ${network}`);
+  }
   class CoinPayments {
       constructor(config) {
           this.config = config;
@@ -48,15 +70,14 @@
           tsCommon.assertType(CoinPaymentsConfig, config);
           this.network = config.network || paymentsCommon.NetworkType.Mainnet;
           this.logger = config.logger || console;
+          const seedBuffer = config.seed && (config.seed.includes(' ')
+              ? bip39.mnemonicToSeedSync(config.seed)
+              : Buffer.from(config.seed, 'hex'));
           const accountIdSet = new Set();
           SUPPORTED_ASSET_SYMBOLS.forEach((assetSymbol) => {
               let assetConfig = config[assetSymbol];
-              if (!assetConfig && config.seed) {
-                  const xprv = bip32.fromSeed(Buffer.from(config.seed, 'hex')).toBase58();
-                  assetConfig = {
-                      seed: config.seed,
-                      hdKey: xprv,
-                  };
+              if (seedBuffer) {
+                  assetConfig = addSeedIfNecessary(assetSymbol, seedBuffer, assetConfig || {});
               }
               if (!assetConfig) {
                   return;
@@ -68,6 +89,7 @@
               if (config.logger) {
                   assetConfig.logger = config.logger;
               }
+              tsCommon.assertType(assetConfigCodecs[assetSymbol], assetConfig, `${assetSymbol} config`);
               const assetPayments = PAYMENTS_FACTORIES[assetSymbol].forConfig(assetConfig);
               this.payments[assetSymbol] = assetPayments;
               assetPayments.getAccountIds().forEach((id) => accountIdSet.add(id));
@@ -87,7 +109,14 @@
       }
       getPublicConfig() {
           return keysOf(this.payments).reduce((o, k) => {
-              o[k] = this.forAsset(k).getPublicConfig();
+              const publicConfig = this.forAsset(k).getPublicConfig();
+              if (publicConfig.seed) {
+                  delete publicConfig.seed;
+              }
+              if (publicConfig.hdKey && publicConfig.hdKey.startsWith('xprv')) {
+                  delete publicConfig.hdKey;
+              }
+              o[k] = publicConfig;
               return o;
           }, {});
       }
@@ -125,9 +154,12 @@
   exports.CoinPaymentsAssetConfigs = CoinPaymentsAssetConfigs;
   exports.CoinPaymentsBaseAssetConfigs = CoinPaymentsBaseAssetConfigs;
   exports.CoinPaymentsConfig = CoinPaymentsConfig;
+  exports.CoinPaymentsPartialAssetConfigs = CoinPaymentsPartialAssetConfigs;
   exports.PAYMENTS_FACTORIES = PAYMENTS_FACTORIES;
   exports.SUPPORTED_ASSET_SYMBOLS = SUPPORTED_ASSET_SYMBOLS;
   exports.SupportedCoinPaymentsSymbol = SupportedCoinPaymentsSymbol;
+  exports.assetConfigCodecs = assetConfigCodecs;
+  exports.baseAssetConfigCodecs = baseAssetConfigCodecs;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

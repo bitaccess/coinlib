@@ -10,6 +10,7 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments {
     constructor(config) {
         super(config);
         this.config = config;
+        this.accountIdToSigner = {};
         this.addressType = config.addressType || DEFAULT_MULTISIG_ADDRESS_TYPE;
         this.m = config.m;
         this.signers = config.signers.map((signerConfig, i) => {
@@ -21,12 +22,13 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments {
             if (signerConfig.network !== this.networkType) {
                 throw new Error(`MultisigBitcoinPayments is on network ${this.networkType} but signer config ${i} is on ${signerConfig.network}`);
             }
-            if (HdBitcoinPaymentsConfig.is(signerConfig)) {
-                return new HdBitcoinPayments(signerConfig);
-            }
-            else {
-                return new KeyPairBitcoinPayments(signerConfig);
-            }
+            const payments = HdBitcoinPaymentsConfig.is(signerConfig)
+                ? new HdBitcoinPayments(signerConfig)
+                : new KeyPairBitcoinPayments(signerConfig);
+            payments.getAccountIds().forEach((accountId) => {
+                this.accountIdToSigner[accountId] = payments;
+            });
+            return payments;
         });
     }
     getFullConfig() {
@@ -61,35 +63,33 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments {
         }
         return address;
     }
-    getMultisigData(index) {
+    createMultisigData(index) {
         return {
             m: this.m,
-            signers: this.signers.map((signer) => ({
-                accountId: signer.getAccountId(index),
-                index: index,
-                publicKey: publicKeyToString(signer.getKeyPair(index).publicKey)
-            }))
+            accountIds: this.signers.map((signer) => signer.getAccountId(index)),
+            publicKeys: this.signers.map((signer) => publicKeyToString(signer.getKeyPair(index).publicKey)),
+            signedAccountIds: [],
         };
     }
     async createTransaction(from, to, amount, options) {
         const tx = await super.createTransaction(from, to, amount, options);
         return {
             ...tx,
-            multisigData: this.getMultisigData(from),
+            multisigData: this.createMultisigData(from),
         };
     }
     async createMultiOutputTransaction(from, to, options = {}) {
         const tx = await super.createMultiOutputTransaction(from, to, options);
         return {
             ...tx,
-            multisigData: this.getMultisigData(from),
+            multisigData: this.createMultisigData(from),
         };
     }
     async createSweepTransaction(from, to, options = {}) {
         const tx = await super.createSweepTransaction(from, to, options);
         return {
             ...tx,
-            multisigData: this.getMultisigData(from),
+            multisigData: this.createMultisigData(from),
         };
     }
     deserializeSignedTxPsbt(tx) {
@@ -97,24 +97,6 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments {
             throw new Error('Cannot decode psbt of a finalized tx');
         }
         return bitcoin.Psbt.fromHex(tx.data.hex, this.psbtOptions);
-    }
-    getPublicKeysOfSigned(multisigData) {
-        return multisigData.signers.filter(({ signed }) => signed).map(({ publicKey }) => publicKey);
-    }
-    setMultisigSignersAsSigned(multisigData, signedPubKeys) {
-        const combinedSignerData = multisigData.signers.map((signer) => {
-            if (signedPubKeys.has(signer.publicKey)) {
-                return {
-                    ...signer,
-                    signed: true,
-                };
-            }
-            return signer;
-        });
-        return {
-            ...multisigData,
-            signers: combinedSignerData,
-        };
     }
     async combinePartiallySignedTransactions(txs) {
         if (txs.length < 2) {
@@ -136,36 +118,19 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments {
         const baseTx = txs[0];
         const baseTxMultisigData = baseTx.multisigData;
         const { m } = baseTxMultisigData;
-        const signedPubKeys = new Set(this.getPublicKeysOfSigned(baseTxMultisigData));
+        const signedAccountIds = new Set(baseTxMultisigData.signedAccountIds);
         let combinedPsbt = this.deserializeSignedTxPsbt(baseTx);
         for (let i = 1; i < txs.length; i++) {
-            if (signedPubKeys.size >= m) {
+            if (signedAccountIds.size >= m) {
                 this.logger.debug('Already received enough signatures, not combining');
                 break;
             }
             const tx = txs[i];
             const psbt = this.deserializeSignedTxPsbt(tx);
             combinedPsbt.combine(psbt);
-            this.getPublicKeysOfSigned(tx.multisigData).forEach((pubkey) => signedPubKeys.add(pubkey));
+            tx.multisigData.signedAccountIds.forEach((accountId) => signedAccountIds.add(accountId));
         }
-        const combinedHex = combinedPsbt.toHex();
-        const combinedMultisigData = this.setMultisigSignersAsSigned(baseTxMultisigData, signedPubKeys);
-        if (signedPubKeys.size >= m) {
-            const finalizedTx = this.validateAndFinalizeSignedTx(baseTx, combinedPsbt);
-            return {
-                ...finalizedTx,
-                multisigData: combinedMultisigData,
-            };
-        }
-        return {
-            ...baseTx,
-            multisigData: combinedMultisigData,
-            data: {
-                hex: combinedHex,
-                partial: true,
-                unsignedTxHash,
-            }
-        };
+        return this.updateMultisigTx(baseTx, combinedPsbt, [...signedAccountIds.values()]);
     }
     async signTransaction(tx) {
         const partiallySignedTxs = await Promise.all(this.signers.map((signer) => signer.signTransaction(tx)));

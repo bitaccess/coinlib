@@ -65,23 +65,10 @@ export const BitcoinPaymentsConfig = t.union([
     MultisigBitcoinPaymentsConfig,
 ], 'BitcoinPaymentsConfig');
 export const BitcoinUnsignedTransactionData = BitcoinishPaymentTx;
-export const BitcoinMultisigDataSigner = requiredOptionalCodec({
-    accountId: t.string,
-    index: t.number,
-    publicKey: t.string,
-}, {
-    signed: t.boolean,
-}, 'BitcoinMultisigDataSigner');
-export const BitcoinMultisigData = t.type({
-    m: t.number,
-    signers: t.array(BitcoinMultisigDataSigner),
-}, 'BitcoinMultisigData');
 export const BitcoinUnsignedTransaction = extendCodec(BaseUnsignedTransaction, {
     amount: t.string,
     fee: t.string,
     data: BitcoinUnsignedTransactionData,
-}, {
-    multisigData: BitcoinMultisigData,
 }, 'BitcoinUnsignedTransaction');
 export const BitcoinSignedTransactionData = requiredOptionalCodec({
     hex: t.string,
@@ -91,8 +78,6 @@ export const BitcoinSignedTransactionData = requiredOptionalCodec({
 }, 'BitcoinSignedTransactionData');
 export const BitcoinSignedTransaction = extendCodec(BaseSignedTransaction, {
     data: BitcoinSignedTransactionData,
-}, {
-    multisigData: BitcoinMultisigData,
 }, 'BitcoinSignedTransaction');
 export const BitcoinTransactionInfo = extendCodec(BaseTransactionInfo, {}, {}, 'BitcoinTransactionInfo');
 export const BitcoinBroadcastResult = extendCodec(BaseBroadcastResult, {}, {}, 'BitcoinBroadcastResult');

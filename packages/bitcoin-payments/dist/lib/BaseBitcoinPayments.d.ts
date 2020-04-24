@@ -19,4 +19,5 @@ export declare abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaym
     buildPsbt(paymentTx: BitcoinishPaymentTx, fromIndex: number): Promise<bitcoin.Psbt>;
     serializePaymentTx(tx: BitcoinishPaymentTx, fromIndex: number): Promise<string>;
     validateAndFinalizeSignedTx(tx: BitcoinSignedTransaction | BitcoinUnsignedTransaction, psbt: bitcoin.Psbt): BitcoinSignedTransaction;
+    updateMultisigTx(tx: BitcoinSignedTransaction | BitcoinUnsignedTransaction, psbt: bitcoin.Psbt, signedAccountIds: string[]): BitcoinSignedTransaction;
 }

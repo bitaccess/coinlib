@@ -1,12 +1,12 @@
 import * as t from 'io-ts';
-import { Logger } from '@faast/ts-common';
+import { extendCodec, Logger } from '@faast/ts-common';
 import { NetworkTypeT } from '@faast/payments-common';
 import { TronPaymentsConfig, BaseTronPaymentsConfig } from '@faast/tron-payments';
 import { RipplePaymentsConfig, BaseRipplePaymentsConfig } from '@faast/ripple-payments';
 import { StellarPaymentsConfig, BaseStellarPaymentsConfig } from '@faast/stellar-payments';
 import { BitcoinPaymentsConfig, BaseBitcoinPaymentsConfig } from '@faast/bitcoin-payments';
 import { EthereumPaymentsConfig, BaseEthereumPaymentsConfig } from '@faast/ethereum-payments';
-const baseAssetConfigCodecs = {
+export const baseAssetConfigCodecs = {
     TRX: BaseTronPaymentsConfig,
     XRP: BaseRipplePaymentsConfig,
     XLM: BaseStellarPaymentsConfig,
@@ -14,7 +14,7 @@ const baseAssetConfigCodecs = {
     ETH: BaseEthereumPaymentsConfig,
 };
 export const CoinPaymentsBaseAssetConfigs = t.type(baseAssetConfigCodecs, 'CoinPaymentsBaseAssetConfigs');
-const assetConfigCodecs = {
+export const assetConfigCodecs = {
     TRX: TronPaymentsConfig,
     XRP: RipplePaymentsConfig,
     XLM: StellarPaymentsConfig,
@@ -22,11 +22,11 @@ const assetConfigCodecs = {
     ETH: EthereumPaymentsConfig,
 };
 export const CoinPaymentsAssetConfigs = t.type(assetConfigCodecs, 'CoinPaymentsAssetConfigs');
-export const CoinPaymentsConfig = t.partial({
-    ...assetConfigCodecs,
+export const SupportedCoinPaymentsSymbol = t.keyof(assetConfigCodecs, 'SupportedCoinPaymentsSymbol');
+export const CoinPaymentsPartialAssetConfigs = t.partial(baseAssetConfigCodecs, 'CoinPaymentsPartialAssetConfigs');
+export const CoinPaymentsConfig = extendCodec(CoinPaymentsPartialAssetConfigs, {}, {
     network: NetworkTypeT,
     logger: Logger,
     seed: t.string,
 }, 'CoinPaymentsConfig');
-export const SupportedCoinPaymentsSymbol = t.keyof(assetConfigCodecs, 'SupportedCoinPaymentsSymbol');
 //# sourceMappingURL=types.js.map

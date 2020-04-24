@@ -114,6 +114,13 @@ export declare const BitcoinishUnsignedTransaction: t.IntersectionC<[t.Intersect
     targetFeeLevel: t.Type<import("@faast/payments-common").FeeLevel, import("@faast/payments-common").FeeLevel, unknown>;
     targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
     targetFeeRateType: t.UnionC<[t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>, t.NullC]>;
+}>, t.PartialC<{
+    multisigData: t.TypeC<{
+        m: t.NumberC;
+        accountIds: t.ArrayC<t.StringC>;
+        publicKeys: t.ArrayC<t.StringC>;
+        signedAccountIds: t.ArrayC<t.StringC>;
+    }>;
 }>]>, t.TypeC<{
     status: t.LiteralC<import("@faast/payments-common").TransactionStatus.Unsigned>;
     data: t.ObjectC;
@@ -191,6 +198,13 @@ export declare const BitcoinishSignedTransaction: t.IntersectionC<[t.Intersectio
     targetFeeLevel: t.Type<import("@faast/payments-common").FeeLevel, import("@faast/payments-common").FeeLevel, unknown>;
     targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
     targetFeeRateType: t.UnionC<[t.Type<import("@faast/payments-common").FeeRateType, import("@faast/payments-common").FeeRateType, unknown>, t.NullC]>;
+}>, t.PartialC<{
+    multisigData: t.TypeC<{
+        m: t.NumberC;
+        accountIds: t.ArrayC<t.StringC>;
+        publicKeys: t.ArrayC<t.StringC>;
+        signedAccountIds: t.ArrayC<t.StringC>;
+    }>;
 }>]>, t.TypeC<{
     status: t.LiteralC<import("@faast/payments-common").TransactionStatus.Signed>;
     id: t.StringC;

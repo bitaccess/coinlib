@@ -11,6 +11,9 @@ export declare class MultisigBitcoinPayments extends BaseBitcoinPayments<Multisi
     addressType: MultisigAddressType;
     m: number;
     signers: (HdBitcoinPayments | KeyPairBitcoinPayments)[];
+    accountIdToSigner: {
+        [accountId: string]: HdBitcoinPayments | KeyPairBitcoinPayments;
+    };
     constructor(config: MultisigBitcoinPaymentsConfig);
     getFullConfig(): MultisigBitcoinPaymentsConfig;
     getPublicConfig(): MultisigBitcoinPaymentsConfig;
@@ -19,13 +22,11 @@ export declare class MultisigBitcoinPayments extends BaseBitcoinPayments<Multisi
     getSignerPublicKeyBuffers(index: number): Buffer[];
     getPaymentScript(index: number): bitcoin.payments.Payment;
     getAddress(index: number): string;
-    private getMultisigData;
+    private createMultisigData;
     createTransaction(from: number, to: ResolveablePayport, amount: Numeric, options?: CreateTransactionOptions): Promise<BitcoinUnsignedTransaction>;
     createMultiOutputTransaction(from: number, to: PayportOutput[], options?: CreateTransactionOptions): Promise<BitcoinUnsignedTransaction>;
     createSweepTransaction(from: number, to: ResolveablePayport, options?: CreateTransactionOptions): Promise<BitcoinUnsignedTransaction>;
     private deserializeSignedTxPsbt;
-    private getPublicKeysOfSigned;
-    private setMultisigSignersAsSigned;
     combinePartiallySignedTransactions(txs: BitcoinSignedTransaction[]): Promise<BitcoinSignedTransaction>;
     signTransaction(tx: BitcoinUnsignedTransaction): Promise<BitcoinSignedTransaction>;
 }

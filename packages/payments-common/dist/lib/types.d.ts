@@ -175,6 +175,13 @@ export declare const TransactionCommon: t.IntersectionC<[t.TypeC<{
     }>]>>;
 }>]>;
 export declare type TransactionCommon = t.TypeOf<typeof TransactionCommon>;
+export declare const BaseMultisigData: t.TypeC<{
+    m: t.NumberC;
+    accountIds: t.ArrayC<t.StringC>;
+    publicKeys: t.ArrayC<t.StringC>;
+    signedAccountIds: t.ArrayC<t.StringC>;
+}>;
+export declare type BaseMultisigData = t.TypeOf<typeof BaseMultisigData>;
 export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[t.IntersectionC<[t.TypeC<{
     status: t.Type<TransactionStatus, TransactionStatus, unknown>;
     id: t.UnionC<[t.StringC, t.NullC]>;
@@ -212,6 +219,13 @@ export declare const BaseUnsignedTransaction: t.IntersectionC<[t.IntersectionC<[
     targetFeeLevel: t.Type<FeeLevel, FeeLevel, unknown>;
     targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
     targetFeeRateType: t.UnionC<[t.Type<FeeRateType, FeeRateType, unknown>, t.NullC]>;
+}>, t.PartialC<{
+    multisigData: t.TypeC<{
+        m: t.NumberC;
+        accountIds: t.ArrayC<t.StringC>;
+        publicKeys: t.ArrayC<t.StringC>;
+        signedAccountIds: t.ArrayC<t.StringC>;
+    }>;
 }>]>, t.TypeC<{
     status: t.LiteralC<TransactionStatus.Unsigned>;
     data: t.ObjectC;
@@ -254,6 +268,13 @@ export declare const BaseSignedTransaction: t.IntersectionC<[t.IntersectionC<[t.
     targetFeeLevel: t.Type<FeeLevel, FeeLevel, unknown>;
     targetFeeRate: t.UnionC<[t.StringC, t.NullC]>;
     targetFeeRateType: t.UnionC<[t.Type<FeeRateType, FeeRateType, unknown>, t.NullC]>;
+}>, t.PartialC<{
+    multisigData: t.TypeC<{
+        m: t.NumberC;
+        accountIds: t.ArrayC<t.StringC>;
+        publicKeys: t.ArrayC<t.StringC>;
+        signedAccountIds: t.ArrayC<t.StringC>;
+    }>;
 }>]>, t.TypeC<{
     status: t.LiteralC<TransactionStatus.Signed>;
     id: t.StringC;

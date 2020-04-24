@@ -1,5 +1,5 @@
-import { type, partial, string, keyof } from 'io-ts';
-import { Logger, assertType } from '@faast/ts-common';
+import { type, keyof, partial, string } from 'io-ts';
+import { extendCodec, Logger, assertType } from '@faast/ts-common';
 import { NetworkTypeT, NetworkType } from '@faast/payments-common';
 export * from '@faast/payments-common';
 import { BaseTronPaymentsConfig, TronPaymentsConfig, TronPaymentsFactory } from '@faast/tron-payments';
@@ -16,6 +16,7 @@ import * as bitcoinPayments from '@faast/bitcoin-payments';
 export { bitcoinPayments as Bitcoin };
 import { BaseEthereumPaymentsConfig, EthereumPaymentsConfig, EthereumPaymentsFactory } from '@faast/ethereum-payments';
 import { fromSeed } from 'bip32';
+import { mnemonicToSeedSync } from 'bip39';
 
 const baseAssetConfigCodecs = {
     TRX: BaseTronPaymentsConfig,
@@ -33,13 +34,13 @@ const assetConfigCodecs = {
     ETH: EthereumPaymentsConfig,
 };
 const CoinPaymentsAssetConfigs = type(assetConfigCodecs, 'CoinPaymentsAssetConfigs');
-const CoinPaymentsConfig = partial({
-    ...assetConfigCodecs,
+const SupportedCoinPaymentsSymbol = keyof(assetConfigCodecs, 'SupportedCoinPaymentsSymbol');
+const CoinPaymentsPartialAssetConfigs = partial(baseAssetConfigCodecs, 'CoinPaymentsPartialAssetConfigs');
+const CoinPaymentsConfig = extendCodec(CoinPaymentsPartialAssetConfigs, {}, {
     network: NetworkTypeT,
     logger: Logger,
     seed: string,
 }, 'CoinPaymentsConfig');
-const SupportedCoinPaymentsSymbol = keyof(assetConfigCodecs, 'SupportedCoinPaymentsSymbol');
 
 function keysOf(o) {
     return Object.keys(o);
@@ -54,6 +55,28 @@ const PAYMENTS_FACTORIES = {
 };
 const SUPPORTED_ASSET_SYMBOLS = keysOf(PAYMENTS_FACTORIES);
 
+function addSeedIfNecessary(network, seed, config) {
+    const configCodec = assetConfigCodecs[network];
+    let result = config;
+    if (configCodec.is(result)) {
+        return result;
+    }
+    result = {
+        ...config,
+        seed: seed.toString('hex')
+    };
+    if (configCodec.is(result)) {
+        return result;
+    }
+    result = {
+        ...config,
+        hdKey: fromSeed(seed).toBase58(),
+    };
+    if (configCodec.is(result)) {
+        return result;
+    }
+    throw new Error(`Invalid config provided for ${network}`);
+}
 class CoinPayments {
     constructor(config) {
         this.config = config;
@@ -61,15 +84,14 @@ class CoinPayments {
         assertType(CoinPaymentsConfig, config);
         this.network = config.network || NetworkType.Mainnet;
         this.logger = config.logger || console;
+        const seedBuffer = config.seed && (config.seed.includes(' ')
+            ? mnemonicToSeedSync(config.seed)
+            : Buffer.from(config.seed, 'hex'));
         const accountIdSet = new Set();
         SUPPORTED_ASSET_SYMBOLS.forEach((assetSymbol) => {
             let assetConfig = config[assetSymbol];
-            if (!assetConfig && config.seed) {
-                const xprv = fromSeed(Buffer.from(config.seed, 'hex')).toBase58();
-                assetConfig = {
-                    seed: config.seed,
-                    hdKey: xprv,
-                };
+            if (seedBuffer) {
+                assetConfig = addSeedIfNecessary(assetSymbol, seedBuffer, assetConfig || {});
             }
             if (!assetConfig) {
                 return;
@@ -81,6 +103,7 @@ class CoinPayments {
             if (config.logger) {
                 assetConfig.logger = config.logger;
             }
+            assertType(assetConfigCodecs[assetSymbol], assetConfig, `${assetSymbol} config`);
             const assetPayments = PAYMENTS_FACTORIES[assetSymbol].forConfig(assetConfig);
             this.payments[assetSymbol] = assetPayments;
             assetPayments.getAccountIds().forEach((id) => accountIdSet.add(id));
@@ -100,7 +123,14 @@ class CoinPayments {
     }
     getPublicConfig() {
         return keysOf(this.payments).reduce((o, k) => {
-            o[k] = this.forAsset(k).getPublicConfig();
+            const publicConfig = this.forAsset(k).getPublicConfig();
+            if (publicConfig.seed) {
+                delete publicConfig.seed;
+            }
+            if (publicConfig.hdKey && publicConfig.hdKey.startsWith('xprv')) {
+                delete publicConfig.hdKey;
+            }
+            o[k] = publicConfig;
             return o;
         }, {});
     }
@@ -122,5 +152,5 @@ class CoinPayments {
     }
 }
 
-export { CoinPayments, CoinPaymentsAssetConfigs, CoinPaymentsBaseAssetConfigs, CoinPaymentsConfig, PAYMENTS_FACTORIES, SUPPORTED_ASSET_SYMBOLS, SupportedCoinPaymentsSymbol };
+export { CoinPayments, CoinPaymentsAssetConfigs, CoinPaymentsBaseAssetConfigs, CoinPaymentsConfig, CoinPaymentsPartialAssetConfigs, PAYMENTS_FACTORIES, SUPPORTED_ASSET_SYMBOLS, SupportedCoinPaymentsSymbol, assetConfigCodecs, baseAssetConfigCodecs };
 //# sourceMappingURL=index.es.js.map
