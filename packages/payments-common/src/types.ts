@@ -205,6 +205,21 @@ export const TransactionCommon = requiredOptionalCodec(
 )
 export type TransactionCommon = t.TypeOf<typeof TransactionCommon>
 
+export const BaseMultisigData = t.type(
+  {
+    m: t.number,
+
+    // Parallel arrays
+    accountIds: t.array(t.string),
+    publicKeys: t.array(t.string),
+
+    // Accounts that have already signed (not parallel)
+    signedAccountIds: t.array(t.string),
+  },
+  'BitcoinMultisigData',
+)
+export type BaseMultisigData = t.TypeOf<typeof BaseMultisigData>
+
 const UnsignedCommon = extendCodec(
   TransactionCommon,
   {
@@ -214,6 +229,9 @@ const UnsignedCommon = extendCodec(
     targetFeeLevel: FeeLevelT,
     targetFeeRate: nullable(t.string),
     targetFeeRateType: nullable(FeeRateTypeT),
+  },
+  {
+    multisigData: BaseMultisigData,
   },
   'UnsignedCommon',
 )
