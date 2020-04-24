@@ -147,19 +147,33 @@ describe('CoinPayments', () => {
       seed: 'elite symbol tent speed figure sleep scatter pizza grab marriage retire cargo panda baby pelican'
     })
     describe('getPublicConfig', () => {
-      it('returns all assets', () => {
+      it('returns epected config', () => {
         const publicConfig = cp.getPublicConfig()
-        expect(Object.keys(publicConfig).sort()).toEqual(SUPPORTED_ASSET_SYMBOLS.sort())
-        expect(publicConfig.logger).toBeUndefined()
-        expect(publicConfig.network).toBeUndefined()
-        expect(publicConfig.seed).toBeUndefined()
-        for (let assetSymbol of SUPPORTED_ASSET_SYMBOLS) {
-          const assetConfig: any = publicConfig[assetSymbol]
-          expect(assetConfig.seed).toBeUndefined()
-          if (assetConfig.hdKey) {
-            expect(assetConfig.hdKey).toMatch(/^xpub/)
-          }
-        }
+        expect(publicConfig).toEqual({
+          'BTC': {
+            'addressType': 'p2wpkh',
+            'derivationPath': "m/84'/0'/0'",
+            'hdKey': 'xpub6C5wPZ5JwqM6zk1nrdycxB5a5PokXWCH1iXWWJgq1bLdNTKjKbSZS2XA4WFSLqyicg7moaGv5wTJCpy6Tkxi9EZj9HFno9FHDTsRMgVGYm2',
+            'network': 'mainnet',
+          },
+          'ETH': {
+            'hdKey': 'xpub6FUQp5E3GHcwJ8qsG198LiRcfyJFqy4txgxmzqLXiVSKFTXbn4gU9QcxDSy9NyTrc3EDXfsJVgnfrBgvQUoY3xFbazdgb3WCp2DTSfLUEJE',
+            'network': 'mainnet',
+          },
+          'TRX': {
+            'hdKey': 'xpub6DBzZS2xZBECBC9JR9xGk1t43j1HDEWM7e4YB4BLXek5kLejkwkmHYmqmoLHNsq5XdzgzJJQ853gxnrEgyB2HiTcPLz4tXAjrBpm41TgcJj',
+            'network': 'mainnet',
+          },
+          'XLM': {
+            'depositAccount': 'GC3FMVBXBKMM7GSO44AZSJVNKMEEQIAYXBOVSPHNPUL7LFT354GODSGK',
+            'hotAccount': 'GCV4BPGIUMRLXBXC2OWO53COWHE376WWCWODJXEKLD22KV2CFDIV2K2X',
+            'network': 'mainnet',
+          },
+          'XRP': {
+            'hdKey': 'xpub6CTiddibsS5NpjAwaqapBXWayhkyRazX3KL6EbyvX9fhjd8zrseV2L1QEgR9A89cnfVgRUJWKtDHmawjgXZdb7QcPiJw7fPpt3bdDDnE8Am',
+            'network': 'mainnet',
+          },
+        })
       })
     })
     describe('isAssetConfigured', () => {
