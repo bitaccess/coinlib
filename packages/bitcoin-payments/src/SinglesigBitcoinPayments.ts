@@ -72,10 +72,13 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
       return this.signMultisigTransaction(tx)
     }
     const paymentTx = tx.data as BitcoinishPaymentTx
-    if (!paymentTx.rawHex) {
-      throw new Error('Cannot sign bitcoin tx without rawHex')
+    const { rawHex } = paymentTx
+    let psbt: bitcoin.Psbt
+    if (rawHex) {
+      psbt = bitcoin.Psbt.fromHex(rawHex, this.psbtOptions)
+    } else {
+      psbt = await this.buildPsbt(paymentTx, tx.fromIndex)
     }
-    const psbt = bitcoin.Psbt.fromHex(paymentTx.rawHex, this.psbtOptions)
 
     const keyPair = this.getKeyPair(tx.fromIndex)
     psbt.signAllInputs(keyPair)

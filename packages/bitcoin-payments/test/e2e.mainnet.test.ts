@@ -184,6 +184,29 @@ describeAll('e2e mainnet', () => {
     expect(tx.inputUtxos).toBeTruthy()
   })
 
+  it('can sign transaction', async () => {
+    const tx = await payments.createSweepTransaction(0, 3)
+    expect(tx).toBeDefined()
+    const signedTx = await payments.signTransaction(tx)
+    expect(signedTx).toBeDefined()
+    expect(signedTx.status).toBe(TransactionStatus.Signed)
+    expect(signedTx.data.hex).toMatch(/^[a-f0-9]+$/)
+    expect(signedTx.data.partial).toBe(false)
+    expect(signedTx.data.unsignedTxHash).toMatch(/^[a-f0-9]+$/)
+  })
+
+  it('can sign transaction without rawHex', async () => {
+    const tx = await payments.createSweepTransaction(0, 3)
+    expect(tx).toBeDefined()
+    tx.data.rawHex = undefined
+    const signedTx = await payments.signTransaction(tx)
+    expect(signedTx).toBeDefined()
+    expect(signedTx.status).toBe(TransactionStatus.Signed)
+    expect(signedTx.data.hex).toMatch(/^[a-f0-9]+$/)
+    expect(signedTx.data.partial).toBe(false)
+    expect(signedTx.data.unsignedTxHash).toMatch(/^[a-f0-9]+$/)
+  })
+
   async function pollUntilEnded(signedTx: BitcoinSignedTransaction) {
     const txId = signedTx.id
     logger.log('polling until ended', txId)
