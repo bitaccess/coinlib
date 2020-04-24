@@ -1,7 +1,9 @@
 import { CoinPayments, SUPPORTED_ASSET_SYMBOLS } from '../src'
 import { HdTronPayments, TronPaymentsFactory } from '@faast/tron-payments'
 import { omit } from 'lodash'
-import { NetworkType } from '@faast/payments-common/src/types'
+import { NetworkType } from '@faast/payments-common'
+import { AddressType } from '@faast/bitcoin-payments'
+import { AddressTypeT } from '../../bitcoin-payments/src/types';
 
 const TRX_XPUB = 'xpub6BfusYhSxkNBEVoXKgecUo69gdz3ghgpa1oHBxpB18Q8rGGQSEfPpfEGYFGg5x6sS8oRu1mMmb3PhDLekpCoLY5bSwJqDAnrq4pzFVSzH3m'
 const XLM_HOT = 'GB6NPF4YDMGKDOOOIJXTDGYZGTXBF5DBENSR44QTHYT7IVEF7BYYYOCS'
@@ -110,14 +112,23 @@ describe('CoinPayments', () => {
     const cp = new CoinPayments({
       network: NetworkType.Mainnet,
       logger: console,
-      seed: 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
+      seed: 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+      BTC: { addressType: AddressType.SegwitP2SH },
     })
     describe('getPublicConfig', () => {
       it('returns all assets', () => {
         const publicConfig = cp.getPublicConfig()
         expect(Object.keys(publicConfig).sort()).toEqual(SUPPORTED_ASSET_SYMBOLS.sort())
-        expect(publicConfig.logger).toBe(undefined)
-        expect(publicConfig.network).toBe(undefined)
+        expect(publicConfig.logger).toBeUndefined()
+        expect(publicConfig.network).toBeUndefined()
+        expect(publicConfig.seed).toBeUndefined()
+        for (let assetSymbol of SUPPORTED_ASSET_SYMBOLS) {
+          const assetConfig: any = publicConfig[assetSymbol]
+          expect(assetConfig.seed).toBeUndefined()
+          if (assetConfig.hdKey) {
+            expect(assetConfig.hdKey).toMatch(/^xpub/)
+          }
+        }
       })
     })
     describe('isAssetConfigured', () => {
@@ -126,6 +137,45 @@ describe('CoinPayments', () => {
           expect(cp.isAssetConfigured(s)).toBe(true)
         })
       })
+    })
+  })
+
+  describe('instance mnemonic', () => {
+    const cp = new CoinPayments({
+      network: NetworkType.Mainnet,
+      logger: console,
+      seed: 'elite symbol tent speed figure sleep scatter pizza grab marriage retire cargo panda baby pelican'
+    })
+    describe('getPublicConfig', () => {
+      it('returns all assets', () => {
+        const publicConfig = cp.getPublicConfig()
+        expect(Object.keys(publicConfig).sort()).toEqual(SUPPORTED_ASSET_SYMBOLS.sort())
+        expect(publicConfig.logger).toBeUndefined()
+        expect(publicConfig.network).toBeUndefined()
+        expect(publicConfig.seed).toBeUndefined()
+        for (let assetSymbol of SUPPORTED_ASSET_SYMBOLS) {
+          const assetConfig: any = publicConfig[assetSymbol]
+          expect(assetConfig.seed).toBeUndefined()
+          if (assetConfig.hdKey) {
+            expect(assetConfig.hdKey).toMatch(/^xpub/)
+          }
+        }
+      })
+    })
+    describe('isAssetConfigured', () => {
+      it('returns true for all supported assets', () => {
+        SUPPORTED_ASSET_SYMBOLS.forEach((s) => {
+          expect(cp.isAssetConfigured(s)).toBe(true)
+        })
+      })
+    })
+  })
+
+  describe('invalid config', () => {
+    it('throws validation error', () => {
+      expect(() => new CoinPayments({
+        BTC: { addressType: AddressType.SegwitP2SH }
+      })).toThrow('Invalid BTC config')
     })
   })
 })
