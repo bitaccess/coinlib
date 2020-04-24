@@ -1,7 +1,15 @@
 {
   "extends": "./../../tsconfig.json",
   "compilerOptions": {
-    "baseUrl": "."
+    "baseUrl": ".",
+    "typeRoots": [
+      "./node_modules/@types",
+      "../tron-payments/src/@types",
+      "../ripple-payments/src/@types",
+      "../stellar-payments/src/@types",
+      "../bitcoin-payments/src/@types",
+      "../ethereum-payments/src/@types",
+    ]
   },
   "exclude": ["node_modules", "dist"]
 }
