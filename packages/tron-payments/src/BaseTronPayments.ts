@@ -90,6 +90,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
         spendableBalance: spendableBalance.toString(),
         sweepable,
         requiresActivation: false,
+        minimumBalance: String(MIN_BALANCE_TRX),
       }
     } catch (e) {
       throw toError(e)

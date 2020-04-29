@@ -147,6 +147,7 @@ function runHardcodedPublicKeyTests(tp: HdTronPayments, config: HdTronPaymentsCo
       spendableBalance: '0',
       sweepable: false,
       requiresActivation: false,
+      minimumBalance: '0.1',
     })
   })
   it('get a balance using an address', async () => {
@@ -156,6 +157,7 @@ function runHardcodedPublicKeyTests(tp: HdTronPayments, config: HdTronPaymentsCo
       spendableBalance: '0',
       sweepable: false,
       requiresActivation: false,
+      minimumBalance: '0.1',
     })
   })
   it('should not throw for unused address', async () => {
@@ -165,6 +167,7 @@ function runHardcodedPublicKeyTests(tp: HdTronPayments, config: HdTronPaymentsCo
       spendableBalance: '0',
       sweepable: false,
       requiresActivation: false,
+      minimumBalance: '0.1',
     })
   })
 
@@ -256,6 +259,7 @@ describe('HdTronPayments', () => {
           spendableBalance: '2.1',
           sweepable: true,
           requiresActivation: false,
+          minimumBalance: '0.1',
         })
       })
       it('get correct balance for address 0', async () => {
@@ -265,6 +269,7 @@ describe('HdTronPayments', () => {
           spendableBalance: '2.1',
           sweepable: true,
           requiresActivation: false,
+          minimumBalance: '0.1',
         })
       })
 

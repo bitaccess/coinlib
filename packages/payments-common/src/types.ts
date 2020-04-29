@@ -152,13 +152,16 @@ export const ResolvedFeeOption = t.type({
 }, 'ResolvedFeeOption')
 export type ResolvedFeeOption = t.TypeOf<typeof ResolvedFeeOption>
 
-export const BalanceResult = t.type(
+export const BalanceResult = requiredOptionalCodec(
   {
     confirmedBalance: t.string, // balance with at least 1 confirmation
     unconfirmedBalance: t.string, // balance that is pending confirmation
     spendableBalance: t.string, // balance that can be spent (ie not locked in min balance)
     requiresActivation: t.boolean, // true if an address doesn't have min balance
     sweepable: t.boolean, // balance is high enough to be swept
+  },
+  {
+    minimumBalance: t.string,
   },
   'BalanceResult',
 )

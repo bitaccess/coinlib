@@ -110,6 +110,7 @@ describe('e2e', () => {
         spendableBalance: '0',
         sweepable: false,
         requiresActivation: true,
+        minimumBalance: '20',
       })
     })
   })

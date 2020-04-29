@@ -204,6 +204,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
           spendableBalance: '0',
           sweepable: false,
           requiresActivation: true,
+          minimumBalance: String(MIN_BALANCE),
         }
       }
       throw e
@@ -212,13 +213,14 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     const xrpBalance = balances.find(({ currency }) => currency === 'XRP')
     const xrpAmount = xrpBalance && xrpBalance.value ? xrpBalance.value : '0'
     const confirmedBalance = new BigNumber(xrpAmount)
-    const spendableBalance = confirmedBalance.minus(MIN_BALANCE)
+    const spendableBalance = BigNumber.max(0, confirmedBalance.minus(MIN_BALANCE))
     return {
       confirmedBalance: confirmedBalance.toString(),
       unconfirmedBalance: '0',
       spendableBalance: spendableBalance.toString(),
       sweepable: this.isSweepableAddressBalance(xrpAmount),
       requiresActivation: confirmedBalance.lt(MIN_BALANCE),
+      minimumBalance: String(MIN_BALANCE),
     }
   }
 

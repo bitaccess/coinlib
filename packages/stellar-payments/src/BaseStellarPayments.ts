@@ -181,6 +181,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
         spendableBalance: '0',
         sweepable: false,
         requiresActivation: true,
+        minimumBalance: String(MIN_BALANCE),
       }
     }
     const balanceLine = accountInfo.balances.find((line) => line.asset_type === 'native')
@@ -192,7 +193,8 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       unconfirmedBalance: '0',
       spendableBalance: spendableBalance.toString(),
       sweepable: this.isSweepableAddressBalance(amountMain),
-      requiresActivation: false,
+      requiresActivation: amountMain.lt(MIN_BALANCE),
+      minimumBalance: String(MIN_BALANCE),
     }
   }
 
