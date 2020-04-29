@@ -293,14 +293,18 @@ function runHardcodedPublicKeyTests(
     expect(await payments.getBalance(1)).toEqual({
       confirmedBalance: '0',
       unconfirmedBalance: '0',
+      spendableBalance: '0',
       sweepable: false,
+      requiresActivation: false,
     })
   })
   it('get a balance using an address', async () => {
     expect(await payments.getBalance({ address: addresses[0] })).toEqual({
       confirmedBalance: '0',
       unconfirmedBalance: '0',
+      spendableBalance: '0',
       sweepable: false,
+      requiresActivation: false,
     })
   })
 }

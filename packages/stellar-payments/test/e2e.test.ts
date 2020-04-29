@@ -2,6 +2,7 @@ import { TransactionStatus, BalanceActivity, NetworkType, GetBalanceActivityOpti
 import BigNumber from 'bignumber.js'
 import { sortBy } from 'lodash'
 import StellarHD from 'stellar-hd-wallet'
+import crypto from 'crypto'
 
 import {
   isValidAddress, StellarSignedTransaction, AccountStellarPayments,
@@ -21,6 +22,7 @@ jest.setTimeout(60 * 1000)
 
 const FRESH_INDEX = Math.floor(Date.now() / 1000) - 1573074564
 const FRESH_ADDRESS = StellarHD.fromSeed('1234').getPublicKey(FRESH_INDEX)
+const UNACTIVATED_ADDRESS = StellarHD.fromSeed(crypto.randomBytes(8)).getPublicKey(0)
 
 describe('e2e', () => {
   let testsComplete: boolean = false
@@ -102,6 +104,15 @@ describe('e2e', () => {
       expect(Number.parseInt(balances.confirmedBalance)).toBeGreaterThan(0)
       expect(balances.unconfirmedBalance).toBe('0')
       expect(balances.sweepable).toBe(true)
+    })
+    it('should return when account not activated', async () => {
+      expect(await payments.getBalance(UNACTIVATED_ADDRESS)).toEqual({
+        confirmedBalance: '0',
+        unconfirmedBalance: '0',
+        spendableBalance: '0',
+        sweepable: false,
+        requiresActivation: true,
+      })
     })
   })
 
@@ -328,40 +339,47 @@ describe('e2e', () => {
 
   jest.setTimeout(30 * 1000)
 
-  it('should emit expected balance activities', async () => {
-    const hotActivity = await getExpectedHotActivities()
-    const depositActivity = await getExpectedDepositActivities()
-    expectBalanceActivities(emittedBalanceActivities, hotActivity.concat(depositActivity))
-  })
+  describe('StellarBalanceMonitor', () => {
+    it('should emit expected balance activities', async () => {
+      const hotActivity = await getExpectedHotActivities()
+      const depositActivity = await getExpectedDepositActivities()
+      expectBalanceActivities(emittedBalanceActivities, hotActivity.concat(depositActivity))
+    })
 
-  it('should be able to retrieve the deposit account balance activities', async () => {
-    const actual = await accumulateRetrievedActivities(payments.depositSignatory.address)
-    const expected = await getExpectedDepositActivities()
-    expectBalanceActivities(actual, expected)
-  })
+    it('should be able to retrieve the deposit account balance activities', async () => {
+      const actual = await accumulateRetrievedActivities(payments.depositSignatory.address)
+      const expected = await getExpectedDepositActivities()
+      expectBalanceActivities(actual, expected)
+    })
 
-  it('should be able to retrieve the hot account balance activities', async () => {
-    const actual = await accumulateRetrievedActivities(payments.hotSignatory.address)
-    const expected = await getExpectedHotActivities()
-    expectBalanceActivities(actual, expected)
-  })
+    it('should be able to retrieve the hot account balance activities', async () => {
+      const actual = await accumulateRetrievedActivities(payments.hotSignatory.address)
+      const expected = await getExpectedHotActivities()
+      expectBalanceActivities(actual, expected)
+    })
 
-  it('should retrieve nothing for a range without activity', async () => {
-    const txs = [
-      await sweepTxPromise, await sendTxPromise, await sendFreshTxPromise
-    ]
-    const from = BigNumber.max(...txs.map((tx) => tx.confirmationNumber || startLedgerVersion))
-      .plus(1)
-    const actual = await accumulateRetrievedActivities(payments.hotSignatory.address, { from })
-    expectBalanceActivities(actual, [])
-  })
+    it('should retrieve nothing for a range without activity', async () => {
+      const txs = [
+        await sweepTxPromise, await sendTxPromise, await sendFreshTxPromise
+      ]
+      const from = BigNumber.max(...txs.map((tx) => tx.confirmationNumber || startLedgerVersion))
+        .plus(1)
+      const actual = await accumulateRetrievedActivities(payments.hotSignatory.address, { from })
+      expectBalanceActivities(actual, [])
+    })
 
-  it('should be able to retrieve more activities than page limit', async () => {
-    const actual = await accumulateRetrievedActivities('GDHMECSDSY3U66WAZMO3RFJXTNCGCFFVHINONHTWU2VPHHRFSBKHWMOL', {
-      from: 24895758,
-      to: 26463647,
-    }, monitorMainnet)
-    expect(actual.length).toBeGreaterThan(10)
+    it('should be able to retrieve more activities than page limit', async () => {
+      const actual = await accumulateRetrievedActivities('GDHMECSDSY3U66WAZMO3RFJXTNCGCFFVHINONHTWU2VPHHRFSBKHWMOL', {
+        from: 24895758,
+        to: 26463647,
+      }, monitorMainnet)
+      expect(actual.length).toBeGreaterThan(10)
+    })
+
+    it('should not throw for unactivated address', async () => {
+      const activities = await accumulateRetrievedActivities(UNACTIVATED_ADDRESS)
+      expect(activities).toEqual([])
+    })
   })
 
   it('should create tx correctly when sequenceNumber option provided', async () => {

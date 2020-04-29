@@ -21,7 +21,7 @@ export const EXTRA_ID_REGEX = /^[0-9]+$/
 export const XPUB_REGEX = /^xpub[a-km-zA-HJ-NP-Z1-9]{100,108}$/
 export const XPRV_REGEX = /^xprv[a-km-zA-HJ-NP-Z1-9]{100,108}$/
 
-export const NOT_FOUND_ERRORS = ['MissingLedgerHistoryError', 'NotFoundError', 'Account not found.']
+export const NOT_FOUND_ERRORS = ['MissingLedgerHistoryError', 'NotFoundError', 'Account not found.', 'actNotFound']
 
 export const DEFAULT_NETWORK = NetworkType.Mainnet
 export const DEFAULT_MAINNET_SERVER = 'wss://s1.ripple.com'

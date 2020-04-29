@@ -177,11 +177,14 @@ implements BasePayments
     const payport = await this.resolvePayport(resolveablePayport)
     const balance = await this.eth.getBalance(payport.address)
     const sweepable = await this.isSweepableBalance(balance)
+    const confirmedBalance = this.toMainDenomination(balance).toString()
 
     return {
-      confirmedBalance: this.toMainDenomination(balance),
+      confirmedBalance,
       unconfirmedBalance: '0',
+      spendableBalance: confirmedBalance,
       sweepable,
+      requiresActivation: false,
     }
   }
 

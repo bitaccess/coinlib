@@ -14,6 +14,8 @@ import { RippleBalanceMonitorConfig } from './types'
 import { assertValidAddress } from './helpers'
 import { RippleConnected } from './RippleConnected'
 import BigNumber from 'bignumber.js'
+import { isMatchingError } from '../../payments-common/src/utils';
+import { NOT_FOUND_ERRORS } from './constants';
 
 export class RippleBalanceMonitor extends RippleConnected implements BalanceMonitor {
   constructor(public config: RippleBalanceMonitorConfig) {
@@ -105,7 +107,15 @@ export class RippleBalanceMonitor extends RippleConnected implements BalanceMoni
         getTransactionOptions.minLedgerVersion = from.toNumber()
         getTransactionOptions.maxLedgerVersion = to.toNumber()
       }
-      transactions = await this._retryDced(() => this.api.getTransactions(address, getTransactionOptions))
+      try {
+        transactions = await this._retryDced(() => this.api.getTransactions(address, getTransactionOptions))
+      } catch (e) {
+        if (isMatchingError(e, NOT_FOUND_ERRORS)) {
+          this.logger.debug(`Address ${address} not found`)
+          break
+        }
+        throw e
+      }
       this.logger.debug(`retrieved ripple txs for ${address}`, transactions)
       for (let tx of transactions) {
         if ((lastTx && tx.id === lastTx.id) || from.gte(tx.outcome.ledgerVersion) || to.lte(tx.outcome.ledgerVersion)) {

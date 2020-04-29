@@ -192,16 +192,33 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     if (!isNil(extraId)) {
       throw new Error(`Cannot getBalance of ripple payport with extraId ${extraId}, use BalanceMonitor instead`)
     }
-    const balances = await this._retryDced(() => this.api.getBalances(address))
+    let balances
+    try {
+      balances = await this._retryDced(() => this.api.getBalances(address))
+    } catch (e) {
+      if (isMatchingError(e, NOT_FOUND_ERRORS)) {
+        this.logger.debug(`Address ${address} not found`)
+        return {
+          confirmedBalance: '0',
+          unconfirmedBalance: '0',
+          spendableBalance: '0',
+          sweepable: false,
+          requiresActivation: true,
+        }
+      }
+      throw e
+    }
     this.logger.debug(`rippleApi.getBalance ${address}`, balances)
     const xrpBalance = balances.find(({ currency }) => currency === 'XRP')
     const xrpAmount = xrpBalance && xrpBalance.value ? xrpBalance.value : '0'
-    // Subtract locked up min balance from result to avoid confusion about what is actually spendable
-    const confirmedBalance = new BigNumber(xrpAmount).minus(MIN_BALANCE)
+    const confirmedBalance = new BigNumber(xrpAmount)
+    const spendableBalance = confirmedBalance.minus(MIN_BALANCE)
     return {
       confirmedBalance: confirmedBalance.toString(),
       unconfirmedBalance: '0',
+      spendableBalance: spendableBalance.toString(),
       sweepable: this.isSweepableAddressBalance(xrpAmount),
+      requiresActivation: confirmedBalance.lt(MIN_BALANCE),
     }
   }
 
@@ -332,7 +349,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     }
   }
 
-  private async resolvePayportBalance(
+  private async resolvePayportSpendableBalance(
     fromPayport: Payport,
     options: RippleCreateTransactionOptions,
   ): Promise<BigNumber> {
@@ -369,40 +386,41 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     const maxLedgerVersionOffset =
       options.maxLedgerVersionOffset || this.config.maxLedgerVersionOffset || DEFAULT_MAX_LEDGER_VERSION_OFFSET
     const amountString = amount.toString()
-    const fromAddressBalances = await this.getBalance({ address: fromAddress })
-    const fromAddressBalance = new BigNumber(fromAddressBalances.confirmedBalance).plus(MIN_BALANCE)
-    if (fromAddressBalance.lt(MIN_BALANCE)) {
+    const {
+      requiresActivation: fromAddressRequiresActivation,
+      confirmedBalance,
+    } = await this.getBalance({ address: fromAddress })
+    if (fromAddressRequiresActivation) {
       throw new Error(
-        `Cannot send from ripple address that has less than ${MIN_BALANCE} XRP: ${fromAddress} (${fromAddressBalance} XRP)`,
+        `Cannot send from unactivated ripple address ${fromAddress} - min balance of `
+          + `${MIN_BALANCE} XRP required (${confirmedBalance} XRP)`,
       )
     }
     const totalValue = amount.plus(feeMain)
-    if (fromAddressBalance.minus(totalValue).lt(MIN_BALANCE)) {
+    const balanceAfterTx = new BigNumber(confirmedBalance).minus(totalValue)
+    if (balanceAfterTx.lt(MIN_BALANCE)) {
+      const reason = balanceAfterTx.lt(0)
+        ? 'due to insufficient balance'
+        : `because it would reduce the balance below the ${MIN_BALANCE} XRP minimum`
       throw new Error(
-        `Cannot send ${amountString} XRP with fee of ${feeMain} XRP because it would reduce the balance below ` +
-          `the minimum required balance of ${MIN_BALANCE} XRP: ${fromAddress} (${fromAddressBalance} XRP)`,
+        `Cannot send ${amountString} XRP with fee of ${feeMain} XRP from ${fromAddress} `
+          + `${reason} (${confirmedBalance} XRP)`,
       )
     }
     if (typeof fromExtraId === 'string' && totalValue.gt(payportBalance)) {
       throw new Error(
         `Insufficient payport balance of ${payportBalance} XRP to send ${amountString} XRP ` +
-          `with fee of ${feeMain} XRP: ${serializePayport(fromPayport)}`,
+          `with fee of ${feeMain} XRP from ${serializePayport(fromPayport)}`,
       )
     }
-    let toAddressBalance
-    try {
-      const toAddressBalances = await this.getBalance({ address: toAddress })
-      toAddressBalance = new BigNumber(toAddressBalances.confirmedBalance).plus(MIN_BALANCE)
-    } catch (e) {
-      if (isMatchingError(e, NOT_FOUND_ERRORS)) {
-        toAddressBalance = new BigNumber(0)
-      } else {
-        throw e
-      }
-    }
-    if (toAddressBalance.lt(MIN_BALANCE) && amount.lt(MIN_BALANCE)) {
+    const {
+      requiresActivation: toAddressRequiresActivation,
+      confirmedBalance: toAddressBalance,
+    } = await this.getBalance({ address: toAddress })
+    if (toAddressRequiresActivation && amount.lt(MIN_BALANCE)) {
       throw new Error(
-        `Cannot send ${amountString} XRP to recipient ${toAddress} because address requires a balance of at least ${MIN_BALANCE} XRP to receive funds`
+        `Cannot send ${amountString} XRP to recipient ${toAddress} because address requires `
+          + `a balance of at least ${MIN_BALANCE} XRP to receive funds (${toAddressBalance} XRP)`
       )
     }
     const preparedTx = await this._retryDced(() =>
@@ -459,7 +477,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
   ): Promise<RippleUnsignedTransaction> {
     const fromTo = await this.resolveFromTo(from, to)
     const feeOption = await this.resolveFeeOption(options)
-    const payportBalance = await this.resolvePayportBalance(fromTo.fromPayport, options)
+    const payportBalance = await this.resolvePayportSpendableBalance(fromTo.fromPayport, options)
     const amountBn = new BigNumber(amount)
     return this.doCreateTransaction(fromTo, feeOption, amountBn, payportBalance, options)
   }
@@ -471,12 +489,12 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
   ): Promise<RippleUnsignedTransaction> {
     const fromTo = await this.resolveFromTo(from, to)
     const feeOption = await this.resolveFeeOption(options)
-    const payportBalance = await this.resolvePayportBalance(fromTo.fromPayport, options)
+    const payportBalance = await this.resolvePayportSpendableBalance(fromTo.fromPayport, options)
     let amountBn = payportBalance.minus(feeOption.feeMain)
     if (amountBn.lt(0)) {
       const fromPayport = { address: fromTo.fromAddress, extraId: fromTo.fromExtraId }
       throw new Error(
-        `Insufficient balance to sweep from ripple payport with fee of ${feeOption.feeMain} XRP: ` +
+        `Insufficient balance to sweep with fee of ${feeOption.feeMain} XRP from ripple payport ` +
           `${serializePayport(fromPayport)} (${payportBalance} XRP)`,
       )
     }

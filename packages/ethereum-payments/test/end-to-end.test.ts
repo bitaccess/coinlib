@@ -79,12 +79,16 @@ describe('end to end tests', () => {
       expect(balanceSource).toStrictEqual({
         confirmedBalance: expectedBalance,
         unconfirmedBalance: '0',
-        sweepable: true
+        spendableBalance: expectedBalance,
+        sweepable: true,
+        requiresActivation: false,
       })
       expect(balanceTarget).toStrictEqual({
         confirmedBalance: '0.5',
         unconfirmedBalance: '0',
-        sweepable: true
+        spendableBalance: '0.5',
+        sweepable: true,
+        requiresActivation: false,
       })
     })
 
@@ -104,12 +108,26 @@ describe('end to end tests', () => {
       expect(balanceSource).toStrictEqual({
         confirmedBalance: '0',
         unconfirmedBalance: '0',
-        sweepable: false
+        spendableBalance: '0',
+        sweepable: false,
+        requiresActivation: false,
       })
       expect(balanceTarget).toStrictEqual({
         confirmedBalance: expectedSweepedBalance,
         unconfirmedBalance: '0',
-        sweepable: true
+        spendableBalance: expectedSweepedBalance,
+        sweepable: true,
+        requiresActivation: false,
+      })
+    })
+
+    test('can get balance of unused address', async () => {
+      expect(await hd.getBalance(12345678)).toEqual({
+        confirmedBalance: '0',
+        unconfirmedBalance: '0',
+        spendableBalance: '0',
+        sweepable: false,
+        requiresActivation: false,
       })
     })
   })

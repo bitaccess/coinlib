@@ -26,7 +26,7 @@ import {
   BaseTronPaymentsConfig,
   TronWebTransaction,
 } from './types'
-import { toBaseDenominationNumber, isValidAddress } from './helpers'
+import { toBaseDenominationNumber, isValidAddress, toMainDenominationBigNumber } from './helpers'
 import { toError } from './utils'
 import {
   DEFAULT_FULL_NODE,
@@ -39,6 +39,7 @@ import {
   TX_EXPIRATION_EXTENSION_SECONDS,
 } from './constants'
 import { TronPaymentsUtils } from './TronPaymentsUtils'
+import BigNumber from 'bignumber.js';
 
 export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> extends TronPaymentsUtils
   implements
@@ -81,10 +82,14 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
       const balanceSun = await this.tronweb.trx.getBalance(payport.address)
       this.logger.debug(`trx.getBalance(${payport.address}) -> ${balanceSun}`)
       const sweepable = this.canSweepBalance(balanceSun)
+      const confirmedBalance = toMainDenominationBigNumber(balanceSun)
+      const spendableBalance = BigNumber.max(0, confirmedBalance.minus(MIN_BALANCE_TRX))
       return {
-        confirmedBalance: this.toMainDenomination(balanceSun).toString(),
+        confirmedBalance: confirmedBalance.toString(),
         unconfirmedBalance: '0',
+        spendableBalance: spendableBalance.toString(),
         sweepable,
+        requiresActivation: false,
       }
     } catch (e) {
       throw toError(e)

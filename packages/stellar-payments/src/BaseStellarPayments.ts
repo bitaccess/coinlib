@@ -150,7 +150,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       accountInfo = await this._retryDced(() => this.getApi().loadAccount(address))
     } catch (e) {
       if (isMatchingError(e, NOT_FOUND_ERRORS)) {
-        this.logger.debug('api.loadAccount account not found', address)
+        this.logger.debug(`Address ${address} not found`)
         return null
       }
       throw e
@@ -173,16 +173,26 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     if (!isNil(extraId)) {
       throw new Error(`Cannot getBalance of stellar payport with extraId ${extraId}, use BalanceMonitor instead`)
     }
-    const accountInfo = await this.loadAccountOrThrow(address)
+    const accountInfo = await this.loadAccount(address)
+    if (accountInfo === null) {
+      return {
+        confirmedBalance: '0',
+        unconfirmedBalance: '0',
+        spendableBalance: '0',
+        sweepable: false,
+        requiresActivation: true,
+      }
+    }
     const balanceLine = accountInfo.balances.find((line) => line.asset_type === 'native')
     const amountMain = new BigNumber(balanceLine && balanceLine.balance ? balanceLine.balance : '0')
-    // Subtract locked up min balance from result to avoid confusion about what is actually spendable
-    const confirmedBalance = amountMain.minus(MIN_BALANCE)
-    this.logger.debug(`getBalance ${address}/${extraId}`, confirmedBalance)
+    this.logger.debug(`getBalance ${address}/${extraId}`, amountMain)
+    const spendableBalance = amountMain.minus(MIN_BALANCE)
     return {
-      confirmedBalance: confirmedBalance.toString(),
+      confirmedBalance: amountMain.toString(),
       unconfirmedBalance: '0',
+      spendableBalance: spendableBalance.toString(),
       sweepable: this.isSweepableAddressBalance(amountMain),
+      requiresActivation: false,
     }
   }
 
@@ -374,25 +384,41 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     const sequenceNumber = toBigNumber(seqNo)
     const txTimeoutSecs = options.timeoutSeconds || this.config.txTimeoutSeconds || DEFAULT_TX_TIMEOUT_SECONDS
     const amountString = amount.toString()
-    const addressBalances = await this.getBalance({ address: fromAddress })
-    const addressBalance = new BigNumber(addressBalances.confirmedBalance)
-    const actualBalance = addressBalance.plus(MIN_BALANCE)
-    if (addressBalance.lt(0)) {
+    const {
+      requiresActivation: fromAddressRequiresActivation,
+      confirmedBalance: fromAddressBalance,
+    } = await this.getBalance({ address: fromAddress })
+    if (fromAddressRequiresActivation) {
       throw new Error(
-        `Cannot send from stellar address that has less than ${MIN_BALANCE} XLM: ${fromAddress} (${actualBalance} XLM)`,
+        `Cannot send from unactivated stellar address ${fromAddress} - min balance of `
+          + `${MIN_BALANCE} XLM required (${fromAddressBalance} XLM)`,
       )
     }
     const totalValue = amount.plus(feeMain)
-    if (addressBalance.minus(totalValue).lt(0)) {
+    const balanceAfterTx = new BigNumber(fromAddressBalance).minus(totalValue)
+    if (balanceAfterTx.lt(MIN_BALANCE)) {
+      const reason = balanceAfterTx.lt(0)
+        ? 'due to insufficient balance'
+        : `because it would reduce the balance below the ${MIN_BALANCE} XLM minimum`
       throw new Error(
-        `Cannot send ${amountString} XLM with fee of ${feeMain} XLM because it would reduce the balance below ` +
-          `the minimum required balance of ${MIN_BALANCE} XLM: ${fromAddress} (${actualBalance} XLM)`,
+        `Cannot send ${amountString} XLM with fee of ${feeMain} XLM from ${fromAddress} `
+          + `${reason} (${fromAddressBalance} XLM)`,
       )
     }
     if (typeof fromExtraId === 'string' && totalValue.gt(payportBalance)) {
       throw new Error(
         `Insufficient payport balance of ${payportBalance} XLM to send ${amountString} XLM ` +
-          `with fee of ${feeMain} XLM: ${serializePayport(fromPayport)}`,
+          `with fee of ${feeMain} XLM from ${serializePayport(fromPayport)}`,
+      )
+    }
+    const {
+      requiresActivation: toAddressRequiresActivation,
+      confirmedBalance: toAddressBalance,
+    } = await this.getBalance({ address: toAddress })
+    if (toAddressRequiresActivation && amount.lt(MIN_BALANCE)) {
+      throw new Error(
+        `Cannot send ${amountString} XLM to recipient ${toAddress} because address requires `
+          + `a balance of at least ${MIN_BALANCE} XLM to receive funds (${toAddressBalance} XLM)`
       )
     }
     const fromAccount = await this.loadAccountOrThrow(fromAddress)

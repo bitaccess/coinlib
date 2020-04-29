@@ -81,21 +81,37 @@ describeAll('e2e mainnet', () => {
     expect(await payments.getBalance(0)).toEqual({
       confirmedBalance: address0balance,
       unconfirmedBalance: '0',
+      spendableBalance: address0balance,
       sweepable: true,
+      requiresActivation: false,
     })
   })
   it('get correct balance for address 0', async () => {
     expect(await payments.getBalance({ address: address0 })).toEqual({
       confirmedBalance: address0balance,
       unconfirmedBalance: '0',
+      spendableBalance: address0balance,
       sweepable: true,
+      requiresActivation: false,
     })
   })
   it('get correct balance for address 3', async () => {
     expect(await payments.getBalance({ address: address3 })).toEqual({
       confirmedBalance: '0',
       unconfirmedBalance: '0',
+      spendableBalance: '0',
       sweepable: false,
+      requiresActivation: false,
+    })
+  })
+
+  it('can get balance of unused address', async () => {
+    expect(await payments.getBalance(12345678)).toEqual({
+      confirmedBalance: '0',
+      unconfirmedBalance: '0',
+      spendableBalance: '0',
+      sweepable: false,
+      requiresActivation: false,
     })
   })
 

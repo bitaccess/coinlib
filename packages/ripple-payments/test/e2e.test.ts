@@ -103,8 +103,14 @@ describe('e2e', () => {
       expect(balances.unconfirmedBalance).toBe('0')
       expect(balances.sweepable).toBe(true)
     })
-    it('should throw when account not activated', async () => {
-      await expect(rp.getBalance(UNACTIVATED_ADDRESS)).rejects.toThrow('Account not found.')
+    it('should return when account not activated', async () => {
+      expect(await rp.getBalance(UNACTIVATED_ADDRESS)).toEqual({
+        confirmedBalance: '0',
+        unconfirmedBalance: '0',
+        spendableBalance: '0',
+        sweepable: false,
+        requiresActivation: true,
+      })
     })
   })
 
@@ -300,63 +306,71 @@ describe('e2e', () => {
 
   jest.setTimeout(30 * 1000)
 
-  it.skip('should emit expected balance activities', async () => {
-    // Can't get subscriptions to work :(
-    const hotActivity = await getExpectedHotActivities()
-    const depositActivity = await getExpectedDepositActivities()
-    expect(balanceActivities).toEqual(hotActivity.concat(depositActivity))
-  })
+  describe('RippleBalanceMonitor', () => {
 
-  it('should be able to retrieve the deposit account balance activities', async () => {
-    const actual = await accumulateRetrievedActivities(rp.depositSignatory.address)
-    const expected = await getExpectedDepositActivities()
-    expectBalanceActivities(actual, expected)
-  })
+    it.skip('should emit expected balance activities', async () => {
+      // Can't get subscriptions to work :(
+      const hotActivity = await getExpectedHotActivities()
+      const depositActivity = await getExpectedDepositActivities()
+      expect(balanceActivities).toEqual(hotActivity.concat(depositActivity))
+    })
 
-  it('should be able to retrieve the hot account balance activities', async () => {
-    const actual = await accumulateRetrievedActivities(rp.hotSignatory.address)
-    const expected = await getExpectedHotActivities()
-    expectBalanceActivities(actual, expected)
-  })
+    it('should be able to retrieve the deposit account balance activities', async () => {
+      const actual = await accumulateRetrievedActivities(rp.depositSignatory.address)
+      const expected = await getExpectedDepositActivities()
+      expectBalanceActivities(actual, expected)
+    })
 
-  it('should retrieve nothing for a range without activity', async () => {
-    const sweepTx = await sweepTxPromise
-    const sendTx = await sendTxPromise
-    const from = BigNumber.max(
-      sweepTx.confirmationNumber || startLedgerVersion,
-      sendTx.confirmationNumber || startLedgerVersion,
-    ).plus(1)
-    const actual = await accumulateRetrievedActivities(rp.hotSignatory.address, { from })
-    expectBalanceActivities(actual, [])
-  })
+    it('should be able to retrieve the hot account balance activities', async () => {
+      const actual = await accumulateRetrievedActivities(rp.hotSignatory.address)
+      const expected = await getExpectedHotActivities()
+      expectBalanceActivities(actual, expected)
+    })
 
-  it.skip('should be able to retrieve more activities than page limit', async () => {
-    const actual = await accumulateRetrievedActivities('r3b5PwYSZD48G8VeXoovj3CervMRyPMyVY')
-    expect(actual.length).toBeGreaterThan(10)
-  })
+    it('should retrieve nothing for a range without activity', async () => {
+      const sweepTx = await sweepTxPromise
+      const sendTx = await sendTxPromise
+      const from = BigNumber.max(
+        sweepTx.confirmationNumber || startLedgerVersion,
+        sendTx.confirmationNumber || startLedgerVersion,
+      ).plus(1)
+      const actual = await accumulateRetrievedActivities(rp.hotSignatory.address, { from })
+      expectBalanceActivities(actual, [])
+    })
 
-  it('should recognize balance activity of txs with tec result code', async () => {
-    const [activity] = await accumulateRetrievedActivities(
-      'rJdLzYr87z7xuey8qAfh3qZ9WmaXaAoELe',
-      {
-        from: 49684653,
-        to: 49684655,
-      },
-      bmMainnet,
-    )
-    expect(activity).toEqual({
-      type: 'out',
-      networkType: 'mainnet',
-      networkSymbol: 'XRP',
-      assetSymbol: 'XRP',
-      address: 'rJdLzYr87z7xuey8qAfh3qZ9WmaXaAoELe',
-      extraId: '12',
-      amount: '-0.000012',
-      externalId: 'F5C7793E506E9566CED0060D9FC519BA06BD0EB0F4A77C0680BEA8FD13A13A58',
-      activitySequence: '000049684654.00000040.00',
-      confirmationId: '4103BE72C0C718AD2B137C9B40C37AD3D157044A61F40AB74B122A12EFB15B32',
-      confirmationNumber: '49684654',
-      timestamp: new Date('2019-08-30T01:11:52.000Z'),
+    it.skip('should be able to retrieve more activities than page limit', async () => {
+      const actual = await accumulateRetrievedActivities('r3b5PwYSZD48G8VeXoovj3CervMRyPMyVY')
+      expect(actual.length).toBeGreaterThan(10)
+    })
+
+    it('should recognize balance activity of txs with tec result code', async () => {
+      const [activity] = await accumulateRetrievedActivities(
+        'rJdLzYr87z7xuey8qAfh3qZ9WmaXaAoELe',
+        {
+          from: 49684653,
+          to: 49684655,
+        },
+        bmMainnet,
+      )
+      expect(activity).toEqual({
+        type: 'out',
+        networkType: 'mainnet',
+        networkSymbol: 'XRP',
+        assetSymbol: 'XRP',
+        address: 'rJdLzYr87z7xuey8qAfh3qZ9WmaXaAoELe',
+        extraId: '12',
+        amount: '-0.000012',
+        externalId: 'F5C7793E506E9566CED0060D9FC519BA06BD0EB0F4A77C0680BEA8FD13A13A58',
+        activitySequence: '000049684654.00000040.00',
+        confirmationId: '4103BE72C0C718AD2B137C9B40C37AD3D157044A61F40AB74B122A12EFB15B32',
+        confirmationNumber: '49684654',
+        timestamp: new Date('2019-08-30T01:11:52.000Z'),
+      })
+    })
+
+    it('should not throw for unactivated address', async () => {
+      const activities = await accumulateRetrievedActivities(UNACTIVATED_ADDRESS)
+      expect(activities).toEqual([])
     })
   })
 
