@@ -23,73 +23,33 @@ import {
 import { isType } from '@faast/ts-common'
 
 import {
-  EthereumTransactionInfo,
-  EthereumUnsignedTransaction,
-  EthereumSignedTransaction,
-  EthereumBroadcastResult,
-  BaseEthereumPaymentsConfig,
-  EthereumResolvedFeeOption,
+  Erc20TransactionInfo,
+  Erc20UnsignedTransaction,
+  Erc20SignedTransaction,
+  Erc20BroadcastResult,
+  BaseErc20PaymentsConfig,
+  Erc20ResolvedFeeOption,
 } from './types'
-import { NetworkData } from './NetworkData'
+import { NetworkData } from '../NetworkData'
 import {
 // TODO use them
 //  DEFAULT_FULL_NODE,
 //  DEFAULT_SOLIDITY_NODE,
   DEFAULT_FEE_LEVEL,
   FEE_LEVEL_MAP,
-  MIN_CONFIRMATIONS,
   ETHEREUM_TRANSFER_COST,
-} from './constants'
-import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
+  MIN_CONFIRMATIONS,
+} from '../constants'
 
-export abstract class BaseEthereumPayments
-  <Config extends BaseEthereumPaymentsConfig>
-  extends EthereumPaymentsUtils
-implements BasePayments
-  <Config, EthereumUnsignedTransaction, EthereumSignedTransaction, EthereumBroadcastResult, EthereumTransactionInfo> {
-  eth: Eth
-  gasStation: NetworkData
-  private config: Config
+import { BaseEthereumPayments } from '..'
 
+export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig> extends BaseEthereumPayments<Config> {
   constructor(config: Config) {
     super(config)
-
-    this.config = config
-    this.eth = (new (Web3 as any )(config.fullNode, null, { transactionConfirmationBlocks: MIN_CONFIRMATIONS })).eth
-    this.gasStation = new NetworkData(config.gasStation, config.parityNode, config.fullNode)
   }
 
-  // XXX Violates Interface Segregation Principle
-  async init() {}
-  async destroy() {}
-
-  getFullConfig(): Config {
-    return this.config
-  }
-
-  abstract getPublicConfig(): Config
-
-  async resolvePayport(payport: ResolveablePayport): Promise<Payport> {
-    // NOTE: this type of nesting suggests to revise payport as an abstraction
-    if (typeof payport === 'number') {
-      return this.getPayport(payport)
-    } else if (typeof payport === 'string') {
-      if (!await this.isValidAddress(payport)) {
-        throw new Error(`Invalid Ethereum address: ${payport}`)
-      }
-      return { address: payport }
-    }
-
-    if (!await this.isValidPayport(payport)) {
-      throw new Error(`Invalid Ethereum payport: ${JSON.stringify(payport)}`)
-    } else {
-      if(!await this.isValidAddress(payport.address)) {
-        throw new Error(`Invalid Ethereum payport: ${JSON.stringify(payport)}`)
-      }
-    }
-    return payport
-  }
-
+  // XXX Implemented in BaseEthereumPayments
+    // does it need contract data as well?
   async resolveFromTo(from: number, to: ResolveablePayport): Promise<FromTo> {
     const fromPayport = await this.getPayport(from)
     const toPayport = await this.resolvePayport(to)
@@ -105,24 +65,23 @@ implements BasePayments
     }
   }
 
-  async resolveFeeOption(feeOption: FeeOption): Promise<EthereumResolvedFeeOption> {
+  // XXX Implemented in BaseEthereumPayments
+  async resolveFeeOption(feeOption: FeeOption): Promise<Erc20ResolvedFeeOption> {
     return isType(FeeOptionCustom, feeOption)
-      ? this.resolveCustomFeeOption(feeOption)
-      : this.resolveLeveledFeeOption(feeOption)
+      ? this.resolveCustomFeeOptionABI(feeOption)
+      : this.resolveLeveledFeeOptionABI(feeOption)
   }
 
-  private resolveCustomFeeOption(
-    feeOption: FeeOptionCustom,
-    amountOfGas: string = ETHEREUM_TRANSFER_COST,
-  ): EthereumResolvedFeeOption {
+    // XXX Replace ETHEREUM_TRANSFER_COST with this.gasStation.getNetworkData().amountOfGas
+  private resolveCustomFeeOptionABI(feeOption: FeeOptionCustom): Erc20ResolvedFeeOption {
     const isWeight = (feeOption.feeRateType === FeeRateType.BasePerWeight)
     const isMain = (feeOption.feeRateType === FeeRateType.Main)
 
     const gasPrice = isWeight
       ? feeOption.feeRate
-      : (new BigNumber(feeOption.feeRate)).dividedBy(amountOfGas).toString()
+      : (new BigNumber(feeOption.feeRate)).dividedBy(ETHEREUM_TRANSFER_COST).toString()
     const fee = isWeight
-      ? (new BigNumber(feeOption.feeRate)).multipliedBy(amountOfGas).toString()
+      ? (new BigNumber(feeOption.feeRate)).multipliedBy(ETHEREUM_TRANSFER_COST).toString()
       : feeOption.feeRate
 
     return {
@@ -135,14 +94,11 @@ implements BasePayments
     }
   }
 
-  private async resolveLeveledFeeOption(
-    feeOption: FeeOption,
-    amountOfGas: string = ETHEREUM_TRANSFER_COST,
-  ): Promise<EthereumResolvedFeeOption> {
+    // XXX Replace ETHEREUM_TRANSFER_COST with this.gasStation.getNetworkData().amountOfGas
+  private async resolveLeveledFeeOptionABI(feeOption: FeeOption): Promise<Erc20ResolvedFeeOption> {
     const targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL
     const targetFeeRate = await this.gasStation.getGasPrice(FEE_LEVEL_MAP[targetFeeLevel])
-
-    const feeBase = (new BigNumber(targetFeeRate)).multipliedBy(amountOfGas).toString()
+    const feeBase = (new BigNumber(targetFeeRate)).multipliedBy(ETHEREUM_TRANSFER_COST).toString()
 
     return {
       targetFeeRate,
@@ -154,47 +110,22 @@ implements BasePayments
     }
   }
 
-  abstract getAccountIds(): string[]
-
-  abstract getAccountId(index: number): string
-
-  requiresBalanceMonitor() {
-    return false
-  }
-
-  async getAvailableUtxos() {
-    return []
-  }
-
-  async getUtxos() {
-    return []
-  }
-
-  usesSequenceNumber() {
-    return true
-  }
-
-  usesUtxos() {
-    return false
-  }
-
-  abstract async getPayport(index: number): Promise<Payport>
-
+  // XXX Implemented in BaseEthereumPayments
+    // does it need contract data?
   async getBalance(resolveablePayport: ResolveablePayport): Promise<BalanceResult> {
     const payport = await this.resolvePayport(resolveablePayport)
     const balance = await this.eth.getBalance(payport.address)
     const sweepable = await this.isSweepableBalance(balance)
-    const confirmedBalance = this.toMainDenomination(balance).toString()
 
     return {
-      confirmedBalance,
+      confirmedBalance: this.toMainDenomination(balance),
       unconfirmedBalance: '0',
-      spendableBalance: confirmedBalance,
       sweepable,
-      requiresActivation: false,
     }
   }
 
+  // XXX Implemented in BaseEthereumPayments
+    // does it need contract data?
   async isSweepableBalance(balanceEth: string): Promise<boolean> {
     const feeOption = await this.resolveFeeOption({})
 
@@ -207,14 +138,9 @@ implements BasePayments
     return true
   }
 
-  async getNextSequenceNumber(payport: ResolveablePayport) {
-    const resolvedPayport = await this.resolvePayport(payport)
-    const sequenceNumber = await this.gasStation.getNonce(resolvedPayport.address)
-
-    return sequenceNumber
-  }
-
-  async getTransactionInfo(txid: string): Promise<EthereumTransactionInfo> {
+  // XXX Implemented in BaseEthereumPayments
+    // does it need contract data?
+  async getTransactionInfo(txid: string): Promise<Erc20TransactionInfo> {
     // XXX it is suggested to keep 12 confirmations
     // https://ethereum.stackexchange.com/questions/319/what-number-of-confirmations-is-considered-secure-in-ethereum
     const minConfirmations = MIN_CONFIRMATIONS
@@ -231,7 +157,7 @@ implements BasePayments
         status: true,
         blockNumber: 0,
         cumulativeGasUsed: 0,
-        gasUsed: 0,
+        gasUsed: parseInt(ETHEREUM_TRANSFER_COST, 10),
         transactionIndex: 0,
         blockHash: '',
         logs: [],
@@ -311,34 +237,40 @@ implements BasePayments
     }
   }
 
+  // XXX Implemented in BaseEthereumPayments
+    // does it need contract data?
   async createTransaction(
     from: number,
     to: ResolveablePayport,
     amountEth: string,
     options: TransactionOptions = {},
-  ): Promise<EthereumUnsignedTransaction> {
+  ): Promise<Erc20UnsignedTransaction> {
     this.logger.debug('createTransaction', from, to, amountEth)
 
-    return this.createTransactionObject(from, to, amountEth, options)
+    return this.createTransactionObjectABI(from, to, amountEth, options)
   }
 
+  // XXX Implemented in BaseEthereumPayments
+    // does it need contract data?
   async createSweepTransaction(
     from: number,
     to: ResolveablePayport,
     options: TransactionOptions = {},
-  ): Promise<EthereumUnsignedTransaction> {
+  ): Promise<Erc20UnsignedTransaction> {
     this.logger.debug('createSweepTransaction', from, to)
 
-    return this.createTransactionObject(from, to, 'max', options)
+    return this.createTransactionObjectABI(from, to, 'max', options)
   }
 
-  async signTransaction(unsignedTx: EthereumUnsignedTransaction): Promise<EthereumSignedTransaction> {
+  // XXX Implemented in BaseEthereumPayments
+    // does it need contract data?
+  async signTransaction(unsignedTx: Erc20UnsignedTransaction): Promise<Erc20SignedTransaction> {
     const fromPrivateKey = await this.getPrivateKey(unsignedTx.fromIndex)
     const payport = await this.getPayport(unsignedTx.fromIndex)
 
     const unsignedRaw = cloneDeep(unsignedTx.data)
 
-    const extraParam = this.config.network === NetworkType.Testnet ?  {chain :'ropsten'} : undefined
+    const extraParam = this.getFullConfig().network === NetworkType.Testnet ?  {chain :'ropsten'} : undefined
     const tx = new Tx(unsignedRaw, extraParam)
     const key = Buffer.from(fromPrivateKey.slice(2), 'hex')
     tx.sign(key)
@@ -353,50 +285,47 @@ implements BasePayments
     }
   }
 
-  private sendTransactionWithoutConfirmation(txHex: string): Promise<string> {
+  // XXX Implemented in BaseEthereumPayments
+    // does it need contract data?
+  private sendTransactionWithoutConfirmationABI(txHex: string): Promise<string> {
     return new Promise((resolve, reject) => this.eth.sendSignedTransaction(txHex)
         .on('transactionHash', resolve)
         .on('error', reject))
   }
 
-  async broadcastTransaction(tx: EthereumSignedTransaction): Promise<EthereumBroadcastResult> {
+  // XXX Implemented in BaseEthereumPayments
+    // does it need contract data?
+  async broadcastTransaction(tx: Erc20SignedTransaction): Promise<Erc20BroadcastResult> {
     if (tx.status !== TransactionStatus.Signed) {
       throw new Error(`Tx ${tx.id} has not status ${TransactionStatus.Signed}`)
     }
 
     try {
-      const txId = await this.sendTransactionWithoutConfirmation(tx.data.hex)
+      const txId = await this.sendTransactionWithoutConfirmationABI(tx.data.hex)
       return {
         id: txId,
       }
     } catch (e) {
-      this.logger.warn(`Ethereum broadcast tx unsuccessful ${tx.id}: ${e.message}`)
+      this.logger.warn(`Erc20 broadcast tx unsuccessful ${tx.id}: ${e.message}`)
       if (e.message === 'nonce too low') {
         throw new PaymentsError(PaymentsErrorCode.TxSequenceCollision, e.message)
       }
-      throw new Error(`Ethereum broadcast tx unsuccessful: ${tx.id} ${e.message}`)
+      throw new Error(`Erc20 broadcast tx unsuccessful: ${tx.id} ${e.message}`)
     }
   }
 
-  abstract async getPrivateKey(index: number): Promise<string>
-
-  private async createTransactionObject(
+  // XXX Implemented in BaseEthereumPayments
+    // does it need contract data?
+  private async createTransactionObjectABI(
     from: number,
     to: ResolveablePayport,
     amountEth: string = 'max',
     options: TransactionOptions = {}
-  ): Promise<EthereumUnsignedTransaction> {
+  ): Promise<Erc20UnsignedTransaction> {
     const sweepFlag = amountEth === 'max' ? true : false
 
     const fromTo = await this.resolveFromTo(from, to)
-
-
-    const amountOfGas = await this.gasStation.estimateGas(fromTo.fromAddress, fromTo.toAddress, 'ETHEREUM_TRANSFER')
-
-    const feeOption: EthereumResolvedFeeOption = isType(FeeOptionCustom, options)
-      ? this.resolveCustomFeeOption(options, amountOfGas)
-      : await this.resolveLeveledFeeOption(options, amountOfGas)
-
+    const feeOption = await this.resolveFeeOption(options as FeeOption)
     const { confirmedBalance: balanceEth } = await this.getBalance(fromTo.fromPayport)
     const nonce = options.sequenceNumber || await this.getNextSequenceNumber(from)
 
@@ -420,7 +349,7 @@ implements BasePayments
       from:     fromTo.fromAddress,
       to:       fromTo.toAddress,
       value:    `0x${amountWei.toString(16)}`,
-      gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
+      gas:      `0x${(new BigNumber(ETHEREUM_TRANSFER_COST)).toString(16)}`,
       gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
       nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
     }
@@ -444,4 +373,4 @@ implements BasePayments
   }
 }
 
-export default BaseEthereumPayments
+export default BaseErc20Payments
