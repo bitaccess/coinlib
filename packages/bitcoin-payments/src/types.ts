@@ -2,16 +2,12 @@ import * as t from 'io-ts'
 import {
   BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, FeeRate,
   BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, KeyPairsConfigParam,
-  BaseMultisigData,
 } from '@faast/payments-common'
 import { extendCodec, enumCodec, requiredOptionalCodec } from '@faast/ts-common'
-import { Network as BitcoinjsNetwork, Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
+import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
 import { BlockInfoBitcoin } from 'blockbook-client'
 import { BitcoinishPaymentTx, BlockbookConfigServer } from './bitcoinish'
 import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
-
-export { BitcoinjsNetwork, UtxoInfo }
-export * from './bitcoinish/types'
 
 export type BitcoinjsKeyPair = BitcoinjsSigner & {
   privateKey?: Buffer

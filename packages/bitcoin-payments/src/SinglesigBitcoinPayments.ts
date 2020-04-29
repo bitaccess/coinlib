@@ -1,20 +1,14 @@
 import * as bitcoin from 'bitcoinjs-lib'
-import {
-  TransactionStatus,
-} from '@faast/payments-common'
-import crypto from 'crypto'
 
 import {
-  BaseBitcoinPaymentsConfig,
-  BitcoinishPaymentTx,
-  AddressType,
   BitcoinjsKeyPair,
   BitcoinUnsignedTransaction,
   BitcoinSignedTransaction,
   SinglesigBitcoinPaymentsConfig,
   SinglesigAddressType,
 } from './types'
-import { toBaseDenominationNumber, publicKeyToString, getSinglesigPaymentScript } from './helpers'
+import { BitcoinishPaymentTx } from './bitcoinish/types'
+import { publicKeyToString, getSinglesigPaymentScript } from './helpers'
 import { BaseBitcoinPayments } from './BaseBitcoinPayments'
 import { DEFAULT_SINGLESIG_ADDRESS_TYPE } from './constants'
 

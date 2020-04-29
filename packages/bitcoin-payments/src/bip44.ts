@@ -1,6 +1,6 @@
-import bitcoin, { ECPair } from 'bitcoinjs-lib'
 import { BIP32Interface as HDNode, fromBase58 } from 'bip32'
-import { BitcoinjsNetwork, SinglesigAddressType, BitcoinjsKeyPair } from './types'
+import { SinglesigAddressType, BitcoinjsKeyPair } from './types'
+import { BitcoinjsNetwork } from './bitcoinish/types'
 import { publicKeyToAddress } from './helpers'
 
 export { HDNode }

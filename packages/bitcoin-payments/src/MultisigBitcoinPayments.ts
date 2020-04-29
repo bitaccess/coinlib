@@ -4,9 +4,11 @@ import {
   HdBitcoinPaymentsConfig,
   BitcoinUnsignedTransaction,
   BitcoinSignedTransaction,
-  PayportOutput,
   MultisigAddressType,
 } from './types'
+import {
+  PayportOutput
+} from './bitcoinish/types'
 import { omit } from 'lodash'
 import { HdBitcoinPayments } from './HdBitcoinPayments'
 import { KeyPairBitcoinPayments } from './KeyPairBitcoinPayments'

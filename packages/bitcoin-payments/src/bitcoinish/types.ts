@@ -7,7 +7,7 @@ import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger, 
 import { Network as BitcoinjsNetwork } from 'bitcoinjs-lib'
 import { BlockbookBitcoin, BlockInfoBitcoin } from 'blockbook-client'
 
-export { BitcoinjsNetwork, UtxoInfo }
+export { BitcoinjsNetwork }
 
 /** A hack to get around TS2742 when config is re-exported from coin-payments */
 export class BlockbookServerAPI extends BlockbookBitcoin {}

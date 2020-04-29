@@ -1,9 +1,11 @@
 import { createUnitConverters } from '@faast/payments-common'
 import * as bitcoin from 'bitcoinjs-lib'
 import * as bip32 from 'bip32'
-import { BitcoinjsNetwork, AddressType, BitcoinjsKeyPair, MultisigAddressType, SinglesigAddressType } from './types'
+import { isString } from '@faast/ts-common'
+
+import { AddressType, BitcoinjsKeyPair, MultisigAddressType, SinglesigAddressType } from './types'
+import { BitcoinjsNetwork } from './bitcoinish/types'
 import { DECIMAL_PLACES } from './constants'
-import { isString } from '@faast/ts-common';
 
 const {
   toMainDenominationBigNumber,
