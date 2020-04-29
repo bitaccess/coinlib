@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { BalanceResult, TransactionStatus, NetworkType } from '@faast/payments-common'
+import { BalanceResult, TransactionStatus, NetworkType, FeeRateType } from '@faast/payments-common'
 
 import {
   HdBitcoinPayments, BitcoinTransactionInfo,
@@ -11,6 +11,7 @@ import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqu
 import { toBigNumber } from '@faast/ts-common'
 import fixtures from './fixtures/singlesigTestnet'
 import { HdBitcoinPaymentsConfig } from '../src/types';
+import BigNumber from 'bignumber.js';
 
 const SECRET_XPRV_FILE = 'test/keys/testnet.key'
 
@@ -122,12 +123,19 @@ describeAll('e2e testnet', () => {
           throw new Error(`Cannot end to end test sweeping due to lack of funds. Send testnet BTC to any of the following addresses and try again. ${JSON.stringify(allAddresses)}`)
         }
         const recipientIndex = indexToSweep === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
-        const unsignedTx = await payments.createSweepTransaction(
-          indexToSweep,
-          recipientIndex,
-          { useUnconfirmedUtxos: true }, // Prevents consecutive tests from failing
-        )
+        const satPerByte = 44
+        const unsignedTx = await payments.createSweepTransaction(indexToSweep, recipientIndex, {
+          feeRate: satPerByte.toString(),
+          feeRateType: FeeRateType.BasePerWeight,
+          useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
+        })
         const signedTx = await payments.signTransaction(unsignedTx)
+        expect(signedTx.inputUtxos).toBeDefined()
+        expect(signedTx.inputUtxos!.length).toBe(1)
+        expect(signedTx.externalOutputs).toBeDefined()
+        expect(signedTx.externalOutputs!.length).toBe(1)
+        const feeNumber = new BigNumber(signedTx.fee).toNumber()
+        expect(feeNumber).toBe((192*satPerByte)*1e-8)
         logger.log(`Sweeping ${signedTx.amount} from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
         expect(await payments.broadcastTransaction(signedTx)).toEqual({
           id: signedTx.id,

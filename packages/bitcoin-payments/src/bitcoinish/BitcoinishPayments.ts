@@ -240,13 +240,33 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     return Math.ceil(feeSat)
   }
 
+  /**
+   * Determine how many change outputs to add to a transaction given how many there are currently
+   * and how many we intend to use. The goal is to keep at least `targetUtxoPoolSize` utxos available
+   * at all times to increase availability.
+   */
+  private determineTargetChangeOutputCount(unusedUtxoCount: number, inputUtxoCount: number) {
+    const remainingUtxoCount = unusedUtxoCount - inputUtxoCount
+    return remainingUtxoCount < this.targetUtxoPoolSize
+      ? this.targetUtxoPoolSize - remainingUtxoCount
+      : 1
+  }
+
   private selectInputUtxos(
-    availableUtxos: UtxoInfo[], outputTotal: number, outputCount: number, feeRate: FeeRate, useAllUtxos: boolean,
+    unusedUtxos: UtxoInfo[],
+    outputTotal: number,
+    outputCount: number,
+    feeRate: FeeRate,
+    useAllUtxos: boolean,
+    useUnconfirmedUtxos: boolean,
   ): { selectedUtxos: UtxoInfo[], selectedTotalSat: number, feeSat: number } {
     // Convert values to satoshis for convenient math
     const utxos: Array<UtxoInfo & { satoshis: number }> = []
     let utxosTotalSat = 0
-    for (const utxo of availableUtxos) {
+    for (const utxo of unusedUtxos) {
+      if (!useUnconfirmedUtxos && !isConfirmedUtxo(utxo)) {
+        continue
+      }
       const satoshis = isUndefined(utxo.satoshis)
         ? this.toBaseDenominationNumber(utxo.value)
         : toBigNumber(utxo.satoshis).toNumber()
@@ -281,7 +301,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         }
       }
 
-      // Select by accumulating smallest utxos first until we cover output + fees
+      // Incrementally select utxos until we cover output + fees
       let selectedUtxos = []
       let selectedTotalSat = 0 // Total input sat is accumulated as inputs are added
       let feeSat = 0 // Total fee is recalculated when adding each input
@@ -289,7 +309,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       for (const utxo of sortedUtxos) {
         selectedUtxos.push(utxo)
         selectedTotalSat += utxo.satoshis
-        feeSat = this.calculateTxFeeSatoshis(feeRate, selectedUtxos.length, outputCount)
+        const targetChangeOutputCount = this.determineTargetChangeOutputCount(unusedUtxos.length, selectedUtxos.length)
+        feeSat = this.calculateTxFeeSatoshis(feeRate, selectedUtxos.length, outputCount + targetChangeOutputCount)
         if (selectedTotalSat >= outputTotal + feeSat) {
           break
         }
@@ -322,11 +343,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     } = params
     const useAllUtxos = isUndefined(params.useAllUtxos) ? false : params.useAllUtxos
     const useUnconfirmedUtxos = isUndefined(params.useUnconfirmedUtxos) ? false : params.useUnconfirmedUtxos
-    // The maximum # of outputs this tx will have. It could have less if some change outputs are dropped
-    // for being too small.
-    const maxOutputCount = desiredOutputs.length + this.targetUtxoPoolSize
     // sum of non change output value in satoshis
-    let outputTotal = 0
+    let externalOutputTotal = 0
     // Convert output values to satoshis for convenient math
     const externalOutputs: BitcoinishTxOutputSatoshis[] = []
     for (let i = 0; i < desiredOutputs.length; i++) {
@@ -343,29 +361,31 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         throw new Error(`Invalid ${this.coinSymbol} positive value (${value}) provided for output ${i} (${address})`)
       }
       externalOutputs.push({ address, satoshis })
-      outputTotal += satoshis
+      externalOutputTotal += satoshis
     }
     if (!await this.isValidAddress(changeAddress)) {
       throw new Error (`Invalid ${this.coinSymbol} change address ${changeAddress} provided`)
     }
 
     /* Select inputs and calculate appropriate fee */
-    const availableUtxos = !useUnconfirmedUtxos
-      ? unusedUtxos.filter(isConfirmedUtxo)
-      : unusedUtxos
     let { selectedUtxos: inputUtxos, selectedTotalSat: inputTotal, feeSat } = this.selectInputUtxos(
-      availableUtxos, outputTotal, maxOutputCount, desiredFeeRate, useAllUtxos,
+      unusedUtxos,
+      externalOutputTotal,
+      externalOutputs.length,
+      desiredFeeRate,
+      useAllUtxos,
+      useUnconfirmedUtxos,
     )
-    let amountWithFee = outputTotal + feeSat
+    let amountWithFee = externalOutputTotal + feeSat
 
     /** Account for insuffient inputs and sweeping cases */
     if (amountWithFee > inputTotal) {
-      if (outputTotal === inputTotal) { // sweeping
+      if (externalOutputTotal === inputTotal) { // sweeping
         // Share the fee across all outputs. This may increase the fee by as much as 1 sat per output, negligible
         const feeShare = Math.ceil(feeSat / externalOutputs.length)
         feeSat = feeShare * externalOutputs.length
         this.logger.log(
-          `${this.coinSymbol} buildPaymentTx - Attempting to send entire ${outputTotal} sat balance. ` +
+          `${this.coinSymbol} buildPaymentTx - Attempting to send entire ${externalOutputTotal} sat balance. ` +
           `Subtracting fee of ${feeSat} sat from ${externalOutputs.length} outputs (${feeShare} sat each)`
         )
         for (let i = 0; i < externalOutputs.length; i++) {
@@ -379,11 +399,11 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
           }
         }
         amountWithFee = inputTotal
-        outputTotal -= feeSat
+        externalOutputTotal -= feeSat
       } else { // insufficient utxos
         throw new Error(
           `${this.coinSymbol} buildPaymentTx - You do not have enough UTXOs (${inputTotal} sat) ` +
-          `to send ${outputTotal} sat with ${feeSat} sat fee`
+          `to send ${externalOutputTotal} sat with ${feeSat} sat fee`
         )
       }
     }
@@ -392,17 +412,11 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
     let totalChangeSat = inputTotal - amountWithFee
 
-    this.logger.debug('buildPaymentTx', { inputTotal, feeSat, outputTotal, totalChangeSat })
+    this.logger.debug('buildPaymentTx', { inputTotal, feeSat, outputTotal: externalOutputTotal, totalChangeSat })
     let changeOutputs: BitcoinishTxOutputSatoshis[] = []
     if (totalChangeSat > this.dustThreshold) { // Avoid creating dust outputs
 
-      // Don't use availableUtxo.length here because unconfirmed still count towards pool count
-      const remainingUtxoCount = unusedUtxos.length - inputUtxos.length
-      // Determine how many change outputs to use to maintain target pool size
-      const targetChangeOutputCount = remainingUtxoCount < this.targetUtxoPoolSize
-        ? this.targetUtxoPoolSize - remainingUtxoCount
-        : 1
-
+      const targetChangeOutputCount = this.determineTargetChangeOutputCount(unusedUtxos.length, inputUtxos.length)
       const changeOutputWeights = this.createWeightedChangeOutputs(targetChangeOutputCount, changeAddress)
       const totalChangeWeight = changeOutputWeights.reduce((total, { weight }) => total += weight, 0)
       let totalChangeAllocated = 0 // Total sat of all change outputs we actually include (omitting dust)
@@ -459,7 +473,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       changeAddress: changeOutputs.length === 1 ? changeOutputs[0].address : null, // back compat
       changeOutputs: changeOutputsResult,
       externalOutputs: externalOutputsResult,
-      externalOutputTotal: this.toMainDenominationString(outputTotal),
+      externalOutputTotal: this.toMainDenominationString(externalOutputTotal),
       rawHex: '',
       rawHash: '',
     }
