@@ -5,7 +5,7 @@ import {
 } from '../src'
 
 import { EXTERNAL_ADDRESS, accountsByAddressType, AccountFixture } from './fixtures'
-import { logger, makeUtxos, makeOutputs } from './utils'
+import { logger, makeUtxos, makeOutputs, expectUtxosEqual } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 
 jest.setTimeout(30 * 1000)
@@ -44,7 +44,7 @@ describe('HdBitcoinPayments', () => {
         useUnconfirmedUtxos: false,
       })
       const expectedOutputs = [{ address: EXTERNAL_ADDRESS, value: '0.049' }]
-      expect(paymentTx.inputs).toEqual([utxos[0]])
+      expectUtxosEqual(paymentTx.inputs, [utxos[0]])
       expect(paymentTx.outputs).toEqual(expectedOutputs)
       expect(paymentTx.changeOutputs).toEqual([])
       expect(paymentTx.externalOutputs).toEqual(expectedOutputs)
@@ -65,7 +65,7 @@ describe('HdBitcoinPayments', () => {
         useUnconfirmedUtxos: true,
       })
       const expectedOutputs = [{ address: EXTERNAL_ADDRESS, value: '2.349' }]
-      expect(paymentTx.inputs).toEqual(utxos)
+      expectUtxosEqual(paymentTx.inputs, utxos)
       expect(paymentTx.outputs).toEqual(expectedOutputs)
       expect(paymentTx.changeOutputs).toEqual([])
       expect(paymentTx.externalOutputs).toEqual(expectedOutputs)
@@ -85,7 +85,7 @@ describe('HdBitcoinPayments', () => {
         useAllUtxos: false,
         useUnconfirmedUtxos: false,
       })
-      expect(paymentTx.inputs).toEqual([utxos[1]])
+      expectUtxosEqual(paymentTx.inputs, [utxos[1]])
       expect(paymentTx.outputs).toEqual(outputs)
       expect(paymentTx.changeOutputs).toEqual([])
       expect(paymentTx.externalOutputs).toEqual(outputs)
@@ -106,7 +106,7 @@ describe('HdBitcoinPayments', () => {
         useUnconfirmedUtxos: false,
       })
       const changeOutputs = makeOutputs(changeAddress, '0.005')
-      expect(paymentTx.inputs).toEqual(utxos.slice(0,2))
+      expectUtxosEqual(paymentTx.inputs, utxos.slice(0,2))
       expect(paymentTx.outputs).toEqual([...outputs, ...changeOutputs])
       expect(paymentTx.changeOutputs).toEqual(changeOutputs)
       expect(paymentTx.externalOutputs).toEqual(outputs)
@@ -127,7 +127,7 @@ describe('HdBitcoinPayments', () => {
         useUnconfirmedUtxos: false,
       })
       const changeOutputs = makeOutputs(changeAddress, '0.1', '0.2', '0.4')
-      expect(paymentTx.inputs).toEqual(utxos.slice(0,3))
+      expectUtxosEqual(paymentTx.inputs, utxos.slice(0,3))
       expect(paymentTx.outputs).toEqual([...outputs, ...changeOutputs])
       expect(paymentTx.changeOutputs).toEqual(changeOutputs)
       expect(paymentTx.externalOutputs).toEqual(outputs)
@@ -147,7 +147,7 @@ describe('HdBitcoinPayments', () => {
         useAllUtxos: false,
         useUnconfirmedUtxos: false,
       })
-      expect(paymentTx.inputs).toEqual(utxos)
+      expectUtxosEqual(paymentTx.inputs, utxos)
       expect(paymentTx.outputs).toEqual(outputs)
       expect(paymentTx.changeOutputs).toEqual([])
       expect(paymentTx.externalOutputs).toEqual(outputs)

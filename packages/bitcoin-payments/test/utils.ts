@@ -32,3 +32,11 @@ export function makeOutputs(address: string, ...values: string[]): BitcoinishTxO
     value: String(value),
   }))
 }
+
+export function sortUtxosByTxid(utxos: UtxoInfo[]): UtxoInfo[] {
+  return [...utxos].sort((a, b) => a.txid.localeCompare(b.txid))
+}
+
+export function expectUtxosEqual(expectedUtxos: UtxoInfo[], actualUtxos: UtxoInfo[]) {
+  expect(sortUtxosByTxid(expectedUtxos)).toEqual(sortUtxosByTxid(actualUtxos))
+}
