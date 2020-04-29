@@ -49,6 +49,8 @@ export const BaseEthereumPaymentsConfig = extendCodec(
     fullNode:   OptionalString,
     parityNode: OptionalString,
     gasStation: OptionalString,
+    name: OptionalString,
+    decimals: t.number
   },
   'BaseEthereumPaymentsConfig',
 )

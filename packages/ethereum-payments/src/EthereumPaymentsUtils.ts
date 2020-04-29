@@ -19,13 +19,15 @@ import { isValidXkey } from './bip44'
 
 export class EthereumPaymentsUtils implements PaymentsUtils {
   logger: Logger
+  decimals: number
 
   constructor(config: BaseEthereumPaymentsConfig) {
-    this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
+    this.logger = new DelegateLogger(config.logger, config.name || PACKAGE_NAME)
+    this.decimals = config.decimals || DECIMAL_PLACES
   }
 
   toBaseDenomination(amount: Numeric, options?: BaseDenominationOptions): string {
-    const eth = (new BigNumber(amount)).toFixed(DECIMAL_PLACES, options ? options.rounding : undefined)
+    const eth = (new BigNumber(amount)).toFixed(this.decimals, options ? options.rounding : undefined)
 
     return web3.utils.toWei(eth)
   }
