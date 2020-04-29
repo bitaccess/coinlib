@@ -122,7 +122,11 @@ describeAll('e2e testnet', () => {
           throw new Error(`Cannot end to end test sweeping due to lack of funds. Send testnet BTC to any of the following addresses and try again. ${JSON.stringify(allAddresses)}`)
         }
         const recipientIndex = indexToSweep === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
-        const unsignedTx = await payments.createSweepTransaction(indexToSweep, recipientIndex)
+        const unsignedTx = await payments.createSweepTransaction(
+          indexToSweep,
+          recipientIndex,
+          { useUnconfirmedUtxos: true }, // Prevents consecutive tests from failing
+        )
         const signedTx = await payments.signTransaction(unsignedTx)
         logger.log(`Sweeping ${signedTx.amount} from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
         expect(await payments.broadcastTransaction(signedTx)).toEqual({
@@ -152,7 +156,12 @@ describeAll('e2e testnet', () => {
           throw new Error(`Cannot end to end test sweeping due to lack of funds. Send testnet BTC to any of the following addresses and try again. ${JSON.stringify(allAddresses)}`)
         }
         const recipientIndex = indexToSend === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
-        const unsignedTx = await payments.createTransaction(indexToSend, recipientIndex, '0.0001')
+        const unsignedTx = await payments.createTransaction(
+          indexToSend,
+          recipientIndex,
+          '0.0001',
+          { useUnconfirmedUtxos: true }, // Prevents consecutive tests from failing
+        )
         const signedTx = await payments.signTransaction(unsignedTx)
         logger.log(`Sending ${signedTx.amount} from ${indexToSend} to ${recipientIndex} in tx ${signedTx.id}`)
         expect(await payments.broadcastTransaction(signedTx)).toEqual({

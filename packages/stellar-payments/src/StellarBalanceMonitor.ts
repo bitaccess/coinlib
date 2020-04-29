@@ -15,6 +15,8 @@ import { StellarConnected } from './StellarConnected';
 import { EventEmitter } from 'events'
 import { Numeric } from '@faast/ts-common';
 import BigNumber from 'bignumber.js';
+import { isMatchingError } from '../../payments-common/src/utils';
+import { NOT_FOUND_ERRORS } from './constants';
 
 export class StellarBalanceMonitor extends StellarConnected implements BalanceMonitor {
 
@@ -84,15 +86,23 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
         && (from.lt(lastTx.ledger_attr) || to.lt(lastTx.ledger_attr)))
     ) {
       // I tried doing this with .stream, but it didn't let me order it in descending order
-      transactionPage = await this._retryDced(() => transactionPage
-        ? transactionPage.next()
-        : this.getApi()
-          .transactions()
-          .forAccount(address)
-          .limit(limit)
-          .order('desc') // important txs are retrieved newest to oldest for exit condition to work
-          .call()
-      )
+      try {
+        transactionPage = await this._retryDced(() => transactionPage
+          ? transactionPage.next()
+          : this.getApi()
+            .transactions()
+            .forAccount(address)
+            .limit(limit)
+            .order('desc') // important txs are retrieved newest to oldest for exit condition to work
+            .call()
+        )
+      } catch (e) {
+        if (isMatchingError(e, NOT_FOUND_ERRORS)) {
+          this.logger.debug(`Address ${address} not found`)
+          break
+        }
+        throw e
+      }
       const transactions = transactionPage.records
       this.logger.debug(`retrieved stellar txs for ${address}`, JSON.stringify(transactions.map(({ id }) => id)))
       for (let tx of transactions) {

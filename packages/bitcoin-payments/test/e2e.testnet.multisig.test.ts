@@ -127,6 +127,15 @@ describeAll('e2e multisig testnet', () => {
         expect(address).toBe(address0)
       })
 
+      it('can get balance', async () => {
+        const balanceResult = await payments.getBalance(0)
+        expect(balanceResult.confirmedBalance).toBeTruthy()
+        expect(balanceResult.confirmedBalance).toBeTruthy()
+        expect(balanceResult.spendableBalance).toBeTruthy()
+        expect(balanceResult.sweepable).toBe(true)
+        expect(balanceResult.unactivated).toBe(false)
+      })
+
       it('can create sweep', async () => {
         const tx = await payments.createSweepTransaction(0, EXTERNAL_ADDRESS)
         expect(tx.multisigData).toBeDefined()

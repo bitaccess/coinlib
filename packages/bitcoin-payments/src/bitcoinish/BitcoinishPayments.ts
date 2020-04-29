@@ -144,13 +144,16 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   async getBalance(payport: ResolveablePayport): Promise<BalanceResult> {
     const { address } = await this.resolvePayport(payport)
     const result = await this._retryDced(() => this.getApi().getAddressDetails(address, { details: 'basic' }))
-    const confirmedBalance = this.toMainDenominationString(result.balance)
-    const unconfirmedBalance = this.toMainDenominationString(result.unconfirmedBalance)
+    const confirmedBalance = this.toMainDenominationBigNumber(result.balance)
+    const unconfirmedBalance = this.toMainDenominationBigNumber(result.unconfirmedBalance)
+    const spendableBalance = confirmedBalance.plus(unconfirmedBalance)
     this.logger.debug('getBalance', address, confirmedBalance, unconfirmedBalance)
     return {
-      confirmedBalance,
-      unconfirmedBalance,
-      sweepable: this.isSweepableBalance(confirmedBalance)
+      confirmedBalance: confirmedBalance.toString(),
+      unconfirmedBalance: unconfirmedBalance.toString(),
+      spendableBalance: spendableBalance.toString(),
+      sweepable: this.isSweepableBalance(spendableBalance),
+      unactivated: false,
     }
   }
 

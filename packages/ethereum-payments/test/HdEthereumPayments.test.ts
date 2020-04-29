@@ -235,7 +235,9 @@ describe('HdEthereumPayments', () => {
         expect(res).toStrictEqual({
           confirmedBalance: '0.00000000001',
           unconfirmedBalance: '0',
+          spendableBalance: '0.00000000001',
           sweepable: true,
+          unactivated: false,
         })
       })
     })

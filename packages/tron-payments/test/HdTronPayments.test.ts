@@ -144,16 +144,30 @@ function runHardcodedPublicKeyTests(tp: HdTronPayments, config: HdTronPaymentsCo
     expect(await tp.getBalance(1)).toEqual({
       confirmedBalance: '0',
       unconfirmedBalance: '0',
+      spendableBalance: '0',
       sweepable: false,
+      unactivated: false,
     })
   })
   it('get a balance using an address', async () => {
     expect(await tp.getBalance({ address: 'TBR4KDPrN9BrnyjienckS2xixcTpJ9aP26' })).toEqual({
       confirmedBalance: '0',
       unconfirmedBalance: '0',
+      spendableBalance: '0',
       sweepable: false,
+      unactivated: false,
     })
   })
+  it('should not throw for unused address', async () => {
+    expect(await tp.getBalance(12345678)).toEqual({
+      confirmedBalance: '0',
+      unconfirmedBalance: '0',
+      spendableBalance: '0',
+      sweepable: false,
+      unactivated: false,
+    })
+  })
+
   it('broadcast an existing sweep transaction', async () => {
     const result = await tp.broadcastTransaction(signedTx_valid)
     expect(result).toEqual({
@@ -239,14 +253,18 @@ describe('HdTronPayments', () => {
         expect(await tp.getBalance(0)).toEqual({
           confirmedBalance: '2.2',
           unconfirmedBalance: '0',
+          spendableBalance: '2.1',
           sweepable: true,
+          unactivated: false,
         })
       })
       it('get correct balance for address 0', async () => {
         expect(await tp.getBalance({ address: address0 })).toEqual({
           confirmedBalance: '2.2',
           unconfirmedBalance: '0',
+          spendableBalance: '2.1',
           sweepable: true,
+          unactivated: false,
         })
       })
 
