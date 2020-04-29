@@ -4,6 +4,7 @@ import {
   BalanceActivity,
   BalanceMonitor,
   RetrieveBalanceActivitiesResult,
+  isMatchingError,
 } from '@faast/payments-common'
 import { FormattedPaymentTransaction, FormattedTransactionType } from 'ripple-lib/dist/npm/transaction/types'
 import { TransactionsOptions } from 'ripple-lib/dist/npm/ledger/transactions'
@@ -14,8 +15,7 @@ import { RippleBalanceMonitorConfig } from './types'
 import { assertValidAddress } from './helpers'
 import { RippleConnected } from './RippleConnected'
 import BigNumber from 'bignumber.js'
-import { isMatchingError } from '../../payments-common/src/utils';
-import { NOT_FOUND_ERRORS } from './constants';
+import { NOT_FOUND_ERRORS } from './constants'
 
 export class RippleBalanceMonitor extends RippleConnected implements BalanceMonitor {
   constructor(public config: RippleBalanceMonitorConfig) {

@@ -4,19 +4,17 @@ import {
   BalanceActivity,
   BalanceMonitor,
   RetrieveBalanceActivitiesResult,
+  isMatchingError,
 } from '@faast/payments-common'
-import * as Stellar from 'stellar-sdk'
+import { Numeric, isUndefined } from '@faast/ts-common'
+import BigNumber from 'bignumber.js'
+import { EventEmitter } from 'events'
 
 import { padLeft, omitHidden } from './utils';
-import { StellarRawTransaction, StellarCollectionPage } from './types';
+import { StellarRawTransaction, StellarCollectionPage } from './types'
 import { assertValidAddress } from './helpers'
-import { isUndefined, isNumber } from 'util'
-import { StellarConnected } from './StellarConnected';
-import { EventEmitter } from 'events'
-import { Numeric } from '@faast/ts-common';
-import BigNumber from 'bignumber.js';
-import { isMatchingError } from '../../payments-common/src/utils';
-import { NOT_FOUND_ERRORS } from './constants';
+import { StellarConnected } from './StellarConnected'
+import { NOT_FOUND_ERRORS } from './constants'
 
 export class StellarBalanceMonitor extends StellarConnected implements BalanceMonitor {
 
