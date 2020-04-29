@@ -3,7 +3,7 @@ import { TronPaymentsFactory } from '@faast/tron-payments'
 import { RipplePaymentsFactory } from '@faast/ripple-payments'
 import { StellarPaymentsFactory } from '@faast/stellar-payments'
 import { BitcoinPaymentsFactory } from '@faast/bitcoin-payments'
-import { EthereumPaymentsFactory } from '@faast/ethereum-payments'
+import { EthereumPaymentsFactory, Erc20PaymentsFactory } from '@faast/ethereum-payments'
 
 import { keysOf } from './utils'
 import { SupportedCoinPaymentsSymbol } from './types'
@@ -16,6 +16,7 @@ export const PAYMENTS_FACTORIES: {
   XLM: new StellarPaymentsFactory(),
   BTC: new BitcoinPaymentsFactory(),
   ETH: new EthereumPaymentsFactory(),
+  ERC20: new Erc20PaymentsFactory(),
 }
 
 export const SUPPORTED_ASSET_SYMBOLS = keysOf(PAYMENTS_FACTORIES)
