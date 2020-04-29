@@ -85,11 +85,16 @@ export function sumUtxoValue(utxos: UtxoInfo[], includeUnconfirmed?: boolean): B
 }
 
 /**
- * Sort the utxos for input selection
+ * Sort the utxos randomly for input selection.
  */
 export function sortUtxos<T extends UtxoInfo>(utxoList: T[]): T[] {
   const result = [...utxoList]
-  result.sort((a, b) => toBigNumber(a.value).minus(b.value).toNumber()) // Ascending order by value
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * i)
+    const temp = result[i]
+    result[i] = result[j]
+    result[j] = temp
+  }
   return result
 }
 
