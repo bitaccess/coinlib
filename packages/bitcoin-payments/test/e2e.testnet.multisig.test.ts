@@ -133,7 +133,7 @@ describeAll('e2e multisig testnet', () => {
         expect(balanceResult.confirmedBalance).toBeTruthy()
         expect(balanceResult.spendableBalance).toBeTruthy()
         expect(balanceResult.sweepable).toBe(true)
-        expect(balanceResult.unactivated).toBe(false)
+        expect(balanceResult.requiresActivation).toBe(false)
       })
 
       it('can create sweep', async () => {

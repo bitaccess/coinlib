@@ -184,7 +184,7 @@ implements BasePayments
       unconfirmedBalance: '0',
       spendableBalance: confirmedBalance,
       sweepable,
-      unactivated: false,
+      requiresActivation: false,
     }
   }
 

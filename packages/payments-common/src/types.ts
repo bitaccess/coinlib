@@ -157,7 +157,7 @@ export const BalanceResult = t.type(
     confirmedBalance: t.string, // balance with at least 1 confirmation
     unconfirmedBalance: t.string, // balance that is pending confirmation
     spendableBalance: t.string, // balance that can be spent (ie not locked in min balance)
-    unactivated: t.boolean, // true if an address doesn't have min balance
+    requiresActivation: t.boolean, // true if an address doesn't have min balance
     sweepable: t.boolean, // balance is high enough to be swept
   },
   'BalanceResult',

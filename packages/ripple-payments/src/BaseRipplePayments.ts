@@ -203,7 +203,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
           unconfirmedBalance: '0',
           spendableBalance: '0',
           sweepable: false,
-          unactivated: true,
+          requiresActivation: true,
         }
       }
       throw e
@@ -218,7 +218,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       unconfirmedBalance: '0',
       spendableBalance: spendableBalance.toString(),
       sweepable: this.isSweepableAddressBalance(xrpAmount),
-      unactivated: confirmedBalance.lt(MIN_BALANCE),
+      requiresActivation: confirmedBalance.lt(MIN_BALANCE),
     }
   }
 
@@ -387,10 +387,10 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       options.maxLedgerVersionOffset || this.config.maxLedgerVersionOffset || DEFAULT_MAX_LEDGER_VERSION_OFFSET
     const amountString = amount.toString()
     const {
-      unactivated: fromAddressUnactivated,
+      requiresActivation: fromAddressRequiresActivation,
       confirmedBalance,
     } = await this.getBalance({ address: fromAddress })
-    if (fromAddressUnactivated) {
+    if (fromAddressRequiresActivation) {
       throw new Error(
         `Cannot send from unactivated ripple address ${fromAddress} - min balance of `
           + `${MIN_BALANCE} XRP required (${confirmedBalance} XRP)`,
@@ -414,10 +414,10 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       )
     }
     const {
-      unactivated: toAddressUnactivated,
+      requiresActivation: toAddressRequiresActivation,
       confirmedBalance: toAddressBalance,
     } = await this.getBalance({ address: toAddress })
-    if (toAddressUnactivated && amount.lt(MIN_BALANCE)) {
+    if (toAddressRequiresActivation && amount.lt(MIN_BALANCE)) {
       throw new Error(
         `Cannot send ${amountString} XRP to recipient ${toAddress} because address requires `
           + `a balance of at least ${MIN_BALANCE} XRP to receive funds (${toAddressBalance} XRP)`

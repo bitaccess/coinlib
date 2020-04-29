@@ -153,7 +153,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       unconfirmedBalance: unconfirmedBalance.toString(),
       spendableBalance: spendableBalance.toString(),
       sweepable: this.isSweepableBalance(spendableBalance),
-      unactivated: false,
+      requiresActivation: false,
     }
   }
 

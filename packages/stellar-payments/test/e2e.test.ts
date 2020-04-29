@@ -111,7 +111,7 @@ describe('e2e', () => {
         unconfirmedBalance: '0',
         spendableBalance: '0',
         sweepable: false,
-        unactivated: true,
+        requiresActivation: true,
       })
     })
   })

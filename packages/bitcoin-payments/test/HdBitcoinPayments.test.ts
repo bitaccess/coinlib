@@ -295,7 +295,7 @@ function runHardcodedPublicKeyTests(
       unconfirmedBalance: '0',
       spendableBalance: '0',
       sweepable: false,
-      unactivated: false,
+      requiresActivation: false,
     })
   })
   it('get a balance using an address', async () => {
@@ -304,7 +304,7 @@ function runHardcodedPublicKeyTests(
       unconfirmedBalance: '0',
       spendableBalance: '0',
       sweepable: false,
-      unactivated: false,
+      requiresActivation: false,
     })
   })
 }

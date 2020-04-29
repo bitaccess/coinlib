@@ -89,7 +89,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
         unconfirmedBalance: '0',
         spendableBalance: spendableBalance.toString(),
         sweepable,
-        unactivated: false,
+        requiresActivation: false,
       }
     } catch (e) {
       throw toError(e)

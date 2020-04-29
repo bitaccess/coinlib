@@ -81,14 +81,14 @@ describe('end to end tests', () => {
         unconfirmedBalance: '0',
         spendableBalance: expectedBalance,
         sweepable: true,
-        unactivated: false,
+        requiresActivation: false,
       })
       expect(balanceTarget).toStrictEqual({
         confirmedBalance: '0.5',
         unconfirmedBalance: '0',
         spendableBalance: '0.5',
         sweepable: true,
-        unactivated: false,
+        requiresActivation: false,
       })
     })
 
@@ -110,14 +110,14 @@ describe('end to end tests', () => {
         unconfirmedBalance: '0',
         spendableBalance: '0',
         sweepable: false,
-        unactivated: false,
+        requiresActivation: false,
       })
       expect(balanceTarget).toStrictEqual({
         confirmedBalance: expectedSweepedBalance,
         unconfirmedBalance: '0',
         spendableBalance: expectedSweepedBalance,
         sweepable: true,
-        unactivated: false,
+        requiresActivation: false,
       })
     })
 
@@ -127,7 +127,7 @@ describe('end to end tests', () => {
         unconfirmedBalance: '0',
         spendableBalance: '0',
         sweepable: false,
-        unactivated: false,
+        requiresActivation: false,
       })
     })
   })

@@ -83,7 +83,7 @@ describeAll('e2e mainnet', () => {
       unconfirmedBalance: '0',
       spendableBalance: address0balance,
       sweepable: true,
-      unactivated: false,
+      requiresActivation: false,
     })
   })
   it('get correct balance for address 0', async () => {
@@ -92,7 +92,7 @@ describeAll('e2e mainnet', () => {
       unconfirmedBalance: '0',
       spendableBalance: address0balance,
       sweepable: true,
-      unactivated: false,
+      requiresActivation: false,
     })
   })
   it('get correct balance for address 3', async () => {
@@ -101,7 +101,7 @@ describeAll('e2e mainnet', () => {
       unconfirmedBalance: '0',
       spendableBalance: '0',
       sweepable: false,
-      unactivated: false,
+      requiresActivation: false,
     })
   })
 
@@ -111,7 +111,7 @@ describeAll('e2e mainnet', () => {
       unconfirmedBalance: '0',
       spendableBalance: '0',
       sweepable: false,
-      unactivated: false,
+      requiresActivation: false,
     })
   })
 

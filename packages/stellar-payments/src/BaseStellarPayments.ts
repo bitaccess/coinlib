@@ -180,7 +180,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
         unconfirmedBalance: '0',
         spendableBalance: '0',
         sweepable: false,
-        unactivated: true,
+        requiresActivation: true,
       }
     }
     const balanceLine = accountInfo.balances.find((line) => line.asset_type === 'native')
@@ -192,7 +192,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       unconfirmedBalance: '0',
       spendableBalance: spendableBalance.toString(),
       sweepable: this.isSweepableAddressBalance(amountMain),
-      unactivated: false,
+      requiresActivation: false,
     }
   }
 
@@ -385,10 +385,10 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     const txTimeoutSecs = options.timeoutSeconds || this.config.txTimeoutSeconds || DEFAULT_TX_TIMEOUT_SECONDS
     const amountString = amount.toString()
     const {
-      unactivated: fromAddressUnactivated,
+      requiresActivation: fromAddressRequiresActivation,
       confirmedBalance: fromAddressBalance,
     } = await this.getBalance({ address: fromAddress })
-    if (fromAddressUnactivated) {
+    if (fromAddressRequiresActivation) {
       throw new Error(
         `Cannot send from unactivated stellar address ${fromAddress} - min balance of `
           + `${MIN_BALANCE} XLM required (${fromAddressBalance} XLM)`,
@@ -412,10 +412,10 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       )
     }
     const {
-      unactivated: toAddressUnactivated,
+      requiresActivation: toAddressRequiresActivation,
       confirmedBalance: toAddressBalance,
     } = await this.getBalance({ address: toAddress })
-    if (toAddressUnactivated && amount.lt(MIN_BALANCE)) {
+    if (toAddressRequiresActivation && amount.lt(MIN_BALANCE)) {
       throw new Error(
         `Cannot send ${amountString} XLM to recipient ${toAddress} because address requires `
           + `a balance of at least ${MIN_BALANCE} XLM to receive funds (${toAddressBalance} XLM)`

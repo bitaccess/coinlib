@@ -26,7 +26,7 @@ describe('types', () => {
       unconfirmedBalance: '0',
       spendableBalance: '0',
       sweepable: false,
-      unactivated: false,
+      requiresActivation: false,
     })
   })
   test('BalanceResult throws on invalid', () => {
