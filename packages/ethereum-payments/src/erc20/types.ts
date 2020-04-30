@@ -37,6 +37,7 @@ export const BaseErc20PaymentsConfig = extendCodec(
     fullNode:   OptionalString,
     parityNode: OptionalString,
     gasStation: OptionalString,
+    abi: t.any,
   },
   'BaseErc20PaymentsConfig',
 )
