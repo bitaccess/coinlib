@@ -12,6 +12,7 @@ import { txInfo_e10d7, signedTx_valid, signedTx_invalid } from './fixtures/trans
 import { accountsByAddressType, AccountFixture } from './fixtures/accounts'
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
 import { toBigNumber } from '@faast/ts-common'
+import BigNumber from 'bignumber.js'
 
 const EXTERNAL_ADDRESS = '14Z2k3tU19TSzBfT8s4QFAcYsbECUJnxiK'
 
@@ -50,6 +51,7 @@ describeAll('e2e mainnet', () => {
     network: NetworkType.Mainnet,
     addressType: AddressType.SegwitNative,
     logger,
+    targetUtxoPoolSize: 5,
   })
   const address0 = 'bc1qz7v8smdfrgzqvjre3lrcxl4ul9x806e7umgf27'
   const address0balance = '0.00011'
@@ -66,7 +68,7 @@ describeAll('e2e mainnet', () => {
       'confirmations': 8753
     }
   ]
-
+  const omitUtxoFieldEquality = ['height', 'confirmations', 'lockTime']
 
   it('get correct xpub', async () => {
     expect(payments.xpub).toEqual(xpub)
@@ -160,6 +162,7 @@ describeAll('e2e mainnet', () => {
     expect(tx.inputUtxos).toBeTruthy()
   })
   it('create sweep transaction to an external address with unconfirmed utxos', async () => {
+    const feeRate = '21'
     const tx = await payments.createSweepTransaction(0, { address: EXTERNAL_ADDRESS }, {
       useUnconfirmedUtxos: true,
       utxos: [{
@@ -167,6 +170,8 @@ describeAll('e2e mainnet', () => {
         height: undefined,
         confirmations: undefined,
       }],
+      feeRate,
+      feeRateType: FeeRateType.BasePerWeight,
     })
     expect(tx).toBeDefined()
     expect(toBigNumber(tx.amount).plus(tx.fee).toString()).toEqual(address0balance)
@@ -174,19 +179,32 @@ describeAll('e2e mainnet', () => {
     expect(tx.toAddress).toEqual(EXTERNAL_ADDRESS)
     expect(tx.fromIndex).toEqual(0)
     expect(tx.toIndex).toEqual(null)
-    expect(tx.inputUtxos).toBeTruthy()
+    expectEqualOmit(tx.inputUtxos, address0utxos, omitUtxoFieldEquality)
+    const expectedTxSize = 112
+    const expectedFee = new BigNumber(feeRate).times(expectedTxSize).times(1e-8).toString()
+    expect(tx.fee).toBe(expectedFee)
   })
 
   it('create send transaction to an index', async () => {
     const amount = '0.00005'
-    const tx = await payments.createTransaction(0, 3, amount)
+    const feeRate = '21'
+    const tx = await payments.createTransaction(0, 3, amount, {
+      feeRate,
+      feeRateType: FeeRateType.BasePerWeight,
+    })
     expect(tx).toBeDefined()
     expect(tx.amount).toEqual(amount)
     expect(tx.fromAddress).toEqual(address0)
     expect(tx.toAddress).toEqual(address3)
     expect(tx.fromIndex).toEqual(0)
     expect(tx.toIndex).toEqual(3)
-    expect(tx.inputUtxos).toBeTruthy()
+    expectEqualOmit(tx.inputUtxos, address0utxos, omitUtxoFieldEquality)
+    expect(tx.externalOutputs).toEqual([{ address: address3, value: amount }])
+    const expectedTxSize = 140
+    const expectedFee = new BigNumber(feeRate).times(expectedTxSize).times(1e-8).toString()
+    expect(tx.fee).toBe(expectedFee)
+    const expectedChange = new BigNumber(address0balance).minus(amount).minus(expectedFee).toString()
+    expect(tx.data.changeOutputs).toEqual([{ address: address0, value: expectedChange }])
   })
   it('create send transaction to an internal address', async () => {
     const amount = '0.00005'

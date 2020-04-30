@@ -57,7 +57,15 @@ export class TestLogger implements Logger {
 }
 
 export function expectEqualOmit(actual: any, expected: any, omitFields: string[]) {
-  expect(omit(actual, omitFields)).toEqual(omit(expected, omitFields))
+  if (Array.isArray(expected)) {
+    expected = expected.map((elem) => omit(elem, omitFields))
+    expect(actual).toBeInstanceOf(Array)
+    actual = (actual as any[]).map((elem) => omit(elem, omitFields))
+  } else {
+    actual = omit(actual, omitFields)
+    expected = omit(expected, omitFields)
+  }
+  expect(actual).toEqual(expected)
 }
 
 export function expectEqualWhenTruthy(actual: any, expected: any) {

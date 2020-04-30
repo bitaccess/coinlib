@@ -252,7 +252,12 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       this.logger.debug(`Using network min relay fee of ${this.networkMinRelayFee} sat instead of ${feeSat} sat`)
       feeSat = this.networkMinRelayFee
     }
-    return Math.ceil(feeSat)
+    const result = Math.ceil(feeSat)
+    this.logger.debug(
+      `Estimated fee of ${result} sat for target rate ${targetRate.feeRate} ${targetRate.feeRateType} on a tx with `
+        + `${inputCount} inputs, ${externalOutputAddresses} external outputs, and ${changeOutputCount} change outputs`
+    )
+    return result
   }
 
   /**
@@ -383,18 +388,18 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
 
     /* Select inputs and calculate appropriate fee */
+    const externalOutputAddresses = externalOutputs.map(({ address }) => address)
     let { selectedUtxos: inputUtxos, selectedTotalSat: inputTotal, feeSat } = this.selectInputUtxos(
       unusedUtxos,
       externalOutputTotal,
-      externalOutputs.map(({ address }) => address),
+      externalOutputAddresses,
       desiredFeeRate,
       useAllUtxos,
       useUnconfirmedUtxos,
     )
-    let amountWithFee = externalOutputTotal + feeSat
 
     /** Account for insuffient inputs and sweeping cases */
-    if (amountWithFee > inputTotal) {
+    if (externalOutputTotal + feeSat > inputTotal) {
       if (externalOutputTotal === inputTotal) { // sweeping
         // Share the fee across all outputs. This may increase the fee by as much as 1 sat per output, negligible
         const feeShare = Math.ceil(feeSat / externalOutputs.length)
@@ -413,7 +418,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
             )
           }
         }
-        amountWithFee = inputTotal
         externalOutputTotal -= feeSat
       } else { // insufficient utxos
         throw new Error(
@@ -425,12 +429,13 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
     /** Change handling */
 
-    let totalChangeSat = inputTotal - amountWithFee
+    let totalChangeSat = inputTotal - externalOutputTotal - feeSat
 
     this.logger.debug('buildPaymentTx', { inputTotal, feeSat, outputTotal: externalOutputTotal, totalChangeSat })
     let changeOutputs: BitcoinishTxOutputSatoshis[] = []
-    if (totalChangeSat > this.dustThreshold) { // Avoid creating dust outputs
-
+    if (totalChangeSat < 0) {
+      throw new Error(`${this.coinSymbol} buildPaymentTx - totalChangeSat is negative when building tx, this shouldnt happen!`)
+    } else {
       const targetChangeOutputCount = this.determineTargetChangeOutputCount(unusedUtxos.length, inputUtxos.length)
       const changeOutputWeights = this.createWeightedChangeOutputs(targetChangeOutputCount, changeAddress)
       const totalChangeWeight = changeOutputWeights.reduce((total, { weight }) => total += weight, 0)
@@ -450,11 +455,27 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         }
       }
       this.logger.debug({ changeOutputWeights, totalChangeWeight, totalChangeAllocated, changeOutputs })
+
       // If due to rounding or omitting dust outputs our real change total is different, adjust fees accordingly
       let looseChange = totalChangeSat - totalChangeAllocated
+      const recalculatedFee = this.estimateTxFee(
+        desiredFeeRate,
+        inputUtxos.length,
+        changeOutputs.length || 1,
+        externalOutputAddresses,
+      )
+      if (feeSat > recalculatedFee) {
+        // Due to dropping change outputs we're now overpaying, reduce fee and reallocate to change
+        const overpayingAmount = feeSat - recalculatedFee
+        this.logger.debug(`Reducing overestimated fee ${feeSat} by ${overpayingAmount} sat`)
+        feeSat = recalculatedFee
+        totalChangeSat += overpayingAmount
+        looseChange += overpayingAmount
+      }
       if (looseChange < 0) {
         throw new Error(`${this.coinSymbol} buildPaymentTx - looseChange should never be negative!`)
       } else if (changeOutputs.length > 0 && looseChange / changeOutputs.length > 1) {
+        // Enough loose change to reallocate amongst all change outputs
         const extraSatPerChangeOutput = Math.floor(looseChange / changeOutputs.length)
         this.logger.log(`${this.coinSymbol} buildPaymentTx - redistributing looseChange of ${extraSatPerChangeOutput} per change output`)
         for (let i = 0; i < changeOutputs.length; i++) {
@@ -468,14 +489,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       }
       feeSat += looseChange
       totalChangeSat -= looseChange
-    } else if (totalChangeSat > 0) {
-      this.logger.log(
-        `${this.coinSymbol} buildPaymentTx - change of ${totalChangeSat} sat is below dustThreshold of ${this.dustThreshold}, adding to fee`
-      )
-      feeSat += totalChangeSat
-      totalChangeSat = 0
-    } else if (totalChangeSat < 0) {
-      throw new Error(`${this.coinSymbol} buildPaymentTx - totalChangeSat is negative when building tx, this shouldnt happen!`)
     }
     const externalOutputsResult = this.convertOutputsToExternalFormat(externalOutputs)
     const changeOutputsResult = this.convertOutputsToExternalFormat(changeOutputs)
