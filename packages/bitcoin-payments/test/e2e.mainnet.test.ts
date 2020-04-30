@@ -53,6 +53,8 @@ describeAll('e2e mainnet', () => {
     logger,
     targetUtxoPoolSize: 5,
   })
+  const feeRate = '21'
+  const feeRateType = FeeRateType.BasePerWeight
   const address0 = 'bc1qz7v8smdfrgzqvjre3lrcxl4ul9x806e7umgf27'
   const address0balance = '0.00011'
   const address3 = 'bc1q2qsxsvwx2tmrfqqg8f58qgu9swn3zau809tzty'
@@ -126,13 +128,13 @@ describeAll('e2e mainnet', () => {
       .rejects.toThrow("Transaction '123456abcdef' not found")
   })
 
-  it('creates transaction with custom fee', async () => {
+  it('creates transaction with fixed fee', async () => {
     const fee = '0.00005'
     const tx = await payments.createSweepTransaction(0, 3, { feeRate: fee, feeRateType: FeeRateType.Main })
     expect(tx.fee).toBe(fee)
   })
   it('create sweep transaction to an index', async () => {
-    const tx = await payments.createSweepTransaction(0, 3)
+    const tx = await payments.createSweepTransaction(0, 3, { feeRate, feeRateType })
     expect(tx).toBeDefined()
     expect(toBigNumber(tx.amount).plus(tx.fee).toString()).toEqual(address0balance)
     expect(tx.fromAddress).toEqual(address0)
@@ -142,7 +144,7 @@ describeAll('e2e mainnet', () => {
     expect(tx.inputUtxos).toBeTruthy()
   })
   it('create sweep transaction to an internal address', async () => {
-    const tx = await payments.createSweepTransaction(0, { address: address3 })
+    const tx = await payments.createSweepTransaction(0, { address: address3 }, { feeRate, feeRateType })
     expect(tx).toBeDefined()
     expect(toBigNumber(tx.amount).plus(tx.fee).toString()).toEqual(address0balance)
     expect(tx.fromAddress).toEqual(address0)
@@ -152,7 +154,7 @@ describeAll('e2e mainnet', () => {
     expect(tx.inputUtxos).toBeTruthy()
   })
   it('create sweep transaction to an external address', async () => {
-    const tx = await payments.createSweepTransaction(0, { address: EXTERNAL_ADDRESS })
+    const tx = await payments.createSweepTransaction(0, { address: EXTERNAL_ADDRESS }, { feeRate, feeRateType })
     expect(tx).toBeDefined()
     expect(toBigNumber(tx.amount).plus(tx.fee).toString()).toEqual(address0balance)
     expect(tx.fromAddress).toEqual(address0)
@@ -171,7 +173,7 @@ describeAll('e2e mainnet', () => {
         confirmations: undefined,
       }],
       feeRate,
-      feeRateType: FeeRateType.BasePerWeight,
+      feeRateType,
     })
     expect(tx).toBeDefined()
     expect(toBigNumber(tx.amount).plus(tx.fee).toString()).toEqual(address0balance)
@@ -188,10 +190,7 @@ describeAll('e2e mainnet', () => {
   it('create send transaction to an index', async () => {
     const amount = '0.00005'
     const feeRate = '21'
-    const tx = await payments.createTransaction(0, 3, amount, {
-      feeRate,
-      feeRateType: FeeRateType.BasePerWeight,
-    })
+    const tx = await payments.createTransaction(0, 3, amount, { feeRate, feeRateType })
     expect(tx).toBeDefined()
     expect(tx.amount).toEqual(amount)
     expect(tx.fromAddress).toEqual(address0)
@@ -208,7 +207,7 @@ describeAll('e2e mainnet', () => {
   })
   it('create send transaction to an internal address', async () => {
     const amount = '0.00005'
-    const tx = await payments.createTransaction(0, { address: address3 }, amount)
+    const tx = await payments.createTransaction(0, { address: address3 }, amount, { feeRate, feeRateType })
     expect(tx).toBeDefined()
     expect(tx.amount).toEqual(amount)
     expect(tx.fromAddress).toEqual(address0)
@@ -219,7 +218,7 @@ describeAll('e2e mainnet', () => {
   })
 
   it('can sign transaction', async () => {
-    const tx = await payments.createSweepTransaction(0, 3)
+    const tx = await payments.createSweepTransaction(0, 3, { feeRate, feeRateType })
     expect(tx).toBeDefined()
     const signedTx = await payments.signTransaction(tx)
     expect(signedTx).toBeDefined()
@@ -230,7 +229,7 @@ describeAll('e2e mainnet', () => {
   })
 
   it('can sign transaction without rawHex', async () => {
-    const tx = await payments.createSweepTransaction(0, 3)
+    const tx = await payments.createSweepTransaction(0, 3, { feeRate, feeRateType })
     expect(tx).toBeDefined()
     tx.data.rawHex = undefined
     const signedTx = await payments.signTransaction(tx)
@@ -296,7 +295,7 @@ describeAll('e2e mainnet', () => {
     }
     const recipientIndex = indexToSweep === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
     try {
-      const unsignedTx = await payments.createSweepTransaction(indexToSweep, recipientIndex)
+      const unsignedTx = await payments.createSweepTransaction(indexToSweep, recipientIndex, { feeRate, feeRateType })
       const signedTx = await payments.signTransaction(unsignedTx)
       logger.log(`Sweeping ${signedTx.amount} from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
       expect(await payments.broadcastTransaction(signedTx)).toEqual({
