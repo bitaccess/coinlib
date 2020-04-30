@@ -63,19 +63,6 @@ export function retryIfDisconnected<T>(fn: () => Promise<T>, api: BlockbookBitco
   )
 }
 
-// in most cases (P2PKH):
-// 10 = version: 4, locktime: 4, inputs and outputs count: 1
-// 148 = txId: 32, vout: 4, count: 1, script: 107, sequence: 4
-// 34 = value: 8, count: 1, scriptPubKey: 25
-// This esimate also appears accurate for P2WPKH
-export function estimateTxSize (inputsCount: number, outputsCount: number, handleSegwit: boolean) {
-  return 10 + (148 * inputsCount) + (34 * outputsCount)
-}
-
-export function estimateTxFee (satPerByte: number, inputsCount: number, outputsCount: number, handleSegwit: boolean) {
-  return estimateTxSize(inputsCount, outputsCount, handleSegwit) * satPerByte
-}
-
 /**
  * Sum the utxos values (main denomination)
  */

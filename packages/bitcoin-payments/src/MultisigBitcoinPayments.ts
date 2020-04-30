@@ -64,6 +64,10 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
     }
   }
 
+  getEstimateTxSizeInputKey() {
+    return `${this.addressType}:${this.m}-${this.signers.length}`
+  }
+
   getAccountId(index: number): string {
     throw new Error('Multisig payments does not have single account for an index, use getAccountIds(index) instead')
   }

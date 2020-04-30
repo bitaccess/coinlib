@@ -47,7 +47,7 @@ describeAll('e2e testnet', () => {
   })
 
   for (let addressType of addressTypesToTest) {
-    const { xpub, addresses } = fixtures[addressType]
+    const { xpub, addresses, sweepTxSize } = fixtures[addressType]
 
     describe(addressType, () => {
       const paymentsConfig: HdBitcoinPaymentsConfig = {
@@ -135,7 +135,7 @@ describeAll('e2e testnet', () => {
         expect(signedTx.externalOutputs).toBeDefined()
         expect(signedTx.externalOutputs!.length).toBe(1)
         const feeNumber = new BigNumber(signedTx.fee).toNumber()
-        expect(feeNumber).toBe((192*satPerByte)*1e-8)
+        expect(feeNumber).toBe((sweepTxSize*satPerByte)*1e-8)
         logger.log(`Sweeping ${signedTx.amount} from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
         expect(await payments.broadcastTransaction(signedTx)).toEqual({
           id: signedTx.id,

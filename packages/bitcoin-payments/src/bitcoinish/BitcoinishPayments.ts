@@ -2,10 +2,9 @@ import {
   BasePayments, UtxoInfo, FeeOptionCustom, FeeRateType, FeeRate, FeeOption,
   ResolvedFeeOption, FeeLevel, AutoFeeLevels, Payport, ResolveablePayport,
   BalanceResult, FromTo, TransactionStatus, CreateTransactionOptions, BaseConfig,
-  WeightedChangeOutput,
   MaybePromise,
 } from '@faast/payments-common'
-import { isUndefined, isType, Numeric, toBigNumber, assertType, isNumber, isString } from '@faast/ts-common'
+import { isUndefined, isType, Numeric, toBigNumber, assertType, isNumber } from '@faast/ts-common'
 import { get } from 'lodash'
 import * as t from 'io-ts'
 
@@ -21,7 +20,7 @@ import {
   BitcoinishWeightedChangeOutput,
   PayportOutput,
 } from './types'
-import { estimateTxFee, sumUtxoValue, sortUtxos, isConfirmedUtxo, sha256FromHex } from './utils';
+import { sumUtxoValue, sortUtxos, isConfirmedUtxo, sha256FromHex } from './utils'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
 
 export abstract class BitcoinishPayments<Config extends BaseConfig> extends BitcoinishPaymentsUtils
@@ -205,28 +204,44 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     return outputs.map(({ address, satoshis }) => ({ address, value: this.toMainDenominationString(satoshis) }))
   }
 
+  /**
+   * Estimate the size of a tx in vbytes. Override this if the coin supports segwit, multisig, or any
+   * non P2PKH style transaction. Default implementation assumes P2PKH.
+   */
+  estimateTxSize(
+    inputCount: number,
+    changeOutputCount: number,
+    externalOutputAddresses: string[],
+  ): number {
+    return 10 + 148 * inputCount + 34 * (changeOutputCount + externalOutputAddresses.length)
+  }
+
+  /** Helper for calculateTxFeeSatoshis */
   private feeRateToSatoshis(
     { feeRate, feeRateType }: FeeRate,
     inputCount: number,
-    outputCount: number,
+    changeOutputCount: number,
+    externalOutputAddresses: string[],
   ): number {
     if (feeRateType === FeeRateType.BasePerWeight) {
-      return estimateTxFee(Number.parseFloat(feeRate), inputCount, outputCount, true)
+      return Number.parseFloat(feeRate) * this.estimateTxSize(inputCount, changeOutputCount, externalOutputAddresses)
     } else if (feeRateType === FeeRateType.Main) {
       return this.toBaseDenominationNumber(feeRate)
     }
     return Number.parseFloat(feeRate)
   }
 
-  private calculateTxFeeSatoshis(
+  /** Estimate the tx fee in satoshis */
+  estimateTxFee(
     targetRate: FeeRate,
     inputCount: number,
-    outputCount: number,
-  ) {
-    let feeSat = this.feeRateToSatoshis(targetRate, inputCount, outputCount)
+    changeOutputCount: number,
+    externalOutputAddresses: string[],
+  ): number {
+    let feeSat = this.feeRateToSatoshis(targetRate, inputCount, changeOutputCount, externalOutputAddresses)
     // Ensure calculated fee is above configured minimum
     if (this.minTxFee) {
-      const minTxFeeSat = this.feeRateToSatoshis(this.minTxFee, inputCount, outputCount)
+      const minTxFeeSat = this.feeRateToSatoshis(this.minTxFee, inputCount, changeOutputCount, externalOutputAddresses)
       if (feeSat < minTxFeeSat) {
         this.logger.debug(`Using min tx fee of ${minTxFeeSat} sat (${this.minTxFee} sat/byte) instead of ${feeSat} sat`)
         feeSat = minTxFeeSat
@@ -255,7 +270,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   private selectInputUtxos(
     unusedUtxos: UtxoInfo[],
     outputTotal: number,
-    outputCount: number,
+    outputAddresses: string[],
     feeRate: FeeRate,
     useAllUtxos: boolean,
     useUnconfirmedUtxos: boolean,
@@ -281,11 +296,11 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       return {
         selectedUtxos: utxos,
         selectedTotalSat: utxosTotalSat,
-        feeSat: this.calculateTxFeeSatoshis(feeRate, utxos.length, outputCount)
+        feeSat: this.estimateTxFee(feeRate, utxos.length, 0, outputAddresses)
       }
     } else { // Sending amount case
       // First try to find a single input that covers output without creating change
-      const idealSolutionFeeSat = this.calculateTxFeeSatoshis(feeRate, 1, outputCount)
+      const idealSolutionFeeSat = this.estimateTxFee(feeRate, 1, 0, outputAddresses)
       const idealSolutionMinSat = outputTotal + idealSolutionFeeSat
       const idealSolutionMaxSat = idealSolutionMinSat + this.dustThreshold
       for (const utxo of utxos) {
@@ -310,7 +325,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         selectedUtxos.push(utxo)
         selectedTotalSat += utxo.satoshis
         const targetChangeOutputCount = this.determineTargetChangeOutputCount(unusedUtxos.length, selectedUtxos.length)
-        feeSat = this.calculateTxFeeSatoshis(feeRate, selectedUtxos.length, outputCount + targetChangeOutputCount)
+        feeSat = this.estimateTxFee(feeRate, selectedUtxos.length, targetChangeOutputCount, outputAddresses)
         if (selectedTotalSat >= outputTotal + feeSat) {
           break
         }
@@ -371,7 +386,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     let { selectedUtxos: inputUtxos, selectedTotalSat: inputTotal, feeSat } = this.selectInputUtxos(
       unusedUtxos,
       externalOutputTotal,
-      externalOutputs.length,
+      externalOutputs.map(({ address }) => address),
       desiredFeeRate,
       useAllUtxos,
       useUnconfirmedUtxos,

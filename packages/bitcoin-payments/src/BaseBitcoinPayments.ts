@@ -3,7 +3,7 @@ import {
   FeeRateType, FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus, BaseMultisigData,
 } from '@faast/payments-common'
 
-import { getBlockcypherFeeEstimate, toBitcoinishConfig } from './utils'
+import { getBlockcypherFeeEstimate, toBitcoinishConfig, estimateBitcoinTxSize } from './utils'
 import {
   BaseBitcoinPaymentsConfig,
   BitcoinUnsignedTransaction,
@@ -56,6 +56,23 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
       feeRate: satPerByte.toString(),
       feeRateType: FeeRateType.BasePerWeight,
     }
+  }
+
+  /** Return a string that can be passed into estimateBitcoinTxSize. Override to support multisig */
+  getEstimateTxSizeInputKey(): string {
+    return this.addressType
+  }
+
+  estimateTxSize(inputCount: number, changeOutputCount: number, externalOutputAddresses: string[]): number {
+    const outputCounts = externalOutputAddresses.reduce((outputCounts, address) => {
+      outputCounts[address] = 1
+      return outputCounts
+    }, { [this.addressType]: changeOutputCount })
+    return estimateBitcoinTxSize(
+      { [this.getEstimateTxSizeInputKey()]: inputCount },
+      outputCounts,
+      this.bitcoinjsNetwork,
+    )
   }
 
   async getPsbtInputData(
