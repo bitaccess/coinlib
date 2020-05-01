@@ -63,12 +63,13 @@ describe('end to end tests', () => {
   describe('HD payments', () => {
     test('normal transaction', async () => {
       const unsignedTx = await hd.createTransaction(0, { address: target.address }, '0.5', {
-        sequenceNumber: 0
+        sequenceNumber: 0,
       })
       const signedTx = await hd.signTransaction(unsignedTx)
+      const actualFee = (new BigNumber(signedTx.targetFeeRate || 0)).dividedBy(1e18).multipliedBy(21000)
       expectedBalance = (new BigNumber(1.0))
         .minus(0.5)
-        .minus(signedTx.fee)
+        .minus(actualFee)
         .toString()
 
       const broadcastedTx = await hd.broadcastTransaction(signedTx)

@@ -15,6 +15,8 @@ import {
   FromTo,
   ResolveablePayport,
   ResolvedFeeOption,
+  FeeOption,
+  FeeOptionCustom,
 } from '@faast/payments-common'
 
 const keys = t.type({
@@ -120,6 +122,26 @@ export const EthereumResolvedFeeOption = extendCodec(
   'EthereumResolvedFeeOption'
 )
 export type EthereumResolvedFeeOption = t.TypeOf<typeof EthereumResolvedFeeOption>
+
+export const EthereumFeeOption = extendCodec(
+  FeeOption,
+  {},
+  {
+    isSweep: t.boolean,
+  },
+  'EthereumFeeOption'
+)
+export type EthereumFeeOption = t.TypeOf<typeof EthereumFeeOption>
+
+export const EthereumFeeOptionCustom = extendCodec(
+  FeeOptionCustom,
+  {},
+  {
+    isSweep: t.boolean,
+  },
+  'EthereumFeeOption'
+)
+export type EthereumFeeOptionCustom = t.TypeOf<typeof EthereumFeeOptionCustom>
 
 const BnRounding = t.union([
   t.literal(1),
