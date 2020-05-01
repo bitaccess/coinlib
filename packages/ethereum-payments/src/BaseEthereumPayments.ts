@@ -9,9 +9,9 @@ import {
   BasePayments,
   TransactionStatus,
   FeeLevel,
-  //FeeOption,
+  FeeOption,
   FeeRateType,
-  //FeeOptionCustom,
+  FeeOptionCustom,
   Payport,
   FromTo,
   ResolveablePayport,
@@ -29,8 +29,6 @@ import {
   EthereumBroadcastResult,
   BaseEthereumPaymentsConfig,
   EthereumResolvedFeeOption,
-  EthereumFeeOption,
-  EthereumFeeOptionCustom,
 } from './types'
 import { NetworkData } from './NetworkData'
 import {
@@ -40,7 +38,6 @@ import {
   DEFAULT_FEE_LEVEL,
   FEE_LEVEL_MAP,
   ETHEREUM_TRANSFER_COST,
-  ETHEREUM_SWEEP_COST,
   MIN_CONFIRMATIONS,
 } from './constants'
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
@@ -108,22 +105,21 @@ implements BasePayments
     }
   }
 
-  async resolveFeeOption(feeOption: EthereumFeeOption): Promise<EthereumResolvedFeeOption> {
-    return isType(EthereumFeeOptionCustom, feeOption)
+  async resolveFeeOption(feeOption: FeeOption): Promise<EthereumResolvedFeeOption> {
+    return isType(FeeOptionCustom, feeOption)
       ? this.resolveCustomFeeOption(feeOption)
       : this.resolveLeveledFeeOption(feeOption)
   }
 
-  private resolveCustomFeeOption(feeOption: EthereumFeeOptionCustom): EthereumResolvedFeeOption {
+  private resolveCustomFeeOption(feeOption: FeeOptionCustom): EthereumResolvedFeeOption {
     const isWeight = (feeOption.feeRateType === FeeRateType.BasePerWeight)
     const isMain = (feeOption.feeRateType === FeeRateType.Main)
-    const gas = feeOption.isSweep ? ETHEREUM_SWEEP_COST : ETHEREUM_TRANSFER_COST
 
     const gasPrice = isWeight
       ? feeOption.feeRate
-      : (new BigNumber(feeOption.feeRate)).dividedBy(gas).toString()
+      : (new BigNumber(feeOption.feeRate)).dividedBy(ETHEREUM_TRANSFER_COST).toString()
     const fee = isWeight
-      ? (new BigNumber(feeOption.feeRate)).multipliedBy(gas).toString()
+      ? (new BigNumber(feeOption.feeRate)).multipliedBy(ETHEREUM_TRANSFER_COST).toString()
       : feeOption.feeRate
 
     return {
@@ -136,11 +132,10 @@ implements BasePayments
     }
   }
 
-  private async resolveLeveledFeeOption(feeOption: EthereumFeeOption): Promise<EthereumResolvedFeeOption> {
+  private async resolveLeveledFeeOption(feeOption: FeeOption): Promise<EthereumResolvedFeeOption> {
     const targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL
     const targetFeeRate = await this.gasStation.getGasPrice(FEE_LEVEL_MAP[targetFeeLevel])
-    const gas = feeOption.isSweep ? ETHEREUM_SWEEP_COST : ETHEREUM_TRANSFER_COST
-    const feeBase = (new BigNumber(targetFeeRate)).multipliedBy(gas).toString()
+    const feeBase = (new BigNumber(targetFeeRate)).multipliedBy(ETHEREUM_TRANSFER_COST).toString()
 
     return {
       targetFeeRate,
@@ -194,7 +189,7 @@ implements BasePayments
   }
 
   async isSweepableBalance(balanceEth: string): Promise<boolean> {
-    const feeOption = await this.resolveFeeOption({ isSweep: true })
+    const feeOption = await this.resolveFeeOption({})
 
     const feeWei = new BigNumber(feeOption.feeBase)
     const balanceWei = new BigNumber(this.toBaseDenomination(balanceEth))
@@ -229,7 +224,7 @@ implements BasePayments
         status: true,
         blockNumber: 0,
         cumulativeGasUsed: 0,
-        gasUsed: 0,
+        gasUsed: parseInt(ETHEREUM_TRANSFER_COST, 10),
         transactionIndex: 0,
         blockHash: '',
         logs: [],
@@ -384,11 +379,10 @@ implements BasePayments
     amountEth: string = 'max',
     options: TransactionOptions = {}
   ): Promise<EthereumUnsignedTransaction> {
-    const isSweep = amountEth === 'max' ? true : false
-    const gas = isSweep ? ETHEREUM_SWEEP_COST : ETHEREUM_TRANSFER_COST
+    const sweepFlag = amountEth === 'max' ? true : false
 
     const fromTo = await this.resolveFromTo(from, to)
-    const feeOption = await this.resolveFeeOption(Object.assign(options, { isSweep }) as EthereumFeeOption)
+    const feeOption = await this.resolveFeeOption(options as FeeOption)
     const { confirmedBalance: balanceEth } = await this.getBalance(fromTo.fromPayport)
     const nonce = options.sequenceNumber || await this.getNextSequenceNumber(from)
 
@@ -396,7 +390,7 @@ implements BasePayments
     const balanceWei = this.toBaseDenomination(balanceEth)
 
     let amountWei: BigNumber
-    if (isSweep) {
+    if (sweepFlag) {
       amountWei = (new BigNumber(balanceWei)).minus(feeWei)
       if (amountWei.isLessThan(0)) {
         throw new Error(`Insufficient balance (${balanceEth}) to sweep with fee of ${feeOption.feeMain} `)
@@ -412,7 +406,7 @@ implements BasePayments
       from:     fromTo.fromAddress,
       to:       fromTo.toAddress,
       value:    `0x${amountWei.toString(16)}`,
-      gas:      `0x${(new BigNumber(gas)).toString(16)}`,
+      gas:      `0x${(new BigNumber(ETHEREUM_TRANSFER_COST)).toString(16)}`,
       gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
       nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
     }

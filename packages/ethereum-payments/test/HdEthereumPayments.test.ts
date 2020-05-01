@@ -490,7 +490,7 @@ describe('HdEthereumPayments', () => {
             blockNumber: 0,
             cumulativeGasUsed: 0,
             gas: 21000,
-            gasUsed: 0,
+            gasUsed: 21052,
             logs: [],
             logsBloom: '',
             transactionHash: txId,
@@ -604,7 +604,7 @@ describe('HdEthereumPayments', () => {
 
         const res = await hdEP.createSweepTransaction(from, to)
 
-        const feeEth = '0.000063'
+        const feeEth = '0.000063156'
         const transactionValueEth = (new BigNumber(hdEP.toMainDenomination(balance))).minus(feeEth).toString()
 
         expect(res).toStrictEqual({
@@ -624,8 +624,8 @@ describe('HdEthereumPayments', () => {
           data: {
             from: FROM_ADDRESS,
             to: to.address,
-            value: '0x1f9733471e18572',
-            gas: '0x5208',
+            value: '0x1f973101f8e6d72',
+            gas: '0x523c',
             gasPrice: '0xb2d05e00',
             nonce: '0x1b'
           }
