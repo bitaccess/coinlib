@@ -63,12 +63,13 @@ describe('end to end tests', () => {
   describe('HD payments', () => {
     test('normal transaction', async () => {
       const unsignedTx = await hd.createTransaction(0, { address: target.address }, '0.5', {
-        sequenceNumber: 0
+        sequenceNumber: 0,
       })
       const signedTx = await hd.signTransaction(unsignedTx)
+      const actualFee = (new BigNumber(signedTx.targetFeeRate || 0)).dividedBy(1e18).multipliedBy(21000)
       expectedBalance = (new BigNumber(1.0))
         .minus(0.5)
-        .minus(signedTx.fee)
+        .minus(actualFee)
         .toString()
 
       const broadcastedTx = await hd.broadcastTransaction(signedTx)
@@ -95,10 +96,12 @@ describe('end to end tests', () => {
     test('sweep transaction', async () => {
       const unsignedTx = await hd.createSweepTransaction(0, { address: target.address })
       const signedTx = await hd.signTransaction(unsignedTx)
+      const actualFee = (new BigNumber(signedTx.targetFeeRate || 0)).dividedBy(1e18).multipliedBy(21000)
       const expectedSweepedBalance = (new BigNumber(expectedBalance))
         .plus('0.5')
         .minus(signedTx.fee)
         .toString()
+      const dust = (new BigNumber(signedTx.fee)).minus(actualFee).toString(10)
 
       const broadcastedTx = await hd.broadcastTransaction(signedTx)
 
@@ -106,10 +109,10 @@ describe('end to end tests', () => {
       const balanceTarget = await hd.getBalance(target.address)
 
       expect(balanceSource).toStrictEqual({
-        confirmedBalance: '0',
+        confirmedBalance: dust,
         unconfirmedBalance: '0',
-        spendableBalance: '0',
-        sweepable: false,
+        spendableBalance: dust,
+        sweepable: true,
         requiresActivation: false,
       })
       expect(balanceTarget).toStrictEqual({
