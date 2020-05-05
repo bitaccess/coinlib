@@ -131,7 +131,7 @@ implements BasePayments
       targetFeeRateType: feeOption.feeRateType,
       feeBase:           isMain ? this.toBaseDenomination(fee) : fee,
       feeMain:           isMain ? fee : this.toMainDenomination(fee),
-      gasPrice:          isMain ? this.toBaseDenomination(gasPrice, { rounding: 7 }) : gasPrice
+      gasPrice:          isMain ? this.toBaseDenomination(gasPrice) : gasPrice
     }
   }
 
@@ -323,20 +323,20 @@ implements BasePayments
   }
 
   async createSweepTransaction(
-    from: number,
+    from: number | string,
     to: ResolveablePayport,
     options: TransactionOptions = {},
   ): Promise<EthereumUnsignedTransaction> {
     this.logger.debug('createSweepTransaction', from, to)
 
-    return this.createTransactionObject(from, to, 'max', options)
+    return this.createTransactionObject(from as number, to, 'max', options)
   }
 
   async signTransaction(unsignedTx: EthereumUnsignedTransaction): Promise<EthereumSignedTransaction> {
     const fromPrivateKey = await this.getPrivateKey(unsignedTx.fromIndex)
     const payport = await this.getPayport(unsignedTx.fromIndex)
 
-    const unsignedRaw = cloneDeep(unsignedTx.data)
+    const unsignedRaw: any = cloneDeep(unsignedTx.data)
 
     const extraParam = this.config.network === NetworkType.Testnet ?  {chain :'ropsten'} : undefined
     const tx = new Tx(unsignedRaw, extraParam)

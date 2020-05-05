@@ -10,6 +10,7 @@ import {
   FeeOptionCustom,
   ResolveablePayport,
   CreateTransactionOptions as TransactionOptions,
+  FromTo,
 } from '@faast/payments-common'
 import { isType } from '@faast/ts-common'
 
@@ -17,25 +18,33 @@ import {
   Erc20UnsignedTransaction,
   BaseErc20PaymentsConfig,
   Erc20ResolvedFeeOption,
+  Erc20TransactionOptions,
 } from './types'
 import {
   DEFAULT_FEE_LEVEL,
   FEE_LEVEL_MAP,
   MIN_CONFIRMATIONS,
   TOKEN_WALLET_DATA,
+  TOKEN_WALLET_ABI,
   TOKEN_TRANSFER_COST,
+  DEPOSIT_KEY_INDEX,
 } from '../constants'
 import { BaseEthereumPayments } from '../BaseEthereumPayments'
 
 export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig> extends BaseEthereumPayments<Config> {
   private abi: any // JSON/string?
-  private contractOwnerAddres: string
+  private contractAddres: string
+  private sweepABI: any //JSON/string?
+  public depositKeyIndex: number
 
   constructor(config: Config) {
     super(config)
 
     this.abi = config.abi
-    this.contractOwnerAddres = config.contractOwnerAddres || '' //||  //XXX use hd key
+    this.contractAddres = config.contractAddres || '' //||  //XXX use hd key
+    this.sweepABI = TOKEN_WALLET_ABI
+
+    this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
   }
 
   async resolveFeeOption(feeOption: FeeOption): Promise<Erc20ResolvedFeeOption> {
@@ -46,9 +55,9 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
   async getBalance(resolveablePayport: ResolveablePayport): Promise<BalanceResult> {
     const payport = await this.resolvePayport(resolveablePayport)
-    // XXX should it be contractOwnerAddres?
-    const contract = new this.eth.Contract(this.abi, payport.address)
-    const balance = await contract.methods.balanceOf(payport.address)
+    const contract = new this.eth.Contract(this.abi, this.contractAddres)
+    const balance = await contract.methods.balanceOf(payport.address).call({})
+
     const sweepable = await this.isSweepableBalance(this.toMainDenomination(balance))
 
     return {
@@ -71,24 +80,22 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     return this.createTransactionObjectABI(from, to, amountBase, options)
   }
 
+  // should accept string address as `from`
   async createSweepTransaction(
-    from: number,
+    from: number | string,
     to: ResolveablePayport,
     options: TransactionOptions = {},
   ): Promise<Erc20UnsignedTransaction> {
     this.logger.debug('createSweepTransaction', from, to)
 
-    return this.createTransactionObjectABI(from, to, 'max', options)
+    return this.createTransactionObjectABI(from as string, to, 'max', options)
   }
 
   async createDepositTransaction(
-    from: number,
-    options: TransactionOptions = {},
+    options: Erc20TransactionOptions = {},
   ): Promise<Erc20UnsignedTransaction> {
-    this.logger.debug('createDepositTransaction', from)
-
-    const action = 'CONTRACT_DEPLOY'
-    const payport = await this.resolvePayport(from)
+    this.logger.debug('createDepositTransaction', this.depositKeyIndex)
+    const payport = await this.resolvePayport(this.depositKeyIndex)
     const feeOption = await this.resolveFeeOption(options as FeeOption)
     const targetFeeLevel = feeOption.targetFeeLevel || DEFAULT_FEE_LEVEL
 
@@ -96,13 +103,16 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       pricePerGasUnit,
       amountOfGas,
       nonce: networkNonce
-    } = await this.gasStation.getNetworkData(action, payport.address, '', FEE_LEVEL_MAP[targetFeeLevel])
+    } = await this.gasStation.getNetworkData('CONTRACT_DEPLOY', payport.address, '', FEE_LEVEL_MAP[targetFeeLevel])
 
+    let bnNonce = new BigNumber(networkNonce)
+
+    // TODO do BN conversion in NetworkData
     const transactionObject = {
-      nonce: networkNonce,
-      gasPrice: pricePerGasUnit,
-      gasLimit: amountOfGas,
-      data: TOKEN_WALLET_DATA,
+      nonce: `0x${bnNonce.toString(16)}`,
+      gasPrice: `0x${(new BigNumber(pricePerGasUnit)).toString(16)}`,
+      gas: `0x${(new BigNumber(options.gas || amountOfGas)).toString(16)}`,
+      data: options.data || TOKEN_WALLET_DATA,
     }
 
     return {
@@ -111,7 +121,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
       fromAddress: payport.address,
       toAddress: '',
-      fromIndex: from,
+      fromIndex: this.depositKeyIndex,
       toIndex: null,
       toExtraId: null,
 
@@ -121,21 +131,24 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       targetFeeLevel: feeOption.targetFeeLevel,
       targetFeeRate: feeOption.targetFeeRate,
       targetFeeRateType: feeOption.targetFeeRateType,
-      sequenceNumber: networkNonce,
+      sequenceNumber: bnNonce.toString(),
 
       data: transactionObject,
     }
   }
 
-  private resolveCustomFeeOptionABI(feeOption: FeeOptionCustom): Erc20ResolvedFeeOption {
-    const isBasePerWeight = (feeOption.feeRateType === FeeRateType.BasePerWeight)
+  private resolveCustomFeeOptionABI(
+    feeOption: FeeOptionCustom,
+    amountOfGas: string = TOKEN_TRANSFER_COST,
+  ): Erc20ResolvedFeeOption {
+    const isWeight = (feeOption.feeRateType === FeeRateType.BasePerWeight)
     const isMain = (feeOption.feeRateType === FeeRateType.Main)
 
-    const gasPrice = isBasePerWeight
+    const gasPrice = isWeight
       ? feeOption.feeRate
-      : (new BigNumber(feeOption.feeRate)).dividedBy(TOKEN_TRANSFER_COST).toString()
-    const fee = isBasePerWeight
-      ? (new BigNumber(feeOption.feeRate)).multipliedBy(TOKEN_TRANSFER_COST).toString()
+      : (new BigNumber(feeOption.feeRate)).dividedBy(amountOfGas).toString()
+    const fee = isWeight
+      ? (new BigNumber(feeOption.feeRate)).multipliedBy(amountOfGas).toString()
       : feeOption.feeRate
 
     return {
@@ -144,14 +157,18 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       targetFeeRateType: feeOption.feeRateType,
       feeBase:           isMain ? this.toBaseDenomination(fee) : fee,
       feeMain:           isMain ? fee : this.toMainDenomination(fee),
-      gasPrice:          isMain ? this.toBaseDenomination(gasPrice, { rounding: 7 }) : gasPrice
+      gasPrice:          isMain ? this.toBaseDenomination(gasPrice) : gasPrice
     }
   }
 
-  private async resolveLeveledFeeOptionABI(feeOption: FeeOption): Promise<Erc20ResolvedFeeOption> {
+  private async resolveLeveledFeeOptionABI(
+    feeOption: FeeOption,
+    amountOfGas: string = TOKEN_TRANSFER_COST,
+  ): Promise<Erc20ResolvedFeeOption> {
     const targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL
     const targetFeeRate = await this.gasStation.getGasPrice(FEE_LEVEL_MAP[targetFeeLevel])
-    const feeBase = (new BigNumber(targetFeeRate)).multipliedBy(TOKEN_TRANSFER_COST).toString()
+
+    const feeBase = (new BigNumber(targetFeeRate)).multipliedBy(amountOfGas).toString()
 
     return {
       targetFeeRate,
@@ -163,63 +180,100 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     }
   }
 
+  async getNextSequenceNumber(payport: ResolveablePayport): Promise<string> {
+    const resolvedPayport = await this.resolvePayport(payport)
+    const sequenceNumber = await this.gasStation.getNonce(resolvedPayport.address)
+
+    return sequenceNumber
+  }
+
   private async createTransactionObjectABI(
-    from: number,
+    from: number | string,
     to: ResolveablePayport,
-    amountEth: string = 'max',
+    amountMain: string = 'max',
     options: TransactionOptions = {}
   ): Promise<Erc20UnsignedTransaction> {
-    const sweepFlag = amountEth === 'max' ? true : false
+    const sweepFlag = amountMain === 'max' ? true : false
     const action = sweepFlag ? 'TOKEN_SWEEP' : 'TOKEN_TRANSFER'
 
-    const fromTo = await this.resolveFromTo(from, to)
-    const feeOption = await this.resolveFeeOption(options as FeeOption)
-    const targetFeeLevel = feeOption.targetFeeLevel || DEFAULT_FEE_LEVEL
-    const { confirmedBalance: balanceBase } = await this.getBalance(fromTo.fromPayport)
-    const {
-      pricePerGasUnit,
-      amountOfGas,
-      nonce: networkNonce
-    } = await this.gasStation.getNetworkData(action, fromTo.fromAddress, fromTo.toAddress, FEE_LEVEL_MAP[targetFeeLevel])
-
-    const nonce = options.sequenceNumber || networkNonce
-
-    const feeBase = new BigNumber(feeOption.feeBase)
-    const balance = this.toBaseDenomination(balanceBase)
-
-    let amount: BigNumber
-    if (sweepFlag) {
-      amount = (new BigNumber(balance)).minus(feeBase)
-      if (amount.isLessThan(0)) {
-        throw new Error(`Insufficient balance (${balance}) to sweep with fee of ${feeOption.feeMain} `)
-      }
+    let fromTo: FromTo
+    let txFromAddress: string
+    if (typeof from === 'number') {
+      fromTo = await this.resolveFromTo(from, to)
+      txFromAddress = fromTo.fromAddress
     } else {
-      amount = new BigNumber(this.toBaseDenomination(amountEth))
-      if (amount.plus(feeBase).isGreaterThan(balance)) {
-        throw new Error(`Insufficient balance (${balance}) to send ${amount} including fee of ${feeOption.feeMain} `)
+      const toPayport = await this.resolvePayport(to)
+      const fromPayport = await this.resolvePayport(this.depositKeyIndex)
+      txFromAddress = fromPayport.address
+      fromTo = {
+        fromAddress: from,
+        fromIndex: this.depositKeyIndex,
+        fromExtraId: null,
+        fromPayport: { address: from },
+
+        toAddress: toPayport.address,
+        toIndex: typeof to === 'number' ? to : null,
+        toExtraId: toPayport.extraId,
+        toPayport,
       }
     }
 
-    // XXX should it be contractOwnerAddres?
-    const contract = new this.eth.Contract(this.abi, fromTo.fromAddress)
-    const data = contract.methods.transfer(fromTo.toAddress, amount).encodeABI()
-    const transactionObject = {
-      from:     fromTo.fromAddress,
-      to:       fromTo.toAddress,
-      value:    `0x${amount.toString(16)}`,
-      gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
-      gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
-      nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
-      data
+    const amountOfGas = await this.gasStation.estimateGas(fromTo.fromAddress, fromTo.toAddress, action)
+
+    const feeOption: Erc20ResolvedFeeOption = isType(FeeOptionCustom, options)
+      ? this.resolveCustomFeeOptionABI(options, amountOfGas)
+      : await this.resolveLeveledFeeOptionABI(options, amountOfGas)
+
+    const { confirmedBalance: balanceMain } = await this.getBalance(fromTo.fromPayport)
+    const balanceBase = this.toBaseDenomination(balanceMain)
+
+    const nonce = options.sequenceNumber || await this.getNextSequenceNumber(txFromAddress)
+
+    const feeBase = new BigNumber(feeOption.feeBase)
+
+    let amount: BigNumber
+    let transactionObject: Object
+    if (sweepFlag) {
+      amount = (new BigNumber(balanceBase))
+      if (amount.isLessThan(0)) {
+        throw new Error(`Insufficient balance (${balanceMain}) to sweep with fee of ${feeOption.feeMain} `)
+      }
+
+      const contract = new this.eth.Contract(this.sweepABI, fromTo.fromAddress)
+      transactionObject = {
+        nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
+        to:       fromTo.fromAddress,
+        gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
+        gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
+        data: contract.methods.sweep(this.contractAddres, fromTo.toAddress).encodeABI()
+      }
+    } else {
+      amount = new BigNumber(this.toBaseDenomination(amountMain))
+      if (amount.plus(feeBase).isGreaterThan(balanceBase)) {
+        throw new Error(`Insufficient balance (${balanceMain}) to send ${amountMain} including fee of ${feeOption.feeMain} `)
+      }
+      const contract = new this.eth.Contract(this.abi, this.contractAddres)
+      transactionObject = {
+        from:     fromTo.fromAddress,
+        to:       this.contractAddres,
+        value:    '0x0',
+        gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
+        gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
+        nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
+        data: contract.methods.transfer(fromTo.toAddress, `0x${amount.toString(16)}`).encodeABI()
+      }
     }
 
     return {
       status: TransactionStatus.Unsigned,
       id: '',
+      // XXX addresses in actual transaction are different due to use of contract
       fromAddress: fromTo.fromAddress,
       toAddress: fromTo.toAddress,
       toExtraId: null,
-      fromIndex: fromTo.fromIndex,
+      // NOTE: used to sign transaction
+      // sweeps must be signed with key which created deposit addresses
+      fromIndex: sweepFlag ? this.depositKeyIndex : fromTo.fromIndex,
       toIndex: fromTo.toIndex,
       amount: this.toMainDenomination(amount),
       fee: feeOption.feeMain,

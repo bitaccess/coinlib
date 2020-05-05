@@ -63,6 +63,12 @@ export class NetworkData {
 
   async estimateGas(from: string, to: string, action: string): Promise<string> {
     let gas: BigNumber = new BigNumber(PRICES[action])
+    // return effective maximum gas amounts for various txs we send
+    if (action === 'CONTRACT_DEPLOY' ||
+      action === 'TOKEN_SWEEP' ||
+      action === 'TOKEN_TRANSFER') {
+      return gas.toString()
+    }
 
     try {
       gas = new BigNumber(await this.eth.estimateGas({ from, to })).times(GAS_ESTIMATE_MULTIPLIER)

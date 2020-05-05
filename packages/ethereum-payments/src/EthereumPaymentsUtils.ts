@@ -17,6 +17,8 @@ import {
 } from './types'
 import { isValidXkey } from './bip44'
 
+type UnitConverters = ReturnType<typeof createUnitConverters>
+
 export class EthereumPaymentsUtils implements PaymentsUtils {
   logger: Logger
   decimals: number
@@ -24,18 +26,20 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   constructor(config: BaseEthereumPaymentsConfig) {
     this.logger = new DelegateLogger(config.logger, config.name || PACKAGE_NAME)
     this.decimals = config.decimals || DECIMAL_PLACES
+
+    const unitConverters = createUnitConverters(this.decimals)
+    this.toMainDenominationBigNumber = unitConverters.toMainDenominationBigNumber
+    this.toBaseDenominationBigNumber = unitConverters.toBaseDenominationBigNumber
+  }
+  toMainDenominationBigNumber: UnitConverters['toMainDenominationBigNumber']
+  toBaseDenominationBigNumber: UnitConverters['toMainDenominationBigNumber']
+
+  toMainDenomination(amount: Numeric): string {
+    return (this.toMainDenominationBigNumber(amount)).toString(10)
   }
 
-  toBaseDenomination(amount: Numeric, options?: BaseDenominationOptions): string {
-    const eth = (new BigNumber(amount)).toFixed(this.decimals, options ? options.rounding : undefined)
-
-    return web3.utils.toWei(eth)
-  }
-
-  toMainDenomination(amount: Numeric, options?: BaseDenominationOptions): string {
-    const wei = (new BigNumber(amount)).toFixed(0, options ? options.rounding : undefined)
-
-    return web3.utils.fromWei(wei)
+  toBaseDenomination(amount: Numeric): string {
+    return (this.toBaseDenominationBigNumber(amount)).toString(10)
   }
 
   async isValidAddress(address: string): Promise<boolean> {

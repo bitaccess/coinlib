@@ -15,6 +15,7 @@ import {
   FromTo,
   ResolveablePayport,
   ResolvedFeeOption,
+  CreateTransactionOptions
 } from '@faast/payments-common'
 
 const keys = t.type({
@@ -29,6 +30,7 @@ const xkeys = t.type({
 
 const NullableOptionalString = t.union([t.string, t.null, t.undefined])
 const OptionalString = t.union([t.string, t.undefined])
+const OptionalNumber = t.union([t.number, t.undefined])
 
 export const BaseErc20PaymentsConfig = extendCodec(
   BaseConfig,
@@ -38,6 +40,9 @@ export const BaseErc20PaymentsConfig = extendCodec(
     parityNode: OptionalString,
     gasStation: OptionalString,
     abi: t.any,
+    contractAddres: t.string,
+    sweepABI: t.any,
+    depositKeyIndex: OptionalNumber,
   },
   'BaseErc20PaymentsConfig',
 )
@@ -111,3 +116,14 @@ export const Erc20ResolvedFeeOption = extendCodec(
   'Erc20ResolvedFeeOption'
 )
 export type Erc20ResolvedFeeOption = t.TypeOf<typeof Erc20ResolvedFeeOption>
+
+export const Erc20TransactionOptions = extendCodec(
+  CreateTransactionOptions,
+  {},
+  {
+    data: t.string,
+    gas: t.string,
+  },
+  'Erc20TransactionOptions'
+)
+export type Erc20TransactionOptions = t.TypeOf<typeof Erc20TransactionOptions>
