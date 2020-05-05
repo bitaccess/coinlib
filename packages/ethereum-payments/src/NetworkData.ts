@@ -59,17 +59,19 @@ export class NetworkData {
     return DEFAULT_GAS_PRICE_IN_WEI
   }
 
-  private async estimateGas(from: string, to: string, action: string): Promise<string> {
-    let gas: string | BigNumber = PRICES[action]
-    if (gas) return gas
+  async estimateGas(from: string, to: string, action: string): Promise<string> {
+    let gas: BigNumber = new BigNumber(PRICES[action])
 
     try {
       gas = new BigNumber(await this.eth.estimateGas({ from, to }))
     } catch (e) {
-      return PRICES.ETHEREUM_TRANSFER
     }
 
-    return gas.toNumber() ? gas.toString() : PRICES.ETHEREUM_TRANSFER
+    if (action === 'ETHEREUM_TRANSFER' && gas.isGreaterThan('50000')) {
+      gas = new BigNumber('50000')
+    }
+
+    return gas.toNumber() ? gas.toString() : '50000'
   }
 
   private async getWeb3Nonce(address: string): Promise<string> {

@@ -99,7 +99,7 @@ export function getGasStationResponse(): Object {
   }
 }
 
-export function getGasPriceMock(id: number, price: string) {
+export function getGasPriceMocks(id: number, price: string) {
   return {
     req: {
       jsonrpc: '2.0',
@@ -115,7 +115,7 @@ export function getGasPriceMock(id: number, price: string) {
   }
 }
 
-export function getEstimateGasMock(id: number, from: string, to: string, result: string) {
+export function getEstimateGasMocks(id: number, from: string, to: string, result: string) {
   return {
     req: {
       jsonrpc:'2.0',

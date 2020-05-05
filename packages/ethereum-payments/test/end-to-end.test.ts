@@ -112,7 +112,7 @@ describe('end to end tests', () => {
         confirmedBalance: dust,
         unconfirmedBalance: '0',
         spendableBalance: dust,
-        sweepable: true,
+        sweepable: false,
         requiresActivation: false,
       })
       expect(balanceTarget).toStrictEqual({

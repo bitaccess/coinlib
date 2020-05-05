@@ -14,7 +14,7 @@ export const FEE_LEVEL_MAP: { [key: string]: string } = {
   'high': 'FAST',
 }
 export const MIN_CONFIRMATIONS = 0
-export const ETHEREUM_TRANSFER_COST = '21052'// extra gas for errors
+export const ETHEREUM_TRANSFER_COST = '21000'
 export const DEFAULT_GAS_PRICE_IN_WEI = '50000000000'
 export const GAS_STATION_URL = 'https://ethgasstation.info'
 export const CONTRACT_DEPLOY_COST = '285839'
