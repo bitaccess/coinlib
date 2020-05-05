@@ -4,8 +4,8 @@ const nock = require('nock')
 import { hdAccount } from './fixtures/accounts'
 
 import {
-  getEstimateGasMock,
-  getGasPriceMock,
+  getEstimateGasMocks,
+  getGasPriceMocks,
   getGasStationResponse,
   getNextNonceMocks,
   getBalanceMocks,
@@ -47,7 +47,7 @@ describe('NetworkData', () => {
 
     expect(res).toEqual({
       'pricePerGasUnit': '1000000000',
-      'amountOfGas': '21052',
+      'amountOfGas': '21000',
       'nonce': '27',
     })
   })
@@ -61,13 +61,13 @@ describe('NetworkData', () => {
     let transactionCountMocks = getTransactionCountMocks(1, from.toLowerCase(), '')
     nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
-    let gasPriceMock = getGasPriceMock(2, '')
+    let gasPriceMock = getGasPriceMocks(2, '')
     nockI.post(/.*/, gasPriceMock.req).reply(200, gasPriceMock.res)
 
     transactionCountMocks = getTransactionCountMocks(3, from.toLowerCase(), '')
     nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
-    let estimateGasPriceMock = getEstimateGasMock(4, from.toLowerCase(), to.toLowerCase(), '')
+    let estimateGasPriceMock = getEstimateGasMocks(4, from.toLowerCase(), to.toLowerCase(), '')
     nockI.post(/.*/, estimateGasPriceMock.res).reply(200, estimateGasPriceMock.req)
 
     const parityMock = getNextNonceMocks(1, from, '')
@@ -77,7 +77,7 @@ describe('NetworkData', () => {
 
     expect(res).toEqual({
       'pricePerGasUnit': '50000000000',
-      'amountOfGas': '21052',
+      'amountOfGas': '50000',
       'nonce': '0',
     })
   })
@@ -92,13 +92,13 @@ describe('NetworkData', () => {
     let transactionCountMocks = getTransactionCountMocks(1, from.toLowerCase(), '')
     nockI.post(/.*/, transactionCountMocks.req).reply(400)
 
-    let gasPriceMock = getGasPriceMock(2, '')
+    let gasPriceMock = getGasPriceMocks(2, '')
     nockI.post(/.*/, gasPriceMock.req).reply(200, gasPriceMock.res)
 
     transactionCountMocks = getTransactionCountMocks(3, from.toLowerCase(), '')
     nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
-    let estimateGasPriceMock = getEstimateGasMock(4, from.toLowerCase(), to.toLowerCase(), '')
+    let estimateGasPriceMock = getEstimateGasMocks(4, from.toLowerCase(), to.toLowerCase(), '')
     nockI.post(/.*/, estimateGasPriceMock.res).reply(200, estimateGasPriceMock.req)
 
     const parityMock = getNextNonceMocks(1, from, '0x1b')
@@ -108,7 +108,7 @@ describe('NetworkData', () => {
 
     expect(res).toEqual({
       'pricePerGasUnit': '50000000000',
-      'amountOfGas': '21052',
+      'amountOfGas': '50000',
       'nonce': '0',
     })
   })
