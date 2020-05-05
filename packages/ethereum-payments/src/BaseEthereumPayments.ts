@@ -38,6 +38,7 @@ import {
   DEFAULT_FEE_LEVEL,
   FEE_LEVEL_MAP,
   MIN_CONFIRMATIONS,
+  ETHEREUM_TRANSFER_COST,
 } from './constants'
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
 
@@ -110,7 +111,10 @@ implements BasePayments
       : this.resolveLeveledFeeOption(feeOption)
   }
 
-  private resolveCustomFeeOption(feeOption: FeeOptionCustom, amountOfGas: string = '21000'): EthereumResolvedFeeOption {
+  private resolveCustomFeeOption(
+    feeOption: FeeOptionCustom,
+    amountOfGas: string = ETHEREUM_TRANSFER_COST,
+  ): EthereumResolvedFeeOption {
     const isWeight = (feeOption.feeRateType === FeeRateType.BasePerWeight)
     const isMain = (feeOption.feeRateType === FeeRateType.Main)
 
@@ -131,7 +135,10 @@ implements BasePayments
     }
   }
 
-  private async resolveLeveledFeeOption(feeOption: FeeOption, amountOfGas: string = '21000'): Promise<EthereumResolvedFeeOption> {
+  private async resolveLeveledFeeOption(
+    feeOption: FeeOption,
+    amountOfGas: string = ETHEREUM_TRANSFER_COST,
+  ): Promise<EthereumResolvedFeeOption> {
     const targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL
     const targetFeeRate = await this.gasStation.getGasPrice(FEE_LEVEL_MAP[targetFeeLevel])
 

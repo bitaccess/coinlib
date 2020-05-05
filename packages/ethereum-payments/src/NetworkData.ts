@@ -9,6 +9,8 @@ import {
   GAS_STATION_URL,
   SPEED,
   PRICES,
+  GAS_ESTIMATE_MULTIPLIER,
+  ETHEREUM_TRANSFER_COST,
 } from './constants'
 
 export class NetworkData {
@@ -63,15 +65,15 @@ export class NetworkData {
     let gas: BigNumber = new BigNumber(PRICES[action])
 
     try {
-      gas = new BigNumber(await this.eth.estimateGas({ from, to }))
+      gas = new BigNumber(await this.eth.estimateGas({ from, to })).times(GAS_ESTIMATE_MULTIPLIER)
     } catch (e) {
     }
 
-    if (action === 'ETHEREUM_TRANSFER' && gas.isGreaterThan('50000')) {
-      gas = new BigNumber('50000')
+    if (action === 'ETHEREUM_TRANSFER' && gas.isGreaterThan(ETHEREUM_TRANSFER_COST)) {
+      gas = new BigNumber(ETHEREUM_TRANSFER_COST)
     }
 
-    return gas.toNumber() ? gas.toString() : '50000'
+    return gas.toNumber() ? gas.toString() : ETHEREUM_TRANSFER_COST
   }
 
   private async getWeb3Nonce(address: string): Promise<string> {

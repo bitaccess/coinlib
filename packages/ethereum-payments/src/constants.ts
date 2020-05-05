@@ -14,12 +14,17 @@ export const FEE_LEVEL_MAP: { [key: string]: string } = {
   'high': 'FAST',
 }
 export const MIN_CONFIRMATIONS = 0
-export const ETHEREUM_TRANSFER_COST = '21000'
 export const DEFAULT_GAS_PRICE_IN_WEI = '50000000000'
 export const GAS_STATION_URL = 'https://ethgasstation.info'
+
+// The following are effective maximum gas amounts for various txs we send
+export const ETHEREUM_TRANSFER_COST = '50000'
 export const CONTRACT_DEPLOY_COST = '285839'
 export const TOKEN_SWEEP_COST = '816630'
 export const TOKEN_TRANSFER_COST = '250000'
+
+/** Multiply all web3 estimateGas calls by this because it's innacurate */
+export const GAS_ESTIMATE_MULTIPLIER = 1.5
 
 export const SPEED: { [key: string]: string } = {
   SLOW: 'safeLow',
