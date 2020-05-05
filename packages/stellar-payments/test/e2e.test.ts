@@ -117,6 +117,26 @@ describe('e2e', () => {
     })
   })
 
+  describe('createTransaction', () => {
+    it('should create tx correctly when sequenceNumber option provided', async () => {
+      const sequenceNumber = 5
+      const tx = await payments.createTransaction(0, 1, '1.2', { sequenceNumber })
+      expect(tx.sequenceNumber).toEqual(sequenceNumber)
+    })
+
+    it('throws when sending less than 1 XLM to unactivated account', async () => {
+      await expect(payments.createTransaction(0, UNACTIVATED_ADDRESS, '0.5')).rejects.toThrow('Cannot send')
+    })
+  })
+
+  describe('createSweepTransaction', () => {
+    it('uses spendable balance', async () => {
+      const { spendableBalance } = await payments.getBalance(0)
+      const tx = await payments.createSweepTransaction(0, UNACTIVATED_ADDRESS)
+      expect(new BigNumber(tx.amount).plus(tx.fee).toString()).toBe(spendableBalance)
+    })
+  })
+
   async function pollTxId(txId: string) {
     logger.log('polling until ended', txId)
     let tx: StellarTransactionInfo | undefined
@@ -381,12 +401,6 @@ describe('e2e', () => {
       const activities = await accumulateRetrievedActivities(UNACTIVATED_ADDRESS)
       expect(activities).toEqual([])
     })
-  })
-
-  it('should create tx correctly when sequenceNumber option provided', async () => {
-    const sequenceNumber = await payments.getNextSequenceNumber(0)
-    const tx = await payments.createTransaction(0, 1, '1.2', { sequenceNumber })
-    expect(tx.sequenceNumber).toEqual(sequenceNumber)
   })
 
 })

@@ -357,10 +357,10 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
   ): Promise<BigNumber> {
     if (isNil(fromPayport.extraId)) {
       const balances = await this.getBalance(fromPayport)
-      return new BigNumber(balances.confirmedBalance)
+      return new BigNumber(balances.spendableBalance)
     }
     if (typeof options.payportBalance !== 'string') {
-      throw new Error('ripple-payments createSweepTransaction missing required payportBalance option')
+      throw new Error('ripple-payments create transaction options requires payportBalance when payport extraId is nil')
     }
     const payportBalance = new BigNumber(options.payportBalance)
     if (payportBalance.isNaN()) {

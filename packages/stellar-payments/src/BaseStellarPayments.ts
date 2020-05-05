@@ -332,16 +332,16 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     }
   }
 
-  private async resolvePayportBalance(
+  private async resolvePayportSpendableBalance(
     fromPayport: Payport,
     options: StellarCreateTransactionOptions,
   ): Promise<BigNumber> {
     if (isNil(fromPayport.extraId)) {
       const balances = await this.getBalance(fromPayport)
-      return new BigNumber(balances.confirmedBalance)
+      return new BigNumber(balances.spendableBalance)
     }
     if (typeof options.payportBalance !== 'string') {
-      throw new Error('stellar-payments createSweepTransaction missing required payportBalance option')
+      throw new Error('stellar-payments create transaction options requires payportBalance when payport extraId is nil')
     }
     const payportBalance = new BigNumber(options.payportBalance)
     if (payportBalance.isNaN()) {
@@ -480,7 +480,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
   ): Promise<StellarUnsignedTransaction> {
     const fromTo = await this.resolveFromTo(from, to)
     const feeOption = await this.resolveFeeOption(options)
-    const payportBalance = await this.resolvePayportBalance(fromTo.fromPayport, options)
+    const payportBalance = await this.resolvePayportSpendableBalance(fromTo.fromPayport, options)
     const amountBn = new BigNumber(amount)
     return this.doCreateTransaction(fromTo, feeOption, amountBn, payportBalance, options)
   }
@@ -492,7 +492,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
   ): Promise<StellarUnsignedTransaction> {
     const fromTo = await this.resolveFromTo(from, to)
     const feeOption = await this.resolveFeeOption(options)
-    const payportBalance = await this.resolvePayportBalance(fromTo.fromPayport, options)
+    const payportBalance = await this.resolvePayportSpendableBalance(fromTo.fromPayport, options)
     let amountBn = payportBalance.minus(feeOption.feeMain)
     if (amountBn.lt(0)) {
       const fromPayport = { address: fromTo.fromAddress, extraId: fromTo.fromExtraId }

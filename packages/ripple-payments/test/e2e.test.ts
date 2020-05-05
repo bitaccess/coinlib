@@ -116,8 +116,22 @@ describe('e2e', () => {
   })
 
   describe('createTransaction', () => {
+    it('should create tx correctly when sequenceNumber option provided', async () => {
+      const sequenceNumber = '5'
+      const tx = await rp.createTransaction(0, 1, '1.2', { sequenceNumber })
+      expect(tx.sequenceNumber).toEqual(sequenceNumber)
+    })
+
     it('throws when sending less than 20 XRP to unactivated account', async () => {
       await expect(rp.createTransaction(0, UNACTIVATED_ADDRESS, '10')).rejects.toThrow('Cannot send')
+    })
+  })
+
+  describe('createSweepTransaction', () => {
+    it('uses spendable balance', async () => {
+      const { spendableBalance } = await rp.getBalance(0)
+      const tx = await rp.createSweepTransaction(0, UNACTIVATED_ADDRESS)
+      expect(new BigNumber(tx.amount).plus(tx.fee).toString()).toBe(spendableBalance)
     })
   })
 
