@@ -12,6 +12,7 @@ import {
   PaymentsError,
   PaymentsErrorCode,
   isMatchingError,
+  FeeOptionCustom,
 } from '@faast/payments-common'
 import { assertType, isNil, Numeric, isUndefined } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
@@ -309,13 +310,14 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
   }
 
   async resolveFeeOption(feeOption: FeeOption): Promise<ResolvedFeeOption> {
-    let targetFeeLevel
-    let targetFeeRate
-    let targetFeeRateType
+    const { feeLevel } = feeOption
+    let targetFeeLevel: FeeLevel
+    let targetFeeRate: string
+    let targetFeeRateType: FeeRateType
     let feeMain: string
     let feeBase: string
-    if (feeOption.feeLevel === FeeLevel.Custom) {
-      targetFeeLevel = feeOption.feeLevel
+    if (FeeOptionCustom.is(feeOption)) {
+      targetFeeLevel = feeLevel || FeeLevel.Custom
       targetFeeRate = feeOption.feeRate
       targetFeeRateType = feeOption.feeRateType
       if (targetFeeRateType === FeeRateType.Base) {
@@ -447,6 +449,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
           },
         },
         {
+          fee: feeMain,
           maxLedgerVersionOffset,
           sequence: isUndefined(sequenceNumber) ? sequenceNumber : new BigNumber(sequenceNumber).toNumber(),
         },

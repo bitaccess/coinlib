@@ -1,4 +1,4 @@
-import { TransactionStatus, BalanceActivity, NetworkType, GetBalanceActivityOptions } from '@faast/payments-common'
+import { TransactionStatus, BalanceActivity, NetworkType, GetBalanceActivityOptions, FeeRateType } from '@faast/payments-common'
 import BigNumber from 'bignumber.js'
 import { omit, sortBy } from 'lodash'
 
@@ -120,10 +120,21 @@ describe('e2e', () => {
       const sequenceNumber = '5'
       const tx = await rp.createTransaction(0, 1, '1.2', { sequenceNumber })
       expect(tx.sequenceNumber).toEqual(sequenceNumber)
+      expect((tx.data as any).instructions.sequence).toBe(parseInt(sequenceNumber))
     })
 
     it('throws when sending less than 20 XRP to unactivated account', async () => {
       await expect(rp.createTransaction(0, UNACTIVATED_ADDRESS, '10')).rejects.toThrow('Cannot send')
+    })
+
+    it('should correctly set fee instruction', async () => {
+      const fee = '0.001642'
+      const tx = await rp.createTransaction(0, 1, '1.2', {
+        feeRate: fee,
+        feeRateType: FeeRateType.Main,
+      })
+      expect(tx.fee).toBe(fee)
+      expect((tx.data as any).instructions.fee).toBe(fee)
     })
   })
 
