@@ -24,7 +24,9 @@ export function splitDerivationPath(path: string): string[] {
  * This partially applies the derivation path starting at the already derived depth of the provided key.
  */
 export function deriveHDNode(hdKey: string, derivationPath: string, network: BitcoinjsNetwork): HDNode {
-  const rootNode = fromBase58(hdKey, network)
+  const rootNode = hdKey.startsWith('xprv') || hdKey.startsWith('xpub')
+    ? fromBase58(hdKey)
+    : fromBase58(hdKey, network)
   const parts = splitDerivationPath(derivationPath).slice(rootNode.depth)
   let node = rootNode
   if (parts.length > 0) {
@@ -52,4 +54,29 @@ export function derivePrivateKey(baseNode: HDNode, index: number, network: Bitco
 export function xprvToXpub(xprv: string, derivationPath: string, network: BitcoinjsNetwork) {
   const node = deriveHDNode(xprv, derivationPath, network)
   return node.neutered().toBase58()
+}
+
+export function isValidXprv(xprv: string, network?: BitcoinjsNetwork): boolean {
+  try {
+    return !fromBase58(xprv, network).isNeutered()
+  } catch(e) {
+    return false
+  }
+}
+
+export function isValidXpub(xpub: string, network?: BitcoinjsNetwork): boolean {
+  try {
+    return fromBase58(xpub, network).isNeutered()
+  } catch(e) {
+    return false
+  }
+}
+
+/** Return string error if invalid, undefined otherwise */
+export function validateHdKey(hdKey: string, network?: BitcoinjsNetwork): string | undefined {
+  try {
+    fromBase58(hdKey, network)
+  } catch(e) {
+    return e.toString()
+  }
 }

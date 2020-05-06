@@ -2,12 +2,19 @@ import { omit } from 'lodash'
 import {
   assertType,
 } from '@faast/ts-common'
-import bs58 from 'bs58'
-import { xprvToXpub, deriveAddress, HDNode, deriveHDNode, deriveKeyPair } from './bip44'
-import { HdBitcoinPaymentsConfig, SinglesigAddressType } from './types'
+import {
+  isValidXprv as isValidXprvHelper,
+  isValidXpub as isValidXpubHelper,
+  validateHdKey,
+  xprvToXpub,
+  deriveAddress,
+  HDNode,
+  deriveHDNode,
+  deriveKeyPair,
+} from './bip44'
+import { HdBitcoinPaymentsConfig } from './types'
 import { SinglesigBitcoinPayments } from './SinglesigBitcoinPayments'
-import { DEFAULT_DERIVATION_PATHS, DEFAULT_SINGLESIG_ADDRESS_TYPE } from './constants'
-import { isValidXprv, isValidXpub, validateHdKey } from './helpers';
+import { DEFAULT_DERIVATION_PATHS } from './constants'
 import { bip32MagicNumberToPrefix } from './utils'
 
 export class HdBitcoinPayments extends SinglesigBitcoinPayments<HdBitcoinPaymentsConfig> {
@@ -45,11 +52,15 @@ export class HdBitcoinPayments extends SinglesigBitcoinPayments<HdBitcoinPayment
   }
 
   isValidXprv(xprv: string) {
-    return isValidXprv(xprv, this.bitcoinjsNetwork)
+    return xprv.startsWith('xprv')
+      ? isValidXprvHelper(xprv)
+      : isValidXprvHelper(xprv, this.bitcoinjsNetwork)
   }
 
   isValidXpub(xpub: string) {
-    return isValidXpub(xpub, this.bitcoinjsNetwork)
+    return xpub.startsWith('xpub')
+      ? isValidXpubHelper(xpub)
+      : isValidXpubHelper(xpub, this.bitcoinjsNetwork)
   }
 
   getFullConfig(): HdBitcoinPaymentsConfig {

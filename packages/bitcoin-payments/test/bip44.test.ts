@@ -5,8 +5,10 @@ import {
   deriveHDNode,
   deriveKeyPair,
   xprvToXpub,
+  isValidXprv,
+  isValidXpub,
 } from '../src/bip44'
-import { NETWORK_MAINNET, AddressType } from '../src'
+import { AddressType } from '../src'
 import { fromBase58 } from 'bip32'
 import {
   DERIVED_XPRV, DERIVATION_PATH, ROOT_XPRV, NETWORK, PARTIALLY_DERIVED_XPRV, ADDRESS_LEGACY,
@@ -62,6 +64,22 @@ describe('bip44', () => {
     })
     it('returns correct xpub for fully derived xprv', () => {
       expect(xprvToXpub(DERIVED_XPRV, DERIVATION_PATH, NETWORK)).toEqual(DERIVED_XPUB)
+    })
+  })
+  describe('isValidXpub', () => {
+    it('should return true for valid', () => {
+      expect(isValidXpub(DERIVED_XPUB, NETWORK)).toBe(true)
+    })
+    it('should return false for invalid', () => {
+      expect(isValidXpub('xpat1234', NETWORK)).toBe(false)
+    })
+  })
+  describe('isValidXprv', () => {
+    it('should return true for valid', () => {
+      expect(isValidXprv(DERIVED_XPRV, NETWORK)).toBe(true)
+    })
+    it('should return false for invalid', () => {
+      expect(isValidXprv('xpat1234', NETWORK)).toBe(false)
     })
   })
 })

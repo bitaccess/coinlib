@@ -25,31 +25,6 @@ export {
   toBaseDenominationNumber,
 }
 
-export function isValidXprv(xprv: string, network: BitcoinjsNetwork): boolean {
-  try {
-    return !bip32.fromBase58(xprv, network).isNeutered()
-  } catch(e) {
-    return false
-  }
-}
-
-export function isValidXpub(xpub: string, network: BitcoinjsNetwork): boolean {
-  try {
-    return bip32.fromBase58(xpub, network).isNeutered()
-  } catch(e) {
-    return false
-  }
-}
-
-/** Return string error if invalid, undefined otherwise */
-export function validateHdKey(hdKey: string, network: BitcoinjsNetwork): string | undefined {
-  try {
-    bip32.fromBase58(hdKey, network)
-  } catch(e) {
-    return e.toString()
-  }
-}
-
 export function isValidAddress(address: string, network: BitcoinjsNetwork): boolean {
   try {
     bitcoin.address.toOutputScript(address, network)
