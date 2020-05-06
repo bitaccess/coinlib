@@ -2,6 +2,7 @@ import * as bip32 from 'bip32'
 import * as bip39 from 'bip39'
 import { assertType, Logger } from '@faast/ts-common'
 import { PaymentsFactory, AnyPayments, NetworkType } from '@faast/payments-common'
+import { NETWORK_TESTNET, NETWORK_MAINNET } from '@faast/bitcoin-payments'
 
 import {
   CoinPaymentsConfig,
@@ -11,30 +12,6 @@ import {
 } from './types'
 import { keysOf } from './utils'
 import { SUPPORTED_ASSET_SYMBOLS, PAYMENTS_FACTORIES } from './constants'
-import { omit } from 'lodash'
-
-function addSeedIfNecessary(network: SupportedCoinPaymentsSymbol, seed: Buffer, config: object) {
-  const configCodec = assetConfigCodecs[network]
-  let result = config
-  if (configCodec.is(result)) {
-    return result
-  }
-  result = {
-    ...config,
-    seed: seed.toString('hex')
-  }
-  if (configCodec.is(result)) {
-    return result
-  }
-  result = {
-    ...config,
-    hdKey: bip32.fromSeed(seed).toBase58(),
-  }
-  if (configCodec.is(result)) {
-    return result
-  }
-  throw new Error(`Invalid config provided for ${network}`)
-}
 
 export class CoinPayments {
   readonly payments: { [A in SupportedCoinPaymentsSymbol]?: AnyPayments } = {}
@@ -53,7 +30,7 @@ export class CoinPayments {
     SUPPORTED_ASSET_SYMBOLS.forEach((assetSymbol) => {
       let assetConfig = config[assetSymbol]
       if (seedBuffer) {
-        assetConfig = addSeedIfNecessary(assetSymbol, seedBuffer, assetConfig || {})
+        assetConfig = this.addSeedIfNecessary(assetSymbol, seedBuffer, assetConfig || {})
       }
       if (!assetConfig) {
         return
@@ -73,6 +50,31 @@ export class CoinPayments {
       assetPayments.getAccountIds().forEach((id) => accountIdSet.add(id))
     })
     this.accountIds = Array.from(accountIdSet)
+  }
+
+  addSeedIfNecessary(network: SupportedCoinPaymentsSymbol, seed: Buffer, config: object) {
+    const configCodec = assetConfigCodecs[network]
+    let result = config
+    if (configCodec.is(result)) {
+      return result
+    }
+    result = {
+      ...config,
+      seed: seed.toString('hex')
+    }
+    if (configCodec.is(result)) {
+      return result
+    }
+    // Okay to use bitcoin network constants here because we only use xprv/tprv
+    const bip32Network = this.network === NetworkType.Testnet ? NETWORK_TESTNET : NETWORK_MAINNET
+    result = {
+      ...config,
+      hdKey: bip32.fromSeed(seed, bip32Network).toBase58(),
+    }
+    if (configCodec.is(result)) {
+      return result
+    }
+    throw new Error(`Invalid config provided for ${network}`)
   }
 
   static getFactory(assetSymbol: SupportedCoinPaymentsSymbol): PaymentsFactory {
