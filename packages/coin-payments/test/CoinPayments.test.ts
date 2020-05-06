@@ -141,10 +141,13 @@ describe('CoinPayments', () => {
   })
 
   describe('instance mnemonic', () => {
-    const cp = new CoinPayments({
-      network: NetworkType.Mainnet,
-      logger: console,
-      seed: 'elite symbol tent speed figure sleep scatter pizza grab marriage retire cargo panda baby pelican'
+    let cp: CoinPayments
+    it('can be instantiated', () => {
+      cp = new CoinPayments({
+        network: NetworkType.Mainnet,
+        logger: console,
+        seed: 'elite symbol tent speed figure sleep scatter pizza grab marriage retire cargo panda baby pelican'
+      })
     })
     describe('getPublicConfig', () => {
       it('returns epected config', () => {
@@ -184,6 +187,55 @@ describe('CoinPayments', () => {
       })
     })
   })
+
+  describe('instance mnemonic testnet', () => {
+    let cp: CoinPayments
+    it('can be instantiated', () => {
+      cp = new CoinPayments({
+        network: NetworkType.Testnet,
+        logger: console,
+        seed: 'elite symbol tent speed figure sleep scatter pizza grab marriage retire cargo panda baby pelican'
+      })
+    })
+    describe('getPublicConfig', () => {
+      it('returns epected config', () => {
+        const publicConfig = cp.getPublicConfig()
+        expect(publicConfig).toEqual({
+          'BTC': {
+            'addressType': 'p2wpkh',
+            'derivationPath': "m/84'/0'/0'",
+            'hdKey': 'xpub6C5wPZ5JwqM6zk1nrdycxB5a5PokXWCH1iXWWJgq1bLdNTKjKbSZS2XA4WFSLqyicg7moaGv5wTJCpy6Tkxi9EZj9HFno9FHDTsRMgVGYm2',
+            'network': 'testnet',
+          },
+          'ETH': {
+            'hdKey': 'xpub6FUQp5E3GHcwJ8qsG198LiRcfyJFqy4txgxmzqLXiVSKFTXbn4gU9QcxDSy9NyTrc3EDXfsJVgnfrBgvQUoY3xFbazdgb3WCp2DTSfLUEJE',
+            'network': 'testnet',
+          },
+          'TRX': {
+            'hdKey': 'xpub6DBzZS2xZBECBC9JR9xGk1t43j1HDEWM7e4YB4BLXek5kLejkwkmHYmqmoLHNsq5XdzgzJJQ853gxnrEgyB2HiTcPLz4tXAjrBpm41TgcJj',
+            'network': 'testnet',
+          },
+          'XLM': {
+            'depositAccount': 'GC3FMVBXBKMM7GSO44AZSJVNKMEEQIAYXBOVSPHNPUL7LFT354GODSGK',
+            'hotAccount': 'GCV4BPGIUMRLXBXC2OWO53COWHE376WWCWODJXEKLD22KV2CFDIV2K2X',
+            'network': 'testnet',
+          },
+          'XRP': {
+            'hdKey': 'xpub6CTiddibsS5NpjAwaqapBXWayhkyRazX3KL6EbyvX9fhjd8zrseV2L1QEgR9A89cnfVgRUJWKtDHmawjgXZdb7QcPiJw7fPpt3bdDDnE8Am',
+            'network': 'testnet',
+          },
+        })
+      })
+    })
+    describe('isAssetConfigured', () => {
+      it('returns true for all supported assets', () => {
+        SUPPORTED_ASSET_SYMBOLS.forEach((s) => {
+          expect(cp.isAssetConfigured(s)).toBe(true)
+        })
+      })
+    })
+  })
+
 
   describe('invalid config', () => {
     it('throws validation error', () => {
