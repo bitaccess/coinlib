@@ -16,7 +16,8 @@ export class Erc20PaymentsFactory implements PaymentsFactory<Erc20PaymentsConfig
       return new HdErc20Payments(config)
     }
     if (KeyPairErc20PaymentsConfig.is(config)) {
-      return new KeyPairErc20Payments(config)
+      throw new Error('Cannot instantiate ethereum payments for unsupported config')
+      // return new KeyPairErc20Payments()
     }
     throw new Error('Cannot instantiate ethereum payments for unsupported config')
   }

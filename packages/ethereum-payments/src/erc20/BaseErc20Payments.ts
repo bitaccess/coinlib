@@ -32,17 +32,17 @@ import {
 import { BaseEthereumPayments } from '../BaseEthereumPayments'
 
 export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig> extends BaseEthereumPayments<Config> {
-  private abi: any // JSON/string?
+  private abi: any //AbiItem | AbiItem[]
   private contractAddres: string
-  private sweepABI: any //JSON/string?
+  private sweepABI: any //AbiItem | AbiItem[]
   public depositKeyIndex: number
 
   constructor(config: Config) {
     super(config)
 
-    this.abi = config.abi
-    this.contractAddres = config.contractAddres || '' //||  //XXX use hd key
-    this.sweepABI = TOKEN_WALLET_ABI
+    this.abi = JSON.parse(config.abi || '{}')
+    this.sweepABI = JSON.parse(TOKEN_WALLET_ABI || '{}')
+    this.contractAddres = config.contractAddres || ''
 
     this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
   }
