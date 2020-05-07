@@ -157,7 +157,7 @@ export interface BasePayments<
    * Creates a new payment transaction sending the entire balance of payport `from` to payport `to`.
    */
   createSweepTransaction<O extends CreateTransactionOptions>(
-    from: number,
+    from: number | string,
     to: ResolveablePayport,
     options?: O,
   ): Promise<UnsignedTransaction>
