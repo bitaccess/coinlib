@@ -27,6 +27,7 @@ import {
   TOKEN_WALLET_DATA,
   TOKEN_WALLET_ABI,
   TOKEN_TRANSFER_COST,
+  TOKEN_METHODS_ABI,
   DEPOSIT_KEY_INDEX,
 } from '../constants'
 import { BaseEthereumPayments } from '../BaseEthereumPayments'
@@ -40,8 +41,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
   constructor(config: Config) {
     super(config)
 
-    this.abi = JSON.parse(config.abi || '{}')
-    this.sweepABI = JSON.parse(TOKEN_WALLET_ABI || '{}')
+    this.abi = JSON.parse(config.abi || TOKEN_METHODS_ABI)
+    this.sweepABI = JSON.parse(TOKEN_WALLET_ABI)
     this.contractAddres = config.contractAddres || ''
 
     this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex

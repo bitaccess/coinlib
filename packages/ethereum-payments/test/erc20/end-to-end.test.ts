@@ -23,7 +23,7 @@ const factory = new Erc20PaymentsFactory()
 const source = hdAccount.child0Child[0]
 const target = { address: '0x62b72782415394f1518da5ec4de6c4c49b7bf854'} // payport 1
 
-// XXX used to deploy contract and will be redefined in beforeAll
+let hd: any
 let HD_CONFIG = {
   network: NetworkType.Testnet,
   fullNode: `${LOCAL_NODE}:${LOCAL_PORT}`,
@@ -31,15 +31,10 @@ let HD_CONFIG = {
   gasStation: 'none',
   hdKey: hdAccount.root.KEYS.xprv,
   logger,
-  abi: CONTRACT_JSON,
   contractAddres: '',
   decimals: 7,
   depositKeyIndex: 0,
 }
-
-let hd = factory.forConfig(HD_CONFIG)
-
-let expectedBalance: string
 
 jest.setTimeout(100000)
 describe('end to end tests', () => {
@@ -51,24 +46,37 @@ describe('end to end tests', () => {
         balance: 0xde0b6b3a764000, // 1 ETH
         secretKey: source.keys.prv
       },
-    ],
-    gasLimit: '0x9849ef',// 9980399
+    ], gasLimit: '0x9849ef',// 9980399
     callGasLimit: '0x9849ef',// 9980399
   }
 
     ethNode = server.server(ganacheConfig)
     ethNode.listen(LOCAL_PORT)
 
+    let TOKEN_CONFIG = {
+      network: NetworkType.Testnet,
+      fullNode: `${LOCAL_NODE}:${LOCAL_PORT}`,
+      parityNoe: 'none',
+      gasStation: 'none',
+      hdKey: hdAccount.root.KEYS.xprv,
+      logger,
+      abi: CONTRACT_JSON,
+      contractAddres: '',
+      decimals: 7,
+      depositKeyIndex: 0,
+    }
+
+    let tokenHD = factory.forConfig(TOKEN_CONFIG)
+
     // deploy contract
     // 0 is source.address
-    const unsignedContractDeploy = await hd.createDepositTransaction({ data: TOKEN_ABI, gas: CONTRACT_GAS })
-    const signedContractDeploy = await hd.signTransaction(unsignedContractDeploy)
-    const deployedContract = await hd.broadcastTransaction(signedContractDeploy)
-    const contractInfo = await hd.getTransactionInfo(deployedContract.id)
+    const unsignedContractDeploy = await tokenHD.createDepositTransaction({ data: TOKEN_ABI, gas: CONTRACT_GAS })
+    const signedContractDeploy = await tokenHD.signTransaction(unsignedContractDeploy)
+    const deployedContract = await tokenHD.broadcastTransaction(signedContractDeploy)
+    const contractInfo = await tokenHD.getTransactionInfo(deployedContract.id)
     const data: any = contractInfo.data
     const contractAddress = data.contractAddress
 
-    // XXX
     HD_CONFIG.contractAddres = contractAddress
     hd = factory.forConfig(HD_CONFIG)
 
