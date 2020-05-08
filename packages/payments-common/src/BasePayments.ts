@@ -163,6 +163,14 @@ export interface BasePayments<
   ): Promise<UnsignedTransaction>
 
   /**
+   * Creates a new payment transaction sending the entire balance of payport `from` to payport `to`.
+   */
+  createServiceTransaction<O extends CreateTransactionOptions>(
+    from?: number | string,
+    options?: O,
+  ): Promise<UnsignedTransaction | null>
+
+  /**
    * Signs and returns unsigned transaction.
    *
    * @param from - The index of the payport to send from.

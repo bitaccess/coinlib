@@ -322,6 +322,10 @@ implements BasePayments
     return this.createTransactionObject(from, to, amountEth, options)
   }
 
+  async createServiceTransaction(): Promise<null | EthereumUnsignedTransaction> {
+    return null
+  }
+
   async createSweepTransaction(
     from: number | string,
     to: ResolveablePayport,

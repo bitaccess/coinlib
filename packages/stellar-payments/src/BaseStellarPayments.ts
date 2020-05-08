@@ -485,6 +485,10 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     return this.doCreateTransaction(fromTo, feeOption, amountBn, payportBalance, options)
   }
 
+  async createServiceTransaction(): Promise<null> {
+    return null
+  }
+
   async createSweepTransaction(
     from: number,
     to: ResolveablePayport,

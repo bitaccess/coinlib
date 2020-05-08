@@ -69,8 +69,8 @@ describe('end to end tests', () => {
     let tokenHD = factory.forConfig(TOKEN_CONFIG)
 
     // deploy contract
-    // 0 is source.address
-    const unsignedContractDeploy = await tokenHD.createDepositTransaction({ data: TOKEN_ABI, gas: CONTRACT_GAS })
+    // default to 0 (depositKeyIndex) is source.address
+    const unsignedContractDeploy = await tokenHD.createServiceTransaction(undefined ,{ data: TOKEN_ABI, gas: CONTRACT_GAS })
     const signedContractDeploy = await tokenHD.signTransaction(unsignedContractDeploy)
     const deployedContract = await tokenHD.broadcastTransaction(signedContractDeploy)
     const contractInfo = await tokenHD.getTransactionInfo(deployedContract.id)
@@ -94,7 +94,7 @@ describe('end to end tests', () => {
     let depositAddresses: Array<string> = []
     test('DeployDepositAddress payments', async () => {
       for (let i = 0; i < 10; i++) {
-        const unsignedTx = await hd.createDepositTransaction()
+        const unsignedTx = await hd.createServiceTransaction()
         const signedTx = await hd.signTransaction(unsignedTx)
         const broadcastedTx = await hd.broadcastTransaction(signedTx)
         const txInfo = await hd.getTransactionInfo(broadcastedTx.id)

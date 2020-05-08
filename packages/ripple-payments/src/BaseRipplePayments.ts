@@ -484,6 +484,10 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     return this.doCreateTransaction(fromTo, feeOption, amountBn, payportBalance, options)
   }
 
+  async createServiceTransaction(): Promise<null> {
+    return null
+  }
+
   async createSweepTransaction(
     from: number,
     to: ResolveablePayport,
