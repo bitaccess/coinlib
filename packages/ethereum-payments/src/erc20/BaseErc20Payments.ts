@@ -34,7 +34,7 @@ import { BaseEthereumPayments } from '../BaseEthereumPayments'
 
 export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig> extends BaseEthereumPayments<Config> {
   private abi: any //AbiItem | AbiItem[]
-  private contractAddres: string
+  private contractAddress: string
   private sweepABI: any //AbiItem | AbiItem[]
   public depositKeyIndex: number
 
@@ -43,7 +43,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
     this.abi = JSON.parse(config.abi || TOKEN_METHODS_ABI)
     this.sweepABI = JSON.parse(TOKEN_WALLET_ABI)
-    this.contractAddres = config.contractAddres || ''
+    this.contractAddress = config.contractAddress || ''
 
     this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
   }
@@ -56,7 +56,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
   async getBalance(resolveablePayport: ResolveablePayport): Promise<BalanceResult> {
     const payport = await this.resolvePayport(resolveablePayport)
-    const contract = new this.eth.Contract(this.abi, this.contractAddres)
+    const contract = new this.eth.Contract(this.abi, this.contractAddress)
     const balance = await contract.methods.balanceOf(payport.address).call({})
 
     const sweepable = await this.isSweepableBalance(this.toMainDenomination(balance))
@@ -247,17 +247,17 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
         to:       fromTo.fromAddress,
         gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
         gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
-        data: contract.methods.sweep(this.contractAddres, fromTo.toAddress).encodeABI()
+        data: contract.methods.sweep(this.contractAddress, fromTo.toAddress).encodeABI()
       }
     } else {
       amount = new BigNumber(this.toBaseDenomination(amountMain))
       if (amount.plus(feeBase).isGreaterThan(balanceBase)) {
         throw new Error(`Insufficient balance (${balanceMain}) to send ${amountMain} including fee of ${feeOption.feeMain} `)
       }
-      const contract = new this.eth.Contract(this.abi, this.contractAddres)
+      const contract = new this.eth.Contract(this.abi, this.contractAddress)
       transactionObject = {
         from:     fromTo.fromAddress,
-        to:       this.contractAddres,
+        to:       this.contractAddress,
         value:    '0x0',
         gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
         gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,

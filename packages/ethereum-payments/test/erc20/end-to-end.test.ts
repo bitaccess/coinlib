@@ -31,7 +31,7 @@ let HD_CONFIG = {
   gasStation: 'none',
   hdKey: hdAccount.root.KEYS.xprv,
   logger,
-  contractAddres: '',
+  contractAddress: '',
   decimals: 7,
   depositKeyIndex: 0,
 }
@@ -61,7 +61,7 @@ describe('end to end tests', () => {
       hdKey: hdAccount.root.KEYS.xprv,
       logger,
       abi: CONTRACT_JSON,
-      contractAddres: '',
+      contractAddress: '',
       decimals: 7,
       depositKeyIndex: 0,
     }
@@ -77,7 +77,7 @@ describe('end to end tests', () => {
     const data: any = contractInfo.data
     const contractAddress = data.contractAddress
 
-    HD_CONFIG.contractAddres = contractAddress
+    HD_CONFIG.contractAddress = contractAddress
     hd = factory.forConfig(HD_CONFIG)
 
     // source is 0

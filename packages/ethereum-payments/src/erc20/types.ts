@@ -40,7 +40,7 @@ export const BaseErc20PaymentsConfig = extendCodec(
     parityNode: OptionalString,
     gasStation: OptionalString,
     abi: t.string,
-    contractAddres: t.string,
+    contractAddress: t.string,
     sweepABI: t.string,
     depositKeyIndex: OptionalNumber,
   },
