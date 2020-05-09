@@ -21,6 +21,32 @@ const logger = new TestLogger('HdErc20PaymentsTest')
 const factory = new Erc20PaymentsFactory()
 
 const source = hdAccount.child0Child[0]
+
+const tokenIssuer =  {
+  address: '0xfdc7c2aeba72d3f4689f995698ec44bcdfa854e8',
+  keys: {
+    prv: '0xfabbf3c5bffd9c3cebe86fb82ce7618026c59ce3ba6933bae00758e6ca22434c',
+    pub: '03e1d562c90ab342dcc26b0c3edf1b197cfe39247d34790f7e37e7d45ebd0f2204'
+  },
+  xkeys: {
+    xprv: 'xprv9s21ZrQH143K2taFwpecdwEgNBPPg9oCqt6ArwNTZiMsMyyKP3mc3iaX9SQ2MzFiGEkg9MaWXhuDgpfeF8fjLLvJqmukSza3FWiJTjosuZt',
+    xpub: 'xpub661MyMwAqRbcFNej3rBd15BQvDDt5cX4D71mfKn583trEnJTvb5rbWtzzjBZvkArdXe1T8EfE3QEDnkzPP7KnPugw2AVAMXCnA4ZTJh5uXo'
+  }
+}
+
+const tokenDistributor = {
+  address: '0x01bb0fdded631a75f841e4b3c493d4dd345d5f7d',
+  keys: {
+    prv: '0xb55f2052f607b60b59e07687649a8c738b595896c199d582e7db9b15ace79d9a',
+    pub: '038bd304e7cc1aa621d63046ce009f15e1bdb8ec3b7cbc65e52917f5870ddb0208'
+  },
+  xkeys: {
+    xprv: 'xprvA4fxH9H85rukQz1TJmhQcDvdKLMG3fENZ3gbkX7yC9zpNaUkEuUswakGmq97Lc7JYrSSGpC7G7h6tiaEx5qwqqGFMRmqkfMzgJzRkp4PXmN',
+    xpub: 'xpub6HfJgep1vEU3dU5vQoEQyMsMsNBkT7xDvGcCYuXakVXoFNotnSo8VP4kd7oKgpqdELukHnSgh2SdUsfutaS1TwLZ6S6L71hjfZnEdP2n1Jv'
+  }
+}
+ 
+
 const target = { address: '0x62b72782415394f1518da5ec4de6c4c49b7bf854'} // payport 1
 
 let hd: any
@@ -44,6 +70,10 @@ describe('end to end tests', () => {
     accounts: [
       {
         balance: 0xde0b6b3a764000, // 1 ETH
+        secretKey: tokenDistributor.keys.prv
+      },
+      {
+        balance: 0xde0b6b3a764000, // 1 ETH
         secretKey: source.keys.prv
       },
     ], gasLimit: '0x9849ef',// 9980399
@@ -58,7 +88,7 @@ describe('end to end tests', () => {
       fullNode: `${LOCAL_NODE}:${LOCAL_PORT}`,
       parityNoe: 'none',
       gasStation: 'none',
-      hdKey: hdAccount.root.KEYS.xprv,
+      hdKey: tokenIssuer.xkeys.xprv,//hdAccount.root.KEYS.xprv,
       logger,
       abi: CONTRACT_JSON,
       contractAddress: '',
@@ -77,12 +107,27 @@ describe('end to end tests', () => {
     const data: any = contractInfo.data
     const contractAddress = data.contractAddress
 
+    // send funds from distribution account to hd
+    tokenHD = factory.forConfig({
+      ...TOKEN_CONFIG,
+      contractAddress,
+    })
+
+
+    const unsignedTx = await tokenHD.createTransaction(0, { address: source.address }, '6500000000')
+    const signedTx = await tokenHD.signTransaction(unsignedTx)
+    const broadcastedTx = await tokenHD.broadcastTransaction(signedTx)
+
+
     HD_CONFIG.contractAddress = contractAddress
     hd = factory.forConfig(HD_CONFIG)
 
+    const { confirmedBalance: confirmedDistributorBalance } = await hd.getBalance(tokenDistributor.address)
+    // leftovers after tx
+    expect(confirmedDistributorBalance).toEqual('500000000')
     // source is 0
-    const { confirmedBalance } = await hd.getBalance(source.address)
-    expect(confirmedBalance).toEqual('7000000000')
+    const { confirmedBalance: confirmedSourceBalance } = await hd.getBalance(source.address)
+    expect(confirmedSourceBalance).toEqual('6500000000')
   })
 
   afterAll(() => {
@@ -125,7 +170,7 @@ describe('end to end tests', () => {
       const { confirmedBalance: balanceTarget } = await hd.getBalance(destination)
 
       expect(balanceTarget).toEqual('163331000')
-      expect(balanceSource).toEqual('6836669000')
+      expect(balanceSource).toEqual('6336669000')
     })
 
     test('sweep transaction', async () => {
