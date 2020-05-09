@@ -96,7 +96,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     from: number = this.depositKeyIndex,
     options: Erc20TransactionOptions = {},
   ): Promise<Erc20UnsignedTransaction> {
-    this.logger.debug('createDepositTransaction', this.depositKeyIndex)
+    this.logger.debug('createDepositTransaction', from)
     const payport = await this.resolvePayport(from)
     const feeOption = await this.resolveFeeOption(options as FeeOption)
     const targetFeeLevel = feeOption.targetFeeLevel || DEFAULT_FEE_LEVEL
@@ -123,7 +123,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
       fromAddress: payport.address,
       toAddress: '',
-      fromIndex: this.depositKeyIndex,
+      fromIndex: from,
       toIndex: null,
       toExtraId: null,
 

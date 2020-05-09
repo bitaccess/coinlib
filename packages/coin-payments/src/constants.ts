@@ -16,7 +16,7 @@ export const PAYMENTS_FACTORIES: {
   XLM: new StellarPaymentsFactory(),
   BTC: new BitcoinPaymentsFactory(),
   ETH: new EthereumPaymentsFactory(),
-  ERC20: new Erc20PaymentsFactory(),
+  LINK: new Erc20PaymentsFactory(),
 }
 
 export const SUPPORTED_ASSET_SYMBOLS = keysOf(PAYMENTS_FACTORIES)

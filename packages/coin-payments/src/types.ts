@@ -13,7 +13,7 @@ export const baseAssetConfigCodecs = {
   XLM: BaseStellarPaymentsConfig,
   BTC: BaseBitcoinPaymentsConfig,
   ETH: BaseEthereumPaymentsConfig,
-  ERC20: BaseErc20PaymentsConfig,
+  LINK: BaseErc20PaymentsConfig,
 }
 
 export const CoinPaymentsBaseAssetConfigs = t.type(baseAssetConfigCodecs, 'CoinPaymentsBaseAssetConfigs')
@@ -25,7 +25,7 @@ export const assetConfigCodecs = {
   XLM: StellarPaymentsConfig,
   BTC: BitcoinPaymentsConfig,
   ETH: EthereumPaymentsConfig,
-  ERC20: Erc20PaymentsConfig,
+  LINK: Erc20PaymentsConfig,
 }
 export const CoinPaymentsAssetConfigs = t.type(assetConfigCodecs, 'CoinPaymentsAssetConfigs')
 export type CoinPaymentsAssetConfigs = t.TypeOf<typeof CoinPaymentsAssetConfigs>
