@@ -1,6 +1,4 @@
 import { BigNumber } from 'bignumber.js'
-import Web3 from 'web3'
-import { TransactionReceipt } from 'web3-core';
 import {
   BalanceResult,
   TransactionStatus,
@@ -15,11 +13,11 @@ import {
 import { isType } from '@faast/ts-common'
 
 import {
-  Erc20UnsignedTransaction,
   BaseErc20PaymentsConfig,
-  Erc20ResolvedFeeOption,
-  Erc20TransactionOptions,
-} from './types'
+  EthereumUnsignedTransaction,
+  EthereumResolvedFeeOption,
+  EthereumTransactionOptions,
+} from '../types'
 import {
   DEFAULT_FEE_LEVEL,
   FEE_LEVEL_MAP,
@@ -33,22 +31,17 @@ import {
 import { BaseEthereumPayments } from '../BaseEthereumPayments'
 
 export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig> extends BaseEthereumPayments<Config> {
-  private abi: any //AbiItem | AbiItem[]
-  private contractAddress: string
-  private sweepABI: any //AbiItem | AbiItem[]
+  public tokenAddress: string
   public depositKeyIndex: number
 
   constructor(config: Config) {
     super(config)
-
-    this.abi = JSON.parse(config.abi || TOKEN_METHODS_ABI)
-    this.sweepABI = JSON.parse(TOKEN_WALLET_ABI)
-    this.contractAddress = config.contractAddress || ''
+    this.tokenAddress = config.tokenAddress
 
     this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
   }
 
-  async resolveFeeOption(feeOption: FeeOption): Promise<Erc20ResolvedFeeOption> {
+  async resolveFeeOption(feeOption: FeeOption): Promise<EthereumResolvedFeeOption> {
     return isType(FeeOptionCustom, feeOption)
       ? this.resolveCustomFeeOptionABI(feeOption)
       : this.resolveLeveledFeeOptionABI(feeOption)
@@ -56,7 +49,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
   async getBalance(resolveablePayport: ResolveablePayport): Promise<BalanceResult> {
     const payport = await this.resolvePayport(resolveablePayport)
-    const contract = new this.eth.Contract(this.abi, this.contractAddress)
+    const contract = new this.eth.Contract(TOKEN_METHODS_ABI, this.tokenAddress)
     const balance = await contract.methods.balanceOf(payport.address).call({})
 
     const sweepable = await this.isSweepableBalance(this.toMainDenomination(balance))
@@ -74,8 +67,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     from: number,
     to: ResolveablePayport,
     amountBase: string,
-    options: TransactionOptions = {},
-  ): Promise<Erc20UnsignedTransaction> {
+    options: EthereumTransactionOptions = {},
+  ): Promise<EthereumUnsignedTransaction> {
     this.logger.debug('createTransaction', from, to, amountBase)
 
     return this.createTransactionObjectABI(from, to, amountBase, options)
@@ -85,8 +78,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
   async createSweepTransaction(
     from: number | string,
     to: ResolveablePayport,
-    options: TransactionOptions = {},
-  ): Promise<Erc20UnsignedTransaction> {
+    options: EthereumTransactionOptions = {},
+  ): Promise<EthereumUnsignedTransaction> {
     this.logger.debug('createSweepTransaction', from, to)
 
     return this.createTransactionObjectABI(from as string, to, 'max', options)
@@ -94,8 +87,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
   async createServiceTransaction(
     from: number = this.depositKeyIndex,
-    options: Erc20TransactionOptions = {},
-  ): Promise<Erc20UnsignedTransaction> {
+    options: EthereumTransactionOptions = {},
+  ): Promise<EthereumUnsignedTransaction> {
     this.logger.debug('createDepositTransaction', from)
     const payport = await this.resolvePayport(from)
     const feeOption = await this.resolveFeeOption(options as FeeOption)
@@ -142,7 +135,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
   private resolveCustomFeeOptionABI(
     feeOption: FeeOptionCustom,
     amountOfGas: string = TOKEN_TRANSFER_COST,
-  ): Erc20ResolvedFeeOption {
+  ): EthereumResolvedFeeOption {
     const isWeight = (feeOption.feeRateType === FeeRateType.BasePerWeight)
     const isMain = (feeOption.feeRateType === FeeRateType.Main)
 
@@ -166,7 +159,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
   private async resolveLeveledFeeOptionABI(
     feeOption: FeeOption,
     amountOfGas: string = TOKEN_TRANSFER_COST,
-  ): Promise<Erc20ResolvedFeeOption> {
+  ): Promise<EthereumResolvedFeeOption> {
     const targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL
     const targetFeeRate = await this.gasStation.getGasPrice(FEE_LEVEL_MAP[targetFeeLevel])
 
@@ -193,8 +186,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     from: number | string,
     to: ResolveablePayport,
     amountMain: string = 'max',
-    options: TransactionOptions = {}
-  ): Promise<Erc20UnsignedTransaction> {
+    options: EthereumTransactionOptions = {}
+  ): Promise<EthereumUnsignedTransaction> {
     const sweepFlag = amountMain === 'max' ? true : false
     const action = sweepFlag ? 'TOKEN_SWEEP' : 'TOKEN_TRANSFER'
 
@@ -220,9 +213,9 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       }
     }
 
-    const amountOfGas = await this.gasStation.estimateGas(fromTo.fromAddress, fromTo.toAddress, action)
+    const amountOfGas = options.gas || await this.gasStation.estimateGas(fromTo.fromAddress, fromTo.toAddress, action)
 
-    const feeOption: Erc20ResolvedFeeOption = isType(FeeOptionCustom, options)
+    const feeOption: EthereumResolvedFeeOption = isType(FeeOptionCustom, options)
       ? this.resolveCustomFeeOptionABI(options, amountOfGas)
       : await this.resolveLeveledFeeOptionABI(options, amountOfGas)
 
@@ -241,23 +234,23 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
         throw new Error(`Insufficient balance (${balanceMain}) to sweep with fee of ${feeOption.feeMain} `)
       }
 
-      const contract = new this.eth.Contract(this.sweepABI, fromTo.fromAddress)
+      const contract = new this.eth.Contract(TOKEN_WALLET_ABI, fromTo.fromAddress)
       transactionObject = {
         nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
         to:       fromTo.fromAddress,
         gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
         gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
-        data: contract.methods.sweep(this.contractAddress, fromTo.toAddress).encodeABI()
+        data: contract.methods.sweep(this.tokenAddress, fromTo.toAddress).encodeABI()
       }
     } else {
       amount = new BigNumber(this.toBaseDenomination(amountMain))
       if (amount.plus(feeBase).isGreaterThan(balanceBase)) {
         throw new Error(`Insufficient balance (${balanceMain}) to send ${amountMain} including fee of ${feeOption.feeMain} `)
       }
-      const contract = new this.eth.Contract(this.abi, this.contractAddress)
+      const contract = new this.eth.Contract(TOKEN_METHODS_ABI, this.tokenAddress)
       transactionObject = {
         from:     fromTo.fromAddress,
-        to:       this.contractAddress,
+        to:       this.tokenAddress,
         value:    '0x0',
         gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
         gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,

@@ -1,15 +1,14 @@
 import { HdEthereumPayments } from '..'
-import { HdErc20PaymentsConfig } from './types'
 import { BaseErc20Payments } from './BaseErc20Payments'
 import { applyMixins } from './mixins'
 
 import { deriveSignatory } from '../bip44'
 import { Payport } from '@faast/payments-common'
 import { omit } from 'lodash'
-import { EthereumSignatory } from '../types'
+import { HdErc20PaymentsConfig, EthereumSignatory } from '../types'
 
 //interface HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig>, HdEthereumPayments {}
-class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {//HdEthereumPayments {
+export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {//HdEthereumPayments {
   readonly xprv: string | null
   readonly xpub: string
 
@@ -41,6 +40,7 @@ class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {//HdEthe
   getPublicConfig(): HdErc20PaymentsConfig {
     return {
       ...omit(this.getFullConfig(), ['hdKey', 'logger', 'fullNode', 'solidityNode', 'eventServer']),
+      tokenAddress: this.tokenAddress,
       hdKey: this.getXpub(),
     }
   }

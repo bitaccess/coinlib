@@ -1,9 +1,9 @@
 import { KeyPairEthereumPayments } from '..'
-import { KeyPairErc20PaymentsConfig } from './types'
+import { KeyPairErc20PaymentsConfig } from '../types'
 import { BaseErc20Payments } from './BaseErc20Payments'
 import { applyMixins } from './mixins'
 
-class KeyPairErc20Payments {//} extends BaseErc20Payments<KeyPairErc20PaymentsConfig> {
+export class KeyPairErc20Payments {//} extends BaseErc20Payments<KeyPairErc20PaymentsConfig> {
 //  constructor(config: KeyPairErc20PaymentsConfig) {
 //    super(config)
 //  }

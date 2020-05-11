@@ -29,6 +29,7 @@ import {
   EthereumBroadcastResult,
   BaseEthereumPaymentsConfig,
   EthereumResolvedFeeOption,
+  EthereumTransactionOptions,
 } from './types'
 import { NetworkData } from './NetworkData'
 import {
@@ -315,7 +316,7 @@ implements BasePayments
     from: number,
     to: ResolveablePayport,
     amountEth: string,
-    options: TransactionOptions = {},
+    options: EthereumTransactionOptions = {},
   ): Promise<EthereumUnsignedTransaction> {
     this.logger.debug('createTransaction', from, to, amountEth)
 
@@ -329,7 +330,7 @@ implements BasePayments
   async createSweepTransaction(
     from: number | string,
     to: ResolveablePayport,
-    options: TransactionOptions = {},
+    options: EthereumTransactionOptions = {},
   ): Promise<EthereumUnsignedTransaction> {
     this.logger.debug('createSweepTransaction', from, to)
 
@@ -388,14 +389,14 @@ implements BasePayments
     from: number,
     to: ResolveablePayport,
     amountEth: string = 'max',
-    options: TransactionOptions = {}
+    options: EthereumTransactionOptions = {}
   ): Promise<EthereumUnsignedTransaction> {
     const sweepFlag = amountEth === 'max' ? true : false
 
     const fromTo = await this.resolveFromTo(from, to)
 
 
-    const amountOfGas = await this.gasStation.estimateGas(fromTo.fromAddress, fromTo.toAddress, 'ETHEREUM_TRANSFER')
+    const amountOfGas = options.gas || await this.gasStation.estimateGas(fromTo.fromAddress, fromTo.toAddress, 'ETHEREUM_TRANSFER')
 
     const feeOption: EthereumResolvedFeeOption = isType(FeeOptionCustom, options)
       ? this.resolveCustomFeeOption(options, amountOfGas)

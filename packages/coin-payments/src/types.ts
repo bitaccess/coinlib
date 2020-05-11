@@ -5,44 +5,42 @@ import { TronPaymentsConfig, BaseTronPaymentsConfig } from '@faast/tron-payments
 import { RipplePaymentsConfig, BaseRipplePaymentsConfig } from '@faast/ripple-payments'
 import { StellarPaymentsConfig, BaseStellarPaymentsConfig } from '@faast/stellar-payments'
 import { BitcoinPaymentsConfig, BaseBitcoinPaymentsConfig } from '@faast/bitcoin-payments'
-import { EthereumPaymentsConfig, BaseEthereumPaymentsConfig, Erc20PaymentsConfig, BaseErc20PaymentsConfig  } from '@faast/ethereum-payments'
+import { EthereumPaymentsConfig, BaseEthereumPaymentsConfig } from '@faast/ethereum-payments'
 
-export const baseAssetConfigCodecs = {
+export const basePaymentsConfigCodecs = {
   TRX: BaseTronPaymentsConfig,
   XRP: BaseRipplePaymentsConfig,
   XLM: BaseStellarPaymentsConfig,
   BTC: BaseBitcoinPaymentsConfig,
   ETH: BaseEthereumPaymentsConfig,
-  LINK: BaseErc20PaymentsConfig,
 }
 
-export const CoinPaymentsBaseAssetConfigs = t.type(baseAssetConfigCodecs, 'CoinPaymentsBaseAssetConfigs')
-export type CoinPaymentsBaseAssetConfigs = t.TypeOf<typeof CoinPaymentsBaseAssetConfigs>
+export const CoinPaymentsBaseConfigs = t.type(basePaymentsConfigCodecs, 'CoinPaymentsBaseConfigs')
+export type CoinPaymentsBaseConfigs = t.TypeOf<typeof CoinPaymentsBaseConfigs>
 
-export const assetConfigCodecs = {
+export const paymentsConfigCodecs = {
   TRX: TronPaymentsConfig,
   XRP: RipplePaymentsConfig,
   XLM: StellarPaymentsConfig,
   BTC: BitcoinPaymentsConfig,
   ETH: EthereumPaymentsConfig,
-  LINK: Erc20PaymentsConfig,
 }
-export const CoinPaymentsAssetConfigs = t.type(assetConfigCodecs, 'CoinPaymentsAssetConfigs')
-export type CoinPaymentsAssetConfigs = t.TypeOf<typeof CoinPaymentsAssetConfigs>
+export const CoinPaymentsConfigs = t.type(paymentsConfigCodecs, 'CoinPaymentsConfigs')
+export type CoinPaymentsConfigs = t.TypeOf<typeof CoinPaymentsConfigs>
 
-export const SupportedCoinPaymentsSymbol = t.keyof(assetConfigCodecs, 'SupportedCoinPaymentsSymbol')
+export const SupportedCoinPaymentsSymbol = t.keyof(paymentsConfigCodecs, 'SupportedCoinPaymentsSymbol')
 export type SupportedCoinPaymentsSymbol = t.TypeOf<typeof SupportedCoinPaymentsSymbol>
 
-export type CoinPaymentsPartialAssetConfigs = {
-  [T in SupportedCoinPaymentsSymbol]?: Partial<CoinPaymentsAssetConfigs[T]>
+export type CoinPaymentsPartialConfigs = {
+  [T in SupportedCoinPaymentsSymbol]?: Partial<CoinPaymentsConfigs[T]>
 }
-export const CoinPaymentsPartialAssetConfigs = t.partial(
-  baseAssetConfigCodecs,
-  'CoinPaymentsPartialAssetConfigs',
-) as t.Type<CoinPaymentsPartialAssetConfigs>
+export const CoinPaymentsPartialConfigs = t.partial(
+  basePaymentsConfigCodecs,
+  'CoinPaymentsPartialConfigs',
+) as t.Type<CoinPaymentsPartialConfigs>
 
 export const CoinPaymentsConfig = extendCodec(
-  CoinPaymentsPartialAssetConfigs,
+  CoinPaymentsPartialConfigs,
   {},
   {
     network: NetworkTypeT,
