@@ -1,0 +1,9 @@
+{
+  "extends": [
+    "../../tslint.json"
+  ],
+  "rules": {
+    "deprecation": false,
+    "await-promise": false
+  }
+}
