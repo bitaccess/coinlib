@@ -323,7 +323,10 @@ implements BasePayments
     return this.createTransactionObject(from, to, amountEth, options)
   }
 
-  async createServiceTransaction(): Promise<null | EthereumUnsignedTransaction> {
+  async createServiceTransaction(
+    from: number = 0,
+    options: EthereumTransactionOptions = {},
+  ): Promise<null |EthereumUnsignedTransaction> {
     return null
   }
 

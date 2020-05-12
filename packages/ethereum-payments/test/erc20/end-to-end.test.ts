@@ -8,7 +8,8 @@ import {
 
 import { TestLogger } from '../../../../common/testUtils'
 
-import Erc20PaymentsFactory from '../../src/erc20//Erc20PaymentsFactory'
+import EthereumPaymentsFactory from '../../src/EthereumPaymentsFactory'
+import { HdErc20PaymentsConfig } from '../../src/types'
 import { hdAccount } from '../fixtures/accounts'
 import { deriveSignatory } from '../../src/bip44'
 import { CONTRACT_JSON, CONTRACT_GAS, TOKEN_ABI } from './fixtures/abi'
@@ -18,7 +19,7 @@ const LOCAL_PORT = 8545
 
 const logger = new TestLogger('HdErc20PaymentsTest')
 
-const factory = new Erc20PaymentsFactory()
+const factory = new EthereumPaymentsFactory()
 
 const source = hdAccount.child0Child[0]
 
@@ -57,7 +58,7 @@ let HD_CONFIG = {
   gasStation: 'none',
   hdKey: hdAccount.root.KEYS.xprv,
   logger,
-  contractAddress: '',
+  tokenAddress: '',
   decimals: 7,
   depositKeyIndex: 0,
 }
@@ -91,12 +92,12 @@ describe('end to end tests', () => {
       hdKey: tokenIssuer.xkeys.xprv,//hdAccount.root.KEYS.xprv,
       logger,
       abi: CONTRACT_JSON,
-      contractAddress: '',
+      tokenAddress: '',
       decimals: 7,
       depositKeyIndex: 0,
     }
 
-    let tokenHD = factory.forConfig(TOKEN_CONFIG)
+    let tokenHD = factory.forConfig(TOKEN_CONFIG as HdErc20PaymentsConfig)
 
     // deploy contract
     // default to 0 (depositKeyIndex) is source.address
@@ -110,8 +111,8 @@ describe('end to end tests', () => {
     // send funds from distribution account to hd
     tokenHD = factory.forConfig({
       ...TOKEN_CONFIG,
-      contractAddress,
-    })
+      tokenAddress: contractAddress,
+    } as HdErc20PaymentsConfig)
 
 
     const unsignedTx = await tokenHD.createTransaction(0, { address: source.address }, '6500000000')
@@ -119,8 +120,8 @@ describe('end to end tests', () => {
     const broadcastedTx = await tokenHD.broadcastTransaction(signedTx)
 
 
-    HD_CONFIG.contractAddress = contractAddress
-    hd = factory.forConfig(HD_CONFIG)
+    HD_CONFIG.tokenAddress = contractAddress
+    hd = factory.forConfig(HD_CONFIG as HdErc20PaymentsConfig)
 
     const { confirmedBalance: confirmedDistributorBalance } = await hd.getBalance(tokenDistributor.address)
     // leftovers after tx

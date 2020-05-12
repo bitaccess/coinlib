@@ -68,14 +68,14 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     to: ResolveablePayport,
     amountMain: string,
     options: EthereumTransactionOptions = {},
-  ): Promise<Erc20UnsignedTransaction> {
+  ): Promise<EthereumUnsignedTransaction> {
     this.logger.debug('createTransaction', from, to, amountMain)
 
     const fromTo = await this.resolveFromTo(from as number, to)
     const txFromAddress = fromTo.fromAddress
 
     const amountOfGas = await this.gasStation.estimateGas(fromTo.fromAddress, fromTo.toAddress, 'TOKEN_TRANSFER')
-    const feeOption: Erc20ResolvedFeeOption = isType(FeeOptionCustom, options)
+    const feeOption: EthereumResolvedFeeOption = isType(FeeOptionCustom, options)
       ? this.resolveCustomFeeOptionABI(options, amountOfGas)
       : await this.resolveLeveledFeeOptionABI(options, amountOfGas)
     const feeBase = new BigNumber(feeOption.feeBase)
@@ -90,10 +90,10 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       throw new Error(`Insufficient balance (${balanceMain}) to send ${amountMain} including fee of ${feeOption.feeMain} `)
     }
 
-    const contract = new this.eth.Contract(this.abi, this.contractAddress)
+    const contract = new this.eth.Contract(TOKEN_METHODS_ABI, this.tokenAddress)
     const transactionObject = {
       from:     fromTo.fromAddress,
-      to:       this.contractAddress,
+      to:       this.tokenAddress,
       value:    '0x0',
       gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
       gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
@@ -145,7 +145,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     }
 
     const amountOfGas = await this.gasStation.estimateGas(fromTo.fromAddress, fromTo.toAddress, 'TOKEN_SWEEP')
-    const feeOption: Erc20ResolvedFeeOption = isType(FeeOptionCustom, options)
+    const feeOption: EthereumResolvedFeeOption = isType(FeeOptionCustom, options)
       ? this.resolveCustomFeeOptionABI(options, amountOfGas)
       : await this.resolveLeveledFeeOptionABI(options, amountOfGas)
 
@@ -159,13 +159,13 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     }
 
     const nonce = options.sequenceNumber || await this.getNextSequenceNumber(txFromAddress)
-    const contract = new this.eth.Contract(this.sweepABI, fromTo.fromAddress)
+    const contract = new this.eth.Contract(TOKEN_WALLET_ABI, fromTo.fromAddress)
     const transactionObject = {
       nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
       to:       fromTo.fromAddress,
       gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
       gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
-      data: contract.methods.sweep(this.contractAddress, fromTo.toAddress).encodeABI()
+      data: contract.methods.sweep(this.tokenAddress, fromTo.toAddress).encodeABI()
     }
 
     return {
