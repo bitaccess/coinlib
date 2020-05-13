@@ -1,6 +1,6 @@
 {
   "name": "@faast/coin-payments",
-  "version": "2.3.6",
+  "version": "2.3.8",
   "description": "Library to assist in processing cryptocurrency payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -69,7 +69,7 @@
     "@faast/bitcoin-payments": "^2.3.6",
     "@faast/ethereum-payments": "^2.3.4",
     "@faast/payments-common": "^2.3.0",
-    "@faast/ripple-payments": "^2.3.3",
+    "@faast/ripple-payments": "^2.3.8",
     "@faast/stellar-payments": "^2.3.3",
     "@faast/tron-payments": "^2.3.0",
     "@faast/ts-common": "^0.6.0",
