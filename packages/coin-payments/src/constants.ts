@@ -18,4 +18,7 @@ export const PAYMENTS_FACTORIES: {
   ETH: new EthereumPaymentsFactory(),
 }
 
-export const SUPPORTED_ASSET_SYMBOLS = keysOf(PAYMENTS_FACTORIES)
+export const SUPPORTED_NETWORK_SYMBOLS = keysOf(PAYMENTS_FACTORIES)
+
+/** @deprecated use SUPPORTED_NETWORK_SYMBOLS instead */
+export const SUPPORTED_ASSET_SYMBOLS = SUPPORTED_NETWORK_SYMBOLS

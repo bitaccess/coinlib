@@ -29,6 +29,7 @@ import {
   EthereumBroadcastResult,
   BaseEthereumPaymentsConfig,
   EthereumResolvedFeeOption,
+  EthereumTransactionOptions,
 } from './types'
 import { NetworkData } from './NetworkData'
 import {
@@ -47,8 +48,8 @@ export abstract class BaseEthereumPayments
   extends EthereumPaymentsUtils
 implements BasePayments
   <Config, EthereumUnsignedTransaction, EthereumSignedTransaction, EthereumBroadcastResult, EthereumTransactionInfo> {
-  private eth: Eth
-  private gasStation: NetworkData
+  eth: Eth
+  gasStation: NetworkData
   private config: Config
 
   constructor(config: Config) {
@@ -131,7 +132,7 @@ implements BasePayments
       targetFeeRateType: feeOption.feeRateType,
       feeBase:           isMain ? this.toBaseDenomination(fee) : fee,
       feeMain:           isMain ? fee : this.toMainDenomination(fee),
-      gasPrice:          isMain ? this.toBaseDenomination(gasPrice, { rounding: 7 }) : gasPrice
+      gasPrice:          isMain ? this.toBaseDenomination(gasPrice) : gasPrice
     }
   }
 
@@ -315,28 +316,35 @@ implements BasePayments
     from: number,
     to: ResolveablePayport,
     amountEth: string,
-    options: TransactionOptions = {},
+    options: EthereumTransactionOptions = {},
   ): Promise<EthereumUnsignedTransaction> {
     this.logger.debug('createTransaction', from, to, amountEth)
 
     return this.createTransactionObject(from, to, amountEth, options)
   }
 
+  async createServiceTransaction(
+    from: number = 0,
+    options: EthereumTransactionOptions = {},
+  ): Promise<null |EthereumUnsignedTransaction> {
+    return null
+  }
+
   async createSweepTransaction(
-    from: number,
+    from: number | string,
     to: ResolveablePayport,
-    options: TransactionOptions = {},
+    options: EthereumTransactionOptions = {},
   ): Promise<EthereumUnsignedTransaction> {
     this.logger.debug('createSweepTransaction', from, to)
 
-    return this.createTransactionObject(from, to, 'max', options)
+    return this.createTransactionObject(from as number, to, 'max', options)
   }
 
   async signTransaction(unsignedTx: EthereumUnsignedTransaction): Promise<EthereumSignedTransaction> {
     const fromPrivateKey = await this.getPrivateKey(unsignedTx.fromIndex)
     const payport = await this.getPayport(unsignedTx.fromIndex)
 
-    const unsignedRaw = cloneDeep(unsignedTx.data)
+    const unsignedRaw: any = cloneDeep(unsignedTx.data)
 
     const extraParam = this.config.network === NetworkType.Testnet ?  {chain :'ropsten'} : undefined
     const tx = new Tx(unsignedRaw, extraParam)
@@ -384,14 +392,14 @@ implements BasePayments
     from: number,
     to: ResolveablePayport,
     amountEth: string = 'max',
-    options: TransactionOptions = {}
+    options: EthereumTransactionOptions = {}
   ): Promise<EthereumUnsignedTransaction> {
     const sweepFlag = amountEth === 'max' ? true : false
 
     const fromTo = await this.resolveFromTo(from, to)
 
 
-    const amountOfGas = await this.gasStation.estimateGas(fromTo.fromAddress, fromTo.toAddress, 'ETHEREUM_TRANSFER')
+    const amountOfGas = options.gas || await this.gasStation.estimateGas(fromTo.fromAddress, fromTo.toAddress, 'ETHEREUM_TRANSFER')
 
     const feeOption: EthereumResolvedFeeOption = isType(FeeOptionCustom, options)
       ? this.resolveCustomFeeOption(options, amountOfGas)

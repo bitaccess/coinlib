@@ -3,7 +3,8 @@ import {
   extendCodec,
   Logger,
   nullable,
-  Numeric
+  Numeric,
+  optional
 } from '@faast/ts-common'
 import {
   BaseTransactionInfo,
@@ -17,6 +18,8 @@ import {
   ResolvedFeeOption,
   FeeOption,
   FeeOptionCustom,
+  KeyPairsConfigParam,
+  CreateTransactionOptions,
 } from '@faast/payments-common'
 
 const keys = t.type({
@@ -29,8 +32,8 @@ const xkeys = t.type({
   xpub: t.string,
 })
 
-const NullableOptionalString = t.union([t.string, t.null, t.undefined])
-const OptionalString = t.union([t.string, t.undefined])
+const OptionalString = optional(t.string)
+const OptionalNumber = optional(t.number)
 
 export const EthereumSignatory = t.type(
   {
@@ -49,6 +52,8 @@ export const BaseEthereumPaymentsConfig = extendCodec(
     fullNode:   OptionalString,
     parityNode: OptionalString,
     gasStation: OptionalString,
+    name: OptionalString,
+    decimals: t.number
   },
   'BaseEthereumPaymentsConfig',
 )
@@ -68,14 +73,62 @@ export const KeyPairEthereumPaymentsConfig = extendCodec(
   BaseEthereumPaymentsConfig,
   {
     // can be private keys or addresses
-    keyPairs: t.union([t.array(NullableOptionalString), t.record(t.number, NullableOptionalString)]),
+    keyPairs: KeyPairsConfigParam,
   },
   'KeyPairEthereumPaymentsConfig',
 )
 export type KeyPairEthereumPaymentsConfig = t.TypeOf<typeof KeyPairEthereumPaymentsConfig>
 
-export const EthereumPaymentsConfig = t.union([HdEthereumPaymentsConfig, KeyPairEthereumPaymentsConfig], 'EthereumPaymentsConfig')
+export const BaseErc20PaymentsConfig = extendCodec(
+  BaseEthereumPaymentsConfig,
+  {
+    tokenAddress: t.string,
+  },
+  {
+    depositKeyIndex: OptionalNumber,
+  },
+  'BaseErc20PaymentsConfig',
+)
+export type BaseErc20PaymentsConfig = t.TypeOf<typeof BaseErc20PaymentsConfig>
+
+export const HdErc20PaymentsConfig = extendCodec(
+  BaseErc20PaymentsConfig,
+  {
+    hdKey: t.string,
+  },
+  'HdErc20PaymentsConfig',
+)
+export type HdErc20PaymentsConfig = t.TypeOf<typeof HdErc20PaymentsConfig>
+
+
+export const KeyPairErc20PaymentsConfig = extendCodec(
+  BaseErc20PaymentsConfig,
+  {
+    // can be private keys or addresses
+    keyPairs: KeyPairsConfigParam,
+  },
+  'KeyPairErc20PaymentsConfig',
+)
+export type KeyPairErc20PaymentsConfig = t.TypeOf<typeof KeyPairErc20PaymentsConfig>
+
+export const Erc20PaymentsConfig = t.union([HdErc20PaymentsConfig, KeyPairErc20PaymentsConfig], 'Erc20PaymentsConfig')
+export type Erc20PaymentsConfig = t.TypeOf<typeof Erc20PaymentsConfig>
+
+export const EthereumPaymentsConfig = t.union([
+  HdEthereumPaymentsConfig, KeyPairEthereumPaymentsConfig, HdErc20PaymentsConfig, KeyPairErc20PaymentsConfig,
+], 'EthereumPaymentsConfig')
 export type EthereumPaymentsConfig = t.TypeOf<typeof EthereumPaymentsConfig>
+
+export const EthereumTransactionOptions = extendCodec(
+  CreateTransactionOptions,
+  {},
+  {
+    data: t.string,
+    gas: t.string,
+  },
+  'EthereumTransactionOptions'
+)
+export type EthereumTransactionOptions = t.TypeOf<typeof EthereumTransactionOptions>
 
 export const EthereumUnsignedTransaction = extendCodec(
   BaseUnsignedTransaction,

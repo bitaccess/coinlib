@@ -6,15 +6,19 @@ import { PaymentsFactory, AnyPayments, NetworkType } from '@faast/payments-commo
 import {
   CoinPaymentsConfig,
   SupportedCoinPaymentsSymbol,
-  CoinPaymentsAssetConfigs,
-  assetConfigCodecs,
+  CoinPaymentsConfigs,
+  paymentsConfigCodecs,
+  CoinPaymentsPartialConfigs,
 } from './types'
 import { keysOf } from './utils'
-import { SUPPORTED_ASSET_SYMBOLS, PAYMENTS_FACTORIES } from './constants'
-import { omit } from 'lodash'
+import { SUPPORTED_NETWORK_SYMBOLS, PAYMENTS_FACTORIES } from './constants'
 
-function addSeedIfNecessary(network: SupportedCoinPaymentsSymbol, seed: Buffer, config: object) {
-  const configCodec = assetConfigCodecs[network]
+function addSeedIfNecessary(
+  network: SupportedCoinPaymentsSymbol,
+  seed: Buffer,
+  config: any,
+): any {
+  const configCodec = paymentsConfigCodecs[network]
   let result = config
   if (configCodec.is(result)) {
     return result
@@ -41,54 +45,66 @@ export class CoinPayments {
   readonly accountIds: string[]
   readonly network: NetworkType
   readonly logger: Logger
+  private readonly seedBuffer?: Buffer
 
   constructor(public readonly config: CoinPaymentsConfig) {
     assertType(CoinPaymentsConfig, config)
     this.network = config.network || NetworkType.Mainnet
     this.logger = config.logger || console
-    const seedBuffer = config.seed && (config.seed.includes(' ')
+    this.seedBuffer = (config.seed && (config.seed.includes(' ')
       ? bip39.mnemonicToSeedSync(config.seed)
-      : Buffer.from(config.seed, 'hex'))
+      : Buffer.from(config.seed, 'hex'))) || undefined
     const accountIdSet = new Set<string>()
-    SUPPORTED_ASSET_SYMBOLS.forEach((assetSymbol) => {
-      let assetConfig = config[assetSymbol]
-      if (seedBuffer) {
-        assetConfig = addSeedIfNecessary(assetSymbol, seedBuffer, assetConfig || {})
-      }
-      if (!assetConfig) {
+    SUPPORTED_NETWORK_SYMBOLS.forEach((networkSymbol) => {
+      const networkPayments = this.instantiatePayments(networkSymbol, config[networkSymbol])
+      if (!networkPayments) {
         return
       }
-      // Clone to avoid mutating external objects
-      assetConfig = { ...assetConfig }
-
-      if (config.network) {
-        assetConfig.network = config.network
-      }
-      if (config.logger) {
-        assetConfig.logger = config.logger
-      }
-      assertType(assetConfigCodecs[assetSymbol] as any, assetConfig, `${assetSymbol} config`)
-      const assetPayments = PAYMENTS_FACTORIES[assetSymbol].forConfig(assetConfig)
-      this.payments[assetSymbol] = assetPayments
-      assetPayments.getAccountIds().forEach((id) => accountIdSet.add(id))
+      this.payments[networkSymbol] = networkPayments
+      networkPayments.getAccountIds().forEach((id) => accountIdSet.add(id))
     })
     this.accountIds = Array.from(accountIdSet)
   }
 
-  static getFactory(assetSymbol: SupportedCoinPaymentsSymbol): PaymentsFactory {
-    const paymentsFactory = PAYMENTS_FACTORIES[assetSymbol]
+  static getFactory(networkSymbol: SupportedCoinPaymentsSymbol): PaymentsFactory {
+    const paymentsFactory = PAYMENTS_FACTORIES[networkSymbol]
     if (!paymentsFactory) {
-      throw new Error(`No payment factory configured for asset symbol ${assetSymbol}`)
+      throw new Error(`No payment factory configured for network symbol ${networkSymbol}`)
     }
     return paymentsFactory
   }
 
   static getPayments<A extends SupportedCoinPaymentsSymbol>(
-    assetSymbol: A,
-    config: CoinPaymentsAssetConfigs[A],
+    networkSymbol: A,
+    config: CoinPaymentsConfigs[A],
   ): AnyPayments {
-    const factory = CoinPayments.getFactory(assetSymbol)
+    const factory = CoinPayments.getFactory(networkSymbol)
     return factory.forConfig(config)
+  }
+
+  private instantiatePayments<A extends SupportedCoinPaymentsSymbol>(
+    networkSymbol: A,
+    partialConfig: CoinPaymentsPartialConfigs[A],
+  ) {
+    let paymentsConfig: any = partialConfig
+    if (this.seedBuffer) {
+      paymentsConfig = addSeedIfNecessary(networkSymbol, this.seedBuffer, paymentsConfig || {})
+    }
+
+    if (!paymentsConfig) {
+      return
+    }
+    // Clone to avoid mutating external objects
+    paymentsConfig = { ...paymentsConfig }
+
+    if (this.config.network) {
+      paymentsConfig.network = this.config.network
+    }
+    if (this.config.logger) {
+      paymentsConfig.logger = this.config.logger
+    }
+    assertType(paymentsConfigCodecs[networkSymbol] as any, paymentsConfig, `${networkSymbol} config`)
+    return PAYMENTS_FACTORIES[networkSymbol].forConfig(paymentsConfig)
   }
 
   getPublicConfig(): CoinPaymentsConfig {
@@ -110,21 +126,37 @@ export class CoinPayments {
     return this.accountIds
   }
 
-  forAsset(assetSymbol: SupportedCoinPaymentsSymbol): AnyPayments {
-    const assetPayments = this.payments[assetSymbol]
-    if (!assetPayments) {
-      throw new Error(`No payments interface configured for ${assetSymbol}`)
+  forNetwork<T extends SupportedCoinPaymentsSymbol>(
+    networkSymbol: T,
+    extraConfig?: CoinPaymentsPartialConfigs[T],
+  ): AnyPayments {
+    const payments = this.payments[networkSymbol] || throw new Error(`No payments interface configured for network ${networkSymbol}`)
+
+    if (extraConfig) {
+      return this.instantiatePayments(networkSymbol, {
+        ...payments.getFullConfig(),
+        ...extraConfig,
+      })!
     }
-    return assetPayments
+    return payments
   }
 
-  isAssetSupported(assetSymbol: string): assetSymbol is SupportedCoinPaymentsSymbol {
-    return SupportedCoinPaymentsSymbol.is(assetSymbol)
+  isNetworkSupported(networkSymbol: string): networkSymbol is SupportedCoinPaymentsSymbol {
+    return SupportedCoinPaymentsSymbol.is(networkSymbol)
   }
 
-  isAssetConfigured(assetSymbol: SupportedCoinPaymentsSymbol): boolean {
-    return Boolean(this.payments[assetSymbol])
+  isNetworkConfigured(networkSymbol: string): boolean {
+    return this.isNetworkSupported(networkSymbol) && Boolean(this.payments[networkSymbol])
   }
+
+  /** @deprecated use forNetwork instead */
+  forAsset = this.forNetwork
+
+  /** @deprecated use isNetworkSupported instead */
+  isAssetSupported = this.isNetworkSupported
+
+  /** @deprecated use isNetworkConfigured instead */
+  isAssetConfigured = this.isNetworkConfigured
 
 }
 

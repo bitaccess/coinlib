@@ -595,6 +595,13 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
   }
 
+  async createServiceTransaction(
+    from: number,
+    options: CreateTransactionOptions = {},
+  ): Promise<null> {
+    return null
+  }
+
   async createSweepTransaction(
     from: number,
     to: ResolveablePayport,
