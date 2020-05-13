@@ -187,6 +187,21 @@ describe('end to end tests', () => {
       expect(balanceTarget).toEqual('163331000')
     })
 
+    test('sweep from hot wallet', async () => {
+      const destination = depositAddresses[1]
+
+      const unsignedTx = await hd.createSweepTransaction(0, { address: destination })
+      const signedTx = await hd.signTransaction(unsignedTx)
+
+      const broadcastedTx = await hd.broadcastTransaction(signedTx)
+
+      const { confirmedBalance: balanceSource } = await hd.getBalance(0)
+      const { confirmedBalance: balanceTarget } = await hd.getBalance(destination)
+
+      expect(balanceSource).toEqual('0')
+      expect(balanceTarget).toEqual('6500000000')
+    })
+
     test('can get balance of unused address', async () => {
       expect(await hd.getBalance(12345678)).toEqual({
         confirmedBalance: '0',

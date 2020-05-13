@@ -10,7 +10,10 @@ import {
   CreateTransactionOptions as TransactionOptions,
   FromTo,
 } from '@faast/payments-common'
-import { isType } from '@faast/ts-common'
+import {
+  isType,
+  isNumber,
+} from '@faast/ts-common'
 
 import {
   BaseErc20PaymentsConfig,
@@ -83,11 +86,12 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     const nonce = options.sequenceNumber || await this.getNextSequenceNumber(txFromAddress)
 
     let amount = new BigNumber(this.toBaseDenomination(amountMain))
+    let ethBalance = await this.getEthBaseBalance(fromTo.fromAddress)
 
     const { confirmedBalance: balanceMain } = await this.getBalance(fromTo.fromPayport)
     const balanceBase = this.toBaseDenomination(balanceMain)
-    if (amount.plus(feeBase).isGreaterThan(balanceBase)) {
-      throw new Error(`Insufficient balance (${balanceMain}) to send ${amountMain} including fee of ${feeOption.feeMain} `)
+    if ((feeBase).isGreaterThan(ethBalance)) {
+      throw new Error(`Insufficient balance (${ethBalance}) to pay transaction fee of ${feeOption.feeMain}`)
     }
 
     const contract = new this.eth.Contract(TOKEN_METHODS_ABI, this.tokenAddress)
@@ -126,6 +130,12 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
   ): Promise<EthereumUnsignedTransaction> {
     this.logger.debug('createSweepTransaction', from, to)
 
+    // NOTE sweep from hot wallet which is not guaranteed to support sweep contract execution
+    if (isNumber(from)) {
+      const { confirmedBalance } = await this.getBalance(from)
+      return this.createTransaction(from, to, confirmedBalance, options)
+    }
+
     const toPayport = await this.resolvePayport(to)
     const fromPayport = await this.resolvePayport(this.depositKeyIndex)
     const txFromAddress = fromPayport.address
@@ -148,11 +158,16 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
     const feeBase = new BigNumber(feeOption.feeBase)
 
+    let ethBalance = await this.getEthBaseBalance(fromPayport.address)
     const { confirmedBalance: balanceMain } = await this.getBalance(fromTo.fromPayport)
     const balanceBase = this.toBaseDenomination(balanceMain)
     const amount = (new BigNumber(balanceBase))
-    if (amount.isLessThan(0)) {
-      throw new Error(`Insufficient balance (${balanceMain}) to sweep with fee of ${feeOption.feeMain} `)
+    if ((feeBase).isGreaterThan(ethBalance)) {
+      throw new Error(`Insufficient ${fromTo.fromAddress} balance (${ethBalance}) to sweep with fee of ${feeOption.feeMain} `)
+    }
+
+    if ((new BigNumber(balanceBase)).isLessThan(0)) {
+      throw new Error(`Insufficient balance (${balanceMain}) to sweep`)
     }
 
     const nonce = options.sequenceNumber || await this.getNextSequenceNumber(txFromAddress)
@@ -199,6 +214,11 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     } = await this.gasStation.getNetworkData('CONTRACT_DEPLOY', payport.address, '', FEE_LEVEL_MAP[targetFeeLevel])
 
     let bnNonce = new BigNumber(networkNonce)
+
+    let ethBalance = await this.getEthBaseBalance(payport.address)
+    if (ethBalance.isLessThan(feeOption.feeBase)) {
+      throw new Error(`Insufficient balance (${ethBalance}) to deploy contact with fee of ${feeOption.feeMain}`)
+    }
 
     // TODO do BN conversion in NetworkData
     const transactionObject = {
@@ -274,6 +294,12 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     const sequenceNumber = await this.gasStation.getNonce(resolvedPayport.address)
 
     return sequenceNumber
+  }
+
+  private async getEthBaseBalance(address: string): Promise<BigNumber> {
+    const balanceBase = await this.eth.getBalance(address)
+
+    return new BigNumber(balanceBase)
   }
 }
 
