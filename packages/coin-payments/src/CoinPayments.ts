@@ -14,7 +14,9 @@ import { keysOf } from './utils'
 import { SUPPORTED_NETWORK_SYMBOLS, PAYMENTS_FACTORIES } from './constants'
 
 function addSeedIfNecessary(
-  network: SupportedCoinPaymentsSymbol, seed: Buffer, config: any,
+  network: SupportedCoinPaymentsSymbol,
+  seed: Buffer,
+  config: any,
 ): any {
   const configCodec = paymentsConfigCodecs[network]
   let result = config
@@ -128,17 +130,15 @@ export class CoinPayments {
     networkSymbol: T,
     extraConfig?: CoinPaymentsPartialConfigs[T],
   ): AnyPayments {
-    const payments = this.payments[networkSymbol]
-    if (!payments) {
-      throw new Error(`No payments interface configured for network ${networkSymbol}`)
-    }
+    const payments = this.payments[networkSymbol] || throw new Error(`No payments interface configured for network ${networkSymbol}`)
+
     if (extraConfig) {
       return this.instantiatePayments(networkSymbol, {
         ...payments.getFullConfig(),
         ...extraConfig,
       })!
     }
-    return payments!
+    return payments
   }
 
   isNetworkSupported(networkSymbol: string): networkSymbol is SupportedCoinPaymentsSymbol {

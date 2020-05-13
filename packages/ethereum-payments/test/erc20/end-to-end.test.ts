@@ -47,7 +47,6 @@ const tokenDistributor = {
   }
 }
  
-
 const target = { address: '0x62b72782415394f1518da5ec4de6c4c49b7bf854'} // payport 1
 
 let hd: any
@@ -114,11 +113,9 @@ describe('end to end tests', () => {
       tokenAddress: contractAddress,
     } as HdErc20PaymentsConfig)
 
-
     const unsignedTx = await tokenHD.createTransaction(0, { address: source.address }, '6500000000')
     const signedTx = await tokenHD.signTransaction(unsignedTx)
     const broadcastedTx = await tokenHD.broadcastTransaction(signedTx)
-
 
     HD_CONFIG.tokenAddress = contractAddress
     hd = factory.forConfig(HD_CONFIG as HdErc20PaymentsConfig)

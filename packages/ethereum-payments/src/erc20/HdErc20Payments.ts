@@ -1,14 +1,12 @@
 import { HdEthereumPayments } from '..'
 import { BaseErc20Payments } from './BaseErc20Payments'
-import { applyMixins } from './mixins'
 
 import { deriveSignatory } from '../bip44'
 import { Payport } from '@faast/payments-common'
 import { omit } from 'lodash'
 import { HdErc20PaymentsConfig, EthereumSignatory } from '../types'
 
-//interface HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig>, HdEthereumPayments {}
-export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {//HdEthereumPayments {
+export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
   readonly xprv: string | null
   readonly xpub: string
 
@@ -69,8 +67,6 @@ export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {/
 
     return deriveSignatory(deriveSignatory(this.xprv, 0).xkeys.xprv, index).keys.prv
   }
-
 }
-//applyMixins(HdErc20Payments, [HdEthereumPayments, BaseErc20Payments]);
 
 export default HdErc20Payments

@@ -126,7 +126,6 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
     return null
   }
 
-
   async createSweepTransaction(
     from: number,
     to: ResolveablePayport,

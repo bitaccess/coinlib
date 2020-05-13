@@ -104,12 +104,9 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     return {
       status: TransactionStatus.Unsigned,
       id: '',
-      // XXX addresses in actual transaction are different due to use of contract
       fromAddress: fromTo.fromAddress,
       toAddress: fromTo.toAddress,
       toExtraId: null,
-      // NOTE: used to sign transaction
-      // sweeps must be signed with key which created deposit addresses
       fromIndex: fromTo.fromIndex,
       toIndex: fromTo.toIndex,
       amount: this.toMainDenomination(amount),
@@ -214,21 +211,17 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     return {
       id: '',
       status: TransactionStatus.Unsigned,
-
       fromAddress: payport.address,
       toAddress: '',
       fromIndex: from,
       toIndex: null,
       toExtraId: null,
-
       amount: '',
-
       fee: feeOption.feeMain,
       targetFeeLevel: feeOption.targetFeeLevel,
       targetFeeRate: feeOption.targetFeeRate,
       targetFeeRateType: feeOption.targetFeeRateType,
       sequenceNumber: bnNonce.toString(),
-
       data: transactionObject,
     }
   }
