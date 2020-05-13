@@ -130,7 +130,10 @@ export class CoinPayments {
     networkSymbol: T,
     extraConfig?: CoinPaymentsPartialConfigs[T],
   ): AnyPayments {
-    const payments = this.payments[networkSymbol] || throw new Error(`No payments interface configured for network ${networkSymbol}`)
+    const payments = this.payments[networkSymbol] 
+    if (!payments) {
+      throw new Error(`No payments interface configured for network ${networkSymbol}`)
+    }
 
     if (extraConfig) {
       return this.instantiatePayments(networkSymbol, {
