@@ -73,7 +73,7 @@ export class NetworkData {
       gas = new BigNumber(ETHEREUM_TRANSFER_COST)
     }
 
-    return gas.toNumber() ? gas.toString() : ETHEREUM_TRANSFER_COST
+    return gas.toNumber() ? gas.toFixed(0, 7) : ETHEREUM_TRANSFER_COST
   }
 
   private async getWeb3Nonce(address: string): Promise<string> {
