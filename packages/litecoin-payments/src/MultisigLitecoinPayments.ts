@@ -8,7 +8,7 @@ import {
 } from './types'
 import {
   PayportOutput
-} from '@faast/bitcoin-payments/dist/lib/bitcoinish/types'
+} from '@faast/bitcoin-payments'
 import { omit } from 'lodash'
 import { HdLitecoinPayments } from './HdLitecoinPayments'
 import { KeyPairLitecoinPayments } from './KeyPairLitecoinPayments'

@@ -17,5 +17,5 @@ export const DERIVED_XPUB = 'xpub6Bvk7TZL7RXk6vMPS3aTszwr57mYGEnWwS1gnoNiE3R7Cxv
 // All of the following are derived from m/44'/2'/0'/0/2
 export const PRIVATE_KEY = 'T8tNFyw2AcnAJDCPNZusp6KJzSczaaQrawtbWsM2foVLoYMPAPq1'
 export const ADDRESS_LEGACY = 'LPHRhQyZ4pfUzbT4L7NmAHU51B66QfsPQm'
-export const ADDRESS_SEGWIT_P2SH = 'Ld8cBM4ggjnFxbbFfUQLpJiG2SAffDRZFs'
-export const ADDRESS_SEGWIT_NATIVE = 'LR6me3pnym3fRMqu7mYUhDjWG4mUpb89bs'
+export const ADDRESS_SEGWIT_P2SH = 'MSdUteBz8jBva5WK9rhXytoCkstyvWRQDF'
+export const ADDRESS_SEGWIT_NATIVE = 'ltc1q9jy2da00sx99t7euhg5f3r3ju875elyafuvkhe'

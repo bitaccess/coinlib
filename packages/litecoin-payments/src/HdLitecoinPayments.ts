@@ -11,6 +11,7 @@ import {
   HDNode,
   deriveHDNode,
   deriveKeyPair,
+  convertXPrefixHdKeys,
 } from './bip44'
 import { HdLitecoinPaymentsConfig } from './types'
 import { SinglesigLitecoinPayments } from './SinglesigLitecoinPayments'
@@ -52,15 +53,11 @@ export class HdLitecoinPayments extends SinglesigLitecoinPayments<HdLitecoinPaym
   }
 
   isValidXprv(xprv: string) {
-    return xprv.startsWith('xprv')
-      ? isValidXprvHelper(xprv)
-      : isValidXprvHelper(xprv, this.bitcoinjsNetwork)
+    return isValidXprvHelper(convertXPrefixHdKeys(xprv, this.bitcoinjsNetwork), this.bitcoinjsNetwork)
   }
 
   isValidXpub(xpub: string) {
-    return xpub.startsWith('xpub')
-      ? isValidXpubHelper(xpub)
-      : isValidXpubHelper(xpub, this.bitcoinjsNetwork)
+    return isValidXpubHelper(convertXPrefixHdKeys(xpub, this.bitcoinjsNetwork), this.bitcoinjsNetwork)
   }
 
   getFullConfig(): HdLitecoinPaymentsConfig {

@@ -4,7 +4,7 @@ import * as bip32 from 'bip32'
 import { isString } from '@faast/ts-common'
 
 import { AddressType, LitecoinjsKeyPair, MultisigAddressType, SinglesigAddressType } from './types'
-import { BitcoinjsNetwork } from '@faast/bitcoin-payments/dist/lib/bitcoinish/types'
+import { BitcoinjsNetwork } from '@faast/bitcoin-payments'
 import { DECIMAL_PLACES } from './constants'
 
 const {

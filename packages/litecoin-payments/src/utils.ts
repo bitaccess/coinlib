@@ -3,7 +3,7 @@ import request from 'request-promise-native'
 import bs58 from 'bs58'
 import * as bitcoin from 'bitcoinjs-lib'
 import { BaseLitecoinPaymentsConfig, AddressType, SinglesigAddressType, MultisigAddressType, AddressTypeT } from './types'
-import { BitcoinishPaymentsConfig } from '@faast/bitcoin-payments/dist/lib/bitcoinish'
+import { BitcoinishPaymentsConfig } from '@faast/bitcoin-payments'
 import {
   DEFAULT_NETWORK,
   NETWORK_TESTNET,
@@ -172,4 +172,10 @@ export function estimateLitecoinTxSize(
   totalWeight += varIntLength(totalOutputs) * 4
 
   return Math.ceil(totalWeight / 4)
+}
+
+export function bufferFromUInt32(x: number) {
+  const b = Buffer.alloc(4)
+  b.writeUInt32BE(x, 0)
+  return b
 }

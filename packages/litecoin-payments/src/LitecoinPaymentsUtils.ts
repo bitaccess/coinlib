@@ -1,4 +1,4 @@
-import { BitcoinishPaymentsUtils } from '@faast/bitcoin-payments/dist/lib/bitcoinish'
+import { BitcoinishPaymentsUtils } from '@faast/bitcoin-payments'
 import { toBitcoinishConfig } from './utils'
 import { LitecoinPaymentsUtilsConfig } from './types'
 import { isValidAddress, isValidPrivateKey } from './helpers'

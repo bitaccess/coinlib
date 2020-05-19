@@ -6,7 +6,7 @@ import {
 import { extendCodec, enumCodec, requiredOptionalCodec } from '@faast/ts-common'
 import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
 import { BlockInfoBitcoin } from 'blockbook-client'
-import { BitcoinishPaymentTx, BlockbookConfigServer } from '@faast/bitcoin-payments/dist/lib/bitcoinish'
+import { BitcoinishPaymentTx, BlockbookConfigServer } from '@faast/bitcoin-payments'
 import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
 
 export type LitecoinjsKeyPair = BitcoinjsSigner & {
