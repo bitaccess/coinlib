@@ -37,14 +37,14 @@ export const p2shSegwitAccount: AccountFixture = {
     'xpub6Cn2FkCfvpJ4FTLGNyWwDTWhhgEpyF3fh3MXcH5uqrtSuHDKJHbkoJ5cCLD2uHQrHpCj7oL3eevz2hQoWuBMk3PvSXop7cimc6RbG8aKiCE',
 
   addresses: {
-    0: 'LgXA2LGKuhTAysvxVwWJeahQzeBrfENjKK',
-    1: 'LM7xwtna6t7cxjpc2gxMCx2yCAyJBJJ4MF',
-    2: 'LiAXu6X6M4FnM8tY8ZQ4a6pziwhVVkPurh',
-    5: 'LgLxyQC4GdG95gv1nhKZbvEF8zdUTv3663',
-    6: 'LhF6s8dMciWbNQDPiRq6H74LvmPjHLuiw1',
-    10: 'LhzowTqM5iid2uWAPtNa6rFQKZkG9bCxzu',
-    10000: 'LTcxZhnYwroiK8HVmtpnfrnFWXLLBBzcDX',
-    20000: 'LMUJ5zTmeEoj8HkFQye2czvuWZdS4L1yM1',
+    0: 'MQRmKLBCR6Lx3cAwQLpFQ7TWk9emXqfc8e',
+    1: 'MSWhMKMZrh3bAjCtSu3ic2nvzyE7CBQu8a',
+    2: 'MSdUteBz8jBva5WK9rhXytoCkstyvWRQDF',
+    5: 'MHdTWgK4ue4oXv8CtqyqBttdEoSNgonn88',
+    6: 'MEpNheNmeRYBEx4Uz9CRaAquU9TQvy8peR',
+    10: 'MAXezntDQYiBJPkdpWB6J9HLshnmJTvJ61',
+    10000: 'MP95FunXmkKtpNF9KR6pmHLUBUzkwh8xhw',
+    20000: 'MKg3ksyJvGMnUgVCKudUwd631iPRuCB5Vh',
   },
 }
 
@@ -55,14 +55,14 @@ export const nativeSegwitAccount: AccountFixture = {
     'xpub6BrXLvkCQFCuJVqbEyhdduV1E2yoEch3WDcioqExPPQwt6v6CWAvj5RkyRPx6cQr9ABoT21J3bJzZnJuKZwpzS2qSvieggedQ3f7JcjwKPx',
 
   addresses: {
-    0: 'LS34DjRN2KoQAcxTyNkYhTjsZGhpWqoEH7',
-    1: 'LLatRUmz2nD1QxSFXFgYpZXr4NcfQiVJ7q',
-    2: 'LS1CuGkPGz7fMVNfxBBdoAbHWDWuLTowzg',
-    5: 'LeL4ZMCda5Akv5egKVzKF4KKp2igwqfjgm',
-    6: 'LTNSFQGs3zfHN3y4sfAaQVt91RX7LQoRWQ',
-    10: 'LKfhatcCp4zjitVpw6VHYhjMK5K6SxFh9V',
-    10000: 'LMTSo6x6MzaWZumbtFbfYQhGaTMtaNkakq',
-    20000: 'LfeVdNzHXzi1gGvq3i4euf8gKh5MVid2Fh',
+    0: 'ltc1qcv0tz0xkwn7kxztk0n5kjzk3ww7jjmfax6xeez',
+    1: 'ltc1qphueqqvv7l79v5u3gjfvyyqx50gxhh3hhg3x6h',
+    2: 'ltc1q9jy2da00sx99t7euhg5f3r3ju875elyafuvkhe',
+    5: 'ltc1qrt69uy0ukl4g3wl6t0cut2x50r29l46t37qkdm',
+    6: 'ltc1q07t7n5yu25nm924n7dkn0jvzq7wqpd980fqwrq',
+    10: 'ltc1qq203glxhjphqy2vqycnnssrpppu6tjttmulahj',
+    10000: 'ltc1qzfuc8zuc6ggzh6x5w3ym5ssvjajk3847e6svsc',
+    20000: 'ltc1q8s5uqstg5az5meszvz45lyzrrs9nsau2jyjgnh',
   },
 }
 

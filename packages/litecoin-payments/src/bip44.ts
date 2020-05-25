@@ -2,6 +2,8 @@ import { BIP32Interface as HDNode, fromBase58 } from 'bip32'
 import { SinglesigAddressType, LitecoinjsKeyPair } from './types'
 import { BitcoinjsNetwork } from '@faast/bitcoin-payments'
 import { publicKeyToAddress } from './helpers'
+import { bufferFromUInt32 } from './utils'
+import b58 from 'bs58'
 
 export { HDNode }
 
@@ -19,14 +21,34 @@ export function splitDerivationPath(path: string): string[] {
 }
 
 /**
+ * Utility for converting xpub/xprv prefixed hd keys to the network specific prefix (ie Ltub/Ltpv)
+ */
+export function convertXPrefixHdKeys(
+  hdKey: string,
+  network: BitcoinjsNetwork,
+): string {
+  let newMagicNumber
+  if (hdKey.startsWith('xpub')) {
+    newMagicNumber = network.bip32.public
+  } else if (hdKey.startsWith('xprv')) {
+    newMagicNumber = network.bip32.private
+  } else {
+    // Not recognized so probably already has network prefix
+    return hdKey
+  }
+  let data = b58.decode(hdKey)
+  data = data.slice(4)
+  data = Buffer.concat([bufferFromUInt32(newMagicNumber), data])
+  return b58.encode(data)
+}
+
+/**
  * Derive the base HDNode required for deriveKeyPair, deriveAddress, and derivePrivateKey functions
  *
  * This partially applies the derivation path starting at the already derived depth of the provided key.
  */
 export function deriveHDNode(hdKey: string, derivationPath: string, network: BitcoinjsNetwork): HDNode {
-  const rootNode = hdKey.startsWith('xprv') || hdKey.startsWith('xpub')
-    ? fromBase58(hdKey)
-    : fromBase58(hdKey, network)
+  const rootNode = fromBase58(convertXPrefixHdKeys(hdKey, network), network)
   const parts = splitDerivationPath(derivationPath).slice(rootNode.depth)
   let node = rootNode
   if (parts.length > 0) {

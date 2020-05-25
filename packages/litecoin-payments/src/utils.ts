@@ -173,3 +173,9 @@ export function estimateLitecoinTxSize(
 
   return Math.ceil(totalWeight / 4)
 }
+
+export function bufferFromUInt32(x: number) {
+  const b = Buffer.alloc(4)
+  b.writeUInt32BE(x, 0)
+  return b
+}

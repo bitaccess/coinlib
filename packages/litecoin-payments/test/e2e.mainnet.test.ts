@@ -55,17 +55,17 @@ describeAll('e2e mainnet', () => {
   })
   const feeRate = '21'
   const feeRateType = FeeRateType.BasePerWeight
-  const address0 = 'bc1qz7v8smdfrgzqvjre3lrcxl4ul9x806e7umgf27'
-  const address0balance = '0.00011'
-  const address3 = 'bc1q2qsxsvwx2tmrfqqg8f58qgu9swn3zau809tzty'
+  const address0 = 'ltc1qcv0tz0xkwn7kxztk0n5kjzk3ww7jjmfax6xeez'
+  const address0balance = '0.03'
+  const address3 = 'ltc1qsatqfa63kujzjkzy58avm8x03fqx6yty2nt4s5'
   const xpub =
-    'xpub6CMNrExwWj5nM3zYW8fXmZ1LrhrAuggZQAnBeWKiMQdK9tBWd1Ed6f2g94uJ4VwmX74uT6wzmFKqSvCGb3aoX33NQnoGPf7Bk8Yg9LM6VVH'
+    'xpub6Bvk7TZL7RXk6vMPS3aTszwr57mYGEnWwS1gnoNiE3R7CxvRV6Nq9NChJwoztJG3rwNfyi1G368cfbgjpHyTYQWHqJSMZH4Nb7x7b92oeUF'
   const address0utxos = [
     {
-      'txid': '34ce1e85a6a934bcb2f08f833835db008274c1b59f236edba2f87c0ce21bc10b',
+      'txid': '99c436723346aa9f9b1dfa024266abc8f5d5f4b142a6bbfff56cf91687b8f348',
       'vout': 0,
-      'value': '0.00011',
-      'satoshis': 11000,
+      'value': '0.05',
+      'satoshis': 5000000,
       'height': 613152,
       'confirmations': 8753
     }
@@ -120,7 +120,7 @@ describeAll('e2e mainnet', () => {
   })
 
   it('get transaction by arbitrary hash', async () => {
-    const tx = await payments.getTransactionInfo('e10d793afdfc7145ba1acd8990df6214057bd12c8cb13797860d5d1443628c04')
+    const tx = await payments.getTransactionInfo('4d111229fefb8b856beafa1a5e2799a16d2718f558e1c0ada0fde13fd41653a9')
     assertTxInfo(tx, txInfo_e10d7)
   })
   it('fail to get an invalid transaction hash', async () => {
@@ -278,7 +278,7 @@ describeAll('e2e mainnet', () => {
   jest.setTimeout(300 * 1000)
 
   it.skip('end to end sweep', async () => {
-    const indicesToTry = [5, 6]
+    const indicesToTry = [0, 1]
     const balances: { [i: number]: BalanceResult } = {}
     let indexToSweep: number = -1
     for (const index of indicesToTry) {
@@ -291,7 +291,7 @@ describeAll('e2e mainnet', () => {
     }
     if (indexToSweep < 0) {
       const allAddresses = await Promise.all(indicesToTry.map(async i => (await payments.getPayport(i)).address))
-      throw new Error(`Cannot end to end test sweeping due to lack of funds. Send mainnet BTC to any of the following addresses and try again. ${JSON.stringify(allAddresses)}`)
+      throw new Error(`Cannot end to end test sweeping due to lack of funds. Send mainnet LTC to any of the following addresses and try again. ${JSON.stringify(allAddresses)}`)
     }
     const recipientIndex = indexToSweep === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
     try {
@@ -310,5 +310,40 @@ describeAll('e2e mainnet', () => {
       }
       throw e
     }
+  })
+  
+  it.skip('end to end send', async () => {
+    const indicesToTry = [1, 0]
+    const balances: { [i: number]: BalanceResult } = {}
+    let indexToSend: number = -1
+    let highestBalance = toBigNumber(0)
+    for (const index of indicesToTry) {
+      const balanceResult = await payments.getBalance(index)
+      balances[index] = balanceResult
+      if (toBigNumber(balanceResult.confirmedBalance).gt(highestBalance)) {
+        indexToSend = index
+        break
+      }
+    }
+    if (indexToSend < 0) {
+      const allAddresses = await Promise.all(indicesToTry.map(async i => (await payments.getPayport(i)).address))
+      throw new Error(`Cannot end to end test sweeping due to lack of funds. Send LTC to any of the following addresses and try again. ${JSON.stringify(allAddresses)}`)
+    }
+    const recipientIndex = indexToSend === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
+    const unsignedTx = await payments.createTransaction(
+      indexToSend,
+      recipientIndex,
+      '0.03',
+      { useUnconfirmedUtxos: true }, // Prevents consecutive tests from failing
+    )
+    const signedTx = await payments.signTransaction(unsignedTx)
+    logger.log(`Sending ${signedTx.amount} from ${indexToSend} to ${recipientIndex} in tx ${signedTx.id}`)
+    expect(await payments.broadcastTransaction(signedTx)).toEqual({
+      id: signedTx.id,
+    })
+    // const tx = await pollUntilEnded(signedTx)
+    const tx = await payments.getTransactionInfo(signedTx.id)
+    expect(tx.amount).toEqual(signedTx.amount)
+    expect(tx.fee).toEqual(signedTx.fee)
   })
 })
