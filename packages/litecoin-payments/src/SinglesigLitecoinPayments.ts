@@ -6,7 +6,7 @@ import {
   SinglesigLitecoinPaymentsConfig,
   SinglesigAddressType,
 } from './types'
-import { BitcoinishPaymentTx } from '@faast/bitcoin-payments/dist/lib/bitcoinish/types'
+import { BitcoinishPaymentTx } from '@faast/bitcoin-payments'
 import { publicKeyToString, getSinglesigPaymentScript } from './helpers'
 import { BaseLitecoinPayments } from './BaseLitecoinPayments'
 import { DEFAULT_SINGLESIG_ADDRESS_TYPE } from './constants'

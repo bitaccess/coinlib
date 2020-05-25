@@ -4,8 +4,8 @@ import { omit } from 'lodash'
 import { FeeRateType, BalanceResult, TransactionStatus, NetworkType } from '@faast/payments-common'
 
 import {
-  HdBitcoinPayments, BitcoinTransactionInfo, HdBitcoinPaymentsConfig,
-  BitcoinSignedTransaction, BitcoinUnsignedTransaction, AddressType,
+  HdLitecoinPayments, LitecoinTransactionInfo, HdLitecoinPaymentsConfig,
+  LitecoinSignedTransaction, LitecoinUnsignedTransaction, AddressType,
 } from '../src'
 
 import { txInfo_e10d7, signedTx_valid, signedTx_invalid } from './fixtures/transactions'
@@ -14,7 +14,7 @@ import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqu
 import { toBigNumber } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
 
-const EXTERNAL_ADDRESS = '14Z2k3tU19TSzBfT8s4QFAcYsbECUJnxiK'
+const EXTERNAL_ADDRESS = 'MCTwS16sNbKENcr7qs5drkZTtSfaJLw8tB'
 
 const SECRET_XPRV_FILE = 'test/keys/mainnet.key'
 
@@ -33,7 +33,7 @@ if (fs.existsSync(secretXprvFilePath)) {
   )
 }
 
-function assertTxInfo(actual: BitcoinTransactionInfo, expected: BitcoinTransactionInfo): void {
+function assertTxInfo(actual: LitecoinTransactionInfo, expected: LitecoinTransactionInfo): void {
   expectEqualOmit(actual, expected, ['data.confirmations', 'confirmations'])
 }
 
@@ -46,7 +46,7 @@ describeAll('e2e mainnet', () => {
     testsComplete = true
   })
 
-  const payments = new HdBitcoinPayments({
+  const payments = new HdLitecoinPayments({
     hdKey: secretXprv,
     network: NetworkType.Mainnet,
     addressType: AddressType.SegwitNative,
@@ -240,10 +240,10 @@ describeAll('e2e mainnet', () => {
     expect(signedTx.data.unsignedTxHash).toMatch(/^[a-f0-9]+$/)
   })
 
-  async function pollUntilEnded(signedTx: BitcoinSignedTransaction) {
+  async function pollUntilEnded(signedTx: LitecoinSignedTransaction) {
     const txId = signedTx.id
     logger.log('polling until ended', txId)
-    let tx: BitcoinTransactionInfo | undefined
+    let tx: LitecoinTransactionInfo | undefined
     while (!testsComplete && (!tx || !END_TRANSACTION_STATES.includes(tx.status) || tx.confirmations === 0)) {
       try {
         tx = await payments.getTransactionInfo(txId)

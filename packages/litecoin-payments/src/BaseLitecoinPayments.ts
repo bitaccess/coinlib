@@ -16,7 +16,7 @@ import {
   DEFAULT_SAT_PER_BYTE_LEVELS, LITECOIN_SEQUENCE_RBF,
 } from './constants'
 import { isValidAddress, isValidPrivateKey, isValidPublicKey } from './helpers'
-import { BitcoinishPayments, BitcoinishPaymentTx } from '@faast/bitcoin-payments/dist/lib/bitcoinish'
+import { BitcoinishPayments, BitcoinishPaymentTx } from '@faast/bitcoin-payments'
 
 export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsConfig> 
 extends BitcoinishPayments<Config> {

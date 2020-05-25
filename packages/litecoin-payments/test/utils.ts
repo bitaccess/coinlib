@@ -3,7 +3,7 @@ import { UtxoInfo } from '@faast/payments-common'
 
 export * from '../../../common/testUtils'
 import { TestLogger } from '../../../common/testUtils'
-import { BitcoinishTxOutput } from '@faast/bitcoin-payments/dist/lib/bitcoinish/types'
+import { BitcoinishTxOutput } from '@faast/bitcoin-payments'
 import { toBaseDenominationNumber } from '../src'
 export const logger = new TestLogger(PACKAGE_NAME)
 

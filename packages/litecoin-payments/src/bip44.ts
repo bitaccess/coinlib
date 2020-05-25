@@ -1,6 +1,6 @@
 import { BIP32Interface as HDNode, fromBase58 } from 'bip32'
 import { SinglesigAddressType, LitecoinjsKeyPair } from './types'
-import { BitcoinjsNetwork } from '@faast/bitcoin-payments/dist/lib/bitcoinish/types'
+import { BitcoinjsNetwork } from '@faast/bitcoin-payments'
 import { publicKeyToAddress } from './helpers'
 
 export { HDNode }

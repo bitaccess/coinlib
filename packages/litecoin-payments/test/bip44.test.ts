@@ -12,15 +12,15 @@ import { AddressType } from '../src'
 import { fromBase58 } from 'bip32'
 import {
   DERIVED_XPRV, DERIVATION_PATH, ROOT_XPRV, NETWORK, PARTIALLY_DERIVED_XPRV, ADDRESS_LEGACY,
-  ADDRESS_SEGWIT_P2SH, ADDRESS_SEGWIT_NATIVE, PRIVATE_KEY, DERIVED_XPUB,
+  ADDRESS_SEGWIT_P2SH, ADDRESS_SEGWIT_NATIVE, PRIVATE_KEY, DERIVED_XPUB
 } from './fixtures'
 
-export const BASE_NODE = fromBase58(DERIVED_XPRV)
+export const BASE_NODE = fromBase58(DERIVED_XPRV, NETWORK)
 
 describe('bip44', () => {
   describe('splitDerivationPath', () => {
     it('returns correct value', () => {
-      expect(splitDerivationPath(DERIVATION_PATH)).toEqual(["44'", "0'", "0'"])
+      expect(splitDerivationPath(DERIVATION_PATH)).toEqual(["44'", "2'", "0'"])
     })
   })
   describe('deriveHDNode', () => {

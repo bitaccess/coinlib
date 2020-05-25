@@ -19,14 +19,14 @@ export const legacyAccount: AccountFixture = {
     'xpub6Bvk7TZL7RXk6vMPS3aTszwr57mYGEnWwS1gnoNiE3R7CxvRV6Nq9NChJwoztJG3rwNfyi1G368cfbgjpHyTYQWHqJSMZH4Nb7x7b92oeUF',
 
   addresses: {
-    '0': 'Lf657ADsEVi2bcUoMPiQpApGMVPL9PuLuA',
-    '1': 'LXFn2Tmksj3GHZaGFgMoetZB18Bti5joLR',
-    '2': 'LV9K1TrD2hKAynvSj5FJfce2DY2D7yHRgt',
-    '5': 'LSDwZhsHHZb2GB9MGovSLZkpnvwasnfbxj',
-    '6': 'LVEGmNsEtPh8stjEejWx1W6tfg3KwfKDg7',
-    '10': 'LZrvk4KcQGTeAFAYCkm7QdMS2DW43opA1f',
-    '10000': 'LYwubr1yu18FRp5RzDsMfowe7fKmLB5tJH',
-    '20000': 'LRGxpNdnakyagUhJu3pDy9iK6Z79Grnags'
+    '0': 'Ld1eoAGyDHSr5qp7vPhVYY52M3aGxJQY6N',
+    '1': 'LLVr1ccv9HSvHuWoZ37cFnZPijKS6s6kwe',
+    '2': 'LPHRhQyZ4pfUzbT4L7NmAHU51B66QfsPQm',
+    '5': 'LMgUa9dFEVDkxhuZVqUeA61qJhsi9r8b1d	',
+    '6': 'LWrc4hWqZuQrgAWBRf7QEyx2iSQBV9vRvn',
+    '10': 'LKTpBfsFfph85Ri1Va7MoP3SBHT8n6KXEW',
+    '10000': 'LLudzbXqs5qYvAA4W53Cv9AbSJG1J5NCsJ',
+    '20000': 'LQi4pdfoL72Cc8RnMuvyGREkH1f4YBwZ6Y'
   },
 }
 

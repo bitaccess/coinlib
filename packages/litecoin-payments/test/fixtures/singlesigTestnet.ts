@@ -1,36 +1,36 @@
 import { AddressType } from '../../src'
 export default {
   [AddressType.Legacy]: {
-    xpub: 'tpubDCrzzVkDPs78zng37gt74vUce2hkxLrHTBdpFkSmYBAdn6sJ3y6KhipwqU1z6pNaSiRsvrZ7srFuEKV6cVVxms3nhQaD3sBtJegZXqHwYqz',
+    xpub: 'tpubDCz5wky3psxq4G8Qi2Sjv1wez22YuX3H58EdEznYzdBmeYbRfRAA7535igwfwzpSuEJVQfLKeq2VbdAQPC5x9hUUo1nceqMV3gg8z3xXEfC',
     sweepTxSize: 192,
     addresses: {
-      0: 'mu1khxE9EW9vFXJybnZtbfU9p4S1cmiEFi',
-      5: 'mvTG97w8GMEt7h23NDe93oAyMr3wTMVwKS',
-      6: 'mmEo6fYtR8MJvSiEPwEs5tQhArfXMqKgkq',
-      7: 'n3TcPTNgyUQnLGi36nAZMcsLwpe2G9jZrn',
-      8: 'mhqCdYjjtEV3QrnsntXKsNRmJicDMSmdQg',
+      0: 'n3wgJ2rTxYRztj7beStr1rpAjzDNpEqLwQ',
+      5: 'mmYniFoqjwGcccQrtzvYEo12ZWXzRPjhD4',
+      6: 'mwPtwGYknwZJCdr3s6XWpkiZDD7Cc3g4db',
+      7: 'mzf5eD6daCgRkNrfA7jfJeriv17Sza7DU1',
+      8: 'mgqpJcg7xFcips6QEf6csXwJfayRvef31K',
     },
   },
   [AddressType.SegwitP2SH]: {
-    xpub: 'tpubDCWCSpZSKfHb9B2ufCHBfDAVpr5S7K2XFKV53knzUrLmXuwi3HjTqkd1VGfSevwWRCDoYCuvVF3UkQAx53NQysVy3Tbd1vxTwKhHqDzJhws',
+    xpub: 'tpubDC5hys6ovnQBcSQRZqTqqL3GTFR9DsqwYikdRkgnSUzpZEBtLmKLat5E7ajDx2XcSetWYF4pGnzHMGV8PzzhHRYu8CWd15i68rXfaZhvcQ5',
     sweepTxSize: 133,
     addresses: {
-      0: '2N9nHkMzaH6tm1oUDL6FvgwAKvMcKfa3AeY',
-      5: '2MwHhRHoFNo8fMee6tFMafRQavFVnKgkm6v',
-      6: '2NERxBtWd5BR5AH79ZVreAqroiTPoFzuZBA',
-      7: '2NBfrpZpsEQmTFiivBJFA81CbqqiXBk5v6R',
-      8: '2NFVvCdsMWjjsqJmXJ3wBPME6WzA8kvyFmj',
+      0: '2MtMKaY4zqBCDWj779hRxLBQTsu6CUzB2QV',
+      5: '2NBTG7rKa7hUAkvPbyvFnGAzkeWgG46DN3U',
+      6: '2N28wafqcqe2TpE851x1Vom5and13sKxkxt',
+      7: '2N53QmVdZQCT6QtJr1izS1pfGezwvcGytWN',
+      8: '2N1SWMZwDgX6cvbRZgvsBUPfWjAxBLH3n6A',
     },
   },
   [AddressType.SegwitNative]: {
-    xpub: 'tpubDDCCjNA9Xw1Fpp3xAb3yjBBCui6wZ7idJxwcgj48Z7q3yTjEpay9cc2A1bjsr344ZTNGKv5j1djvU8bgzVTwoXaAXpX8cAEYVYG1Ch7fvVu',
+    xpub: 'tpubDCZ6govMJByz66aB6pf1khYtKCNEJ5oSeoKuqisRZmiMaiM379vjgoVSPh1Xzc9ksgpZXbxipvKPA9mEFSv2oimtECKse8w9zWuw5VE7ZRk',
     sweepTxSize: 109,
     addresses: {
-      0: 'tb1qq9y3rxsw0r8wl9907yg3uaq5qtyqdwrxw0hezn',
-      5: 'tb1qma62jv65u4r5n5p6r3p2rmv44ae6purw3pej8f',
-      6: 'tb1qxp967rdhl5422v0400vuv94525pqzf2f7e3j0g',
-      7: 'tb1qmzcsklj78rltn22gqhu0yzzwfrdv97z3hs3ruu',
-      8: 'tb1qaqz4hycamykjndvppru2p6j3j6gfnnft9ecf8q',
+      0: 'litecointestnet1qg74w9nz40sks6l6xga2rqqfwc9jp2zv4l8a6a6',
+      5: 'litecointestnet1q9e95sfgdf57qmpw4vhualgcgt76duy3adwplw9',
+      6: 'litecointestnet1qdq5m72h0nxdgpv6ka24fupwkxapm336lhtth4p',
+      7: 'litecointestnet1quc08hfq6usrwm9p4zv9k04ml6l50pp4andme3t',
+      8: 'litecointestnet1qt508qz0266pl9ssf8nt5xsdsywsz0v7tw4vp0m',
     },
   }
 }

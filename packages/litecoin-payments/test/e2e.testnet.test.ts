@@ -3,14 +3,14 @@ import path from 'path'
 import { BalanceResult, TransactionStatus, NetworkType, FeeRateType } from '@faast/payments-common'
 
 import {
-  HdBitcoinPayments, BitcoinTransactionInfo,
-  BitcoinSignedTransaction, AddressType, SinglesigAddressType,
+  HdLitecoinPayments, LitecoinTransactionInfo,
+  LitecoinSignedTransaction, AddressType, SinglesigAddressType,
 } from '../src'
 
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 import fixtures from './fixtures/singlesigTestnet'
-import { HdBitcoinPaymentsConfig } from '../src/types';
+import { HdLitecoinPaymentsConfig } from '../src/types';
 import BigNumber from 'bignumber.js';
 
 const SECRET_XPRV_FILE = 'test/keys/testnet.key'
@@ -50,7 +50,7 @@ describeAll('e2e testnet', () => {
     const { xpub, addresses, sweepTxSize } = fixtures[addressType]
 
     describe(addressType, () => {
-      const paymentsConfig: HdBitcoinPaymentsConfig = {
+      const paymentsConfig: HdLitecoinPaymentsConfig = {
         hdKey: secretXprv,
         network: NetworkType.Testnet,
         addressType,
@@ -58,7 +58,7 @@ describeAll('e2e testnet', () => {
         minChange: '0.01',
         targetUtxoPoolSize: 5,
       }
-      const payments = new HdBitcoinPayments(paymentsConfig)
+      const payments = new HdLitecoinPayments(paymentsConfig)
       it('get correct xpub', async () => {
         expect(payments.xpub).toEqual(xpub)
       })
@@ -69,10 +69,10 @@ describeAll('e2e testnet', () => {
         })
       }
 
-      async function pollUntilEnded(signedTx: BitcoinSignedTransaction) {
+      async function pollUntilEnded(signedTx: LitecoinSignedTransaction) {
         const txId = signedTx.id
         logger.log('polling until ended', txId)
-        let tx: BitcoinTransactionInfo | undefined
+        let tx: LitecoinTransactionInfo | undefined
         while (!testsComplete && (!tx || !END_TRANSACTION_STATES.includes(tx.status) || tx.confirmations === 0)) {
           try {
             tx = await payments.getTransactionInfo(txId)

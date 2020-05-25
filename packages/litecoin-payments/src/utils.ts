@@ -3,7 +3,7 @@ import request from 'request-promise-native'
 import bs58 from 'bs58'
 import * as bitcoin from 'bitcoinjs-lib'
 import { BaseLitecoinPaymentsConfig, AddressType, SinglesigAddressType, MultisigAddressType, AddressTypeT } from './types'
-import { BitcoinishPaymentsConfig } from '@faast/bitcoin-payments/dist/lib/bitcoinish'
+import { BitcoinishPaymentsConfig } from '@faast/bitcoin-payments'
 import {
   DEFAULT_NETWORK,
   NETWORK_TESTNET,
