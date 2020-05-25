@@ -3,7 +3,7 @@ import * as bitcoin from 'bitcoinjs-lib'
 import * as bip32 from 'bip32'
 import { isString } from '@faast/ts-common'
 
-import { AddressType, LitecoinjsKeyPair, MultisigAddressType, SinglesigAddressType } from './types'
+import { AddressType, LitecoinjsKeyPair, SinglesigAddressType } from './types'
 import { BitcoinjsNetwork } from '@faast/bitcoin-payments'
 import { DECIMAL_PLACES } from './constants'
 
@@ -53,33 +53,6 @@ export function publicKeyToBuffer(publicKey: string | Buffer): Buffer {
 
 export function publicKeyToString(publicKey: string | Buffer): string {
   return isString(publicKey) ? publicKey : publicKey.toString('hex')
-}
-
-export function getMultisigPaymentScript(
-  network: BitcoinjsNetwork,
-  addressType: MultisigAddressType,
-  pubkeys: Buffer[],
-  m: number,
-): bitcoin.payments.Payment {
-  const scriptParams = {
-    network,
-    redeem: bitcoin.payments.p2ms({
-      pubkeys: pubkeys.sort(),
-      m,
-      network,
-    })
-  }
-  switch(addressType) {
-    case AddressType.MultisigLegacy:
-      return bitcoin.payments.p2sh(scriptParams)
-    case AddressType.MultisigSegwitNative:
-      return bitcoin.payments.p2wsh(scriptParams)
-    case AddressType.MultisigSegwitP2SH:
-      return bitcoin.payments.p2sh({
-        redeem: bitcoin.payments.p2wsh(scriptParams),
-        network,
-      })
-  }
 }
 
 export function getSinglesigPaymentScript(

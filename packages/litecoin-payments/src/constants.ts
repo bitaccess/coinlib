@@ -1,6 +1,6 @@
 import { FeeLevel, NetworkType } from '@faast/payments-common'
 import { networks } from 'bitcoinjs-lib'
-import { AddressType, SinglesigAddressType, MultisigAddressType } from './types';
+import { AddressType, SinglesigAddressType } from './types';
 
 export const PACKAGE_NAME = 'litecoin-payments'
 export const DECIMAL_PLACES = 8
@@ -32,7 +32,6 @@ export const LITECOIN_SEQUENCE_RBF = 0xFFFFFFFD
 export const DEFAULT_MIN_TX_FEE = 5
 
 export const DEFAULT_SINGLESIG_ADDRESS_TYPE: SinglesigAddressType = AddressType.SegwitNative
-export const DEFAULT_MULTISIG_ADDRESS_TYPE: MultisigAddressType = AddressType.MultisigSegwitNative
 
 export const DEFAULT_DERIVATION_PATHS = {
   [AddressType.Legacy]: "m/44'/2'/0'",

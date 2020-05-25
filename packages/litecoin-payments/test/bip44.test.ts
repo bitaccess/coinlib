@@ -47,7 +47,7 @@ describe('bip44', () => {
       expect(deriveAddress(BASE_NODE, 0, NETWORK, AddressType.SegwitNative)).toBe(ADDRESS_LEGACY)
     })
     it('derives legacy address', () => {
-      expect(deriveAddress(BASE_NODE, 1, NETWORK, AddressType.SegwitNative)).toBe(ADDRESS_LEGACY)
+      expect(deriveAddress(BASE_NODE, 3, NETWORK, AddressType.SegwitNative)).toBe(ADDRESS_LEGACY)
     })
     it('derives legacy address', () => {
       expect(deriveAddress(BASE_NODE, 5, NETWORK, AddressType.SegwitNative)).toBe(ADDRESS_LEGACY)

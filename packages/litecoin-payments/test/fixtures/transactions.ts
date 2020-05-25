@@ -40,9 +40,8 @@ export const txInfo_e10d7: LitecoinTransactionInfo = {
         'n': 0,
         'sequence': 4294967295,
         'txid': '9b64ee72b0674cdc44e9130a14c94719ec21997c9e9d3573ce956759a3bd6898',
-        'value': '826000000',
-        'vout': 1,
         'isAddress': true,
+        'value': '826000000',
       },
     ],
     'vout': [
@@ -62,7 +61,6 @@ export const txInfo_e10d7: LitecoinTransactionInfo = {
         ],
         'hex': 'a914e756301d05a21d85b920e20b3ea840e06e63289887',
         'n': 1,
-        'spent': true,
         'value': '814947224',
         'isAddress': true,
       },

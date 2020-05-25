@@ -20,6 +20,9 @@ export enum AddressType {
   Legacy = 'p2pkh',
   SegwitP2SH = 'p2sh-p2wpkh',
   SegwitNative = 'p2wpkh',
+  MultisigLegacy = 'p2sh-p2ms',
+  MultisigSegwitP2SH = 'p2sh-p2wsh-p2ms',
+  MultisigSegwitNative = 'p2wsh-p2ms'
 }
 export const AddressTypeT = enumCodec<AddressType>(AddressType, 'AddressType')
 
@@ -32,6 +35,14 @@ const SinglesigAddressTypeT = t.keyof({
 }, 'SinglesigAddressType')
 export type SinglesigAddressType = t.TypeOf<typeof SinglesigAddressTypeT>
 export const SinglesigAddressType = SinglesigAddressTypeT as t.Type<SinglesigAddressType>
+
+const MultisigAddressTypeT = t.keyof({
+  [AddressType.MultisigLegacy]: null,
+  [AddressType.MultisigSegwitP2SH]: null,
+  [AddressType.MultisigSegwitNative]: null,
+}, 'MultisigAddressType')
+export type MultisigAddressType = t.TypeOf<typeof MultisigAddressTypeT>
+export const MultisigAddressType = MultisigAddressTypeT as t.Type<MultisigAddressType>
 
 export const LitecoinPaymentsUtilsConfig = extendCodec(
   BaseConfig,

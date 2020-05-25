@@ -55,17 +55,17 @@ describeAll('e2e mainnet', () => {
   })
   const feeRate = '21'
   const feeRateType = FeeRateType.BasePerWeight
-  const address0 = 'ltc1qcv0tz0xkwn7kxztk0n5kjzk3ww7jjmfax6xeez'
-  const address0balance = '0.03'
-  const address3 = 'ltc1qsatqfa63kujzjkzy58avm8x03fqx6yty2nt4s5'
-  const xpub =
-    'xpub6Bvk7TZL7RXk6vMPS3aTszwr57mYGEnWwS1gnoNiE3R7CxvRV6Nq9NChJwoztJG3rwNfyi1G368cfbgjpHyTYQWHqJSMZH4Nb7x7b92oeUF'
+  const address0 = 'ltc1q9ek9srkxa69l8p9qdk8v2ntzs9vetxnr6xhvf4'
+  const address0balance = '0.05'
+  const address3 = 'ltc1qazag0t8ag0u6qv0ha2wectsupte8v0nt9fgeet'
+  const xpub = 
+    'xpub6CrMcKhbvSyc3ciFxZ4TYkdexCsKCA3hQVCYzn6UJHUA5GHkEzUt3w72kGrQGpXdwR4LHc5JGGoqEyq6FX3MD18oujhe4AAqXh6veaLF8XZ'
   const address0utxos = [
     {
-      'txid': '99c436723346aa9f9b1dfa024266abc8f5d5f4b142a6bbfff56cf91687b8f348',
+      'txid': 'b8865df34701bbc88a2e372c166b8952457e5b401ed958edf17f36dfd8ff8261',
       'vout': 0,
       'value': '0.05',
-      'satoshis': 5000000,
+      'satoshis': 10000000,
       'height': 613152,
       'confirmations': 8753
     }
@@ -312,7 +312,7 @@ describeAll('e2e mainnet', () => {
     }
   })
   
-  it.skip('end to end send', async () => {
+  it('end to end send', async () => {
     const indicesToTry = [1, 0]
     const balances: { [i: number]: BalanceResult } = {}
     let indexToSend: number = -1
@@ -333,7 +333,7 @@ describeAll('e2e mainnet', () => {
     const unsignedTx = await payments.createTransaction(
       indexToSend,
       recipientIndex,
-      '0.03',
+      '0.05',
       { useUnconfirmedUtxos: true }, // Prevents consecutive tests from failing
     )
     const signedTx = await payments.signTransaction(unsignedTx)
@@ -341,8 +341,8 @@ describeAll('e2e mainnet', () => {
     expect(await payments.broadcastTransaction(signedTx)).toEqual({
       id: signedTx.id,
     })
-    // const tx = await pollUntilEnded(signedTx)
-    const tx = await payments.getTransactionInfo(signedTx.id)
+    const tx = await pollUntilEnded(signedTx)
+    //const tx = await payments.getTransactionInfo(signedTx.id)
     expect(tx.amount).toEqual(signedTx.amount)
     expect(tx.fee).toEqual(signedTx.fee)
   })

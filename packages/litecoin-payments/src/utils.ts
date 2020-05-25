@@ -106,7 +106,7 @@ function varIntLength (n: number) {
 }
 
 /**
- * Estimate the size of a bitcoin tx in vbytes
+ * Estimate the size of a litecoin tx in vbytes
  *
  * Usage:
  *
