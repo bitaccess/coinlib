@@ -39,7 +39,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   }
 
   toBaseDenomination(amount: Numeric): string {
-    return (this.toBaseDenominationBigNumber(amount)).toString(10)
+    return (this.toBaseDenominationBigNumber(amount)).toFixed(0, 7)
   }
 
   async isValidAddress(address: string): Promise<boolean> {

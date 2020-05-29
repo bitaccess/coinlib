@@ -120,11 +120,11 @@ implements BasePayments
     const isMain = (feeOption.feeRateType === FeeRateType.Main)
 
     const gasPrice = isWeight
-      ? feeOption.feeRate
+      ? (new BigNumber(feeOption.feeRate)).toFixed(0, 7)
       : (new BigNumber(feeOption.feeRate)).dividedBy(amountOfGas).toString()
     const fee = isWeight
       ? (new BigNumber(feeOption.feeRate)).multipliedBy(amountOfGas).toString()
-      : feeOption.feeRate
+      : (new BigNumber(feeOption.feeRate)).toFixed(0, 7)
 
     return {
       targetFeeRate:     feeOption.feeRate,
@@ -151,7 +151,7 @@ implements BasePayments
       targetFeeRateType: FeeRateType.BasePerWeight,
       feeBase,
       feeMain: this.toMainDenomination(feeBase),
-      gasPrice: targetFeeRate,
+      gasPrice: (new BigNumber(targetFeeRate)).toFixed(0, 7),
     }
   }
 
