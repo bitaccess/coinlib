@@ -40,6 +40,8 @@ import {
   FEE_LEVEL_MAP,
   MIN_CONFIRMATIONS,
   ETHEREUM_TRANSFER_COST,
+  TOKEN_WALLET_DATA,
+  DEPOSIT_KEY_INDEX,
 } from './constants'
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
 
@@ -51,6 +53,7 @@ implements BasePayments
   eth: Eth
   gasStation: NetworkData
   private config: Config
+  public depositKeyIndex: number
 
   constructor(config: Config) {
     super(config)
@@ -58,6 +61,7 @@ implements BasePayments
     this.config = config
     this.eth = (new (Web3 as any )(config.fullNode, null, { transactionConfirmationBlocks: MIN_CONFIRMATIONS })).eth
     this.gasStation = new NetworkData(config.gasStation, config.parityNode, config.fullNode)
+    this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
   }
 
   // XXX Violates Interface Segregation Principle
@@ -324,10 +328,51 @@ implements BasePayments
   }
 
   async createServiceTransaction(
-    from: number = 0,
+    from: number = this.depositKeyIndex,
     options: EthereumTransactionOptions = {},
-  ): Promise<null |EthereumUnsignedTransaction> {
-    return null
+  ): Promise<EthereumUnsignedTransaction> {
+    this.logger.debug('createDepositTransaction', from)
+    const payport = await this.resolvePayport(from)
+    const feeOption = await this.resolveFeeOption(options as FeeOption)
+    const targetFeeLevel = feeOption.targetFeeLevel || DEFAULT_FEE_LEVEL
+
+    const {
+      pricePerGasUnit,
+      amountOfGas,
+      nonce: networkNonce
+    } = await this.gasStation.getNetworkData('CONTRACT_DEPLOY', payport.address, '', FEE_LEVEL_MAP[targetFeeLevel])
+
+    let bnNonce = new BigNumber(options.sequenceNumber || networkNonce)
+
+    const { confirmedBalance: ethBalance } = await this.getBalance(payport)
+    if ((new BigNumber(ethBalance)).isLessThan(feeOption.feeMain)) {
+      throw new Error(`Insufficient balance (${ethBalance}) to deploy contact with fee of ${feeOption.feeMain}`)
+    }
+
+    // TODO do BN conversion in NetworkData
+    const transactionObject = {
+      nonce: `0x${bnNonce.toString(16)}`,
+      gasPrice: `0x${(new BigNumber(pricePerGasUnit)).toString(16)}`,
+      gas: `0x${(new BigNumber(options.gas || amountOfGas)).toString(16)}`,
+      data: TOKEN_WALLET_DATA,
+    }
+
+    return {
+      id: '',
+      status: TransactionStatus.Unsigned,
+      fromAddress: payport.address,
+      toAddress: '',
+      fromIndex: from,
+      toIndex: null,
+      toExtraId: null,
+      amount: '',
+      fee: feeOption.feeMain,
+      targetFeeLevel: feeOption.targetFeeLevel,
+      targetFeeRate: feeOption.targetFeeRate,
+      targetFeeRateType: feeOption.targetFeeRateType,
+      sequenceNumber: bnNonce.toString(),
+      data: transactionObject,
+    }
   }
 
   async createSweepTransaction(

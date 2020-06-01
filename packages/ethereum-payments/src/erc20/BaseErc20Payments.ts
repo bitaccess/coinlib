@@ -163,7 +163,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     const balanceBase = this.toBaseDenomination(balanceMain)
     const amount = (new BigNumber(balanceBase))
     if ((feeBase).isGreaterThan(ethBalance)) {
-      throw new Error(`Insufficient ${fromTo.fromAddress} balance (${ethBalance}) to sweep with fee of ${feeOption.feeMain} `)
+      throw new Error(`Insufficient ${fromPayport.address}/${fromTo.fromAddress} balance (${ethBalance}) to sweep with fee of ${feeOption.feeMain} `)
     }
 
     if ((new BigNumber(balanceBase)).isLessThan(0)) {

@@ -13,7 +13,10 @@ describe('EthereumPaymentsFactory', () => {
     const hdP = factory.forConfig(config)
 
     expect(hdP).toBeInstanceOf(HdEthereumPayments)
-    expect(hdP.getPublicConfig()).toStrictEqual({ hdKey: deriveSignatory(hdAccount.rootChild[0].xkeys.xpub, 0).xkeys.xpub })
+    expect(hdP.getPublicConfig()).toStrictEqual({
+      depositKeyIndex: 2,
+      hdKey: deriveSignatory(hdAccount.rootChild[0].xkeys.xpub, 0).xkeys.xpub
+    })
   })
 
   it('should instantiate KeyPairEthereumPayments', () => {
