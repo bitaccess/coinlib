@@ -68,9 +68,7 @@ export const NETWORK_TESTNET = {
 export const DEFAULT_MAINNET_SERVER = process.env.LITECOIN_SERVER_URL
   ? process.env.LITECOIN_SERVER_URL.split(',')
   : ['https://ltc1.trezor.io', 'https://ltc2.trezor.io']
-export const DEFAULT_TESTNET_SERVER = process.env.LITECOIN_TESTNET_SERVER_URL
-  ? process.env.LITECOIN_TESTNET_SERVER_URL.split(',')
-  : ['https://tltc1.trezor.io', 'https://tltc2.trezor.io']
+export const DEFAULT_TESTNET_SERVER = '' // will default to mainnet due to not testing LTC testnet
 
 export const DEFAULT_FEE_LEVEL = FeeLevel.Medium
 export const DEFAULT_SAT_PER_BYTE_LEVELS = {
