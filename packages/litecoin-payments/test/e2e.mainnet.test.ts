@@ -306,7 +306,7 @@ describeAll('e2e mainnet', () => {
 
       jest.setTimeout(300 * 1000)
 
-      it.skip('end to end sweep', async () => {
+      it('end to end sweep', async () => {
         const indicesToTry = [5, 6]
         const balances: { [i: number]: BalanceResult } = {}
         let indexToSweep: number = -1
@@ -346,7 +346,7 @@ describeAll('e2e mainnet', () => {
         expect(tx.fee).toEqual(signedTx.fee)
       })
 
-      it.skip('end to end send', async () => {
+      it('end to end send', async () => {
         const indicesToTry = [7, 8]
         const balances: { [i: number]: BalanceResult } = {}
         let indexToSend: number = -1
