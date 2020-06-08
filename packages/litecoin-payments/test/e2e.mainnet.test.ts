@@ -68,10 +68,10 @@ describeAll('e2e mainnet', () => {
     'xpub6CrMcKhbvSyc3ciFxZ4TYkdexCsKCA3hQVCYzn6UJHUA5GHkEzUt3w72kGrQGpXdwR4LHc5JGGoqEyq6FX3MD18oujhe4AAqXh6veaLF8XZ'
   const address0utxos = [
     {
-      'txid': 'b8865df34701bbc88a2e372c166b8952457e5b401ed958edf17f36dfd8ff8261',
+      'txid': '81f182a2075b9c9d18b0ae1d268fd153a41db48bc36eb4ba473ecf4413367f04',
       'vout': 0,
       'value': '0.05',
-      'satoshis': 10000000,
+      'satoshis': 5000000,
       'height': 613152,
       'confirmations': 8753
     }
@@ -205,7 +205,7 @@ describeAll('e2e mainnet', () => {
     expect(tx.toIndex).toEqual(3)
     expectEqualOmit(tx.inputUtxos, address0utxos, omitUtxoFieldEquality)
     expect(tx.externalOutputs).toEqual([{ address: address3, value: amount }])
-    const expectedTxSize = 140
+    const expectedTxSize = 270
     const expectedFee = new BigNumber(feeRate).times(expectedTxSize).times(1e-8).toString()
     expect(tx.fee).toBe(expectedFee)
     const expectedChange = new BigNumber(address0balance).minus(amount).minus(expectedFee).toString()

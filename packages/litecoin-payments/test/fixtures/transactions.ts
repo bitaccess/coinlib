@@ -61,6 +61,7 @@ export const txInfo_e10d7: LitecoinTransactionInfo = {
         ],
         'hex': 'a914e756301d05a21d85b920e20b3ea840e06e63289887',
         'n': 1,
+        'spent': true,
         'value': '814947224',
         'isAddress': true,
       },

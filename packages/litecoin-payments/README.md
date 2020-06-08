@@ -1,4 +1,4 @@
-bitcoin-segwit-payments
+litecoin-segwit-payments
 =================
 
 Library to assist in payment processing on Bitcoin. It first allows for generation
@@ -10,12 +10,12 @@ Please see the BIP32 standard for more information ([BIP32](https://github.com/b
 ## Getting Started
 
 ```bash
-npm install --save bitcoin-segwit-payments
+npm install --save litecoin-segwit-payments
 ```
 
 Create a new wallet (DON'T DO THIS ON PRODUCTION):
 ```js
-let segwitPayments = require('bitcoin-segwit-payments')()
+let segwitPayments = require('litecoin-segwit-payments')()
 let keys = segwitPayments.generateNewKeys('really random entropy here')
 console.log(keys.xpub)
 console.log(keys.xprv)
