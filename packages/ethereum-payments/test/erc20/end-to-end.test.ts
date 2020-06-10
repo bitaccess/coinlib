@@ -12,6 +12,7 @@ import EthereumPaymentsFactory from '../../src/EthereumPaymentsFactory'
 import { HdErc20PaymentsConfig } from '../../src/types'
 import { hdAccount } from '../fixtures/accounts'
 import { deriveSignatory } from '../../src/bip44'
+import { HdEthereumPayments } from '../../src/HdEthereumPayments'
 import { CONTRACT_JSON, CONTRACT_GAS, TOKEN_ABI } from './fixtures/abi'
 
 const LOCAL_NODE = 'http://localhost'
@@ -46,7 +47,7 @@ const tokenDistributor = {
     xpub: 'xpub6HfJgep1vEU3dU5vQoEQyMsMsNBkT7xDvGcCYuXakVXoFNotnSo8VP4kd7oKgpqdELukHnSgh2SdUsfutaS1TwLZ6S6L71hjfZnEdP2n1Jv'
   }
 }
- 
+
 const target = { address: '0x62b72782415394f1518da5ec4de6c4c49b7bf854'} // payport 1
 
 let hd: any
@@ -96,19 +97,19 @@ describe('end to end tests', () => {
       depositKeyIndex: 0,
     }
 
-    let tokenHD = factory.forConfig(TOKEN_CONFIG as HdErc20PaymentsConfig)
+    let ethereumHD = new HdEthereumPayments(TOKEN_CONFIG)
 
     // deploy contract
     // default to 0 (depositKeyIndex) is source.address
-    const unsignedContractDeploy = await tokenHD.createServiceTransaction(undefined ,{ data: TOKEN_ABI, gas: CONTRACT_GAS })
-    const signedContractDeploy = await tokenHD.signTransaction(unsignedContractDeploy)
-    const deployedContract = await tokenHD.broadcastTransaction(signedContractDeploy)
-    const contractInfo = await tokenHD.getTransactionInfo(deployedContract.id)
+    const unsignedContractDeploy = await ethereumHD.createServiceTransaction(undefined, { data: TOKEN_ABI, gas: CONTRACT_GAS })
+    const signedContractDeploy = await ethereumHD.signTransaction(unsignedContractDeploy)
+    const deployedContract = await ethereumHD.broadcastTransaction(signedContractDeploy)
+    const contractInfo = await ethereumHD.getTransactionInfo(deployedContract.id)
     const data: any = contractInfo.data
     const contractAddress = data.contractAddress
 
     // send funds from distribution account to hd
-    tokenHD = factory.forConfig({
+    const tokenHD = factory.forConfig({
       ...TOKEN_CONFIG,
       tokenAddress: contractAddress,
     } as HdErc20PaymentsConfig)
