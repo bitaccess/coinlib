@@ -1,9 +1,17 @@
 import * as t from 'io-ts'
 import {
-  BaseUnsignedTransaction, BaseSignedTransaction, FeeRate, AutoFeeLevels,
-  BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, NetworkTypeT, ResolveablePayport,
+  BaseUnsignedTransaction,
+  BaseSignedTransaction,
+  FeeRate,
+  AutoFeeLevels,
+  BaseTransactionInfo,
+  BaseBroadcastResult,
+  UtxoInfo,
+  NetworkTypeT,
+  ResolveablePayport,
+  FeeOption,
 } from '@faast/payments-common'
-import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger, Numeric } from '@faast/ts-common'
+import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger, Numeric, enumCodec } from '@faast/ts-common'
 import { Network as BitcoinjsNetwork } from 'bitcoinjs-lib'
 import { BlockbookBitcoin, BlockInfoBitcoin } from 'blockbook-client'
 
@@ -37,13 +45,13 @@ export type BitcoinishPaymentsUtilsConfig = BlockbookConnectedConfig & {
   coinName: string,
   bitcoinjsNetwork: BitcoinjsNetwork,
   decimals: number,
+  defaultFeeLevel: AutoFeeLevels,
 }
 
 export type BitcoinishPaymentsConfig = BitcoinishPaymentsUtilsConfig & {
   minTxFee: FeeRate,
   dustThreshold: number,
   networkMinRelayFee: number,
-  defaultFeeLevel: AutoFeeLevels,
   targetUtxoPoolSize?: number, // # of available utxos to try and maintain
   minChange?: Numeric, // Soft minimum for each change generated to maintain utxo pool
 }
@@ -130,3 +138,60 @@ export const PayportOutput = t.type({
   amount: Numeric,
 }, 'PayportOutput')
 export type PayportOutput = t.TypeOf<typeof PayportOutput>
+
+export enum AddressType {
+  Legacy = 'p2pkh',
+  SegwitP2SH = 'p2sh-p2wpkh',
+  SegwitNative = 'p2wpkh',
+  MultisigLegacy = 'p2sh-p2ms',
+  MultisigSegwitP2SH = 'p2sh-p2wsh-p2ms',
+  MultisigSegwitNative = 'p2wsh-p2ms'
+}
+export const AddressTypeT = enumCodec<AddressType>(AddressType, 'AddressType')
+
+// For unclear reasons tsc throws TS4023 when this type is used in an external module.
+// Re-exporting the codec cast to the inferred type helps fix this.
+const SinglesigAddressTypeT = t.keyof({
+  [AddressType.Legacy]: null,
+  [AddressType.SegwitP2SH]: null,
+  [AddressType.SegwitNative]: null,
+}, 'SinglesigAddressType')
+export type SinglesigAddressType = t.TypeOf<typeof SinglesigAddressTypeT>
+export const SinglesigAddressType = SinglesigAddressTypeT as t.Type<SinglesigAddressType>
+
+const MultisigAddressTypeT = t.keyof({
+  [AddressType.MultisigLegacy]: null,
+  [AddressType.MultisigSegwitP2SH]: null,
+  [AddressType.MultisigSegwitNative]: null,
+}, 'MultisigAddressType')
+export type MultisigAddressType = t.TypeOf<typeof MultisigAddressTypeT>
+export const MultisigAddressType = MultisigAddressTypeT as t.Type<MultisigAddressType>
+
+export const BatchTransferParameter = t.type({
+  fromAddress: t.string,
+  toAddress: t.string,
+  amount: Numeric,
+  signerIndex: t.number,
+  paymentsInstance: t.object,
+}, 'BatchTransferParameter')
+export type BatchTransferParameter = t.TypeOf<typeof BatchTransferParameter>
+
+export const UtxoOptions = t.partial({
+  utxos: t.array(UtxoInfo),
+  useUnconfirmedUtxos: t.boolean,
+  useAllUtxos: t.boolean,
+}, 'UtxoOptions')
+export type UtxoOptions = t.TypeOf<typeof UtxoOptions>
+
+export const UtxosOptionsByAddress = t.record(t.string, UtxoOptions, 'UtxosOptionsByAddress')
+export type UtxosOptionsByAddress = t.TypeOf<typeof UtxosOptionsByAddress>
+
+export const BatchTransactionOptions = extendCodec(
+  FeeOption,
+  {},
+  {
+    utxosByAddress: UtxosOptionsByAddress,
+  },
+  'BatchTransactionOptions',
+)
+export type BatchTransactionOptions = t.TypeOf<typeof BatchTransactionOptions>

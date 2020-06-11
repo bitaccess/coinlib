@@ -1,10 +1,19 @@
 import {
-  BasePayments, UtxoInfo, FeeOptionCustom, FeeRateType, FeeRate, FeeOption,
-  ResolvedFeeOption, FeeLevel, AutoFeeLevels, Payport, ResolveablePayport,
-  BalanceResult, FromTo, TransactionStatus, CreateTransactionOptions, BaseConfig,
+  BasePayments,
+  UtxoInfo,
+  FeeRateType,
+  FeeRate,
+  AutoFeeLevels,
+  Payport,
+  ResolveablePayport,
+  BalanceResult,
+  FromTo,
+  TransactionStatus,
+  CreateTransactionOptions,
+  BaseConfig,
   MaybePromise,
 } from '@faast/payments-common'
-import { isUndefined, isType, Numeric, toBigNumber, assertType, isNumber } from '@faast/ts-common'
+import { isUndefined, Numeric, toBigNumber, assertType, isNumber } from '@faast/ts-common'
 import { get } from 'lodash'
 import * as t from 'io-ts'
 
@@ -31,25 +40,19 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     BitcoinishBroadcastResult,
     BitcoinishTransactionInfo
   > {
-  coinSymbol: string
-  coinName: string
   minTxFee?: FeeRate
   dustThreshold: number // base denom
   networkMinRelayFee: number // base denom
-  defaultFeeLevel: AutoFeeLevels
   targetUtxoPoolSize: number
   minChangeSat: number
 
   constructor(config: BitcoinishPaymentsConfig) {
     super(config)
-    this.coinSymbol = config.coinSymbol
-    this.coinName = config.coinName
     this.decimals = config.decimals
     this.bitcoinjsNetwork = config.bitcoinjsNetwork
     this.minTxFee = config.minTxFee
     this.dustThreshold = config.dustThreshold
     this.networkMinRelayFee = config.networkMinRelayFee
-    this.defaultFeeLevel = config.defaultFeeLevel
     this.targetUtxoPoolSize = isUndefined(config.targetUtxoPoolSize) ? 1 : config.targetUtxoPoolSize
     const minChange = toBigNumber(isUndefined(config.minChange) ? 0 : config.minChange)
     if (minChange.lt(0)) {
@@ -63,7 +66,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   abstract getAccountId(index: number): string
   abstract getAccountIds(index?: number): string[]
   abstract getAddress(index: number): string
-  abstract getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate>
   abstract isValidAddress(address: string): MaybePromise<boolean>
   abstract signTransaction(tx: BitcoinishUnsignedTransaction): Promise<BitcoinishSignedTransaction>
 
@@ -106,37 +108,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       return payport
     } else {
       throw new Error('Invalid payport')
-    }
-  }
-
-  async resolveFeeOption(
-    feeOption: FeeOption,
-  ): Promise<ResolvedFeeOption> {
-    let targetLevel: FeeLevel
-    let target: FeeRate
-    let feeBase = ''
-    let feeMain = ''
-    if (isType(FeeOptionCustom, feeOption)) {
-      targetLevel = FeeLevel.Custom
-      target = feeOption
-    } else {
-      targetLevel = feeOption.feeLevel || this.defaultFeeLevel
-      target = await this.getFeeRateRecommendation(targetLevel)
-    }
-    if (target.feeRateType === FeeRateType.Base) {
-      feeBase = target.feeRate
-      feeMain = this.toMainDenominationString(feeBase)
-    } else if (target.feeRateType === FeeRateType.Main) {
-      feeMain = target.feeRate
-      feeBase = this.toBaseDenominationString(feeMain)
-    }
-    // in base/weight case total fees depend on input/output count, so just leave them as empty strings
-    return {
-      targetFeeLevel: targetLevel,
-      targetFeeRate: target.feeRate,
-      targetFeeRateType: target.feeRateType,
-      feeBase,
-      feeMain,
     }
   }
 
@@ -566,7 +537,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     this.logger.debug('createMultiOutputTransaction data', paymentTx)
     const feeMain = paymentTx.fee
 
-    let resultToAddress = 'batch'
+    let resultToAddress = 'multiout'
     let resultToIndex = null
     if (paymentTx.externalOutputs.length === 1) {
       const onlyOutput = paymentTx.externalOutputs[0]

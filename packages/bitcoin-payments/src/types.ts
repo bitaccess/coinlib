@@ -3,11 +3,13 @@ import {
   BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, FeeRate,
   BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, KeyPairsConfigParam,
 } from '@faast/payments-common'
-import { extendCodec, enumCodec, requiredOptionalCodec } from '@faast/ts-common'
+import { extendCodec, requiredOptionalCodec } from '@faast/ts-common'
 import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
 import { BlockInfoBitcoin } from 'blockbook-client'
-import { BitcoinishPaymentTx, BlockbookConfigServer } from './bitcoinish'
+import { BitcoinishPaymentTx, BlockbookConfigServer, AddressType, SinglesigAddressType, MultisigAddressType } from './bitcoinish'
 import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
+
+export { AddressType }
 
 export type BitcoinjsKeyPair = BitcoinjsSigner & {
   privateKey?: Buffer
@@ -15,34 +17,6 @@ export type BitcoinjsKeyPair = BitcoinjsSigner & {
 }
 
 export interface PsbtInputData extends PsbtInput, TransactionInput {}
-
-export enum AddressType {
-  Legacy = 'p2pkh',
-  SegwitP2SH = 'p2sh-p2wpkh',
-  SegwitNative = 'p2wpkh',
-  MultisigLegacy = 'p2sh-p2ms',
-  MultisigSegwitP2SH = 'p2sh-p2wsh-p2ms',
-  MultisigSegwitNative = 'p2wsh-p2ms'
-}
-export const AddressTypeT = enumCodec<AddressType>(AddressType, 'AddressType')
-
-// For unclear reasons tsc throws TS4023 when this type is used in an external module.
-// Re-exporting the codec cast to the inferred type helps fix this.
-const SinglesigAddressTypeT = t.keyof({
-  [AddressType.Legacy]: null,
-  [AddressType.SegwitP2SH]: null,
-  [AddressType.SegwitNative]: null,
-}, 'SinglesigAddressType')
-export type SinglesigAddressType = t.TypeOf<typeof SinglesigAddressTypeT>
-export const SinglesigAddressType = SinglesigAddressTypeT as t.Type<SinglesigAddressType>
-
-const MultisigAddressTypeT = t.keyof({
-  [AddressType.MultisigLegacy]: null,
-  [AddressType.MultisigSegwitP2SH]: null,
-  [AddressType.MultisigSegwitNative]: null,
-}, 'MultisigAddressType')
-export type MultisigAddressType = t.TypeOf<typeof MultisigAddressTypeT>
-export const MultisigAddressType = MultisigAddressTypeT as t.Type<MultisigAddressType>
 
 export const BitcoinPaymentsUtilsConfig = extendCodec(
   BaseConfig,
