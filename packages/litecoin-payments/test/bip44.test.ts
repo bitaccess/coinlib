@@ -43,27 +43,6 @@ describe('bip44', () => {
     it('derives legacy address', () => {
       expect(deriveAddress(BASE_NODE, 2, NETWORK, AddressType.Legacy)).toBe(ADDRESS_LEGACY)
     })
-    it('derives legacy address', () => {
-      expect(deriveAddress(BASE_NODE, 0, NETWORK, AddressType.SegwitNative)).toBe(ADDRESS_LEGACY)
-    })
-    it('derives legacy address', () => {
-      expect(deriveAddress(BASE_NODE, 3, NETWORK, AddressType.SegwitNative)).toBe(ADDRESS_LEGACY)
-    })
-    it('derives legacy address', () => {
-      expect(deriveAddress(BASE_NODE, 5, NETWORK, AddressType.SegwitNative)).toBe(ADDRESS_LEGACY)
-    })
-    it('derives legacy address', () => {
-      expect(deriveAddress(BASE_NODE, 6, NETWORK, AddressType.SegwitNative)).toBe(ADDRESS_LEGACY)
-    })
-    it('derives legacy address', () => {
-      expect(deriveAddress(BASE_NODE, 10, NETWORK, AddressType.SegwitNative)).toBe(ADDRESS_LEGACY)
-    })
-    it('derives legacy address', () => {
-      expect(deriveAddress(BASE_NODE, 10000, NETWORK, AddressType.SegwitNative)).toBe(ADDRESS_LEGACY)
-    })
-    it('derives legacy address', () => {
-      expect(deriveAddress(BASE_NODE, 20000, NETWORK, AddressType.SegwitNative)).toBe(ADDRESS_LEGACY)
-    })
     it('derives p2sh segwit address', () => {
       expect(deriveAddress(BASE_NODE, 2, NETWORK, AddressType.SegwitP2SH)).toBe(ADDRESS_SEGWIT_P2SH)
     })
