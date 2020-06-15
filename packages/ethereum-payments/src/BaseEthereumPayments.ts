@@ -40,6 +40,8 @@ import {
   FEE_LEVEL_MAP,
   MIN_CONFIRMATIONS,
   ETHEREUM_TRANSFER_COST,
+  TOKEN_WALLET_DATA,
+  DEPOSIT_KEY_INDEX,
 } from './constants'
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
 
@@ -51,6 +53,7 @@ implements BasePayments
   eth: Eth
   gasStation: NetworkData
   private config: Config
+  public depositKeyIndex: number
 
   constructor(config: Config) {
     super(config)
@@ -58,9 +61,9 @@ implements BasePayments
     this.config = config
     this.eth = (new (Web3 as any )(config.fullNode, null, { transactionConfirmationBlocks: MIN_CONFIRMATIONS })).eth
     this.gasStation = new NetworkData(config.gasStation, config.parityNode, config.fullNode)
+    this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
   }
 
-  // XXX Violates Interface Segregation Principle
   async init() {}
   async destroy() {}
 
@@ -106,10 +109,10 @@ implements BasePayments
     }
   }
 
-  async resolveFeeOption(feeOption: FeeOption): Promise<EthereumResolvedFeeOption> {
+  async resolveFeeOption(feeOption: FeeOption, amountOfGas?: string): Promise<EthereumResolvedFeeOption> {
     return isType(FeeOptionCustom, feeOption)
-      ? this.resolveCustomFeeOption(feeOption)
-      : this.resolveLeveledFeeOption(feeOption)
+      ? this.resolveCustomFeeOption(feeOption, amountOfGas)
+      : this.resolveLeveledFeeOption(feeOption, amountOfGas)
   }
 
   private resolveCustomFeeOption(
@@ -324,10 +327,12 @@ implements BasePayments
   }
 
   async createServiceTransaction(
-    from: number = 0,
+    from: number = this.depositKeyIndex,
     options: EthereumTransactionOptions = {},
-  ): Promise<null |EthereumUnsignedTransaction> {
-    return null
+  ): Promise<EthereumUnsignedTransaction> {
+    this.logger.debug('createDepositTransaction', from)
+
+    return this.createTransactionObject(from, undefined, '', options)
   }
 
   async createSweepTransaction(
@@ -390,64 +395,73 @@ implements BasePayments
 
   private async createTransactionObject(
     from: number,
-    to: ResolveablePayport,
-    amountEth: string = 'max',
+    to: ResolveablePayport | undefined,
+    amountEth: string,
     options: EthereumTransactionOptions = {}
   ): Promise<EthereumUnsignedTransaction> {
-    const sweepFlag = amountEth === 'max' ? true : false
+    const serviceFlag = (amountEth === '' && typeof to === 'undefined')
+    const sweepFlag = amountEth === 'max'
+    const txType = serviceFlag ? 'CONTRACT_DEPLOY' : 'ETHEREUM_TRANSFER'
 
-    const fromTo = await this.resolveFromTo(from, to)
+    const fromPayport = await this.getPayport(from)
+    const toPayport = serviceFlag ? { address: '' } : await this.resolvePayport(to as ResolveablePayport)
+    const toIndex = typeof to === 'number' ? to : null
 
+    const amountOfGas = options.gas || await this.gasStation.estimateGas(fromPayport.address, toPayport.address, txType)
+    const feeOption = await this.resolveFeeOption(options as FeeOption, amountOfGas)
 
-    const amountOfGas = options.gas || await this.gasStation.estimateGas(fromTo.fromAddress, fromTo.toAddress, 'ETHEREUM_TRANSFER')
-
-    const feeOption: EthereumResolvedFeeOption = isType(FeeOptionCustom, options)
-      ? this.resolveCustomFeeOption(options, amountOfGas)
-      : await this.resolveLeveledFeeOption(options, amountOfGas)
-
-    const { confirmedBalance: balanceEth } = await this.getBalance(fromTo.fromPayport)
-    const nonce = options.sequenceNumber || await this.getNextSequenceNumber(from)
+    const { confirmedBalance: balanceEth } = await this.getBalance(fromPayport)
+    const nonce = options.sequenceNumber || await this.getNextSequenceNumber(fromPayport.address)
 
     const feeWei = new BigNumber(feeOption.feeBase)
     const balanceWei = this.toBaseDenomination(balanceEth)
+    let amountWei: BigNumber = new BigNumber(0)
 
-    let amountWei: BigNumber
     if (sweepFlag) {
       amountWei = (new BigNumber(balanceWei)).minus(feeWei)
       if (amountWei.isLessThan(0)) {
         throw new Error(`Insufficient balance (${balanceEth}) to sweep with fee of ${feeOption.feeMain} `)
       }
-    } else {
+    } else if (!sweepFlag && !serviceFlag){
       amountWei = new BigNumber(this.toBaseDenomination(amountEth))
       if (amountWei.plus(feeWei).isGreaterThan(balanceWei)) {
         throw new Error(`Insufficient balance (${balanceEth}) to send ${amountEth} including fee of ${feeOption.feeMain} `)
       }
+    } else {
+      if ((new BigNumber(balanceWei)).isLessThan(feeWei)) {
+        throw new Error(`Insufficient balance (${balanceEth}) to deployt contract with fee of ${feeOption.feeMain} `)
+      }
     }
 
-    const transactionObject = {
-      from:     fromTo.fromAddress,
-      to:       fromTo.toAddress,
-      value:    `0x${amountWei.toString(16)}`,
-      gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
-      gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
-      nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
-    }
+    const additionalFiels = serviceFlag
+      ? { data: options.data || TOKEN_WALLET_DATA }
+      : {
+        from: fromPayport.address,
+        to: toPayport.address,
+        value: `0x${amountWei.toString(16)}`,
+      }
 
     return {
-      status: TransactionStatus.Unsigned,
       id: '',
-      fromAddress: fromTo.fromAddress,
-      toAddress: fromTo.toAddress,
+      status: TransactionStatus.Unsigned,
+      fromAddress: fromPayport.address,
+      fromIndex: from,
+      toAddress: serviceFlag ? '' : toPayport.address,
+      toIndex,
       toExtraId: null,
-      fromIndex: fromTo.fromIndex,
-      toIndex: fromTo.toIndex,
-      amount: this.toMainDenomination(amountWei),
+      amount: serviceFlag ? '' : this.toMainDenomination(amountWei),
       fee: feeOption.feeMain,
       targetFeeLevel: feeOption.targetFeeLevel,
       targetFeeRate: feeOption.targetFeeRate,
       targetFeeRateType: feeOption.targetFeeRateType,
       sequenceNumber: nonce.toString(),
-      data: transactionObject,
+      data: Object.assign({
+          gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
+          gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
+          nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
+        },
+        additionalFiels
+      )
     }
   }
 }

@@ -53,7 +53,8 @@ export const BaseEthereumPaymentsConfig = extendCodec(
     parityNode: OptionalString,
     gasStation: OptionalString,
     name: OptionalString,
-    decimals: t.number
+    decimals: t.number,
+    depositKeyIndex: OptionalNumber,
   },
   'BaseEthereumPaymentsConfig',
 )
@@ -83,9 +84,6 @@ export const BaseErc20PaymentsConfig = extendCodec(
   BaseEthereumPaymentsConfig,
   {
     tokenAddress: t.string,
-  },
-  {
-    depositKeyIndex: OptionalNumber,
   },
   'BaseErc20PaymentsConfig',
 )

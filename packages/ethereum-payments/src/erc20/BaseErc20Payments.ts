@@ -44,12 +44,6 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
   }
 
-  async resolveFeeOption(feeOption: FeeOption): Promise<EthereumResolvedFeeOption> {
-    return isType(FeeOptionCustom, feeOption)
-      ? this.resolveCustomFeeOptionABI(feeOption)
-      : this.resolveLeveledFeeOptionABI(feeOption)
-  }
-
   async getBalance(resolveablePayport: ResolveablePayport): Promise<BalanceResult> {
     const payport = await this.resolvePayport(resolveablePayport)
     const contract = new this.eth.Contract(TOKEN_METHODS_ABI, this.tokenAddress)
@@ -163,7 +157,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     const balanceBase = this.toBaseDenomination(balanceMain)
     const amount = (new BigNumber(balanceBase))
     if ((feeBase).isGreaterThan(ethBalance)) {
-      throw new Error(`Insufficient ${fromTo.fromAddress} balance (${ethBalance}) to sweep with fee of ${feeOption.feeMain} `)
+      throw new Error(`Insufficient ${fromPayport.address}/${fromTo.fromAddress} balance (${ethBalance}) to sweep with fee of ${feeOption.feeMain} `)
     }
 
     if ((new BigNumber(balanceBase)).isLessThan(0)) {
@@ -194,54 +188,6 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       targetFeeRate: feeOption.targetFeeRate,
       targetFeeRateType: feeOption.targetFeeRateType,
       sequenceNumber: nonce.toString(),
-      data: transactionObject,
-    }
-  }
-
-  async createServiceTransaction(
-    from: number = this.depositKeyIndex,
-    options: EthereumTransactionOptions = {},
-  ): Promise<EthereumUnsignedTransaction> {
-    this.logger.debug('createDepositTransaction', from)
-    const payport = await this.resolvePayport(from)
-    const feeOption = await this.resolveFeeOption(options as FeeOption)
-    const targetFeeLevel = feeOption.targetFeeLevel || DEFAULT_FEE_LEVEL
-
-    const {
-      pricePerGasUnit,
-      amountOfGas,
-      nonce: networkNonce
-    } = await this.gasStation.getNetworkData('CONTRACT_DEPLOY', payport.address, '', FEE_LEVEL_MAP[targetFeeLevel])
-
-    let bnNonce = new BigNumber(networkNonce)
-
-    let ethBalance = await this.getEthBaseBalance(payport.address)
-    if (ethBalance.isLessThan(feeOption.feeBase)) {
-      throw new Error(`Insufficient balance (${ethBalance}) to deploy contact with fee of ${feeOption.feeMain}`)
-    }
-
-    // TODO do BN conversion in NetworkData
-    const transactionObject = {
-      nonce: `0x${bnNonce.toString(16)}`,
-      gasPrice: `0x${(new BigNumber(pricePerGasUnit)).toString(16)}`,
-      gas: `0x${(new BigNumber(options.gas || amountOfGas)).toString(16)}`,
-      data: options.data || TOKEN_WALLET_DATA,
-    }
-
-    return {
-      id: '',
-      status: TransactionStatus.Unsigned,
-      fromAddress: payport.address,
-      toAddress: '',
-      fromIndex: from,
-      toIndex: null,
-      toExtraId: null,
-      amount: '',
-      fee: feeOption.feeMain,
-      targetFeeLevel: feeOption.targetFeeLevel,
-      targetFeeRate: feeOption.targetFeeRate,
-      targetFeeRateType: feeOption.targetFeeRateType,
-      sequenceNumber: bnNonce.toString(),
       data: transactionObject,
     }
   }

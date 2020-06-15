@@ -39,6 +39,7 @@ export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
     return {
       ...omit(this.getFullConfig(), ['hdKey', 'logger', 'fullNode', 'solidityNode', 'eventServer']),
       tokenAddress: this.tokenAddress,
+      depositKeyIndex: this.depositKeyIndex,
       hdKey: this.getXpub(),
     }
   }

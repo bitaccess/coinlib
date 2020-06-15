@@ -36,6 +36,7 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
   getPublicConfig(): HdEthereumPaymentsConfig {
     return {
       ...omit(this.getFullConfig(), ['hdKey', 'logger', 'fullNode', 'solidityNode', 'eventServer']),
+      depositKeyIndex: this.depositKeyIndex,
       hdKey: this.getXpub(),
     }
   }
