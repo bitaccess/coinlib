@@ -117,8 +117,9 @@ export class NetworkData {
   }
 
   private async getGasStationGasPrice(speed: string): Promise<string> {
+    const hasKey = /\?api-key=/.test(this.gasStationUrl || '')
     const options = {
-      url: `${this.gasStationUrl}/json/ethgasAPI.json`,
+      url: hasKey ? `${this.gasStationUrl}` : `${this.gasStationUrl}/json/ethgasAPI.json`,
       json: true,
       timeout: 5000
     }
