@@ -159,6 +159,7 @@ describe('end to end tests', () => {
       const destination = depositAddresses[0]
 
       const preBalanceSource = await hd.getBalance(source.address)
+      const preConfig = hd.getFullConfig()
 
       const unsignedTx = await hd.createTransaction(0, { address: destination }, '163331000')
       const signedTx = await hd.signTransaction(unsignedTx)
@@ -170,6 +171,7 @@ describe('end to end tests', () => {
 
       expect(balanceTarget).toEqual('163331000')
       expect(balanceSource).toEqual('6336669000')
+      expect(preConfig).toEqual(hd.getFullConfig())
     })
 
     test('sweep transaction', async () => {
