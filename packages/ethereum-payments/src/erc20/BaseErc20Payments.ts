@@ -13,6 +13,7 @@ import {
 import {
   isType,
   isNumber,
+  Numeric,
 } from '@faast/ts-common'
 
 import {
@@ -30,8 +31,10 @@ import {
   TOKEN_TRANSFER_COST,
   TOKEN_METHODS_ABI,
   DEPOSIT_KEY_INDEX,
+  DECIMAL_PLACES,
 } from '../constants'
 import { BaseEthereumPayments } from '../BaseEthereumPayments'
+import { EthereumPaymentsUtils } from '../EthereumPaymentsUtils'
 
 export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig> extends BaseEthereumPayments<Config> {
   public tokenAddress: string
@@ -58,6 +61,20 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       sweepable,
       requiresActivation: false,
     }
+  }
+
+  async isSweepableBalance(balance: string): Promise<boolean> {
+    const feeOption = await this.resolveFeeOption({})
+    const payport = await this.resolvePayport(this.depositKeyIndex)
+
+    const feeWei = new BigNumber(feeOption.feeBase)
+    const balanceWei = await this.eth.getBalance(payport.address)
+
+    if (balanceWei === '0' || balance === '0') {
+      return false
+    }
+
+    return ((new BigNumber(balanceWei)).isGreaterThanOrEqualTo(feeWei))
   }
 
   async createTransaction(
@@ -210,9 +227,9 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       targetFeeRate:     feeOption.feeRate,
       targetFeeLevel:    FeeLevel.Custom,
       targetFeeRateType: feeOption.feeRateType,
-      feeBase:           isMain ? this.toBaseDenomination(fee) : fee,
-      feeMain:           isMain ? fee : this.toMainDenomination(fee),
-      gasPrice:          isMain ? this.toBaseDenomination(gasPrice) : gasPrice
+      feeBase:           isMain ? this.toBaseDenominationEth(fee) : fee,
+      feeMain:           isMain ? fee : this.toMainDenominationEth(fee),
+      gasPrice:          isMain ? this.toBaseDenominationEth(gasPrice) : gasPrice
     }
   }
 
@@ -230,7 +247,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       targetFeeLevel,
       targetFeeRateType: FeeRateType.BasePerWeight,
       feeBase,
-      feeMain: this.toMainDenomination(feeBase),
+      feeMain: this.toMainDenominationEth(feeBase),
       gasPrice: targetFeeRate,
     }
   }
@@ -246,6 +263,16 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     const balanceBase = await this.eth.getBalance(address)
 
     return new BigNumber(balanceBase)
+  }
+
+  private toBaseDenominationEth(amount: Numeric): string {
+    const ePU = new EthereumPaymentsUtils(Object.assign({}, this.getPublicConfig(), { decimals: DECIMAL_PLACES }))
+    return ePU.toBaseDenomination(amount)
+  }
+
+  private toMainDenominationEth(amount: Numeric): string {
+    const ePU = new EthereumPaymentsUtils(Object.assign({}, this.getPublicConfig(), { decimals: DECIMAL_PLACES }))
+    return ePU.toMainDenomination(amount)
   }
 }
 
