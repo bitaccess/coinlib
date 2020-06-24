@@ -194,7 +194,7 @@ describeAll('e2e mainnet', () => {
     expect(tx.fee).toBe(expectedFee)
   })
 
-  it.only('create send transaction to an index', async () => {
+  it('create send transaction to an index', async () => {
     const amount = '0.00005'
     const feeRate = '21'
     const tx = await payments.createTransaction(0, 3, amount, { feeRate, feeRateType })
