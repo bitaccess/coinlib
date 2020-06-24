@@ -20,6 +20,7 @@ describe('EthereumPaymentsUtils', () => {
     test('denominates eth in wei', () => {
       expect(epu.toBaseDenomination('1')).toBe('1000000000000000000')
       expect(epu.toBaseDenomination(1)).toBe('1000000000000000000')
+      expect(epu.toBaseDenomination('1.00000000000000000005')).toBe('1000000000000000000')
     })
   })
 

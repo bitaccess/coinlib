@@ -30,6 +30,10 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
   abstract getPaymentScript(index: number): bitcoin.payments.Payment
   abstract addressType: AddressType
 
+  async createServiceTransaction(): Promise<null> {
+    return null
+  }
+
   isValidAddress(address: string): boolean {
     return isValidAddress(address, this.bitcoinjsNetwork)
   }

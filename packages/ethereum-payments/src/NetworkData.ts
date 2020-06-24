@@ -63,6 +63,12 @@ export class NetworkData {
 
   async estimateGas(from: string, to: string, action: string): Promise<string> {
     let gas: BigNumber = new BigNumber(PRICES[action])
+    // return effective maximum gas amounts for various txs we send
+    if (action === 'CONTRACT_DEPLOY' ||
+      action === 'TOKEN_SWEEP' ||
+      action === 'TOKEN_TRANSFER') {
+      return gas.toString()
+    }
 
     try {
       gas = new BigNumber(await this.eth.estimateGas({ from, to })).times(GAS_ESTIMATE_MULTIPLIER)
@@ -73,7 +79,7 @@ export class NetworkData {
       gas = new BigNumber(ETHEREUM_TRANSFER_COST)
     }
 
-    return gas.toNumber() ? gas.toString() : ETHEREUM_TRANSFER_COST
+    return gas.toNumber() ? gas.toFixed(0, 7) : ETHEREUM_TRANSFER_COST
   }
 
   private async getWeb3Nonce(address: string): Promise<string> {
@@ -111,8 +117,9 @@ export class NetworkData {
   }
 
   private async getGasStationGasPrice(speed: string): Promise<string> {
+    const hasKey = /\?api-key=/.test(this.gasStationUrl || '')
     const options = {
-      url: `${this.gasStationUrl}/json/ethgasAPI.json`,
+      url: hasKey ? `${this.gasStationUrl}` : `${this.gasStationUrl}/json/ethgasAPI.json`,
       json: true,
       timeout: 5000
     }

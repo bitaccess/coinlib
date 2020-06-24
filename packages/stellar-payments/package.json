@@ -1,6 +1,6 @@
 {
   "name": "@faast/stellar-payments",
-  "version": "2.3.3",
+  "version": "2.4.1",
   "description": "Library to assist in processing stellar payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -72,7 +72,7 @@
     "typescript": "^3.7.2"
   },
   "dependencies": {
-    "@faast/payments-common": "^2.3.0",
+    "@faast/payments-common": "^2.4.1",
     "@faast/ts-common": "^0.6.0",
     "base-x": "^3.0.6",
     "bignumber.js": "^9.0.0",

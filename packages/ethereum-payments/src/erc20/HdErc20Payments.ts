@@ -1,14 +1,16 @@
-import { BaseEthereumPayments } from './BaseEthereumPayments'
-import { HdEthereumPaymentsConfig, EthereumSignatory } from './types'
-import { deriveSignatory } from './bip44'
+import { HdEthereumPayments } from '..'
+import { BaseErc20Payments } from './BaseErc20Payments'
+
+import { deriveSignatory } from '../bip44'
 import { Payport } from '@faast/payments-common'
 import { omit } from 'lodash'
+import { HdErc20PaymentsConfig, EthereumSignatory } from '../types'
 
-export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsConfig> {
+export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
   readonly xprv: string | null
   readonly xpub: string
 
-  constructor(config: HdEthereumPaymentsConfig) {
+  constructor(config: HdErc20PaymentsConfig) {
     super(config)
     try {
       this.xprv = ''
@@ -33,9 +35,10 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
     return this.xpub
   }
 
-  getPublicConfig(): HdEthereumPaymentsConfig {
+  getPublicConfig(): HdErc20PaymentsConfig {
     return {
       ...omit(this.getFullConfig(), ['hdKey', 'logger', 'fullNode', 'solidityNode', 'eventServer']),
+      tokenAddress: this.tokenAddress,
       depositKeyIndex: this.depositKeyIndex,
       hdKey: this.getXpub(),
     }
@@ -67,4 +70,4 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
   }
 }
 
-export default HdEthereumPayments
+export default HdErc20Payments
