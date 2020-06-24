@@ -57,14 +57,14 @@ describeAll('e2e mainnet', () => {
     network: NetworkType.Mainnet,
     addressType: AddressType.SegwitNative,
     logger,
-    targetUtxoPoolSize: 5,
+    targetUtxoPoolSize: 1,
   })
   const feeRate = '21'
   const feeRateType = FeeRateType.BasePerWeight
   const address0 = 'ltc1q9ek9srkxa69l8p9qdk8v2ntzs9vetxnr6xhvf4'
   const address0balance = '0.05'
   const address3 = 'ltc1qazag0t8ag0u6qv0ha2wectsupte8v0nt9fgeet'
-  const xpub = 
+  const xpub =
     'xpub6CrMcKhbvSyc3ciFxZ4TYkdexCsKCA3hQVCYzn6UJHUA5GHkEzUt3w72kGrQGpXdwR4LHc5JGGoqEyq6FX3MD18oujhe4AAqXh6veaLF8XZ'
   const address0utxos = [
     {
@@ -188,12 +188,13 @@ describeAll('e2e mainnet', () => {
     expect(tx.fromIndex).toEqual(0)
     expect(tx.toIndex).toEqual(null)
     expectEqualOmit(tx.inputUtxos, address0utxos, omitUtxoFieldEquality)
-    const expectedTxSize = 112
+    expect(tx.data.changeOutputs!.length).toBe(0)
+    const expectedTxSize = 110
     const expectedFee = new BigNumber(feeRate).times(expectedTxSize).times(1e-8).toString()
     expect(tx.fee).toBe(expectedFee)
   })
 
-  it('create send transaction to an index', async () => {
+  it.only('create send transaction to an index', async () => {
     const amount = '0.00005'
     const feeRate = '21'
     const tx = await payments.createTransaction(0, 3, amount, { feeRate, feeRateType })
@@ -205,7 +206,8 @@ describeAll('e2e mainnet', () => {
     expect(tx.toIndex).toEqual(3)
     expectEqualOmit(tx.inputUtxos, address0utxos, omitUtxoFieldEquality)
     expect(tx.externalOutputs).toEqual([{ address: address3, value: amount }])
-    const expectedTxSize = 270
+    expect(tx.data.changeOutputs!.length).toBe(1)
+    const expectedTxSize = 140
     const expectedFee = new BigNumber(feeRate).times(expectedTxSize).times(1e-8).toString()
     expect(tx.fee).toBe(expectedFee)
     const expectedChange = new BigNumber(address0balance).minus(amount).minus(expectedFee).toString()
@@ -340,8 +342,7 @@ describeAll('e2e mainnet', () => {
         expect(await payments.broadcastTransaction(signedTx)).toEqual({
           id: signedTx.id,
         })
-        const tx = await pollUntilEnded(signedTx)
-        // const tx = await payments.getTransactionInfo(signedTx.id)
+        const tx = await payments.getTransactionInfo(signedTx.id)
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)
       })
@@ -367,7 +368,7 @@ describeAll('e2e mainnet', () => {
         const unsignedTx = await payments.createTransaction(
           indexToSend,
           recipientIndex,
-          '0.05',
+          '0.00005',
           { useUnconfirmedUtxos: true }, // Prevents consecutive tests from failing
         )
         const signedTx = await payments.signTransaction(unsignedTx)
@@ -375,8 +376,7 @@ describeAll('e2e mainnet', () => {
         expect(await payments.broadcastTransaction(signedTx)).toEqual({
           id: signedTx.id,
         })
-        const tx = await pollUntilEnded(signedTx)
-        // const tx = await payments.getTransactionInfo(signedTx.id)
+        const tx = await payments.getTransactionInfo(signedTx.id)
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)
       })
