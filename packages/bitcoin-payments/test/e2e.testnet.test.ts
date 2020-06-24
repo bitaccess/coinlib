@@ -140,7 +140,6 @@ describeAll('e2e testnet', () => {
         expect(await payments.broadcastTransaction(signedTx)).toEqual({
           id: signedTx.id,
         })
-        // const tx = await pollUntilEnded(signedTx)
         const tx = await payments.getTransactionInfo(signedTx.id)
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)
@@ -175,7 +174,6 @@ describeAll('e2e testnet', () => {
         expect(await payments.broadcastTransaction(signedTx)).toEqual({
           id: signedTx.id,
         })
-        // const tx = await pollUntilEnded(signedTx)
         const tx = await payments.getTransactionInfo(signedTx.id)
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)

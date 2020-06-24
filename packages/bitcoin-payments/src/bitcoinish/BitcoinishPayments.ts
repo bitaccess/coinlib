@@ -224,7 +224,12 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     externalOutputAddresses: string[],
   ): number {
     if (feeRateType === FeeRateType.BasePerWeight) {
-      return Number.parseFloat(feeRate) * this.estimateTxSize(inputCount, changeOutputCount, externalOutputAddresses)
+      const estimatedTxSize = this.estimateTxSize(inputCount, changeOutputCount, externalOutputAddresses)
+      this.logger.debug(
+        `Estimated tx size of ${estimatedTxSize} vbytes for a tx with ${inputCount} inputs, `
+        + `${externalOutputAddresses.length} external outputs, and ${changeOutputCount} change outputs`
+      )
+      return Number.parseFloat(feeRate) * estimatedTxSize
     } else if (feeRateType === FeeRateType.Main) {
       return this.toBaseDenominationNumber(feeRate)
     }
@@ -254,8 +259,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
     const result = Math.ceil(feeSat)
     this.logger.debug(
-      `Estimated fee of ${result} sat for target rate ${targetRate.feeRate} ${targetRate.feeRateType} on a tx with `
-        + `${inputCount} inputs, ${externalOutputAddresses} external outputs, and ${changeOutputCount} change outputs`
+      `Estimated fee of ${result} sat for target rate ${targetRate.feeRate} ${targetRate.feeRateType} for a tx with `
+        + `${inputCount} inputs, ${externalOutputAddresses.length} external outputs, and ${changeOutputCount} change outputs`
     )
     return result
   }
