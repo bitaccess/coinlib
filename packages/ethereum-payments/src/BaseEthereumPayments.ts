@@ -20,7 +20,7 @@ import {
   CreateTransactionOptions as TransactionOptions,
   NetworkType,
 } from '@faast/payments-common'
-import { isType } from '@faast/ts-common'
+import { isType, isString } from '@faast/ts-common'
 
 import {
   EthereumTransactionInfo,
@@ -384,7 +384,7 @@ implements BasePayments
       }
     } catch (e) {
       this.logger.warn(`Ethereum broadcast tx unsuccessful ${tx.id}: ${e.message}`)
-      if (e.message === 'nonce too low') {
+      if (isString(e.message) && e.message.includes('nonce too low')) {
         throw new PaymentsError(PaymentsErrorCode.TxSequenceCollision, e.message)
       }
       throw new Error(`Ethereum broadcast tx unsuccessful: ${tx.id} ${e.message}`)
