@@ -75,7 +75,6 @@
   "dependencies": {
     "@faast/payments-common": "^2.4.1",
     "@faast/ts-common": "^0.6.0",
-    "@types/bip32": "^2.0.0",
     "@types/elliptic": "^6.4.12",
     "@types/request-promise-native": "^1.0.17",
     "bignumber.js": "^9.0.0",
