@@ -72,11 +72,11 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   }
 
   isValidXprv(xprv: string): boolean {
-    return isValidXkey(xprv) && xprv.substring(0, 4) === 'xprv'
+    return isValidXkey(xprv) && ['xprv', 'tprv'].includes(xprv.substring(0, 4))
   }
 
   isValidXpub(xpub: string): boolean {
-    return isValidXkey(xpub) && xpub.substring(0, 4) === 'xpub'
+    return isValidXkey(xpub) && ['xpub', 'tpub'].includes(xpub.substring(0, 4))
   }
 
   isValidPrivateKey(prv: string): boolean {
