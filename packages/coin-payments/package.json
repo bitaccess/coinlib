@@ -66,12 +66,12 @@
     "typescript": "^3.7.2"
   },
   "dependencies": {
-    "@faast/bitcoin-payments": "^2.5.2",
+    "@faast/bitcoin-payments": "^2.5.3",
     "@faast/ethereum-payments": "^2.5.3",
-    "@faast/payments-common": "^2.4.1",
-    "@faast/ripple-payments": "^2.4.1",
-    "@faast/stellar-payments": "^2.4.1",
-    "@faast/tron-payments": "^2.4.1",
+    "@faast/payments-common": "^2.5.3",
+    "@faast/ripple-payments": "^2.5.3",
+    "@faast/stellar-payments": "^2.5.3",
+    "@faast/tron-payments": "^2.5.3",
     "@faast/ts-common": "^0.6.0",
     "bignumber.js": "^9.0.0",
     "bip32": "^2.0.5",
