@@ -1,4 +1,6 @@
+import InputDataDecoder from 'ethereum-input-data-decoder';
 import { BigNumber } from 'bignumber.js'
+import { TransactionReceipt } from 'web3-core'
 import {
   BalanceResult,
   TransactionStatus,
@@ -21,6 +23,7 @@ import {
   EthereumUnsignedTransaction,
   EthereumResolvedFeeOption,
   EthereumTransactionOptions,
+  EthereumTransactionInfo,
 } from '../types'
 import {
   DEFAULT_FEE_LEVEL,
@@ -206,6 +209,125 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       targetFeeRateType: feeOption.targetFeeRateType,
       sequenceNumber: nonce.toString(),
       data: transactionObject,
+    }
+  }
+
+  async getTransactionInfo(txid: string): Promise<EthereumTransactionInfo> {
+    const minConfirmations = MIN_CONFIRMATIONS
+    const tx = await this.eth.getTransaction(txid)
+
+    if (!tx.input) {
+      throw new Error(`Transaction ${txid} has no input for ERC20`)
+    }
+
+    let toAddress = ''
+    let amount = ''
+
+    // ERC20 signature
+    if (tx.input.startsWith('0xa9059cbb')) {
+      if(tx.to !== this.tokenAddress) {
+        throw new Error(`Transaction ${txid} was sent to different contract: ${tx.to}`)
+      }
+
+      const tokenDecoder = new InputDataDecoder(TOKEN_METHODS_ABI);
+      const txData = tokenDecoder.decodeData(tx.input)
+      toAddress = `0x${txData.inputs[0]}`
+      amount = this.toMainDenomination(txData.inputs[1].toString())
+    } else if (tx.input.startsWith('0x60606040')) {
+      // SWEEP contract signature
+    } else {
+      throw new Error(`Transaction ${txid} is not ERC20 transaction neiter swap`)
+    }
+
+    const currentBlockNumber = await this.eth.getBlockNumber()
+    let txInfo: TransactionReceipt | null = await this.eth.getTransactionReceipt(txid)
+
+    // NOTE: for the sake of consistent schema return
+    if (!txInfo) {
+      txInfo = {
+        transactionHash: tx.hash,
+        from: tx.from || '',
+        to: toAddress,
+        status: true,
+        blockNumber: 0,
+        cumulativeGasUsed: 0,
+        gasUsed: 0,
+        transactionIndex: 0,
+        blockHash: '',
+        logs: [],
+        logsBloom: ''
+      }
+
+      return {
+        id: txid,
+        amount,
+        toAddress,
+        fromAddress: tx.from,
+        toExtraId: null,
+        fromIndex: null,
+        toIndex: null,
+        fee: this.toMainDenominationEth((new BigNumber(tx.gasPrice)).multipliedBy(tx.gas)),
+        sequenceNumber: tx.nonce,
+        isExecuted: false,
+        isConfirmed: false,
+        confirmations: 0,
+        confirmationId: null,
+        confirmationTimestamp: null,
+        currentBlockNumber: currentBlockNumber,
+        status: TransactionStatus.Pending,
+        data: {
+          ...tx,
+          ...txInfo,
+          currentBlock: currentBlockNumber
+        },
+      }
+    }
+
+    let txBlock: any = null
+    let isConfirmed = false
+    let confirmationTimestamp: Date | null = null
+    let confirmations = 0
+    if (tx.blockNumber) {
+      confirmations = currentBlockNumber - tx.blockNumber
+      if (confirmations > minConfirmations) {
+        isConfirmed = true
+        txBlock = await this.eth.getBlock(tx.blockNumber)
+        confirmationTimestamp = new Date(txBlock.timestamp)
+      }
+    }
+
+    let status: TransactionStatus = TransactionStatus.Pending
+    if (isConfirmed) {
+      status = TransactionStatus.Confirmed
+      // No trust to types description of web3
+      if (txInfo.hasOwnProperty('status') && (txInfo.status === false || txInfo.status.toString() === 'false')) {
+        status = TransactionStatus.Failed
+      }
+    }
+
+    return {
+      id: txid,
+      amount,
+      toAddress,
+      fromAddress: tx.from,
+      toExtraId: null,
+      fromIndex: null,
+      toIndex: null,
+      fee: this.toMainDenominationEth((new BigNumber(tx.gasPrice)).multipliedBy(txInfo.gasUsed)),
+      sequenceNumber: tx.nonce,
+      // XXX if tx was confirmed but not accepted by network isExecuted must be false
+      isExecuted: status !== TransactionStatus.Failed,
+      isConfirmed,
+      confirmations,
+      confirmationId: tx.blockHash,
+      confirmationTimestamp,
+      status,
+      currentBlockNumber: currentBlockNumber,
+      data: {
+        ...tx,
+        ...txInfo,
+        currentBlock: currentBlockNumber
+      },
     }
   }
 

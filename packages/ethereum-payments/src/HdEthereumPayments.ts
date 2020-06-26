@@ -18,8 +18,9 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
       } else if (this.isValidXprv(config.hdKey)) {
         this.xprv = config.hdKey
         this.xpub = deriveSignatory(config.hdKey, 0).xkeys.xpub
+      } else {
+        throw new Error(config.hdKey)
       }
-
     } catch (e) {
       throw new Error(`Account must be a valid xprv or xpub: ${e.message}`)
     }
