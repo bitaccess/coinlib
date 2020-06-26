@@ -217,12 +217,13 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     const tx = await this.eth.getTransaction(txid)
 
     if (!tx.input) {
-      throw new Error(`Transaction ${txid} has no input`)
+      throw new Error(`Transaction ${txid} has no input for ERC20`)
     }
 
     let toAddress = ''
     let amount = ''
 
+    // ERC20 signature
     if (tx.input.startsWith('0xa9059cbb')) {
       if(tx.to !== this.tokenAddress) {
         throw new Error(`Transaction ${txid} was sent to different contract: ${tx.to}`)
@@ -233,6 +234,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       toAddress = `0x${txData.inputs[0]}`
       amount = this.toMainDenomination(txData.inputs[1].toString())
     } else if (tx.input.startsWith('0x60606040')) {
+      // SWEEP contract signature
     } else {
       throw new Error(`Transaction ${txid} is not ERC20 transaction neiter swap`)
     }
