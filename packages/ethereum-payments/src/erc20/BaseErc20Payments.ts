@@ -213,19 +213,28 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
   }
 
   async getTransactionInfo(txid: string): Promise<EthereumTransactionInfo> {
-    // XXX it is suggested to keep 12 confirmations
-    // https://ethereum.stackexchange.com/questions/319/what-number-of-confirmations-is-considered-secure-in-ethereum
     const minConfirmations = MIN_CONFIRMATIONS
     const tx = await this.eth.getTransaction(txid)
 
-    const tokenDecoder = new InputDataDecoder(TOKEN_METHODS_ABI);
+    if (!tx.input) {
+      throw new Error(`Transaction ${txid} has no input`)
+    }
 
-    let txData = tokenDecoder.decodeData(tx.input)
     let toAddress = ''
     let amount = ''
-    if (txData.inputs && txData.inputs.length > 1) {
+
+    if (tx.input.startsWith('0xa9059cbb')) {
+      if(tx.to !== this.tokenAddress) {
+        throw new Error(`Transaction ${txid} was sent to different contract: ${tx.to}`)
+      }
+
+      const tokenDecoder = new InputDataDecoder(TOKEN_METHODS_ABI);
+      const txData = tokenDecoder.decodeData(tx.input)
       toAddress = `0x${txData.inputs[0]}`
       amount = this.toMainDenomination(txData.inputs[1].toString())
+    } else if (tx.input.startsWith('0x60606040')) {
+    } else {
+      throw new Error(`Transaction ${txid} is not ERC20 transaction neiter swap`)
     }
 
     const currentBlockNumber = await this.eth.getBlockNumber()
