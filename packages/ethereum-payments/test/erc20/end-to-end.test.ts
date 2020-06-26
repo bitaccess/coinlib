@@ -165,6 +165,7 @@ describe('end to end tests', () => {
       const signedTx = await hd.signTransaction(unsignedTx)
 
       const broadcastedTx = await hd.broadcastTransaction(signedTx)
+      const txInfo = await hd.getTransactionInfo(broadcastedTx.id)
 
       const { confirmedBalance: balanceSource } = await hd.getBalance(source.address)
       const { confirmedBalance: balanceTarget } = await hd.getBalance(destination)
@@ -172,6 +173,7 @@ describe('end to end tests', () => {
       expect(balanceTarget).toEqual('163331000')
       expect(balanceSource).toEqual('6336669000')
       expect(preConfig).toEqual(hd.getFullConfig())
+      expect(txInfo.amount).toEqual('163331000')
     })
 
     test('sweep transaction', async () => {
@@ -197,12 +199,14 @@ describe('end to end tests', () => {
       const signedTx = await hd.signTransaction(unsignedTx)
 
       const broadcastedTx = await hd.broadcastTransaction(signedTx)
+      const txInfo = await hd.getTransactionInfo(broadcastedTx.id)
 
       const { confirmedBalance: balanceSource } = await hd.getBalance(0)
       const { confirmedBalance: balanceTarget } = await hd.getBalance(destination)
 
       expect(balanceSource).toEqual('0')
       expect(balanceTarget).toEqual('6500000000')
+      expect(txInfo.amount).toEqual('6336669000')
     })
 
     test('can get balance of unused address', async () => {
