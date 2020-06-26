@@ -225,6 +225,10 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
     // ERC20 signature
     if (tx.input.startsWith('0xa9059cbb')) {
+      if((tx.to || '').toLowerCase() !== this.tokenAddress.toLowerCase()) {
+        throw new Error(`Transaction ${txid} was sent to different contract: ${tx.to}, Expected: ${this.tokenAddress}`)
+      }
+
       const tokenDecoder = new InputDataDecoder(TOKEN_METHODS_ABI);
       const txData = tokenDecoder.decodeData(tx.input)
       toAddress = `0x${txData.inputs[0]}`
