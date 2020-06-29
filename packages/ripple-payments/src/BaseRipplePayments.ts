@@ -13,6 +13,8 @@ import {
   PaymentsErrorCode,
   isMatchingError,
   FeeOptionCustom,
+  PayportOutput,
+  CreateTransactionOptions
 } from '@faast/payments-common'
 import { assertType, isNil, Numeric, isUndefined } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
@@ -573,5 +575,13 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       rebroadcast,
       data: result,
     }
+  }
+
+  async createMultiOutputTransaction(
+    from: number,
+    to: PayportOutput[],
+    options: CreateTransactionOptions = {},
+  ): Promise<null> {
+    return null
   }
 }

@@ -12,6 +12,7 @@ import {
   FromTo,
   ResolveablePayport,
   UtxoInfo,
+  PayportOutput,
 } from './types'
 import { PaymentsUtils } from './PaymentsUtils'
 
@@ -167,6 +168,20 @@ export interface BasePayments<
    */
   createServiceTransaction<O extends CreateTransactionOptions>(
     from?: number | string,
+    options?: O,
+  ): Promise<UnsignedTransaction | null>
+
+  /**
+   * Creates and signs a new payment transaction sending `amount` from payport `from` to payport `to`.
+   *
+   * @param from - The index of the payport to send from.
+   * @param to - Array of pairs { payport, amount }
+   * @param options - Object for additional parameters
+   * @returns An object representing the signed transaction
+   */
+  createMultiOutputTransaction<O extends CreateTransactionOptions>(
+    from: number,
+    to: PayportOutput[],
     options?: O,
   ): Promise<UnsignedTransaction | null>
 

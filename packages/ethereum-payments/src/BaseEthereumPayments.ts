@@ -19,6 +19,7 @@ import {
   PaymentsErrorCode,
   CreateTransactionOptions as TransactionOptions,
   NetworkType,
+  PayportOutput,
 } from '@faast/payments-common'
 import { isType, isString } from '@faast/ts-common'
 
@@ -343,6 +344,14 @@ implements BasePayments
     this.logger.debug('createSweepTransaction', from, to)
 
     return this.createTransactionObject(from as number, to, 'max', options)
+  }
+
+  async createMultiOutputTransaction(
+    from: number,
+    to: PayportOutput[],
+    options: TransactionOptions = {},
+  ): Promise<null> {
+    return null
   }
 
   async signTransaction(unsignedTx: EthereumUnsignedTransaction): Promise<EthereumSignedTransaction> {

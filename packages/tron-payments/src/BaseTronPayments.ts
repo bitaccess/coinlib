@@ -14,6 +14,7 @@ import {
   ResolveablePayport,
   PaymentsError,
   PaymentsErrorCode,
+  PayportOutput,
 } from '@faast/payments-common'
 import { isType } from '@faast/ts-common'
 
@@ -410,6 +411,14 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
       toExtraId: toPayport.extraId,
       toPayport,
     }
+  }
+
+  async createMultiOutputTransaction(
+    from: number,
+    to: PayportOutput[],
+    options: CreateTransactionOptions = {},
+  ): Promise<null> {
+    return null
   }
 }
 

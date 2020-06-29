@@ -1,8 +1,22 @@
 import {
-  BasePayments, UtxoInfo, FeeOptionCustom, FeeRateType, FeeRate, FeeOption,
-  ResolvedFeeOption, FeeLevel, AutoFeeLevels, Payport, ResolveablePayport,
-  BalanceResult, FromTo, TransactionStatus, CreateTransactionOptions, BaseConfig,
+  BasePayments,
+  UtxoInfo,
+  FeeOptionCustom,
+  FeeRateType,
+  FeeRate,
+  FeeOption,
+  ResolvedFeeOption,
+  FeeLevel,
+  AutoFeeLevels,
+  Payport,
+  ResolveablePayport,
+  BalanceResult,
+  FromTo,
+  TransactionStatus,
+  CreateTransactionOptions,
+  BaseConfig,
   MaybePromise,
+  PayportOutput,
 } from '@faast/payments-common'
 import { isUndefined, isType, Numeric, toBigNumber, assertType, isNumber } from '@faast/ts-common'
 import { get } from 'lodash'
@@ -18,7 +32,6 @@ import {
   BitcoinishTxOutput,
   BitcoinishTxOutputSatoshis,
   BitcoinishWeightedChangeOutput,
-  PayportOutput,
 } from './types'
 import { sumUtxoValue, sortUtxos, isConfirmedUtxo, sha256FromHex } from './utils'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
