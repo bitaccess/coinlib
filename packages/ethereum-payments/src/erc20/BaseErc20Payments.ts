@@ -234,9 +234,11 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       toAddress = `0x${txData.inputs[0]}`
       amount = this.toMainDenomination(txData.inputs[1].toString())
     } else if (tx.input.startsWith('0x60606040')) {
-      // SWEEP contract signature
+      // SWEEP contract creation
+    } else if (tx.input.startsWith('0xb8dc491b')) {
+      // SWEEPING
     } else {
-      throw new Error(`Transaction ${txid} is not ERC20 transaction neiter swap`)
+      throw new Error(`Transaction ${txid} is not ERC20 transaction neither swap`)
     }
 
     const currentBlockNumber = await this.eth.getBlockNumber()
