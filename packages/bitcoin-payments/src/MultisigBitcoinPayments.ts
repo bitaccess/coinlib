@@ -6,14 +6,11 @@ import {
   BitcoinSignedTransaction,
   MultisigAddressType,
 } from './types'
-import {
-  PayportOutput
-} from './bitcoinish/types'
 import { omit } from 'lodash'
 import { HdBitcoinPayments } from './HdBitcoinPayments'
 import { KeyPairBitcoinPayments } from './KeyPairBitcoinPayments'
 import * as bitcoin from 'bitcoinjs-lib'
-import { CreateTransactionOptions, ResolveablePayport, BaseMultisigData } from '@faast/payments-common'
+import { CreateTransactionOptions, ResolveablePayport, BaseMultisigData, PayportOutput } from '@faast/payments-common'
 import { publicKeyToString, getMultisigPaymentScript } from './helpers'
 import { Numeric } from '@faast/ts-common'
 import { DEFAULT_MULTISIG_ADDRESS_TYPE } from './constants'

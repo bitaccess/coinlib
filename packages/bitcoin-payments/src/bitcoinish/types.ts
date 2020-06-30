@@ -124,9 +124,3 @@ export type BitcoinishBroadcastResult = t.TypeOf<typeof BitcoinishBroadcastResul
 
 export const BitcoinishBlock = BlockInfoBitcoin
 export type BitcoinishBlock = BlockInfoBitcoin
-
-export const PayportOutput = t.type({
-  payport: ResolveablePayport,
-  amount: Numeric,
-}, 'PayportOutput')
-export type PayportOutput = t.TypeOf<typeof PayportOutput>

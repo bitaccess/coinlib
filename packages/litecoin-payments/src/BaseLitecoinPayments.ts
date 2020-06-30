@@ -1,6 +1,13 @@
 import * as bitcoin from 'bitcoinjs-lib'
 import {
-  FeeRateType, FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus, BaseMultisigData,
+  FeeRateType,
+  FeeRate,
+  AutoFeeLevels,
+  UtxoInfo,
+  TransactionStatus,
+  BaseMultisigData,
+  PayportOutput,
+  CreateTransactionOptions as TransactionOptions,
 } from '@faast/payments-common'
 
 import { getBlockcypherFeeEstimate, toBitcoinishConfig, estimateLitecoinTxSize } from './utils'
@@ -208,5 +215,4 @@ extends BitcoinishPayments<Config> {
       }
     }
   }
-
 }

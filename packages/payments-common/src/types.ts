@@ -51,6 +51,12 @@ export type Payport = t.TypeOf<typeof Payport>
 export const ResolveablePayport = t.union([Payport, t.string, t.number], 'ResolveablePayport')
 export type ResolveablePayport = t.TypeOf<typeof ResolveablePayport>
 
+export const PayportOutput = t.type({
+  payport: ResolveablePayport,
+  amount: Numeric,
+}, 'PayportOutput')
+export type PayportOutput = t.TypeOf<typeof PayportOutput>
+
 export enum FeeLevel {
   Custom = 'custom',
   Low = 'low',
