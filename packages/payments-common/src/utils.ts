@@ -36,11 +36,11 @@ export function createUnitConverters(decimals: number) {
     if (!mainUnits.isFinite()) {
       throw new Error('Cannot convert to base denomination - not finite')
     }
-    return mainUnits.times(basePerMain)
+    return mainUnits.times(basePerMain).dp(0, 7)
   }
 
   function toBaseDenominationString(mainNumeric: Numeric): string {
-    return toBaseDenominationBigNumber(mainNumeric).toFixed(0, 7)
+    return toBaseDenominationBigNumber(mainNumeric).toString()
   }
 
   function toBaseDenominationNumber(mainNumeric: Numeric): number {

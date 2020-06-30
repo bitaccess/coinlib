@@ -115,31 +115,40 @@ implements BasePayments
       : this.resolveLeveledFeeOption(feeOption, amountOfGas)
   }
 
-  private resolveCustomFeeOption(
+  resolveCustomFeeOption(
     feeOption: FeeOptionCustom,
     amountOfGas: string = ETHEREUM_TRANSFER_COST,
   ): EthereumResolvedFeeOption {
-    const isWeight = (feeOption.feeRateType === FeeRateType.BasePerWeight)
-    const isMain = (feeOption.feeRateType === FeeRateType.Main)
-
-    const gasPrice = isWeight
-      ? (new BigNumber(feeOption.feeRate)).toFixed(0, 7)
-      : (new BigNumber(feeOption.feeRate)).dividedBy(amountOfGas).toString()
-    const fee = isWeight
-      ? (new BigNumber(feeOption.feeRate)).multipliedBy(amountOfGas).toString()
-      : (new BigNumber(feeOption.feeRate)).toFixed(0, 7)
+    const { feeRate, feeRateType } = feeOption
+    let gasPrice: BigNumber
+    let feeBase: BigNumber
+    let feeMain: BigNumber
+    if (feeRateType === FeeRateType.BasePerWeight) {
+      gasPrice = new BigNumber(feeRate)
+      feeBase = gasPrice.multipliedBy(amountOfGas)
+      feeMain = this.toMainDenominationBigNumberEth(feeBase)
+    } else {
+        if (feeRateType === FeeRateType.Main) {
+        feeMain = new BigNumber(feeRate)
+        feeBase = this.toBaseDenominationBigNumberEth(feeMain)
+      } else { // Base
+        feeBase = new BigNumber(feeRate)
+        feeMain = this.toMainDenominationBigNumberEth(feeBase)
+      }
+      gasPrice = feeBase.dividedBy(amountOfGas)
+    }
 
     return {
       targetFeeRate:     feeOption.feeRate,
       targetFeeLevel:    FeeLevel.Custom,
       targetFeeRateType: feeOption.feeRateType,
-      feeBase:           isMain ? this.toBaseDenomination(fee) : fee,
-      feeMain:           isMain ? fee : this.toMainDenomination(fee),
-      gasPrice:          isMain ? this.toBaseDenomination(gasPrice) : gasPrice
+      feeBase:           feeBase.toFixed(0, 7),
+      feeMain:           feeMain.toString(),
+      gasPrice:          gasPrice.toFixed(0, 7),
     }
   }
 
-  private async resolveLeveledFeeOption(
+  async resolveLeveledFeeOption(
     feeOption: FeeOption,
     amountOfGas: string = ETHEREUM_TRANSFER_COST,
   ): Promise<EthereumResolvedFeeOption> {
