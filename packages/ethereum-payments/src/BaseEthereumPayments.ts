@@ -128,7 +128,7 @@ implements BasePayments
       feeBase = gasPrice.multipliedBy(amountOfGas)
       feeMain = this.toMainDenominationBigNumberEth(feeBase)
     } else {
-        if (feeRateType === FeeRateType.Main) {
+      if (feeRateType === FeeRateType.Main) {
         feeMain = new BigNumber(feeRate)
         feeBase = this.toBaseDenominationBigNumberEth(feeMain)
       } else { // Base
