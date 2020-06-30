@@ -348,7 +348,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       : (new BigNumber(feeOption.feeRate)).toFixed(0, 7)
 
     return {
-      targetFeeRate:     (new BigNumber(feeOption.feeRate)).toFixed(0, 7),
+      targetFeeRate:     feeOption.feeRate,
       targetFeeLevel:    FeeLevel.Custom,
       targetFeeRateType: feeOption.feeRateType,
       feeBase:           isMain ? this.toBaseDenominationEth(fee) : fee,
