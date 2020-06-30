@@ -143,7 +143,7 @@ implements BasePayments
       targetFeeLevel:    FeeLevel.Custom,
       targetFeeRateType: feeOption.feeRateType,
       feeBase:           feeBase.toFixed(0, 7),
-      feeMain:           feeMain.toString(),
+      feeMain:           feeMain.toFixed(),
       gasPrice:          gasPrice.toFixed(0, 7),
     }
   }

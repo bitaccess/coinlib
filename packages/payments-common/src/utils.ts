@@ -21,7 +21,7 @@ export function createUnitConverters(decimals: number) {
   }
 
   function toMainDenominationString(baseNumeric: Numeric): string {
-    return toMainDenominationBigNumber(baseNumeric).toString()
+    return toMainDenominationBigNumber(baseNumeric).toFixed()
   }
 
   function toMainDenominationNumber(baseNumeric: Numeric): number {
@@ -40,7 +40,7 @@ export function createUnitConverters(decimals: number) {
   }
 
   function toBaseDenominationString(mainNumeric: Numeric): string {
-    return toBaseDenominationBigNumber(mainNumeric).toString()
+    return toBaseDenominationBigNumber(mainNumeric).toFixed(0, 7)
   }
 
   function toBaseDenominationNumber(mainNumeric: Numeric): number {
