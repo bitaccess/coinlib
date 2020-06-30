@@ -341,14 +341,14 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     const isMain = (feeOption.feeRateType === FeeRateType.Main)
 
     const gasPrice = isWeight
-      ? feeOption.feeRate
-      : (new BigNumber(feeOption.feeRate)).dividedBy(amountOfGas).toString()
+      ? (new BigNumber(feeOption.feeRate)).toFixed(0, 7)
+      : (new BigNumber(feeOption.feeRate)).dividedBy(amountOfGas).toFixed(0, 7)
     const fee = isWeight
-      ? (new BigNumber(feeOption.feeRate)).multipliedBy(amountOfGas).toString()
-      : feeOption.feeRate
+      ? (new BigNumber(feeOption.feeRate)).multipliedBy(amountOfGas).toFixed(0, 7)
+      : (new BigNumber(feeOption.feeRate)).toFixed(0, 7)
 
     return {
-      targetFeeRate:     feeOption.feeRate,
+      targetFeeRate:     (new BigNumber(feeOption.feeRate)).toFixed(0, 7),
       targetFeeLevel:    FeeLevel.Custom,
       targetFeeRateType: feeOption.feeRateType,
       feeBase:           isMain ? this.toBaseDenominationEth(fee) : fee,

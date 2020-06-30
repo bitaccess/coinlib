@@ -350,6 +350,7 @@ implements BasePayments
     const payport = await this.getPayport(unsignedTx.fromIndex)
 
     const unsignedRaw: any = cloneDeep(unsignedTx.data)
+    unsignedRaw.fee
 
     const extraParam = this.config.network === NetworkType.Testnet ?  {chain :'ropsten'} : undefined
     const tx = new Tx(unsignedRaw, extraParam)
