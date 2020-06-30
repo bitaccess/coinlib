@@ -99,13 +99,11 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
     const nonce = options.sequenceNumber || await this.getNextSequenceNumber(txFromAddress)
 
-    let amount = new BigNumber(this.toBaseDenomination(amountMain))
+    let amountBase = this.toBaseDenominationBigNumber(amountMain)
     let ethBalance = await this.getEthBaseBalance(fromTo.fromAddress)
 
-    const { confirmedBalance: balanceMain } = await this.getBalance(fromTo.fromPayport)
-    const balanceBase = this.toBaseDenomination(balanceMain)
-    if ((feeBase).isGreaterThan(ethBalance)) {
-      throw new Error(`Insufficient balance (${ethBalance}) to pay transaction fee of ${feeOption.feeMain}`)
+    if (feeBase.isGreaterThan(ethBalance)) {
+      throw new Error(`Insufficient ETH balance (${this.toMainDenominationEth(ethBalance)}) to pay transaction fee of ${feeOption.feeMain}`)
     }
 
     const contract = new this.eth.Contract(TOKEN_METHODS_ABI, this.tokenAddress)
@@ -116,7 +114,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
       gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
       nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
-      data: contract.methods.transfer(fromTo.toAddress, `0x${amount.toString(16)}`).encodeABI()
+      data: contract.methods.transfer(fromTo.toAddress, `0x${amountBase.toString(16)}`).encodeABI()
     }
 
     return {
@@ -127,7 +125,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       toExtraId: null,
       fromIndex: fromTo.fromIndex,
       toIndex: fromTo.toIndex,
-      amount: this.toMainDenomination(amount),
+      amount: amountMain,
       fee: feeOption.feeMain,
       targetFeeLevel: feeOption.targetFeeLevel,
       targetFeeRate: feeOption.targetFeeRate,
@@ -151,8 +149,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     }
 
     const toPayport = await this.resolvePayport(to)
-    const fromPayport = await this.resolvePayport(this.depositKeyIndex)
-    const txFromAddress = fromPayport.address
+    const ownerPayport = await this.resolvePayport(this.depositKeyIndex)
+    const ownerAddress = ownerPayport.address
     const fromTo = {
       fromAddress: `${from}`,
       fromIndex: this.depositKeyIndex,
@@ -172,19 +170,20 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
     const feeBase = new BigNumber(feeOption.feeBase)
 
-    let ethBalance = await this.getEthBaseBalance(fromPayport.address)
-    const { confirmedBalance: balanceMain } = await this.getBalance(fromTo.fromPayport)
-    const balanceBase = this.toBaseDenomination(balanceMain)
-    const amount = (new BigNumber(balanceBase))
-    if ((feeBase).isGreaterThan(ethBalance)) {
-      throw new Error(`Insufficient ${fromPayport.address}/${fromTo.fromAddress} balance (${ethBalance}) to sweep with fee of ${feeOption.feeMain} `)
+    let ethBalance = await this.getEthBaseBalance(ownerAddress)
+    const { confirmedBalance: tokenBalanceMain } = await this.getBalance(fromTo.fromPayport)
+    const tokenBalanceBase = this.toBaseDenominationBigNumber(tokenBalanceMain)
+    if (feeBase.isGreaterThan(ethBalance)) {
+      throw new Error(
+        `Insufficient ETH balance (${this.toMainDenominationEth(ethBalance)}) at owner address ${ownerAddress} `
+        + `to sweep contract ${fromTo.fromAddress} with fee of ${feeOption.feeMain} ETH`)
     }
 
-    if ((new BigNumber(balanceBase)).isLessThan(0)) {
-      throw new Error(`Insufficient balance (${balanceMain}) to sweep`)
+    if (tokenBalanceBase.isLessThan(0)) {
+      throw new Error(`Insufficient token balance (${tokenBalanceMain}) to sweep`)
     }
 
-    const nonce = options.sequenceNumber || await this.getNextSequenceNumber(txFromAddress)
+    const nonce = options.sequenceNumber || await this.getNextSequenceNumber(ownerAddress)
     const contract = new this.eth.Contract(TOKEN_WALLET_ABI, fromTo.fromAddress)
     const transactionObject = {
       nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
@@ -202,7 +201,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       toExtraId: null,
       fromIndex: this.depositKeyIndex,
       toIndex: fromTo.toIndex,
-      amount: this.toMainDenomination(amount),
+      amount: tokenBalanceMain,
       fee: feeOption.feeMain,
       targetFeeLevel: feeOption.targetFeeLevel,
       targetFeeRate: feeOption.targetFeeRate,
