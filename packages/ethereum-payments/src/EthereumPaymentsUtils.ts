@@ -30,17 +30,25 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
     const unitConverters = createUnitConverters(this.decimals)
     this.toMainDenominationBigNumber = unitConverters.toMainDenominationBigNumber
     this.toBaseDenominationBigNumber = unitConverters.toBaseDenominationBigNumber
+    this.toMainDenomination = unitConverters.toMainDenominationString
+    this.toBaseDenomination = unitConverters.toBaseDenominationString
+
+    const ethUnitConverters = createUnitConverters(DECIMAL_PLACES)
+    this.toMainDenominationBigNumberEth = ethUnitConverters.toMainDenominationBigNumber
+    this.toBaseDenominationBigNumberEth = ethUnitConverters.toBaseDenominationBigNumber
+    this.toMainDenominationEth = ethUnitConverters.toMainDenominationString
+    this.toBaseDenominationEth = ethUnitConverters.toBaseDenominationString
   }
+
   toMainDenominationBigNumber: UnitConverters['toMainDenominationBigNumber']
   toBaseDenominationBigNumber: UnitConverters['toMainDenominationBigNumber']
+  toMainDenomination: UnitConverters['toMainDenominationString']
+  toBaseDenomination: UnitConverters['toBaseDenominationString']
 
-  toMainDenomination(amount: Numeric): string {
-    return (this.toMainDenominationBigNumber(amount)).toString(10)
-  }
-
-  toBaseDenomination(amount: Numeric): string {
-    return (this.toBaseDenominationBigNumber(amount)).toFixed(0, 7)
-  }
+  toMainDenominationBigNumberEth: UnitConverters['toMainDenominationBigNumber']
+  toBaseDenominationBigNumberEth: UnitConverters['toMainDenominationBigNumber']
+  toMainDenominationEth: UnitConverters['toMainDenominationString']
+  toBaseDenominationEth: UnitConverters['toBaseDenominationString']
 
   async isValidAddress(address: string): Promise<boolean> {
     return web3.utils.isAddress(address)
