@@ -20,7 +20,11 @@ import {
   CreateTransactionOptions as TransactionOptions,
   NetworkType,
 } from '@faast/payments-common'
-import { isType, isString } from '@faast/ts-common'
+import {
+  isType,
+  isString,
+  Numeric,
+} from '@faast/ts-common'
 
 import {
   EthereumTransactionInfo,
@@ -42,6 +46,7 @@ import {
   ETHEREUM_TRANSFER_COST,
   TOKEN_WALLET_DATA,
   DEPOSIT_KEY_INDEX,
+  DECIMAL_PLACES,
 } from './constants'
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
 
@@ -115,7 +120,7 @@ implements BasePayments
       : this.resolveLeveledFeeOption(feeOption, amountOfGas)
   }
 
-  private resolveCustomFeeOption(
+  resolveCustomFeeOption(
     feeOption: FeeOptionCustom,
     amountOfGas: string = ETHEREUM_TRANSFER_COST,
   ): EthereumResolvedFeeOption {
@@ -133,13 +138,13 @@ implements BasePayments
       targetFeeRate:     feeOption.feeRate,
       targetFeeLevel:    FeeLevel.Custom,
       targetFeeRateType: feeOption.feeRateType,
-      feeBase:           isMain ? this.toBaseDenomination(fee) : fee,
-      feeMain:           isMain ? fee : this.toMainDenomination(fee),
-      gasPrice:          isMain ? this.toBaseDenomination(gasPrice) : gasPrice
+      feeBase:           isMain ? this.toBaseDenominationEth(fee) : fee,
+      feeMain:           isMain ? fee : this.toMainDenominationEth(fee),
+      gasPrice:          isMain ? this.toBaseDenominationEth(gasPrice) : gasPrice
     }
   }
 
-  private async resolveLeveledFeeOption(
+  async resolveLeveledFeeOption(
     feeOption: FeeOption,
     amountOfGas: string = ETHEREUM_TRANSFER_COST,
   ): Promise<EthereumResolvedFeeOption> {
@@ -153,7 +158,7 @@ implements BasePayments
       targetFeeLevel,
       targetFeeRateType: FeeRateType.BasePerWeight,
       feeBase,
-      feeMain: this.toMainDenomination(feeBase),
+      feeMain: this.toMainDenominationEth(feeBase),
       gasPrice: (new BigNumber(targetFeeRate)).toFixed(0, 7),
     }
   }
@@ -463,6 +468,16 @@ implements BasePayments
         additionalFiels
       )
     }
+  }
+
+  private toBaseDenominationEth(amount: Numeric): string {
+    const ePU = new EthereumPaymentsUtils(Object.assign({}, this.getPublicConfig(), { decimals: DECIMAL_PLACES }))
+    return ePU.toBaseDenomination(amount)
+  }
+
+  toMainDenominationEth(amount: Numeric): string {
+    const ePU = new EthereumPaymentsUtils(Object.assign({}, this.getPublicConfig(), { decimals: DECIMAL_PLACES }))
+    return ePU.toMainDenomination(amount)
   }
 }
 

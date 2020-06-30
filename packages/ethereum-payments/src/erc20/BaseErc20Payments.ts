@@ -93,8 +93,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
     const amountOfGas = await this.gasStation.estimateGas(fromTo.fromAddress, fromTo.toAddress, 'TOKEN_TRANSFER')
     const feeOption: EthereumResolvedFeeOption = isType(FeeOptionCustom, options)
-      ? this.resolveCustomFeeOptionABI(options, amountOfGas)
-      : await this.resolveLeveledFeeOptionABI(options, amountOfGas)
+      ? this.resolveCustomFeeOption(options, amountOfGas)
+      : await this.resolveLeveledFeeOption(options, amountOfGas)
     const feeBase = new BigNumber(feeOption.feeBase)
 
     const nonce = options.sequenceNumber || await this.getNextSequenceNumber(txFromAddress)
@@ -167,8 +167,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
     const amountOfGas = await this.gasStation.estimateGas(fromTo.fromAddress, fromTo.toAddress, 'TOKEN_SWEEP')
     const feeOption: EthereumResolvedFeeOption = isType(FeeOptionCustom, options)
-      ? this.resolveCustomFeeOptionABI(options, amountOfGas)
-      : await this.resolveLeveledFeeOptionABI(options, amountOfGas)
+      ? this.resolveCustomFeeOption(options, amountOfGas)
+      : await this.resolveLeveledFeeOption(options, amountOfGas)
 
     const feeBase = new BigNumber(feeOption.feeBase)
 
@@ -333,49 +333,6 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     }
   }
 
-  private resolveCustomFeeOptionABI(
-    feeOption: FeeOptionCustom,
-    amountOfGas: string = TOKEN_TRANSFER_COST,
-  ): EthereumResolvedFeeOption {
-    const isWeight = (feeOption.feeRateType === FeeRateType.BasePerWeight)
-    const isMain = (feeOption.feeRateType === FeeRateType.Main)
-
-    const gasPrice = isWeight
-      ? (new BigNumber(feeOption.feeRate)).toFixed(0, 7)
-      : (new BigNumber(feeOption.feeRate)).dividedBy(amountOfGas).toFixed(0, 7)
-    const fee = isWeight
-      ? (new BigNumber(feeOption.feeRate)).multipliedBy(amountOfGas).toFixed(0, 7)
-      : (new BigNumber(feeOption.feeRate)).toFixed(0, 7)
-
-    return {
-      targetFeeRate:     (new BigNumber(feeOption.feeRate)).toFixed(0, 7),
-      targetFeeLevel:    FeeLevel.Custom,
-      targetFeeRateType: feeOption.feeRateType,
-      feeBase:           isMain ? this.toBaseDenominationEth(fee) : fee,
-      feeMain:           isMain ? fee : this.toMainDenominationEth(fee),
-      gasPrice:          isMain ? this.toBaseDenominationEth(gasPrice) : gasPrice
-    }
-  }
-
-  private async resolveLeveledFeeOptionABI(
-    feeOption: FeeOption,
-    amountOfGas: string = TOKEN_TRANSFER_COST,
-  ): Promise<EthereumResolvedFeeOption> {
-    const targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL
-    const targetFeeRate = await this.gasStation.getGasPrice(FEE_LEVEL_MAP[targetFeeLevel])
-
-    const feeBase = (new BigNumber(targetFeeRate)).multipliedBy(amountOfGas).toString()
-
-    return {
-      targetFeeRate,
-      targetFeeLevel,
-      targetFeeRateType: FeeRateType.BasePerWeight,
-      feeBase,
-      feeMain: this.toMainDenominationEth(feeBase),
-      gasPrice: targetFeeRate,
-    }
-  }
-
   async getNextSequenceNumber(payport: ResolveablePayport): Promise<string> {
     const resolvedPayport = await this.resolvePayport(payport)
     const sequenceNumber = await this.gasStation.getNonce(resolvedPayport.address)
@@ -387,16 +344,6 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     const balanceBase = await this.eth.getBalance(address)
 
     return new BigNumber(balanceBase)
-  }
-
-  private toBaseDenominationEth(amount: Numeric): string {
-    const ePU = new EthereumPaymentsUtils(Object.assign({}, this.getPublicConfig(), { decimals: DECIMAL_PLACES }))
-    return ePU.toBaseDenomination(amount)
-  }
-
-  private toMainDenominationEth(amount: Numeric): string {
-    const ePU = new EthereumPaymentsUtils(Object.assign({}, this.getPublicConfig(), { decimals: DECIMAL_PLACES }))
-    return ePU.toMainDenomination(amount)
   }
 }
 
