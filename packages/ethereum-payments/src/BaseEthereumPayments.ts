@@ -376,10 +376,10 @@ implements BasePayments
 
     return {
       ...unsignedTx,
-      id: tx.hash().toString('hex'),
+      id: `0x${tx.hash().toString('hex')}`,
       status: TransactionStatus.Signed,
       data: {
-        hex: '0x'+tx.serialize().toString('hex')
+        hex: `0x${tx.serialize().toString('hex')}`
       }
     }
   }
