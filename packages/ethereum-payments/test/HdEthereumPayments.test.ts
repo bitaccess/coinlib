@@ -204,16 +204,16 @@ describe('HdEthereumPayments', () => {
         })
 
         const resBase = await hdEP.resolveFeeOption({
-          feeRate: '1',
+          feeRate: '1000000000000000001',
           feeRateType: FeeRateType.Base,
         } as FeeOption)
         expect(resBase).toStrictEqual({
-          targetFeeRate: '1',
-          gasPrice: '0',
+          targetFeeRate: '1000000000000000001',
+          gasPrice: '20000000000000',
           targetFeeLevel: 'custom',
           targetFeeRateType: FeeRateType.Base,
-          feeBase: '1',
-          feeMain: '0.000000000000000001',
+          feeBase: '1000000000000000000',
+          feeMain: '1',
         })
       })
 
