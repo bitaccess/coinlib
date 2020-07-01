@@ -131,7 +131,6 @@ export type EthereumTransactionOptions = t.TypeOf<typeof EthereumTransactionOpti
 export const EthereumUnsignedTransaction = extendCodec(
   BaseUnsignedTransaction,
   {
-    id: t.string,
     amount: t.string,
     fee: t.string,
   },

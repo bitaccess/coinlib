@@ -121,7 +121,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
     return {
       status: TransactionStatus.Unsigned,
-      id: '',
+      id: null,
       fromAddress: fromTo.fromAddress,
       toAddress: fromTo.toAddress,
       toExtraId: null,
@@ -196,7 +196,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
     return {
       status: TransactionStatus.Unsigned,
-      id: '',
+      id: null,
       fromAddress: fromTo.fromAddress,
       toAddress: fromTo.toAddress,
       toExtraId: null,

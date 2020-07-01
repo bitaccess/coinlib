@@ -460,7 +460,7 @@ implements BasePayments
       }
 
     return {
-      id: '',
+      id: null,
       status: TransactionStatus.Unsigned,
       fromAddress: fromPayport.address,
       fromIndex: from,
