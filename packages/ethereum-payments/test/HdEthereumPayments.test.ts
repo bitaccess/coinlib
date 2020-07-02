@@ -536,7 +536,7 @@ describe('HdEthereumPayments', () => {
         const res = await hdEP.createTransaction(from, to, amountEth)
 
         expect(res).toStrictEqual({
-          id: '',
+          id: null,
           status: 'unsigned',
           fromAddress: FROM_ADDRESS,
           toAddress: TO_ADDRESS,
@@ -628,7 +628,7 @@ describe('HdEthereumPayments', () => {
         const transactionValueEth = (new BigNumber(hdEP.toMainDenomination(balance))).minus(feeEth).toString()
 
         expect(res).toStrictEqual({
-          id: '',
+          id: null,
           status: 'unsigned',
           fromAddress: FROM_ADDRESS,
           toAddress: to.address,
@@ -702,7 +702,7 @@ describe('HdEthereumPayments', () => {
         const amountEth = '0.576'
 
         const unsignedTx = {
-          id: '',
+          id: null,
           status: 'unsigned',
           fromAddress: FROM_ADDRESS,
           toAddress: TO_ADDRESS,
@@ -728,7 +728,7 @@ describe('HdEthereumPayments', () => {
         const res = await hdEP.signTransaction(unsignedTx)
 
         expect(res).toStrictEqual({
-          id: '3137b3336975aabfcf141469727d8d805f5e6d343de7fcc93e61d8d19d5d238f',
+          id: '0x3137b3336975aabfcf141469727d8d805f5e6d343de7fcc93e61d8d19d5d238f',
           status: 'signed',
           fromAddress: FROM_ADDRESS,
           toAddress: to.address,
