@@ -68,6 +68,7 @@
   "dependencies": {
     "@faast/bitcoin-payments": "^2.6.0",
     "@faast/ethereum-payments": "^2.6.0",
+    "@faast/litecoin-payments": "^2.6.0",
     "@faast/payments-common": "^2.6.0",
     "@faast/ripple-payments": "^2.6.0",
     "@faast/stellar-payments": "^2.6.0",
