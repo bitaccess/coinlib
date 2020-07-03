@@ -4,6 +4,7 @@ import { RipplePaymentsFactory } from '@faast/ripple-payments'
 import { StellarPaymentsFactory } from '@faast/stellar-payments'
 import { BitcoinPaymentsFactory } from '@faast/bitcoin-payments'
 import { EthereumPaymentsFactory } from '@faast/ethereum-payments'
+import { LitecoinPaymentsFactory } from '@faast/litecoin-payments'
 
 import { keysOf } from './utils'
 import { SupportedCoinPaymentsSymbol } from './types'
@@ -16,6 +17,7 @@ export const PAYMENTS_FACTORIES: {
   XLM: new StellarPaymentsFactory(),
   BTC: new BitcoinPaymentsFactory(),
   ETH: new EthereumPaymentsFactory(),
+  LTC: new LitecoinPaymentsFactory(),
 }
 
 export const SUPPORTED_ASSET_SYMBOLS = keysOf(PAYMENTS_FACTORIES)
