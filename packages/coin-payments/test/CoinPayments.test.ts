@@ -159,6 +159,12 @@ describe('CoinPayments', () => {
             'hdKey': 'xpub6C5wPZ5JwqM6zk1nrdycxB5a5PokXWCH1iXWWJgq1bLdNTKjKbSZS2XA4WFSLqyicg7moaGv5wTJCpy6Tkxi9EZj9HFno9FHDTsRMgVGYm2',
             'network': 'mainnet',
           },
+          'LTC': {
+            'addressType': 'p2wpkh',
+            'derivationPath': "m/84'/2'/0'",
+            'hdKey': 'xpub6CzZCEwpfjPaZKC6xHNCdicmnb6jkdM2zgPpdv4DAEnRNS7ZyUC3GuSgXMYaVi4CdTHCiNLZKKPNBwc7AvcFMqZVJ2jABo3MUyzkSADjxZE',
+            'network': 'mainnet',
+          },
           'ETH': {
             'hdKey': 'xpub6FUQp5E3GHcwJ8qsG198LiRcfyJFqy4txgxmzqLXiVSKFTXbn4gU9QcxDSy9NyTrc3EDXfsJVgnfrBgvQUoY3xFbazdgb3WCp2DTSfLUEJE',
             'network': 'mainnet',
