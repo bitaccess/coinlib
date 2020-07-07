@@ -1,4 +1,4 @@
-import InputDataDecoder from 'ethereum-input-data-decoder';
+import InputDataDecoder from 'ethereum-input-data-decoder'
 import { BigNumber } from 'bignumber.js'
 import { TransactionReceipt } from 'web3-core'
 import {
