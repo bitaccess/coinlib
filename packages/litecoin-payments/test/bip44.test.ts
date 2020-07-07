@@ -7,8 +7,9 @@ import {
   xprvToXpub,
   isValidXprv,
   isValidXpub,
+  convertXPrefixHdKeys
 } from '../src/bip44'
-import { AddressType } from '../src'
+import { AddressType, NETWORK_TESTNET, NETWORK_MAINNET } from '../src'
 import { fromBase58 } from 'bip32'
 import {
   DERIVED_XPRV, DERIVATION_PATH, ROOT_XPRV, NETWORK, PARTIALLY_DERIVED_XPRV, ADDRESS_LEGACY,
@@ -80,6 +81,26 @@ describe('bip44', () => {
     })
     it('should return false for invalid', () => {
       expect(isValidXprv('xpat1234', NETWORK)).toBe(false)
+    })
+  })
+  describe('convertXPrefixHdKeys', () => {
+    it('should convert xprv to tprv', () => {
+      const converted = convertXPrefixHdKeys(
+        'xprv9s21ZrQH143K4A6W8rtYYfpLg55uou88DM343N43V9fEG1miFbLT7dBKzdTi4G88HvHCB3gJLC3c6m7qW28vbL5TvZQSHCJmuBMaPBGZi1U',
+        NETWORK_TESTNET,
+      )
+      expect(converted).toEqual(
+        'tprv8ZgxMBicQKsPeyL2oRk3iKSKzCW83RA8YtxAunUVy89i3cWoExgCdNYmuodN4dWSfMoyB9J4VYdQZcfadEUsQPM4TCcjwZ2ppH6zpo3Md6X'
+      )
+    })
+    it('should convert xpub to tpub', () => {
+      const converted = convertXPrefixHdKeys(
+        'xpub6Bvk7TZL7RXk6vMPS3aTszwr57mYGEnWwS1gnoNiE3R7CxvRV6Nq9NChJwoztJG3rwNfyi1G368cfbgjpHyTYQWHqJSMZH4Nb7x7b92oeUF',
+        NETWORK_TESTNET,
+      )
+      expect(converted).toEqual(
+        'tpubDCJNdhP1phVCNiYEtEZZ5vHDQEsCFdHaV4bz9MRrZxAzxFb8ZKDvHosXYytnQoDHequabHX8aBxfMnBMD9phRqxatuBfEoicB5YXMCnjYZj'
+      )
     })
   })
 })

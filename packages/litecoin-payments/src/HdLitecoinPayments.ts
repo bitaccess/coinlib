@@ -37,16 +37,20 @@ export class HdLitecoinPayments extends SinglesigLitecoinPayments<HdLitecoinPaym
       this.xprv = config.hdKey
     } else {
       const providedPrefix = config.hdKey.slice(0, 4)
-      const xpubPrefix = bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.public)
-      const xprvPrefix = bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.private)
+      const validPrefixes = Array.from(new Set([
+        bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.public),
+        bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.private),
+        'xprv',
+        'xpub'
+      ]).keys())
       let reason = ''
-      if (providedPrefix !== xpubPrefix && providedPrefix !== xprvPrefix) {
-        reason = ` with prefix ${providedPrefix} but expected ${xprvPrefix} or ${xpubPrefix}`
+      if (!validPrefixes.includes(providedPrefix)) {
+        reason = ` with prefix ${providedPrefix} but expected ${validPrefixes.join('|')}`
       } else {
         reason = ` (${validateHdKey(config.hdKey, this.bitcoinjsNetwork)})`
       }
       throw new Error(
-        `Invalid ${this.networkType} hdKey provided to bitcoin payments config${reason}`
+        `Invalid ${this.networkType} hdKey provided to litecoin payments config${reason}`
       )
     }
     this.hdNode = deriveHDNode(config.hdKey, this.derivationPath, this.bitcoinjsNetwork)
