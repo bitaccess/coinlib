@@ -29,7 +29,7 @@ export const LITECOIN_SEQUENCE_RBF = 0xFFFFFFFD
  *
  * Unit: `sat/byte`
  */
-export const DEFAULT_MIN_TX_FEE = 5
+export const DEFAULT_MIN_TX_FEE = 10
 
 export const DEFAULT_SINGLESIG_ADDRESS_TYPE: SinglesigAddressType = AddressType.SegwitNative
 

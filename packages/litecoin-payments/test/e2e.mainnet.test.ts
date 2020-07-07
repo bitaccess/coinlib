@@ -368,7 +368,7 @@ describeAll('e2e mainnet', () => {
         const unsignedTx = await payments.createTransaction(
           indexToSend,
           recipientIndex,
-          '0.00005',
+          '0.0005',
           { useUnconfirmedUtxos: true }, // Prevents consecutive tests from failing
         )
         const signedTx = await payments.signTransaction(unsignedTx)

@@ -12,11 +12,11 @@ jest.setTimeout(30 * 1000)
 
 describe('HdLitecoinPayments', () => {
 
-  describe.only('static', () => {
+  describe('static', () => {
     it('should throw on invalid hdKey', () => {
       expect(() => new HdLitecoinPayments({ hdKey: 'invalid' })).toThrow()
     })
-    it.only('should accept valid xprv as hdKey for testnet', () => {
+    it('should accept valid xprv as hdKey for testnet', () => {
       expect(new HdLitecoinPayments({
         network: NetworkType.Testnet,
         hdKey: 'xprv9z7JUNTvAbwNTCJyuqz6rR9dCykBa5krATdkLD8VbXPSgxPSY3jLEqd422aDQiYW9irybEjAwusd9kb7TD7Uckjht9T6GQv7Akee6S6Mtmg'
