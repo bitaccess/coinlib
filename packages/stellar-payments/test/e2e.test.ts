@@ -121,7 +121,7 @@ describe('e2e', () => {
     it('should create tx correctly when sequenceNumber option provided', async () => {
       const sequenceNumber = 5
       const tx = await payments.createTransaction(0, 1, '1.2', { sequenceNumber })
-      expect(tx.sequenceNumber).toEqual(sequenceNumber)
+      expect(tx.sequenceNumber).toEqual(String(sequenceNumber))
     })
 
     it('throws when sending less than 1 XLM to unactivated account', async () => {

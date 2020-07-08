@@ -3,7 +3,7 @@ import { SinglesigAddressType, LitecoinjsKeyPair } from './types'
 import { BitcoinjsNetwork } from '@faast/bitcoin-payments'
 import { publicKeyToAddress } from './helpers'
 import { bufferFromUInt32 } from './utils'
-import b58 from 'bs58'
+import b58 from 'bs58check'
 
 export { HDNode }
 

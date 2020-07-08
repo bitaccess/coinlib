@@ -16,6 +16,12 @@ describe('HdLitecoinPayments', () => {
     it('should throw on invalid hdKey', () => {
       expect(() => new HdLitecoinPayments({ hdKey: 'invalid' })).toThrow()
     })
+    it('should accept valid xprv as hdKey for testnet', () => {
+      expect(new HdLitecoinPayments({
+        network: NetworkType.Testnet,
+        hdKey: 'xprv9z7JUNTvAbwNTCJyuqz6rR9dCykBa5krATdkLD8VbXPSgxPSY3jLEqd422aDQiYW9irybEjAwusd9kb7TD7Uckjht9T6GQv7Akee6S6Mtmg'
+      }))
+    })
   })
 
   describe('buildPaymentTx', () => {
