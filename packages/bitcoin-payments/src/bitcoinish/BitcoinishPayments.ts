@@ -684,22 +684,22 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
     const isConfirmed = Boolean(tx.confirmations && tx.confirmations > 0)
     const status = isConfirmed ? TransactionStatus.Confirmed : TransactionStatus.Pending
-    const inputUtxos = tx.vin.map(({ txid, vout, value }) => ({
-      txid,
-      vout,
+    const inputUtxos = tx.vin.map(({ txid, vout, value }): UtxoInfo => ({
+      txid: txid || '',
+      vout: vout || 0,
       value: this.toMainDenominationString(value || 0),
-    } as UtxoInfo))
+    }))
     const fromAddress = get(tx, 'vin.0.addresses.0')
     if (!fromAddress) {
       throw new Error(`Unable to determine fromAddress of ${this.coinSymbol} tx ${txId}`)
     }
 
     const externalOutputs = tx.vout
-      .map(({ addresses, value }) => (
+      .map(({ addresses, value }): TransactionOutput => (
         {
           address: addresses[0],
           value: this.toMainDenominationString(value || 0),
-        } as TransactionOutput
+        }
       ))
       .filter(({ address }) => address !== fromAddress)
     const amount = externalOutputs.reduce((total, { value }) => total.plus(value), new BigNumber(0))
