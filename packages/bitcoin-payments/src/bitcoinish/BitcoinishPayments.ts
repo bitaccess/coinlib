@@ -35,6 +35,8 @@ import {
 } from './types'
 import { sumUtxoValue, sortUtxos, isConfirmedUtxo, sha256FromHex } from './utils'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
+import { TransactionOutput } from '../../../payments-common/src/types';
+import BigNumber from 'bignumber.js'
 
 export abstract class BitcoinishPayments<Config extends BaseConfig> extends BitcoinishPaymentsUtils
   implements BasePayments<
@@ -682,14 +684,32 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
     const isConfirmed = Boolean(tx.confirmations && tx.confirmations > 0)
     const status = isConfirmed ? TransactionStatus.Confirmed : TransactionStatus.Pending
-    const amountSat = get(tx, 'vout.0.value', tx.value)
-    const amount = this.toMainDenominationString(amountSat)
+    const inputUtxos = tx.vin.map(({ txid, vout, value }) => ({
+      txid,
+      vout,
+      value: this.toMainDenominationString(value || 0),
+    } as UtxoInfo))
     const fromAddress = get(tx, 'vin.0.addresses.0')
     if (!fromAddress) {
       throw new Error(`Unable to determine fromAddress of ${this.coinSymbol} tx ${txId}`)
     }
-    const toAddress = get(tx, 'vout.0.addresses.0')
-    if (!toAddress) {
+
+    const externalOutputs = tx.vout
+      .map(({ addresses, value }) => (
+        {
+          address: addresses[0],
+          value: this.toMainDenominationString(value || 0),
+        } as TransactionOutput
+      ))
+      .filter(({ address }) => address !== fromAddress)
+    const amount = externalOutputs.reduce((total, { value }) => total.plus(value), new BigNumber(0))
+
+    let toAddress
+    if (externalOutputs.length > 1) {
+      toAddress = 'multioutput'
+    } else if (externalOutputs.length === 1) {
+      toAddress = externalOutputs[0].address
+    } else {
       throw new Error(`Unable to determine toAddress of ${this.coinSymbol} tx ${txId}`)
     }
 
@@ -702,7 +722,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       toIndex: null,
       toAddress,
       toExtraId: null,
-      amount,
+      amount: amount.toFixed(),
       fee,
       sequenceNumber: null,
       confirmationId,
@@ -712,6 +732,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       isConfirmed,
       confirmations: tx.confirmations,
       data: tx,
+      inputUtxos,
+      externalOutputs,
     }
   }
 }
