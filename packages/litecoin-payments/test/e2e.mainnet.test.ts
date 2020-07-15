@@ -8,7 +8,7 @@ import {
   LitecoinSignedTransaction, SinglesigAddressType, AddressType,
 } from '../src'
 
-import { txInfo_e10d7 } from './fixtures'
+import { txInfo_4d111 } from './fixtures'
 import fixtures from './fixtures/singlesigMainnet'
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
 import { toBigNumber } from '@faast/ts-common'
@@ -127,7 +127,7 @@ describeAll('e2e mainnet', () => {
 
   it('get transaction by arbitrary hash', async () => {
     const tx = await payments.getTransactionInfo('4d111229fefb8b856beafa1a5e2799a16d2718f558e1c0ada0fde13fd41653a9')
-    assertTxInfo(tx, txInfo_e10d7)
+    assertTxInfo(tx, txInfo_4d111)
   })
   it('fail to get an invalid transaction hash', async () => {
     await expect(payments.getTransactionInfo('123456abcdef'))

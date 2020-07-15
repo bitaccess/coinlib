@@ -8,7 +8,7 @@ import {
   BitcoinSignedTransaction, BitcoinUnsignedTransaction, AddressType,
 } from '../src'
 
-import { txInfo_e10d7, signedTx_valid, signedTx_invalid } from './fixtures/transactions'
+import { txInfo_beae1, signedTx_valid, signedTx_invalid } from './fixtures/transactions'
 import { accountsByAddressType, AccountFixture } from './fixtures/accounts'
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
 import { toBigNumber } from '@faast/ts-common'
@@ -120,8 +120,9 @@ describeAll('e2e mainnet', () => {
   })
 
   it('get transaction by arbitrary hash', async () => {
-    const tx = await payments.getTransactionInfo('e10d793afdfc7145ba1acd8990df6214057bd12c8cb13797860d5d1443628c04')
-    assertTxInfo(tx, txInfo_e10d7)
+    const tx = await payments.getTransactionInfo('beae121a09459bd76995ee7de20f2dcd8f52abbbf513a32f24be572737b17ef3')
+    process.stderr.write(JSON.stringify(tx, null, 2))
+    assertTxInfo(tx, txInfo_beae1)
   })
   it('fail to get an invalid transaction hash', async () => {
     await expect(payments.getTransactionInfo('123456abcdef'))

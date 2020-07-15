@@ -2,7 +2,7 @@
 import { LitecoinTransactionInfo, LitecoinSignedTransaction } from '../../src'
 import { FeeLevel, FeeRateType, TransactionStatus } from '@faast/payments-common'
 
-export const txInfo_e10d7: LitecoinTransactionInfo = {
+export const txInfo_4d111: LitecoinTransactionInfo = {
   id: '4d111229fefb8b856beafa1a5e2799a16d2718f558e1c0ada0fde13fd41653a9',
   toAddress: 'Lar9GoLtt8FwCJzahE8GnuTfNL8kQhkUFR',
   toExtraId: null,
@@ -12,6 +12,19 @@ export const txInfo_e10d7: LitecoinTransactionInfo = {
   fromIndex: null,
   amount: '0.11044456',
   fee: '0.0000832',
+  externalOutputs: [
+    {
+      'address': 'Lar9GoLtt8FwCJzahE8GnuTfNL8kQhkUFR',
+      'value': '0.11044456',
+    },
+  ],
+  inputUtxos: [
+    {
+      'txid': '9b64ee72b0674cdc44e9130a14c94719ec21997c9e9d3573ce956759a3bd6898',
+      'value': '8.26',
+      'vout': 0,
+    },
+  ],
   sequenceNumber: null,
   isExecuted: true,
   isConfirmed: true,
