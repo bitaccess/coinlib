@@ -46,6 +46,36 @@ describeAll('e2e testnet', () => {
     testsComplete = true
   })
 
+  describe('getTransactionInfo', () => {
+    const paymentsConfig: HdBitcoinPaymentsConfig = {
+      hdKey: secretXprv,
+      network: NetworkType.Testnet,
+      addressType: AddressType.SegwitNative,
+      logger,
+    }
+    const payments = new HdBitcoinPayments(paymentsConfig)
+
+    it('get multi output send', async () => {
+      const tx = await payments.getTransactionInfo('6b1fe4742fcf451b1db0723e10ec3b23f2cf87c3fbe6995d4159ef8ee6686d40')
+      expect(tx.amount).toBe('0.06')
+      expect(tx.externalOutputs).toEqual([
+        {
+          address: '2MzYfa3M3XECriE5TBzGyStWNZ9K79ZnCvL',
+          value: '0.03',
+        },
+        {
+          address: '2MuhoQzdBdNUYoyNxtbeSMUZdfmm6SvYBW8',
+          value: '0.03',
+        },
+      ])
+      expect(tx.inputUtxos).toEqual([{
+        txid: 'd9671e060bfb9e32c39116bcb3087884293c444c7f657a57ef532e5c9c20ec87',
+        vout: 1,
+        value: '0.12666496'
+      }])
+    })
+  })
+
   for (let addressType of addressTypesToTest) {
     const { xpub, addresses, sweepTxSize } = fixtures[addressType]
 
