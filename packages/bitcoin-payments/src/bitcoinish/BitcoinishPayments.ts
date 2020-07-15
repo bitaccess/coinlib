@@ -17,6 +17,7 @@ import {
   BaseConfig,
   MaybePromise,
   PayportOutput,
+  TransactionOutput,
 } from '@faast/payments-common'
 import { isUndefined, isType, Numeric, toBigNumber, assertType, isNumber } from '@faast/ts-common'
 import { get } from 'lodash'
@@ -35,7 +36,6 @@ import {
 } from './types'
 import { sumUtxoValue, sortUtxos, isConfirmedUtxo, sha256FromHex } from './utils'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
-import { TransactionOutput } from '../../../payments-common/src/types';
 import BigNumber from 'bignumber.js'
 
 export abstract class BitcoinishPayments<Config extends BaseConfig> extends BitcoinishPaymentsUtils
