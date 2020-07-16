@@ -1,10 +1,7 @@
 import { EthereumSignatory } from './types'
 import { pubToAddress } from 'ethereumjs-util'
-import { fromBase58, fromSeed } from 'bip32'
+import { fromBase58, fromSeed, BIP32Interface as HDNode } from 'bip32'
 import crypto from 'crypto'
-
-import { ec as EC } from 'elliptic'
-const ec = new EC('secp256k1')
 
 class EthereumBIP44 {
   static fromExtKey(xkey: string) {
@@ -16,8 +13,8 @@ class EthereumBIP44 {
   }
 
   private parts: string[]
-  key: any
-  constructor(hdKey: any) {
+  key: HDNode
+  constructor(hdKey: HDNode) {
     this.parts = [
       'm',
       "44'", // bip 44
