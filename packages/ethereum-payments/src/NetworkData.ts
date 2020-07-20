@@ -16,15 +16,12 @@ import {
 export class NetworkData {
   private gasStationUrl: string | undefined
   private parityUrl: string | undefined
-  private infuraUrl: string | undefined
   private eth: Eth
 
-  constructor(gasStationUrl: string = GAS_STATION_URL, parityUrl?: string, infuraUrl?: string) {
+  constructor(eth: Eth, gasStationUrl: string = GAS_STATION_URL, parityUrl?: string) {
+    this.eth = eth
     this.gasStationUrl = gasStationUrl
     this.parityUrl = parityUrl
-    this.infuraUrl = infuraUrl
-
-    this.eth = (new Web3(infuraUrl as provider)).eth
   }
 
   async getNetworkData(action: string, from: string, to: string, speed: string): Promise<{

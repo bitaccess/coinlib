@@ -33,7 +33,7 @@ describe('NetworkData', () => {
   const to = web3.eth.accounts.create().address
 
   test('getNetworkData default flow', async () => {
-    const networkData = new NetworkData(GAS_STATION_URL, PARITY_URL, INFURA_URL)
+    const networkData = new NetworkData(web3.eth, GAS_STATION_URL, PARITY_URL)
 
     nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
@@ -53,7 +53,7 @@ describe('NetworkData', () => {
   })
 
   test('getNetworkData fallback to defaults', async () => {
-    const networkData = new NetworkData(GAS_STATION_URL, PARITY_URL, INFURA_URL)
+    const networkData = new NetworkData(web3.eth, GAS_STATION_URL, PARITY_URL)
 
     // fail
     nockG.get('/json/ethgasAPI.json').reply(400)
@@ -83,7 +83,7 @@ describe('NetworkData', () => {
   })
 
   test('getNetworkData empty responses', async () => {
-    const networkData = new NetworkData(GAS_STATION_URL, PARITY_URL, INFURA_URL)
+    const networkData = new NetworkData(web3.eth, GAS_STATION_URL, PARITY_URL)
 
     // fail
     nockG.get('/json/ethgasAPI.json').reply(200, {
