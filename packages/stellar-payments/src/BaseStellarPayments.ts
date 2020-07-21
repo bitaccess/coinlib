@@ -546,7 +546,15 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       const existing = await this.getTransactionInfo(signedTx.id)
       rebroadcast = existing.id === signedTx.id
     } catch (e) {}
-    const result = await this._retryDced(() => this.getApi().submitTransaction(preparedTx))
+    let result: Stellar.Horizon.SubmitTransactionResponse
+    try {
+      result = await this._retryDced(() => this.getApi().submitTransaction(preparedTx))
+    } catch (e) {
+      if (isMatchingError(e, ['Request failed with status code'])) {
+        throw new Error(`submitTransaction failed: ${e.message} -- ${JSON.stringify((e.response || {}).data)}`)
+      }
+      throw e
+    }
     this.logger.debug('broadcasted', omitHidden(result))
     return {
       id: result.hash,
