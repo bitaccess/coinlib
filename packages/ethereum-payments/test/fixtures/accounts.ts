@@ -8,7 +8,7 @@ export const hdAccount = {
   },
   rootChild: {
     0: {
-      address: '0x1dcec4457f145ea1b2fa54b3c4f0a2d81d6a1c92',
+      address: '0x1dCec4457F145eA1B2FA54B3c4F0A2d81D6a1C92',
       keys: {
         prv: '0x2c1c7f79f455b25b0d687ea4d464f58844a3c2a7ffed1c02a3e224f94ff50517',
         pub: '02c5028014e9ee4344319396db6e3f66fc52fb17fb636ff138a6b51a7f419f037b',
@@ -19,7 +19,7 @@ export const hdAccount = {
       },
     },
     1: {
-      address: '0x8f0bb36577b19da9826fc726fec2b4943c45e014',
+      address: '0x8f0bb36577B19da9826fC726fEc2b4943c45e014',
       keys: {
         prv: '0x8195f08756bdb4324748d622fc821d9ddc34eb249fe152bba7e5b4539aff9cad',
         pub: '0383f4af96bfbb731d2ca34b6c0ce5136980f2fbcc87494b8f46d480f4108ea090',
@@ -32,7 +32,7 @@ export const hdAccount = {
   },
   child0ChildPub: {
     0: {
-      address: '0x8df37c35795e61e50ff27d869a12fdad57f726b7',
+      address: '0x8df37c35795E61E50FF27d869A12FDAD57F726b7',
       keys: {
         prv: '',
         pub: '024bba31f2d404d982281b2a736853ef539cf1bfa4c03fdf24cffb90c943340324',
@@ -45,7 +45,7 @@ export const hdAccount = {
   },
   child0Child: {
     0: {
-      address: '0x8df37c35795e61e50ff27d869a12fdad57f726b7',
+      address: '0x8df37c35795E61E50FF27d869A12FDAD57F726b7',
       keys: {
         prv: '0xc8d72c60a76d483538d68b5a12c827668c30e404078a10bf740763cdf002a94f',
         pub: '024bba31f2d404d982281b2a736853ef539cf1bfa4c03fdf24cffb90c943340324'
@@ -58,7 +58,7 @@ export const hdAccount = {
   },
   child1Child: {
     0: {
-      address: '0x3869bc1cc712642be41ac39c6adcbbca5c475732',
+      address: '0x3869bc1cc712642Be41Ac39c6ADcBBCA5C475732',
       keys: {
         prv: '0x3118f5a69f0889df1f89aa5f39eebfb77521bb5ce4cd64f7bb598aa7977cfa65',
         pub: '02027f388a13822220311b381a6691d118f9eacf2c46bbc3a028d87605337f91e7'
@@ -69,7 +69,7 @@ export const hdAccount = {
       }
     },
     1: {
-      address: '0xf7d2eac7b9e0f55ec49c892815e6355517bc63db',
+      address: '0xF7d2Eac7B9E0F55eC49C892815e6355517bc63dB',
       keys: {
         prv: '0xa184594ec6aeebc44399e4b21bbdf07910fd93a6c1566aed03b874858d9798ce',
         pub: '029d2c5266e33a2ab5dc542e48e43f7fa5f99e9708f5f265b6967a5e6a62a0d5c7'
@@ -82,7 +82,7 @@ export const hdAccount = {
   },
   child1ChildPub: {
     0: {
-      address: '0x3869bc1cc712642be41ac39c6adcbbca5c475732',
+      address: '0x3869bc1cc712642Be41Ac39c6ADcBBCA5C475732',
       keys: {
         prv: '',
         pub: '02027f388a13822220311b381a6691d118f9eacf2c46bbc3a028d87605337f91e7'
@@ -93,7 +93,7 @@ export const hdAccount = {
       }
     },
     1: {
-      address: '0xf7d2eac7b9e0f55ec49c892815e6355517bc63db',
+      address: '0xF7d2Eac7B9E0F55eC49C892815e6355517bc63dB',
       keys: {
         prv: '',
         pub: '029d2c5266e33a2ab5dc542e48e43f7fa5f99e9708f5f265b6967a5e6a62a0d5c7',

@@ -25,7 +25,7 @@ const factory = new EthereumPaymentsFactory()
 const source = hdAccount.child0Child[0]
 
 const tokenIssuer =  {
-  address: '0xfdc7c2aeba72d3f4689f995698ec44bcdfa854e8',
+  address: '0xFDc7C2aeba72D3F4689f995698eC44bcdfa854e8',
   keys: {
     prv: '0xfabbf3c5bffd9c3cebe86fb82ce7618026c59ce3ba6933bae00758e6ca22434c',
     pub: '03e1d562c90ab342dcc26b0c3edf1b197cfe39247d34790f7e37e7d45ebd0f2204'
@@ -37,7 +37,7 @@ const tokenIssuer =  {
 }
 
 const tokenDistributor = {
-  address: '0x01bb0fdded631a75f841e4b3c493d4dd345d5f7d',
+  address: '0x01bB0FddED631A75f841e4b3C493D4dd345D5f7D',
   keys: {
     prv: '0xb55f2052f607b60b59e07687649a8c738b595896c199d582e7db9b15ace79d9a',
     pub: '038bd304e7cc1aa621d63046ce009f15e1bdb8ec3b7cbc65e52917f5870ddb0208'
@@ -67,19 +67,19 @@ jest.setTimeout(100000)
 describe('end to end tests', () => {
   let ethNode: any
   beforeAll(async () => {
-  const ganacheConfig = {
-    accounts: [
-      {
-        balance: 0xde0b6b3a764000, // 1 ETH
-        secretKey: tokenDistributor.keys.prv
-      },
-      {
-        balance: 0xde0b6b3a764000, // 1 ETH
-        secretKey: source.keys.prv
-      },
-    ], gasLimit: '0x9849ef',// 9980399
-    callGasLimit: '0x9849ef',// 9980399
-  }
+    const ganacheConfig = {
+      accounts: [
+        {
+          balance: 0xde0b6b3a764000, // 1 ETH
+          secretKey: tokenDistributor.keys.prv
+        },
+        {
+          balance: 0xde0b6b3a764000, // 1 ETH
+          secretKey: source.keys.prv
+        },
+      ], gasLimit: '0x9849ef',// 9980399
+      callGasLimit: '0x9849ef',// 9980399
+    }
 
     ethNode = server.server(ganacheConfig)
     ethNode.listen(LOCAL_PORT)
@@ -147,7 +147,7 @@ describe('end to end tests', () => {
 
         expect(txInfo)
         const data: any = txInfo.data
-        expect(data.from).toEqual(address)
+        expect(data.from).toEqual(address.toLowerCase())
         depositAddresses.push(data.contractAddress)
 
         const { confirmedBalance } = await hd.getBalance(data.contractAddress)

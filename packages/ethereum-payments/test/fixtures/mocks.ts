@@ -137,7 +137,7 @@ function getNextNonceRequest(id: number, address: string): Object {
   return {
     jsonrpc: '2.0',
     method:'parity_nextNonce',
-    params: [address],
+    params: [address.toLowerCase()],
     id
   }
 }
@@ -155,7 +155,7 @@ function getBalanceRequest(id: number, address: string): Object {
     jsonrpc:'2.0',
     id,
     method:'eth_getBalance',
-    params: [address, 'latest'],
+    params: [address.toLowerCase(), 'latest'],
   }
 }
 
@@ -171,7 +171,7 @@ function getTransactionCountRequest(id: number, address: string): Object {
   return {
     jsonrpc:'2.0',
     method:'eth_getTransactionCount',
-    params: [address, 'pending'],
+    params: [address.toLowerCase(), 'pending'],
     id,
   }
 }

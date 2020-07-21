@@ -1,3 +1,5 @@
+import Web3 from 'web3'
+const web3 = new Web3()
 import { EthereumSignatory } from './types'
 import { pubToAddress } from 'ethereumjs-util'
 import { fromBase58, fromSeed } from 'bip32'
@@ -34,7 +36,7 @@ class EthereumBIP44 {
     const derived = this.deriveByIndex(index)
     let address = pubToAddress(derived.publicKey, true)
 
-    return `0x${address.toString('hex')}`
+    return web3.utils.toChecksumAddress(`0x${address.toString('hex')}`)
   }
 
   getPrivateKey(index?: number): string {

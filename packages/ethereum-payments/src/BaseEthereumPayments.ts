@@ -1,6 +1,7 @@
 import { BigNumber } from 'bignumber.js'
 import { Transaction as Tx } from 'ethereumjs-tx'
 import Web3 from 'web3'
+const web3 = new Web3()
 import { TransactionReceipt } from 'web3-core';
 import { Eth } from 'web3-eth'
 import { cloneDeep } from 'lodash'
@@ -82,7 +83,7 @@ implements BasePayments
       if (!await this.isValidAddress(payport)) {
         throw new Error(`Invalid Ethereum address: ${payport}`)
       }
-      return { address: payport }
+      return { address: web3.utils.toChecksumAddress(payport) }
     }
 
     if (!await this.isValidPayport(payport)) {
@@ -92,7 +93,8 @@ implements BasePayments
         throw new Error(`Invalid Ethereum payport: ${JSON.stringify(payport)}`)
       }
     }
-    return payport
+
+    return Object.assign({}, payport, { address: web3.utils.toChecksumAddress(payport.address)})
   }
 
   async resolveFromTo(from: number, to: ResolveablePayport): Promise<FromTo> {
@@ -247,8 +249,8 @@ implements BasePayments
     if (!txInfo) {
       txInfo = {
         transactionHash: tx.hash,
-        from: tx.from || '',
-        to: tx.to || '',
+        from: tx.from ? web3.utils.toChecksumAddress(tx.from) : '',
+        to: tx.to ? web3.utils.toChecksumAddress(tx.to) : '',
         status: true,
         blockNumber: 0,
         cumulativeGasUsed: 0,
@@ -262,8 +264,8 @@ implements BasePayments
       return {
         id: txid,
         amount: this.toMainDenomination(tx.value),
-        toAddress: tx.to,
-        fromAddress: tx.from,
+        toAddress: tx.to ? web3.utils.toChecksumAddress(tx.to) : null,
+        fromAddress: tx.from ? web3.utils.toChecksumAddress(tx.from) : null,
         toExtraId: null,
         fromIndex: null,
         toIndex: null,
@@ -309,8 +311,8 @@ implements BasePayments
     return {
       id: txid,
       amount: this.toMainDenomination(tx.value),
-      toAddress: tx.to,
-      fromAddress: tx.from,
+      toAddress: tx.to ? web3.utils.toChecksumAddress(tx.to) : null,
+      fromAddress: tx.from ? web3.utils.toChecksumAddress(tx.from) : null,
       toExtraId: null,
       fromIndex: null,
       toIndex: null,

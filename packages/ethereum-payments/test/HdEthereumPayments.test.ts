@@ -253,7 +253,7 @@ describe('HdEthereumPayments', () => {
         const transactionCountMocks = getTransactionCountMocks(2, FROM_ADDRESS, '0x1a')
         nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
-        expect(await hdEP.getNextSequenceNumber(FROM_ADDRESS)).toBe('27')
+        expect(await hdEP.getNextSequenceNumber(FROM_ADDRESS)).toBe('26')
       })
     })
 
@@ -273,10 +273,6 @@ describe('HdEthereumPayments', () => {
         nockI.post(/.*/, mockTransactionReceipt.req).reply(200, mockTransactionReceipt.res)
 
         const res = await hdEP.getTransactionInfo(txId)
-        res.toAddress = res.toAddress.toLowerCase()
-        res.data.to = res.data.to.toLowerCase()
-        res.fromAddress = res.fromAddress.toLowerCase()
-        res.data.from = res.data.from.toLowerCase()
 
         expect(res).toStrictEqual({
           id: txId,
@@ -336,10 +332,6 @@ describe('HdEthereumPayments', () => {
         nockI.post(/.*/, mockBlockByNumber.req).reply(200, mockBlockByNumber.res)
 
         const res = await hdEP.getTransactionInfo(txId)
-        res.toAddress = res.toAddress.toLowerCase()
-        res.data.to = res.data.to.toLowerCase()
-        res.fromAddress = res.fromAddress.toLowerCase()
-        res.data.from = res.data.from.toLowerCase()
 
         expect(res).toStrictEqual({
           id: txId,
@@ -399,10 +391,6 @@ describe('HdEthereumPayments', () => {
         nockI.post(/.*/, mockBlockByNumber.req).reply(200, mockBlockByNumber.res)
 
         const res = await hdEP.getTransactionInfo(txId)
-        res.toAddress = res.toAddress.toLowerCase()
-        res.data.to = res.data.to.toLowerCase()
-        res.fromAddress = res.fromAddress.toLowerCase()
-        res.data.from = res.data.from.toLowerCase()
 
         expect(res).toStrictEqual({
           id: txId,
@@ -462,10 +450,6 @@ describe('HdEthereumPayments', () => {
         })
 
         const res = await hdEP.getTransactionInfo(txId)
-        res.toAddress = res.toAddress.toLowerCase()
-        res.data.to = res.data.to.toLowerCase()
-        res.fromAddress = res.fromAddress.toLowerCase()
-        res.data.from = res.data.from.toLowerCase()
 
         expect(res).toStrictEqual({
           id: txId,
@@ -548,14 +532,14 @@ describe('HdEthereumPayments', () => {
           targetFeeLevel: 'medium',
           targetFeeRate: '3000000000',
           targetFeeRateType: 'base/weight',
-          sequenceNumber: '27',
+          sequenceNumber: '26',
           data: {
             from: FROM_ADDRESS,
             to: TO_ADDRESS,
             value: '0x11c37937e08000',
             gas: '0xc350',
             gasPrice: '0xb2d05e00',
-            nonce: '0x1b'
+            nonce: '0x1a'
           }
         })
 
@@ -640,14 +624,14 @@ describe('HdEthereumPayments', () => {
           targetFeeLevel: 'medium',
           targetFeeRate: '3000000000',
           targetFeeRateType: 'base/weight',
-          sequenceNumber: '27',
+          sequenceNumber: '26',
           data: {
             from: FROM_ADDRESS,
             to: to.address,
             value: '0x1f955d1afcee972',
             gas: '0x7c1a',
             gasPrice: '0xb2d05e00',
-            nonce: '0x1b'
+            nonce: '0x1a'
           }
         })
 
