@@ -27,7 +27,7 @@ describe('NetworkData', () => {
   const nockI = nock(INFURA_URL)
 
   const Web3 = require('web3')
-  const web3 = new Web3()
+  const web3 = new Web3(INFURA_URL)
 
   const from = web3.eth.accounts.create().address
   const to = web3.eth.accounts.create().address
