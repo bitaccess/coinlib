@@ -61,7 +61,7 @@ implements BasePayments
 
     this.config = config
     this.eth = (new (Web3 as any )(config.fullNode, null, { transactionConfirmationBlocks: MIN_CONFIRMATIONS })).eth
-    this.gasStation = new NetworkData(config.gasStation, config.parityNode, config.fullNode)
+    this.gasStation = new NetworkData(this.eth, config.gasStation, config.parityNode)
     this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
   }
 
