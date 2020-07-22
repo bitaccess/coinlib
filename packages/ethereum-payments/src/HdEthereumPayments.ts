@@ -3,6 +3,7 @@ import { HdEthereumPaymentsConfig, EthereumSignatory } from './types'
 import { deriveSignatory } from './bip44'
 import { Payport } from '@faast/payments-common'
 import { omit } from 'lodash'
+import { PUBLIC_CONFIG_OMIT_FIELDS } from './constants'
 
 export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsConfig> {
   readonly xprv: string | null
@@ -36,7 +37,7 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
 
   getPublicConfig(): HdEthereumPaymentsConfig {
     return {
-      ...omit(this.getFullConfig(), ['hdKey', 'logger', 'fullNode', 'solidityNode', 'eventServer']),
+      ...omit(this.getFullConfig(), PUBLIC_CONFIG_OMIT_FIELDS),
       depositKeyIndex: this.depositKeyIndex,
       hdKey: this.getXpub(),
     }

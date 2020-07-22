@@ -55,6 +55,7 @@ export const BaseEthereumPaymentsConfig = extendCodec(
     name: OptionalString,
     decimals: t.number,
     depositKeyIndex: OptionalNumber,
+    providerOptions: t.any,
   },
   'BaseEthereumPaymentsConfig',
 )

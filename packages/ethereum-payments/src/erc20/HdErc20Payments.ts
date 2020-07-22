@@ -1,4 +1,4 @@
-import { HdEthereumPayments } from '..'
+import { PUBLIC_CONFIG_OMIT_FIELDS } from '../constants'
 import { BaseErc20Payments } from './BaseErc20Payments'
 
 import { deriveSignatory } from '../bip44'
@@ -37,7 +37,7 @@ export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
 
   getPublicConfig(): HdErc20PaymentsConfig {
     return {
-      ...omit(this.getFullConfig(), ['hdKey', 'logger', 'fullNode', 'solidityNode', 'eventServer']),
+      ...omit(this.getFullConfig(), PUBLIC_CONFIG_OMIT_FIELDS),
       tokenAddress: this.tokenAddress,
       depositKeyIndex: this.depositKeyIndex,
       hdKey: this.getXpub(),

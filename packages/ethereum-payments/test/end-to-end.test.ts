@@ -13,6 +13,7 @@ import { hdAccount } from './fixtures/accounts'
 import { deriveSignatory } from '../src/bip44'
 
 const LOCAL_NODE = 'http://localhost'
+const LOCAL_NODE_WS = 'ws://localhost'
 const LOCAL_PORT = 8545
 
 const logger = new TestLogger('HdEthereumPaymentsTest')
@@ -38,6 +39,7 @@ describe('end to end tests', () => {
   let ethNode: any
   beforeAll(async () => {
   const ganacheConfig = {
+    ws: true,
     accounts: [
       {
         balance: 0xde0b6b3a7640000, // 1 ETH
@@ -57,6 +59,17 @@ describe('end to end tests', () => {
 
   afterAll(() => {
     ethNode.close()
+  })
+
+  describe('HD payments via websocket', () => {
+    test('can instantiate and get balance', async () => {
+      const payments = factory.forConfig({
+        ...HD_CONFIG,
+        fullNode: `${LOCAL_NODE_WS}:${LOCAL_PORT}`,
+      })
+      const balances = await payments.getBalance({ address: source.address })
+      expect(balances.confirmedBalance).toBe('1')
+    })
   })
 
 

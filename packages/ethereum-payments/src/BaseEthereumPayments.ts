@@ -1,8 +1,7 @@
 import { BigNumber } from 'bignumber.js'
 import { Transaction as Tx } from 'ethereumjs-tx'
 import Web3 from 'web3'
-import { TransactionReceipt } from 'web3-core';
-import { Eth } from 'web3-eth'
+import type { TransactionReceipt, provider as Web3Provider } from 'web3-core'
 import { cloneDeep } from 'lodash'
 import {
   BalanceResult,
@@ -51,7 +50,9 @@ export abstract class BaseEthereumPayments
   extends EthereumPaymentsUtils
 implements BasePayments
   <Config, EthereumUnsignedTransaction, EthereumSignedTransaction, EthereumBroadcastResult, EthereumTransactionInfo> {
-  eth: Eth
+  server: string | null
+  api: Web3
+  eth: Web3['eth']
   gasStation: NetworkData
   private config: Config
   private toChecksumAddress: Function
@@ -60,13 +61,23 @@ implements BasePayments
   constructor(config: Config) {
     super(config)
 
-    const web3 = (new (Web3 as any )(config.fullNode, null, { transactionConfirmationBlocks: MIN_CONFIRMATIONS }))
-
     this.config = config
-    this.eth = web3.eth
+    this.server = config.fullNode || null
+    let provider: Web3Provider
+    if (this.server === null) {
+      provider = null
+    } else if (this.server.startsWith('http')) {
+      provider = new Web3.providers.HttpProvider(this.server, config.providerOptions)
+    } else if (this.server.startsWith('ws')) {
+      provider = new Web3.providers.WebsocketProvider(this.server, config.providerOptions)
+    } else {
+      throw new Error(`Invalid ethereum payments fullNode, must start with http or ws: ${this.server}`)
+    }
+    this.api = new Web3(provider)
+    this.eth = this.api.eth
     this.gasStation = new NetworkData(this.eth, config.gasStation, config.parityNode)
     this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
-    this.toChecksumAddress = web3.utils.toChecksumAddress
+    this.toChecksumAddress = this.api.utils.toChecksumAddress
   }
 
   async init() {}

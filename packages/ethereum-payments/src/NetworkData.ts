@@ -1,8 +1,8 @@
 import * as request from 'request-promise-native'
 import { BigNumber } from 'bignumber.js'
 import Web3 from 'web3'
-import { provider } from 'web3-core'
-import { Eth } from 'web3-eth'
+
+type Eth = Web3['eth']
 
 import {
   DEFAULT_GAS_PRICE_IN_WEI,
