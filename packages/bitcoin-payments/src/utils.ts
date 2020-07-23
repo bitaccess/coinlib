@@ -72,7 +72,7 @@ export async function getBlockcypherFeeEstimate(feeLevel: FeeLevel, networkType:
 }
 
 // assumes compressed pubkeys in all cases.
-const ADDRESS_INPUT_WEIGHTS: { [k in AddressType]: number } = {
+export const ADDRESS_INPUT_WEIGHTS: { [k in AddressType]: number } = {
   [AddressType.Legacy]: 148 * 4,
   [AddressType.SegwitP2SH]: 108 + (64 * 4),
   [AddressType.SegwitNative]: 108 + (41 * 4),
@@ -81,7 +81,7 @@ const ADDRESS_INPUT_WEIGHTS: { [k in AddressType]: number } = {
   [AddressType.MultisigSegwitNative]: 6 + (41 * 4),
 }
 
-const ADDRESS_OUTPUT_WEIGHTS: { [k in AddressType]: number } = {
+export const ADDRESS_OUTPUT_WEIGHTS: { [k in AddressType]: number } = {
   [AddressType.Legacy]: 34 * 4,
   [AddressType.SegwitP2SH]: 32 * 4,
   [AddressType.SegwitNative]: 31 * 4,
