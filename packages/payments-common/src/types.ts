@@ -65,11 +65,11 @@ export enum FeeLevel {
 }
 export const FeeLevelT = enumCodec<FeeLevel>(FeeLevel, 'FeeLevel')
 
-export const AutoFeeLevels = t.keyof({
-  [FeeLevel.Low]: null,
-  [FeeLevel.Medium]: null,
-  [FeeLevel.High]: null,
-}, 'AutoFeeLevels')
+export const AutoFeeLevels = t.union([
+  t.literal(FeeLevel.Low),
+  t.literal(FeeLevel.Medium),
+  t.literal(FeeLevel.High),
+], 'AutoFeeLevels')
 export type AutoFeeLevels = t.TypeOf<typeof AutoFeeLevels>
 
 export enum FeeRateType {
