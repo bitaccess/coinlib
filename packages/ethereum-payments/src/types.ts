@@ -4,7 +4,7 @@ import {
   Logger,
   nullable,
   Numeric,
-  optional
+  optional,
 } from '@faast/ts-common'
 import {
   BaseTransactionInfo,
@@ -56,6 +56,7 @@ export const BaseEthereumPaymentsConfig = extendCodec(
     decimals: t.number,
     depositKeyIndex: OptionalNumber,
     providerOptions: t.any,
+    web3: t.any,
   },
   'BaseEthereumPaymentsConfig',
 )

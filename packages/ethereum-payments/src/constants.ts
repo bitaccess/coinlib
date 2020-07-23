@@ -49,4 +49,4 @@ export const TOKEN_METHODS_ABI = JSON.parse(
 
 export const DEPOSIT_KEY_INDEX = 2
 
-export const PUBLIC_CONFIG_OMIT_FIELDS = ['logger', 'fullNode', 'solidityNode', 'eventServer', 'keyPairs', 'hdKey', 'providerOptions']
+export const PUBLIC_CONFIG_OMIT_FIELDS = ['logger', 'fullNode', 'solidityNode', 'eventServer', 'keyPairs', 'hdKey', 'providerOptions', 'web3']

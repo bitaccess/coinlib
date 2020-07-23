@@ -20,7 +20,7 @@ import {
   NetworkType,
   PayportOutput,
 } from '@faast/payments-common'
-import { isType, isString } from '@faast/ts-common'
+import { isType, isString, isUndefined, isNull } from '@faast/ts-common'
 
 import {
   EthereumTransactionInfo,
@@ -51,7 +51,7 @@ export abstract class BaseEthereumPayments
 implements BasePayments
   <Config, EthereumUnsignedTransaction, EthereumSignedTransaction, EthereumBroadcastResult, EthereumTransactionInfo> {
   server: string | null
-  api: Web3
+  web3: Web3
   eth: Web3['eth']
   gasStation: NetworkData
   private config: Config
@@ -63,21 +63,21 @@ implements BasePayments
 
     this.config = config
     this.server = config.fullNode || null
-    let provider: Web3Provider
-    if (this.server === null) {
-      provider = null
+    if (config.web3) {
+      this.web3 = config.web3
+    } else if (isNull(this.server)) {
+      this.web3 = new Web3()
     } else if (this.server.startsWith('http')) {
-      provider = new Web3.providers.HttpProvider(this.server, config.providerOptions)
+      this.web3 = new Web3(new Web3.providers.HttpProvider(this.server, config.providerOptions))
     } else if (this.server.startsWith('ws')) {
-      provider = new Web3.providers.WebsocketProvider(this.server, config.providerOptions)
+      this.web3 = new Web3(new Web3.providers.WebsocketProvider(this.server, config.providerOptions))
     } else {
       throw new Error(`Invalid ethereum payments fullNode, must start with http or ws: ${this.server}`)
     }
-    this.api = new Web3(provider)
-    this.eth = this.api.eth
+    this.eth = this.web3.eth
     this.gasStation = new NetworkData(this.eth, config.gasStation, config.parityNode)
     this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
-    this.toChecksumAddress = this.api.utils.toChecksumAddress
+    this.toChecksumAddress = this.web3.utils.toChecksumAddress
   }
 
   async init() {}
