@@ -347,7 +347,7 @@ describe('HdEthereumPayments', () => {
           isConfirmed: true,
           confirmations: 1,
           confirmationId: blockId,
-          confirmationTimestamp: new Date('1970-01-17T13:01:27.689Z'),
+          confirmationTimestamp: new Date('2015-04-17T16:21:29.000Z'),
           status: 'confirmed',
           currentBlockNumber: 4,
           data: {
@@ -406,7 +406,7 @@ describe('HdEthereumPayments', () => {
           isConfirmed: true,
           confirmations: 1,
           confirmationId: blockId,
-          confirmationTimestamp: new Date('1970-01-17T13:01:27.689Z'),
+          confirmationTimestamp: new Date('2015-04-17T16:21:29.000Z'),
           status: 'failed',
           currentBlockNumber: 4,
           data: {

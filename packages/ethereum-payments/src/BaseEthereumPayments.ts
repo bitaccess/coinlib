@@ -300,7 +300,6 @@ implements BasePayments
       }
     }
 
-    let txBlock: any = null
     let isConfirmed = false
     let confirmationTimestamp: Date | null = null
     let confirmations = 0
@@ -308,8 +307,8 @@ implements BasePayments
       confirmations = currentBlockNumber - tx.blockNumber
       if (confirmations > minConfirmations) {
         isConfirmed = true
-        txBlock = await this.eth.getBlock(tx.blockNumber)
-        confirmationTimestamp = new Date(txBlock.timestamp)
+        const txBlock = await this.eth.getBlock(tx.blockNumber)
+        confirmationTimestamp = new Date(Number(txBlock.timestamp) * 1000)
       }
     }
 
