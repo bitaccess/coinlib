@@ -1,4 +1,4 @@
-import { TransactionStatus, BalanceActivity, NetworkType, GetBalanceActivityOptions } from '@faast/payments-common'
+import { TransactionStatus, BalanceActivity, NetworkType, GetBalanceActivityOptions, FeeLevel, FeeRateType } from '@faast/payments-common'
 import BigNumber from 'bignumber.js'
 import { sortBy } from 'lodash'
 import StellarHD from 'stellar-hd-wallet'
@@ -134,6 +134,32 @@ describe('e2e', () => {
       const { spendableBalance } = await payments.getBalance(0)
       const tx = await payments.createSweepTransaction(0, UNACTIVATED_ADDRESS)
       expect(new BigNumber(tx.amount).plus(tx.fee).toString()).toBe(spendableBalance)
+    })
+  })
+
+  describe('broadcastTransaction', () => {
+    it('handles request errors', async () => {
+      await expect(payments.broadcastTransaction({
+        id: '',
+        fee: '0.00001',
+        data: {
+          serializedTx: 'AAAAALnz8HxfXnQ9n5RzXR4+NHTDWl/lkVxF8zxoFV5YmwfcAAAAZAHD52IAAAASAAAAAQAAAAAAAAAAAAAAAF8XIkIAAAABAAAACjEwNjIzMDk1ODMAAAAAAAEAAAAAAAAAAQAAAAAOr5CG1ax6qG2fBEgXJlF0sw5W0irOS6N/NRDbavBm4QAAAAAAAAACXm1iWgAAAAAAAAABWJsH3AAAAEDya9FtoZGghZ4T0GXIE2n+AfqqazClXVCssXjEP7UdG/xioZTZgNyhIOsI84G6frcGxK7e9F++L09XvoiV/E0F'
+        },
+        amount: '1017.4161498',
+        status: TransactionStatus.Signed,
+        toIndex: null,
+        fromIndex: 48,
+        toAddress: 'GAHK7EEG2WWHVKDNT4CEQFZGKF2LGDSW2IVM4S5DP42RBW3K6BTODB4A',
+        toExtraId: '1062309583',
+        fromAddress: 'GC47H4D4L5PHIPM7SRZV2HR6GR2MGWS74WIVYRPTHRUBKXSYTMD5YUF2',
+        fromExtraId: '48',
+        targetFeeRate: '0.00001',
+        sequenceNumber: '127199622589317138',
+        targetFeeLevel: FeeLevel.Custom,
+        targetFeeRateType: FeeRateType.Main,
+      })).rejects.toThrow(
+        'submitTransaction failed: Request failed with status code 400 -- {\"type\":\"https://stellar.org/horizon-errors/transaction_failed\"'
+      )
     })
   })
 
