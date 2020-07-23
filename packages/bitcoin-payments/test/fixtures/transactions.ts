@@ -49,7 +49,6 @@ export const txInfo_beae1: BitcoinTransactionInfo = {
       {
         'value': '11737655',
         'n': 1,
-        'spent': true,
         'hex': '0014e836775cf01e909354bb68451779e2a9ccdbbc22',
         'addresses': [
           'bc1qaqm8wh8sr6gfx49mdpz3w70z48xdh0pzlf5kgr'

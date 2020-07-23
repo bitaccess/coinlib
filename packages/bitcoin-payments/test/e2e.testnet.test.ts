@@ -10,8 +10,9 @@ import {
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 import fixtures from './fixtures/singlesigTestnet'
-import { HdBitcoinPaymentsConfig } from '../src/types';
+import { HdBitcoinPaymentsConfig } from '../src/types'
 import BigNumber from 'bignumber.js';
+import { ADDRESS_INPUT_WEIGHTS } from '../src/utils'
 
 const SECRET_XPRV_FILE = 'test/keys/testnet.key'
 
@@ -161,11 +162,19 @@ describeAll('e2e testnet', () => {
         })
         const signedTx = await payments.signTransaction(unsignedTx)
         expect(signedTx.inputUtxos).toBeDefined()
-        expect(signedTx.inputUtxos!.length).toBe(1)
+        const inputCount = signedTx.inputUtxos!.length
+        expect(inputCount).toBeGreaterThanOrEqual(1)
         expect(signedTx.externalOutputs).toBeDefined()
         expect(signedTx.externalOutputs!.length).toBe(1)
         const feeNumber = new BigNumber(signedTx.fee).toNumber()
-        expect(feeNumber).toBe((sweepTxSize*satPerByte)*1e-8)
+
+        const extraInputs = inputCount - 1
+        let expectedTxSize = sweepTxSize
+        if (extraInputs) {
+          expectedTxSize += (extraInputs * ADDRESS_INPUT_WEIGHTS[addressType]) / 4
+        }
+
+        expect(feeNumber).toBe((expectedTxSize*satPerByte)*1e-8)
         logger.log(`Sweeping ${signedTx.amount} from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
         expect(await payments.broadcastTransaction(signedTx)).toEqual({
           id: signedTx.id,

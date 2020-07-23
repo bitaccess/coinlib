@@ -228,8 +228,6 @@ describe('e2e', () => {
     return result
   }
 
-  jest.setTimeout(300 * 1000)
-
   let sweepTxPromise: Promise<StellarTransactionInfo>
   let sendTxPromise: Promise<StellarTransactionInfo>
   let sendFreshTxPromise: Promise<StellarTransactionInfo>
@@ -251,7 +249,7 @@ describe('e2e', () => {
     const fee = new BigNumber(tx.fee)
     const sendTotal = amount.plus(fee)
     expect(sendTotal.toString()).toEqual(payportBalance)
-  })
+  }, 300 * 1000)
 
   it('end to end send', async () => {
     const sourceIndex = 0
@@ -269,7 +267,7 @@ describe('e2e', () => {
     expect(tx.amount).toEqual(sendAmount)
     const fee = new BigNumber(tx.fee)
     expect(fee.toNumber()).toBeGreaterThan(0)
-  })
+  }, 300 * 1000)
 
   it('end to end send to fresh address', async () => {
     const sourceIndex = 0
@@ -287,7 +285,7 @@ describe('e2e', () => {
     expect(tx.amount).toEqual(sendAmount)
     const fee = new BigNumber(tx.fee)
     expect(fee.toNumber()).toBeGreaterThan(0)
-  })
+  }, 300 * 1000)
 
   function getExpectedActivitySequence(tx: StellarTransactionInfo, type: 'out' | 'in'): string {
     return `${padLeft((tx.confirmationNumber || 0).toString(), 12, '0')}.${padLeft((tx.confirmationTimestamp as Date).getTime().toString(), 18, '0')}.${type === 'out' ? '00' : '01'}`
@@ -384,10 +382,8 @@ describe('e2e', () => {
     expect(normalize(actual)).toEqual(normalize(expected))
   }
 
-  jest.setTimeout(30 * 1000)
-
   describe('StellarBalanceMonitor', () => {
-    it('should emit expected balance activities', async () => {
+    it.skip('should emit expected balance activities', async () => {
       const hotActivity = await getExpectedHotActivities()
       const depositActivity = await getExpectedDepositActivities()
       expectBalanceActivities(emittedBalanceActivities, hotActivity.concat(depositActivity))
