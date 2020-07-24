@@ -87,6 +87,7 @@
     "io-ts": "^1.10.4",
     "lodash": "^4.17.15",
     "request-promise-native": "^1.0.8",
-    "web3": "^1.2.11"
+    "web3": "^1.2.11",
+    "web3-eth-contract": "^1.2.11"
   }
 }

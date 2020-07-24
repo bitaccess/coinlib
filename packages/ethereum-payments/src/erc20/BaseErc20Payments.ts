@@ -1,6 +1,7 @@
 import InputDataDecoder from 'ethereum-input-data-decoder'
 import { BigNumber } from 'bignumber.js'
 import type { TransactionReceipt } from 'web3-core'
+import Contract from 'web3-eth-contract'
 import {
   BalanceResult,
   TransactionStatus,
@@ -37,7 +38,6 @@ import {
   DECIMAL_PLACES,
 } from '../constants'
 import { BaseEthereumPayments } from '../BaseEthereumPayments'
-import { EthereumPaymentsUtils } from '../EthereumPaymentsUtils'
 
 export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig> extends BaseEthereumPayments<Config> {
   public tokenAddress: string
@@ -50,9 +50,15 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
   }
 
+  private newContract(...args: ConstructorParameters<typeof Contract>) {
+    const contract = new Contract(...args)
+    contract.setProvider(this.eth.currentProvider)
+    return contract
+  }
+
   async getBalance(resolveablePayport: ResolveablePayport): Promise<BalanceResult> {
     const payport = await this.resolvePayport(resolveablePayport)
-    const contract = new this.eth.Contract(TOKEN_METHODS_ABI, this.tokenAddress)
+    const contract = this.newContract(TOKEN_METHODS_ABI, this.tokenAddress)
     const balance = await contract.methods.balanceOf(payport.address).call({})
 
     const sweepable = await this.isSweepableBalance(this.toMainDenomination(balance))
@@ -106,7 +112,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       throw new Error(`Insufficient ETH balance (${this.toMainDenominationEth(ethBalance)}) to pay transaction fee of ${feeOption.feeMain}`)
     }
 
-    const contract = new this.eth.Contract(TOKEN_METHODS_ABI, this.tokenAddress)
+    const contract = this.newContract(TOKEN_METHODS_ABI, this.tokenAddress)
     const transactionObject = {
       from:     fromTo.fromAddress,
       to:       this.tokenAddress,
@@ -184,7 +190,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     }
 
     const nonce = options.sequenceNumber || await this.getNextSequenceNumber(ownerAddress)
-    const contract = new this.eth.Contract(TOKEN_WALLET_ABI, fromTo.fromAddress)
+    const contract = this.newContract(TOKEN_WALLET_ABI, fromTo.fromAddress)
     const transactionObject = {
       nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
       to:       fromTo.fromAddress,
