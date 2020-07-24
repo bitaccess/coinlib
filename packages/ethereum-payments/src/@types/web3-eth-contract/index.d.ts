@@ -46,13 +46,11 @@ declare module 'web3-eth-contract' {
 
       events: any;
 
-      getPastEvents(event: string): Promise<EventData[]>;
       getPastEvents(
           event: string,
-          options: PastEventOptions,
-          callback: (error: Error, event: EventData) => void
+          options?: PastEventOptions,
+          callback?: (error: Error, event: EventData) => void
       ): Promise<EventData[]>;
-      getPastEvents(event: string, options: PastEventOptions): Promise<EventData[]>;
       getPastEvents(
           event: string,
           callback: (error: Error, event: EventData) => void
@@ -81,20 +79,11 @@ declare module 'web3-eth-contract' {
       ): Promise<any>;
 
       estimateGas(
-          options: EstimateGasOptions,
+          options?: EstimateGasOptions,
           callback?: (err: Error, gas: number) => void
       ): Promise<number>;
 
       estimateGas(callback: (err: Error, gas: number) => void): Promise<number>;
-
-      estimateGas(
-          options: EstimateGasOptions,
-          callback: (err: Error, gas: number) => void
-      ): Promise<number>;
-
-      estimateGas(options: EstimateGasOptions): Promise<number>;
-
-      estimateGas(): Promise<number>;
 
       encodeABI(): string;
   }
