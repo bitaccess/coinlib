@@ -8,12 +8,9 @@ import {
 
 import { TestLogger } from '../../../../common/testUtils'
 
-import EthereumPaymentsFactory from '../../src/EthereumPaymentsFactory'
-import { HdErc20PaymentsConfig } from '../../src/types'
 import { hdAccount } from '../fixtures/accounts'
-import { deriveSignatory } from '../../src/bip44'
-import { HdEthereumPayments } from '../../src/HdEthereumPayments'
-import { CONTRACT_JSON, CONTRACT_GAS, TOKEN_ABI } from './fixtures/abi'
+import { HdEthereumPayments, HdErc20Payments, HdErc20PaymentsConfig, EthereumPaymentsFactory } from '../../src'
+import { CONTRACT_JSON, CONTRACT_GAS, CONTRACT_BYTECODE } from './fixtures/abi'
 
 const LOCAL_NODE = 'http://localhost'
 const LOCAL_PORT = 8545
@@ -50,7 +47,20 @@ const tokenDistributor = {
 
 const target = { address: '0x62b72782415394f1518da5ec4de6c4c49b7bf854'} // payport 1
 
-let hd: any
+let TOKEN_CONFIG = {
+  network: NetworkType.Testnet,
+  fullNode: `${LOCAL_NODE}:${LOCAL_PORT}`,
+  parityNoe: 'none',
+  gasStation: 'none',
+  hdKey: tokenIssuer.xkeys.xprv,//hdAccount.root.KEYS.xprv,
+  logger,
+  abi: CONTRACT_JSON,
+  tokenAddress: '',
+  decimals: 7,
+  depositKeyIndex: 0,
+}
+
+let hd: HdErc20Payments
 let HD_CONFIG = {
   network: NetworkType.Testnet,
   fullNode: `${LOCAL_NODE}:${LOCAL_PORT}`,
@@ -83,50 +93,6 @@ describe('end to end tests', () => {
 
     ethNode = server.server(ganacheConfig)
     ethNode.listen(LOCAL_PORT)
-
-    let TOKEN_CONFIG = {
-      network: NetworkType.Testnet,
-      fullNode: `${LOCAL_NODE}:${LOCAL_PORT}`,
-      parityNoe: 'none',
-      gasStation: 'none',
-      hdKey: tokenIssuer.xkeys.xprv,//hdAccount.root.KEYS.xprv,
-      logger,
-      abi: CONTRACT_JSON,
-      tokenAddress: '',
-      decimals: 7,
-      depositKeyIndex: 0,
-    }
-
-    let ethereumHD = new HdEthereumPayments(TOKEN_CONFIG)
-
-    // deploy contract
-    // default to 0 (depositKeyIndex) is source.address
-    const unsignedContractDeploy = await ethereumHD.createServiceTransaction(undefined, { data: TOKEN_ABI, gas: CONTRACT_GAS })
-    const signedContractDeploy = await ethereumHD.signTransaction(unsignedContractDeploy)
-    const deployedContract = await ethereumHD.broadcastTransaction(signedContractDeploy)
-    const contractInfo = await ethereumHD.getTransactionInfo(deployedContract.id)
-    const data: any = contractInfo.data
-    const contractAddress = data.contractAddress
-
-    // send funds from distribution account to hd
-    const tokenHD = factory.forConfig({
-      ...TOKEN_CONFIG,
-      tokenAddress: contractAddress,
-    } as HdErc20PaymentsConfig)
-
-    const unsignedTx = await tokenHD.createTransaction(0, { address: source.address }, '6500000000')
-    const signedTx = await tokenHD.signTransaction(unsignedTx)
-    const broadcastedTx = await tokenHD.broadcastTransaction(signedTx)
-
-    HD_CONFIG.tokenAddress = contractAddress
-    hd = factory.forConfig(HD_CONFIG as HdErc20PaymentsConfig)
-
-    const { confirmedBalance: confirmedDistributorBalance } = await hd.getBalance(tokenDistributor.address)
-    // leftovers after tx
-    expect(confirmedDistributorBalance).toEqual('500000000')
-    // source is 0
-    const { confirmedBalance: confirmedSourceBalance } = await hd.getBalance(source.address)
-    expect(confirmedSourceBalance).toEqual('6500000000')
   })
 
   afterAll(() => {
@@ -135,6 +101,39 @@ describe('end to end tests', () => {
 
 
   describe('HD payments', () => {
+
+    test('deploy erc20 contract and send funds from distribution account to hd', async () => {
+      let ethereumHD = new HdEthereumPayments(TOKEN_CONFIG)
+
+      // deploy erc20 contract
+      // default to 0 (depositKeyIndex) is source.address
+      const unsignedContractDeploy = await ethereumHD.createServiceTransaction(undefined, { data: CONTRACT_BYTECODE, gas: CONTRACT_GAS })
+      const signedContractDeploy = await ethereumHD.signTransaction(unsignedContractDeploy)
+      const deployedContract = await ethereumHD.broadcastTransaction(signedContractDeploy)
+      const contractInfo = await ethereumHD.getTransactionInfo(deployedContract.id)
+      const data: any = contractInfo.data
+      const contractAddress = data.contractAddress
+
+      const tokenHD = factory.forConfig({
+        ...TOKEN_CONFIG,
+        tokenAddress: contractAddress,
+      } as HdErc20PaymentsConfig)
+
+      const unsignedTx = await tokenHD.createTransaction(0, { address: source.address }, '6500000000')
+      const signedTx = await tokenHD.signTransaction(unsignedTx)
+      const broadcastedTx = await tokenHD.broadcastTransaction(signedTx)
+
+      HD_CONFIG.tokenAddress = contractAddress
+      hd = factory.forConfig(HD_CONFIG as HdErc20PaymentsConfig)
+
+      const { confirmedBalance: confirmedDistributorBalance } = await hd.getBalance(tokenDistributor.address)
+      // leftovers after tx
+      expect(confirmedDistributorBalance).toEqual('500000000')
+      // source is 0
+      const { confirmedBalance: confirmedSourceBalance } = await hd.getBalance(source.address)
+      expect(confirmedSourceBalance).toEqual('6500000000')
+    })
+
     let depositAddresses: Array<string> = []
     test('DeployDepositAddress payments', async () => {
       for (let i = 0; i < 10; i++) {
