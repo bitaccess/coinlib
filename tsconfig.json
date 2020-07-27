@@ -2,7 +2,7 @@
   "extends": "./tsconfig.build.json",
   "compilerOptions": {
     "module": "es6",
-    "target": "es2020",
+    "target": "es2019",
     "strict": true,
     "paths": {
       "@faast/ts-common": ["node_modules/@faast/ts-common"],
