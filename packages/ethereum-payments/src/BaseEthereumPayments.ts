@@ -1,7 +1,7 @@
 import { BigNumber } from 'bignumber.js'
 import { Transaction as Tx } from 'ethereumjs-tx'
 import Web3 from 'web3'
-import type { TransactionReceipt, provider as Web3Provider } from 'web3-core'
+import type { TransactionReceipt, TransactionConfig } from 'web3-core'
 import { cloneDeep } from 'lodash'
 import {
   BalanceResult,
@@ -19,6 +19,7 @@ import {
   CreateTransactionOptions as TransactionOptions,
   NetworkType,
   PayportOutput,
+  AutoFeeLevels,
 } from '@faast/payments-common'
 import { isType, isString, isUndefined, isNull } from '@faast/ts-common'
 
@@ -37,7 +38,6 @@ import {
 //  DEFAULT_FULL_NODE,
 //  DEFAULT_SOLIDITY_NODE,
   DEFAULT_FEE_LEVEL,
-  FEE_LEVEL_MAP,
   MIN_CONFIRMATIONS,
   ETHEREUM_TRANSFER_COST,
   TOKEN_WALLET_DATA,
@@ -108,7 +108,7 @@ implements BasePayments
       }
     }
 
-    return Object.assign({}, payport, { address: this.toChecksumAddress(payport.address)})
+    return { ...payport, address: this.toChecksumAddress(payport.address) }
   }
 
   async resolveFromTo(from: number, to: ResolveablePayport): Promise<FromTo> {
@@ -135,7 +135,7 @@ implements BasePayments
     }
     return isType(FeeOptionCustom, feeOption)
       ? this.resolveCustomFeeOption(feeOption, amountOfGas)
-      : this.resolveLeveledFeeOption(feeOption, amountOfGas)
+      : this.resolveLeveledFeeOption(feeOption.feeLevel, amountOfGas)
   }
 
   resolveCustomFeeOption(
@@ -171,19 +171,18 @@ implements BasePayments
   }
 
   async resolveLeveledFeeOption(
-    feeOption: FeeOption,
+    feeLevel: AutoFeeLevels = DEFAULT_FEE_LEVEL,
     amountOfGas: string,
   ): Promise<EthereumResolvedFeeOption> {
-    const targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL
     const gasPrice = new BigNumber(
-      await this.gasStation.getGasPrice(FEE_LEVEL_MAP[targetFeeLevel])
+      await this.gasStation.getGasPrice(feeLevel)
     ).dp(0, BigNumber.ROUND_DOWN)
 
     const feeBase = gasPrice.multipliedBy(amountOfGas).toFixed()
 
     return {
       targetFeeRate: gasPrice.toFixed(),
-      targetFeeLevel,
+      targetFeeLevel: feeLevel,
       targetFeeRateType: FeeRateType.BasePerWeight,
       feeBase,
       feeMain: this.toMainDenominationEth(feeBase),
@@ -449,8 +448,18 @@ implements BasePayments
     const toPayport = serviceFlag ? { address: '' } : await this.resolvePayport(to as ResolveablePayport)
     const toIndex = typeof to === 'number' ? to : null
 
-    const amountOfGas = options.gas || await this.gasStation.estimateGas(fromPayport.address, toPayport.address, txType)
-    const feeOption = await this.resolveFeeOption(options as FeeOption, amountOfGas)
+    const txConfig: TransactionConfig = {
+      from: fromPayport.address,
+    }
+    if (serviceFlag) {
+      txConfig.data = options.data || TOKEN_WALLET_DATA
+    }
+    if (toPayport.address) {
+      txConfig.to = toPayport.address
+    }
+
+    const amountOfGas = options.gas || await this.gasStation.estimateGas(txConfig, txType)
+    const feeOption = await this.resolveFeeOption(options, amountOfGas)
 
     const { confirmedBalance: balanceEth } = await this.getBalance(fromPayport)
     const nonce = options.sequenceNumber || await this.getNextSequenceNumber(fromPayport.address)
@@ -475,14 +484,6 @@ implements BasePayments
       }
     }
 
-    const additionalFiels = serviceFlag
-      ? { data: options.data || TOKEN_WALLET_DATA }
-      : {
-        from: fromPayport.address,
-        to: toPayport.address,
-        value: `0x${amountWei.toString(16)}`,
-      }
-
     const result: EthereumUnsignedTransaction = {
       id: null,
       status: TransactionStatus.Unsigned,
@@ -497,13 +498,13 @@ implements BasePayments
       targetFeeRate: feeOption.targetFeeRate,
       targetFeeRateType: feeOption.targetFeeRateType,
       sequenceNumber: nonce.toString(),
-      data: Object.assign({
-          gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
-          gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
-          nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
-        },
-        additionalFiels
-      )
+      data: {
+        ...txConfig,
+        value:    `0x${amountWei.toString(16)}`,
+        gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
+        gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
+        nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
+      },
     }
     this.logger.debug('createTransactionObject result', result)
     return result

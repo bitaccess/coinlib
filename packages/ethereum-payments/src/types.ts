@@ -35,6 +35,8 @@ const xkeys = t.type({
 const OptionalString = optional(t.string)
 const OptionalNumber = optional(t.number)
 
+export type EthTxType = 'ETHEREUM_TRANSFER' | 'CONTRACT_DEPLOY' | 'TOKEN_SWEEP' | 'TOKEN_TRANSFER'
+
 export const EthereumSignatory = t.type(
   {
     address: t.string,

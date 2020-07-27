@@ -1,17 +1,13 @@
 import InputDataDecoder from 'ethereum-input-data-decoder'
 import { BigNumber } from 'bignumber.js'
-import type { TransactionReceipt } from 'web3-core'
+import type { TransactionReceipt, TransactionConfig } from 'web3-core'
 import Contract from 'web3-eth-contract'
 import {
   BalanceResult,
   TransactionStatus,
-  FeeLevel,
-  FeeOption,
-  FeeRateType,
+  AutoFeeLevels,
   FeeOptionCustom,
   ResolveablePayport,
-  CreateTransactionOptions as TransactionOptions,
-  FromTo,
 } from '@faast/payments-common'
 import {
   isType,
@@ -27,15 +23,10 @@ import {
   EthereumTransactionInfo,
 } from '../types'
 import {
-  DEFAULT_FEE_LEVEL,
-  FEE_LEVEL_MAP,
   MIN_CONFIRMATIONS,
-  TOKEN_WALLET_DATA,
   TOKEN_WALLET_ABI,
-  TOKEN_TRANSFER_COST,
   TOKEN_METHODS_ABI,
   DEPOSIT_KEY_INDEX,
-  DECIMAL_PLACES,
 } from '../constants'
 import { BaseEthereumPayments } from '../BaseEthereumPayments'
 
@@ -97,30 +88,34 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     const fromTo = await this.resolveFromTo(from as number, to)
     const txFromAddress = fromTo.fromAddress
 
-    const amountOfGas = await this.gasStation.estimateGas(fromTo.fromAddress, fromTo.toAddress, 'TOKEN_TRANSFER')
-    const feeOption: EthereumResolvedFeeOption = isType(FeeOptionCustom, options)
-      ? this.resolveCustomFeeOption(options, amountOfGas)
-      : await this.resolveLeveledFeeOption(options, amountOfGas)
+    const amountBase = this.toBaseDenominationBigNumber(amountMain)
+    const contract = this.newContract(TOKEN_METHODS_ABI, this.tokenAddress)
+    const txData = contract.methods.transfer(fromTo.toAddress, `0x${amountBase.toString(16)}`).encodeABI()
+
+    const amountOfGas = await this.gasStation.estimateGas({
+      from: fromTo.fromAddress,
+      to: this.tokenAddress,
+      data: txData,
+    }, 'TOKEN_TRANSFER')
+    const feeOption = await this.resolveFeeOption(options, amountOfGas)
     const feeBase = new BigNumber(feeOption.feeBase)
 
     const nonce = options.sequenceNumber || await this.getNextSequenceNumber(txFromAddress)
 
-    let amountBase = this.toBaseDenominationBigNumber(amountMain)
     let ethBalance = await this.getEthBaseBalance(fromTo.fromAddress)
 
     if (feeBase.isGreaterThan(ethBalance)) {
       throw new Error(`Insufficient ETH balance (${this.toMainDenominationEth(ethBalance)}) to pay transaction fee of ${feeOption.feeMain}`)
     }
 
-    const contract = this.newContract(TOKEN_METHODS_ABI, this.tokenAddress)
     const transactionObject = {
       from:     fromTo.fromAddress,
       to:       this.tokenAddress,
+      data:     txData,
       value:    '0x0',
       gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
       gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
       nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
-      data: contract.methods.transfer(fromTo.toAddress, `0x${amountBase.toString(16)}`).encodeABI()
     }
     this.logger.debug('transactionObject', transactionObject)
 
@@ -170,10 +165,15 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       toPayport,
     }
 
-    const amountOfGas = await this.gasStation.estimateGas(fromTo.fromAddress, fromTo.toAddress, 'TOKEN_SWEEP')
-    const feeOption: EthereumResolvedFeeOption = isType(FeeOptionCustom, options)
-      ? this.resolveCustomFeeOption(options, amountOfGas)
-      : await this.resolveLeveledFeeOption(options, amountOfGas)
+    const contract = this.newContract(TOKEN_WALLET_ABI, fromTo.fromAddress)
+    const txData = contract.methods.sweep(this.tokenAddress, fromTo.toAddress).encodeABI()
+
+    const amountOfGas = await this.gasStation.estimateGas({
+      from: ownerAddress,
+      to: fromTo.fromAddress,
+      data: txData
+    }, 'TOKEN_SWEEP')
+    const feeOption = await this.resolveFeeOption(options, amountOfGas)
 
     const feeBase = new BigNumber(feeOption.feeBase)
 
@@ -191,13 +191,14 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     }
 
     const nonce = options.sequenceNumber || await this.getNextSequenceNumber(ownerAddress)
-    const contract = this.newContract(TOKEN_WALLET_ABI, fromTo.fromAddress)
     const transactionObject = {
-      nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
+      from:     ownerAddress,
       to:       fromTo.fromAddress,
+      data:     txData,
+      value:    '0x0',
+      nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
       gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
       gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
-      data: contract.methods.sweep(this.tokenAddress, fromTo.toAddress).encodeABI()
     }
 
     return {
