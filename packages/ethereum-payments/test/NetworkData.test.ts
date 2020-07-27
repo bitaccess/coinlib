@@ -1,21 +1,18 @@
 import { NetworkData } from '../src/NetworkData'
 
 const nock = require('nock')
-import { hdAccount } from './fixtures/accounts'
 
 import {
   getEstimateGasMocks,
   getGasPriceMocks,
   getGasStationResponse,
   getNextNonceMocks,
-  getBalanceMocks,
   getTransactionCountMocks,
-  getSendRawTransactionMocks,
-  getTransactionReceiptMocks,
-  getTransactionByHashMocks,
-  getBlockByNumberMocks,
-  getBlockNumberMocks,
 } from './fixtures/mocks'
+import { FeeLevel } from '@faast/payments-common'
+import { TestLogger } from '../../../common/testUtils'
+
+const logger = new TestLogger('ethereum-payments.NetworkData')
 
 describe('NetworkData', () => {
   const GAS_STATION_URL = 'https://gasstation.test.url'
@@ -33,47 +30,73 @@ describe('NetworkData', () => {
   const to = web3.eth.accounts.create().address
 
   test('getNetworkData default flow', async () => {
-    const networkData = new NetworkData(web3.eth, GAS_STATION_URL, PARITY_URL)
+    const networkData = new NetworkData(web3.eth, GAS_STATION_URL, PARITY_URL, logger)
 
     nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
     const transactionCountMocks = getTransactionCountMocks(1, from.toLowerCase(), '0x1a')
     nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
+    const estimateGasPriceMock = getEstimateGasMocks(2, from.toLowerCase(), to.toLowerCase(), `0x${(21000).toString(16)}`)
+    nockI.post(/.*/, estimateGasPriceMock.req).reply(200, estimateGasPriceMock.res)
+
     const parityMock = getNextNonceMocks(1, from, '0x1b')
     nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
 
-    const res = await networkData.getNetworkData('ETHEREUM_TRANSFER', from, to, 'SLOW')
+    const res = await networkData.getNetworkData('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
 
     expect(res).toEqual({
       'pricePerGasUnit': '1000000000',
-      'amountOfGas': '50000',
+      'amountOfGas': '21000',
+      'nonce': '26',
+    })
+  })
+
+  test('getNetworkData gas limit multiplier', async () => {
+    const networkData = new NetworkData(web3.eth, GAS_STATION_URL, PARITY_URL, logger)
+
+    nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
+
+    const transactionCountMocks = getTransactionCountMocks(3, from.toLowerCase(), '0x1a')
+    nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
+
+    const estimateGasPriceMock = getEstimateGasMocks(4, from.toLowerCase(), to.toLowerCase(), `0x${(32001).toString(16)}`)
+    nockI.post(/.*/, estimateGasPriceMock.req).reply(200, estimateGasPriceMock.res)
+
+    const parityMock = getNextNonceMocks(1, from, '0x1b')
+    nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
+
+    const res = await networkData.getNetworkData('TOKEN_SWEEP', FeeLevel.Low, from, to)
+
+    expect(res).toEqual({
+      'pricePerGasUnit': '1000000000',
+      'amountOfGas': '48002',
       'nonce': '26',
     })
   })
 
   test('getNetworkData fallback to defaults', async () => {
-    const networkData = new NetworkData(web3.eth, GAS_STATION_URL, PARITY_URL)
+    const networkData = new NetworkData(web3.eth, GAS_STATION_URL, PARITY_URL, logger)
 
     // fail
     nockG.get('/json/ethgasAPI.json').reply(400)
 
-    let transactionCountMocks = getTransactionCountMocks(1, from.toLowerCase(), '')
+    let transactionCountMocks = getTransactionCountMocks(5, from.toLowerCase(), '')
     nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
-    let gasPriceMock = getGasPriceMocks(2, '')
+    let gasPriceMock = getGasPriceMocks(6, '')
     nockI.post(/.*/, gasPriceMock.req).reply(200, gasPriceMock.res)
 
-    transactionCountMocks = getTransactionCountMocks(3, from.toLowerCase(), '')
+    transactionCountMocks = getTransactionCountMocks(7, from.toLowerCase(), '')
     nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
-    let estimateGasPriceMock = getEstimateGasMocks(4, from.toLowerCase(), to.toLowerCase(), '')
-    nockI.post(/.*/, estimateGasPriceMock.res).reply(200, estimateGasPriceMock.req)
+    let estimateGasPriceMock = getEstimateGasMocks(8, from.toLowerCase(), to.toLowerCase(), '')
+    nockI.post(/.*/, estimateGasPriceMock.req).reply(200, estimateGasPriceMock.res)
 
     const parityMock = getNextNonceMocks(1, from, '')
     nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
 
-    const res = await networkData.getNetworkData('RANDOM_ACTION', from, to, 'SLOW')
+    const res = await networkData.getNetworkData('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
 
     expect(res).toEqual({
       'pricePerGasUnit': '50000000000',
@@ -83,28 +106,28 @@ describe('NetworkData', () => {
   })
 
   test('getNetworkData empty responses', async () => {
-    const networkData = new NetworkData(web3.eth, GAS_STATION_URL, PARITY_URL)
+    const networkData = new NetworkData(web3.eth, GAS_STATION_URL, PARITY_URL, logger)
 
     // fail
     nockG.get('/json/ethgasAPI.json').reply(200, {
     })
 
-    let transactionCountMocks = getTransactionCountMocks(1, from.toLowerCase(), '')
+    let transactionCountMocks = getTransactionCountMocks(9, from.toLowerCase(), '')
     nockI.post(/.*/, transactionCountMocks.req).reply(400)
 
-    let gasPriceMock = getGasPriceMocks(2, '')
+    let gasPriceMock = getGasPriceMocks(10, '')
     nockI.post(/.*/, gasPriceMock.req).reply(200, gasPriceMock.res)
 
-    transactionCountMocks = getTransactionCountMocks(3, from.toLowerCase(), '')
+    transactionCountMocks = getTransactionCountMocks(11, from.toLowerCase(), '')
     nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
-    let estimateGasPriceMock = getEstimateGasMocks(4, from.toLowerCase(), to.toLowerCase(), '')
-    nockI.post(/.*/, estimateGasPriceMock.res).reply(200, estimateGasPriceMock.req)
+    let estimateGasPriceMock = getEstimateGasMocks(12, from.toLowerCase(), to.toLowerCase(), '')
+    nockI.post(/.*/, estimateGasPriceMock.req).reply(200, estimateGasPriceMock.res)
 
     const parityMock = getNextNonceMocks(1, from, '0x1b')
     nockP.post(/.*/, parityMock.req).reply(400)
 
-    const res = await networkData.getNetworkData('RANDOM_ACTION', from, to, 'SLOW')
+    const res = await networkData.getNetworkData('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
 
     expect(res).toEqual({
       'pricePerGasUnit': '50000000000',
