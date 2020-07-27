@@ -1,5 +1,5 @@
 import { FeeLevel } from '@faast/payments-common'
-import { EthTxAction } from './types'
+import { EthTxType } from './types'
 
 export const PACKAGE_NAME = 'ethereum-payments'
 export const DECIMAL_PLACES = 18
@@ -27,7 +27,7 @@ export const GAS_STATION_FEE_SPEED = {
   [FeeLevel.Medium]: 'average',
   [FeeLevel.High]: 'fast',
 }
-export const MAXIMUM_GAS: { [a in EthTxAction]: string} = {
+export const MAXIMUM_GAS: { [a in EthTxType]: string} = {
   'ETHEREUM_TRANSFER': ETHEREUM_TRANSFER_COST,
   'CONTRACT_DEPLOY': CONTRACT_DEPLOY_COST,
   'TOKEN_SWEEP': TOKEN_SWEEP_COST,
