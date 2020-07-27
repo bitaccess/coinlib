@@ -122,6 +122,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
       data: contract.methods.transfer(fromTo.toAddress, `0x${amountBase.toString(16)}`).encodeABI()
     }
+    this.logger.debug('transactionObject', transactionObject)
 
     return {
       status: TransactionStatus.Unsigned,

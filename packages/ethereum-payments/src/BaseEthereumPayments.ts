@@ -75,7 +75,7 @@ implements BasePayments
       throw new Error(`Invalid ethereum payments fullNode, must start with http or ws: ${this.server}`)
     }
     this.eth = this.web3.eth
-    this.gasStation = new NetworkData(this.eth, config.gasStation, config.parityNode)
+    this.gasStation = new NetworkData(this.eth, config.gasStation, config.parityNode, this.logger)
     this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
     this.toChecksumAddress = this.web3.utils.toChecksumAddress
   }
@@ -186,7 +186,7 @@ implements BasePayments
       targetFeeLevel,
       targetFeeRateType: FeeRateType.BasePerWeight,
       feeBase,
-      feeMain: this.toMainDenomination(feeBase),
+      feeMain: this.toMainDenominationEth(feeBase),
       gasPrice: gasPrice.toFixed(),
     }
   }
@@ -396,7 +396,7 @@ implements BasePayments
     const key = Buffer.from(fromPrivateKey.slice(2), 'hex')
     tx.sign(key)
 
-    return {
+    const result: EthereumSignedTransaction = {
       ...unsignedTx,
       id: `0x${tx.hash().toString('hex')}`,
       status: TransactionStatus.Signed,
@@ -404,6 +404,8 @@ implements BasePayments
         hex: `0x${tx.serialize().toString('hex')}`
       }
     }
+    this.logger.debug('signTransaction result', result)
+    return result
   }
 
   private sendTransactionWithoutConfirmation(txHex: string): Promise<string> {
@@ -481,7 +483,7 @@ implements BasePayments
         value: `0x${amountWei.toString(16)}`,
       }
 
-    return {
+    const result: EthereumUnsignedTransaction = {
       id: null,
       status: TransactionStatus.Unsigned,
       fromAddress: fromPayport.address,
@@ -503,6 +505,8 @@ implements BasePayments
         additionalFiels
       )
     }
+    this.logger.debug('createTransactionObject result', result)
+    return result
   }
 }
 

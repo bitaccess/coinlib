@@ -1,6 +1,7 @@
 import * as request from 'request-promise-native'
 import { BigNumber } from 'bignumber.js'
 import Web3 from 'web3'
+import { Logger, DelegateLogger } from '@faast/ts-common'
 
 type Eth = Web3['eth']
 
@@ -8,7 +9,7 @@ import {
   DEFAULT_GAS_PRICE_IN_WEI,
   GAS_STATION_URL,
   SPEED,
-  PRICES,
+  MAXIMUM_GAS,
   GAS_ESTIMATE_MULTIPLIER,
   ETHEREUM_TRANSFER_COST,
 } from './constants'
@@ -17,11 +18,13 @@ export class NetworkData {
   private gasStationUrl: string | undefined
   private parityUrl: string | undefined
   private eth: Eth
+  private logger: Logger
 
-  constructor(eth: Eth, gasStationUrl: string = GAS_STATION_URL, parityUrl?: string) {
+  constructor(eth: Eth, gasStationUrl: string = GAS_STATION_URL, parityUrl?: string, logger?: Logger | null) {
     this.eth = eth
     this.gasStationUrl = gasStationUrl
     this.parityUrl = parityUrl
+    this.logger = new DelegateLogger(logger, 'NetworkData')
   }
 
   async getNetworkData(action: string, from: string, to: string, speed: string): Promise<{
@@ -58,25 +61,26 @@ export class NetworkData {
     return DEFAULT_GAS_PRICE_IN_WEI
   }
 
-  async estimateGas(from: string, to: string, action: string): Promise<string> {
-    let gas: BigNumber = new BigNumber(PRICES[action])
-    // return effective maximum gas amounts for various txs we send
-    if (action === 'CONTRACT_DEPLOY' ||
-      action === 'TOKEN_SWEEP' ||
-      action === 'TOKEN_TRANSFER') {
-      return gas.toString()
-    }
-
+  async estimateGas(from: string, to: string, action: keyof typeof MAXIMUM_GAS): Promise<string> {
     try {
-      gas = new BigNumber(await this.eth.estimateGas({ from, to })).times(GAS_ESTIMATE_MULTIPLIER)
+      let gas = new BigNumber(await this.eth.estimateGas({ from, to }))
+      if (gas.gt(21000)) {
+        // No need for multiplier for regular ethereum transfers
+        gas = gas.times(GAS_ESTIMATE_MULTIPLIER)
+      }
+
+      const maxGas = MAXIMUM_GAS[action]
+      if (gas.gt(maxGas)) {
+        gas = new BigNumber(maxGas)
+      }
+
+      const result = gas.toFixed(0, BigNumber.ROUND_UP)
+      this.logger.debug(`Estimated gas limit of ${result} for ${action} from ${from} to ${to}`)
+      return result
     } catch (e) {
+      this.logger.warn(`Failed to estimate gas for ${action} from ${from} to ${to}`, e)
+      return MAXIMUM_GAS[action]
     }
-
-    if (action === 'ETHEREUM_TRANSFER' && gas.isGreaterThan(ETHEREUM_TRANSFER_COST)) {
-      gas = new BigNumber(ETHEREUM_TRANSFER_COST)
-    }
-
-    return gas.toNumber() ? gas.toFixed(0, 7) : ETHEREUM_TRANSFER_COST
   }
 
   private async getWeb3Nonce(address: string): Promise<string> {

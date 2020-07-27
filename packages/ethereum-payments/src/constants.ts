@@ -31,7 +31,7 @@ export const SPEED: { [key: string]: string } = {
   NORM: 'average',
   FAST: 'fast',
 }
-export const PRICES: { [key: string]: string } = {
+export const MAXIMUM_GAS: { [key: string]: string } = {
   'ETHEREUM_TRANSFER': ETHEREUM_TRANSFER_COST,
   'CONTRACT_DEPLOY': CONTRACT_DEPLOY_COST,
   'TOKEN_SWEEP': TOKEN_SWEEP_COST,
