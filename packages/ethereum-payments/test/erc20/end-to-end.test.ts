@@ -136,8 +136,25 @@ describe('end to end tests', () => {
 
     let depositAddresses: Array<string> = []
     test('DeployDepositAddress payments', async () => {
+      // normal wallet contract
+      const unsignedTx = await hd.createServiceTransaction()
+      const signedTx = await hd.signTransaction(unsignedTx)
+      const broadcastedTx = await hd.broadcastTransaction(signedTx)
+      const txInfo = await hd.getTransactionInfo(broadcastedTx.id)
+
+      const { address } = await hd.getPayport(0)
+
+      expect(txInfo)
+      const data: any = txInfo.data
+      expect(data.from).toEqual(address.toLowerCase())
+      depositAddresses.push(data.contractAddress)
+
+      const { confirmedBalance } = await hd.getBalance(data.contractAddress)
+      expect(confirmedBalance).toEqual('0')
+
+      // proxy contracts of the first one
       for (let i = 0; i < 10; i++) {
-        const unsignedTx = await hd.createServiceTransaction()
+        const unsignedTx = await hd.createServiceTransaction(undefined, { data: depositAddresses[0] })
         const signedTx = await hd.signTransaction(unsignedTx)
         const broadcastedTx = await hd.broadcastTransaction(signedTx)
         const txInfo = await hd.getTransactionInfo(broadcastedTx.id)
@@ -154,8 +171,8 @@ describe('end to end tests', () => {
       }
     })
 
-    test('normal transaction to deposit address', async () => {
-      const destination = depositAddresses[0]
+    test('normal transaction to proxy address', async () => {
+      const destination = depositAddresses[1]
 
       const preBalanceSource = await hd.getBalance(source.address)
       const preConfig = hd.getFullConfig()
@@ -175,22 +192,20 @@ describe('end to end tests', () => {
       expect(txInfo.amount).toEqual('163331000')
     })
 
-    test('sweep transaction', async () => {
-      // can sweep only from txs to which we had deposit?
-      const destination = depositAddresses[1]
+    test('sweep transaction to contract address', async () => {
+      const destination = target.address
 
-      const unsignedTx = await hd.createSweepTransaction(depositAddresses[0], { address: destination })
+      const unsignedTx = await hd.createSweepTransaction(depositAddresses[1], { address: destination })
       const signedTx = await hd.signTransaction(unsignedTx)
 
       const broadcastedTx = await hd.broadcastTransaction(signedTx)
 
       const txInfo = await hd.getTransactionInfo(broadcastedTx.id)
 
-      expect(txInfo.fromAddress).toBe(depositAddresses[0])
+      expect(txInfo.fromAddress).toBe(depositAddresses[1])
       expect(txInfo.toAddress).toBe(destination)
-      expect(txInfo.amount).toBe('163331000')
 
-      const { confirmedBalance: balanceSource } = await hd.getBalance(depositAddresses[0])
+      const { confirmedBalance: balanceSource } = await hd.getBalance(depositAddresses[1])
       const { confirmedBalance: balanceTarget } = await hd.getBalance(destination)
 
       expect(balanceSource).toEqual('0')
@@ -198,7 +213,7 @@ describe('end to end tests', () => {
     })
 
     test('sweep from hot wallet', async () => {
-      const destination = depositAddresses[1]
+      const destination = depositAddresses[2]
 
       const unsignedTx = await hd.createSweepTransaction(0, { address: destination })
       const signedTx = await hd.signTransaction(unsignedTx)
@@ -210,7 +225,7 @@ describe('end to end tests', () => {
       const { confirmedBalance: balanceTarget } = await hd.getBalance(destination)
 
       expect(balanceSource).toEqual('0')
-      expect(balanceTarget).toEqual('6500000000')
+      expect(balanceTarget).toEqual('6336669000')
       expect(txInfo.amount).toEqual('6336669000')
     })
 
