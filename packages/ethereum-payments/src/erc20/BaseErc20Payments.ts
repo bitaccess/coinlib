@@ -29,6 +29,12 @@ import {
   DEPOSIT_KEY_INDEX,
 } from '../constants'
 import { BaseEthereumPayments } from '../BaseEthereumPayments'
+import {
+  SIGNATURE_ERC20_TRANSFER,
+  SIGNATURE_ERC20_SWEEP,
+  SIGNATURE_ERC20_SWEEP_CONTRACT_DEPLOY,
+  LOG_TOPIC0_ERC20_SWEEP,
+} from './constants'
 
 export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig> extends BaseEthereumPayments<Config> {
   public tokenAddress: string
@@ -227,33 +233,53 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       throw new Error(`Transaction ${txid} has no input for ERC20`)
     }
 
+    const currentBlockNumber = await this.eth.getBlockNumber()
+    let txReceipt: TransactionReceipt | null = await this.eth.getTransactionReceipt(txid)
+
+    let fromAddress = tx.from
     let toAddress = ''
     let amount = ''
 
-    // ERC20 signature
-    if (tx.input.startsWith('0xa9059cbb')) {
+    if (tx.input.startsWith(SIGNATURE_ERC20_TRANSFER)) {
       if((tx.to || '').toLowerCase() !== this.tokenAddress.toLowerCase()) {
         throw new Error(`Transaction ${txid} was sent to different contract: ${tx.to}, Expected: ${this.tokenAddress}`)
       }
 
-      const tokenDecoder = new InputDataDecoder(TOKEN_METHODS_ABI);
+      const tokenDecoder = new InputDataDecoder(TOKEN_METHODS_ABI)
       const txData = tokenDecoder.decodeData(tx.input)
-      toAddress = `0x${txData.inputs[0]}`
+      toAddress = this.web3.utils.toChecksumAddress(txData.inputs[0])
       amount = this.toMainDenomination(txData.inputs[1].toString())
-    } else if (tx.input.startsWith('0x60606040')) {
-      // SWEEP contract creation
-    } else if (tx.input.startsWith('0xb8dc491b')) {
-      // SWEEPING
+    } else if (tx.input.startsWith(SIGNATURE_ERC20_SWEEP_CONTRACT_DEPLOY)) {
+      amount = '0'
+    } else if (tx.input.startsWith(SIGNATURE_ERC20_SWEEP)) {
+      // For ERC20 sweeps:
+      // tx.to is the sweep contract address and source of funds (fromAddress)
+      // tx.from is the contract owner address
+      // inputs[0] is the ERC20 contract address (this.tokenAddress)
+      // inputs[1] is the recipient of the funds (toAddress)
+      const tokenDecoder = new InputDataDecoder(TOKEN_WALLET_ABI)
+      const txData = tokenDecoder.decodeData(tx.input)
+      const sweepContractAddress = tx.to
+      if (!sweepContractAddress) {
+        throw new Error(`Transaction ${txid} should have a to address destination`)
+      }
+      fromAddress = this.web3.utils.toChecksumAddress(sweepContractAddress)
+      toAddress = this.web3.utils.toChecksumAddress(txData.inputs[1])
+
+      if (txReceipt) {
+        const transferLog = txReceipt.logs.find((log) => log.topics[0] === LOG_TOPIC0_ERC20_SWEEP)
+        if (!transferLog) {
+          throw new Error(`Transaction ${txid} was an ERC20 sweep but cannot find log for Transfer event`)
+        }
+        amount = this.toMainDenomination(new BigNumber(transferLog.data))
+      }
     } else {
       throw new Error(`Transaction ${txid} is not ERC20 transaction neither swap`)
     }
 
-    const currentBlockNumber = await this.eth.getBlockNumber()
-    let txInfo: TransactionReceipt | null = await this.eth.getTransactionReceipt(txid)
-
     // NOTE: for the sake of consistent schema return
-    if (!txInfo) {
-      txInfo = {
+    if (!txReceipt) {
+      txReceipt = {
         transactionHash: tx.hash,
         from: tx.from || '',
         to: toAddress,
@@ -286,7 +312,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
         status: TransactionStatus.Pending,
         data: {
           ...tx,
-          ...txInfo,
+          ...txReceipt,
           currentBlock: currentBlockNumber
         },
       }
@@ -309,7 +335,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     if (isConfirmed) {
       status = TransactionStatus.Confirmed
       // No trust to types description of web3
-      if (txInfo.hasOwnProperty('status') && (txInfo.status === false || txInfo.status.toString() === 'false')) {
+      if (txReceipt.hasOwnProperty('status')
+        && (txReceipt.status === false || txReceipt.status.toString() === 'false')) {
         status = TransactionStatus.Failed
       }
     }
@@ -318,11 +345,11 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       id: txid,
       amount,
       toAddress,
-      fromAddress: tx.from,
+      fromAddress,
       toExtraId: null,
       fromIndex: null,
       toIndex: null,
-      fee: this.toMainDenominationEth((new BigNumber(tx.gasPrice)).multipliedBy(txInfo.gasUsed)),
+      fee: this.toMainDenominationEth((new BigNumber(tx.gasPrice)).multipliedBy(txReceipt.gasUsed)),
       sequenceNumber: tx.nonce,
       // XXX if tx was confirmed but not accepted by network isExecuted must be false
       isExecuted: status !== TransactionStatus.Failed,
@@ -334,7 +361,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       currentBlockNumber: currentBlockNumber,
       data: {
         ...tx,
-        ...txInfo,
+        ...txReceipt,
         currentBlock: currentBlockNumber
       },
     }
@@ -351,6 +378,10 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     const balanceBase = await this.eth.getBalance(address)
 
     return new BigNumber(balanceBase)
+  }
+
+  private logTopicToAddress(value: string): string {
+    return `0x${value.slice(value.length - 40)}`
   }
 }
 

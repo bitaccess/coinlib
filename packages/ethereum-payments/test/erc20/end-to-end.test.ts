@@ -184,6 +184,12 @@ describe('end to end tests', () => {
 
       const broadcastedTx = await hd.broadcastTransaction(signedTx)
 
+      const txInfo = await hd.getTransactionInfo(broadcastedTx.id)
+
+      expect(txInfo.fromAddress).toBe(depositAddresses[0])
+      expect(txInfo.toAddress).toBe(destination)
+      expect(txInfo.amount).toBe('163331000')
+
       const { confirmedBalance: balanceSource } = await hd.getBalance(depositAddresses[0])
       const { confirmedBalance: balanceTarget } = await hd.getBalance(destination)
 
