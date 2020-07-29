@@ -33,6 +33,7 @@ import {
   SIGNATURE_ERC20_TRANSFER,
   SIGNATURE_ERC20_SWEEP,
   SIGNATURE_ERC20_SWEEP_CONTRACT_DEPLOY,
+  SIGNATURE_ERC20_PROXY,
   LOG_TOPIC0_ERC20_SWEEP,
 } from './constants'
 
@@ -251,7 +252,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       amount = this.toMainDenomination(txData.inputs[1].toString())
     } else if (tx.input.startsWith(SIGNATURE_ERC20_SWEEP_CONTRACT_DEPLOY)) {
       amount = '0'
-    } else if (tx.input.startsWith('0x3d602d806')) {
+    } else if (tx.input.startsWith(SIGNATURE_ERC20_PROXY)) {
       amount = '0'
     } else if (tx.input.startsWith(SIGNATURE_ERC20_SWEEP)) {
       // For ERC20 sweeps:

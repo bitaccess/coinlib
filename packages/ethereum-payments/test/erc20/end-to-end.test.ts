@@ -163,7 +163,7 @@ describe('end to end tests', () => {
 
         expect(txInfo)
         const data: any = txInfo.data
-        expect(data.from).toEqual(address.toLowerCase())
+        expect(data.from.toLowerCase()).toEqual(address.toLowerCase())
         depositAddresses.push(data.contractAddress)
 
         const { confirmedBalance } = await hd.getBalance(data.contractAddress)
@@ -202,8 +202,8 @@ describe('end to end tests', () => {
 
       const txInfo = await hd.getTransactionInfo(broadcastedTx.id)
 
-      expect(txInfo.fromAddress).toBe(depositAddresses[1])
-      expect(txInfo.toAddress).toBe(destination)
+      expect((txInfo.fromAddress || '').toLowerCase()).toBe(depositAddresses[1].toLowerCase())
+      expect((txInfo.toAddress || '').toLowerCase()).toBe(destination.toLowerCase())
 
       const { confirmedBalance: balanceSource } = await hd.getBalance(depositAddresses[1])
       const { confirmedBalance: balanceTarget } = await hd.getBalance(destination)
