@@ -154,7 +154,7 @@ describe('end to end tests', () => {
 
       // proxy contracts of the first one
       for (let i = 0; i < 10; i++) {
-        const unsignedTx = await hd.createServiceTransaction(undefined, { data: depositAddresses[0] })
+        const unsignedTx = await hd.createServiceTransaction(undefined, { address: depositAddresses[0] })
         const signedTx = await hd.signTransaction(unsignedTx)
         const broadcastedTx = await hd.broadcastTransaction(signedTx)
         const txInfo = await hd.getTransactionInfo(broadcastedTx.id)

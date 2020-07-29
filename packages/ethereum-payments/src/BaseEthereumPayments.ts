@@ -452,12 +452,12 @@ implements BasePayments
 
     const txConfig: TransactionConfig = { from: fromPayport.address }
     if (serviceFlag) {
-      if (!options.data) {
-        txConfig.data = TOKEN_WALLET_DATA.replace(/<address of owner>/g, fromPayport.address.replace('0x', ''))
-      } else if (options.data.length === 40 || options.data.length === 42) { // length of address without and with 0x
-        txConfig.data = TOKEN_PROXY_DATA.replace(/<address to proxy>/g, options.data.replace('0x', ''))
-      } else {
+      if (options.data) {
         txConfig.data = options.data
+      } else if (options.address) {
+        txConfig.data = TOKEN_PROXY_DATA.replace(/<address to proxy>/g, options.address.replace('0x', ''))
+      } else {
+        txConfig.data = TOKEN_WALLET_DATA.replace(/<address of owner>/g, fromPayport.address.replace('0x', ''))
       }
     }
 
