@@ -454,8 +454,8 @@ implements BasePayments
     if (serviceFlag) {
       if (options.data) {
         txConfig.data = options.data
-      } else if (options.address) {
-        txConfig.data = TOKEN_PROXY_DATA.replace(/<address to proxy>/g, options.address.replace('0x', ''))
+      } else if (options.proxyAddress) {
+        txConfig.data = TOKEN_PROXY_DATA.replace(/<address to proxy>/g, options.proxyAddress.replace('0x', ''))
       } else {
         txConfig.data = TOKEN_WALLET_DATA.replace(/<address of owner>/g, fromPayport.address.replace('0x', ''))
       }
