@@ -42,6 +42,7 @@ import {
   ETHEREUM_TRANSFER_COST,
   TOKEN_WALLET_DATA,
   DEPOSIT_KEY_INDEX,
+  TOKEN_PROXY_DATA,
 } from './constants'
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
 
@@ -448,12 +449,18 @@ implements BasePayments
     const toPayport = serviceFlag ? { address: '' } : await this.resolvePayport(to as ResolveablePayport)
     const toIndex = typeof to === 'number' ? to : null
 
-    const txConfig: TransactionConfig = {
-      from: fromPayport.address,
-    }
+
+    const txConfig: TransactionConfig = { from: fromPayport.address }
     if (serviceFlag) {
-      txConfig.data = options.data || TOKEN_WALLET_DATA
+      if (options.data) {
+        txConfig.data = options.data
+      } else if (options.proxyAddress) {
+        txConfig.data = TOKEN_PROXY_DATA.replace(/<address to proxy>/g, options.proxyAddress.replace('0x', ''))
+      } else {
+        txConfig.data = TOKEN_WALLET_DATA.replace(/<address of owner>/g, fromPayport.address.replace('0x', ''))
+      }
     }
+
     if (toPayport.address) {
       txConfig.to = toPayport.address
     }

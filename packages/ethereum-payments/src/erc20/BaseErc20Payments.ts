@@ -33,6 +33,8 @@ import {
   SIGNATURE_ERC20_TRANSFER,
   SIGNATURE_ERC20_SWEEP,
   SIGNATURE_ERC20_SWEEP_CONTRACT_DEPLOY,
+  SIGNATURE_ERC20_SWEEP_CONTRACT_DEPLOY_LEGACY,
+  SIGNATURE_ERC20_PROXY,
   LOG_TOPIC0_ERC20_SWEEP,
 } from './constants'
 
@@ -250,6 +252,10 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       toAddress = this.web3.utils.toChecksumAddress(txData.inputs[0])
       amount = this.toMainDenomination(txData.inputs[1].toString())
     } else if (tx.input.startsWith(SIGNATURE_ERC20_SWEEP_CONTRACT_DEPLOY)) {
+      amount = '0'
+    } else if (tx.input.startsWith(SIGNATURE_ERC20_SWEEP_CONTRACT_DEPLOY_LEGACY)) {
+      amount = '0'
+    } else if (tx.input.startsWith(SIGNATURE_ERC20_PROXY)) {
       amount = '0'
     } else if (tx.input.startsWith(SIGNATURE_ERC20_SWEEP)) {
       // For ERC20 sweeps:
