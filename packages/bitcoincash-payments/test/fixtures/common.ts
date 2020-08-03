@@ -1,0 +1,1 @@
+export const EXTERNAL_ADDRESS = 'bitcoincash:qqq50km70cjgpla3tnkt8nxgdt09wp0m7y9ctca8f6'
