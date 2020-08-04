@@ -2,22 +2,22 @@ import * as bitcoin from 'bitcoinjs-lib'
 
 import {
   BitcoinjsKeyPair,
-  BitcoinUnsignedTransaction,
-  BitcoinSignedTransaction,
-  SinglesigBitcoinPaymentsConfig,
+  BitcoinCashSignedTransaction,
+  SinglesigBitcoinCashPaymentsConfig,
   SinglesigAddressType,
+  BitcoinCashUnsignedTransaction,
 } from './types'
 import { BitcoinishPaymentTx } from '@faast/bitcoin-payments'
 import { publicKeyToString, getSinglesigPaymentScript } from './helpers'
-import { BaseBitcoinPayments } from './BaseBitcoinPayments'
+import { BaseBitcoinCashPayments } from './BaseBitcoinCashPayments'
 import { DEFAULT_SINGLESIG_ADDRESS_TYPE } from './constants'
 
-export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPaymentsConfig>
-  extends BaseBitcoinPayments<Config> {
+export abstract class SinglesigBitcoinCashPayments<Config extends SinglesigBitcoinCashPaymentsConfig>
+  extends BaseBitcoinCashPayments<Config> {
 
   addressType: SinglesigAddressType
 
-  constructor(config: SinglesigBitcoinPaymentsConfig) {
+  constructor(config: SinglesigBitcoinCashPaymentsConfig) {
     super(config)
     this.addressType = config.addressType || DEFAULT_SINGLESIG_ADDRESS_TYPE
   }
@@ -28,7 +28,7 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
     return getSinglesigPaymentScript(this.bitcoinjsNetwork, this.addressType, this.getKeyPair(index).publicKey)
   }
 
-  async signTransaction(tx: BitcoinUnsignedTransaction): Promise<BitcoinSignedTransaction> {
+  async signTransaction(tx: BitcoinCashUnsignedTransaction): Promise<BitcoinCashSignedTransaction> {
     const paymentTx = tx.data as BitcoinishPaymentTx
     const { rawHex } = paymentTx
     let psbt: bitcoin.Psbt

@@ -4,8 +4,8 @@ import { omit } from 'lodash'
 import { FeeRateType, BalanceResult, TransactionStatus, NetworkType } from '@faast/payments-common'
 
 import {
-  HdBitcoinPayments, BitcoinTransactionInfo, HdBitcoinPaymentsConfig,
-  BitcoinSignedTransaction, BitcoinUnsignedTransaction, AddressType,
+  HdBitcoinCashPayments, BitcoinCashTransactionInfo, HdBitcoinCashPaymentsConfig,
+  BitcoinCashSignedTransaction, BitcoinCashUnsignedTransaction, AddressType,
   SinglesigAddressType
 } from '../src'
 
@@ -39,7 +39,7 @@ const addressTypesToTest: SinglesigAddressType[] = [
   AddressType.Legacy,
 ];
 
-function assertTxInfo(actual: BitcoinTransactionInfo, expected: BitcoinTransactionInfo): void {
+function assertTxInfo(actual: BitcoinCashTransactionInfo, expected: BitcoinCashTransactionInfo): void {
   expectEqualOmit({
     ...actual,
     data: {
@@ -58,10 +58,10 @@ describeAll('e2e mainnet', () => {
     testsComplete = true
   })
 
-  async function pollUntilEnded(signedTx: BitcoinSignedTransaction) {
+  async function pollUntilEnded(signedTx: BitcoinCashSignedTransaction) {
     const txId = signedTx.id
     logger.log('polling until ended', txId)
-    let tx: BitcoinTransactionInfo | undefined
+    let tx: BitcoinCashTransactionInfo | undefined
     while (!testsComplete && (!tx || !END_TRANSACTION_STATES.includes(tx.status) || tx.confirmations === 0)) {
       try {
         tx = await payments.getTransactionInfo(txId)
@@ -93,7 +93,7 @@ describeAll('e2e mainnet', () => {
     return tx
   }
 
-  const payments = new HdBitcoinPayments({
+  const payments = new HdBitcoinCashPayments({
     hdKey: secretXprv,
     network: NetworkType.Mainnet,
     addressType: AddressType.Legacy,
@@ -330,13 +330,13 @@ describeAll('e2e mainnet', () => {
   jest.setTimeout(300 * 1000)
   
   describe('getTransactionInfo', () => {
-    const paymentsConfig: HdBitcoinPaymentsConfig = {
+    const paymentsConfig: HdBitcoinCashPaymentsConfig = {
       hdKey: secretXprv,
       network: NetworkType.Mainnet,
       addressType: AddressType.Legacy,
       logger,
     }
-    const payments = new HdBitcoinPayments(paymentsConfig)
+    const payments = new HdBitcoinCashPayments(paymentsConfig)
 
     it('get multi output send', async () => {
       const tx = await payments.getTransactionInfo('3909748b7180634861df44c61bf17c0c0509c87dfb33dc9442639cc4eb97939c')
@@ -367,7 +367,7 @@ describeAll('e2e mainnet', () => {
     const { xpub, addresses, sweepTxSize } = legacyAccount
 
     describe(addressType, () => {
-      const paymentsConfig: HdBitcoinPaymentsConfig = {
+      const paymentsConfig: HdBitcoinCashPaymentsConfig = {
         hdKey: secretXprv,
         network: NetworkType.Mainnet,
         addressType,
@@ -375,7 +375,7 @@ describeAll('e2e mainnet', () => {
         minChange: '0.01',
         targetUtxoPoolSize: 5,
       }
-      const payments = new HdBitcoinPayments(paymentsConfig)
+      const payments = new HdBitcoinCashPayments(paymentsConfig)
       it('get correct xpub', async () => {
         expect(payments.xpub).toEqual(xpub)
       })

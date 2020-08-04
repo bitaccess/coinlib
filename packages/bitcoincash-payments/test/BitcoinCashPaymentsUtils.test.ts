@@ -1,12 +1,12 @@
-import { BitcoinPaymentsUtils } from '../src'
+import { BitcoinCashPaymentsUtils } from '../src'
 import { PRIVATE_KEY, ADDRESS_LEGACY } from './fixtures'
 
 const VALID_ADDRESS = ADDRESS_LEGACY
 
-describe('BitcoinPaymentUtils', () => {
-  let pu: BitcoinPaymentsUtils
+describe('BitcoinCashPaymentUtils', () => {
+  let pu: BitcoinCashPaymentsUtils
   beforeEach(() => {
-    pu = new BitcoinPaymentsUtils()
+    pu = new BitcoinCashPaymentsUtils()
   })
 
   describe('isValidAddress', () => {

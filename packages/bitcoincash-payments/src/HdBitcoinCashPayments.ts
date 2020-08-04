@@ -12,20 +12,20 @@ import {
   deriveHDNode,
   deriveKeyPair,
 } from './bip44'
-import { HdBitcoinPaymentsConfig } from './types'
-import { SinglesigBitcoinPayments } from './SinglesigBitcoinPayments'
+import { HdBitcoinCashPaymentsConfig } from './types'
+import { SinglesigBitcoinCashPayments } from './SinglesigBitcoinCashPayments'
 import { DEFAULT_DERIVATION_PATHS } from './constants'
 import { bip32MagicNumberToPrefix } from './utils'
 
-export class HdBitcoinPayments extends SinglesigBitcoinPayments<HdBitcoinPaymentsConfig> {
+export class HdBitcoinCashPayments extends SinglesigBitcoinCashPayments<HdBitcoinCashPaymentsConfig> {
   readonly derivationPath: string
   readonly xpub: string
   readonly xprv: string | null
   readonly hdNode: HDNode
 
-  constructor(private config: HdBitcoinPaymentsConfig) {
+  constructor(private config: HdBitcoinCashPaymentsConfig) {
     super(config)
-    assertType(HdBitcoinPaymentsConfig, config)
+    assertType(HdBitcoinCashPaymentsConfig, config)
     this.derivationPath = config.derivationPath || DEFAULT_DERIVATION_PATHS[this.addressType]
 
     if (this.isValidXpub(config.hdKey)) {
@@ -63,7 +63,7 @@ export class HdBitcoinPayments extends SinglesigBitcoinPayments<HdBitcoinPayment
       : isValidXpubHelper(xpub, this.bitcoinjsNetwork)
   }
 
-  getFullConfig(): HdBitcoinPaymentsConfig {
+  getFullConfig(): HdBitcoinCashPaymentsConfig {
     return {
       ...this.config,
       network: this.networkType,
@@ -72,7 +72,7 @@ export class HdBitcoinPayments extends SinglesigBitcoinPayments<HdBitcoinPayment
     }
   }
 
-  getPublicConfig(): HdBitcoinPaymentsConfig {
+  getPublicConfig(): HdBitcoinCashPaymentsConfig {
     return {
       ...omit(this.getFullConfig(), ['logger', 'server', 'hdKey']),
       hdKey: this.xpub,
