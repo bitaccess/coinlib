@@ -58,20 +58,6 @@ export function toBitcoinishConfig<T extends BaseBitcoinCashPaymentsConfig>(conf
   }
 }
 
-/** Get sat/byte fee estimate from blockcypher */
-export async function getBlockcypherFeeEstimate(feeLevel: FeeLevel, networkType: NetworkType): Promise<number> {
-  const body = await request.get(
-    `https://api.blockcypher.com/v1/bch/${networkType === NetworkType.Mainnet ? 'main' : 'test3'}`,
-    { json: true },
-  )
-  const feePerKbField = `${feeLevel}_fee_per_kb`
-  const feePerKb = body[feePerKbField]
-  if (!feePerKb) {
-    throw new Error(`Blockcypher response is missing expected field ${feePerKbField}`)
-  }
-  return feePerKb / 1000
-}
-
 // assumes compressed pubkeys in all cases.
 export const ADDRESS_INPUT_WEIGHTS: { [k in AddressType]: number } = {
   [AddressType.Legacy]: 148 * 4,

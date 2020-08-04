@@ -1,6 +1,5 @@
 import { BitcoinCashPaymentsUtils } from '../src'
 import { PRIVATE_KEY, ADDRESS_LEGACY } from './fixtures'
-
 const VALID_ADDRESS = ADDRESS_LEGACY
 
 describe('BitcoinCashPaymentUtils', () => {
@@ -15,6 +14,12 @@ describe('BitcoinCashPaymentUtils', () => {
     })
     test('should return false for invalid', async () => {
       expect(await pu.isValidAddress('fake')).toBe(false)
+    })
+  })
+
+  describe('getFeeEstimate', () => {
+    test('should return a value', async () => {
+      expect(await pu.getBlockBookFeeEstimate()).toBeDefined()
     })
   })
 
