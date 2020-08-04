@@ -1,7 +1,7 @@
 import { NetworkType, FeeRateType } from '@faast/payments-common';
 
 import {
-  HdBitcoinPayments, HdBitcoinPaymentsConfig, AddressType, SinglesigAddressType,
+  HdBitcoinCashPayments, HdBitcoinCashPaymentsConfig, AddressType, SinglesigAddressType,
 } from '../src'
 
 import { EXTERNAL_ADDRESS, accountsByAddressType, AccountFixture, legacyFixedAccount } from './fixtures'
@@ -14,7 +14,7 @@ describe('HdBitcoinPayments', () => {
 
   describe('static', () => {
     it('should throw on invalid hdKey', () => {
-      expect(() => new HdBitcoinPayments({ hdKey: 'invalid' })).toThrow()
+      expect(() => new HdBitcoinCashPayments({ hdKey: 'invalid' })).toThrow()
     })
   })
 
@@ -25,7 +25,7 @@ describe('HdBitcoinPayments', () => {
     const desiredFeeRate = { feeRate: feeMain, feeRateType: FeeRateType.Main }
     const minChange = '0.01'
     const targetUtxoPoolSize = 4
-    const payments = new HdBitcoinPayments({
+    const payments = new HdBitcoinCashPayments({
       hdKey: account.xpub,
       addressType: AddressType.Legacy,
       logger,
@@ -165,25 +165,25 @@ describe('HdBitcoinPayments', () => {
     describe(addressType, () => {
 
       describe('hardcoded xpub', () => {
-        const config: HdBitcoinPaymentsConfig = {
+        const config: HdBitcoinCashPaymentsConfig = {
           hdKey: accountFixture.xpub,
           network: NetworkType.Mainnet,
           addressType,
           logger,
         }
-        const payments = new HdBitcoinPayments(config)
+        const payments = new HdBitcoinCashPayments(config)
 
         runHardcodedPublicKeyTests(payments, config, accountFixture)
       })
 
       describe('hardcoded xprv', () => {
-        const config: HdBitcoinPaymentsConfig = {
+        const config: HdBitcoinCashPaymentsConfig = {
           hdKey: accountFixture.xprv,
           network: NetworkType.Mainnet,
           addressType,
           logger,
         }
-        const payments = new HdBitcoinPayments(config)
+        const payments = new HdBitcoinCashPayments(config)
 
         runHardcodedPublicKeyTests(payments, config, accountFixture)
       })
@@ -192,8 +192,8 @@ describe('HdBitcoinPayments', () => {
 })
 
 function runHardcodedPublicKeyTests(
-  payments: HdBitcoinPayments,
-  config: HdBitcoinPaymentsConfig,
+  payments: HdBitcoinCashPayments,
+  config: HdBitcoinCashPaymentsConfig,
   accountFixture: AccountFixture,
 ) {
   const { xpub, xprv, addresses, derivationPath } = accountFixture

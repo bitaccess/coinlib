@@ -1,10 +1,10 @@
 import { BitcoinishPaymentsUtils } from '@faast/bitcoin-payments'
 import { toBitcoinishConfig } from './utils'
-import { BitcoinPaymentsUtilsConfig } from './types'
+import { BitcoinCashPaymentsUtilsConfig } from './types'
 import { isValidAddress, isValidPrivateKey } from './helpers'
 
-export class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
-  constructor(config: BitcoinPaymentsUtilsConfig = {}) {
+export class BitcoinCashPaymentsUtils extends BitcoinishPaymentsUtils {
+  constructor(config: BitcoinCashPaymentsUtilsConfig = {}) {
     super(toBitcoinishConfig(config))
   }
 

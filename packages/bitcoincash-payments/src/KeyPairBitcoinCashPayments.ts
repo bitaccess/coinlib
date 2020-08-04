@@ -1,5 +1,5 @@
-import { SinglesigBitcoinPayments } from './SinglesigBitcoinPayments'
-import { KeyPairBitcoinPaymentsConfig, BitcoinjsKeyPair } from './types'
+import { SinglesigBitcoinCashPayments } from './SinglesigBitcoinCashPayments'
+import { KeyPairBitcoinCashPaymentsConfig, BitcoinjsKeyPair } from './types'
 import { omit } from 'lodash'
 import {
   privateKeyToKeyPair,
@@ -9,12 +9,12 @@ import {
 } from './helpers'
 import { isUndefined, isString } from '@faast/ts-common'
 
-export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitcoinPaymentsConfig> {
+export class KeyPairBitcoinCashPayments extends SinglesigBitcoinCashPayments<KeyPairBitcoinCashPaymentsConfig> {
   readonly publicKeys: { [index: number]: string | undefined } = {}
   readonly privateKeys: { [index: number]: string | null | undefined } = {}
   readonly addresses: { [index: number]: string | undefined } = {}
 
-  constructor(private config: KeyPairBitcoinPaymentsConfig) {
+  constructor(private config: KeyPairBitcoinCashPaymentsConfig) {
     super(config)
 
     Object.entries(config.keyPairs).forEach(([key, value]) => {
@@ -32,7 +32,7 @@ export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitc
         publicKey = privateKeyToKeyPair(value, this.bitcoinjsNetwork).publicKey
         privateKey = value
       } else {
-        throw new Error(`KeyPairBitcoinPaymentsConfig.keyPairs[${i}] is not a valid ${this.networkType} private key or address`)
+        throw new Error(`KeyPairBitcoinCashPaymentsConfig.keyPairs[${i}] is not a valid ${this.networkType} private key or address`)
       }
 
       const address = publicKeyToAddress(publicKey, this.bitcoinjsNetwork, this.addressType)
@@ -43,7 +43,7 @@ export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitc
     })
   }
 
-  getFullConfig(): KeyPairBitcoinPaymentsConfig {
+  getFullConfig(): KeyPairBitcoinCashPaymentsConfig {
     return {
       ...this.config,
       network: this.networkType,
@@ -51,7 +51,7 @@ export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitc
     }
   }
 
-  getPublicConfig(): KeyPairBitcoinPaymentsConfig {
+  getPublicConfig(): KeyPairBitcoinCashPaymentsConfig {
     return {
       ...omit(this.getFullConfig(), ['logger', 'server', 'keyPairs']),
       keyPairs: this.publicKeys,
@@ -61,7 +61,7 @@ export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitc
   getAccountId(index: number): string {
     const accountId = this.publicKeys[index] || ''
     if (!accountId) {
-      throw new Error(`No KeyPairBitcoinPayments account configured at index ${index}`)
+      throw new Error(`No KeyPairBitcoinCashPayments account configured at index ${index}`)
     }
     return accountId
   }
@@ -102,4 +102,4 @@ export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitc
   }
 }
 
-export default KeyPairBitcoinPayments
+export default KeyPairBitcoinCashPayments

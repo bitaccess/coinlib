@@ -6,10 +6,10 @@ import {
 
 import { getBlockcypherFeeEstimate, toBitcoinishConfig, estimateBitcoinTxSize } from './utils'
 import {
-  BaseBitcoinPaymentsConfig,
-  BitcoinUnsignedTransaction,
-  BitcoinSignedTransactionData,
-  BitcoinSignedTransaction,
+  BaseBitcoinCashPaymentsConfig,
+  BitcoinCashUnsignedTransaction,
+  BitcoinCashSignedTransactionData,
+  BitcoinCashSignedTransaction,
   AddressType,
   PsbtInputData,
 } from './types'
@@ -19,11 +19,12 @@ import {
 import { isValidAddress, isValidPrivateKey, isValidPublicKey } from './helpers'
 import { BitcoinishPayments, BitcoinishPaymentTx } from '@faast/bitcoin-payments'
 
-export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConfig> extends BitcoinishPayments<Config> {
+// tslint:disable-next-line:max-line-length
+export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaymentsConfig> extends BitcoinishPayments<Config> {
 
   readonly maximumFeeRate?: number
 
-  constructor(config: BaseBitcoinPaymentsConfig) {
+  constructor(config: BaseBitcoinCashPaymentsConfig) {
     super(toBitcoinishConfig(config))
     this.maximumFeeRate = config.maximumFeeRate
   }
@@ -54,7 +55,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     } catch (e) {
       satPerByte = DEFAULT_SAT_PER_BYTE_LEVELS[feeLevel]
       this.logger.warn(
-        `Failed to get bitcoin ${this.networkType} fee estimate, using hardcoded default of ${feeLevel} sat/byte -- ${e.message}`
+        `Failed to get bitcoin cash ${this.networkType} fee estimate, using hardcoded default of ${feeLevel} sat/byte -- ${e.message}`
       )
     }
     return {
@@ -63,7 +64,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     }
   }
 
-  /** Return a string that can be passed into estimateBitcoinTxSize. Override to support multisig */
+  /** Return a string that can be passed into estimateBitcoinCashTxSize. Override to support multisig */
   getEstimateTxSizeInputKey(): string {
     return this.addressType
   }
@@ -161,9 +162,9 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
   }
 
   validateAndFinalizeSignedTx(
-    tx: BitcoinSignedTransaction | BitcoinUnsignedTransaction,
+    tx: BitcoinCashSignedTransaction | BitcoinCashUnsignedTransaction,
     psbt: bitcoin.Psbt,
-  ): BitcoinSignedTransaction {
+  ): BitcoinCashSignedTransaction {
     if (!psbt.validateSignaturesOfAllInputs()) {
       throw new Error('Failed to validate signatures of all inputs')
     }
@@ -172,7 +173,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     const txId = signedTx.getId()
     const txHex = signedTx.toHex()
     const txData = tx.data
-    const unsignedTxHash = BitcoinSignedTransactionData.is(txData) ? txData.unsignedTxHash : txData.rawHash
+    const unsignedTxHash = BitcoinCashSignedTransactionData.is(txData) ? txData.unsignedTxHash : txData.rawHash
     return {
       ...tx,
       status: TransactionStatus.Signed,
