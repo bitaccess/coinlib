@@ -1,5 +1,5 @@
 import { createUnitConverters } from '@faast/payments-common'
-import * as bitcoin from 'bitcoinjs-lib'
+import * as bitcoin from 'bitcoinforksjs-lib'
 import bchaddrjs from 'bchaddrjs'
 import * as bip32 from 'bip32'
 import { isString } from '@faast/ts-common'
@@ -76,7 +76,7 @@ export function publicKeyToAddress(
   const script = getSinglesigPaymentScript(network, addressType, pubkey)
   const { address } = script
   if (!address) {
-    throw new Error('bitcoinjs-lib address derivation returned falsy value')
+    throw new Error('bitcoinforksjs-lib address derivation returned falsy value')
   }
   return bchaddrjs.toCashAddress(address)
 }

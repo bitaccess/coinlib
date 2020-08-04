@@ -4,7 +4,7 @@ import {
   BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, KeyPairsConfigParam,
 } from '@faast/payments-common'
 import { extendCodec, enumCodec, requiredOptionalCodec } from '@faast/ts-common'
-import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
+import { Signer as BitcoinjsSigner } from 'bitcoinforksjs-lib'
 import { BlockInfoBitcoin } from 'blockbook-client'
 import { BitcoinishPaymentTx, BlockbookConfigServer } from '@faast/bitcoin-payments'
 import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
