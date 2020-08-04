@@ -1,4 +1,4 @@
-import * as bitcoin from 'bitcoinjs-lib'
+import * as bitcoin from 'bitcoinforksjs-lib'
 import bchAddr from 'bchaddrjs'
 import {
   FeeRateType, FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus,
