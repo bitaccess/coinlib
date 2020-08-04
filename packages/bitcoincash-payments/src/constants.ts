@@ -49,7 +49,7 @@ export const DEFAULT_TESTNET_SERVER = ''
 
 export const DEFAULT_FEE_LEVEL = FeeLevel.Medium
 export const DEFAULT_SAT_PER_BYTE_LEVELS = {
-  [FeeLevel.High]: 50,
-  [FeeLevel.Medium]: 25,
-  [FeeLevel.Low]: 10,
+  [FeeLevel.High]: 10,
+  [FeeLevel.Medium]: 5,
+  [FeeLevel.Low]: 1,
 }

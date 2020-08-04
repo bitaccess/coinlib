@@ -5,12 +5,12 @@ import { FeeRateType, BalanceResult, TransactionStatus, NetworkType } from '@faa
 
 import {
   HdBitcoinCashPayments, BitcoinCashTransactionInfo, HdBitcoinCashPaymentsConfig,
-  BitcoinCashSignedTransaction, BitcoinCashUnsignedTransaction, AddressType,
+  BitcoinCashSignedTransaction, AddressType,
   SinglesigAddressType
 } from '../src'
 
-import { txInfo_beae1, signedTx_valid, signedTx_invalid } from './fixtures/transactions'
-import { accountsByAddressType, AccountFixture, legacyAccount } from './fixtures/accounts'
+import { txInfo_beae1 } from './fixtures/transactions'
+import { legacyAccount } from './fixtures/accounts'
 import { ADDRESS_INPUT_WEIGHTS } from '../src/utils'
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
 import { toBigNumber } from '@faast/ts-common'
@@ -98,7 +98,7 @@ describeAll('e2e mainnet', () => {
     network: NetworkType.Mainnet,
     addressType: AddressType.Legacy,
     logger,
-    targetUtxoPoolSize: 5,
+    targetUtxoPoolSize: 1,
   })
   const feeRate = '21'
   const feeRateType = FeeRateType.BasePerWeight
@@ -212,40 +212,6 @@ describeAll('e2e mainnet', () => {
     expect(tx.inputUtxos).toBeTruthy()
   })
 
-  function roughSizeOfObject(object: object) {
-
-    const objectList = [];
-    const stack = [ object ];
-    let bytes = 0;
-
-    while ( stack.length ) {
-        const value: any = stack.pop();
-
-        if ( typeof value === 'boolean' ) {
-            bytes += 4;
-        }
-        else if ( typeof value === 'string' ) {
-            bytes += value.length * 2;
-        }
-        else if ( typeof value === 'number' ) {
-            bytes += 8;
-        }
-        else if
-        (
-            typeof value === 'object'
-            && objectList.indexOf( value ) === -1
-        )
-        {
-            objectList.push( value );
-
-            for( const i in value ) {
-                stack.push( value[ i ] );
-            }
-        }
-    }
-    return bytes;
-}
-
   it('create sweep transaction to an external address with unconfirmed utxos', async () => {
     const feeRate = '21'
     const tx = await payments.createSweepTransaction(0, { address: EXTERNAL_ADDRESS }, {
@@ -258,8 +224,6 @@ describeAll('e2e mainnet', () => {
       feeRate,
       feeRateType,
     })
-    logger.log('test tx fee mismatch1', tx)
-    logger.log('tx size1', roughSizeOfObject(tx))
     expect(tx).toBeDefined()
     expect(toBigNumber(tx.amount).plus(tx.fee).toString()).toEqual(address0balance)
     expect(tx.fromAddress).toEqual(address0)
@@ -276,8 +240,6 @@ describeAll('e2e mainnet', () => {
     const amount = '0.01'
     const feeRate = '21'
     const tx = await payments.createTransaction(0, 3, amount, { feeRate, feeRateType })
-    logger.log('test tx fee mismatch', tx)
-    logger.log('tx size', roughSizeOfObject(tx))
     expect(tx).toBeDefined()
     expect(tx.amount).toEqual(amount)
     expect(tx.fromAddress).toEqual(address0)
@@ -286,7 +248,7 @@ describeAll('e2e mainnet', () => {
     expect(tx.toIndex).toEqual(3)
     expectEqualOmit(tx.inputUtxos, address0utxos, omitUtxoFieldEquality)
     expect(tx.externalOutputs).toEqual([{ address: address3, value: amount }])
-    const expectedTxSize = 362
+    const expectedTxSize = 226
     const expectedFee = new BigNumber(feeRate).times(expectedTxSize).times(1e-8).toString()
     expect(tx.fee).toBe(expectedFee)
     const expectedChange = new BigNumber(address0balance).minus(amount).minus(expectedFee).toString()
@@ -405,7 +367,7 @@ describeAll('e2e mainnet', () => {
           throw new Error(`Cannot end to end test sweeping due to lack of funds. Send BCH to any of the following addresses and try again. ${JSON.stringify(allAddresses)}`)
         }
         const recipientIndex = indexToSweep === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
-        const satPerByte = 44
+        const satPerByte = 21
         const unsignedTx = await payments.createSweepTransaction(indexToSweep, recipientIndex, {
           feeRate: satPerByte.toString(),
           feeRateType: FeeRateType.BasePerWeight,
@@ -418,7 +380,6 @@ describeAll('e2e mainnet', () => {
         expect(signedTx.externalOutputs).toBeDefined()
         expect(signedTx.externalOutputs!.length).toBe(1)
         const feeNumber = new BigNumber(signedTx.fee).toNumber()
-
         const extraInputs = inputCount - 1
         let expectedTxSize = sweepTxSize
         if (extraInputs) {
@@ -456,7 +417,7 @@ describeAll('e2e mainnet', () => {
         const unsignedTx = await payments.createTransaction(
           indexToSend,
           recipientIndex,
-          '0.01',
+          '0.0001',
           { useUnconfirmedUtxos: true }, // Prevents consecutive tests from failing
         )
         const signedTx = await payments.signTransaction(unsignedTx)

@@ -3,8 +3,8 @@ import bchAddr from 'bchaddrjs'
 import {
   FeeRateType, FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus,
 } from '@faast/payments-common'
-
-import { getBlockcypherFeeEstimate, toBitcoinishConfig, estimateBitcoinTxSize } from './utils'
+import { BitcoinCashPaymentsUtils } from '../src'
+import { toBitcoinishConfig, estimateBitcoinTxSize } from './utils'
 import {
   BaseBitcoinCashPaymentsConfig,
   BitcoinCashUnsignedTransaction,
@@ -51,7 +51,7 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
     let satPerByte: number
     try {
-      satPerByte = await getBlockcypherFeeEstimate(feeLevel, this.networkType)
+      satPerByte = await new BitcoinCashPaymentsUtils().getBlockBookFeeEstimate(feeLevel, this.networkType)
     } catch (e) {
       satPerByte = DEFAULT_SAT_PER_BYTE_LEVELS[feeLevel]
       this.logger.warn(

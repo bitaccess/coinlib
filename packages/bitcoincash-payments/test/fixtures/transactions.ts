@@ -1,8 +1,8 @@
 /* tslint:disable: max-line-length variable-name */
-import { BitcoinTransactionInfo, BitcoinSignedTransaction } from '../../src'
+import { BitcoinCashTransactionInfo, BitcoinCashSignedTransaction } from '../../src'
 import { FeeLevel, FeeRateType, TransactionStatus } from '@faast/payments-common'
 
-export const txInfo_beae1: BitcoinTransactionInfo = {
+export const txInfo_beae1: BitcoinCashTransactionInfo = {
   'status': TransactionStatus.Confirmed,
   'id': '036cbcbcfa286c1ea3a8c1846064974a107d3f2a982b0ee29f5e02bbedb01f15',
   'fromIndex': null,
@@ -81,7 +81,7 @@ export const txInfo_beae1: BitcoinTransactionInfo = {
   ],
 }
 
-export const signedTx_valid: BitcoinSignedTransaction = {
+export const signedTx_valid: BitcoinCashSignedTransaction = {
   id: 'c7376e46f869a9cadfca43ca20bfdc3c1bfe856908a6a57de147fb881189c3a7',
   fromAddress: 'TWkTMxK5GZvnvQ3WjNQ6oNV5bNGHd13zov',
   toAddress: 'TSKW3gHsWKnF62zs2XsMxFkXZ2fLY74CnA',
@@ -100,7 +100,7 @@ export const signedTx_valid: BitcoinSignedTransaction = {
   },
 }
 
-export const signedTx_invalid: BitcoinSignedTransaction = {
+export const signedTx_invalid: BitcoinCashSignedTransaction = {
   id: '1234567890',
   fromAddress: '1234567890',
   toAddress: '1234567890',
