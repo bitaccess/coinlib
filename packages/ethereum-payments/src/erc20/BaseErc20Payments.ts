@@ -227,6 +227,14 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     }
   }
 
+  private getErc20TransferLogAmount(txReceipt: TransactionReceipt): string {
+    const transferLog = txReceipt.logs.find((log) => log.topics[0] === LOG_TOPIC0_ERC20_SWEEP)
+    if (!transferLog) {
+      throw new Error(`Transaction ${txReceipt.transactionHash} was an ERC20 sweep but cannot find log for Transfer event`)
+    }
+    return this.toMainDenomination(transferLog.data)
+  }
+
   async getTransactionInfo(txid: string): Promise<EthereumTransactionInfo> {
     const minConfirmations = MIN_CONFIRMATIONS
     const tx = await this.eth.getTransaction(txid)
@@ -251,6 +259,14 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       const txData = tokenDecoder.decodeData(tx.input)
       toAddress = this.web3.utils.toChecksumAddress(txData.inputs[0])
       amount = this.toMainDenomination(txData.inputs[1].toString())
+      if (txReceipt) {
+        const actualAmount = this.getErc20TransferLogAmount(txReceipt)
+        if (amount !== actualAmount) {
+          throw new Error(
+            `Transcation ${txid} tried to transfer ${amount} but only ${actualAmount} was actually transferred`
+          )
+        }
+      }
     } else if (tx.input.startsWith(SIGNATURE_ERC20_SWEEP_CONTRACT_DEPLOY)) {
       amount = '0'
     } else if (tx.input.startsWith(SIGNATURE_ERC20_SWEEP_CONTRACT_DEPLOY_LEGACY)) {
@@ -273,11 +289,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       toAddress = this.web3.utils.toChecksumAddress(txData.inputs[1])
 
       if (txReceipt) {
-        const transferLog = txReceipt.logs.find((log) => log.topics[0] === LOG_TOPIC0_ERC20_SWEEP)
-        if (!transferLog) {
-          throw new Error(`Transaction ${txid} was an ERC20 sweep but cannot find log for Transfer event`)
-        }
-        amount = this.toMainDenomination(new BigNumber(transferLog.data))
+        amount = this.getErc20TransferLogAmount(txReceipt)
       }
     } else {
       throw new Error(`Transaction ${txid} is not ERC20 transaction neither swap`)
