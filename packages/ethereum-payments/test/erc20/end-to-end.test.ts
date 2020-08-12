@@ -50,7 +50,7 @@ const target = { address: '0x62b72782415394f1518da5ec4de6c4c49b7bf854'} // paypo
 let TOKEN_CONFIG = {
   network: NetworkType.Testnet,
   fullNode: `${LOCAL_NODE}:${LOCAL_PORT}`,
-  parityNoe: 'none',
+  parityNode: 'none',
   gasStation: 'none',
   hdKey: tokenIssuer.xkeys.xprv,//hdAccount.root.KEYS.xprv,
   logger,
@@ -61,14 +61,16 @@ let TOKEN_CONFIG = {
 }
 
 let hd: HdErc20Payments
+let ethereumHD: HdEthereumPayments
 let HD_CONFIG = {
   network: NetworkType.Testnet,
   fullNode: `${LOCAL_NODE}:${LOCAL_PORT}`,
-  parityNoe: 'none',
+  parityNode: 'none',
   gasStation: 'none',
   hdKey: hdAccount.root.KEYS.xprv,
   logger,
   tokenAddress: '',
+  masterAddress: '',
   decimals: 7,
   depositKeyIndex: 0,
 }
@@ -80,11 +82,11 @@ describe('end to end tests', () => {
     const ganacheConfig = {
       accounts: [
         {
-          balance: 0xde0b6b3a764000, // 1 ETH
+          balance: 0xde0b6b3a764000, // 0,0625 ETH
           secretKey: tokenDistributor.keys.prv
         },
         {
-          balance: 0xde0b6b3a764000, // 1 ETH
+          balance: 0xde0b6b3a764000, // 0,0625 ETH
           secretKey: source.keys.prv
         },
       ], gasLimit: '0x9849ef',// 9980399
@@ -93,17 +95,16 @@ describe('end to end tests', () => {
 
     ethNode = server.server(ganacheConfig)
     ethNode.listen(LOCAL_PORT)
+
+    ethereumHD = new HdEthereumPayments(TOKEN_CONFIG)
   })
 
   afterAll(() => {
     ethNode.close()
   })
 
-
   describe('HD payments', () => {
-
     test('deploy erc20 contract and send funds from distribution account to hd', async () => {
-      let ethereumHD = new HdEthereumPayments(TOKEN_CONFIG)
 
       // deploy erc20 contract
       // default to 0 (depositKeyIndex) is source.address
@@ -135,9 +136,12 @@ describe('end to end tests', () => {
     })
 
     let depositAddresses: Array<string> = []
-    test('DeployDepositAddress payments', async () => {
-      // normal wallet contract
-      const unsignedTx = await hd.createServiceTransaction()
+    let masterAddress: string
+
+    test('Deriving and Deploying DepositAddress payments', async () => {
+      // master wallet contract
+      const unsignedTx = await hd.createServiceTransaction(undefined, { gas: '4700000' })
+
       const signedTx = await hd.signTransaction(unsignedTx)
       const broadcastedTx = await hd.broadcastTransaction(signedTx)
       const txInfo = await hd.getTransactionInfo(broadcastedTx.id)
@@ -147,32 +151,30 @@ describe('end to end tests', () => {
       expect(txInfo)
       const data: any = txInfo.data
       expect(data.from).toEqual(address.toLowerCase())
-      depositAddresses.push(data.contractAddress)
+      masterAddress = data.contractAddress
+      HD_CONFIG.masterAddress = masterAddress
+      hd = factory.forConfig(HD_CONFIG as HdErc20PaymentsConfig)
 
       const { confirmedBalance } = await hd.getBalance(data.contractAddress)
       expect(confirmedBalance).toEqual('0')
 
+      // NOTE: i != 0 because 0 is signer's index
       // proxy contracts of the first one
-      for (let i = 0; i < 10; i++) {
-        const unsignedTx = await hd.createServiceTransaction(undefined, { proxyAddress: depositAddresses[0] })
-        const signedTx = await hd.signTransaction(unsignedTx)
-        const broadcastedTx = await hd.broadcastTransaction(signedTx)
-        const txInfo = await hd.getTransactionInfo(broadcastedTx.id)
-
-        const { address } = await hd.getPayport(0)
-
-        expect(txInfo)
-        const data: any = txInfo.data
-        expect(data.from.toLowerCase()).toEqual(address.toLowerCase())
-        depositAddresses.push(data.contractAddress)
-
-        const { confirmedBalance } = await hd.getBalance(data.contractAddress)
-        expect(confirmedBalance).toEqual('0')
+      for (let i = 1; i < 10; i++) {
+        const { address: derivedAddress } = await hd.getPayport(i, hd.masterAddress)
+        const { confirmedBalance: dABalance } = await hd.getBalance(derivedAddress)
+        expect(dABalance).toEqual('0')
+        depositAddresses.push(derivedAddress)
       }
+
+      const erc20HW = await hd.getPayport(0)
+      const owner = await hd.getPayport(HD_CONFIG.depositKeyIndex)
+
+      expect(erc20HW.address).toEqual(owner.address)
     })
 
     test('normal transaction to proxy address', async () => {
-      const destination = depositAddresses[1]
+      const destination = depositAddresses[0]
 
       const preBalanceSource = await hd.getBalance(source.address)
       const preConfig = hd.getFullConfig()
@@ -195,17 +197,29 @@ describe('end to end tests', () => {
     test('sweep transaction to contract address', async () => {
       const destination = target.address
 
-      const unsignedTx = await hd.createSweepTransaction(depositAddresses[1], { address: destination })
+      const { confirmedBalance: balanceSourcePre } = await hd.getBalance(depositAddresses[0])
+      expect(balanceSourcePre).toEqual('163331000')
+      const { confirmedBalance: balanceTargetPre } = await hd.getBalance(target)
+      expect(balanceTargetPre).toEqual('0')
+
+      const unsignedTx = await hd.createSweepTransaction(1, { address: destination })
       const signedTx = await hd.signTransaction(unsignedTx)
-
       const broadcastedTx = await hd.broadcastTransaction(signedTx)
+      let txInfo = await hd.getTransactionInfo(broadcastedTx.id)
 
-      const txInfo = await hd.getTransactionInfo(broadcastedTx.id)
-
-      expect((txInfo.fromAddress || '').toLowerCase()).toBe(depositAddresses[1].toLowerCase())
       expect((txInfo.toAddress || '').toLowerCase()).toBe(destination.toLowerCase())
+      expect((txInfo.fromAddress || '').toLowerCase()).toBe(depositAddresses[0].toLowerCase())
 
-      const { confirmedBalance: balanceSource } = await hd.getBalance(depositAddresses[1])
+      // make some txs just to confirm previous
+      while(txInfo.status !== 'confirmed') {
+        let uCD = await ethereumHD.createServiceTransaction(undefined, { data: CONTRACT_BYTECODE, gas: CONTRACT_GAS })
+        let sCD = await ethereumHD.signTransaction(uCD)
+        let dC = await ethereumHD.broadcastTransaction(sCD)
+        let cInfo = await ethereumHD.getTransactionInfo(dC.id)
+        txInfo = await hd.getTransactionInfo(broadcastedTx.id)
+      }
+
+      const { confirmedBalance: balanceSource } = await hd.getBalance(depositAddresses[0])
       const { confirmedBalance: balanceTarget } = await hd.getBalance(destination)
 
       expect(balanceSource).toEqual('0')
@@ -213,7 +227,7 @@ describe('end to end tests', () => {
     })
 
     test('sweep from hot wallet', async () => {
-      const destination = depositAddresses[2]
+      const destination = depositAddresses[1]
 
       const unsignedTx = await hd.createSweepTransaction(0, { address: destination })
       const signedTx = await hd.signTransaction(unsignedTx)

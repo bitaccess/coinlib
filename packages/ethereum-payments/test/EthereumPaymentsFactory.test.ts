@@ -14,7 +14,7 @@ describe('EthereumPaymentsFactory', () => {
 
     expect(hdP).toBeInstanceOf(HdEthereumPayments)
     expect(hdP.getPublicConfig()).toStrictEqual({
-      depositKeyIndex: 2,
+      depositKeyIndex: 0,
       hdKey: deriveSignatory(hdAccount.rootChild[0].xkeys.xpub, 0).xkeys.xpub
     })
   })

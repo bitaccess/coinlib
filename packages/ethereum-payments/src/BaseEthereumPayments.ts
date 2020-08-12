@@ -449,15 +449,15 @@ implements BasePayments
     const toPayport = serviceFlag ? { address: '' } : await this.resolvePayport(to as ResolveablePayport)
     const toIndex = typeof to === 'number' ? to : null
 
-
     const txConfig: TransactionConfig = { from: fromPayport.address }
     if (serviceFlag) {
       if (options.data) {
         txConfig.data = options.data
       } else if (options.proxyAddress) {
-        txConfig.data = TOKEN_PROXY_DATA.replace(/<address to proxy>/g, options.proxyAddress.replace('0x', ''))
+        txConfig.data = TOKEN_PROXY_DATA
+          .replace(/<address to proxy>/g, options.proxyAddress.replace('0x', '').toLowerCase())
       } else {
-        txConfig.data = TOKEN_WALLET_DATA.replace(/<address of owner>/g, fromPayport.address.replace('0x', ''))
+        txConfig.data = TOKEN_WALLET_DATA
       }
     }
 
@@ -478,16 +478,16 @@ implements BasePayments
     if (sweepFlag) {
       amountWei = (new BigNumber(balanceWei)).minus(feeWei)
       if (amountWei.isLessThan(0)) {
-        throw new Error(`Insufficient balance (${balanceEth}) to sweep with fee of ${feeOption.feeMain} `)
+        throw new Error(`${fromPayport.address} Insufficient balance (${balanceEth}) to sweep with fee of ${feeOption.feeMain} `)
       }
     } else if (!sweepFlag && !serviceFlag){
       amountWei = new BigNumber(this.toBaseDenomination(amountEth))
       if (amountWei.plus(feeWei).isGreaterThan(balanceWei)) {
-        throw new Error(`Insufficient balance (${balanceEth}) to send ${amountEth} including fee of ${feeOption.feeMain} `)
+        throw new Error(`${fromPayport.address} Insufficient balance (${balanceEth}) to send ${amountEth} including fee of ${feeOption.feeMain} `)
       }
     } else {
       if ((new BigNumber(balanceWei)).isLessThan(feeWei)) {
-        throw new Error(`Insufficient balance (${balanceEth}) to deployt contract with fee of ${feeOption.feeMain} `)
+        throw new Error(`${fromPayport.address} Insufficient balance (${balanceEth}) to deploy contract with fee of ${feeOption.feeMain} `)
       }
     }
 

@@ -2,12 +2,17 @@ import InputDataDecoder from 'ethereum-input-data-decoder'
 import { BigNumber } from 'bignumber.js'
 import type { TransactionReceipt, TransactionConfig } from 'web3-core'
 import Contract from 'web3-eth-contract'
+
+import { deriveSignatory } from '../bip44'
+import { deriveAddress } from './deriveAddress'
+
 import {
   BalanceResult,
   TransactionStatus,
   AutoFeeLevels,
   FeeOptionCustom,
   ResolveablePayport,
+  Payport,
 } from '@faast/payments-common'
 import {
   isType,
@@ -25,29 +30,28 @@ import {
 import {
   MIN_CONFIRMATIONS,
   TOKEN_WALLET_ABI,
+  TOKEN_WALLET_ABI_LEGACY,
   TOKEN_METHODS_ABI,
   DEPOSIT_KEY_INDEX,
 } from '../constants'
 import { BaseEthereumPayments } from '../BaseEthereumPayments'
-import {
-  SIGNATURE_ERC20_TRANSFER,
-  SIGNATURE_ERC20_SWEEP,
-  SIGNATURE_ERC20_SWEEP_CONTRACT_DEPLOY,
-  SIGNATURE_ERC20_SWEEP_CONTRACT_DEPLOY_LEGACY,
-  SIGNATURE_ERC20_PROXY,
-  LOG_TOPIC0_ERC20_SWEEP,
-} from './constants'
+import * as SIGNATURE from './constants'
 
 export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig> extends BaseEthereumPayments<Config> {
   public tokenAddress: string
   public depositKeyIndex: number
+  public masterAddress: string
 
   constructor(config: Config) {
     super(config)
     this.tokenAddress = config.tokenAddress
+    this.masterAddress = config.masterAddress || ''
 
     this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
   }
+
+  abstract getXpub(): string
+  abstract async getPayport(index: number, masterAddress?: string): Promise<Payport>
 
   private newContract(...args: ConstructorParameters<typeof Contract>) {
     const contract = new Contract(...args)
@@ -146,62 +150,59 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
   }
 
   async createSweepTransaction(
-    from: string | number,
+    from: number,
     to: ResolveablePayport,
     options: EthereumTransactionOptions = {},
   ): Promise<EthereumUnsignedTransaction> {
     this.logger.debug('createSweepTransaction', from, to)
 
     // NOTE sweep from hot wallet which is not guaranteed to support sweep contract execution
-    if (isNumber(from)) {
+    if (from === 0) {
       const { confirmedBalance } = await this.getBalance(from)
       return this.createTransaction(from, to, confirmedBalance, options)
     }
 
-    const toPayport = await this.resolvePayport(to)
-    const ownerPayport = await this.resolvePayport(this.depositKeyIndex)
-    const ownerAddress = ownerPayport.address
-    const fromTo = {
-      fromAddress: `${from}`,
-      fromIndex: this.depositKeyIndex,
-      fromExtraId: null,
-      fromPayport: { address: `${from}` },
+    const { address: signerAddress }= await this.resolvePayport(this.depositKeyIndex)
+    const { address: proxyAddress } = await this.getPayport(from, this.masterAddress)
+    const { address: toAddress } = await this.resolvePayport(to)
+    const { confirmedBalance } = await this.getBalance(proxyAddress)
+    const confirmedBalanceBase = this.toBaseDenomination(confirmedBalance)
 
-      toAddress: toPayport.address,
-      toIndex: typeof to === 'number' ? to : null,
-      toExtraId: toPayport.extraId,
-      toPayport,
-    }
+    const contract = this.newContract(TOKEN_WALLET_ABI, this.masterAddress)
 
-    const contract = this.newContract(TOKEN_WALLET_ABI, fromTo.fromAddress)
-    const txData = contract.methods.sweep(this.tokenAddress, fromTo.toAddress).encodeABI()
+    // same salt with which proxyAddess was derived
+    const key = deriveSignatory(this.getXpub(), from).keys.pub
+    const salt = this.web3.utils.sha3(`0x${key}`)
+    const txData = contract.methods.proxyTransfer(salt, this.tokenAddress, toAddress, confirmedBalanceBase).encodeABI()
 
     const amountOfGas = await this.gasStation.estimateGas({
-      from: ownerAddress,
-      to: fromTo.fromAddress,
+      from: signerAddress,
+      to: this.masterAddress,
       data: txData
     }, 'TOKEN_SWEEP')
     const feeOption = await this.resolveFeeOption(options, amountOfGas)
 
     const feeBase = new BigNumber(feeOption.feeBase)
 
-    let ethBalance = await this.getEthBaseBalance(ownerAddress)
-    const { confirmedBalance: tokenBalanceMain } = await this.getBalance(fromTo.fromPayport)
+    const ethBalance = await this.getEthBaseBalance(signerAddress)
+    const { confirmedBalance: tokenBalanceMain } = await this.getBalance({ address: proxyAddress })
     const tokenBalanceBase = this.toBaseDenominationBigNumber(tokenBalanceMain)
+
     if (feeBase.isGreaterThan(ethBalance)) {
       throw new Error(
-        `Insufficient ETH balance (${this.toMainDenominationEth(ethBalance)}) at owner address ${ownerAddress} `
-        + `to sweep contract ${fromTo.fromAddress} with fee of ${feeOption.feeMain} ETH`)
+        `Insufficient ETH balance (${this.toMainDenominationEth(ethBalance)}) at owner address ${signerAddress} `
+        + `to sweep contract ${proxyAddress} with fee of ${feeOption.feeMain} ETH`)
     }
 
     if (tokenBalanceBase.isLessThan(0)) {
       throw new Error(`Insufficient token balance (${tokenBalanceMain}) to sweep`)
     }
 
-    const nonce = options.sequenceNumber || await this.getNextSequenceNumber(ownerAddress)
+    const nonce = options.sequenceNumber || await this.getNextSequenceNumber(signerAddress)
+
     const transactionObject = {
-      from:     ownerAddress,
-      to:       fromTo.fromAddress,
+      from:     signerAddress,
+      to:       this.masterAddress,
       data:     txData,
       value:    '0x0',
       nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
@@ -212,11 +213,11 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     return {
       status: TransactionStatus.Unsigned,
       id: null,
-      fromAddress: fromTo.fromAddress,
-      toAddress: fromTo.toAddress,
+      fromAddress: proxyAddress,
+      toAddress: toAddress,
       toExtraId: null,
       fromIndex: this.depositKeyIndex,
-      toIndex: fromTo.toIndex,
+      toIndex: typeof to === 'number' ? to : null,
       amount: tokenBalanceMain,
       fee: feeOption.feeMain,
       targetFeeLevel: feeOption.targetFeeLevel,
@@ -228,7 +229,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
   }
 
   private getErc20TransferLogAmount(txReceipt: TransactionReceipt): string {
-    const transferLog = txReceipt.logs.find((log) => log.topics[0] === LOG_TOPIC0_ERC20_SWEEP)
+    const transferLog = txReceipt.logs.find((log) => log.topics[0] === SIGNATURE.LOG_TOPIC0_ERC20_SWEEP)
     if (!transferLog) {
       throw new Error(`Transaction ${txReceipt.transactionHash} was an ERC20 sweep but cannot find log for Transfer event`)
     }
@@ -250,7 +251,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     let toAddress = ''
     let amount = ''
 
-    if (tx.input.startsWith(SIGNATURE_ERC20_TRANSFER)) {
+    if (tx.input.startsWith(SIGNATURE.ERC20_TRANSFER)) {
       if((tx.to || '').toLowerCase() !== this.tokenAddress.toLowerCase()) {
         throw new Error(`Transaction ${txid} was sent to different contract: ${tx.to}, Expected: ${this.tokenAddress}`)
       }
@@ -267,20 +268,52 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
           )
         }
       }
-    } else if (tx.input.startsWith(SIGNATURE_ERC20_SWEEP_CONTRACT_DEPLOY)) {
+    } else if (tx.input.startsWith(SIGNATURE.ERC20_SWEEP_CONTRACT_DEPLOY)
+      || tx.input.startsWith(SIGNATURE.ERC20_SWEEP_CONTRACT_DEPLOY_LEGACY)) {
       amount = '0'
-    } else if (tx.input.startsWith(SIGNATURE_ERC20_SWEEP_CONTRACT_DEPLOY_LEGACY)) {
+    } else if (tx.input.startsWith(SIGNATURE.ERC20_PROXY)) {
       amount = '0'
-    } else if (tx.input.startsWith(SIGNATURE_ERC20_PROXY)) {
-      amount = '0'
-    } else if (tx.input.startsWith(SIGNATURE_ERC20_SWEEP)) {
+    } else if (tx.input.startsWith(SIGNATURE.ERC20_SWEEP)) {
+      const tokenDecoder = new InputDataDecoder(TOKEN_WALLET_ABI)
+      const txData = tokenDecoder.decodeData(tx.input)
+
+      if (txData.inputs.length !== 4) {
+        throw new Error(`Transaction ${txid} has not recognized number of inputs ${txData.inputs.length}`)
+      }
       // For ERC20 sweeps:
+      // tx.from is the contract address
+      // inputs[0] is salt
+      // inputs[1] is the ERC20 contract address (this.tokenAddress)
+      // inputs[2] is the recipient of the funds (toAddress)
+      // inputs[3] is the amount
+      const sweepContractAddress = tx.to
+      if (!sweepContractAddress) {
+        throw new Error(`Transaction ${txid} should have a to address destination`)
+      }
+
+      const addr = deriveAddress(
+        this.masterAddress,
+        `0x${txData.inputs[0].toString('hex')}`,
+        true
+      )
+
+      fromAddress = this.web3.utils.toChecksumAddress(addr)
+      toAddress = this.web3.utils.toChecksumAddress(txData.inputs[2])
+      if (txReceipt) {
+        amount = this.getErc20TransferLogAmount(txReceipt)
+      }
+    } else if (tx.input.startsWith(SIGNATURE.ERC20_SWEEP_LEGACY)) {
+      const tokenDecoder = new InputDataDecoder(TOKEN_WALLET_ABI_LEGACY)
+      const txData = tokenDecoder.decodeData(tx.input)
+
+      if (txData.inputs.length !== 2) {
+        throw new Error(`Transaction ${txid} has not recognized number of inputs ${txData.inputs.length}`)
+      }
+      // For ERC20 legacy sweeps:
       // tx.to is the sweep contract address and source of funds (fromAddress)
       // tx.from is the contract owner address
       // inputs[0] is the ERC20 contract address (this.tokenAddress)
       // inputs[1] is the recipient of the funds (toAddress)
-      const tokenDecoder = new InputDataDecoder(TOKEN_WALLET_ABI)
-      const txData = tokenDecoder.decodeData(tx.input)
       const sweepContractAddress = tx.to
       if (!sweepContractAddress) {
         throw new Error(`Transaction ${txid} should have a to address destination`)
