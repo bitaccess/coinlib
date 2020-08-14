@@ -150,7 +150,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
   }
 
   async createSweepTransaction(
-    from: number,
+    from: string | number,
     to: ResolveablePayport,
     options: EthereumTransactionOptions = {},
   ): Promise<EthereumUnsignedTransaction> {
@@ -158,51 +158,61 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
     // NOTE sweep from hot wallet which is not guaranteed to support sweep contract execution
     if (from === 0) {
-      const { confirmedBalance } = await this.getBalance(from)
+      const { confirmedBalance } = await this.getBalance(from as number)
       return this.createTransaction(from, to, confirmedBalance, options)
     }
 
-    const { address: signerAddress }= await this.resolvePayport(this.depositKeyIndex)
-    const { address: proxyAddress } = await this.getPayport(from, this.masterAddress)
+    const { address: signerAddress } = await this.resolvePayport(this.depositKeyIndex)
     const { address: toAddress } = await this.resolvePayport(to)
-    const { confirmedBalance } = await this.getBalance(proxyAddress)
-    const confirmedBalanceBase = this.toBaseDenomination(confirmedBalance)
 
-    const contract = this.newContract(TOKEN_WALLET_ABI, this.masterAddress)
+    let txData: string
+    let target: string
+    let fromAddress: string
+    if (typeof from === 'string') {
+      // deployable wallet contract
+      fromAddress = from
+      target = from
 
-    // same salt with which proxyAddess was derived
-    const key = deriveSignatory(this.getXpub(), from).keys.pub
-    const salt = this.web3.utils.sha3(`0x${key}`)
-    const txData = contract.methods.proxyTransfer(salt, this.tokenAddress, toAddress, confirmedBalanceBase).encodeABI()
+      const contract = this.newContract(TOKEN_WALLET_ABI_LEGACY, from)
+      txData = contract.methods.sweep(this.tokenAddress, from).encodeABI()
+    } else {
+      // create2 selfdesctructuble proxy contract
+      fromAddress = (await this.getPayport(from, this.masterAddress)).address
+      target = this.masterAddress
+
+      const { confirmedBalance } = await this.getBalance(fromAddress)
+      const balance = this.toBaseDenomination(confirmedBalance)
+      const contract = this.newContract(TOKEN_WALLET_ABI, this.masterAddress)
+      const key = deriveSignatory(this.getXpub(), from).keys.pub
+      const salt = this.web3.utils.sha3(`0x${key}`)
+      txData = contract.methods.proxyTransfer(salt, this.tokenAddress, toAddress, balance).encodeABI()
+    }
 
     const amountOfGas = await this.gasStation.estimateGas({
       from: signerAddress,
-      to: this.masterAddress,
+      to: target,
       data: txData
     }, 'TOKEN_SWEEP')
     const feeOption = await this.resolveFeeOption(options, amountOfGas)
 
     const feeBase = new BigNumber(feeOption.feeBase)
-
-    const ethBalance = await this.getEthBaseBalance(signerAddress)
-    const { confirmedBalance: tokenBalanceMain } = await this.getBalance({ address: proxyAddress })
-    const tokenBalanceBase = this.toBaseDenominationBigNumber(tokenBalanceMain)
-
+    let ethBalance = await this.getEthBaseBalance(signerAddress)
     if (feeBase.isGreaterThan(ethBalance)) {
       throw new Error(
         `Insufficient ETH balance (${this.toMainDenominationEth(ethBalance)}) at owner address ${signerAddress} `
-        + `to sweep contract ${proxyAddress} with fee of ${feeOption.feeMain} ETH`)
+        + `to sweep contract ${from} with fee of ${feeOption.feeMain} ETH`)
     }
 
+    const { confirmedBalance: tokenBalanceMain } = await this.getBalance({ address: fromAddress })
+    const tokenBalanceBase = this.toBaseDenominationBigNumber(tokenBalanceMain)
     if (tokenBalanceBase.isLessThan(0)) {
       throw new Error(`Insufficient token balance (${tokenBalanceMain}) to sweep`)
     }
 
     const nonce = options.sequenceNumber || await this.getNextSequenceNumber(signerAddress)
-
     const transactionObject = {
       from:     signerAddress,
-      to:       this.masterAddress,
+      to:       target,
       data:     txData,
       value:    '0x0',
       nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
@@ -213,8 +223,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     return {
       status: TransactionStatus.Unsigned,
       id: null,
-      fromAddress: proxyAddress,
-      toAddress: toAddress,
+      fromAddress,
+      toAddress,
       toExtraId: null,
       fromIndex: this.depositKeyIndex,
       toIndex: typeof to === 'number' ? to : null,
