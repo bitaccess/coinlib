@@ -301,6 +301,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       toAddress = this.web3.utils.toChecksumAddress(txData.inputs[2])
       if (txReceipt) {
         amount = this.getErc20TransferLogAmount(txReceipt)
+      } else {
+        amount = this.toMainDenomination(txData.inputs[3].toString())
       }
     } else if (tx.input.startsWith(SIGNATURE.ERC20_SWEEP_LEGACY)) {
       const tokenDecoder = new InputDataDecoder(TOKEN_WALLET_ABI_LEGACY)
