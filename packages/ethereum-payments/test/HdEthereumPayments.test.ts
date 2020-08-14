@@ -799,7 +799,7 @@ describe('HdEthereumPayments', () => {
       test('returns public part of the provided config data', () => {
         const pubConf = hdEP.getPublicConfig()
         expect(pubConf).toStrictEqual({
-          depositKeyIndex: 2,
+          depositKeyIndex: 0,
           network: NetworkType.Testnet,
           gasStation: CONFIG.gasStation,
           parityNode: CONFIG.parityNode,

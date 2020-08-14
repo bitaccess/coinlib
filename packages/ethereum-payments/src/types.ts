@@ -89,6 +89,9 @@ export const BaseErc20PaymentsConfig = extendCodec(
   {
     tokenAddress: t.string,
   },
+  {
+    masterAddress: t.string,
+  },
   'BaseErc20PaymentsConfig',
 )
 export type BaseErc20PaymentsConfig = t.TypeOf<typeof BaseErc20PaymentsConfig>

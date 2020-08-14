@@ -2,6 +2,7 @@ import { PUBLIC_CONFIG_OMIT_FIELDS } from '../constants'
 import { BaseErc20Payments } from './BaseErc20Payments'
 
 import { deriveSignatory } from '../bip44'
+import { deriveAddress } from './deriveAddress'
 import { Payport } from '@faast/payments-common'
 import { omit } from 'lodash'
 import { HdErc20PaymentsConfig, EthereumSignatory } from '../types'
@@ -52,8 +53,12 @@ export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
     return [this.getXpub()]
   }
 
-  async getPayport(index: number): Promise<Payport> {
-    const { address } = deriveSignatory(this.getXpub(), index)
+  // NOTE it is possible to use this.masterAddress
+  async getPayport(index: number, masterAddress?: string): Promise<Payport> {
+    const signatory = deriveSignatory(this.getXpub(), index)
+    const address = masterAddress ? deriveAddress(masterAddress, signatory.keys.pub) : signatory.address
+
+
     if (!await this.isValidAddress(address)) {
       // This should never happen
       throw new Error(`Cannot get address ${index} - validation failed for derived address`)
