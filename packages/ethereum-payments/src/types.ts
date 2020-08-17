@@ -35,6 +35,8 @@ const xkeys = t.type({
 const OptionalString = optional(t.string)
 const OptionalNumber = optional(t.number)
 
+export type EthTxType = 'ETHEREUM_TRANSFER' | 'CONTRACT_DEPLOY' | 'TOKEN_SWEEP' | 'TOKEN_TRANSFER'
+
 export const EthereumSignatory = t.type(
   {
     address: t.string,
@@ -87,6 +89,9 @@ export const BaseErc20PaymentsConfig = extendCodec(
   {
     tokenAddress: t.string,
   },
+  {
+    masterAddress: t.string,
+  },
   'BaseErc20PaymentsConfig',
 )
 export type BaseErc20PaymentsConfig = t.TypeOf<typeof BaseErc20PaymentsConfig>
@@ -125,6 +130,7 @@ export const EthereumTransactionOptions = extendCodec(
   {
     data: t.string,
     gas: t.string,
+    proxyAddress: t.string,
   },
   'EthereumTransactionOptions'
 )

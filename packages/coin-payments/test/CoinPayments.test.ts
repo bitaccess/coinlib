@@ -172,7 +172,7 @@ describe('CoinPayments', () => {
             'network': 'mainnet',
           },
           'ETH': {
-            'depositKeyIndex': 2,
+            'depositKeyIndex': 0,
             'hdKey': 'xpub6FUQp5E3GHcwJ8qsG198LiRcfyJFqy4txgxmzqLXiVSKFTXbn4gU9QcxDSy9NyTrc3EDXfsJVgnfrBgvQUoY3xFbazdgb3WCp2DTSfLUEJE',
             'network': 'mainnet',
           },
@@ -233,7 +233,7 @@ describe('CoinPayments', () => {
             'network': 'testnet',
           },
           'ETH': {
-            'depositKeyIndex': 2,
+            'depositKeyIndex': 0,
             'hdKey': 'xpub6FUQp5E3GHcwJ8qsG198LiRcfyJFqy4txgxmzqLXiVSKFTXbn4gU9QcxDSy9NyTrc3EDXfsJVgnfrBgvQUoY3xFbazdgb3WCp2DTSfLUEJE',
             'network': 'testnet',
           },

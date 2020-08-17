@@ -1,6 +1,6 @@
 {
   "name": "@faast/bitcoin-payments",
-  "version": "2.7.1",
+  "version": "2.8.1",
   "description": "Library to assist in processing bitcoin payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -76,7 +76,7 @@
     "typescript": "^3.9.7"
   },
   "dependencies": {
-    "@faast/payments-common": "^2.7.0",
+    "@faast/payments-common": "^2.8.0",
     "@faast/ts-common": "^0.6.0",
     "bignumber.js": "^9.0.0",
     "bip174": "^1.0.1",

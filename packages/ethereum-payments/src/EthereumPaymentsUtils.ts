@@ -24,7 +24,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   decimals: number
 
   constructor(config: BaseEthereumPaymentsConfig) {
-    this.logger = new DelegateLogger(config.logger, config.name || PACKAGE_NAME)
+    this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
     this.decimals = config.decimals || DECIMAL_PLACES
 
     const unitConverters = createUnitConverters(this.decimals)
