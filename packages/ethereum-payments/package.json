@@ -1,6 +1,6 @@
 {
   "name": "@faast/ethereum-payments",
-  "version": "2.10.0",
+  "version": "2.10.1",
   "description": "Library to assist in processing ethereum payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
