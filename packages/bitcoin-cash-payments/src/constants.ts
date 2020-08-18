@@ -42,12 +42,12 @@ export const DEFAULT_NETWORK = NetworkType.Mainnet
 export const NETWORK_MAINNET = networks.bitcoin
 export const NETWORK_TESTNET = networks.testnet
 
-export const DEFAULT_MAINNET_SERVER = process.env.BITCOIN_SERVER_URL
-  ? process.env.BITCOIN_SERVER_URL.split(',')
+export const DEFAULT_MAINNET_SERVER = process.env.BITCOIN_CASH_SERVER_URL
+  ? process.env.BITCOIN_CASH_SERVER_URL.split(',')
   : ['https://bch1.trezor.io', 'https://bch2.trezor.io']
 export const DEFAULT_TESTNET_SERVER = ''
 
-export const DEFAULT_FEE_LEVEL = FeeLevel.Medium
+export const DEFAULT_FEE_LEVEL = FeeLevel.Low
 export const DEFAULT_SAT_PER_BYTE_LEVELS = {
   [FeeLevel.High]: 10,
   [FeeLevel.Medium]: 5,

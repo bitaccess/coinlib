@@ -31,24 +31,6 @@ export const legacyAccount: AccountFixture = {
   },
 }
 
-export const legacyFixedAccount: AccountFixture = {
-  derivationPath: "m/44'/145'/0'",
-  xprv: ROOT_XPRV,
-  sweepTxSize: 192,
-  xpub:
-    'xpub6DQ4sJfAghtQd7KvxFcuiRvPyKMZmF5HDmYfXj3EM234E38p11SteUZCsiAzhQJ8BQzyPC93yRdkmD42MnCHSW5oUWZeHaMiJPCrApczkwD',
-  addresses: {
-    '0': 'bitcoincash:qqpqf3ppzd4z34ctslhajzzt7hxxvjl8dcfzkrzmxj',
-    '1': 'bitcoincash:qp68g6a6y5dskfaw4anq4l32s04xuqet05vrzepqp8',
-    '2': 'bitcoincash:qq60dskvul43sl4xgp202ccwkzc8ytk6wgl5wzlhk2',
-    '5': 'bitcoincash:qqudvlkhyht6y0awt4khu0spzjf2ncsl9u6a6j5lwa',
-    '6': 'bitcoincash:qqgnmu5vzcs0lfk9gy8hqsgu9q60fg58ggq20sjr5q',
-    '10': 'bitcoincash:qqyluc0lcqxaj08qlk8rm4a922rud3jdyq2xwsztpl',
-    '10000': 'bitcoincash:qrpknlaxgv38ns0zpzar0jc49s7uqlydjqm7mfazsd',
-    '20000': 'bitcoincash:qp36ea6s4jme2rztam96cc2fzrzaxmjt7czgq4ztcv'
-  },
-}
-
 export const accountsByAddressType: { [type in SinglesigAddressType]: AccountFixture } = {
   [AddressType.Legacy]: legacyAccount,
 }

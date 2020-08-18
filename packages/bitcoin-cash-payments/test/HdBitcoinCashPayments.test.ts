@@ -1,16 +1,34 @@
+import fs from 'fs'
+import path from 'path'
 import { NetworkType, FeeRateType } from '@faast/payments-common';
-
 import {
   HdBitcoinCashPayments, HdBitcoinCashPaymentsConfig, AddressType, SinglesigAddressType,
 } from '../src'
 
-import { EXTERNAL_ADDRESS, accountsByAddressType, AccountFixture, legacyFixedAccount } from './fixtures'
+import { EXTERNAL_ADDRESS, accountsByAddressType, AccountFixture, legacyAccount } from './fixtures'
 import { logger, makeUtxos, makeOutputs, expectUtxosEqual } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 
 jest.setTimeout(30 * 1000)
 
-describe('HdBitcoinPayments', () => {
+const SECRET_XPRV_FILE = 'test/keys/mainnet.key'
+
+const rootDir = path.resolve(__dirname, '..')
+const secretXprvFilePath = path.resolve(rootDir, SECRET_XPRV_FILE)
+let secretXprv = ''
+if (fs.existsSync(secretXprvFilePath)) {
+  secretXprv = fs
+    .readFileSync(secretXprvFilePath)
+    .toString('utf8')
+    .trim()
+  logger.log(`Loaded ${SECRET_XPRV_FILE}. Send and sweep tests enabled.`)
+} else {
+  logger.log(
+    `File ${SECRET_XPRV_FILE} missing. Send and sweep e2e mainnet tests will be skipped. To enable them ask Dylan to share the file with you.`,
+  )
+}
+
+describe('HdBitcoinCashPayments', () => {
 
   describe('static', () => {
     it('should throw on invalid hdKey', () => {
@@ -160,7 +178,7 @@ describe('HdBitcoinPayments', () => {
 
   for (let k in accountsByAddressType) {
     const addressType = k as SinglesigAddressType
-    const accountFixture = legacyFixedAccount
+    const accountFixture = legacyAccount
 
     describe(addressType, () => {
 
@@ -178,7 +196,7 @@ describe('HdBitcoinPayments', () => {
 
       describe('hardcoded xprv', () => {
         const config: HdBitcoinCashPaymentsConfig = {
-          hdKey: accountFixture.xprv,
+          hdKey: secretXprv,
           network: NetworkType.Mainnet,
           addressType,
           logger,
@@ -196,7 +214,7 @@ function runHardcodedPublicKeyTests(
   config: HdBitcoinCashPaymentsConfig,
   accountFixture: AccountFixture,
 ) {
-  const { xpub, xprv, addresses, derivationPath } = accountFixture
+  const { xpub, addresses, derivationPath } = accountFixture
   it('getFullConfig', () => {
     expect(payments.getFullConfig()).toEqual({
       hdKey: config.hdKey,
@@ -300,10 +318,10 @@ function runHardcodedPublicKeyTests(
   })
   it('get a balance using an address', async () => {
     expect(await payments.getBalance({ address: addresses[0] })).toEqual({
-      confirmedBalance: '0',
+      confirmedBalance: '0.03',
       unconfirmedBalance: '0',
-      spendableBalance: '0',
-      sweepable: false,
+      spendableBalance: '0.03',
+      sweepable: true,
       requiresActivation: false,
     })
   })
