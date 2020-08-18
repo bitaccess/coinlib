@@ -73,7 +73,7 @@
     "@faast/ripple-payments": "^2.8.1",
     "@faast/stellar-payments": "^2.8.1",
     "@faast/tron-payments": "^2.8.1",
-    "@faast/bitcoincash-payments": "^2.7.1",
+    "@faast/bitcoin-cash-payments": "^2.7.1",
     "@faast/ts-common": "^0.6.0",
     "bignumber.js": "^9.0.0",
     "bip32": "^2.0.5",

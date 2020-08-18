@@ -61,6 +61,8 @@ See [@faast/coin-payments README](./packages/coin-payments/README.md) for usage.
 - [@faast/stellar-payments](./packages/stellar-payments)
 - [@faast/ripple-payments](./packages/ripple-payments)
 - [@faast/litecoin-payments](./packages/litecoin-payments)
+- [@faast/ethereum-payments](./packages/ethereum-payments)
+- [@faast/bitcoin-cash-payments](./packages/bitcoin-cash-payments)
 
 ## Publishing new version
 

@@ -2,7 +2,7 @@ import { FeeLevel, NetworkType } from '@faast/payments-common'
 import { networks } from 'bitcoinforksjs-lib'
 import { AddressType, SinglesigAddressType } from './types';
 
-export const PACKAGE_NAME = 'bitcoincash-payments'
+export const PACKAGE_NAME = 'bitcoin-cash-payments'
 export const DECIMAL_PLACES = 8
 export const COIN_SYMBOL = 'BCH'
 export const COIN_NAME = 'Bitcoin Cash'

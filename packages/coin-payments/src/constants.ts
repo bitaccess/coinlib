@@ -5,7 +5,7 @@ import { StellarPaymentsFactory } from '@faast/stellar-payments'
 import { BitcoinPaymentsFactory } from '@faast/bitcoin-payments'
 import { EthereumPaymentsFactory } from '@faast/ethereum-payments'
 import { LitecoinPaymentsFactory } from '@faast/litecoin-payments'
-import { BitcoinCashPaymentsFactory } from '@faast/bitcoincash-payments'
+import { BitcoinCashPaymentsFactory } from '@faast/bitcoin-cash-payments'
 
 import { keysOf } from './utils'
 import { SupportedCoinPaymentsSymbol } from './types'

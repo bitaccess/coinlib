@@ -7,7 +7,7 @@ import { StellarPaymentsConfig, BaseStellarPaymentsConfig } from '@faast/stellar
 import { BitcoinPaymentsConfig, BaseBitcoinPaymentsConfig } from '@faast/bitcoin-payments'
 import { EthereumPaymentsConfig, BaseEthereumPaymentsConfig } from '@faast/ethereum-payments'
 import { LitecoinPaymentsConfig, BaseLitecoinPaymentsConfig } from '@faast/litecoin-payments'
-import { BitcoinCashPaymentsConfig, BaseBitcoinCashPaymentsConfig } from '@faast/bitcoincash-payments'
+import { BitcoinCashPaymentsConfig, BaseBitcoinCashPaymentsConfig } from '@faast/bitcoin-cash-payments'
 
 export const basePaymentsConfigCodecs = {
   TRX: BaseTronPaymentsConfig,

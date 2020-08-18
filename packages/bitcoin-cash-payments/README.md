@@ -1,4 +1,4 @@
-bitcoincash-payments
+bitcoin-cash-payments
 =================
 
 Library to assist in payment processing on Bitcoin. It first allows for generation
@@ -10,12 +10,12 @@ Please see the BIP32 standard for more information ([BIP32](https://github.com/b
 ## Getting Started
 
 ```bash
-npm install --save bitcoincash-payments
+npm install --save @faast/bitcoin-cash-payments
 ```
 
 Create a new wallet (DON'T DO THIS ON PRODUCTION):
 ```js
-let bitcoinCashPayments = require('bitcoincash-payments')()
+let bitcoinCashPayments = require('@faast/bitcoin-cash-payments')()
 let keys = bitcoinCashPayments.generateNewKeys('really random entropy here')
 console.log(keys.xpub)
 console.log(keys.xprv)
