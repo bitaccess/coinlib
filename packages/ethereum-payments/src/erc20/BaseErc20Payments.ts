@@ -174,7 +174,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       target = from
 
       const contract = this.newContract(TOKEN_WALLET_ABI_LEGACY, from)
-      txData = contract.methods.sweep(this.tokenAddress, from).encodeABI()
+      txData = contract.methods.sweep(this.tokenAddress, toAddress).encodeABI()
     } else {
       // create2 selfdesctructuble proxy contract
       fromAddress = (await this.getPayport(from, this.masterAddress)).address
