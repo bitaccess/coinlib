@@ -1,5 +1,5 @@
 {
-  "name": "@faast/bitcoincash-payments",
+  "name": "@faast/bitcoin-cash-payments",
   "version": "2.7.1",
   "description": "Library to assist in processing bitcoin cash payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
@@ -7,8 +7,8 @@
   "browser": "dist/index.umd.js",
   "types": "dist/lib/index.d.ts",
   "esnext": "dist/lib/index.js",
-  "repository": "https://github.com/go-faast/coin-payments/tree/master/packages/bitcoincash-payments",
-  "homepage": "https://github.com/go-faast/coin-payments/tree/master/packages/bitcoincash-payments#readme",
+  "repository": "https://github.com/go-faast/coin-payments/tree/master/packages/bitcoin-cash-payments",
+  "homepage": "https://github.com/go-faast/coin-payments/tree/master/packages/bitcoin-cash-payments#readme",
   "bugs": {
     "url": "https://github.com/go-faast/coin-payments/issues"
   },
