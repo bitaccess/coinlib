@@ -7,6 +7,7 @@ import { StellarPaymentsConfig, BaseStellarPaymentsConfig } from '@faast/stellar
 import { BitcoinPaymentsConfig, BaseBitcoinPaymentsConfig } from '@faast/bitcoin-payments'
 import { EthereumPaymentsConfig, BaseEthereumPaymentsConfig } from '@faast/ethereum-payments'
 import { LitecoinPaymentsConfig, BaseLitecoinPaymentsConfig } from '@faast/litecoin-payments'
+import { BitcoinCashPaymentsConfig, BaseBitcoinCashPaymentsConfig } from '@faast/bitcoin-cash-payments'
 
 export const basePaymentsConfigCodecs = {
   TRX: BaseTronPaymentsConfig,
@@ -15,6 +16,7 @@ export const basePaymentsConfigCodecs = {
   BTC: BaseBitcoinPaymentsConfig,
   ETH: BaseEthereumPaymentsConfig,
   LTC: BaseLitecoinPaymentsConfig,
+  BCH: BaseBitcoinCashPaymentsConfig,
 }
 
 export const CoinPaymentsBaseConfigs = t.type(basePaymentsConfigCodecs, 'CoinPaymentsBaseConfigs')
@@ -27,6 +29,7 @@ export const paymentsConfigCodecs = {
   BTC: BitcoinPaymentsConfig,
   ETH: EthereumPaymentsConfig,
   LTC: LitecoinPaymentsConfig,
+  BCH: BitcoinCashPaymentsConfig,
 }
 export const CoinPaymentsConfigs = t.type(paymentsConfigCodecs, 'CoinPaymentsConfigs')
 export type CoinPaymentsConfigs = t.TypeOf<typeof CoinPaymentsConfigs>

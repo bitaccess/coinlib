@@ -7,4 +7,5 @@ import * as Ripple from '@faast/ripple-payments'
 import * as Stellar from '@faast/stellar-payments'
 import * as Bitcoin from '@faast/bitcoin-payments'
 import * as Litecoin from '@faast/litecoin-payments'
-export { Tron, Ripple, Stellar, Bitcoin, Litecoin }
+import * as BitcoinCash from '@faast/bitcoin-cash-payments'
+export { Tron, Ripple, Stellar, Bitcoin, Litecoin, BitcoinCash }

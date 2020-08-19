@@ -1,11 +1,3 @@
 # `ethereum-payments`
 
-> TODO: description
-
-## Usage
-
-```
-const ethereumPayments = require('ethereum-payments');
-
-// TODO: DEMONSTRATE API
-```
+Please refer to the [@faast/coin-payments README](../coin-payments/README.md) for more detailed information.
