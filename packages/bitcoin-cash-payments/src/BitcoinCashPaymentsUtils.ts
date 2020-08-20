@@ -19,10 +19,10 @@ export class BitcoinCashPaymentsUtils extends BitcoinishPaymentsUtils {
 
   async getBlockBookFeeEstimate(feeLevel?: FeeLevel, networkType?: NetworkType): Promise<number> {
     const body = await this.getApi().doRequest('GET', '/api/v1/estimatefee/3')
-    const feePerKB = body['result']
-    if (!feePerKB) {
+    const fee = body['result']
+    if (!fee) {
       throw new Error("Blockbook response is missing expected field 'result'")
     }
-    return feePerKB / 1000
+    return fee * 100000
   }
 }
