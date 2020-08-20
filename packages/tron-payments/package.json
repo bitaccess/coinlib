@@ -1,6 +1,6 @@
 {
   "name": "@faast/tron-payments",
-  "version": "2.11.2",
+  "version": "2.11.3",
   "description": "Library to assist in processing tron payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -46,7 +46,7 @@
     "version": "npm run build"
   },
   "dependencies": {
-    "@faast/payments-common": "^2.11.1",
+    "@faast/payments-common": "^2.11.3",
     "@faast/ts-common": "^0.6.0",
     "bignumber.js": "^9.0.0",
     "bip32": "^2.0.5",
