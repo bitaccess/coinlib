@@ -24,6 +24,6 @@ export class BitcoinCashPaymentsUtils extends BitcoinishPaymentsUtils {
       throw new Error("Blockbook response is missing expected field 'result'")
     }
     const satPerByte = fee * 100000
-    return feeLevel === 'high' ? satPerByte  * 2 : feeLevel === 'low' ? satPerByte / 2 : satPerByte
+    return feeLevel === 'high' ? satPerByte * 2 : feeLevel === 'low' ? satPerByte / 2 : satPerByte
   }
 }
