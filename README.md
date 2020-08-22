@@ -63,6 +63,7 @@ See [@faast/coin-payments README](./packages/coin-payments/README.md) for usage.
 - [@faast/litecoin-payments](./packages/litecoin-payments)
 - [@faast/ethereum-payments](./packages/ethereum-payments)
 - [@faast/bitcoin-cash-payments](./packages/bitcoin-cash-payments)
+- [@faast/dash-payments](./packages/dash-payments)
 
 ## Publishing new version
 
