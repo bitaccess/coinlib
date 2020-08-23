@@ -9,7 +9,9 @@
       "../stellar-payments/src/@types",
       "../bitcoin-payments/src/@types",
       "../ethereum-payments/src/@types",
-      "../litecoin-payments/src/@types"
+      "../litecoin-payments/src/@types",
+      "../bitcoin-cash-payments/src/@types",
+      "../dash-payments/src/@types",
     ]
   },
   "exclude": ["node_modules", "dist"]

@@ -171,6 +171,12 @@ describe('CoinPayments', () => {
             'hdKey': 'xpub6CrWaNQ65RQXoUARmM9YQ2L4cjjkbzuCSri8atiTU5WXo7FiXCZEU9AehJjuxB69EMZbvAAjSGqTDRTCRmsMfWY4y2yXqE1udMmhoKSNmgW',
             'network': 'mainnet',
           },
+          'DASH': {
+            'addressType': 'p2pkh',
+            'derivationPath': "m/44'/5'/0'",
+            'hdKey': 'xpub6CMvjaTefTyqo7SnwSte4VjVzYBVE7PGGSrGv5j8WjAYVusTMmCDeEa9cE3VgW9okzgaxehpnCczxWqTXXuvbwFacmjWAGr7tm5h9aMZt7f',
+            'network': 'mainnet',
+          },
           'ETH': {
             'depositKeyIndex': 0,
             'hdKey': 'xpub6FUQp5E3GHcwJ8qsG198LiRcfyJFqy4txgxmzqLXiVSKFTXbn4gU9QcxDSy9NyTrc3EDXfsJVgnfrBgvQUoY3xFbazdgb3WCp2DTSfLUEJE',
