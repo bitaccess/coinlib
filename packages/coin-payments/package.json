@@ -68,8 +68,8 @@
   "dependencies": {
     "@faast/bitcoin-cash-payments": "^2.11.3",
     "@faast/bitcoin-payments": "^2.11.3",
-    "@faast/dash-payments": "^2.11.3",
     "@faast/ethereum-payments": "^2.11.3",
+    "@faast/dash-payments": "^2.11.3",
     "@faast/litecoin-payments": "^2.11.3",
     "@faast/payments-common": "^2.11.3",
     "@faast/ripple-payments": "^2.11.3",
