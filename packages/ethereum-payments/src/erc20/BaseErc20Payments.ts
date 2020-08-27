@@ -50,8 +50,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
   }
 
-  abstract getXpub(): string
-  abstract async getPayport(index: number, masterAddress?: string): Promise<Payport>
+  abstract getAddressSalt(index: number): string
+  abstract async getPayport(index: number): Promise<Payport>
 
   private newContract(...args: ConstructorParameters<typeof Contract>) {
     const contract = new Contract(...args)
@@ -177,14 +177,13 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       txData = contract.methods.sweep(this.tokenAddress, toAddress).encodeABI()
     } else {
       // create2 selfdesctructuble proxy contract
-      fromAddress = (await this.getPayport(from, this.masterAddress)).address
+      fromAddress = (await this.getPayport(from)).address
       target = this.masterAddress
 
       const { confirmedBalance } = await this.getBalance(fromAddress)
       const balance = this.toBaseDenomination(confirmedBalance)
       const contract = this.newContract(TOKEN_WALLET_ABI, this.masterAddress)
-      const key = deriveSignatory(this.getXpub(), from).keys.pub
-      const salt = this.web3.utils.sha3(`0x${key}`)
+      const salt = this.getAddressSalt(from)
       txData = contract.methods.proxyTransfer(salt, this.tokenAddress, toAddress, balance).encodeABI()
     }
 

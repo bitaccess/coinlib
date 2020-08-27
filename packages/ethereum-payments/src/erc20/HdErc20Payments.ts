@@ -53,17 +53,32 @@ export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
     return [this.getXpub()]
   }
 
-  // NOTE it is possible to use this.masterAddress
-  async getPayport(index: number, masterAddress?: string): Promise<Payport> {
-    const signatory = deriveSignatory(this.getXpub(), index)
-    const address = masterAddress ? deriveAddress(masterAddress, signatory.keys.pub) : signatory.address
+  getAddressSalt(index: number): string {
+    const key = deriveSignatory(this.getXpub(), index).keys.pub
+    const salt = this.web3.utils.sha3(`0x${key}`)
+    if (!salt) {
+      throw new Error(`Cannot get address salt for index ${index}`)
+    }
+    return salt
+  }
 
+  async getPayport(index: number): Promise<Payport> {
+    const signatory = deriveSignatory(this.getXpub(), index)
+    if (index === 0) {
+      return { address: signatory.address }
+    }
+
+    if (!this.masterAddress) {
+      throw new Error(`Cannot derive payport ${index} - masterAddress is falsy`)
+    }
+    const address = deriveAddress(this.masterAddress, signatory.keys.pub)
 
     if (!await this.isValidAddress(address)) {
       // This should never happen
       throw new Error(`Cannot get address ${index} - validation failed for derived address`)
     }
-    return { address }
+    const { address: signerAddress } = deriveSignatory(this.getXpub(), this.depositKeyIndex)
+    return { address, signerAddress }
   }
 
   async getPrivateKey(index: number): Promise<string> {

@@ -43,6 +43,7 @@ export const Payport = requiredOptionalCodec(
   },
   {
     extraId: nullable(t.string),
+    signerAddress: t.string,
   },
   'Payport',
 )
