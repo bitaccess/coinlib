@@ -77,7 +77,8 @@ export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
       // This should never happen
       throw new Error(`Cannot get address ${index} - validation failed for derived address`)
     }
-    return { address, signerAddress: signatory.address }
+    const { address: signerAddress } = deriveSignatory(this.getXpub(), this.depositKeyIndex)
+    return { address, signerAddress }
   }
 
   async getPrivateKey(index: number): Promise<string> {
