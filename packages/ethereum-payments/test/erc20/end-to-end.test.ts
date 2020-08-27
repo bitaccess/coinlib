@@ -161,7 +161,7 @@ describe('end to end tests', () => {
       // NOTE: i != 0 because 0 is signer's index
       // proxy contracts of the first one
       for (let i = 1; i < 10; i++) {
-        const { address: derivedAddress } = await hd.getPayport(i, hd.masterAddress)
+        const { address: derivedAddress } = await hd.getPayport(i)
         const { confirmedBalance: dABalance } = await hd.getBalance(derivedAddress)
         expect(dABalance).toEqual('0')
         depositAddresses.push(derivedAddress)
