@@ -57,7 +57,12 @@ describe('CoinPayments', () => {
   })
 
   describe('instance manual', () => {
-    const cp = new CoinPayments(CONFIG)
+
+    let cp: CoinPayments
+
+    it('can be instantiated', () => {
+      cp = new CoinPayments(CONFIG)
+    })
 
     describe('forAsset', () => {
       it('returns for configured', () => {
@@ -109,12 +114,18 @@ describe('CoinPayments', () => {
   })
 
   describe('instance seed', () => {
-    const cp = new CoinPayments({
-      network: NetworkType.Mainnet,
-      logger: console,
-      seed: 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-      BTC: { addressType: AddressType.SegwitP2SH },
+
+    let cp: CoinPayments
+
+    it('can be instantiated', () => {
+      cp = new CoinPayments({
+        network: NetworkType.Mainnet,
+        logger: console,
+        seed: 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+        BTC: { addressType: AddressType.SegwitP2SH },
+      })
     })
+
     describe('getPublicConfig', () => {
       it('returns all assets', () => {
         const publicConfig = cp.getPublicConfig()
@@ -228,8 +239,8 @@ describe('CoinPayments', () => {
           },
           'BCH': {
             'addressType': 'p2pkh',
-            'derivationPath': "m/44'/1'/0'",
-            'hdKey': 'tpubDD44v815t4axrr6ad3hf8Q7mo53GJ6Wsk3jJXdxiCZiteDp2fo8LQ8eGvDKnaA9Ui6P8QmUbzt1nf1JxEwPidRrtZ7cfujPSrjESpMfLofr',
+            'derivationPath': "m/44'/145'/0'",
+            'hdKey': 'xpub6CrWaNQ65RQXoUARmM9YQ2L4cjjkbzuCSri8atiTU5WXo7FiXCZEU9AehJjuxB69EMZbvAAjSGqTDRTCRmsMfWY4y2yXqE1udMmhoKSNmgW',
             'network': 'testnet',
           },
           'ETH': {
