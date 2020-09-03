@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { omit } from 'lodash'
-import { FeeRateType, BalanceResult, TransactionStatus, NetworkType } from '@faast/payments-common'
+import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel } from '@faast/payments-common'
 
 import {
   HdBitcoinPayments, BitcoinTransactionInfo, HdBitcoinPaymentsConfig,
@@ -13,6 +13,7 @@ import { accountsByAddressType, AccountFixture } from './fixtures/accounts'
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
+import { DEFAULT_SAT_PER_BYTE_LEVELS } from '../src/constants';
 
 const EXTERNAL_ADDRESS = '14Z2k3tU19TSzBfT8s4QFAcYsbECUJnxiK'
 
@@ -52,13 +53,14 @@ describeAll('e2e mainnet', () => {
     testsComplete = true
   })
 
-  const payments = new HdBitcoinPayments({
+  const paymentsConfig: HdBitcoinPaymentsConfig = {
     hdKey: secretXprv,
     network: NetworkType.Mainnet,
     addressType: AddressType.SegwitNative,
     logger,
     targetUtxoPoolSize: 5,
-  })
+  }
+  const payments = new HdBitcoinPayments(paymentsConfig)
   const feeRate = '21'
   const feeRateType = FeeRateType.BasePerWeight
   const address0 = 'bc1qz7v8smdfrgzqvjre3lrcxl4ul9x806e7umgf27'
@@ -133,6 +135,36 @@ describeAll('e2e mainnet', () => {
   it('fail to get an invalid transaction hash', async () => {
     await expect(payments.getTransactionInfo('123456abcdef'))
       .rejects.toThrow("Transaction '123456abcdef' not found")
+  })
+
+  describe('getFeeRateRecommendation', () => {
+
+    it('succeeds without token', async () => {
+      const estimate = await payments.getFeeRateRecommendation(FeeLevel.High)
+      expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
+      expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThan(1)
+    })
+
+    ;(process.env.BLOCKCYPHER_TOKEN ? it : it.skip)('succeeds with token', async () => {
+      const paymentsWithToken = new HdBitcoinPayments({
+        ...paymentsConfig,
+        blockcypherToken: process.env.BLOCKCYPHER_TOKEN,
+      })
+      const estimate = await paymentsWithToken.getFeeRateRecommendation(FeeLevel.High)
+      expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
+      expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThan(1)
+    })
+
+    it('falls back to hardcoded with invalid token', async () => {
+      const paymentsWithToken = new HdBitcoinPayments({
+        ...paymentsConfig,
+        blockcypherToken: 'invalid',
+      })
+      const estimate = await paymentsWithToken.getFeeRateRecommendation(FeeLevel.High)
+      expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
+      expect(Number.parseFloat(estimate.feeRate)).toBe(DEFAULT_SAT_PER_BYTE_LEVELS[FeeLevel.High])
+    })
+
   })
 
   it('creates transaction with fixed fee', async () => {

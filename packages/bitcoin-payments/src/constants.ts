@@ -54,7 +54,7 @@ export const DEFAULT_TESTNET_SERVER = process.env.BITCOIN_TESTNET_SERVER_URL
 
 export const DEFAULT_FEE_LEVEL = FeeLevel.Medium
 export const DEFAULT_SAT_PER_BYTE_LEVELS = {
-  [FeeLevel.High]: 50,
-  [FeeLevel.Medium]: 25,
-  [FeeLevel.Low]: 10,
+  [FeeLevel.High]: 100,
+  [FeeLevel.Medium]: 50,
+  [FeeLevel.Low]: 25,
 }

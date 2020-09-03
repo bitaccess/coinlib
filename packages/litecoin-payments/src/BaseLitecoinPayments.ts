@@ -25,14 +25,16 @@ import {
 import { isValidAddress, isValidPrivateKey, isValidPublicKey } from './helpers'
 import { BitcoinishPayments, BitcoinishPaymentTx } from '@faast/bitcoin-payments'
 
-export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsConfig> 
+export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsConfig>
 extends BitcoinishPayments<Config> {
 
   readonly maximumFeeRate?: number
+  private readonly blockcypherToken?: string
 
   constructor(config: BaseLitecoinPaymentsConfig) {
     super(toBitcoinishConfig(config))
     this.maximumFeeRate = config.maximumFeeRate
+    this.blockcypherToken = config.blockcypherToken
   }
 
   abstract getPaymentScript(index: number): bitcoin.payments.Payment
@@ -53,7 +55,7 @@ extends BitcoinishPayments<Config> {
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
     let satPerByte: number
     try {
-      satPerByte = await getBlockcypherFeeEstimate(feeLevel, this.networkType)
+      satPerByte = await getBlockcypherFeeEstimate(feeLevel, this.networkType, this.blockcypherToken)
     } catch (e) {
       satPerByte = DEFAULT_SAT_PER_BYTE_LEVELS[feeLevel]
       this.logger.warn(

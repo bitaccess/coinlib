@@ -1,11 +1,11 @@
 import fs from 'fs'
 import path from 'path'
 import { omit } from 'lodash'
-import { FeeRateType, BalanceResult, TransactionStatus, NetworkType } from '@faast/payments-common'
+import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel } from '@faast/payments-common'
 
 import {
   HdLitecoinPayments, LitecoinTransactionInfo, HdLitecoinPaymentsConfig,
-  LitecoinSignedTransaction, SinglesigAddressType, AddressType,
+  LitecoinSignedTransaction, SinglesigAddressType, AddressType, DEFAULT_SAT_PER_BYTE_LEVELS,
 } from '../src'
 
 import { txInfo_4d111 } from './fixtures'
@@ -52,13 +52,14 @@ describeAll('e2e mainnet', () => {
     testsComplete = true
   })
 
-  const payments = new HdLitecoinPayments({
+  const paymentsConfig: HdLitecoinPaymentsConfig = {
     hdKey: secretXprv,
     network: NetworkType.Mainnet,
     addressType: AddressType.SegwitNative,
     logger,
     targetUtxoPoolSize: 1,
-  })
+  }
+  const payments = new HdLitecoinPayments(paymentsConfig)
   const feeRate = '21'
   const feeRateType = FeeRateType.BasePerWeight
   const address0 = 'ltc1q9ek9srkxa69l8p9qdk8v2ntzs9vetxnr6xhvf4'
@@ -132,6 +133,36 @@ describeAll('e2e mainnet', () => {
   it('fail to get an invalid transaction hash', async () => {
     await expect(payments.getTransactionInfo('123456abcdef'))
       .rejects.toThrow("Transaction '123456abcdef' not found")
+  })
+
+  describe('getFeeRateRecommendation', () => {
+
+    it('succeeds without token', async () => {
+      const estimate = await payments.getFeeRateRecommendation(FeeLevel.High)
+      expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
+      expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThan(1)
+    })
+
+    ;(process.env.BLOCKCYPHER_TOKEN ? it : it.skip)('succeeds with token', async () => {
+      const paymentsWithToken = new HdLitecoinPayments({
+        ...paymentsConfig,
+        blockcypherToken: process.env.BLOCKCYPHER_TOKEN,
+      })
+      const estimate = await paymentsWithToken.getFeeRateRecommendation(FeeLevel.High)
+      expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
+      expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThan(1)
+    })
+
+    it('falls back to hardcoded with invalid token', async () => {
+      const paymentsWithToken = new HdLitecoinPayments({
+        ...paymentsConfig,
+        blockcypherToken: 'invalid',
+      })
+      const estimate = await paymentsWithToken.getFeeRateRecommendation(FeeLevel.High)
+      expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
+      expect(Number.parseFloat(estimate.feeRate)).toBe(DEFAULT_SAT_PER_BYTE_LEVELS[FeeLevel.High])
+    })
+
   })
 
   it('creates transaction with fixed fee', async () => {

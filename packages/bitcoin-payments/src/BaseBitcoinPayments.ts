@@ -21,10 +21,12 @@ import { BitcoinishPayments, BitcoinishPaymentTx } from './bitcoinish'
 export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConfig> extends BitcoinishPayments<Config> {
 
   readonly maximumFeeRate?: number
+  readonly blockcypherToken?: string
 
   constructor(config: BaseBitcoinPaymentsConfig) {
     super(toBitcoinishConfig(config))
     this.maximumFeeRate = config.maximumFeeRate
+    this.blockcypherToken = config.blockcypherToken
   }
 
   abstract getPaymentScript(index: number): bitcoin.payments.Payment
@@ -49,7 +51,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
     let satPerByte: number
     try {
-      satPerByte = await getBlockcypherFeeEstimate(feeLevel, this.networkType)
+      satPerByte = await getBlockcypherFeeEstimate(feeLevel, this.networkType, this.blockcypherToken)
     } catch (e) {
       satPerByte = DEFAULT_SAT_PER_BYTE_LEVELS[feeLevel]
       this.logger.warn(

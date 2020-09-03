@@ -58,9 +58,15 @@ export function toBitcoinishConfig<T extends BaseLitecoinPaymentsConfig>(config:
 }
 
 /** Get sat/byte fee estimate from blockcypher */
-export async function getBlockcypherFeeEstimate(feeLevel: FeeLevel, networkType: NetworkType): Promise<number> {
+export async function getBlockcypherFeeEstimate(
+  feeLevel: FeeLevel,
+  networkType: NetworkType,
+  blockcypherToken?: string,
+): Promise<number> {
+  const networkParam = networkType === NetworkType.Mainnet ? 'main' : 'test'
+  const tokenQs = blockcypherToken ? `?token=${blockcypherToken}` : ''
   const body = await request.get(
-    `https://api.blockcypher.com/v1/ltc/${networkType === NetworkType.Mainnet ? 'main' : 'test3'}`,
+    `https://api.blockcypher.com/v1/ltc/${networkParam}${tokenQs}`,
     { json: true },
   )
   const feePerKbField = `${feeLevel}_fee_per_kb`
