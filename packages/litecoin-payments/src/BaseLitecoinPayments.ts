@@ -59,7 +59,7 @@ extends BitcoinishPayments<Config> {
     } catch (e) {
       satPerByte = DEFAULT_SAT_PER_BYTE_LEVELS[feeLevel]
       this.logger.warn(
-        `Failed to get litecoin ${this.networkType} fee estimate, using hardcoded default of ${feeLevel} sat/byte -- ${e.message}`
+        `Failed to get litecoin ${this.networkType} fee estimate, using hardcoded default of ${satPerByte} sat/byte -- ${e.message}`
       )
     }
     return {

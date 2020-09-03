@@ -75,7 +75,7 @@ export class HdLitecoinPayments extends SinglesigLitecoinPayments<HdLitecoinPaym
 
   getPublicConfig(): HdLitecoinPaymentsConfig {
     return {
-      ...omit(this.getFullConfig(), ['logger', 'server', 'hdKey']),
+      ...omit(this.getFullConfig(), ['logger', 'server', 'hdKey', 'blockcypherToken']),
       hdKey: this.xpub,
     }
   }
