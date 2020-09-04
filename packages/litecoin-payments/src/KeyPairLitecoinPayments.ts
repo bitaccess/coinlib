@@ -53,7 +53,7 @@ export class KeyPairLitecoinPayments extends SinglesigLitecoinPayments<KeyPairLi
 
   getPublicConfig(): KeyPairLitecoinPaymentsConfig {
     return {
-      ...omit(this.getFullConfig(), ['logger', 'server', 'keyPairs']),
+      ...omit(this.getFullConfig(), ['logger', 'server', 'keyPairs', 'blockcypherToken']),
       keyPairs: this.publicKeys,
     }
   }

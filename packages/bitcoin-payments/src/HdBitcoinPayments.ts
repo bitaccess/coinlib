@@ -74,7 +74,7 @@ export class HdBitcoinPayments extends SinglesigBitcoinPayments<HdBitcoinPayment
 
   getPublicConfig(): HdBitcoinPaymentsConfig {
     return {
-      ...omit(this.getFullConfig(), ['logger', 'server', 'hdKey']),
+      ...omit(this.getFullConfig(), ['logger', 'server', 'hdKey', 'blockcypherToken']),
       hdKey: this.xpub,
     }
   }

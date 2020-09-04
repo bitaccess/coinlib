@@ -53,7 +53,7 @@ export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitc
 
   getPublicConfig(): KeyPairBitcoinPaymentsConfig {
     return {
-      ...omit(this.getFullConfig(), ['logger', 'server', 'keyPairs']),
+      ...omit(this.getFullConfig(), ['logger', 'server', 'keyPairs', 'blockcypherToken']),
       keyPairs: this.publicKeys,
     }
   }
