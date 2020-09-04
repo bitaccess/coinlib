@@ -166,7 +166,7 @@ describe('EthereumPaymentsUtils', () => {
 
   describe('privateKeyToAddress', () => {
     test('converts address for given private key', async () => {
-      expect(epu.privateKeyToAddress(VALID_PRVKEY)).toBe(VALID_ADDRESS)
+      expect(epu.privateKeyToAddress(VALID_PRVKEY)).toBe(VALID_ADDRESS.toLowerCase())
     })
   })
 })

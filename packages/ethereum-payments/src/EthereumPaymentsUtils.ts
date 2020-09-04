@@ -103,7 +103,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
       key = `0x${prv}`
     }
 
-    return web3.utils.toChecksumAddress(web3.eth.accounts.privateKeyToAccount(key).address)
+    return web3.eth.accounts.privateKeyToAccount(key).address.toLowerCase()
   }
 
   private async _getPayportValidationMessage(payport: Payport): Promise<string | undefined> {

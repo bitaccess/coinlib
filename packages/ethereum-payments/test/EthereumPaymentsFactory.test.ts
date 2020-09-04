@@ -21,13 +21,13 @@ describe('EthereumPaymentsFactory', () => {
 
   it('should instantiate KeyPairEthereumPayments', () => {
     const config: KeyPairEthereumPaymentsConfig = {
-      keyPairs: [ hdAccount.rootChild[0].xkeys.xprv, hdAccount.rootChild[0].keys.prv, hdAccount.rootChild[0].address ]
+      keyPairs: [ hdAccount.rootChild[0].xkeys.xprv, hdAccount.rootChild[0].keys.prv, hdAccount.rootChild[0].address.toLowerCase() ]
     }
     const kP = factory.forConfig(config)
 
     expect(kP).toBeInstanceOf(KeyPairEthereumPayments)
     expect(kP.getPublicConfig()).toStrictEqual({
-      keyPairs: { 0: hdAccount.rootChild[0].address }
+      keyPairs: { 0: hdAccount.rootChild[0].address.toLowerCase() }
     })
   })
 

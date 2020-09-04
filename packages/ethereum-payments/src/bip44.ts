@@ -36,7 +36,7 @@ class EthereumBIP44 {
     const derived = this.deriveByIndex(index)
     let address = pubToAddress(derived.publicKey, true)
 
-    return web3.utils.toChecksumAddress(`0x${address.toString('hex')}`)
+    return web3.utils.toChecksumAddress(`0x${address.toString('hex')}`).toLowerCase()
   }
 
   getPrivateKey(index?: number): string {

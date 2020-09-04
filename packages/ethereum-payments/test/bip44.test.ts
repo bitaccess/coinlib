@@ -13,28 +13,57 @@ describe('bip44', () => {
   })
 
   test('deriveSignatory 0 from root xprv', () => {
-    const root0Child = deriveSignatory(hdAccount.root.KEYS.xprv, 0)
-    expect(root0Child).toStrictEqual(hdAccount.rootChild[0])
+    const res = deriveSignatory(hdAccount.root.KEYS.xprv, 0)
+    const exp = hdAccount.rootChild[0]
+
+    expect(res.address).toBe(exp.address.toLowerCase())
+    exp.address = exp.address.toLowerCase()
+    expect(res).toStrictEqual(exp)
   })
 
   test('deriveSignatory 1 from root xprv', () => {
-    expect(deriveSignatory(hdAccount.root.KEYS.xprv, 1)).toStrictEqual(hdAccount.rootChild[1])
+    const res = deriveSignatory(hdAccount.root.KEYS.xprv, 1)
+    const exp = hdAccount.rootChild[1]
+
+    expect(res.address).toBe(exp.address.toLowerCase())
+    exp.address = exp.address.toLowerCase()
+    expect(res).toStrictEqual(exp)
   })
 
   test('deriveSignatory 0 from child0 xprv', () => {
-    expect(deriveSignatory(hdAccount.rootChild[0].xkeys.xprv, 0)).toStrictEqual(hdAccount.child0Child[0])
+    const res = deriveSignatory(hdAccount.rootChild[0].xkeys.xprv, 0)
+    const exp = hdAccount.child0Child[0]
+
+    expect(res.address).toBe(exp.address.toLowerCase())
+    exp.address = exp.address.toLowerCase()
+    expect(res).toStrictEqual(exp)
   })
 
   test('deriveSignatory 0 from child1 xprv', () => {
-    expect(deriveSignatory(hdAccount.rootChild[1].xkeys.xprv, 0)).toStrictEqual(hdAccount.child1Child[0])
+    const res = deriveSignatory(hdAccount.rootChild[1].xkeys.xprv, 0)
+    const exp = hdAccount.child1Child[0]
+
+    expect(res.address).toBe(exp.address.toLowerCase())
+    exp.address = exp.address.toLowerCase()
+    expect(res).toStrictEqual(exp)
   })
 
   test('deriveSignatory 0 from child0 xpub', () => {
-    expect(deriveSignatory(hdAccount.rootChild[0].xkeys.xpub, 0)).toStrictEqual(hdAccount.child0ChildPub[0])
+    const res = deriveSignatory(hdAccount.rootChild[0].xkeys.xpub, 0)
+    const exp = hdAccount.child0ChildPub[0]
+
+    expect(res.address).toBe(exp.address.toLowerCase())
+    exp.address = exp.address.toLowerCase()
+    expect(res).toStrictEqual(exp)
   })
 
   test('deriveSignatory 1 from child1 xpub', () => {
-    expect(deriveSignatory(hdAccount.rootChild[1].xkeys.xpub, 1)).toStrictEqual(hdAccount.child1ChildPub[1])
+    const res = deriveSignatory(hdAccount.rootChild[1].xkeys.xpub, 1)
+    const exp = hdAccount.child1ChildPub[1]
+
+    expect(res.address).toBe(exp.address.toLowerCase())
+    exp.address = exp.address.toLowerCase()
+    expect(res).toStrictEqual(exp)
   })
 
   test('Trying to derive signatory from private key', () => {

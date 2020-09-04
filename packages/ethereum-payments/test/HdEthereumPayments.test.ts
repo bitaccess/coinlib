@@ -100,11 +100,11 @@ describe('HdEthereumPayments', () => {
 
     describe('resolvePayport', () => {
       test('returns object address derived from the provided key', async () => {
-        expect(await hdEP.resolvePayport(1)).toStrictEqual({ address: FROM_ADDRESS })
+        expect(await hdEP.resolvePayport(1)).toStrictEqual({ address: FROM_ADDRESS.toLowerCase() })
       })
 
       test('returns object address if provided input is string', async () => {
-        expect(await hdEP.resolvePayport(FROM_ADDRESS)).toStrictEqual({ address: FROM_ADDRESS })
+        expect(await hdEP.resolvePayport(FROM_ADDRESS)).toStrictEqual({ address: FROM_ADDRESS.toLowerCase() })
       })
 
       test('thorws an error for invalid address', async () => {
@@ -133,13 +133,13 @@ describe('HdEthereumPayments', () => {
         const res = await hdEP.resolveFromTo(1, TO_ADDRESS)
         expect(res).toStrictEqual({
           fromExtraId: undefined,
-          fromAddress: FROM_ADDRESS,
+          fromAddress: FROM_ADDRESS.toLowerCase(),
           fromIndex: 1,
-          fromPayport: { address: FROM_ADDRESS },
-          toAddress: TO_ADDRESS,
+          fromPayport: { address: FROM_ADDRESS.toLowerCase() },
+          toAddress: TO_ADDRESS.toLowerCase(),
           toIndex: null,
           toExtraId: undefined,
-          toPayport: { address: TO_ADDRESS }
+          toPayport: { address: TO_ADDRESS.toLowerCase() }
         })
       })
     })
@@ -253,7 +253,7 @@ describe('HdEthereumPayments', () => {
         const transactionCountMocks = getTransactionCountMocks(2, FROM_ADDRESS, '0x1a')
         nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
-        expect(await hdEP.getNextSequenceNumber(FROM_ADDRESS)).toBe('26')
+        expect(await hdEP.getNextSequenceNumber(FROM_ADDRESS)).toBe('27')
       })
     })
 
@@ -277,8 +277,8 @@ describe('HdEthereumPayments', () => {
         expect(res).toStrictEqual({
           id: txId,
           amount: '0.12345',
-          toAddress: TO_ADDRESS,
-          fromAddress: FROM_ADDRESS,
+          toAddress: TO_ADDRESS.toLowerCase(),
+          fromAddress: FROM_ADDRESS.toLowerCase(),
           toExtraId: null,
           fromIndex: null,
           toIndex: null,
@@ -297,8 +297,8 @@ describe('HdEthereumPayments', () => {
             blockHash: blockId,
             blockNumber: 3,
             transactionIndex: 0,
-            from: FROM_ADDRESS,
-            to: TO_ADDRESS,
+            from: FROM_ADDRESS.toLowerCase(),
+            to: TO_ADDRESS.toLowerCase(),
             value: '123450000000000000',
             gas: 21000,
             gasPrice: '2000000000000',
@@ -336,8 +336,8 @@ describe('HdEthereumPayments', () => {
         expect(res).toStrictEqual({
           id: txId,
           amount: '0.12345',
-          toAddress: TO_ADDRESS,
-          fromAddress: FROM_ADDRESS,
+          toAddress: TO_ADDRESS.toLowerCase(),
+          fromAddress: FROM_ADDRESS.toLowerCase(),
           toExtraId: null,
           fromIndex: null,
           toIndex: null,
@@ -356,8 +356,8 @@ describe('HdEthereumPayments', () => {
             blockHash: blockId,
             blockNumber: 3,
             transactionIndex: 0,
-            from: FROM_ADDRESS,
-            to: TO_ADDRESS,
+            from: FROM_ADDRESS.toLowerCase(),
+            to: TO_ADDRESS.toLowerCase(),
             value: '123450000000000000',
             gas: 21000,
             gasPrice: '2000000000000',
@@ -395,8 +395,8 @@ describe('HdEthereumPayments', () => {
         expect(res).toStrictEqual({
           id: txId,
           amount: '0.12345',
-          toAddress: TO_ADDRESS,
-          fromAddress: FROM_ADDRESS,
+          toAddress: TO_ADDRESS.toLowerCase(),
+          fromAddress: FROM_ADDRESS.toLowerCase(),
           toExtraId: null,
           fromIndex: null,
           toIndex: null,
@@ -421,8 +421,8 @@ describe('HdEthereumPayments', () => {
             status: false,
             transactionHash: txId,
             transactionIndex: 0,
-            from: FROM_ADDRESS,
-            to: TO_ADDRESS,
+            from: FROM_ADDRESS.toLowerCase(),
+            to: TO_ADDRESS.toLowerCase(),
             value: '123450000000000000',
             gas: 21000,
             gasPrice: '2000000000000',
@@ -454,8 +454,8 @@ describe('HdEthereumPayments', () => {
         expect(res).toStrictEqual({
           id: txId,
           amount: '0.12345',
-          toAddress: TO_ADDRESS,
-          fromAddress: FROM_ADDRESS,
+          toAddress: TO_ADDRESS.toLowerCase(),
+          fromAddress: FROM_ADDRESS.toLowerCase(),
           toExtraId: null,
           fromIndex: null,
           toIndex: null,
@@ -481,8 +481,8 @@ describe('HdEthereumPayments', () => {
             logsBloom: '',
             transactionHash: txId,
             transactionIndex: 0,
-            from: FROM_ADDRESS,
-            to: TO_ADDRESS,
+            from: FROM_ADDRESS.toLowerCase(),
+            to: TO_ADDRESS.toLowerCase(),
             value: '123450000000000000',
             gasPrice: '2000000000000',
             input: '0x57cb2fc4',
@@ -522,8 +522,8 @@ describe('HdEthereumPayments', () => {
         expect(res).toStrictEqual({
           id: null,
           status: 'unsigned',
-          fromAddress: FROM_ADDRESS,
-          toAddress: TO_ADDRESS,
+          fromAddress: FROM_ADDRESS.toLowerCase(),
+          toAddress: TO_ADDRESS.toLowerCase(),
           toExtraId: null,
           fromIndex: 1,
           toIndex: null,
@@ -532,14 +532,14 @@ describe('HdEthereumPayments', () => {
           targetFeeLevel: 'medium',
           targetFeeRate: '3000000000',
           targetFeeRateType: 'base/weight',
-          sequenceNumber: '26',
+          sequenceNumber: '27',
           data: {
-            from: FROM_ADDRESS,
-            to: TO_ADDRESS,
+            from: FROM_ADDRESS.toLowerCase(),
+            to: TO_ADDRESS.toLowerCase(),
             value: '0x11c37937e08000',
             gas: '0xc350',
             gasPrice: '0xb2d05e00',
-            nonce: '0x1a'
+            nonce: '0x1b'
           }
         })
 
@@ -614,8 +614,8 @@ describe('HdEthereumPayments', () => {
         expect(res).toStrictEqual({
           id: null,
           status: 'unsigned',
-          fromAddress: FROM_ADDRESS,
-          toAddress: to.address,
+          fromAddress: FROM_ADDRESS.toLowerCase(),
+          toAddress: to.address.toLowerCase(),
           toExtraId: null,
           fromIndex: 1,
           toIndex: null,
@@ -624,14 +624,14 @@ describe('HdEthereumPayments', () => {
           targetFeeLevel: 'medium',
           targetFeeRate: '3000000000',
           targetFeeRateType: 'base/weight',
-          sequenceNumber: '26',
+          sequenceNumber: '27',
           data: {
-            from: FROM_ADDRESS,
-            to: to.address,
+            from: FROM_ADDRESS.toLowerCase(),
+            to: to.address.toLowerCase(),
             value: '0x1f955d1afcee972',
             gas: '0x7c1a',
             gasPrice: '0xb2d05e00',
-            nonce: '0x1a'
+            nonce: '0x1b'
           }
         })
 
@@ -688,8 +688,8 @@ describe('HdEthereumPayments', () => {
         const unsignedTx = {
           id: null,
           status: 'unsigned',
-          fromAddress: FROM_ADDRESS,
-          toAddress: TO_ADDRESS,
+          fromAddress: FROM_ADDRESS.toLowerCase(),
+          toAddress: TO_ADDRESS.toLowerCase(),
           toExtraId: null,
           fromIndex: 1,
           toIndex: null,
@@ -700,8 +700,8 @@ describe('HdEthereumPayments', () => {
           targetFeeRateType: 'base',
           sequenceNumber: '27',
           data: {
-            from: FROM_ADDRESS,
-            to: to.address,
+            from: FROM_ADDRESS.toLowerCase(),
+            to: to.address.toLowerCase(),
             value: '0x1e33c7f8ff55572',
             gas: '0x523c',
             gasPrice: '0x45d964b800',
@@ -714,8 +714,8 @@ describe('HdEthereumPayments', () => {
         expect(res).toStrictEqual({
           id: '0x3137b3336975aabfcf141469727d8d805f5e6d343de7fcc93e61d8d19d5d238f',
           status: 'signed',
-          fromAddress: FROM_ADDRESS,
-          toAddress: to.address,
+          fromAddress: FROM_ADDRESS.toLowerCase(),
+          toAddress: to.address.toLowerCase(),
           toExtraId: null,
           fromIndex: 1,
           toIndex: null,
@@ -745,8 +745,8 @@ describe('HdEthereumPayments', () => {
         const signedTx = {
           id: txId,
           status: 'signed',
-          fromAddress: FROM_ADDRESS,
-          toAddress: to.address,
+          fromAddress: FROM_ADDRESS.toLowerCase(),
+          toAddress: to.address.toLowerCase(),
           toExtraId: null,
           fromIndex: 0,
           toIndex: null,
@@ -824,7 +824,7 @@ describe('HdEthereumPayments', () => {
       test('returns object address derived from the provided key', async () => {
 
         expect(await hdEP.getPayport(1)).toStrictEqual({
-          address: FROM_ADDRESS
+          address: FROM_ADDRESS.toLowerCase()
         })
       })
     })

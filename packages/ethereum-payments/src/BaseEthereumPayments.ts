@@ -56,7 +56,6 @@ implements BasePayments
   eth: Web3['eth']
   gasStation: NetworkData
   private config: Config
-  private toChecksumAddress: Function
   public depositKeyIndex: number
 
   constructor(config: Config) {
@@ -78,7 +77,6 @@ implements BasePayments
     this.eth = this.web3.eth
     this.gasStation = new NetworkData(this.eth, config.gasStation, config.parityNode, this.logger)
     this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
-    this.toChecksumAddress = this.web3.utils.toChecksumAddress
   }
 
   async init() {}
@@ -98,7 +96,7 @@ implements BasePayments
       if (!await this.isValidAddress(payport)) {
         throw new Error(`Invalid Ethereum address: ${payport}`)
       }
-      return { address: this.toChecksumAddress(payport) }
+      return { address: payport.toLowerCase() }
     }
 
     if (!await this.isValidPayport(payport)) {
@@ -109,7 +107,7 @@ implements BasePayments
       }
     }
 
-    return { ...payport, address: this.toChecksumAddress(payport.address) }
+    return { ...payport, address: payport.address.toLowerCase() }
   }
 
   async resolveFromTo(from: number, to: ResolveablePayport): Promise<FromTo> {
@@ -259,12 +257,15 @@ implements BasePayments
     const currentBlockNumber = await this.eth.getBlockNumber()
     let txInfo: TransactionReceipt | null = await this.eth.getTransactionReceipt(txid)
 
+    tx.from = tx.from ? tx.from.toLowerCase() : '';
+    tx.to = tx.to ? tx.to.toLowerCase() : '';
+
     // NOTE: for the sake of consistent schema return
     if (!txInfo) {
       txInfo = {
         transactionHash: tx.hash,
-        from: tx.from ? this.toChecksumAddress(tx.from) : '',
-        to: tx.to ? this.toChecksumAddress(tx.to) : '',
+        from: tx.from,
+        to: tx.to,
         status: true,
         blockNumber: 0,
         cumulativeGasUsed: 0,
@@ -278,8 +279,8 @@ implements BasePayments
       return {
         id: txid,
         amount: this.toMainDenomination(tx.value),
-        toAddress: tx.to ? this.toChecksumAddress(tx.to) : null,
-        fromAddress: tx.from ? this.toChecksumAddress(tx.from) : null,
+        toAddress: tx.to ? tx.to.toLowerCase() : null,
+        fromAddress: tx.from ? tx.from.toLowerCase() : null,
         toExtraId: null,
         fromIndex: null,
         toIndex: null,
@@ -321,11 +322,14 @@ implements BasePayments
       }
     }
 
+    txInfo.from = tx.from
+    txInfo.to = tx.to
+
     return {
       id: txid,
       amount: this.toMainDenomination(tx.value),
-      toAddress: tx.to ? this.toChecksumAddress(tx.to) : null,
-      fromAddress: tx.from ? this.toChecksumAddress(tx.from) : null,
+      toAddress: tx.to ? tx.to.toLowerCase() : null,
+      fromAddress: tx.from ? tx.from.toLowerCase() : null,
       toExtraId: null,
       fromIndex: null,
       toIndex: null,

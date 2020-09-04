@@ -30,9 +30,9 @@ describe('KeyPairEthereumPayments', () => {
       expect(Object.keys(privateKeys).length).toBe(1)
       expect(Object.keys(addressIndices).length).toBe(1)
 
-      expect(addresses[0]).toBe(hdAccount.rootChild[0].address)
+      expect(addresses[0]).toBe(hdAccount.rootChild[0].address.toLowerCase())
       expect(privateKeys[0]).toBe(hdAccount.rootChild[0].keys.prv)
-      expect(addressIndices[hdAccount.rootChild[0].address]).toBe(0)
+      expect(addressIndices[hdAccount.rootChild[0].address.toLowerCase()]).toBe(0)
     })
   })
 
@@ -50,7 +50,7 @@ describe('KeyPairEthereumPayments', () => {
           gasStation: CONFIG.gasStation,
           parityNode: CONFIG.parityNode,
           keyPairs: {
-            '0': hdAccount.rootChild[0].address
+            '0': hdAccount.rootChild[0].address.toLowerCase()
           }
         })
       })
@@ -58,20 +58,20 @@ describe('KeyPairEthereumPayments', () => {
 
     describe('getAccountId', () => {
       test('returns address by index', () => {
-        expect(kpEP.getAccountId(0)).toBe(hdAccount.rootChild[0].address)
+        expect(kpEP.getAccountId(0)).toBe(hdAccount.rootChild[0].address.toLowerCase())
       })
     })
 
     describe('getAccountIds', () => {
       test('returns array of addresses', () => {
-        expect(kpEP.getAccountIds()).toStrictEqual([hdAccount.rootChild[0].address])
+        expect(kpEP.getAccountIds()).toStrictEqual([hdAccount.rootChild[0].address.toLowerCase()])
       })
     })
 
     describe('getPayport', () => {
       test('returns object address by provided index', async () => {
         expect(await kpEP.getPayport(0)).toStrictEqual({
-          address: hdAccount.rootChild[0].address
+          address: hdAccount.rootChild[0].address.toLowerCase()
         })
       })
     })

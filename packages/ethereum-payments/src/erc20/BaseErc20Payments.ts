@@ -44,8 +44,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
   constructor(config: Config) {
     super(config)
-    this.tokenAddress = config.tokenAddress
-    this.masterAddress = config.masterAddress || ''
+    this.tokenAddress = config.tokenAddress.toLowerCase()
+    this.masterAddress = (config.masterAddress || '').toLowerCase()
 
     this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
   }
@@ -98,7 +98,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     this.logger.debug('createTransaction', from, to, amountMain)
 
     const fromTo = await this.resolveFromTo(from as number, to)
-    const txFromAddress = fromTo.fromAddress
+    const txFromAddress = fromTo.fromAddress.toLowerCase()
 
     const amountBase = this.toBaseDenominationBigNumber(amountMain)
     const contract = this.newContract(TOKEN_METHODS_ABI, this.tokenAddress)
@@ -121,7 +121,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     }
 
     const transactionObject = {
-      from:     fromTo.fromAddress,
+      from:     fromTo.fromAddress.toLowerCase(),
       to:       this.tokenAddress,
       data:     txData,
       value:    '0x0',
@@ -134,8 +134,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     return {
       status: TransactionStatus.Unsigned,
       id: null,
-      fromAddress: fromTo.fromAddress,
-      toAddress: fromTo.toAddress,
+      fromAddress: fromTo.fromAddress.toLowerCase(),
+      toAddress: fromTo.toAddress.toLowerCase(),
       toExtraId: null,
       fromIndex: fromTo.fromIndex,
       toIndex: fromTo.toIndex,
@@ -170,8 +170,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     let fromAddress: string
     if (typeof from === 'string') {
       // deployable wallet contract
-      fromAddress = from
-      target = from
+      fromAddress = from.toLowerCase()
+      target = from.toLowerCase()
 
       const contract = this.newContract(TOKEN_WALLET_ABI_LEGACY, from)
       txData = contract.methods.sweep(this.tokenAddress, toAddress).encodeABI()
@@ -256,7 +256,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     const currentBlockNumber = await this.eth.getBlockNumber()
     let txReceipt: TransactionReceipt | null = await this.eth.getTransactionReceipt(txid)
 
-    let fromAddress = tx.from
+    let fromAddress = tx.from.toLowerCase()
     let toAddress = ''
     let amount = ''
 
@@ -267,7 +267,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
       const tokenDecoder = new InputDataDecoder(TOKEN_METHODS_ABI)
       const txData = tokenDecoder.decodeData(tx.input)
-      toAddress = this.web3.utils.toChecksumAddress(txData.inputs[0])
+      toAddress = this.web3.utils.toChecksumAddress(txData.inputs[0]).toLowerCase()
       amount = this.toMainDenomination(txData.inputs[1].toString())
       if (txReceipt) {
         const actualAmount = this.getErc20TransferLogAmount(txReceipt)
@@ -306,8 +306,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
         true
       )
 
-      fromAddress = this.web3.utils.toChecksumAddress(addr)
-      toAddress = this.web3.utils.toChecksumAddress(txData.inputs[2])
+      fromAddress = this.web3.utils.toChecksumAddress(addr).toLowerCase()
+      toAddress = this.web3.utils.toChecksumAddress(txData.inputs[2]).toLowerCase()
       if (txReceipt) {
         amount = this.getErc20TransferLogAmount(txReceipt)
       } else {
@@ -329,8 +329,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       if (!sweepContractAddress) {
         throw new Error(`Transaction ${txid} should have a to address destination`)
       }
-      fromAddress = this.web3.utils.toChecksumAddress(sweepContractAddress)
-      toAddress = this.web3.utils.toChecksumAddress(txData.inputs[1])
+      fromAddress = this.web3.utils.toChecksumAddress(sweepContractAddress).toLowerCase()
+      toAddress = this.web3.utils.toChecksumAddress(txData.inputs[1]).toLowerCase()
 
       if (txReceipt) {
         amount = this.getErc20TransferLogAmount(txReceipt)
