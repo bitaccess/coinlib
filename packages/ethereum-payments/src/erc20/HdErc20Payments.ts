@@ -39,7 +39,7 @@ export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
   getPublicConfig(): HdErc20PaymentsConfig {
     return {
       ...omit(this.getFullConfig(), PUBLIC_CONFIG_OMIT_FIELDS),
-      tokenAddress: this.tokenAddress,
+      tokenAddress: this.tokenAddress.toLowerCase(),
       depositKeyIndex: this.depositKeyIndex,
       hdKey: this.getXpub(),
     }

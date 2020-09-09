@@ -207,8 +207,8 @@ describe('end to end tests', () => {
       const broadcastedTx = await hd.broadcastTransaction(signedTx)
       let txInfo = await hd.getTransactionInfo(broadcastedTx.id)
 
-      expect((txInfo.toAddress || '').toLowerCase()).toBe(destination.toLowerCase())
-      expect((txInfo.fromAddress || '').toLowerCase()).toBe(depositAddresses[0].toLowerCase())
+      expect((txInfo.toAddress || '')).toBe(destination.toLowerCase())
+      expect((txInfo.fromAddress || '')).toBe(depositAddresses[0].toLowerCase())
 
       // make some txs just to confirm previous
       while(txInfo.status !== 'confirmed') {

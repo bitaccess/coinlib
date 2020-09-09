@@ -25,7 +25,7 @@ export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereu
       let pkey: string | null = null
 
       if (web3.utils.isAddress(value)) {
-        address = value
+        address = value.toLowerCase()
       } else if (this.isValidPrivateKey(value)) {
         address = this.privateKeyToAddress(value)
       } else if (this.isValidXprv(value)) {

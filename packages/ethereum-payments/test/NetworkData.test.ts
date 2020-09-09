@@ -48,7 +48,7 @@ describe('NetworkData', () => {
     expect(res).toEqual({
       'pricePerGasUnit': '1000000000',
       'amountOfGas': '21000',
-      'nonce': '26',
+      'nonce': '27',
     })
   })
 
@@ -71,7 +71,7 @@ describe('NetworkData', () => {
     expect(res).toEqual({
       'pricePerGasUnit': '1000000000',
       'amountOfGas': '48002',
-      'nonce': '26',
+      'nonce': '27',
     })
   })
 
