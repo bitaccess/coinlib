@@ -167,9 +167,57 @@ describeAll('e2e mainnet', () => {
 
   })
 
-  it('creates transaction with fixed fee', async () => {
+  it('creates transaction with fixed fee paid by sender', async () => {
+    const fee = '0.00002'
+    const amount = '0.00005'
+    const tx = await payments.createTransaction(0, 3, amount, {
+      feeRate: fee,
+      feeRateType: FeeRateType.Main,
+      recipientPaysFee: false,
+    })
+    expect(tx.fee).toBe(fee)
+    expect(tx.amount).toBe(amount)
+  })
+
+  it('creates transaction with fixed fee paid by recipient', async () => {
+    const fee = '0.00002'
+    const amount = '0.00005'
+    const tx = await payments.createTransaction(0, 3, amount, {
+      feeRate: fee,
+      feeRateType: FeeRateType.Main,
+      recipientPaysFee: true,
+    })
+    expect(tx.fee).toBe(fee)
+    expect(tx.amount).toBe('0.00003')
+  })
+
+  it('creates multi out transaction with fixed fee paid by recipient', async () => {
+    const fee = '0.00002'
+    const amount = '0.00005'
+    const outputs = [{ payport: address3, amount }, { payport: address3, amount }]
+    const tx = await payments.createMultiOutputTransaction(0, outputs, {
+      feeRate: fee,
+      feeRateType: FeeRateType.Main,
+      recipientPaysFee: true,
+    })
+    expect(tx.fee).toBe(fee)
+    expect(tx.amount).toBe('0.00008')
+    expect(tx.externalOutputs).toEqual([
+      {
+        address: address3,
+        value: '0.00004',
+      },
+      {
+        address: address3,
+        value: '0.00004',
+      },
+    ])
+  })
+
+  it('creates sweep transaction with fixed fee', async () => {
     const fee = '0.00005'
     const tx = await payments.createSweepTransaction(0, 3, { feeRate: fee, feeRateType: FeeRateType.Main })
+    expect(tx.amount).toBe('0.00006')
     expect(tx.fee).toBe(fee)
   })
   it('create sweep transaction to an index', async () => {
