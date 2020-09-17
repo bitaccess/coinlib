@@ -299,6 +299,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     feeRate: FeeRate,
     useAllUtxos: boolean,
     useUnconfirmedUtxos: boolean,
+    recipientPaysFee: boolean,
   ): { selectedUtxos: UtxoInfo[], selectedTotalSat: number, feeSat: number } {
     // Convert values to satoshis for convenient math
     const utxos: Array<UtxoInfo & { satoshis: number }> = []
@@ -326,12 +327,14 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     } else { // Sending amount case
       // First try to find a single input that covers output without creating change
       const idealSolutionFeeSat = this.estimateTxFee(feeRate, 1, 0, outputAddresses)
-      const idealSolutionMinSat = outputTotal + idealSolutionFeeSat
+      const idealSolutionMinSat = outputTotal + (recipientPaysFee ? idealSolutionFeeSat : 0)
       const idealSolutionMaxSat = idealSolutionMinSat + this.dustThreshold
       for (const utxo of utxos) {
         if (utxo.satoshis >= idealSolutionMinSat && utxo.satoshis <= idealSolutionMaxSat) {
           this.logger.log(
-            `Found ideal ${this.coinSymbol} input utxo solution to send ${outputTotal} sat using single utxo ${utxo.txid}:${utxo.vout}`
+            `Found ideal ${this.coinSymbol} input utxo solution to send ${outputTotal} sat `
+            + `${recipientPaysFee ? 'less' : 'plus'} fee of ${idealSolutionFeeSat} sat `
+            + `using single utxo ${utxo.txid}:${utxo.vout}`
           )
           return {
             selectedUtxos: [utxo],
@@ -341,7 +344,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         }
       }
 
-      // Incrementally select utxos until we cover output + fees
+      // Incrementally select utxos until we cover outputs and fees
       let selectedUtxos = []
       let selectedTotalSat = 0 // Total input sat is accumulated as inputs are added
       let feeSat = 0 // Total fee is recalculated when adding each input
@@ -351,7 +354,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         selectedTotalSat += utxo.satoshis
         const targetChangeOutputCount = this.determineTargetChangeOutputCount(unusedUtxos.length, selectedUtxos.length)
         feeSat = this.estimateTxFee(feeRate, selectedUtxos.length, targetChangeOutputCount, outputAddresses)
-        if (selectedTotalSat >= outputTotal + feeSat) {
+        const neededSat = outputTotal + (recipientPaysFee ? feeSat : 0)
+        if (selectedTotalSat >= neededSat) {
           break
         }
       }
@@ -375,16 +379,18 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     desiredOutputs: BitcoinishTxOutput[],
     changeAddress: string,
     desiredFeeRate: FeeRate,
-    useAllUtxos?: boolean,
+    useAllUtxos?: boolean, // true if every utxo should be included (ie sweeping or consolidating utxos)
     useUnconfirmedUtxos?: boolean, // true if unconfirmed utxos should be used
+    recipientPaysFee?: boolean, // true if fee should be deducted from outputs instead of paid by sender
   }): Promise<Required<BitcoinishPaymentTx>> {
     const {
       unusedUtxos, desiredOutputs, changeAddress, desiredFeeRate,
     } = params
-    const useAllUtxos = isUndefined(params.useAllUtxos) ? false : params.useAllUtxos
-    const useUnconfirmedUtxos = isUndefined(params.useUnconfirmedUtxos) ? false : params.useUnconfirmedUtxos
+    const useAllUtxos = params.useAllUtxos ?? false
+    const useUnconfirmedUtxos = params.useUnconfirmedUtxos ?? false
+    const recipientPaysFee = params.recipientPaysFee ?? false
     // sum of non change output value in satoshis
-    let externalOutputTotal = 0
+    let desiredOutputTotal = 0
     // Convert output values to satoshis for convenient math
     const externalOutputs: BitcoinishTxOutputSatoshis[] = []
     for (let i = 0; i < desiredOutputs.length; i++) {
@@ -401,7 +407,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         throw new Error(`Invalid ${this.coinSymbol} positive value (${value}) provided for output ${i} (${address})`)
       }
       externalOutputs.push({ address, satoshis })
-      externalOutputTotal += satoshis
+      desiredOutputTotal += satoshis
     }
     if (!await this.isValidAddress(changeAddress)) {
       throw new Error (`Invalid ${this.coinSymbol} change address ${changeAddress} provided`)
@@ -411,47 +417,48 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const externalOutputAddresses = externalOutputs.map(({ address }) => address)
     let { selectedUtxos: inputUtxos, selectedTotalSat: inputTotal, feeSat } = this.selectInputUtxos(
       unusedUtxos,
-      externalOutputTotal,
+      desiredOutputTotal,
       externalOutputAddresses,
       desiredFeeRate,
       useAllUtxos,
       useUnconfirmedUtxos,
+      recipientPaysFee,
     )
+    const isSweep = desiredOutputTotal === inputTotal
 
-    /** Account for insuffient inputs and sweeping cases */
-    if (externalOutputTotal + feeSat > inputTotal) {
-      if (externalOutputTotal === inputTotal) { // sweeping
-        // Share the fee across all outputs. This may increase the fee by as much as 1 sat per output, negligible
-        const feeShare = Math.ceil(feeSat / externalOutputs.length)
-        feeSat = feeShare * externalOutputs.length
-        this.logger.log(
-          `${this.coinSymbol} buildPaymentTx - Attempting to send entire ${externalOutputTotal} sat balance. ` +
-          `Subtracting fee of ${feeSat} sat from ${externalOutputs.length} outputs (${feeShare} sat each)`
-        )
-        for (let i = 0; i < externalOutputs.length; i++) {
-          const externalOutput = externalOutputs[i]
-          externalOutput.satoshis -= feeShare
-          if (externalOutput.satoshis <= this.dustThreshold) {
-            throw new Error(
-              `${this.coinSymbol} buildPaymentTx - output ${i} for ${externalOutput.satoshis} ` +
-              `sat minus ${feeShare} sat fee share is below dust threshold`
-            )
-          }
+    let externalOutputTotal = desiredOutputTotal
+    if (recipientPaysFee || isSweep) {
+      // Share the fee across all outputs. This may increase the fee by as much as 1 sat per output, negligible
+      const feeShare = Math.ceil(feeSat / externalOutputs.length)
+      feeSat = feeShare * externalOutputs.length
+      this.logger.log(
+        `${this.coinSymbol} buildPaymentTx - Subtracting fee of ${feeSat} sat from ${externalOutputs.length} outputs (${feeShare} sat each)`
+      )
+      for (let i = 0; i < externalOutputs.length; i++) {
+        const externalOutput = externalOutputs[i]
+        externalOutput.satoshis -= feeShare
+        if (externalOutput.satoshis <= this.dustThreshold) {
+          throw new Error(
+            `${this.coinSymbol} buildPaymentTx - output ${i} for ${externalOutput.satoshis} sat minus ${feeShare} `
+            + `sat fee share is too small to send (below dust threshold of ${this.dustThreshold} sat)`
+          )
         }
-        externalOutputTotal -= feeSat
-      } else { // insufficient utxos
-        throw new Error(
-          `${this.coinSymbol} buildPaymentTx - You do not have enough UTXOs (${inputTotal} sat) ` +
-          `to send ${externalOutputTotal} sat with ${feeSat} sat fee`
-        )
       }
+      externalOutputTotal -= feeSat
+    }
+
+    // insufficient utxos
+    if (externalOutputTotal + feeSat > inputTotal) {
+      throw new Error(
+        `${this.coinSymbol} buildPaymentTx - You do not have enough UTXOs (${inputTotal} sat) ` +
+        `to send ${externalOutputTotal} sat with ${feeSat} sat fee`
+      )
     }
 
     /** Change handling */
-
     let totalChangeSat = inputTotal - externalOutputTotal - feeSat
 
-    this.logger.debug('buildPaymentTx', { inputTotal, feeSat, outputTotal: externalOutputTotal, totalChangeSat })
+    this.logger.debug('buildPaymentTx', { inputTotal, feeSat, desiredOutputTotal, externalOutputTotal, totalChangeSat })
     let changeOutputs: BitcoinishTxOutputSatoshis[] = []
     if (totalChangeSat < 0) {
       throw new Error(`${this.coinSymbol} buildPaymentTx - totalChangeSat is negative when building tx, this shouldnt happen!`)
@@ -579,6 +586,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       desiredFeeRate: { feeRate: targetFeeRate, feeRateType: targetFeeRateType },
       useAllUtxos: options.useAllUtxos,
       useUnconfirmedUtxos: options.useUnconfirmedUtxos,
+      recipientPaysFee: options.recipientPaysFee,
     })
     const unsignedTxHex = await this.serializePaymentTx(paymentTx, from)
     paymentTx.rawHex = unsignedTxHex
