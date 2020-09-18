@@ -167,6 +167,34 @@ describeAll('e2e mainnet', () => {
 
   })
 
+  it('creates ideal solution transaction with fee paid by sender', async () => {
+    const targetUtxo = address0utxos[0]
+    const fee = '0.00002'
+    const amount = new BigNumber(targetUtxo.value).minus(fee).toString()
+    const tx = await payments.createTransaction(0, 3, amount, {
+      feeRate: fee,
+      feeRateType: FeeRateType.Main,
+      recipientPaysFee: false,
+    })
+    expect(tx.fee).toBe(fee)
+    expect(tx.amount).toBe(amount)
+    expectEqualOmit(tx.inputUtxos, [targetUtxo], omitUtxoFieldEquality)
+  })
+
+  it('creates ideal solution transaction with fee paid by recipient', async () => {
+    const targetUtxo = address0utxos[0]
+    const fee = '0.00002'
+    const amount = targetUtxo.value
+    const tx = await payments.createTransaction(0, 3, amount, {
+      feeRate: fee,
+      feeRateType: FeeRateType.Main,
+      recipientPaysFee: false,
+    })
+    expect(tx.fee).toBe(fee)
+    expect(tx.amount).toBe(new BigNumber(amount).minus(fee).toString())
+    expectEqualOmit(tx.inputUtxos, [targetUtxo], omitUtxoFieldEquality)
+  })
+
   it('creates transaction with fixed fee paid by sender', async () => {
     const fee = '0.00002'
     const amount = '0.00005'
