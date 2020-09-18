@@ -424,7 +424,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       useUnconfirmedUtxos,
       recipientPaysFee,
     )
-    const isSweep = desiredOutputTotal === inputTotal
+    const isSweep = useAllUtxos && desiredOutputTotal === inputTotal
 
     let externalOutputTotal = desiredOutputTotal
     if (recipientPaysFee || isSweep) {
