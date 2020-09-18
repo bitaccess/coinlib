@@ -354,7 +354,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         selectedTotalSat += utxo.satoshis
         const targetChangeOutputCount = this.determineTargetChangeOutputCount(unusedUtxos.length, selectedUtxos.length)
         feeSat = this.estimateTxFee(feeRate, selectedUtxos.length, targetChangeOutputCount, outputAddresses)
-        const neededSat = outputTotal + (recipientPaysFee ? feeSat : 0)
+        const neededSat = outputTotal + (recipientPaysFee ? 0 : feeSat)
         if (selectedTotalSat >= neededSat) {
           break
         }
