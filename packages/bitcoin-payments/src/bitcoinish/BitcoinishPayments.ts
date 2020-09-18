@@ -327,7 +327,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     } else { // Sending amount case
       // First try to find a single input that covers output without creating change
       const idealSolutionFeeSat = this.estimateTxFee(feeRate, 1, 0, outputAddresses)
-      const idealSolutionMinSat = outputTotal + (recipientPaysFee ? idealSolutionFeeSat : 0)
+      const idealSolutionMinSat = outputTotal + (recipientPaysFee ? 0 : idealSolutionFeeSat)
       const idealSolutionMaxSat = idealSolutionMinSat + this.dustThreshold
       for (const utxo of utxos) {
         if (utxo.satoshis >= idealSolutionMinSat && utxo.satoshis <= idealSolutionMaxSat) {
