@@ -167,6 +167,16 @@ describeAll('e2e mainnet', () => {
 
   })
 
+  it('cannot create transaction with fee paid by sender when amount equals balance', async () => {
+    const fee = '0.00002'
+    const amount = address0balance
+    await expect(payments.createTransaction(0, 3, amount, {
+      feeRate: fee,
+      feeRateType: FeeRateType.Main,
+      recipientPaysFee: false,
+    })).rejects.toThrow('You do not have enough UTXOs')
+  })
+
   it('creates ideal solution transaction with fee paid by sender', async () => {
     const targetUtxo = address0utxos[0]
     const fee = '0.00002'
@@ -188,7 +198,7 @@ describeAll('e2e mainnet', () => {
     const tx = await payments.createTransaction(0, 3, amount, {
       feeRate: fee,
       feeRateType: FeeRateType.Main,
-      recipientPaysFee: false,
+      recipientPaysFee: true,
     })
     expect(tx.fee).toBe(fee)
     expect(tx.amount).toBe(new BigNumber(amount).minus(fee).toString())
