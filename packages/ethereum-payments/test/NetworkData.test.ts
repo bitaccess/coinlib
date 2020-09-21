@@ -26,18 +26,18 @@ describe('NetworkData', () => {
   const Web3 = require('web3')
   const web3 = new Web3(INFURA_URL)
 
-  const from = web3.eth.accounts.create().address
-  const to = web3.eth.accounts.create().address
+  const from = web3.eth.accounts.create().address.toLowerCase()
+  const to = web3.eth.accounts.create().address.toLowerCase()
 
   test('getNetworkData default flow', async () => {
     const networkData = new NetworkData(web3.eth, GAS_STATION_URL, PARITY_URL, logger)
 
     nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
-    const transactionCountMocks = getTransactionCountMocks(1, from.toLowerCase(), '0x1a')
+    const transactionCountMocks = getTransactionCountMocks(1, from, '0x1a')
     nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
-    const estimateGasPriceMock = getEstimateGasMocks(2, from.toLowerCase(), to.toLowerCase(), `0x${(21000).toString(16)}`)
+    const estimateGasPriceMock = getEstimateGasMocks(2, from, to, `0x${(21000).toString(16)}`)
     nockI.post(/.*/, estimateGasPriceMock.req).reply(200, estimateGasPriceMock.res)
 
     const parityMock = getNextNonceMocks(1, from, '0x1b')
@@ -57,10 +57,10 @@ describe('NetworkData', () => {
 
     nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
-    const transactionCountMocks = getTransactionCountMocks(3, from.toLowerCase(), '0x1a')
+    const transactionCountMocks = getTransactionCountMocks(3, from, '0x1a')
     nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
-    const estimateGasPriceMock = getEstimateGasMocks(4, from.toLowerCase(), to.toLowerCase(), `0x${(32001).toString(16)}`)
+    const estimateGasPriceMock = getEstimateGasMocks(4, from, to, `0x${(32001).toString(16)}`)
     nockI.post(/.*/, estimateGasPriceMock.req).reply(200, estimateGasPriceMock.res)
 
     const parityMock = getNextNonceMocks(1, from, '0x1b')
@@ -81,16 +81,16 @@ describe('NetworkData', () => {
     // fail
     nockG.get('/json/ethgasAPI.json').reply(400)
 
-    let transactionCountMocks = getTransactionCountMocks(5, from.toLowerCase(), '')
+    let transactionCountMocks = getTransactionCountMocks(5, from, '')
     nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
     let gasPriceMock = getGasPriceMocks(6, '')
     nockI.post(/.*/, gasPriceMock.req).reply(200, gasPriceMock.res)
 
-    transactionCountMocks = getTransactionCountMocks(7, from.toLowerCase(), '')
+    transactionCountMocks = getTransactionCountMocks(7, from, '')
     nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
-    let estimateGasPriceMock = getEstimateGasMocks(8, from.toLowerCase(), to.toLowerCase(), '')
+    let estimateGasPriceMock = getEstimateGasMocks(8, from, to, '')
     nockI.post(/.*/, estimateGasPriceMock.req).reply(200, estimateGasPriceMock.res)
 
     const parityMock = getNextNonceMocks(1, from, '')
@@ -112,16 +112,16 @@ describe('NetworkData', () => {
     nockG.get('/json/ethgasAPI.json').reply(200, {
     })
 
-    let transactionCountMocks = getTransactionCountMocks(9, from.toLowerCase(), '')
+    let transactionCountMocks = getTransactionCountMocks(9, from, '')
     nockI.post(/.*/, transactionCountMocks.req).reply(400)
 
     let gasPriceMock = getGasPriceMocks(10, '')
     nockI.post(/.*/, gasPriceMock.req).reply(200, gasPriceMock.res)
 
-    transactionCountMocks = getTransactionCountMocks(11, from.toLowerCase(), '')
+    transactionCountMocks = getTransactionCountMocks(11, from, '')
     nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
-    let estimateGasPriceMock = getEstimateGasMocks(12, from.toLowerCase(), to.toLowerCase(), '')
+    let estimateGasPriceMock = getEstimateGasMocks(12, from, to, '')
     nockI.post(/.*/, estimateGasPriceMock.req).reply(200, estimateGasPriceMock.res)
 
     const parityMock = getNextNonceMocks(1, from, '0x1b')
