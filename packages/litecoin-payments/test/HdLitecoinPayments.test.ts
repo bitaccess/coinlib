@@ -48,6 +48,7 @@ describe('HdLitecoinPayments', () => {
         desiredFeeRate,
         useAllUtxos: true,
         useUnconfirmedUtxos: false,
+        recipientPaysFee: false,
       })
       const expectedOutputs = [{ address: EXTERNAL_ADDRESS, value: '0.049' }]
       expectUtxosEqual(paymentTx.inputs, [utxos[0]])
@@ -69,6 +70,7 @@ describe('HdLitecoinPayments', () => {
         desiredFeeRate,
         useAllUtxos: true,
         useUnconfirmedUtxos: true,
+        recipientPaysFee: false,
       })
       const expectedOutputs = [{ address: EXTERNAL_ADDRESS, value: '2.349' }]
       expectUtxosEqual(paymentTx.inputs, utxos)
@@ -90,6 +92,7 @@ describe('HdLitecoinPayments', () => {
         desiredFeeRate,
         useAllUtxos: false,
         useUnconfirmedUtxos: false,
+        recipientPaysFee: false,
       })
       expectUtxosEqual(paymentTx.inputs, [utxos[1]])
       expect(paymentTx.outputs).toEqual(outputs)
@@ -110,6 +113,7 @@ describe('HdLitecoinPayments', () => {
         desiredFeeRate,
         useAllUtxos: false,
         useUnconfirmedUtxos: false,
+        recipientPaysFee: false,
       })
       const changeOutputs = makeOutputs(changeAddress, '0.005')
       expectUtxosEqual(paymentTx.inputs, utxos.slice(0,2))
@@ -131,6 +135,7 @@ describe('HdLitecoinPayments', () => {
         desiredFeeRate,
         useAllUtxos: false,
         useUnconfirmedUtxos: false,
+        recipientPaysFee: false,
       })
       const changeOutputs = makeOutputs(changeAddress, '0.1', '0.2', '0.4')
       expectUtxosEqual(paymentTx.inputs, utxos.slice(0,3))
@@ -152,6 +157,7 @@ describe('HdLitecoinPayments', () => {
         desiredFeeRate,
         useAllUtxos: false,
         useUnconfirmedUtxos: false,
+        recipientPaysFee: false,
       })
       expectUtxosEqual(paymentTx.inputs, utxos)
       expect(paymentTx.outputs).toEqual(outputs)
