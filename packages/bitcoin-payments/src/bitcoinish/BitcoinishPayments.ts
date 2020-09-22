@@ -33,62 +33,12 @@ import {
   BitcoinishTxOutput,
   BitcoinishTxOutputSatoshis,
   BitcoinishWeightedChangeOutput,
+  BitcoinishTxBuildContext,
+  BitcoinishBuildPaymentTxParams,
 } from './types'
 import { sumUtxoValue, sortUtxos, isConfirmedUtxo, sha256FromHex } from './utils'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
 import BigNumber from 'bignumber.js'
-
-type TxBuildContext = {
-  /** Utxos we can select from (ie should exclude anything used by pending txs) */
-  readonly unusedUtxos: UtxoInfo[],
-  /** External outputs the creator desires excluding change (amounts may end up lower if recipientPaysFee is enabled) */
-  readonly desiredOutputs: BitcoinishTxOutput[],
-  /** Address to send all change outputs to */
-  readonly changeAddress: string,
-  /** Fee rate creator wants (may differ in reality because we can only estimate this) */
-  readonly desiredFeeRate: FeeRate,
-  /** true if every utxo should be included (ie sweeping or consolidating utxos) */
-  readonly useAllUtxos: boolean,
-  /** true if unconfirmed utxos should be used */
-  readonly useUnconfirmedUtxos: boolean,
-  /** true if fee should be deducted from outputs instead of paid by sender */
-  readonly recipientPaysFee: boolean,
-
-  /** Sum of desiredOutputs value in satoshis */
-  desiredOutputTotal: number,
-
-  /** Mutable version of desiredOutputs with amounts in satoshis for convenient math. */
-  externalOutputs: BitcoinishTxOutputSatoshis[],
-
-  /** Sum of externalOutputs value in satoshis */
-  externalOutputTotal: number,
-
-  /** Addresses of externalOutputs */
-  externalOutputAddresses: string[],
-
-  /** true if tx uses all utxos and has no change outputs */
-  isSweep: boolean,
-
-  /** Utxos selected as inputs for the tx */
-  inputUtxos: UtxoInfo[],
-
-  /** Sum of inputUtxos value in satoshis */
-  inputTotal: number,
-
-  /** Total tx fee in satoshis */
-  feeSat: number,
-
-  /** Total change in satoshis */
-  totalChange: number,
-
-  /** Change outputs with amounts in satoshis */
-  changeOutputs: BitcoinishTxOutputSatoshis[]
-}
-
-type BuildPaymentTxParams = Pick<
-  TxBuildContext,
-  'unusedUtxos' | 'desiredOutputs' | 'changeAddress' | 'desiredFeeRate' | 'useAllUtxos' | 'useUnconfirmedUtxos' | 'recipientPaysFee'
->
 
 export abstract class BitcoinishPayments<Config extends BaseConfig> extends BitcoinishPaymentsUtils
   implements BasePayments<
@@ -344,7 +294,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       : 1
   }
 
-  private adjustTxFee(tbc: TxBuildContext, newFeeSat: number): void {
+  private adjustTxFee(tbc: BitcoinishTxBuildContext, newFeeSat: number): void {
     let feeSatAdjustment = newFeeSat - tbc.feeSat
     if (tbc.recipientPaysFee || tbc.isSweep) {
       // Share the fee across all outputs. This may increase the fee by as much as 1 sat per output, negligible
@@ -356,6 +306,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       )
       for (let i = 0; i < outputCount; i++) {
         const externalOutput = tbc.externalOutputs[i]
+        // Explicitly check value before subtracting for an accurate error message
         if (externalOutput.satoshis - feeShare <= this.dustThreshold) {
           throw new Error(
             `${this.coinSymbol} buildPaymentTx - output ${i} for ${externalOutput.satoshis} sat minus ${feeShare} `
@@ -372,7 +323,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   /* Select inputs, calculate appropriate fee, set fee, adjust output amounts if necessary */
-  private selectInputUtxos(tbc: TxBuildContext): void {
+  private selectInputUtxos(tbc: BitcoinishTxBuildContext): void {
     // Convert values to satoshis for convenient math
     const utxos: Array<UtxoInfo & { satoshis: number }> = []
     let utxosTotalSat = 0
@@ -452,7 +403,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
   }
 
-  private allocateChangeOutputs(tbc: TxBuildContext): void {
+  private allocateChangeOutputs(tbc: BitcoinishTxBuildContext): void {
     tbc.totalChange = tbc.inputTotal - tbc.externalOutputTotal - tbc.feeSat
     if (tbc.totalChange < 0) {
       throw new Error(`${this.coinSymbol} buildPaymentTx - totalChange is negative when building tx, this shouldnt happen!`)
@@ -547,8 +498,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
    * serialization. Within this function they're converted to JS Numbers for convenient arithmetic
    * then converted back to strings before being returned.
    */
-  async buildPaymentTx(params: BuildPaymentTxParams): Promise<Required<BitcoinishPaymentTx>> {
-    const tbc: TxBuildContext = {
+  async buildPaymentTx(params: BitcoinishBuildPaymentTxParams): Promise<Required<BitcoinishPaymentTx>> {
+    const tbc: BitcoinishTxBuildContext = {
       ...params,
       desiredOutputTotal: 0,
       externalOutputs: [],
