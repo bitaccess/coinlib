@@ -124,3 +124,55 @@ export type BitcoinishBroadcastResult = t.TypeOf<typeof BitcoinishBroadcastResul
 
 export const BitcoinishBlock = BlockInfoBitcoin
 export type BitcoinishBlock = BlockInfoBitcoin
+
+export type BitcoinishTxBuildContext = {
+  /** Utxos we can select from (ie should exclude anything used by pending txs) */
+  readonly unusedUtxos: UtxoInfo[],
+  /** External outputs the creator desires excluding change (amounts may end up lower if recipientPaysFee is enabled) */
+  readonly desiredOutputs: BitcoinishTxOutput[],
+  /** Address to send all change outputs to */
+  readonly changeAddress: string,
+  /** Fee rate creator wants (may differ in reality because we can only estimate this) */
+  readonly desiredFeeRate: FeeRate,
+  /** true if every utxo should be included (ie sweeping or consolidating utxos) */
+  readonly useAllUtxos: boolean,
+  /** true if unconfirmed utxos should be used */
+  readonly useUnconfirmedUtxos: boolean,
+  /** true if fee should be deducted from outputs instead of paid by sender */
+  readonly recipientPaysFee: boolean,
+
+  /** Sum of desiredOutputs value in satoshis */
+  desiredOutputTotal: number,
+
+  /** Mutable version of desiredOutputs with amounts in satoshis for convenient math. */
+  externalOutputs: BitcoinishTxOutputSatoshis[],
+
+  /** Sum of externalOutputs value in satoshis */
+  externalOutputTotal: number,
+
+  /** Addresses of externalOutputs */
+  externalOutputAddresses: string[],
+
+  /** true if tx uses all utxos and has no change outputs */
+  isSweep: boolean,
+
+  /** Utxos selected as inputs for the tx */
+  inputUtxos: UtxoInfo[],
+
+  /** Sum of inputUtxos value in satoshis */
+  inputTotal: number,
+
+  /** Total tx fee in satoshis */
+  feeSat: number,
+
+  /** Total change in satoshis */
+  totalChange: number,
+
+  /** Change outputs with amounts in satoshis */
+  changeOutputs: BitcoinishTxOutputSatoshis[]
+}
+
+export type BitcoinishBuildPaymentTxParams = Pick<
+  BitcoinishTxBuildContext,
+  'unusedUtxos' | 'desiredOutputs' | 'changeAddress' | 'desiredFeeRate' | 'useAllUtxos' | 'useUnconfirmedUtxos' | 'recipientPaysFee'
+>
