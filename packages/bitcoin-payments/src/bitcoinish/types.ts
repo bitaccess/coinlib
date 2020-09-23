@@ -128,6 +128,8 @@ export type BitcoinishBlock = BlockInfoBitcoin
 export type BitcoinishTxBuildContext = {
   /** Utxos we can select from (ie should exclude anything used by pending txs) */
   readonly unusedUtxos: UtxoInfo[],
+  /** Utxos we must select from (ie should exclude anything used by pending txs) */
+  readonly enforcedUtxos: UtxoInfo[],
   /** External outputs the creator desires excluding change (amounts may end up lower if recipientPaysFee is enabled) */
   readonly desiredOutputs: BitcoinishTxOutput[],
   /** Address to send all change outputs to */
@@ -174,5 +176,5 @@ export type BitcoinishTxBuildContext = {
 
 export type BitcoinishBuildPaymentTxParams = Pick<
   BitcoinishTxBuildContext,
-  'unusedUtxos' | 'desiredOutputs' | 'changeAddress' | 'desiredFeeRate' | 'useAllUtxos' | 'useUnconfirmedUtxos' | 'recipientPaysFee'
+  'unusedUtxos' | 'desiredOutputs' | 'changeAddress' | 'desiredFeeRate' | 'useAllUtxos' | 'useUnconfirmedUtxos' | 'recipientPaysFee' | 'enforcedUtxos'
 >
