@@ -177,6 +177,14 @@ describeAll('e2e mainnet', () => {
     })).rejects.toThrow('You do not have enough UTXOs')
   })
 
+  it('cannot create transaction output below dust threshold', async () => {
+    const fee = '0.00002'
+    await expect(payments.createTransaction(0, 3, '0.00000001', {
+      feeRate: fee,
+      feeRateType: FeeRateType.Main,
+    })).rejects.toThrow('below dust threshold')
+  })
+
   it('creates ideal solution transaction with fee paid by sender', async () => {
     const targetUtxo = address0utxos[0]
     const fee = '0.00002'
