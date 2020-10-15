@@ -519,11 +519,11 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         throw new Error(`Invalid ${this.coinSymbol} address ${address} provided for output ${i}`)
       }
       const satoshis = this.toBaseDenominationNumber(value)
-      if (isNaN(satoshis)) {
-        throw new Error(`Invalid ${this.coinSymbol} value (${value}) provided to createMultiOutputTransaction output ${i} (${address})`)
+      if (isNaN(satoshis) || satoshis <= 0) {
+        throw new Error(`Invalid ${this.coinSymbol} value (${value}) provided for output ${i} (${address}) - not a positive, non-zero number`)
       }
-      if (satoshis <= 0) {
-        throw new Error(`Invalid ${this.coinSymbol} positive value (${value}) provided for output ${i} (${address})`)
+      if (satoshis <= this.dustThreshold) {
+        throw new Error(`Invalid ${this.coinSymbol} value (${value}) provided for output ${i} (${address}) - below dust threshold (${this.dustThreshold} sat)`)
       }
       tbc.externalOutputs.push({ address, satoshis })
       tbc.externalOutputAddresses.push(address)
