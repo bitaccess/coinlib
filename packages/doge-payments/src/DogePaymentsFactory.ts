@@ -15,7 +15,7 @@ export class DogePaymentsFactory implements PaymentsFactory<DogePaymentsConfig> 
     if (KeyPairDogePaymentsConfig.is(config)) {
       return new KeyPairDogePayments(config)
     }
-    throw new Error('Cannot instantiate dash payments for unsupported config')
+    throw new Error('Cannot instantiate doge payments for unsupported config')
   }
 }
 

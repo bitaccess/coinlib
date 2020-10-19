@@ -171,6 +171,12 @@ describe('CoinPayments', () => {
             'hdKey': 'xpub6CrWaNQ65RQXoUARmM9YQ2L4cjjkbzuCSri8atiTU5WXo7FiXCZEU9AehJjuxB69EMZbvAAjSGqTDRTCRmsMfWY4y2yXqE1udMmhoKSNmgW',
             'network': 'mainnet',
           },
+          'DOGE': {
+            'addressType': 'p2pkh',
+            'derivationPath': "m/44'/3'/0'",
+            'hdKey': 'xpub6BkpqKsQa8pnP9fz2E6KtQF7GBFLknp1Q4Rao9muRT8sUxjnuD8szR9zrEmi9DcRGcSSgaDacMoNz4j5zr8VJNaSfrCsEtUgjYJKzMcUzPP',
+            'network': 'mainnet',
+          },
           'ETH': {
             'depositKeyIndex': 0,
             'hdKey': 'xpub6FUQp5E3GHcwJ8qsG198LiRcfyJFqy4txgxmzqLXiVSKFTXbn4gU9QcxDSy9NyTrc3EDXfsJVgnfrBgvQUoY3xFbazdgb3WCp2DTSfLUEJE',
@@ -218,6 +224,12 @@ describe('CoinPayments', () => {
             'addressType': 'p2wpkh',
             'derivationPath': "m/84'/0'/0'",
             'hdKey': 'xpub6C5wPZ5JwqM6zk1nrdycxB5a5PokXWCH1iXWWJgq1bLdNTKjKbSZS2XA4WFSLqyicg7moaGv5wTJCpy6Tkxi9EZj9HFno9FHDTsRMgVGYm2',
+            'network': 'testnet',
+          },
+          'DOGE': {
+            'addressType': 'p2pkh',
+            'derivationPath': "m/44'/3'/0'",
+            'hdKey': 'xpub6BkpqKsQa8pnP9fz2E6KtQF7GBFLknp1Q4Rao9muRT8sUxjnuD8szR9zrEmi9DcRGcSSgaDacMoNz4j5zr8VJNaSfrCsEtUgjYJKzMcUzPP',
             'network': 'testnet',
           },
           'LTC': {

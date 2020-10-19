@@ -23,7 +23,7 @@ export class DogePaymentsUtils extends BitcoinishPaymentsUtils {
     if (!fee) {
       throw new Error("Blockbook response is missing expected field 'result'")
     }
-    const satPerByte = fee * 400000
+    const satPerByte = this.toBaseDenominationNumber(fee) / 1000
     return feeLevel === 'high' ? satPerByte * 2 : feeLevel === 'low' ? satPerByte / 2 : satPerByte
   }
 }

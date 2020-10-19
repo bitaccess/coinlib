@@ -29,7 +29,7 @@ export const BITCOIN_SEQUENCE_RBF = 0xFFFFFFFD
  *
  * Unit: `sat/byte`
  */
-export const DEFAULT_MIN_TX_FEE = 1
+export const DEFAULT_MIN_TX_FEE = 100000
 
 export const DEFAULT_SINGLESIG_ADDRESS_TYPE: SinglesigAddressType = AddressType.Legacy
 

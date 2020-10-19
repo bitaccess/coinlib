@@ -100,7 +100,7 @@ describeAll('e2e mainnet', () => {
     logger,
     targetUtxoPoolSize: 1,
   })
-  const feeRate = '21'
+  const feeRate = '210000'
   const feeRateType = FeeRateType.BasePerWeight
   const address10 = 'DC2uUxHtZdSAQ67WgZ7rMw1rKFAheKBu7F'
   const address10balance = '1400'
@@ -177,7 +177,7 @@ describeAll('e2e mainnet', () => {
   })
 
   it('creates transaction with fixed fee', async () => {
-    const fee = '0.00005'
+    const fee = '5'
     const tx = await payments.createSweepTransaction(10, 3, { feeRate: fee, feeRateType: FeeRateType.Main })
     expect(tx.fee).toBe(fee)
   })
@@ -213,7 +213,7 @@ describeAll('e2e mainnet', () => {
   })
 
   it('create sweep transaction to an external address with unconfirmed utxos', async () => {
-    const feeRate = '21'
+    const feeRate = '210000'
     const tx = await payments.createSweepTransaction(10, { address: EXTERNAL_ADDRESS }, {
       useUnconfirmedUtxos: true,
       utxos: [{
@@ -238,7 +238,7 @@ describeAll('e2e mainnet', () => {
 
   it('create send transaction to an index', async () => {
     const amount = '300'
-    const feeRate = '21'
+    const feeRate = '210000'
     const tx = await payments.createTransaction(10, 3, amount, { feeRate, feeRateType })
     expect(tx).toBeDefined()
     expect(tx.amount).toEqual(amount)
@@ -363,7 +363,7 @@ describeAll('e2e mainnet', () => {
           throw new Error(`Cannot end to end test sweeping due to lack of funds. Send DOGE to any of the following addresses and try again. ${JSON.stringify(allAddresses)}`)
         }
         const recipientIndex = indexToSweep === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
-        const satPerByte = 21 * 30000 * 4
+        const satPerByte = 210000
         const unsignedTx = await payments.createSweepTransaction(indexToSweep, recipientIndex, {
           feeRate: satPerByte.toString(),
           feeRateType: FeeRateType.BasePerWeight,
@@ -383,11 +383,10 @@ describeAll('e2e mainnet', () => {
         }
 
         expect(feeNumber).toBe((expectedTxSize*satPerByte)*1e-8)
-        console.log('sweep fee', signedTx.fee)
         logger.log(`Sweeping ${signedTx.amount} from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
-        // expect(await payments.broadcastTransaction(signedTx)).toEqual({
-        //   id: signedTx.id,
-        // })
+        expect(await payments.broadcastTransaction(signedTx)).toEqual({
+          id: signedTx.id,
+        })
         const tx = await payments.getTransactionInfo(signedTx.id)
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)
@@ -418,11 +417,10 @@ describeAll('e2e mainnet', () => {
           { useUnconfirmedUtxos: true }, // Prevents consecutive tests from failing
         )
         const signedTx = await payments.signTransaction(unsignedTx)
-        console.log('feee', signedTx.fee)
         logger.log(`Sending ${signedTx.amount} from ${indexToSend} to ${recipientIndex} in tx ${signedTx.id}`)
-        // expect(await payments.broadcastTransaction(signedTx)).toEqual({
-        //   id: signedTx.id,
-        // })
+        expect(await payments.broadcastTransaction(signedTx)).toEqual({
+          id: signedTx.id,
+        })
         const tx = await payments.getTransactionInfo(signedTx.id)
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)
