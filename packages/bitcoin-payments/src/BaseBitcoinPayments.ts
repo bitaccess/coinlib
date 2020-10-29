@@ -190,8 +190,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     const { data, externalOutputs, inputUtxos } = tx
     const psbtOutputs = psbt.txOutputs
     const psbtInputs = psbt.txInputs
-    this.logger.log('psbt outputs', JSON.stringify(psbtOutputs, null, 2))
-    this.logger.log('psbt inputs', JSON.stringify(psbtInputs, null, 2))
+
     if (!inputUtxos) {
       throw new Error('Invalid tx: Missing inputUtxos')
     }
