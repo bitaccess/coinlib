@@ -17,6 +17,9 @@ import {
 } from '../src'
 import { deriveSignatory } from '../src/bip44'
 
+const HOT_ADDRESS = 'rhXkXUw4k23vK5hUG7ozWzQDwxcMMVr9y3'
+const DEPOSIT_ADDRESS = 'rjU2XsF45bnBZ8dKKsUwoP43jWygScSYa'
+
 const UNACTIVATED_ADDRESS = deriveSignatory(hdAccount.XPUB, 12439585).address
 
 jest.setTimeout(60 * 1000)
@@ -119,6 +122,10 @@ describe('e2e', () => {
     it('should create tx correctly when sequenceNumber option provided', async () => {
       const sequenceNumber = '5'
       const tx = await rp.createTransaction(0, 1, '1.2', { sequenceNumber })
+      expect(tx.fromIndex).toBe(0)
+      expect(tx.fromAddress).toBe(HOT_ADDRESS)
+      expect(tx.toIndex).toBe(1)
+      expect(tx.toAddress).toBe(DEPOSIT_ADDRESS)
       expect(tx.sequenceNumber).toEqual(sequenceNumber)
       expect((tx.data as any).instructions.sequence).toBe(parseInt(sequenceNumber))
     })
@@ -135,6 +142,26 @@ describe('e2e', () => {
       })
       expect(tx.fee).toBe(fee)
       expect((tx.data as any).instructions.fee).toBe(fee)
+    })
+  })
+
+  describe('createServiceTransaction', () => {
+    it('should create settings tx that enables require destination tag', async () => {
+      // Use hotwallet here because this setting is already enabled on deposit address
+      const serviceTx = await rp.createServiceTransaction(0)
+      expect(serviceTx).toBeDefined()
+      expect(serviceTx.status).toBe(TransactionStatus.Unsigned)
+      expect(serviceTx.fromIndex).toBe(0)
+      expect(serviceTx.fromAddress).toBe(HOT_ADDRESS)
+      expect(serviceTx.fromExtraId).toBe(null)
+      expect(serviceTx.amount).toBe('')
+      expect((serviceTx.data as any).txJSON).toMatch(
+        new RegExp(`^\\{"TransactionType":"AccountSet","Account":"${HOT_ADDRESS}","SetFlag":1,"Flags":2147483648,"Fee":"[0-9]+","LastLedgerSequence":[0-9]+,"Sequence":[0-9]+\\}$`)
+      )
+    })
+
+    it('should throw when setting already enabled', async () => {
+      await expect(() => rp.createServiceTransaction(1)).rejects.toThrow('require destination tag setting already enabled')
     })
   })
 
@@ -398,15 +425,6 @@ describe('e2e', () => {
       const activities = await accumulateRetrievedActivities(UNACTIVATED_ADDRESS)
       expect(activities).toEqual([])
     })
-  })
-
-  it('should set requireDestinationTag setting correctly after initAccounts', async () => {
-    const result = await rp.initAccounts()
-    if (result) {
-      await pollTxId(result.txId)
-    }
-    const newSettings = await rp.api.getSettings(rp.getDepositSignatory().address)
-    expect(newSettings.requireDestinationTag).toBe(true)
   })
 
   it('should retry after being disconnected', async () => {

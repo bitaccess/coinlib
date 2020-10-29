@@ -164,7 +164,7 @@ export interface BasePayments<
   ): Promise<UnsignedTransaction>
 
   /**
-   * Creates a new payment transaction sending the entire balance of payport `from` to payport `to`.
+   * Creates a new service transaction (ie contract deploy, change settings)
    */
   createServiceTransaction<O extends CreateTransactionOptions>(
     from?: number | string,

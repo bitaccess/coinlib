@@ -153,41 +153,9 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
   }
 
   /**
-   * A special method that broadcasts a transaction that enables the `requireDestinationTag` setting
-   * on the deposit signatory.
+   * @deprecated use createServiceTransaction instead
    */
-  async initAccounts() {
-    const { address, secret } = this.getDepositSignatory()
-    const settings = await this.api.getSettings(address)
-    if (settings.requireDestinationTag) {
-      return
-    }
-    if (this.isReadOnly()) {
-      this.logger.warn(`Deposit account (${address}) doesn't have requireDestinationTag property set`)
-      return
-    }
-    const { confirmedBalance } = await this.getBalance(address)
-    const { feeMain } = await this.resolveFeeOption({ feeLevel: FeeLevel.Medium })
-    if (new BigNumber(confirmedBalance).lt(feeMain)) {
-      this.logger.warn(
-        `Insufficient balance in deposit account (${address}) to pay fee of ${feeMain} XRP ` +
-          'to send a transaction that sets requireDestinationTag property to true',
-      )
-    }
-    const unsignedTx = await this._retryDced(() =>
-      this.api.prepareSettings(address, {
-        requireDestinationTag: true,
-      }),
-    )
-    const signedTx = this.api.sign(unsignedTx.txJSON, secret)
-    const broadcast = await this._retryDced(() => this.api.submit(signedTx.signedTransaction))
-    return {
-      txId: signedTx.id,
-      unsignedTx,
-      signedTx,
-      broadcast,
-    }
-  }
+  async initAccounts() {}
 
   async getBalance(payportOrIndex: ResolveablePayport): Promise<BalanceResult> {
     const payport = await this.resolvePayport(payportOrIndex)
@@ -373,6 +341,30 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     return payportBalance
   }
 
+  private async assertSufficientAddressBalance(address: string, amount: string, feeMain: string) {
+    const {
+      requiresActivation,
+      confirmedBalance,
+    } = await this.getBalance({ address })
+    if (requiresActivation) {
+      throw new Error(
+        `Cannot send from unactivated ripple address ${address} - min balance of `
+          + `${MIN_BALANCE} XRP required (${confirmedBalance} XRP)`,
+      )
+    }
+
+    const balanceAfterTx = new BigNumber(confirmedBalance).minus(amount).minus(feeMain)
+    if (balanceAfterTx.lt(MIN_BALANCE)) {
+      const reason = balanceAfterTx.lt(0)
+        ? 'due to insufficient balance'
+        : `because it would reduce the balance below the ${MIN_BALANCE} XRP minimum`
+      throw new Error(
+        `Cannot send ${amount} XRP with fee of ${feeMain} XRP from ${address} `
+          + `${reason} (${confirmedBalance} XRP)`,
+      )
+    }
+  }
+
   private async doCreateTransaction(
     fromTo: FromTo,
     feeOption: ResolvedFeeOption,
@@ -392,27 +384,10 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     const maxLedgerVersionOffset =
       options.maxLedgerVersionOffset || this.config.maxLedgerVersionOffset || DEFAULT_MAX_LEDGER_VERSION_OFFSET
     const amountString = amount.toString()
-    const {
-      requiresActivation: fromAddressRequiresActivation,
-      confirmedBalance,
-    } = await this.getBalance({ address: fromAddress })
-    if (fromAddressRequiresActivation) {
-      throw new Error(
-        `Cannot send from unactivated ripple address ${fromAddress} - min balance of `
-          + `${MIN_BALANCE} XRP required (${confirmedBalance} XRP)`,
-      )
-    }
+
+    await this.assertSufficientAddressBalance(fromAddress, amountString, feeMain)
+
     const totalValue = amount.plus(feeMain)
-    const balanceAfterTx = new BigNumber(confirmedBalance).minus(totalValue)
-    if (balanceAfterTx.lt(MIN_BALANCE)) {
-      const reason = balanceAfterTx.lt(0)
-        ? 'due to insufficient balance'
-        : `because it would reduce the balance below the ${MIN_BALANCE} XRP minimum`
-      throw new Error(
-        `Cannot send ${amountString} XRP with fee of ${feeMain} XRP from ${fromAddress} `
-          + `${reason} (${confirmedBalance} XRP)`,
-      )
-    }
     if (typeof fromExtraId === 'string' && totalValue.gt(payportBalance)) {
       throw new Error(
         `Insufficient payport balance of ${payportBalance} XRP to send ${amountString} XRP ` +
@@ -489,8 +464,52 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     return this.doCreateTransaction(fromTo, feeOption, amountBn, payportBalance, options)
   }
 
-  async createServiceTransaction(): Promise<null> {
-    return null
+  async createServiceTransaction(
+    from: number,
+    options: RippleCreateTransactionOptions = DEFAULT_CREATE_TRANSACTION_OPTIONS,
+  ): Promise<RippleUnsignedTransaction> {
+    const { address } = await this.getPayport(from)
+    const settings = await this.api.getSettings(address)
+    if (settings.requireDestinationTag) {
+      throw new Error(`Ripple require destination tag setting already enabled on ${address}`)
+    }
+    const { targetFeeLevel, targetFeeRate, targetFeeRateType, feeMain } = await this.resolveFeeOption(options)
+    await this.assertSufficientAddressBalance(address, '0', feeMain)
+
+    const { sequenceNumber } = options
+    const maxLedgerVersionOffset =
+      options.maxLedgerVersionOffset || this.config.maxLedgerVersionOffset || DEFAULT_MAX_LEDGER_VERSION_OFFSET
+
+    const preparedTx = await this._retryDced(() =>
+      this.api.prepareSettings(
+        address,
+        {
+          requireDestinationTag: true,
+        },
+        {
+          fee: feeMain,
+          maxLedgerVersionOffset,
+          sequence: isUndefined(sequenceNumber) ? sequenceNumber : new BigNumber(sequenceNumber).toNumber(),
+        }
+      ),
+    )
+    return {
+      status: TransactionStatus.Unsigned,
+      id: null,
+      fromIndex: from,
+      fromAddress: address,
+      fromExtraId: null,
+      toIndex: null,
+      toAddress: '',
+      toExtraId: null,
+      amount: '',
+      targetFeeLevel,
+      targetFeeRate,
+      targetFeeRateType,
+      fee: feeMain,
+      sequenceNumber: String(preparedTx.instructions.sequence),
+      data: preparedTx,
+    }
   }
 
   async createSweepTransaction(
