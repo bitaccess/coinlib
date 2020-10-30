@@ -373,6 +373,14 @@ describeAll('e2e mainnet', () => {
     expect(signedTx.data.unsignedTxHash).toMatch(/^[a-f0-9]+$/)
   })
 
+  it('cannot sign invalid transaction', async () => {
+    const maliciousTx = await payments.createSweepTransaction(0, 4, { feeRate, feeRateType })
+    const tx = await payments.createSweepTransaction(0, 3, { feeRate, feeRateType })
+    expect(tx).toBeDefined()
+    tx.data.rawHex = maliciousTx.data.rawHex
+    await expect(() => payments.signTransaction(tx)).rejects.toThrow('Invalid tx')
+  })
+
   async function pollUntilEnded(signedTx: BitcoinSignedTransaction) {
     const txId = signedTx.id
     logger.log('polling until ended', txId)

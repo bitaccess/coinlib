@@ -7,10 +7,12 @@ import {
   SinglesigBitcoinPaymentsConfig,
   SinglesigAddressType,
 } from './types'
-import { BitcoinishPaymentTx } from './bitcoinish/types'
+import { BitcoinishPaymentTx, BitcoinishTxOutput } from './bitcoinish/types'
 import { publicKeyToString, getSinglesigPaymentScript } from './helpers'
 import { BaseBitcoinPayments } from './BaseBitcoinPayments'
 import { DEFAULT_SINGLESIG_ADDRESS_TYPE } from './constants'
+import BigNumber from 'bignumber.js'
+import { UtxoInfo } from '@faast/payments-common';
 
 export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPaymentsConfig>
   extends BaseBitcoinPayments<Config> {
@@ -56,12 +58,15 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
         + `multisigData has ${signerPublicKey} but keyPair has ${publicKeyString}`
       )
     }
+    this.validatePsbt(tx, psbt)
+
     psbt.signAllInputs(keyPair)
     signedAccountIds.push(accountId)
     return this.updateMultisigTx(tx, psbt, signedAccountIds)
   }
 
   async signTransaction(tx: BitcoinUnsignedTransaction): Promise<BitcoinSignedTransaction> {
+    this.logger.log('signTransaction', JSON.stringify(tx, null, 2))
     if (tx.multisigData) {
       return this.signMultisigTransaction(tx)
     }
@@ -73,6 +78,7 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
     } else {
       psbt = await this.buildPsbt(paymentTx, tx.fromIndex)
     }
+    this.validatePsbt(tx, psbt)
 
     const keyPair = this.getKeyPair(tx.fromIndex)
     psbt.signAllInputs(keyPair)

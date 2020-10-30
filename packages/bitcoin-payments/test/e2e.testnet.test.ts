@@ -100,15 +100,16 @@ describeAll('e2e testnet', () => {
         })
       }
 
-      async function pollUntilEnded(signedTx: BitcoinSignedTransaction) {
+      async function pollUntilFound(signedTx: BitcoinSignedTransaction) {
         const txId = signedTx.id
-        logger.log('polling until ended', txId)
+        const endState = [...END_TRANSACTION_STATES, TransactionStatus.Pending]
+        logger.log(`polling until status ${endState.join('|')}`, txId)
         let tx: BitcoinTransactionInfo | undefined
-        while (!testsComplete && (!tx || !END_TRANSACTION_STATES.includes(tx.status) || tx.confirmations === 0)) {
+        while (!testsComplete && (!tx || !endState.includes(tx.status) || tx.confirmations === 0)) {
           try {
             tx = await payments.getTransactionInfo(txId)
           } catch (e) {
-            if (e.message.includes('Transaction not found')) {
+            if (e.message.includes('not found')) {
               logger.log('tx not found yet', txId, e.message)
             } else {
               throw e
@@ -117,7 +118,7 @@ describeAll('e2e testnet', () => {
           await delay(5000)
         }
         if (!tx) {
-          throw new Error(`failed to poll until ended ${txId}`)
+          throw new Error(`failed to poll until found ${txId}`)
         }
         logger.log(tx.status, tx)
         expect(tx.id).toBe(signedTx.id)
@@ -126,12 +127,7 @@ describeAll('e2e testnet', () => {
         expect(tx.toAddress).toBe(signedTx.toAddress)
         expectEqualWhenTruthy(tx.toExtraId, signedTx.toExtraId)
         expect(tx.data).toBeDefined()
-        expect(tx.status).toBe(TransactionStatus.Confirmed)
-        expect(tx.isConfirmed).toBe(true)
-        expect(tx.isExecuted).toBe(true)
-        expect(tx.confirmationId).toMatch(/^\w+$/)
-        expect(tx.confirmationTimestamp).toBeDefined()
-        expect(tx.confirmations).toBeGreaterThan(0)
+        expect(endState).toContain(tx.status)
         return tx
       }
 
@@ -179,7 +175,7 @@ describeAll('e2e testnet', () => {
         expect(await payments.broadcastTransaction(signedTx)).toEqual({
           id: signedTx.id,
         })
-        const tx = await payments.getTransactionInfo(signedTx.id)
+        const tx = await pollUntilFound(signedTx)
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)
       })
@@ -213,7 +209,7 @@ describeAll('e2e testnet', () => {
         expect(await payments.broadcastTransaction(signedTx)).toEqual({
           id: signedTx.id,
         })
-        const tx = await payments.getTransactionInfo(signedTx.id)
+        const tx = await pollUntilFound(signedTx)
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)
       })
