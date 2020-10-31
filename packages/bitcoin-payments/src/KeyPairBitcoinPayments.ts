@@ -29,7 +29,7 @@ export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitc
       if (this.isValidPublicKey(value)) {
         publicKey = value
       } else if (this.isValidPrivateKey(value)) {
-        publicKey = privateKeyToKeyPair(value, this.bitcoinjsNetwork).publicKey
+        publicKey = privateKeyToKeyPair(value, this.bitcoinjsNetwork, this.uncompressedPubKeys).publicKey
         privateKey = value
       } else {
         throw new Error(`KeyPairBitcoinPaymentsConfig.keyPairs[${i}] is not a valid ${this.networkType} private key or address`)
@@ -76,7 +76,7 @@ export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitc
   getKeyPair(index: number): BitcoinjsKeyPair {
     const privateKey = this.privateKeys[index]
     if (privateKey) {
-      return privateKeyToKeyPair(privateKey, this.bitcoinjsNetwork)
+      return privateKeyToKeyPair(privateKey, this.bitcoinjsNetwork, this.uncompressedPubKeys)
     }
     const publicKey = this.publicKeys[index] || ''
     if (!this.isValidPublicKey(publicKey)) {

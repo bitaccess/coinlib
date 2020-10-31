@@ -124,12 +124,22 @@ export function publicKeyToKeyPair(
   return bitcoin.ECPair.fromPublicKey(publicKeyToBuffer(publicKey), { network, compressed: !uncompressed })
 }
 
-export function privateKeyToKeyPair(privateKey: string, network: BitcoinjsNetwork): BitcoinjsKeyPair {
-  return bitcoin.ECPair.fromWIF(privateKey, network)
+export function privateKeyToKeyPair(
+  privateKey: string, network: BitcoinjsNetwork, uncompressed?: boolean,
+): BitcoinjsKeyPair {
+  return bitcoin.ECPair.fromPrivateKey(
+    bitcoin.ECPair.fromWIF(privateKey, network).privateKey!,
+    { network, compressed: !uncompressed },
+  )
 }
 
-export function privateKeyToAddress(privateKey: string, network: BitcoinjsNetwork, addressType: SinglesigAddressType) {
-  const keyPair = privateKeyToKeyPair(privateKey, network)
+export function privateKeyToAddress(
+  privateKey: string,
+  network: BitcoinjsNetwork,
+  addressType: SinglesigAddressType,
+  uncompressed?: boolean,
+) {
+  const keyPair = privateKeyToKeyPair(privateKey, network, uncompressed)
   return publicKeyToAddress(keyPair.publicKey, network, addressType)
 }
 
