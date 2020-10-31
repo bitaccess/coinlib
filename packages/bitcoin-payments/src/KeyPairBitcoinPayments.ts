@@ -82,7 +82,7 @@ export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitc
     if (!this.isValidPublicKey(publicKey)) {
       throw new Error(`Cannot get publicKey ${index} - keyPair[${index}] is undefined or invalid`)
     }
-    return publicKeyToKeyPair(publicKey, this.bitcoinjsNetwork)
+    return publicKeyToKeyPair(publicKey, this.bitcoinjsNetwork, this.uncompressedPubKeys)
   }
 
   getAddress(index: number): string {

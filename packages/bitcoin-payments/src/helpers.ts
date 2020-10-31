@@ -60,11 +60,12 @@ export function getMultisigPaymentScript(
   addressType: MultisigAddressType,
   pubkeys: Buffer[],
   m: number,
+  unsortedPubKeys?: boolean,
 ): bitcoin.payments.Payment {
   const scriptParams = {
     network,
     redeem: bitcoin.payments.p2ms({
-      pubkeys: pubkeys.sort(),
+      pubkeys: unsortedPubKeys ? pubkeys : [...pubkeys].sort(),
       m,
       network,
     })
@@ -115,8 +116,12 @@ export function publicKeyToAddress(
   return address
 }
 
-export function publicKeyToKeyPair(publicKey: string | Buffer, network: BitcoinjsNetwork): BitcoinjsKeyPair {
-  return bitcoin.ECPair.fromPublicKey(publicKeyToBuffer(publicKey), { network })
+export function publicKeyToKeyPair(
+  publicKey: string | Buffer,
+  network: BitcoinjsNetwork,
+  uncompressed?: boolean,
+): BitcoinjsKeyPair {
+  return bitcoin.ECPair.fromPublicKey(publicKeyToBuffer(publicKey), { network, compressed: !uncompressed })
 }
 
 export function privateKeyToKeyPair(privateKey: string, network: BitcoinjsNetwork): BitcoinjsKeyPair {

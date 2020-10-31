@@ -23,11 +23,13 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
 
   readonly maximumFeeRate?: number
   readonly blockcypherToken?: string
+  readonly uncompressedPubKeys?: boolean
 
   constructor(config: BaseBitcoinPaymentsConfig) {
     super(toBitcoinishConfig(config))
     this.maximumFeeRate = config.maximumFeeRate
     this.blockcypherToken = config.blockcypherToken
+    this.uncompressedPubKeys = config.uncompressedPubKeys
   }
 
   abstract getPaymentScript(index: number): bitcoin.payments.Payment
@@ -120,6 +122,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
       result.redeemScript = paymentScript.redeem!.output
     } else if (addressType.startsWith('p2sh')) {
       result.redeemScript = paymentScript.redeem!.output
+      this.logger.debug('redeemScript for utxo', `${utxo.txid}:${utxo.vout}`, result.redeemScript?.toString('hex'))
     } else if (addressType.startsWith('p2wsh')) {
       result.witnessScript = paymentScript.redeem!.output
     }
@@ -226,9 +229,11 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
       )
     }
 
-    const expectedFromAddress = this.getAddress(tx.fromIndex)
-    if (tx.fromAddress !== expectedFromAddress) {
-      throw new Error(`Invalid tx: fromAddress (${tx.fromAddress}) doesn't match address at fromIndex ${tx.fromIndex} (${expectedFromAddress})`)
+    if (!tx.multisigData) {
+      const expectedFromAddress = this.getAddress(tx.fromIndex)
+      if (tx.fromAddress !== expectedFromAddress) {
+        throw new Error(`Invalid tx: fromAddress (${tx.fromAddress}) doesn't match address at fromIndex ${tx.fromIndex} (${expectedFromAddress})`)
+      }
     }
 
     let inputTotal = new BigNumber(0)
@@ -339,7 +344,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     const multisigData = tx.multisigData!
     const combinedMultisigData: BaseMultisigData = {
       ...multisigData,
-      signedAccountIds: [...signedAccountIds.values()]
+      signedAccountIds: [...signedAccountIds]
     }
     if (signedAccountIds.length >= multisigData.m) {
       const finalizedTx =  this.validateAndFinalizeSignedTx(tx, psbt)

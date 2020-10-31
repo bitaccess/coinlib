@@ -19,6 +19,7 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
 
   addressType: MultisigAddressType
   m: number
+  unsortedPubKeys?: boolean
   signers: (HdBitcoinPayments | KeyPairBitcoinPayments)[]
   accountIdToSigner: { [accountId: string]: HdBitcoinPayments | KeyPairBitcoinPayments } = {}
 
@@ -26,6 +27,7 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
     super(config)
     this.addressType = config.addressType || DEFAULT_MULTISIG_ADDRESS_TYPE
     this.m = config.m
+    this.unsortedPubKeys = config.unsortedPubKeys
     this.signers = config.signers.map((signerConfig, i) => {
       signerConfig = {
         network: this.networkType,
@@ -83,6 +85,7 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
       this.addressType,
       this.getSignerPublicKeyBuffers(index),
       this.m,
+      this.unsortedPubKeys,
     )
   }
 

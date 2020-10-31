@@ -65,6 +65,7 @@ export const BaseBitcoinPaymentsConfig = extendCodec(
     minChange: t.string, // Soft minimum for each change generated to maintain utxo pool
     maximumFeeRate: t.number, // Hard sat/byte fee cap passed to Psbt constructor
     blockcypherToken: t.string,
+    uncompressedPubKeys: t.boolean, // advanced: default false
   },
   'BaseBitcoinPaymentsConfig',
 )
@@ -109,6 +110,7 @@ export const MultisigBitcoinPaymentsConfig = extendCodec(
   },
   {
     addressType: MultisigAddressType,
+    unsortedPubKeys: t.boolean, // advanced: default false
   },
   'MultisigBitcoinPaymentsConfig',
 )
