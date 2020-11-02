@@ -155,14 +155,13 @@ describeAll('e2e mainnet', () => {
       expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThan(1)
     })
 
-    it('falls back to hardcoded with invalid token', async () => {
+    it('throws on invalid token', async () => {
       const paymentsWithToken = new HdBitcoinPayments({
         ...paymentsConfig,
         blockcypherToken: 'invalid',
       })
-      const estimate = await paymentsWithToken.getFeeRateRecommendation(FeeLevel.High)
-      expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
-      expect(Number.parseFloat(estimate.feeRate)).toBe(DEFAULT_SAT_PER_BYTE_LEVELS[FeeLevel.High])
+      await expect(() => paymentsWithToken.getFeeRateRecommendation(FeeLevel.High))
+        .rejects.toThrow('Failed to get bitcoin mainnet fee estimate from blockcypher')
     })
 
   })

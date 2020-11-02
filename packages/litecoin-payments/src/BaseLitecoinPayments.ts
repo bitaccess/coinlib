@@ -57,10 +57,7 @@ extends BitcoinishPayments<Config> {
     try {
       satPerByte = await getBlockcypherFeeEstimate(feeLevel, this.networkType, this.blockcypherToken)
     } catch (e) {
-      satPerByte = DEFAULT_SAT_PER_BYTE_LEVELS[feeLevel]
-      this.logger.warn(
-        `Failed to get litecoin ${this.networkType} fee estimate, using hardcoded default of ${satPerByte} sat/byte -- ${e.message}`
-      )
+      throw new Error(`Failed to get litecoin ${this.networkType} fee estimate from blockcypher -- ${e.message}`)
     }
     return {
       feeRate: satPerByte.toString(),
