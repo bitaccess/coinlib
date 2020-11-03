@@ -371,6 +371,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   private selectInputUtxosPartial(tbc: BitcoinishTxBuildContext) {
+    let forcedUtxoUsed: boolean = false
     for (const utxo of tbc.enforcedUtxos) {
       if (!tbc.useUnconfirmedUtxos && !isConfirmedUtxo(utxo)) {
         continue
@@ -384,9 +385,12 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         ...utxo,
         satoshis,
       })
+      forcedUtxoUsed = true
     }
 
-    tbc.isSweep = tbc.useAllUtxos && tbc.desiredOutputTotal >= tbc.inputTotal
+    if (!forcedUtxoUsed && tbc.enforcedUtxos.length > 0) {
+      throw new Error('Failed to create replacement tx: Potential doublspend of utxos.')
+    }
 
     if (tbc.enforcedUtxos && tbc.enforcedUtxos.length > 0) {
       return this.selectWithForcedUtxos(tbc)
@@ -396,10 +400,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   private selectWithForcedUtxos(tbc: BitcoinishTxBuildContext) {
-    const targetChangeOutputCount = this.determineTargetChangeOutputCount(
-      tbc.unusedUtxos.length,
-      tbc.enforcedUtxos.length,
-    )
+    const targetChangeOutputCount = this.determineTargetChangeOutputCount(tbc.unusedUtxos.length, 0)
 
     const idealSolutionFeeSat = this.estimateTxFee(
       tbc.desiredFeeRate,
@@ -410,17 +411,18 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const idealSolutionMinSat = tbc.desiredOutputTotal + (tbc.recipientPaysFee ? 0 : idealSolutionFeeSat)
     const idealSolutionMaxSat = idealSolutionMinSat + this.dustThreshold
 
-    let selectedTotalSat = tbc.enforcedUtxos.reduce((total, { satoshis }) => total.plus(satoshis || 0), new BigNumber(0))
+    let selectedTotalSat = tbc.inputUtxos.reduce((total, { satoshis }) => total.plus(satoshis || 0), new BigNumber(0))
 
     const feeSat = this.estimateTxFee(
       tbc.desiredFeeRate, // base per weight
-      tbc.enforcedUtxos.length,
+      tbc.inputUtxos.length,
       targetChangeOutputCount,
       tbc.externalOutputAddresses,
     )
     const neededSat = tbc.externalOutputTotal + (tbc.recipientPaysFee ? 0 : feeSat)
 
     if (selectedTotalSat.gte(neededSat)) {
+      this.adjustTxFee(tbc, idealSolutionFeeSat)
       return
     } else {
       this.selectFromAvailableUtxos(tbc, idealSolutionMinSat, idealSolutionMaxSat, idealSolutionFeeSat)
