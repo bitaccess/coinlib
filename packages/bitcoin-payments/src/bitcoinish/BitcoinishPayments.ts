@@ -438,7 +438,12 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     this.selectFromAvailableUtxos(tbc, idealSolutionMinSat, idealSolutionMaxSat, idealSolutionFeeSat)
   }
 
-  private selectFromAvailableUtxos(tbc: BitcoinishTxBuildContext, idealSolutionMinSat: number, idealSolutionMaxSat: number, idealSolutionFeeSat: number) {
+  private selectFromAvailableUtxos(
+    tbc: BitcoinishTxBuildContext,
+    idealSolutionMinSat: number,
+    idealSolutionMaxSat: number,
+    idealSolutionFeeSat: number
+  ) {
     // check if there is any perfectly matching utxo to be used
     for (const utxo of tbc.unusedUtxos) {
       const satoshis = isUndefined(utxo.satoshis)
