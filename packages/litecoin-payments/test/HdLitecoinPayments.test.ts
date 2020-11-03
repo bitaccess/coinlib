@@ -42,6 +42,7 @@ describe('HdLitecoinPayments', () => {
       const utxos = makeUtxos(['0.05'], ['0.06'])
       const outputs = [{ address: EXTERNAL_ADDRESS, value: '0.05' }]
       const paymentTx = await payments.buildPaymentTx({
+        enforcedUtxos: [],
         unusedUtxos: utxos,
         desiredOutputs: outputs,
         changeAddress,
@@ -64,6 +65,7 @@ describe('HdLitecoinPayments', () => {
       const utxos = makeUtxos(['0.05', '0.1'], ['2.2'])
       const outputs = [{ address: EXTERNAL_ADDRESS, value: '2.35' }]
       const paymentTx = await payments.buildPaymentTx({
+        enforcedUtxos: [],
         unusedUtxos: utxos,
         desiredOutputs: outputs,
         changeAddress,
@@ -86,6 +88,7 @@ describe('HdLitecoinPayments', () => {
       const utxos = makeUtxos(['0.1', '0.8', '1.5'], ['3'])
       const outputs = [{ address: EXTERNAL_ADDRESS, value: '0.799' }]
       const paymentTx = await payments.buildPaymentTx({
+        enforcedUtxos: [],
         unusedUtxos: utxos,
         desiredOutputs: outputs,
         changeAddress,
@@ -107,6 +110,7 @@ describe('HdLitecoinPayments', () => {
       const utxos = makeUtxos(['1', '1.001'], ['3'])
       const outputs = [{ address: EXTERNAL_ADDRESS, value: '1.995' }]
       const paymentTx = await payments.buildPaymentTx({
+        enforcedUtxos: [],
         unusedUtxos: utxos,
         desiredOutputs: outputs,
         changeAddress,
@@ -129,6 +133,7 @@ describe('HdLitecoinPayments', () => {
       const utxos = makeUtxos(['1', '1.001', '1.7'], ['4'])
       const outputs = [{ address: EXTERNAL_ADDRESS, value: '3' }]
       const paymentTx = await payments.buildPaymentTx({
+        enforcedUtxos: [],
         unusedUtxos: utxos,
         desiredOutputs: outputs,
         changeAddress,
@@ -151,6 +156,7 @@ describe('HdLitecoinPayments', () => {
       const utxos = makeUtxos(['1', '1.001'])
       const outputs = [{ address: EXTERNAL_ADDRESS, value: '1.999999' }]
       const paymentTx = await payments.buildPaymentTx({
+        enforcedUtxos: [],
         unusedUtxos: utxos,
         desiredOutputs: outputs,
         changeAddress,

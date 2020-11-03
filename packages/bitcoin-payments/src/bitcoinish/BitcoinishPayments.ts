@@ -636,9 +636,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       throw new Error (`Invalid ${this.coinSymbol} change address ${tbc.changeAddress} provided`)
     }
 
-    console.log('PARAMS:', params, tbc)
     this.selectInputUtxos(tbc)
-    console.log('TBC:', tbc)
     this.logger.debug(`${this.coinSymbol} buildPaymentTx - context after utxo input selection`, tbc)
 
     this.allocateChangeOutputs(tbc)
