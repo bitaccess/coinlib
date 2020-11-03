@@ -404,7 +404,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
     const idealSolutionFeeSat = this.estimateTxFee(
       tbc.desiredFeeRate,
-      tbc.enforcedUtxos.length,
+      tbc.inputUtxos.length,
       targetChangeOutputCount,
       tbc.externalOutputAddresses
     )
