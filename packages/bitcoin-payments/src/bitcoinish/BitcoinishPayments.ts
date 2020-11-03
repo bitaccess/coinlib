@@ -349,11 +349,11 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   private selectInputUtxosForAll(tbc: BitcoinishTxBuildContext) {
-    // Convert values to satoshis for convenient math
     for (const utxo of tbc.unusedUtxos) {
       if (!tbc.useUnconfirmedUtxos && !isConfirmedUtxo(utxo)) {
         continue
       }
+      // Convert values to satoshis for convenient math
       const satoshis = isUndefined(utxo.satoshis)
         ? this.toBaseDenominationNumber(utxo.value)
         : toBigNumber(utxo.satoshis).toNumber()
@@ -446,6 +446,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   ) {
     // check if there is any perfectly matching utxo to be used
     for (const utxo of tbc.unusedUtxos) {
+      if (!tbc.useUnconfirmedUtxos && !isConfirmedUtxo(utxo)) {
+        continue
+      }
       const satoshis = isUndefined(utxo.satoshis)
         ? this.toBaseDenominationNumber(utxo.value)
         : toBigNumber(utxo.satoshis).toNumber()
@@ -466,6 +469,10 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     let feeSat = 0
     // Incrementally select utxos until we cover outputs and fees
     for (const utxo of shuffleUtxos(tbc.unusedUtxos)) {
+      if (!tbc.useUnconfirmedUtxos && !isConfirmedUtxo(utxo)) {
+        continue
+      }
+
       const satoshis = isUndefined(utxo.satoshis)
         ? this.toBaseDenominationNumber(utxo.value)
         : toBigNumber(utxo.satoshis).toNumber()
@@ -588,6 +595,11 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
    * then converted back to strings before being returned.
    */
   async buildPaymentTx(params: BitcoinishBuildPaymentTxParams): Promise<Required<BitcoinishPaymentTx>> {
+
+    // TODO:
+    // convert all utxo values to satoshi
+    // skip unconfirmed utxos if necessary
+
     const tbc: BitcoinishTxBuildContext = {
       ...params,
       desiredOutputTotal: 0,
@@ -624,7 +636,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       throw new Error (`Invalid ${this.coinSymbol} change address ${tbc.changeAddress} provided`)
     }
 
+    console.log('PARAMS:', params, tbc)
     this.selectInputUtxos(tbc)
+    console.log('TBC:', tbc)
     this.logger.debug(`${this.coinSymbol} buildPaymentTx - context after utxo input selection`, tbc)
 
     this.allocateChangeOutputs(tbc)
