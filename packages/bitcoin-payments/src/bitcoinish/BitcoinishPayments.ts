@@ -353,16 +353,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       if (!tbc.useUnconfirmedUtxos && !isConfirmedUtxo(utxo)) {
         continue
       }
-      // Convert values to satoshis for convenient math
-      const satoshis = isUndefined(utxo.satoshis)
-        ? this.toBaseDenominationNumber(utxo.value)
-        : toBigNumber(utxo.satoshis).toNumber()
 
-      tbc.inputTotal += satoshis
-      tbc.inputUtxos.push({
-        ...utxo,
-        satoshis,
-      })
+      tbc.inputTotal += utxo.satoshis as number
+      tbc.inputUtxos.push(utxo)
     }
 
     tbc.isSweep = tbc.useAllUtxos && tbc.desiredOutputTotal >= tbc.inputTotal
@@ -376,15 +369,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       if (!tbc.useUnconfirmedUtxos && !isConfirmedUtxo(utxo)) {
         continue
       }
-      const satoshis = isUndefined(utxo.satoshis)
-        ? this.toBaseDenominationNumber(utxo.value)
-        : toBigNumber(utxo.satoshis).toNumber()
 
-      tbc.inputTotal += satoshis
-      tbc.inputUtxos.push({
-        ...utxo,
-        satoshis,
-      })
+      tbc.inputTotal += utxo.satoshis as number
+      tbc.inputUtxos.push(utxo)
       forcedUtxoUsed = true
     }
 
@@ -449,18 +436,15 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       if (!tbc.useUnconfirmedUtxos && !isConfirmedUtxo(utxo)) {
         continue
       }
-      const satoshis = isUndefined(utxo.satoshis)
-        ? this.toBaseDenominationNumber(utxo.value)
-        : toBigNumber(utxo.satoshis).toNumber()
 
-      if (satoshis >= idealSolutionMinSat && satoshis <= idealSolutionMaxSat) {
+      if (utxo.satoshis as number >= idealSolutionMinSat && utxo.satoshis as number <= idealSolutionMaxSat) {
         this.logger.log(`${this.coinSymbol} buildPaymentTx - `
           + `Found ideal ${this.coinSymbol} input utxo solution to send ${tbc.desiredOutputTotal} sat `
           + `${tbc.recipientPaysFee ? 'less' : 'plus'} fee of ${idealSolutionFeeSat} sat `
           + `using single utxo ${utxo.txid}:${utxo.vout}`
         )
         tbc.inputUtxos.push(utxo)
-        tbc.inputTotal += satoshis
+        tbc.inputTotal += utxo.satoshis as number
         this.adjustTxFee(tbc, idealSolutionFeeSat)
         return
       }
@@ -473,12 +457,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         continue
       }
 
-      const satoshis = isUndefined(utxo.satoshis)
-        ? this.toBaseDenominationNumber(utxo.value)
-        : toBigNumber(utxo.satoshis).toNumber()
-
       tbc.inputUtxos.push(utxo)
-      tbc.inputTotal += satoshis
+      tbc.inputTotal += utxo.satoshis as number
 
       const targetChangeOutputCount = this.determineTargetChangeOutputCount(
         tbc.unusedUtxos.length,
@@ -597,7 +577,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   async buildPaymentTx(params: BitcoinishBuildPaymentTxParams): Promise<Required<BitcoinishPaymentTx>> {
 
     // TODO:
-    // convert all utxo values to satoshi
     // skip unconfirmed utxos if necessary
 
     const tbc: BitcoinishTxBuildContext = {
@@ -612,6 +591,22 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       feeSat: 0,
       totalChange: 0,
       changeOutputs: [],
+      enforcedUtxos:params.enforcedUtxos.map((utxo) => {
+        return {
+          ...utxo,
+          satoshis: isUndefined(utxo.satoshis)
+            ? this.toBaseDenominationNumber(utxo.value)
+            : toBigNumber(utxo.satoshis).toNumber()
+        }
+      }),
+      unusedUtxos: params.unusedUtxos.map((utxo) => {
+        return {
+          ...utxo,
+          satoshis: isUndefined(utxo.satoshis)
+            ? this.toBaseDenominationNumber(utxo.value)
+            : toBigNumber(utxo.satoshis).toNumber()
+        }
+      })
     }
 
     for (let i = 0; i < tbc.desiredOutputs.length; i++) {
