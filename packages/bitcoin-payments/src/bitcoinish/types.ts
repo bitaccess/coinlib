@@ -143,6 +143,7 @@ export type BitcoinishTxBuildContext = {
   /** true if fee should be deducted from outputs instead of paid by sender */
   readonly recipientPaysFee: boolean,
 
+  readonly unusedUtxoCount: number,
   /** Sum of desiredOutputs value in satoshis */
   desiredOutputTotal: number,
 
