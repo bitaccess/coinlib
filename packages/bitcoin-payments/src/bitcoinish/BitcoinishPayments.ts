@@ -553,7 +553,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
    * then converted back to strings before being returned.
    */
   async buildPaymentTx(params: BitcoinishBuildPaymentTxParams): Promise<Required<BitcoinishPaymentTx>> {
-    const utxoSpendCost = this.estimateTxFee(params.desiredFeeRate, 0, 0, [])
+    const utxoSpendCost = this.estimateTxFee(params.desiredFeeRate, 1, 0, [])
+    - this.estimateTxFee(params.desiredFeeRate, 0, 0, [])
 
     const tbc: BitcoinishTxBuildContext = {
       ...params,
@@ -570,7 +571,12 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       unusedUtxoCount: params.unusedUtxos.length,
       enforcedUtxos: this.processUtxos(params.enforcedUtxos, params.useUnconfirmedUtxos),
       unusedUtxos: this.processUtxos(params.unusedUtxos, params.useUnconfirmedUtxos)
-        .filter((utxo) => utxo.satoshis as number > utxoSpendCost),
+        .filter((utxo) => {
+          if (utxo.satoshis as number > utxoSpendCost) {
+            return true
+          }
+          this.logger.log(`${this.coinSymbol} buildPaymentTx - Ignoring utxos of ${utxoSpendCost} sat or lower`)
+        }),
     }
     if (params.enforcedUtxos.length > 0 && tbc.enforcedUtxos.length === 0) {
       throw new Error(`${this.coinSymbol} buildPaymentTx - Failed to create replacement tx: all enforced utxos are unconfirmed`)
