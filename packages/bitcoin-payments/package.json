@@ -76,7 +76,7 @@
     "typescript": "^3.9.7"
   },
   "dependencies": {
-    "@faast/payments-common": "^2.15.0",
+    "@faast/payments-common": "^3.0.0",
     "@faast/ts-common": "^0.6.0",
     "bignumber.js": "^9.0.0",
     "bip174": "^1.0.1",

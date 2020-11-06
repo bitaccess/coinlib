@@ -72,9 +72,9 @@ export function sumUtxoValue(utxos: UtxoInfo[], includeUnconfirmed?: boolean): B
 }
 
 /**
- * Sort the utxos randomly for input selection.
+ * Shuffle the utxos for input selection.
  */
-export function sortUtxos<T extends UtxoInfo>(utxoList: T[]): T[] {
+export function shuffleUtxos<T extends UtxoInfo>(utxoList: T[]): T[] {
   const result = [...utxoList]
   for (let i = result.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * i)

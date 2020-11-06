@@ -203,7 +203,7 @@ describeAll('e2e mainnet', () => {
     const feeRate = '21'
     const tx = await payments.createSweepTransaction(0, { address: EXTERNAL_ADDRESS }, {
       useUnconfirmedUtxos: true,
-      utxos: [{
+      availableUtxos: [{
         ...address0utxos[0],
         height: undefined,
         confirmations: undefined,

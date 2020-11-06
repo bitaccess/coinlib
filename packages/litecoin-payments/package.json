@@ -78,7 +78,7 @@
   },
   "dependencies": {
     "@faast/bitcoin-payments": "^2.15.3",
-    "@faast/payments-common": "^2.15.0",
+    "@faast/payments-common": "^3.0.0",
     "@faast/ts-common": "^0.6.0",
     "@types/lodash": "^4.14.150",
     "bignumber.js": "^9.0.0",
