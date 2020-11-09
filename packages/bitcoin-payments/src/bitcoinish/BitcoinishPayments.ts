@@ -294,33 +294,46 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       : 1
   }
 
+  /** Adjust all the output amounts such that externalOutputTotal equals newOutputTotal (+/- a few satoshis less) */
+  private adjustOutputAmounts(tbc: BitcoinishTxBuildContext, newOutputTotal: number, description: string): void {
+    // positive change -> increase outputs
+    // negative change -> decrease outputs
+    let totalChange = newOutputTotal - tbc.externalOutputTotal
+    // Share the adjustment across all outputs. This may be an extra 1 less sat per output, negligible
+    const outputCount = tbc.externalOutputs.length
+    const amountChangePerOutput = Math.floor(totalChange / outputCount)
+    totalChange = amountChangePerOutput * outputCount
+    this.logger.log(
+      `${this.coinSymbol} buildPaymentTx - Adjusting external outputs by ${totalChange} sat from ${outputCount} `
+      + `outputs (${amountChangePerOutput} sat each) for ${description}`
+    )
+    for (let i = 0; i < outputCount; i++) {
+      const externalOutput = tbc.externalOutputs[i]
+      // Explicitly check value before subtracting for an accurate error message
+      if (externalOutput.satoshis + amountChangePerOutput <= this.dustThreshold) {
+        const errorMessage = `${this.coinSymbol} buildPaymentTx - output ${i} for ${externalOutput.satoshis} sat `
+          + `after ${description} of ${amountChangePerOutput} sat is too small to send`
+
+        if (externalOutput.satoshis + amountChangePerOutput <= 0) {
+          throw new Error(errorMessage)
+        }
+
+        throw new Error(
+          `${errorMessage} (below dust threshold of ${this.dustThreshold} sat)`
+        )
+      }
+      externalOutput.satoshis += amountChangePerOutput
+    }
+    tbc.externalOutputTotal += totalChange
+  }
+
   private adjustTxFee(tbc: BitcoinishTxBuildContext, newFeeSat: number): void {
     let feeSatAdjustment = newFeeSat - tbc.feeSat
     if (!tbc.recipientPaysFee && !tbc.isSweep) {
       this.applyFeeAdjustment(tbc, feeSatAdjustment)
       return
     }
-
-    // Share the fee across all outputs. This may increase the fee by as much as 1 sat per output, negligible
-    const outputCount = tbc.externalOutputs.length
-    const feeShare = Math.ceil(feeSatAdjustment / outputCount)
-    feeSatAdjustment = feeShare * outputCount
-    this.logger.log(
-      `${this.coinSymbol} buildPaymentTx - Adjusting external outputs by ${feeSatAdjustment} sat from ${outputCount} outputs (${feeShare} sat each)`
-    )
-    for (let i = 0; i < outputCount; i++) {
-      const externalOutput = tbc.externalOutputs[i]
-      // Explicitly check value before subtracting for an accurate error message
-      if (externalOutput.satoshis - feeShare <= this.dustThreshold) {
-        throw new Error(
-          `${this.coinSymbol} buildPaymentTx - output ${i} for ${externalOutput.satoshis} sat minus ${feeShare} `
-          + `sat fee share is too small to send (below dust threshold of ${this.dustThreshold} sat)`
-        )
-      }
-      externalOutput.satoshis -= feeShare
-    }
-    tbc.externalOutputTotal -= feeSatAdjustment
-
+    this.adjustOutputAmounts(tbc, tbc.externalOutputTotal - feeSatAdjustment, 'fee adjustment')
     this.applyFeeAdjustment(tbc, feeSatAdjustment)
   }
 
@@ -353,8 +366,10 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       tbc.inputTotal += utxo.satoshis as number
       tbc.inputUtxos.push(utxo)
     }
-
-    tbc.isSweep = tbc.useAllUtxos && tbc.desiredOutputTotal >= tbc.inputTotal
+    if (tbc.isSweep && tbc.inputTotal !== tbc.externalOutputTotal) {
+      // Some dust inputs were filtered
+      this.adjustOutputAmounts(tbc, tbc.inputTotal, 'sweep input adjustment')
+    }
     const feeSat = this.estimateTxFee(tbc.desiredFeeRate, tbc.inputUtxos.length, 0, tbc.externalOutputAddresses)
     this.adjustTxFee(tbc, feeSat)
   }
@@ -575,7 +590,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
           if (utxo.satoshis as number > utxoSpendCost) {
             return true
           }
-          this.logger.log(`${this.coinSymbol} buildPaymentTx - Ignoring utxos of ${utxoSpendCost} sat or lower`)
+          this.logger.log(`${this.coinSymbol} buildPaymentTx - Ignoring dust utxo (${utxoSpendCost} sat or lower) ${utxo.txid}:${utxo.vout}`)
         }),
     }
     if (params.enforcedUtxos.length > 0 && tbc.enforcedUtxos.length === 0) {
@@ -603,6 +618,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     if (!await this.isValidAddress(tbc.changeAddress)) {
       throw new Error (`Invalid ${this.coinSymbol} change address ${tbc.changeAddress} provided`)
     }
+    const unfilteredUtxoTotal = sumUtxoValue(params.unusedUtxos, params.useUnconfirmedUtxos)
+    // TODO: createSweepTransaction could just pass this in directly
+    tbc.isSweep = tbc.useAllUtxos && tbc.desiredOutputTotal >= unfilteredUtxoTotal.toNumber()
 
     this.selectInputUtxos(tbc)
     this.logger.debug(`${this.coinSymbol} buildPaymentTx - context after utxo input selection`, tbc)
