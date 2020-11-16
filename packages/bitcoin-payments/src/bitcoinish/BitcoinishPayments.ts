@@ -752,12 +752,13 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const availableUtxos = isUndefined(options.availableUtxos)
       ? await this.getUtxos(from)
       : options.availableUtxos
+    const forcedUtxos = isUndefined(options.forcedUtxos) ? [] : options.forcedUtxos
 
-    if (availableUtxos.length === 0) {
-      throw new Error('No available utxos to sweep')
+    if (availableUtxos.length === 0 && forcedUtxos.length === 0) {
+      throw new Error(`No available utxos to sweep available: ${availableUtxos.length}, forced: ${forcedUtxos}`)
     }
     const useUnconfirmedUtxos = isUndefined(options.useUnconfirmedUtxos) ? true : options.useUnconfirmedUtxos
-    const outputAmount = sumUtxoValue(availableUtxos, useUnconfirmedUtxos)
+    const outputAmount = sumUtxoValue(availableUtxos, useUnconfirmedUtxos).plus(sumUtxoValue(forcedUtxos, true))
     if (!this.isSweepableBalance(outputAmount)) {
       throw new Error(`Available utxo total ${outputAmount} ${this.coinSymbol} too low to sweep`)
     }
