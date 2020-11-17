@@ -530,12 +530,15 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     } else if (changeOutputCount > 0 && looseChange > 0) {
       // Enough loose change to reallocate amongst all change outputs
       const extraSatPerChangeOutput = Math.floor(looseChange / changeOutputCount)
-      this.logger.log(`${this.coinSymbol} buildPaymentTx - redistributing looseChange of ${extraSatPerChangeOutput} per change output`)
-      for (let i = 0; i < changeOutputCount; i++) {
-        tbc.changeOutputs[i].satoshis += extraSatPerChangeOutput
+      if (extraSatPerChangeOutput > 0) {
+        this.logger.log(`${this.coinSymbol} buildPaymentTx - redistributing looseChange of ${extraSatPerChangeOutput} sat per change output`)
+        for (let i = 0; i < changeOutputCount; i++) {
+          tbc.changeOutputs[i].satoshis += extraSatPerChangeOutput
+        }
+        looseChange -= extraSatPerChangeOutput * changeOutputCount
       }
-      looseChange -= extraSatPerChangeOutput * changeOutputCount
       if (looseChange > 0) {
+        this.logger.log(`${this.coinSymbol} buildPaymentTx - allocating looseChange of ${looseChange} sat to first change output`)
         // A few satoshis are leftover due to rounding, give it to the first change output
         tbc.changeOutputs[0].satoshis += looseChange
         looseChange = 0
