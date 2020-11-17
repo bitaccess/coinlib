@@ -549,7 +549,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
           `${this.coinSymbol} buildPaymentTx - Ended up with loose change (${looseChange} sat) exceeding dust threshold, this should never happen!`
         )
       }
-      this.adjustTxFee(tbc, tbc.feeSat + looseChange, 'loose change allocation')
+      // Don't adjust external output amounts here like other fee adjustments because loose change has already been
+      // deducted from the outputs
+      this.applyFeeAdjustment(tbc, looseChange, 'loose change allocation')
       tbc.totalChange -= looseChange
     }
   }
