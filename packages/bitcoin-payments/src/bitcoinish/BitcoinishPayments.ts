@@ -527,7 +527,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     // Attempt to allocate any loose change to existing change outputs, or a single change output
     if (looseChange < 0) {
       throw new Error(`${this.coinSymbol} buildPaymentTx - looseChange should never be negative!`)
-    } else if (changeOutputCount > 0 && looseChange / changeOutputCount > 1) {
+    } else if (changeOutputCount > 0 && looseChange > 0) {
       // Enough loose change to reallocate amongst all change outputs
       const extraSatPerChangeOutput = Math.floor(looseChange / changeOutputCount)
       this.logger.log(`${this.coinSymbol} buildPaymentTx - redistributing looseChange of ${extraSatPerChangeOutput} per change output`)
@@ -535,6 +535,11 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         tbc.changeOutputs[i].satoshis += extraSatPerChangeOutput
       }
       looseChange -= extraSatPerChangeOutput * changeOutputCount
+      if (looseChange > 0) {
+        // A few satoshis are leftover due to rounding, give it to the first change output
+        tbc.changeOutputs[0].satoshis += looseChange
+        looseChange = 0
+      }
     } else if (changeOutputCount === 0 && looseChange > this.dustThreshold) {
       this.logger.log(`${this.coinSymbol} buildPaymentTx - allocating looseChange towards single ${looseChange} sat change output`)
       tbc.changeOutputs.push({ address: tbc.changeAddress, satoshis: looseChange })
@@ -542,7 +547,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       looseChange = 0
     }
 
-    // If there is still a negligible amount of loose change just add it to the fee
+    // If there is still a negligible amount of loose change just add it to the first change output
     if (looseChange > 0) {
       if (looseChange > this.dustThreshold) {
         throw new Error(
