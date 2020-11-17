@@ -26,15 +26,15 @@ const logDir = path.resolve(__dirname, '../logs')
 
 export class TestLogger implements Logger {
 
-  logFile: any
+  logFileDescriptor: number
 
   constructor(public packageName: string) {
     if (!fs.existsSync(logDir)) {
       fs.mkdirSync(logDir, { recursive: true })
     }
 
-    this.logFile = fs.createWriteStream(
-      path.resolve(logDir, `test.${packageName}.log`), { flags: 'w' }
+    this.logFileDescriptor = fs.openSync(
+      path.resolve(logDir, `test.${packageName}.log`), 'w'
     )
   }
 
@@ -44,7 +44,7 @@ export class TestLogger implements Logger {
       if (process.env.VERBOSE || level === 'ERROR' || level === 'WARN' || level === 'INFO') {
         process.stderr.write(message)
       }
-      this.logFile.write(message)
+      fs.writeSync(this.logFileDescriptor, message)
     }
   }
 
