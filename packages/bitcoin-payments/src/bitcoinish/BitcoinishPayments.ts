@@ -296,16 +296,16 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
   /** Adjust all the output amounts such that externalOutputTotal equals newOutputTotal (+/- a few satoshis less) */
   private adjustOutputAmounts(tbc: BitcoinishTxBuildContext, newOutputTotal: number, description: string): void {
-    // positive change -> increase outputs
-    // negative change -> decrease outputs
-    let totalChange = newOutputTotal - tbc.externalOutputTotal
+    // positive adjustment -> increase outputs
+    // negative adjustment -> decrease outputs
+    let totalAdjustment = newOutputTotal - tbc.externalOutputTotal
     // Share the adjustment across all outputs. This may be an extra 1 less sat per output, negligible
     const outputCount = tbc.externalOutputs.length
-    const amountChangePerOutput = Math.floor(totalChange / outputCount)
-    totalChange = amountChangePerOutput * outputCount
+    const amountChangePerOutput = Math.floor(totalAdjustment / outputCount)
+    totalAdjustment = amountChangePerOutput * outputCount
     this.logger.log(
-      `${this.coinSymbol} buildPaymentTx - Adjusting external outputs by ${totalChange} sat from ${outputCount} `
-      + `outputs (${amountChangePerOutput} sat each) for ${description}`
+      `${this.coinSymbol} buildPaymentTx - Adjusting external output total (${tbc.externalOutputTotal} sat) by ${totalAdjustment} sat `
+      + `from ${outputCount} outputs (${amountChangePerOutput} sat each) for ${description}`
     )
     for (let i = 0; i < outputCount; i++) {
       const externalOutput = tbc.externalOutputs[i]
@@ -324,23 +324,23 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       }
       externalOutput.satoshis += amountChangePerOutput
     }
-    tbc.externalOutputTotal += totalChange
+    tbc.externalOutputTotal += totalAdjustment
   }
 
-  private adjustTxFee(tbc: BitcoinishTxBuildContext, newFeeSat: number): void {
+  private adjustTxFee(tbc: BitcoinishTxBuildContext, newFeeSat: number, description: string): void {
     let feeSatAdjustment = newFeeSat - tbc.feeSat
     if (!tbc.recipientPaysFee && !tbc.isSweep) {
-      this.applyFeeAdjustment(tbc, feeSatAdjustment)
+      this.applyFeeAdjustment(tbc, feeSatAdjustment, description)
       return
     }
-    this.adjustOutputAmounts(tbc, tbc.externalOutputTotal - feeSatAdjustment, 'fee adjustment')
-    this.applyFeeAdjustment(tbc, feeSatAdjustment)
+    this.adjustOutputAmounts(tbc, tbc.externalOutputTotal - feeSatAdjustment, description)
+    this.applyFeeAdjustment(tbc, feeSatAdjustment, description)
   }
 
-  private applyFeeAdjustment(tbc: BitcoinishTxBuildContext, feeSatAdjustment: number): void {
+  private applyFeeAdjustment(tbc: BitcoinishTxBuildContext, feeSatAdjustment: number, description: string): void {
     const feeBefore = tbc.feeSat
     tbc.feeSat += feeSatAdjustment
-    this.logger.debug(`${this.coinSymbol} buildPaymentTx - Adjusted fee from ${feeBefore} sat to ${tbc.feeSat} sat`)
+    this.logger.log(`${this.coinSymbol} buildPaymentTx - Adjusted fee from ${feeBefore} sat to ${tbc.feeSat} sat for ${description}`)
     return
   }
 
@@ -371,7 +371,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       this.adjustOutputAmounts(tbc, tbc.inputTotal, 'sweep input adjustment')
     }
     const feeSat = this.estimateTxFee(tbc.desiredFeeRate, tbc.inputUtxos.length, 0, tbc.externalOutputAddresses)
-    this.adjustTxFee(tbc, feeSat)
+    this.adjustTxFee(tbc, feeSat, 'sweep fee')
   }
 
   private selectInputUtxosPartial(tbc: BitcoinishTxBuildContext) {
@@ -401,16 +401,10 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
     let selectedTotalSat = tbc.inputUtxos.reduce((total, { satoshis }) => total.plus(satoshis || 0), new BigNumber(0))
 
-    const feeSat = this.estimateTxFee(
-      tbc.desiredFeeRate, // base per weight
-      tbc.inputUtxos.length,
-      targetChangeOutputCount,
-      tbc.externalOutputAddresses,
-    )
-    const neededSat = tbc.externalOutputTotal + (tbc.recipientPaysFee ? 0 : feeSat)
+    const neededSat = tbc.externalOutputTotal + (tbc.recipientPaysFee ? 0 : idealSolutionFeeSat)
 
     if (selectedTotalSat.gte(neededSat)) {
-      this.adjustTxFee(tbc, idealSolutionFeeSat)
+      this.adjustTxFee(tbc, idealSolutionFeeSat, 'forced inputs ideal solution fee')
       return
     } else {
       this.selectFromAvailableUtxos(tbc, idealSolutionMinSat, idealSolutionMaxSat, idealSolutionFeeSat)
@@ -442,7 +436,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         )
         tbc.inputUtxos.push(utxo)
         tbc.inputTotal += utxo.satoshis as number
-        this.adjustTxFee(tbc, idealSolutionFeeSat)
+        this.adjustTxFee(tbc, idealSolutionFeeSat, 'ideal solution fee')
         return
       }
     }
@@ -469,7 +463,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       }
     }
 
-    this.adjustTxFee(tbc, feeSat)
+    this.adjustTxFee(tbc, feeSat, 'selected inputs fee')
   }
 
   private allocateChangeOutputs(tbc: BitcoinishTxBuildContext): void {
@@ -523,7 +517,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         // Due to dropping change outputs we're now overpaying, reduce fee and reallocate to change
         this.logger.log(`${this.coinSymbol} buildPaymentTx - Reducing overestimated fee from ${tbc.feeSat} sat to ${recalculatedFee} sat`)
         const feeBefore = tbc.feeSat
-        this.adjustTxFee(tbc, recalculatedFee)
+        this.adjustTxFee(tbc, recalculatedFee, 'dropped change outputs recalculated fee')
         const adjustedAmount = feeBefore - tbc.feeSat
         tbc.totalChange += adjustedAmount
         looseChange += adjustedAmount
@@ -555,7 +549,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
           `${this.coinSymbol} buildPaymentTx - Ended up with loose change (${looseChange} sat) exceeding dust threshold, this should never happen!`
         )
       }
-      this.adjustTxFee(tbc, tbc.feeSat + looseChange)
+      this.adjustTxFee(tbc, tbc.feeSat + looseChange, 'loose change allocation')
       tbc.totalChange -= looseChange
     }
   }
