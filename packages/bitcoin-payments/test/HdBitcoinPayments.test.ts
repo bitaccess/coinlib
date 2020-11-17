@@ -187,9 +187,9 @@ describe('HdBitcoinPayments', () => {
       expect(paymentTx.changeAddress).toBe(null)
       expect(paymentTx.fee).toBe(toBigNumber(feeMain).plus('0.000001').toString())
     })
-    it('loose change below dust threshold gets added to fee when recipient pays fee', async () => {
+    it('loose change below dust threshold gets added to first change output', async () => {
       // This test is designed to have 3 change outputs and 1 satoshi loose change that gets allocated
-      // to the fee without further deducting output amounts
+      // to the first change output
       const unusedUtxos = makeUtxos(['1', '1.00000001'], ['10'])
       const amount = '1.93'
       const paymentTx = await payments.buildPaymentTx({
@@ -211,7 +211,7 @@ describe('HdBitcoinPayments', () => {
       const expectedChangeOutputs = [
         {
           address: changeAddress,
-          value: '0.01',
+          value: '0.01000001',
         },
         {
           address: changeAddress,
@@ -226,7 +226,36 @@ describe('HdBitcoinPayments', () => {
       expect(paymentTx.externalOutputs).toEqual(expectedExternalOutputs)
       expect(paymentTx.changeOutputs).toEqual(expectedChangeOutputs)
       expect(paymentTx.externalOutputTotal).toBe(expectedOutputAmount)
-      expect(paymentTx.change).toBe('0.07')
+      expect(paymentTx.change).toBe('0.07000001')
+      expect(paymentTx.changeAddress).toBe(null)
+      expect(paymentTx.fee).toBe(feeMain)
+    })
+    it('loose change below dust threshold gets added to fee when there are no change outputs', async () => {
+      // This test is designed to have no change outputs and 1 satoshi loose change that gets allocated
+      // to the fee without further deducting the output amount
+      const unusedUtxos = makeUtxos(['1', '1.00000001'])
+      const amount = '2'
+      const paymentTx = await payments.buildPaymentTx({
+        enforcedUtxos: [],
+        unusedUtxos,
+        desiredOutputs: [{ address: EXTERNAL_ADDRESS, value: amount }],
+        changeAddress,
+        desiredFeeRate,
+        useAllUtxos: false,
+        useUnconfirmedUtxos: false,
+        recipientPaysFee: true,
+      })
+      expectUtxosEqual(paymentTx.inputs, unusedUtxos)
+      const expectedOutputAmount = toBigNumber(amount).minus(feeMain).toString()
+      const expectedExternalOutputs = [{
+        address: EXTERNAL_ADDRESS,
+        value: expectedOutputAmount,
+      }]
+      expect(paymentTx.outputs).toEqual([...expectedExternalOutputs])
+      expect(paymentTx.externalOutputs).toEqual(expectedExternalOutputs)
+      expect(paymentTx.changeOutputs).toEqual([])
+      expect(paymentTx.externalOutputTotal).toBe(expectedOutputAmount)
+      expect(paymentTx.change).toBe('0')
       expect(paymentTx.changeAddress).toBe(null)
       expect(paymentTx.fee).toBe(toBigNumber(feeMain).plus(1e-8).toString())
     })
