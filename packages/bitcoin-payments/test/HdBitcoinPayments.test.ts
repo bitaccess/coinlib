@@ -187,6 +187,49 @@ describe('HdBitcoinPayments', () => {
       expect(paymentTx.changeAddress).toBe(null)
       expect(paymentTx.fee).toBe(toBigNumber(feeMain).plus('0.000001').toString())
     })
+    it('loose change below dust threshold gets added to fee when recipient pays fee', async () => {
+      // This test is designed to have 3 change outputs and 1 satoshi loose change that gets allocated
+      // to the fee without further deducting output amounts
+      const unusedUtxos = makeUtxos(['1', '1.00000001'], ['10'])
+      const amount = '1.93'
+      const paymentTx = await payments.buildPaymentTx({
+        enforcedUtxos: [],
+        unusedUtxos,
+        desiredOutputs: [{ address: EXTERNAL_ADDRESS, value: amount }],
+        changeAddress,
+        desiredFeeRate,
+        useAllUtxos: false,
+        useUnconfirmedUtxos: false,
+        recipientPaysFee: true,
+      })
+      expectUtxosEqual(paymentTx.inputs, unusedUtxos.slice(0, 2))
+      const expectedOutputAmount = toBigNumber(amount).minus(feeMain).toString()
+      const expectedExternalOutputs = [{
+        address: EXTERNAL_ADDRESS,
+        value: expectedOutputAmount,
+      }]
+      const expectedChangeOutputs = [
+        {
+          address: changeAddress,
+          value: '0.01',
+        },
+        {
+          address: changeAddress,
+          value: '0.02',
+        },
+        {
+          address: changeAddress,
+          value: '0.04',
+        },
+      ]
+      expect(paymentTx.outputs).toEqual([...expectedExternalOutputs, ...expectedChangeOutputs])
+      expect(paymentTx.externalOutputs).toEqual(expectedExternalOutputs)
+      expect(paymentTx.changeOutputs).toEqual(expectedChangeOutputs)
+      expect(paymentTx.externalOutputTotal).toBe(expectedOutputAmount)
+      expect(paymentTx.change).toBe('0.07')
+      expect(paymentTx.changeAddress).toBe(null)
+      expect(paymentTx.fee).toBe(toBigNumber(feeMain).plus(1e-8).toString())
+    })
   })
 
   for (let k in accountsByAddressType) {
