@@ -190,7 +190,7 @@ describe('HdBitcoinPayments', () => {
     it('loose change below dust threshold gets added to first change output', async () => {
       // This test is designed to have 3 change outputs and 1 satoshi loose change that gets allocated
       // to the first change output
-      const unusedUtxos = makeUtxos(['1', '1.00000001'], ['10'])
+      const unusedUtxos = makeUtxos(['1', '1.00000001'])
       const amount = '1.93'
       const paymentTx = await payments.buildPaymentTx({
         enforcedUtxos: [],

@@ -83,9 +83,11 @@ export const BitcoinishPaymentTx = requiredOptionalCodec(
     changeAddress: nullable(t.string),
   },
   {
+    // Total value of input utxos in main denom
+    inputTotal: t.string,
     // Outputs specified by transaction creator
     externalOutputs: t.array(BitcoinishTxOutput),
-    // Total of external outputs in main denom
+    // Total value of external outputs in main denom
     externalOutputTotal: t.string,
     // Outputs returning to transaction creator
     changeOutputs: t.array(BitcoinishTxOutput),
