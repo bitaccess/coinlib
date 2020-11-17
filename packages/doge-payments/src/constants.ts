@@ -67,9 +67,9 @@ export const DEFAULT_MAINNET_SERVER = process.env.DOGECOIN_SERVER_URL
   : ['https://doge1.trezor.io', 'https://doge2.trezor.io']
 export const DEFAULT_TESTNET_SERVER = ''
 
-export const DEFAULT_FEE_LEVEL = FeeLevel.Low
+export const DEFAULT_FEE_LEVEL = FeeLevel.High
 export const DEFAULT_SAT_PER_BYTE_LEVELS = {
-  [FeeLevel.High]: 80,
-  [FeeLevel.Medium]: 40,
-  [FeeLevel.Low]: 20,
+  [FeeLevel.High]: 500000,
+  [FeeLevel.Medium]: 350000,
+  [FeeLevel.Low]: 100000,
 }
