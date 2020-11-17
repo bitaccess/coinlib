@@ -223,11 +223,6 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
       )
     }
 
-    const expectedFromAddress = this.getAddress(tx.fromIndex)
-    if (tx.fromAddress !== expectedFromAddress) {
-      throw new Error(`Invalid tx: fromAddress (${tx.fromAddress}) doesn't match address at fromIndex ${tx.fromIndex} (${expectedFromAddress})`)
-    }
-
     let inputTotal = new BigNumber(0)
 
     // Safe to assume inputs are consistently ordered
