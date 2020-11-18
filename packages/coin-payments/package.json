@@ -66,11 +66,11 @@
     "typescript": "^3.9.7"
   },
   "dependencies": {
-    "@faast/bitcoin-cash-payments": "^3.0.1",
-    "@faast/bitcoin-payments": "^3.0.1",
+    "@faast/bitcoin-cash-payments": "^3.0.6",
+    "@faast/bitcoin-payments": "^3.0.6",
     "@faast/ethereum-payments": "^3.0.2",
-    "@faast/litecoin-payments": "^3.0.1",
     "@faast/doge-payments": "^3.0.1",
+    "@faast/litecoin-payments": "^3.0.6",
     "@faast/payments-common": "^3.0.0",
     "@faast/ripple-payments": "^3.0.0",
     "@faast/stellar-payments": "^3.0.0",
