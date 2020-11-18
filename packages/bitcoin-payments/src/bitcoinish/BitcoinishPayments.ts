@@ -366,10 +366,16 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   private selectInputUtxosForAll(tbc: BitcoinishTxBuildContext) {
+    for (const utxo of tbc.enforcedUtxos) {
+      tbc.inputTotal += utxo.satoshis as number
+      tbc.inputUtxos.push(utxo)
+    }
+
     for (const utxo of tbc.unusedUtxos) {
       tbc.inputTotal += utxo.satoshis as number
       tbc.inputUtxos.push(utxo)
     }
+
     if (tbc.isSweep && tbc.inputTotal !== tbc.externalOutputTotal) {
       // Some dust inputs were filtered
       this.adjustOutputAmounts(tbc, tbc.inputTotal, 'dust inputs filtering')
