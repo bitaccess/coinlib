@@ -282,7 +282,11 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
 
     //// Check totals
 
-    if (!externalOutputTotal.eq(data.externalOutputTotal)) {
+
+    if (data.inputTotal && !inputTotal.eq(data.inputTotal)) {
+      throw new Error(`Invalid tx: data.externalOutputTotal (${data.externalOutputTotal}) doesn't match expected external output total (${externalOutputTotal})`)
+    }
+    if (data.externalOutputTotal && !externalOutputTotal.eq(data.externalOutputTotal)) {
       throw new Error(`Invalid tx: data.externalOutputTotal (${data.externalOutputTotal}) doesn't match expected external output total (${externalOutputTotal})`)
     }
     if (!changeOutputTotal.eq(data.change)) {

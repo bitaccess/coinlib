@@ -190,7 +190,7 @@ describe('HdBitcoinPayments', () => {
     it('loose change below dust threshold gets added to first change output', async () => {
       // This test is designed to have 3 change outputs and 1 satoshi loose change that gets allocated
       // to the first change output
-      const unusedUtxos = makeUtxos(['1', '1.00000001'], ['10'])
+      const unusedUtxos = makeUtxos(['1', '1.00000001'])
       const amount = '1.93'
       const paymentTx = await payments.buildPaymentTx({
         enforcedUtxos: [],
@@ -258,6 +258,55 @@ describe('HdBitcoinPayments', () => {
       expect(paymentTx.change).toBe('0')
       expect(paymentTx.changeAddress).toBe(null)
       expect(paymentTx.fee).toBe(toBigNumber(feeMain).plus(1e-8).toString())
+    })
+    it('recalculated dynamic fee doesnt create loose change when recipient pays fee', async () => {
+      const unusedUtxos = makeUtxos(['1', '1.00000001'])
+      const amount = '1.93'
+      const paymentTx = await payments.buildPaymentTx({
+        enforcedUtxos: [],
+        unusedUtxos,
+        desiredOutputs: [{ address: EXTERNAL_ADDRESS, value: amount }],
+        changeAddress,
+        desiredFeeRate: {
+          feeRate: '100',
+          // Important: Must use sat/byte because so recalculated fee is different after change outputs are dropped
+          feeRateType: FeeRateType.BasePerWeight,
+        },
+        useAllUtxos: false,
+        useUnconfirmedUtxos: false,
+        recipientPaysFee: true,
+      })
+      expectUtxosEqual(paymentTx.inputs, unusedUtxos.slice(0, 2))
+      const expectedOutputAmount = toBigNumber(amount).minus(paymentTx.fee).toString()
+      const expectedExternalOutputs = [{
+        address: EXTERNAL_ADDRESS,
+        value: expectedOutputAmount,
+      }]
+      const expectedChangeOutputs = [
+        {
+          address: changeAddress,
+          value: '0.01000001',
+        },
+        {
+          address: changeAddress,
+          value: '0.02',
+        },
+        {
+          address: changeAddress,
+          value: '0.04',
+        },
+      ]
+      expect(paymentTx.outputs).toEqual([...expectedExternalOutputs, ...expectedChangeOutputs])
+      expect(paymentTx.externalOutputs).toEqual(expectedExternalOutputs)
+      expect(paymentTx.changeOutputs).toEqual(expectedChangeOutputs)
+      expect(paymentTx.externalOutputTotal).toBe(expectedOutputAmount)
+      expect(paymentTx.change).toBe('0.07000001')
+      expect(paymentTx.changeAddress).toBe(null)
+      const expectedFee = toBigNumber(paymentTx.inputTotal)
+        .minus(paymentTx.externalOutputTotal)
+        .minus(paymentTx.change)
+        .toString()
+      expect(paymentTx.fee).toBe(expectedFee)
     })
   })
 
