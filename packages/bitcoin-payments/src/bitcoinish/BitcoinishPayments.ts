@@ -486,7 +486,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     // Sort ascending by weight so we can drop small change outputs first and reduce total weight to avoid loose change
     const changeOutputWeights = this.createWeightedChangeOutputs(targetChangeOutputCount, tbc.changeAddress)
       .sort((a, b) => a.weight - b.weight)
-    let totalChangeWeight = changeOutputWeights.reduce((total, { weight }) => total += weight, 0)
+    let totalChangeWeight = sumField(changeOutputWeights, 'weight').toNumber()
     let totalChangeAllocated = 0 // Total sat of all change outputs we actually include (omitting dust)
     for (let i = 0; i < changeOutputWeights.length; i++) {
       const { address, weight } = changeOutputWeights[i]
@@ -522,12 +522,15 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       )
       if (tbc.feeSat > recalculatedFee) {
         // Due to dropping change outputs we're now overpaying, reduce fee and reallocate to change
-        this.logger.log(`${this.coinSymbol} buildPaymentTx - Reducing overestimated fee from ${tbc.feeSat} sat to ${recalculatedFee} sat`)
-        const feeBefore = tbc.feeSat
+        const looseChangeBefore = looseChange
         this.adjustTxFee(tbc, recalculatedFee, 'dropped change outputs recalculated fee')
-        const adjustedAmount = feeBefore - tbc.feeSat
-        tbc.totalChange += adjustedAmount
-        looseChange += adjustedAmount
+        // Recalculate total and loose change because fee adjustments may alter output amount
+        tbc.totalChange = tbc.inputTotal - tbc.externalOutputTotal - tbc.feeSat
+        looseChange = tbc.totalChange - totalChangeAllocated
+        this.logger.log(
+          `${this.coinSymbol} buildPaymentTx - Adjusted looseChange from ${looseChangeBefore} sat to ${looseChange} sat after `
+          + 'applying dropped change outputs recalculated fee'
+        )
       }
     }
 
@@ -571,6 +574,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       // deducted from the outputs
       this.applyFeeAdjustment(tbc, looseChange, 'loose change allocation')
       tbc.totalChange -= looseChange
+      looseChange = 0
     }
   }
 
