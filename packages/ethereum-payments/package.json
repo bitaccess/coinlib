@@ -1,6 +1,6 @@
 {
   "name": "@faast/ethereum-payments",
-  "version": "2.15.3",
+  "version": "3.0.2",
   "description": "Library to assist in processing ethereum payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -76,7 +76,7 @@
     "web3-core": "^1.2.11"
   },
   "dependencies": {
-    "@faast/payments-common": "^2.15.0",
+    "@faast/payments-common": "^3.0.0",
     "@faast/ts-common": "^0.6.0",
     "bignumber.js": "^9.0.0",
     "bip32": "^2.0.5",

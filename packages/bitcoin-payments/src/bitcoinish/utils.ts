@@ -63,18 +63,23 @@ export function retryIfDisconnected<T>(fn: () => Promise<T>, api: BlockbookBitco
   )
 }
 
+/** returns the sum of a particular field in an array of items */
+export function sumField<T extends { [key: string]: any }>(items: T[], field: keyof T): BigNumber {
+  return items.reduce((total, item) => total.plus(item[field]), toBigNumber(0))
+}
+
 /**
  * Sum the utxos values (main denomination)
  */
 export function sumUtxoValue(utxos: UtxoInfo[], includeUnconfirmed?: boolean): BigNumber {
   const filtered = includeUnconfirmed ? utxos : utxos.filter(isConfirmedUtxo)
-  return filtered.reduce((total, { value }) => total.plus(value), toBigNumber(0))
+  return sumField(filtered, 'value')
 }
 
 /**
- * Sort the utxos randomly for input selection.
+ * Shuffle the utxos for input selection.
  */
-export function sortUtxos<T extends UtxoInfo>(utxoList: T[]): T[] {
+export function shuffleUtxos<T extends UtxoInfo>(utxoList: T[]): T[] {
   const result = [...utxoList]
   for (let i = result.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * i)

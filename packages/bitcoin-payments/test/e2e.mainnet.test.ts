@@ -41,7 +41,7 @@ function assertTxInfo(actual: BitcoinTransactionInfo, expected: BitcoinTransacti
       ...actual.data,
       vout: (actual.data as any).vout.map((o: any) => omit(o, ['spent'])),
     },
-  }, expected, ['data.confirmations', 'confirmations'])
+  }, expected, ['data.confirmations', 'confirmations', 'currentBlockNumber'])
 }
 
 const describeAll = !secretXprv ? describe.skip : describe
@@ -155,14 +155,13 @@ describeAll('e2e mainnet', () => {
       expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThan(1)
     })
 
-    it('falls back to hardcoded with invalid token', async () => {
+    it('throws on invalid token', async () => {
       const paymentsWithToken = new HdBitcoinPayments({
         ...paymentsConfig,
         blockcypherToken: 'invalid',
       })
-      const estimate = await paymentsWithToken.getFeeRateRecommendation(FeeLevel.High)
-      expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
-      expect(Number.parseFloat(estimate.feeRate)).toBe(DEFAULT_SAT_PER_BYTE_LEVELS[FeeLevel.High])
+      await expect(() => paymentsWithToken.getFeeRateRecommendation(FeeLevel.High))
+        .rejects.toThrow('Failed to get bitcoin mainnet fee estimate from blockcypher')
     })
 
   })
@@ -300,7 +299,7 @@ describeAll('e2e mainnet', () => {
     const feeRate = '21'
     const tx = await payments.createSweepTransaction(0, { address: EXTERNAL_ADDRESS }, {
       useUnconfirmedUtxos: true,
-      utxos: [{
+      availableUtxos: [{
         ...address0utxos[0],
         height: undefined,
         confirmations: undefined,

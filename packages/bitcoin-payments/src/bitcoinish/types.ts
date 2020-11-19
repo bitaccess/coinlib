@@ -83,9 +83,11 @@ export const BitcoinishPaymentTx = requiredOptionalCodec(
     changeAddress: nullable(t.string),
   },
   {
+    // Total value of input utxos in main denom
+    inputTotal: t.string,
     // Outputs specified by transaction creator
     externalOutputs: t.array(BitcoinishTxOutput),
-    // Total of external outputs in main denom
+    // Total value of external outputs in main denom
     externalOutputTotal: t.string,
     // Outputs returning to transaction creator
     changeOutputs: t.array(BitcoinishTxOutput),
@@ -128,6 +130,8 @@ export type BitcoinishBlock = BlockInfoBitcoin
 export type BitcoinishTxBuildContext = {
   /** Utxos we can select from (ie should exclude anything used by pending txs) */
   readonly unusedUtxos: UtxoInfo[],
+  /** Utxos we must select from (ie should exclude anything used by pending txs) */
+  readonly enforcedUtxos: UtxoInfo[],
   /** External outputs the creator desires excluding change (amounts may end up lower if recipientPaysFee is enabled) */
   readonly desiredOutputs: BitcoinishTxOutput[],
   /** Address to send all change outputs to */
@@ -141,6 +145,7 @@ export type BitcoinishTxBuildContext = {
   /** true if fee should be deducted from outputs instead of paid by sender */
   readonly recipientPaysFee: boolean,
 
+  readonly unusedUtxoCount: number,
   /** Sum of desiredOutputs value in satoshis */
   desiredOutputTotal: number,
 
@@ -174,5 +179,5 @@ export type BitcoinishTxBuildContext = {
 
 export type BitcoinishBuildPaymentTxParams = Pick<
   BitcoinishTxBuildContext,
-  'unusedUtxos' | 'desiredOutputs' | 'changeAddress' | 'desiredFeeRate' | 'useAllUtxos' | 'useUnconfirmedUtxos' | 'recipientPaysFee'
+  'unusedUtxos' | 'desiredOutputs' | 'changeAddress' | 'desiredFeeRate' | 'useAllUtxos' | 'useUnconfirmedUtxos' | 'recipientPaysFee' | 'enforcedUtxos'
 >

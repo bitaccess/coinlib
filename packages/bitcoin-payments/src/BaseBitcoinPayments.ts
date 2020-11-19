@@ -54,10 +54,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     try {
       satPerByte = await getBlockcypherFeeEstimate(feeLevel, this.networkType, this.blockcypherToken)
     } catch (e) {
-      satPerByte = DEFAULT_SAT_PER_BYTE_LEVELS[feeLevel]
-      this.logger.warn(
-        `Failed to get bitcoin ${this.networkType} fee estimate, using hardcoded default of ${satPerByte} sat/byte -- ${e.message}`
-      )
+      throw new Error(`Failed to get bitcoin ${this.networkType} fee estimate from blockcypher -- ${e.message}`)
     }
     return {
       feeRate: satPerByte.toString(),
@@ -226,11 +223,6 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
       )
     }
 
-    const expectedFromAddress = this.getAddress(tx.fromIndex)
-    if (tx.fromAddress !== expectedFromAddress) {
-      throw new Error(`Invalid tx: fromAddress (${tx.fromAddress}) doesn't match address at fromIndex ${tx.fromIndex} (${expectedFromAddress})`)
-    }
-
     let inputTotal = new BigNumber(0)
 
     // Safe to assume inputs are consistently ordered
@@ -290,7 +282,11 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
 
     //// Check totals
 
-    if (!externalOutputTotal.eq(data.externalOutputTotal)) {
+
+    if (data.inputTotal && !inputTotal.eq(data.inputTotal)) {
+      throw new Error(`Invalid tx: data.externalOutputTotal (${data.externalOutputTotal}) doesn't match expected external output total (${externalOutputTotal})`)
+    }
+    if (data.externalOutputTotal && !externalOutputTotal.eq(data.externalOutputTotal)) {
       throw new Error(`Invalid tx: data.externalOutputTotal (${data.externalOutputTotal}) doesn't match expected external output total (${externalOutputTotal})`)
     }
     if (!changeOutputTotal.eq(data.change)) {

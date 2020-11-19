@@ -31,6 +31,15 @@ describe('EthereumPaymentsUtils', () => {
     })
   })
 
+  describe('units conversion for no base denomination', () => {
+    test('conversion', () => {
+      const ep = new EthereumPaymentsUtils({ logger, decimals: 0 })
+
+      expect(ep.toBaseDenomination('7')).toBe('7')
+      expect(ep.toMainDenomination('5')).toBe('5')
+    })
+  })
+
   describe('isValidAddress', () => {
     test('should return true for valid', async () => {
       expect(await epu.isValidAddress(VALID_ADDRESS)).toBe(true)

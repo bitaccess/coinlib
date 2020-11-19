@@ -53,10 +53,7 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
     try {
       satPerByte = await new BitcoinCashPaymentsUtils().getBlockBookFeeEstimate(feeLevel, this.networkType)
     } catch (e) {
-      satPerByte = DEFAULT_SAT_PER_BYTE_LEVELS[feeLevel]
-      this.logger.warn(
-        `Failed to get bitcoin cash ${this.networkType} fee estimate, using hardcoded default of ${feeLevel} sat/byte -- ${e.message}`
-      )
+      throw new Error(`Failed to get bitcoin cash ${this.networkType} fee estimate from blockcypher -- ${e.message}`)
     }
     return {
       feeRate: satPerByte.toString(),
