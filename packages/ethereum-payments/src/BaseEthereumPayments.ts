@@ -45,6 +45,7 @@ import {
   TOKEN_PROXY_DATA,
 } from './constants'
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
+import { retryIfDisconnected } from './utils'
 
 export abstract class BaseEthereumPayments
   <Config extends BaseEthereumPaymentsConfig>
@@ -217,7 +218,7 @@ implements BasePayments
 
   async getBalance(resolveablePayport: ResolveablePayport): Promise<BalanceResult> {
     const payport = await this.resolvePayport(resolveablePayport)
-    const balance = await this.eth.getBalance(payport.address)
+    const balance = await this._retryDced(() => this.eth.getBalance(payport.address))
     const sweepable = await this.isSweepableBalance(balance)
     const confirmedBalance = this.toMainDenomination(balance).toString()
 
@@ -253,9 +254,9 @@ implements BasePayments
     // XXX it is suggested to keep 12 confirmations
     // https://ethereum.stackexchange.com/questions/319/what-number-of-confirmations-is-considered-secure-in-ethereum
     const minConfirmations = MIN_CONFIRMATIONS
-    const tx = await this.eth.getTransaction(txid)
-    const currentBlockNumber = await this.eth.getBlockNumber()
-    let txInfo: TransactionReceipt | null = await this.eth.getTransactionReceipt(txid)
+    const tx = await this._retryDced(() => this.eth.getTransaction(txid))
+    const currentBlockNumber = await this._retryDced(() => this.eth.getBlockNumber())
+    let txInfo: TransactionReceipt | null = await this._retryDced(() => this.eth.getTransactionReceipt(txid))
 
     tx.from = tx.from ? tx.from.toLowerCase() : '';
     tx.to = tx.to ? tx.to.toLowerCase() : '';
@@ -308,7 +309,7 @@ implements BasePayments
       confirmations = currentBlockNumber - tx.blockNumber
       if (confirmations > minConfirmations) {
         isConfirmed = true
-        const txBlock = await this.eth.getBlock(tx.blockNumber)
+        const txBlock = await this._retryDced(() => this.eth.getBlock(tx.blockNumber!))
         confirmationTimestamp = new Date(Number(txBlock.timestamp) * 1000)
       }
     }
@@ -413,9 +414,9 @@ implements BasePayments
   }
 
   private sendTransactionWithoutConfirmation(txHex: string): Promise<string> {
-    return new Promise((resolve, reject) => this.eth.sendSignedTransaction(txHex)
+    return this._retryDced(() => new Promise((resolve, reject) => this.eth.sendSignedTransaction(txHex)
         .on('transactionHash', resolve)
-        .on('error', reject))
+        .on('error', reject)))
   }
 
   async broadcastTransaction(tx: EthereumSignedTransaction): Promise<EthereumBroadcastResult> {
@@ -519,6 +520,10 @@ implements BasePayments
     }
     this.logger.debug('createTransactionObject result', result)
     return result
+  }
+
+  async _retryDced<T>(fn: () => Promise<T>): Promise<T> {
+    return retryIfDisconnected(fn, this.logger)
   }
 }
 

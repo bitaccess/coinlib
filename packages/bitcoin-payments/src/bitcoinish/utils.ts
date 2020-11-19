@@ -40,7 +40,9 @@ export function resolveServer(server: BlockbookConnectedConfig['server'], networ
   }
 }
 
-const RETRYABLE_ERRORS = ['timeout', 'disconnected', 'time-out', 'StatusCodeError: 522', 'StatusCodeError: 504', 'ENOTFOUND']
+const RETRYABLE_ERRORS = [
+  'timeout', 'disconnected', 'time-out', 'StatusCodeError: 522', 'StatusCodeError: 504', 'ENOTFOUND', 'ESOCKETTIMEDOUT', 'ETIMEDOUT',
+]
 const MAX_RETRIES = 2
 
 export function retryIfDisconnected<T>(fn: () => Promise<T>, api: BlockbookBitcoin, logger: Logger): Promise<T> {

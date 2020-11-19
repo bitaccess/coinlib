@@ -16,6 +16,7 @@ import {
   ETHEREUM_TRANSFER_COST,
 } from './constants'
 import { EthTxType } from './types'
+import { retryIfDisconnected } from './utils'
 
 export class NetworkData {
   private gasStationUrl: string | undefined
@@ -73,7 +74,7 @@ export class NetworkData {
   async estimateGas(txObject: TransactionConfig, txType: EthTxType): Promise<string> {
     try {
       // estimateGas mutates txObject so must pass in a clone
-      let gas = new BigNumber(await this.eth.estimateGas({ ...txObject }))
+      let gas = new BigNumber(await this._retryDced(() => this.eth.estimateGas({ ...txObject })))
       if (gas.gt(21000)) {
         // No need for multiplier for regular ethereum transfers
         gas = gas.times(GAS_ESTIMATE_MULTIPLIER)
@@ -95,7 +96,7 @@ export class NetworkData {
 
   private async getWeb3Nonce(address: string): Promise<string> {
     try {
-      const nonce = await this.eth.getTransactionCount(address, 'pending')
+      const nonce = await this._retryDced(() => this.eth.getTransactionCount(address, 'pending'))
       return (new BigNumber(nonce)).toString()
     } catch (e) {
       return ''
@@ -136,7 +137,7 @@ export class NetworkData {
     }
     let body: { [key: string]: number }
     try {
-      body = await request.get(options)
+      body = await this._retryDced(() => request.get(options))
     } catch (e) {
       return ''
     }
@@ -151,9 +152,13 @@ export class NetworkData {
 
   private async getWeb3GasPrice(): Promise<string> {
     try {
-      return await this.eth.getGasPrice()
+      return await this._retryDced(() => this.eth.getGasPrice())
     } catch (e) {
       return ''
     }
+  }
+
+  async _retryDced<T>(fn: () => Promise<T>): Promise<T> {
+    return retryIfDisconnected(fn, this.logger)
   }
 }

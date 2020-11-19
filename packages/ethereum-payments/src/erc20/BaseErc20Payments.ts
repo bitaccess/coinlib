@@ -247,14 +247,14 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
   async getTransactionInfo(txid: string): Promise<EthereumTransactionInfo> {
     const minConfirmations = MIN_CONFIRMATIONS
-    const tx = await this.eth.getTransaction(txid)
+    const tx = await this._retryDced(() => this.eth.getTransaction(txid))
 
     if (!tx.input) {
       throw new Error(`Transaction ${txid} has no input for ERC20`)
     }
 
-    const currentBlockNumber = await this.eth.getBlockNumber()
-    let txReceipt: TransactionReceipt | null = await this.eth.getTransactionReceipt(txid)
+    const currentBlockNumber = await this._retryDced(() => this.eth.getBlockNumber())
+    let txReceipt: TransactionReceipt | null = await this._retryDced(() => this.eth.getTransactionReceipt(txid))
 
     let fromAddress = tx.from.toLowerCase()
     let toAddress = ''
@@ -388,7 +388,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       confirmations = currentBlockNumber - tx.blockNumber
       if (confirmations > minConfirmations) {
         isConfirmed = true
-        txBlock = await this.eth.getBlock(tx.blockNumber)
+        txBlock = await this._retryDced(() => this.eth.getBlock(tx.blockNumber!))
         confirmationTimestamp = new Date(txBlock.timestamp)
       }
     }
@@ -437,7 +437,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
   }
 
   private async getEthBaseBalance(address: string): Promise<BigNumber> {
-    const balanceBase = await this.eth.getBalance(address)
+    const balanceBase = await this._retryDced(() => this.eth.getBalance(address))
 
     return new BigNumber(balanceBase)
   }

@@ -28,7 +28,7 @@ import {
   TronWebTransaction,
 } from './types'
 import { toBaseDenominationNumber, isValidAddress, toMainDenominationBigNumber } from './helpers'
-import { toError } from './utils'
+import { retryIfDisconnected, toError } from './utils'
 import {
   DEFAULT_FULL_NODE,
   DEFAULT_EVENT_SERVER,
@@ -80,7 +80,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
   async getBalance(resolveablePayport: ResolveablePayport): Promise<BalanceResult> {
     try {
       const payport = await this.resolvePayport(resolveablePayport)
-      const balanceSun = await this.tronweb.trx.getBalance(payport.address)
+      const balanceSun = await this._retryDced(() => this.tronweb.trx.getBalance(payport.address))
       this.logger.debug(`trx.getBalance(${payport.address}) -> ${balanceSun}`)
       const sweepable = this.canSweepBalance(balanceSun)
       const confirmedBalance = toMainDenominationBigNumber(balanceSun)
@@ -244,14 +244,14 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
      * `(DUP_TRANASCTION_ERROR && Transaction not found)` -> tx was probably invalid? Maybe? Who knows…
      */
     try {
-      const status = await this.tronweb.trx.sendRawTransaction(tx.data as TronWebTransaction)
+      const status = await this._retryDced(() => this.tronweb.trx.sendRawTransaction(tx.data as TronWebTransaction))
       let success = false
       let rebroadcast = false
       if (status.result || status.code === 'SUCCESS') {
         success = true
       } else {
         try {
-          await this.tronweb.trx.getTransaction(tx.id)
+          await this._retryDced(() => this.tronweb.trx.getTransaction(tx.id))
           success = true
           rebroadcast = true
         } catch (e) {
@@ -285,9 +285,9 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
   async getTransactionInfo(txid: string): Promise<TronTransactionInfo> {
     try {
       const [tx, txInfo, currentBlock] = await Promise.all([
-        this.tronweb.trx.getTransaction(txid),
-        this.tronweb.trx.getTransactionInfo(txid),
-        this.tronweb.trx.getCurrentBlock(),
+        this._retryDced(() => this.tronweb.trx.getTransaction(txid)),
+        this._retryDced(() => this.tronweb.trx.getTransactionInfo(txid)),
+        this._retryDced(() => this.tronweb.trx.getCurrentBlock()),
       ])
 
       const { amountTrx, fromAddress, toAddress } = this.extractTxFields(tx)
@@ -419,6 +419,10 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
     options: CreateTransactionOptions = {},
   ): Promise<null> {
     return null
+  }
+
+  async _retryDced<T>(fn: () => Promise<T>): Promise<T> {
+    return retryIfDisconnected(fn, this.logger)
   }
 }
 
