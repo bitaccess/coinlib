@@ -7,19 +7,22 @@ export const DECIMAL_PLACES = 8
 export const COIN_SYMBOL = 'DOGE'
 export const COIN_NAME = 'Dogecoin'
 
+//// Most nodes require 1 DOGE minimum fee and dust threshold
+//// https://github.com/dogecoin/dogecoin/issues/1650
+
 /**
  * The minimum value a transaction output must be in order to not get rejected by the network.
  *
  * Unit: `satoshis`
  */
-export const DEFAULT_DUST_THRESHOLD = 546
+export const DEFAULT_DUST_THRESHOLD = 1e8
 
 /**
  * The minimum fee required by *most* nodes to relay a transaction.
  *
  * Unit: `satoshis`
  */
-export const DEFAULT_NETWORK_MIN_RELAY_FEE = 1000
+export const DEFAULT_NETWORK_MIN_RELAY_FEE = 1e8
 
 /** Sequence to use for each input such that RBF is opted into */
 export const BITCOIN_SEQUENCE_RBF = 0xFFFFFFFD
@@ -29,7 +32,7 @@ export const BITCOIN_SEQUENCE_RBF = 0xFFFFFFFD
  *
  * Unit: `sat/byte`
  */
-export const DEFAULT_MIN_TX_FEE = 100000
+export const DEFAULT_MIN_TX_FEE = 100000 // 1 DOGE per kb
 
 export const DEFAULT_SINGLESIG_ADDRESS_TYPE: SinglesigAddressType = AddressType.Legacy
 

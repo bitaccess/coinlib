@@ -15,10 +15,13 @@ import { ADDRESS_INPUT_WEIGHTS } from '../src/utils'
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
+import { DEFAULT_NETWORK_MIN_RELAY_FEE } from '../src/constants';
 
 const EXTERNAL_ADDRESS = 'DB15Lt7u8hxkbT8s1JAKHA9Xbxr8SbxnC8'
 
 const SECRET_XPRV_FILE = 'test/keys/mainnet.key'
+
+const MIN_FEE = new BigNumber(DEFAULT_NETWORK_MIN_RELAY_FEE).div(1e8)
 
 const rootDir = path.resolve(__dirname, '..')
 const secretXprvFilePath = path.resolve(rootDir, SECRET_XPRV_FILE)
@@ -46,7 +49,7 @@ function assertTxInfo(actual: DogeTransactionInfo, expected: DogeTransactionInfo
       ...actual.data,
       vout: (actual.data as any).vout.map((o: any) => omit(o, ['spent'])),
     },
-  }, expected, ['data.confirmations', 'confirmations'])
+  }, expected, ['data.confirmations', 'confirmations', 'currentBlockNumber'])
 }
 
 const describeAll = !secretXprv ? describe : describe
@@ -168,7 +171,6 @@ describeAll('e2e mainnet', () => {
 
   it('get transaction by arbitrary hash', async () => {
     const tx = await payments.getTransactionInfo('dc8ae0ebe273faf3e6e2f1192279df91fa6b8621e3daba08dc89ef9cb0539193')
-    process.stderr.write(JSON.stringify(tx, null, 2))
     assertTxInfo(tx, txInfo_beae1)
   })
   it('fail to get an invalid transaction hash', async () => {
@@ -216,7 +218,7 @@ describeAll('e2e mainnet', () => {
     const feeRate = '210000'
     const tx = await payments.createSweepTransaction(10, { address: EXTERNAL_ADDRESS }, {
       useUnconfirmedUtxos: true,
-      utxos: [{
+      availableUtxos: [{
         ...address10utxos[0],
         height: undefined,
         confirmations: undefined,
@@ -232,8 +234,8 @@ describeAll('e2e mainnet', () => {
     expect(tx.toIndex).toEqual(null)
     expectEqualOmit(tx.inputUtxos, address10utxos, omitUtxoFieldEquality)
     const expectedTxSize = 192
-    const expectedFee = new BigNumber(feeRate).times(expectedTxSize).times(1e-8).toString()
-    expect(tx.fee).toBe(expectedFee)
+    const expectedFee = BigNumber.max(MIN_FEE, new BigNumber(feeRate).times(expectedTxSize).times(1e-8))
+    expect(tx.fee).toBe(expectedFee.toString())
   })
 
   it('create send transaction to an index', async () => {
@@ -249,8 +251,8 @@ describeAll('e2e mainnet', () => {
     expectEqualOmit(tx.inputUtxos, address10utxos, omitUtxoFieldEquality)
     expect(tx.externalOutputs).toEqual([{ address: address3, value: amount }])
     const expectedTxSize = 226
-    const expectedFee = new BigNumber(feeRate).times(expectedTxSize).times(1e-8).toString()
-    expect(tx.fee).toBe(expectedFee)
+    const expectedFee = BigNumber.max(MIN_FEE, new BigNumber(feeRate).times(expectedTxSize).times(1e-8))
+    expect(tx.fee).toBe(expectedFee.toString())
     const expectedChange = new BigNumber(address10balance).minus(amount).minus(expectedFee).toString()
     expect(tx.data.changeOutputs).toEqual([{ address: address10, value: expectedChange }])
   })
@@ -290,7 +292,7 @@ describeAll('e2e mainnet', () => {
   })
 
   jest.setTimeout(300 * 1000)
-  
+
   describe('getTransactionInfo', () => {
     const paymentsConfig: HdDogePaymentsConfig = {
       hdKey: secretXprv,
@@ -382,7 +384,7 @@ describeAll('e2e mainnet', () => {
           expectedTxSize += (extraInputs * ADDRESS_INPUT_WEIGHTS[addressType]) / 4
         }
 
-        expect(feeNumber).toBe((expectedTxSize*satPerByte)*1e-8)
+        expect(feeNumber).toBe(BigNumber.max(MIN_FEE, (expectedTxSize*satPerByte)*1e-8).toNumber())
         logger.log(`Sweeping ${signedTx.amount} from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
         expect(await payments.broadcastTransaction(signedTx)).toEqual({
           id: signedTx.id,
