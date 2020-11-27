@@ -38,6 +38,7 @@ import {
   BASE_UNITS,
   DEFAULT_TX_TIMEOUT_SECONDS,
   DEFAULT_FEE_LEVEL,
+  TX_EXPIRATION_SECONDS,
 } from './constants'
 import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers'
 import { isStellarTransaction, serializePayport, omitHidden, isMatchingError, isStellarTransactionRecord } from './utils';
@@ -450,6 +451,9 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
         fee: Number.parseInt(feeBase),
         networkPassphrase: this.getStellarNetwork(),
         memo: toExtraId ? Stellar.Memo.text(toExtraId) : undefined,
+        timebounds: {
+          maxTime: (Date.now() / 1000) + TX_EXPIRATION_SECONDS,
+        }
       })
       .addOperation(operation)
       .setTimeout(txTimeoutSecs)
