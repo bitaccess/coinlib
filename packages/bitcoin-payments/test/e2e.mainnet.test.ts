@@ -161,7 +161,7 @@ describeAll('e2e mainnet', () => {
         blockcypherToken: 'invalid',
       })
       await expect(() => paymentsWithToken.getFeeRateRecommendation(FeeLevel.High))
-        .rejects.toThrow('Failed to get bitcoin mainnet fee estimate from blockcypher')
+        .rejects.toThrow('Failed to retrieve BTC mainnet fee rate from blockcypher')
     })
 
   })

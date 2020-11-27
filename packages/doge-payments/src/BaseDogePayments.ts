@@ -51,11 +51,9 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
     let satPerByte: number
     try {
       satPerByte = await new DogePaymentsUtils().getBlockBookFeeEstimate(feeLevel, this.networkType)
+      this.logger.log(`Retrieved ${this.coinSymbol} ${this.networkType} fee rate of ${satPerByte} sat/vbyte from blockbook for ${feeLevel} level`)
     } catch (e) {
-      satPerByte = DEFAULT_SAT_PER_BYTE_LEVELS[feeLevel]
-      this.logger.warn(
-        `Failed to get doge ${this.networkType} fee estimate, using hardcoded default of ${feeLevel} sat/byte -- ${e.message}`
-      )
+      throw new Error(`Failed to retrieve ${this.coinSymbol} ${this.networkType} fee rate from blockbook - ${e.toString()}`)
     }
     return {
       feeRate: satPerByte.toString(),
