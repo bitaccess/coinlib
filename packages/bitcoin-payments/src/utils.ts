@@ -1,5 +1,4 @@
-import { NetworkType, FeeLevel, FeeRateType, AutoFeeLevels } from '@faast/payments-common'
-import request from 'request-promise-native'
+import { NetworkType, FeeRateType, AutoFeeLevels } from '@faast/payments-common'
 import bs58 from 'bs58'
 import * as bitcoin from 'bitcoinjs-lib'
 import { BaseBitcoinPaymentsConfig, AddressType, SinglesigAddressType, MultisigAddressType, AddressTypeT } from './types'
@@ -18,7 +17,7 @@ import {
   DEFAULT_MIN_TX_FEE,
   DEFAULT_FEE_LEVEL,
 } from './constants'
-import { assertType } from '@faast/ts-common';
+import { assertType } from '@faast/ts-common'
 
 const DEFAULT_BITCOINISH_CONFIG = {
   coinSymbol: COIN_SYMBOL,
@@ -55,26 +54,6 @@ export function toBitcoinishConfig<T extends BaseBitcoinPaymentsConfig>(config: 
         ? DEFAULT_TESTNET_SERVER
         : DEFAULT_MAINNET_SERVER),
   }
-}
-
-/** Get sat/byte fee estimate from blockcypher */
-export async function getBlockcypherFeeEstimate(
-  feeLevel: FeeLevel,
-  networkType: NetworkType,
-  blockcypherToken?: string,
-): Promise<number> {
-  const networkParam = networkType === NetworkType.Mainnet ? 'main' : 'test3'
-  const tokenQs = blockcypherToken ? `?token=${blockcypherToken}` : ''
-  const body = await request.get(
-    `https://api.blockcypher.com/v1/btc/${networkParam}${tokenQs}`,
-    { json: true },
-  )
-  const feePerKbField = `${feeLevel}_fee_per_kb`
-  const feePerKb = body[feePerKbField]
-  if (!feePerKb) {
-    throw new Error(`Blockcypher response is missing expected field ${feePerKbField}`)
-  }
-  return feePerKb / 1000
 }
 
 // assumes compressed pubkeys in all cases.

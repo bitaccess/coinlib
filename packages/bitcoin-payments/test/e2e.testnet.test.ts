@@ -131,8 +131,6 @@ describeAll('e2e testnet', () => {
         return tx
       }
 
-      jest.setTimeout(300 * 1000)
-
       it('end to end sweep', async () => {
         const indicesToTry = [5, 6]
         const balances: { [i: number]: BalanceResult } = {}
@@ -178,7 +176,7 @@ describeAll('e2e testnet', () => {
         const tx = await pollUntilFound(signedTx)
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)
-      })
+      }, 5 * 60 * 1000)
 
       it('end to end send', async () => {
         const indicesToTry = [7, 8]
@@ -212,7 +210,7 @@ describeAll('e2e testnet', () => {
         const tx = await pollUntilFound(signedTx)
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)
-      })
+      }, 5 * 60 * 1000)
     })
   }
 })

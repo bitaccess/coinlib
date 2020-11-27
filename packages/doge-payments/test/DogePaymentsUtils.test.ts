@@ -17,12 +17,6 @@ describe('DogePaymentUtils', () => {
     })
   })
 
-  describe('getFeeEstimate', () => {
-    test('should return a value', async () => {
-      expect(await pu.getBlockBookFeeEstimate()).toBeDefined()
-    })
-  })
-
   describe('isValidExtraId', () => {
     test('should return false', async () => {
       expect(await pu.isValidExtraId('fake')).toBe(false)

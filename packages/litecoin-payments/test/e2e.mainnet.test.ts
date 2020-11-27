@@ -40,7 +40,7 @@ const addressTypesToTest: SinglesigAddressType[] = [
 ]
 
 function assertTxInfo(actual: LitecoinTransactionInfo, expected: LitecoinTransactionInfo): void {
-  expectEqualOmit(actual, expected, ['data.confirmations', 'confirmations'])
+  expectEqualOmit(actual, expected, ['data.confirmations', 'confirmations', 'currentBlockNumber'])
 }
 
 const describeAll = !secretXprv ? describe.skip : describe
@@ -159,7 +159,7 @@ describeAll('e2e mainnet', () => {
         blockcypherToken: 'invalid',
       })
       await expect(() => paymentsWithToken.getFeeRateRecommendation(FeeLevel.High))
-        .rejects.toThrow('Failed to get litecoin mainnet fee estimate from blockcypher')
+        .rejects.toThrow('Failed to retrieve LTC mainnet fee rate from blockcypher')
     })
 
   })

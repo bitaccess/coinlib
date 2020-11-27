@@ -1,10 +1,12 @@
-import { NetworkType, UtxoInfo } from '@faast/payments-common'
-import { BlockbookConnectedConfig, BitcoinishTxOutput, BitcoinishTxOutputSatoshis } from './types';
+import { NetworkType, UtxoInfo, AutoFeeLevels, FeeRate, FeeRateType } from '@faast/payments-common'
 import { BlockbookBitcoin } from 'blockbook-client'
 import { isString, Logger, isMatchingError, toBigNumber } from '@faast/ts-common'
+import request from 'request-promise-native'
 import promiseRetry from 'promise-retry'
 import BigNumber from 'bignumber.js'
 import crypto from 'crypto'
+
+import { BlockbookConnectedConfig } from './types'
 
 export function resolveServer(server: BlockbookConnectedConfig['server'], network: NetworkType): {
   api: BlockbookBitcoin
@@ -100,4 +102,35 @@ export function sha256FromHex(hex: string): string {
   return hex
     ? crypto.createHash('sha256').update(Buffer.from(hex, 'hex')).digest('hex')
     : ''
+}
+
+export async function getBlockcypherFeeRecommendation(
+  feeLevel: AutoFeeLevels,
+  coinSymbol: string,
+  networkType: NetworkType,
+  blockcypherToken: string | undefined,
+  logger: Logger,
+): Promise<FeeRate> {
+  let satPerByte: number
+  try {
+    const networkParam = networkType === NetworkType.Mainnet ? 'main' : 'test3'
+    const tokenQs = blockcypherToken ? `?token=${blockcypherToken}` : ''
+    const body = await request.get(
+      `https://api.blockcypher.com/v1/${coinSymbol.toLowerCase()}/${networkParam}${tokenQs}`,
+      { json: true },
+    )
+    const feePerKbField = `${feeLevel}_fee_per_kb`
+    const feePerKb = body[feePerKbField]
+    if (!feePerKb) {
+      throw new Error(`Response is missing expected field ${feePerKbField}`)
+    }
+    satPerByte = feePerKb / 1000
+    logger.log(`Retrieved ${coinSymbol} ${networkType} fee rate of ${satPerByte} sat/vbyte from blockcypher for ${feeLevel} level`)
+  } catch (e) {
+    throw new Error(`Failed to retrieve ${coinSymbol} ${networkType} fee rate from blockcypher - ${e.toString()}`)
+  }
+  return {
+    feeRate: satPerByte.toString(),
+    feeRateType: FeeRateType.BasePerWeight,
+  }
 }
