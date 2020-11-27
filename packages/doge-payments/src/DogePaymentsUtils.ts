@@ -17,13 +17,4 @@ export class DogePaymentsUtils extends BitcoinishPaymentsUtils {
     return isValidPrivateKey(privateKey, this.bitcoinjsNetwork)
   }
 
-  async getBlockBookFeeEstimate(feeLevel?: FeeLevel, networkType?: NetworkType): Promise<number> {
-    const body = await this.getApi().doRequest('GET', '/api/v1/estimatefee/3')
-    const fee = body['result']
-    if (!fee) {
-      throw new Error("Blockbook response is missing expected field 'result'")
-    }
-    const satPerByte = this.toBaseDenominationNumber(fee) / 1000
-    return feeLevel === 'high' ? satPerByte * 2 : feeLevel === 'low' ? satPerByte / 2 : satPerByte
-  }
 }

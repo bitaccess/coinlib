@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { omit } from 'lodash'
-import { FeeRateType, BalanceResult, TransactionStatus, NetworkType } from '@faast/payments-common'
+import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel } from '@faast/payments-common'
 
 import {
   HdDogePayments, DogeTransactionInfo, HdDogePaymentsConfig,
@@ -15,7 +15,7 @@ import { ADDRESS_INPUT_WEIGHTS } from '../src/utils'
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
-import { DEFAULT_NETWORK_MIN_RELAY_FEE } from '../src/constants';
+import { DEFAULT_NETWORK_MIN_RELAY_FEE } from '../src/constants'
 
 const EXTERNAL_ADDRESS = 'DB15Lt7u8hxkbT8s1JAKHA9Xbxr8SbxnC8'
 
@@ -96,13 +96,14 @@ describeAll('e2e mainnet', () => {
     return tx
   }
 
-  const payments = new HdDogePayments({
+  const paymentsConfig: HdDogePaymentsConfig = {
     hdKey: secretXprv,
     network: NetworkType.Mainnet,
     addressType: AddressType.Legacy,
     logger,
     targetUtxoPoolSize: 1,
-  })
+  }
+  const payments = new HdDogePayments(paymentsConfig)
   const feeRate = '210000'
   const feeRateType = FeeRateType.BasePerWeight
   const address10 = 'DC2uUxHtZdSAQ67WgZ7rMw1rKFAheKBu7F'
@@ -167,6 +168,35 @@ describeAll('e2e mainnet', () => {
       sweepable: false,
       requiresActivation: false,
     })
+  })
+
+  describe('getFeeRateRecommendation', () => {
+
+    it('succeeds without token', async () => {
+      const estimate = await payments.getFeeRateRecommendation(FeeLevel.High)
+      expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
+      expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThan(1)
+    })
+
+    ;(process.env.BLOCKCYPHER_TOKEN ? it : it.skip)('succeeds with token', async () => {
+      const paymentsWithToken = new HdDogePayments({
+        ...paymentsConfig,
+        blockcypherToken: process.env.BLOCKCYPHER_TOKEN,
+      })
+      const estimate = await paymentsWithToken.getFeeRateRecommendation(FeeLevel.High)
+      expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
+      expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThan(1)
+    })
+
+    it('throws on invalid token', async () => {
+      const paymentsWithToken = new HdDogePayments({
+        ...paymentsConfig,
+        blockcypherToken: 'invalid',
+      })
+      await expect(() => paymentsWithToken.getFeeRateRecommendation(FeeLevel.High))
+        .rejects.toThrow('Failed to retrieve DOGE mainnet fee rate from blockcypher')
+    })
+
   })
 
   it('get transaction by arbitrary hash', async () => {

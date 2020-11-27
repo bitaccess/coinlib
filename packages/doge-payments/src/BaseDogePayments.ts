@@ -2,7 +2,6 @@ import * as bitcoin from 'bitcoinjs-lib'
 import {
   FeeRateType, FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus,
 } from '@faast/payments-common'
-import { DogePaymentsUtils } from '../src'
 import { toBitcoinishConfig, estimateBitcoinTxSize } from './utils'
 import {
   BaseDogePaymentsConfig,
@@ -13,19 +12,21 @@ import {
   PsbtInputData,
 } from './types'
 import {
-  DEFAULT_SAT_PER_BYTE_LEVELS, BITCOIN_SEQUENCE_RBF,
+  BITCOIN_SEQUENCE_RBF,
 } from './constants'
 import { isValidAddress, isValidPrivateKey, isValidPublicKey } from './helpers'
-import { BitcoinishPayments, BitcoinishPaymentTx } from '@faast/bitcoin-payments'
+import { BitcoinishPayments, BitcoinishPaymentTx, getBlockcypherFeeRecommendation } from '@faast/bitcoin-payments'
 
 // tslint:disable-next-line:max-line-length
 export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> extends BitcoinishPayments<Config> {
 
   readonly maximumFeeRate?: number
+  readonly blockcypherToken?: string
 
   constructor(config: BaseDogePaymentsConfig) {
     super(toBitcoinishConfig(config))
     this.maximumFeeRate = config.maximumFeeRate
+    this.blockcypherToken = config.blockcypherToken
   }
 
   abstract getPaymentScript(index: number): bitcoin.payments.Payment
@@ -48,17 +49,9 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
   }
 
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
-    let satPerByte: number
-    try {
-      satPerByte = await new DogePaymentsUtils().getBlockBookFeeEstimate(feeLevel, this.networkType)
-      this.logger.log(`Retrieved ${this.coinSymbol} ${this.networkType} fee rate of ${satPerByte} sat/vbyte from blockbook for ${feeLevel} level`)
-    } catch (e) {
-      throw new Error(`Failed to retrieve ${this.coinSymbol} ${this.networkType} fee rate from blockbook - ${e.toString()}`)
-    }
-    return {
-      feeRate: satPerByte.toString(),
-      feeRateType: FeeRateType.BasePerWeight,
-    }
+    return getBlockcypherFeeRecommendation(
+      feeLevel, this.coinSymbol, this.networkType, this.blockcypherToken, this.logger,
+    )
   }
 
   /** Return a string that can be passed into estimateDogeTxSize. Override to support multisig */

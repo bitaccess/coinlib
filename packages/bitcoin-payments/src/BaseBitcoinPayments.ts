@@ -3,7 +3,7 @@ import {
   FeeRateType, FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus, BaseMultisigData,
 } from '@faast/payments-common'
 
-import { getBlockcypherFeeEstimate, toBitcoinishConfig, estimateBitcoinTxSize } from './utils'
+import { toBitcoinishConfig, estimateBitcoinTxSize } from './utils'
 import {
   BaseBitcoinPaymentsConfig,
   BitcoinUnsignedTransaction,
@@ -16,7 +16,7 @@ import {
   DEFAULT_SAT_PER_BYTE_LEVELS, BITCOIN_SEQUENCE_RBF,
 } from './constants'
 import { isValidAddress, isValidPrivateKey, isValidPublicKey } from './helpers'
-import { BitcoinishPayments, BitcoinishPaymentTx, BitcoinishTxOutput } from './bitcoinish'
+import { BitcoinishPayments, BitcoinishPaymentTx, BitcoinishTxOutput, getBlockcypherFeeRecommendation } from './bitcoinish'
 import BigNumber from 'bignumber.js'
 
 export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConfig> extends BitcoinishPayments<Config> {
@@ -50,17 +50,9 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
   }
 
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
-    let satPerByte: number
-    try {
-      satPerByte = await getBlockcypherFeeEstimate(feeLevel, this.networkType, this.blockcypherToken)
-      this.logger.log(`Retrieved ${this.coinSymbol} ${this.networkType} fee rate of ${satPerByte} sat/vbyte from blockcypher for ${feeLevel} level`)
-    } catch (e) {
-      throw new Error(`Failed to retrieve ${this.coinSymbol} ${this.networkType} fee rate from blockcypher - ${e.toString()}`)
-    }
-    return {
-      feeRate: satPerByte.toString(),
-      feeRateType: FeeRateType.BasePerWeight,
-    }
+    return getBlockcypherFeeRecommendation(
+      feeLevel, this.coinSymbol, this.networkType, this.blockcypherToken, this.logger,
+    )
   }
 
   /** Return a string that can be passed into estimateBitcoinTxSize. Override to support multisig */

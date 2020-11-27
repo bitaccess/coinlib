@@ -23,7 +23,7 @@ import {
   DEFAULT_SAT_PER_BYTE_LEVELS, LITECOIN_SEQUENCE_RBF,
 } from './constants'
 import { isValidAddress, isValidPrivateKey, isValidPublicKey } from './helpers'
-import { BitcoinishPayments, BitcoinishPaymentTx } from '@faast/bitcoin-payments'
+import { BitcoinishPayments, BitcoinishPaymentTx, getBlockcypherFeeRecommendation } from '@faast/bitcoin-payments'
 
 export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsConfig>
 extends BitcoinishPayments<Config> {
@@ -53,17 +53,9 @@ extends BitcoinishPayments<Config> {
   }
 
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
-    let satPerByte: number
-    try {
-      satPerByte = await getBlockcypherFeeEstimate(feeLevel, this.networkType, this.blockcypherToken)
-      this.logger.log(`Retrieved ${this.coinSymbol} ${this.networkType} fee rate of ${satPerByte} sat/vbyte from blockcypher for ${feeLevel} level`)
-    } catch (e) {
-      throw new Error(`Failed to retrieve ${this.coinSymbol} ${this.networkType} fee rate from blockcypher - ${e.toString()}`)
-    }
-    return {
-      feeRate: satPerByte.toString(),
-      feeRateType: FeeRateType.BasePerWeight,
-    }
+    return getBlockcypherFeeRecommendation(
+      feeLevel, this.coinSymbol, this.networkType, this.blockcypherToken, this.logger,
+    )
   }
 
   /** Return a string that can be passed into estimateLitecoinTxSize. Override to support multisig */

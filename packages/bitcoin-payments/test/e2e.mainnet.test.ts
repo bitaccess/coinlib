@@ -5,15 +5,13 @@ import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel } 
 
 import {
   HdBitcoinPayments, BitcoinTransactionInfo, HdBitcoinPaymentsConfig,
-  BitcoinSignedTransaction, BitcoinUnsignedTransaction, AddressType,
+  BitcoinSignedTransaction, AddressType,
 } from '../src'
 
-import { txInfo_beae1, signedTx_valid, signedTx_invalid } from './fixtures/transactions'
-import { accountsByAddressType, AccountFixture } from './fixtures/accounts'
+import { txInfo_beae1 } from './fixtures/transactions'
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
-import { DEFAULT_SAT_PER_BYTE_LEVELS } from '../src/constants';
 
 const EXTERNAL_ADDRESS = '14Z2k3tU19TSzBfT8s4QFAcYsbECUJnxiK'
 
@@ -129,7 +127,6 @@ describeAll('e2e mainnet', () => {
 
   it('get transaction by arbitrary hash', async () => {
     const tx = await payments.getTransactionInfo('beae121a09459bd76995ee7de20f2dcd8f52abbbf513a32f24be572737b17ef3')
-    process.stderr.write(JSON.stringify(tx, null, 2))
     assertTxInfo(tx, txInfo_beae1)
   })
   it('fail to get an invalid transaction hash', async () => {
