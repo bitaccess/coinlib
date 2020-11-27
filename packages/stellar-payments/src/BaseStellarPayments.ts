@@ -17,7 +17,7 @@ import {
 } from '@faast/payments-common'
 import { assertType, isNil, Numeric, isString, toBigNumber, isObject } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
-import { omit, omitBy } from 'lodash'
+import { omit } from 'lodash'
 import * as Stellar from 'stellar-sdk'
 
 import {
@@ -35,14 +35,11 @@ import {
   DEFAULT_CREATE_TRANSACTION_OPTIONS,
   MIN_BALANCE,
   NOT_FOUND_ERRORS,
-  BASE_UNITS,
   DEFAULT_TX_TIMEOUT_SECONDS,
   DEFAULT_FEE_LEVEL,
-  TX_EXPIRATION_SECONDS,
 } from './constants'
 import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers'
-import { isStellarTransaction, serializePayport, omitHidden, isMatchingError, isStellarTransactionRecord } from './utils';
-import { isFunction } from 'util'
+import { serializePayport, omitHidden, isMatchingError } from './utils'
 
 export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConfig> extends StellarPaymentsUtils
   implements
@@ -451,9 +448,6 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
         fee: Number.parseInt(feeBase),
         networkPassphrase: this.getStellarNetwork(),
         memo: toExtraId ? Stellar.Memo.text(toExtraId) : undefined,
-        timebounds: {
-          maxTime: (Date.now() / 1000) + TX_EXPIRATION_SECONDS,
-        }
       })
       .addOperation(operation)
       .setTimeout(txTimeoutSecs)
@@ -554,6 +548,9 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     try {
       result = await this._retryDced(() => this.getApi().submitTransaction(preparedTx))
     } catch (e) {
+      if (isMatchingError(e, ['tx_too_late'])) {
+        throw new PaymentsError(PaymentsErrorCode.TxExpired, 'Transaction has expired (tx_too_late)')
+      }
       if (isMatchingError(e, ['Request failed with status code'])) {
         throw new Error(`submitTransaction failed: ${e.message} -- ${JSON.stringify((e.response || {}).data)}`)
       }
