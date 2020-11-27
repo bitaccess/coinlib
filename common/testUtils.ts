@@ -41,7 +41,7 @@ export class TestLogger implements Logger {
   doLog(level: 'ERROR' | 'WARN' | 'INFO' | 'LOG' | 'DEBUG' | 'TRACE') {
     return (...args: any[]) => {
       const message = `${level} ${formatArgs(...args)}\n`
-      if (process.env.VERBOSE || level === 'ERROR' || level === 'WARN' || level === 'INFO') {
+      if (process.env.VERBOSE || level === 'ERROR') {
         process.stderr.write(message)
       }
       fs.writeSync(this.logFileDescriptor, message)
