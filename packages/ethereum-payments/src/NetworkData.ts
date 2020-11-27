@@ -119,16 +119,18 @@ export class NetworkData {
     try {
       body = await request.post(options)
     } catch (e) {
+      this.logger.warn('Failed to retrieve nonce from parity - ', e.toString())
       return ''
     }
     if (!body || !body.result) {
+      this.logger.warn('Bad result or missing fields in parity nextNonce response', body)
       return ''
     }
 
     return (new BigNumber(body.result, 16)).toString()
   }
 
-  private async getGasStationGasPrice(speed: AutoFeeLevels): Promise<string> {
+  private async getGasStationGasPrice(level: AutoFeeLevels): Promise<string> {
     const hasKey = /\?api-key=/.test(this.gasStationUrl || '')
     const options = {
       url: hasKey ? `${this.gasStationUrl}` : `${this.gasStationUrl}/json/ethgasAPI.json`,
@@ -139,21 +141,30 @@ export class NetworkData {
     try {
       body = await this._retryDced(() => request.get(options))
     } catch (e) {
+      this.logger.warn('Failed to retrieve gas price from ethgasstation - ', e.toString())
       return ''
     }
-    if (!(body && body.blockNum && body[GAS_STATION_FEE_SPEED[speed]])) {
+    const speed = GAS_STATION_FEE_SPEED[level]
+    if (!(body && body.blockNum && body[speed])) {
+      this.logger.warn('Bad result or missing fields in ethgasstation response', body)
       return ''
     }
 
-    const price10xGwei = body[GAS_STATION_FEE_SPEED[speed]]
+    const price10xGwei = body[speed]
 
-    return (new BigNumber(price10xGwei)).dividedBy(10).multipliedBy(1e9).toString(10)
+    const gwei = new BigNumber(price10xGwei).dividedBy(10)
+    this.logger.log(`Retrieved gas price of ${gwei} Gwei from ethgasstation using speed ${speed}`)
+    return gwei.multipliedBy(1e9).toFixed()
   }
 
   private async getWeb3GasPrice(): Promise<string> {
     try {
-      return await this._retryDced(() => this.eth.getGasPrice())
+      const result = await this._retryDced(() => this.eth.getGasPrice())
+      const gwei = new BigNumber(result).div(1e9)
+      this.logger.log(`Retrieved gas price of ${gwei} Gwei from web3`)
+      return result
     } catch (e) {
+      this.logger.warn('Failed to retrieve gas price from web3 - ', e.toString())
       return ''
     }
   }
