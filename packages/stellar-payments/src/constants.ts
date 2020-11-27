@@ -15,3 +15,5 @@ export const NOT_FOUND_ERRORS = ['MissingLedgerHistoryError', 'NotFoundError', '
 export const DEFAULT_NETWORK = NetworkType.Mainnet
 export const DEFAULT_MAINNET_SERVER = 'https://horizon.stellar.org'
 export const DEFAULT_TESTNET_SERVER = 'https://horizon-testnet.stellar.org'
+
+export const TX_EXPIRATION_SECONDS = 5 * 60 // 5 mins. Similar to what we use for trx/xrp
