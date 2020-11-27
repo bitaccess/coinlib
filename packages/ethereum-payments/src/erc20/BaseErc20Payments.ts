@@ -240,7 +240,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
   private getErc20TransferLogAmount(txReceipt: TransactionReceipt): string {
     const transferLog = txReceipt.logs.find((log) => log.topics[0] === SIGNATURE.LOG_TOPIC0_ERC20_SWEEP)
     if (!transferLog) {
-      throw new Error(`Transaction ${txReceipt.transactionHash} was an ERC20 sweep but cannot find log for Transfer event`)
+      this.logger.warn(`Transaction ${txReceipt.transactionHash} was an ERC20 sweep but cannot find log for Transfer event`)
+      return '0'
     }
     return this.toMainDenomination(transferLog.data)
   }
@@ -255,6 +256,32 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
     const currentBlockNumber = await this._retryDced(() => this.eth.getBlockNumber())
     let txReceipt: TransactionReceipt | null = await this._retryDced(() => this.eth.getTransactionReceipt(txid))
+
+    let txBlock: any = null
+    let isConfirmed = false
+    let confirmationTimestamp: Date | null = null
+    let confirmations = 0
+    if (tx.blockNumber) {
+      confirmations = currentBlockNumber - tx.blockNumber
+      if (confirmations > minConfirmations) {
+        isConfirmed = true
+        txBlock = await this._retryDced(() => this.eth.getBlock(tx.blockNumber!))
+        confirmationTimestamp = new Date(txBlock.timestamp)
+      }
+    }
+
+    let status: TransactionStatus = TransactionStatus.Pending
+    let isExecuted = false
+    if (isConfirmed) {
+      status = TransactionStatus.Confirmed
+      isExecuted = true
+      // No trust to types description of web3
+      if (txReceipt.hasOwnProperty('status')
+        && (txReceipt.status === false || txReceipt.status.toString() === 'false')) {
+        status = TransactionStatus.Failed
+        isExecuted = false
+      }
+    }
 
     let fromAddress = tx.from.toLowerCase()
     let toAddress = ''
@@ -271,7 +298,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       amount = this.toMainDenomination(txData.inputs[1].toString())
       if (txReceipt) {
         const actualAmount = this.getErc20TransferLogAmount(txReceipt)
-        if (amount !== actualAmount) {
+        if (isExecuted && amount !== actualAmount) {
           throw new Error(
             `Transcation ${txid} tried to transfer ${amount} but only ${actualAmount} was actually transferred`
           )
@@ -380,29 +407,6 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       }
     }
 
-    let txBlock: any = null
-    let isConfirmed = false
-    let confirmationTimestamp: Date | null = null
-    let confirmations = 0
-    if (tx.blockNumber) {
-      confirmations = currentBlockNumber - tx.blockNumber
-      if (confirmations > minConfirmations) {
-        isConfirmed = true
-        txBlock = await this._retryDced(() => this.eth.getBlock(tx.blockNumber!))
-        confirmationTimestamp = new Date(txBlock.timestamp)
-      }
-    }
-
-    let status: TransactionStatus = TransactionStatus.Pending
-    if (isConfirmed) {
-      status = TransactionStatus.Confirmed
-      // No trust to types description of web3
-      if (txReceipt.hasOwnProperty('status')
-        && (txReceipt.status === false || txReceipt.status.toString() === 'false')) {
-        status = TransactionStatus.Failed
-      }
-    }
-
     return {
       id: txid,
       amount,
@@ -414,7 +418,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       fee: this.toMainDenominationEth((new BigNumber(tx.gasPrice)).multipliedBy(txReceipt.gasUsed)),
       sequenceNumber: tx.nonce,
       // XXX if tx was confirmed but not accepted by network isExecuted must be false
-      isExecuted: status !== TransactionStatus.Failed,
+      isExecuted,
       isConfirmed,
       confirmations,
       confirmationId: tx.blockHash,
