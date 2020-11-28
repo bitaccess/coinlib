@@ -47,8 +47,6 @@ describe('KeyPairEthereumPayments', () => {
         const pubConf = kpEP.getPublicConfig()
         expect(pubConf).toStrictEqual({
           network: NetworkType.Testnet,
-          gasStation: CONFIG.gasStation,
-          parityNode: CONFIG.parityNode,
           keyPairs: {
             '0': hdAccount.rootChild[0].address.toLowerCase()
           }

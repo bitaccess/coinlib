@@ -47,11 +47,11 @@ import {
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
 import { retryIfDisconnected } from './utils'
 
-export abstract class BaseEthereumPayments
-  <Config extends BaseEthereumPaymentsConfig>
+export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsConfig>
   extends EthereumPaymentsUtils
-implements BasePayments
-  <Config, EthereumUnsignedTransaction, EthereumSignedTransaction, EthereumBroadcastResult, EthereumTransactionInfo> {
+  implements BasePayments<
+    Config, EthereumUnsignedTransaction, EthereumSignedTransaction, EthereumBroadcastResult, EthereumTransactionInfo
+  > {
   private config: Config
   public depositKeyIndex: number
 
@@ -60,9 +60,6 @@ implements BasePayments
     this.config = config
     this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
   }
-
-  async init() {}
-  async destroy() {}
 
   getFullConfig(): Config {
     return this.config

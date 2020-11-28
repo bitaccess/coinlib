@@ -79,7 +79,7 @@ export class CoinPayments {
     config: CoinPaymentsConfigs[A],
   ): AnyPayments {
     const factory = CoinPayments.getFactory(networkSymbol)
-    return factory.forConfig(config)
+    return factory.newPayments(config)
   }
 
   private instantiatePayments<A extends SupportedCoinPaymentsSymbol>(
@@ -104,12 +104,12 @@ export class CoinPayments {
       paymentsConfig.logger = this.config.logger
     }
     assertType(paymentsConfigCodecs[networkSymbol] as any, paymentsConfig, `${networkSymbol} config`)
-    return PAYMENTS_FACTORIES[networkSymbol].forConfig(paymentsConfig)
+    return PAYMENTS_FACTORIES[networkSymbol].newPayments(paymentsConfig)
   }
 
   getPublicConfig(): CoinPaymentsConfig {
     return keysOf(this.payments).reduce((o, k) => {
-      const publicConfig = this.forAsset(k).getPublicConfig()
+      const publicConfig = this.forNetwork(k).getPublicConfig()
       // Ensure we don't accidentally expose sensitive fields
       if (publicConfig.seed) {
         delete publicConfig.seed
@@ -130,7 +130,7 @@ export class CoinPayments {
     networkSymbol: T,
     extraConfig?: CoinPaymentsPartialConfigs[T],
   ): AnyPayments {
-    const payments = this.payments[networkSymbol] 
+    const payments = this.payments[networkSymbol]
     if (!payments) {
       throw new Error(`No payments interface configured for network ${networkSymbol}`)
     }
@@ -151,15 +151,6 @@ export class CoinPayments {
   isNetworkConfigured(networkSymbol: string): boolean {
     return this.isNetworkSupported(networkSymbol) && Boolean(this.payments[networkSymbol])
   }
-
-  /** @deprecated use forNetwork instead */
-  forAsset = this.forNetwork
-
-  /** @deprecated use isNetworkSupported instead */
-  isAssetSupported = this.isNetworkSupported
-
-  /** @deprecated use isNetworkConfigured instead */
-  isAssetConfigured = this.isNetworkConfigured
 
 }
 

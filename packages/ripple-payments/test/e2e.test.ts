@@ -39,7 +39,7 @@ describe('e2e', () => {
     bm = new RippleBalanceMonitor({
       logger,
       network: NetworkType.Testnet,
-      server: rp.api,
+      api: rp.api,
     })
     await bm.init()
     bmMainnet = new RippleBalanceMonitor({

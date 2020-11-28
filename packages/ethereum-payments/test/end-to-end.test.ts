@@ -30,7 +30,7 @@ const HD_CONFIG = {
 const source = hdAccount.child0Child[0]
 const target = deriveSignatory()
 
-const hd = factory.forConfig(HD_CONFIG)
+const hd = factory.newPayments(HD_CONFIG)
 
 let expectedBalance: string
 
@@ -63,7 +63,7 @@ describe('end to end tests', () => {
 
   describe('HD payments via websocket', () => {
     test('can instantiate and get balance', async () => {
-      const payments = factory.forConfig({
+      const payments = factory.newPayments({
         ...HD_CONFIG,
         fullNode: `${LOCAL_NODE_WS}:${LOCAL_PORT}`,
       })

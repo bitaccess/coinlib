@@ -13,15 +13,15 @@ describe('TronPaymentsFactory', () => {
     const config: HdTronPaymentsConfig = {
       hdKey: XPRV,
     }
-    expect(factory.forConfig(config)).toBeInstanceOf(HdTronPayments)
+    expect(factory.newPayments(config)).toBeInstanceOf(HdTronPayments)
   })
   it('should instantiate KeyPairTronPayments', () => {
     const config: KeyPairTronPaymentsConfig = {
       keyPairs: [PRIVATE_KEYS[0], ADDRESSES[0]],
     }
-    expect(factory.forConfig(config)).toBeInstanceOf(KeyPairTronPayments)
+    expect(factory.newPayments(config)).toBeInstanceOf(KeyPairTronPayments)
   })
   it('should fail to instantiate unrecognized config', () => {
-    expect(() => factory.forConfig({} as any)).toThrow()
+    expect(() => factory.newPayments({} as any)).toThrow()
   })
 })

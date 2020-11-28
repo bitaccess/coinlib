@@ -23,7 +23,7 @@ import { assertType } from '@faast/ts-common';
 const DEFAULT_BITCOINISH_CONFIG = {
   coinSymbol: COIN_SYMBOL,
   coinName: COIN_NAME,
-  decimals: DECIMAL_PLACES,
+  coinDecimals: DECIMAL_PLACES,
   dustThreshold: DEFAULT_DUST_THRESHOLD,
   networkMinRelayFee: DEFAULT_NETWORK_MIN_RELAY_FEE,
   minTxFee: {
@@ -55,26 +55,6 @@ export function toBitcoinishConfig<T extends BaseLitecoinPaymentsConfig>(config:
         ? DEFAULT_TESTNET_SERVER
         : DEFAULT_MAINNET_SERVER),
   }
-}
-
-/** Get sat/byte fee estimate from blockcypher */
-export async function getBlockcypherFeeEstimate(
-  feeLevel: FeeLevel,
-  networkType: NetworkType,
-  blockcypherToken?: string,
-): Promise<number> {
-  const networkParam = networkType === NetworkType.Mainnet ? 'main' : 'test'
-  const tokenQs = blockcypherToken ? `?token=${blockcypherToken}` : ''
-  const body = await request.get(
-    `https://api.blockcypher.com/v1/ltc/${networkParam}${tokenQs}`,
-    { json: true },
-  )
-  const feePerKbField = `${feeLevel}_fee_per_kb`
-  const feePerKb = body[feePerKbField]
-  if (!feePerKb) {
-    throw new Error(`Blockcypher response is missing expected field ${feePerKbField}`)
-  }
-  return feePerKb / 1000
 }
 
 // assumes compressed pubkeys in all cases.

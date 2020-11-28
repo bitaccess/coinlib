@@ -18,7 +18,7 @@ export abstract class StellarConnected {
     assertType(BaseStellarConfig, config)
     this.networkType = config.network || DEFAULT_NETWORK
     this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
-    const { api, server } = resolveStellarServer(config.server, this.networkType)
+    const { api, server } = resolveStellarServer(config, this.networkType)
     this.api = api
     this.server = server
   }

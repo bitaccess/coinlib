@@ -39,6 +39,7 @@ import {
   DEFAULT_MAX_LEDGER_VERSION_OFFSET,
   NOT_FOUND_ERRORS,
   DEFAULT_FEE_LEVEL,
+  PUBLIC_CONFIG_OMIT_FIELDS,
 } from './constants'
 import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers'
 
@@ -59,9 +60,6 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       RippleTransactionInfo
     > {
 
-  readonly coinSymbol = 'XRP'
-  readonly coinName = 'Ripple' // Yes, I know 'XRP' is the coin name too, but that's just confusing
-
   constructor(public config: Config) {
     super(config)
   }
@@ -72,7 +70,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
 
   getPublicConfig() {
     return {
-      ...omit(this.config, ['logger', 'server', 'hdKey']),
+      ...omit(this.config, PUBLIC_CONFIG_OMIT_FIELDS),
       ...this.getPublicAccountConfig(),
     }
   }

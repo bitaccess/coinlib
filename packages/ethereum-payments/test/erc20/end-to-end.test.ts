@@ -115,7 +115,7 @@ describe('end to end tests', () => {
       const data: any = contractInfo.data
       const contractAddress = data.contractAddress
 
-      const tokenHD = factory.forConfig({
+      const tokenHD = factory.newPayments({
         ...TOKEN_CONFIG,
         tokenAddress: contractAddress,
       } as HdErc20PaymentsConfig)
@@ -125,7 +125,7 @@ describe('end to end tests', () => {
       const broadcastedTx = await tokenHD.broadcastTransaction(signedTx)
 
       HD_CONFIG.tokenAddress = contractAddress
-      hd = factory.forConfig(HD_CONFIG as HdErc20PaymentsConfig)
+      hd = factory.newPayments(HD_CONFIG as HdErc20PaymentsConfig)
 
       const { confirmedBalance: confirmedDistributorBalance } = await hd.getBalance(tokenDistributor.address)
       // leftovers after tx
@@ -153,7 +153,7 @@ describe('end to end tests', () => {
       expect(data.from).toEqual(address.toLowerCase())
       masterAddress = data.contractAddress
       HD_CONFIG.masterAddress = masterAddress
-      hd = factory.forConfig(HD_CONFIG as HdErc20PaymentsConfig)
+      hd = factory.newPayments(HD_CONFIG as HdErc20PaymentsConfig)
 
       const { confirmedBalance } = await hd.getBalance(data.contractAddress)
       expect(confirmedBalance).toEqual('0')

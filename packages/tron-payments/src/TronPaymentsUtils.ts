@@ -28,6 +28,9 @@ export class TronPaymentsUtils implements PaymentsUtils {
     this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
   }
 
+  async init() {}
+  async destroy() {}
+
   async isValidExtraId(extraId: string): Promise<boolean> {
     return isValidExtraId(extraId)
   }

@@ -801,8 +801,6 @@ describe('HdEthereumPayments', () => {
         expect(pubConf).toStrictEqual({
           depositKeyIndex: 0,
           network: NetworkType.Testnet,
-          gasStation: CONFIG.gasStation,
-          parityNode: CONFIG.parityNode,
           hdKey: INSTANCE_KEYS.xkeys.xpub,
         })
       })

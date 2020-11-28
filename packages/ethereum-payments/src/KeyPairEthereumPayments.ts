@@ -1,11 +1,10 @@
-import Web3 from 'web3'
-const web3 = new Web3()
+import { Payport } from '@faast/payments-common'
+import { omit } from 'lodash'
 
 import { BaseEthereumPayments } from './BaseEthereumPayments'
 import { KeyPairEthereumPaymentsConfig } from './types'
-import { Payport } from '@faast/payments-common'
-import { omit } from 'lodash'
-import { deriveSignatory } from '../src/bip44'
+import { deriveSignatory } from './bip44'
+import { PUBLIC_CONFIG_OMIT_FIELDS } from './constants'
 
 export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereumPaymentsConfig> {
   readonly addresses: { [index: number]: string | undefined } = {}
@@ -24,7 +23,7 @@ export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereu
       let address: string
       let pkey: string | null = null
 
-      if (web3.utils.isAddress(value)) {
+      if (this.web3.utils.isAddress(value)) {
         address = value.toLowerCase()
       } else if (this.isValidPrivateKey(value)) {
         address = this.privateKeyToAddress(value)
@@ -49,7 +48,7 @@ export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereu
 
   getPublicConfig(): KeyPairEthereumPaymentsConfig {
     return {
-      ...omit(this.getFullConfig(), ['logger', 'fullNode', 'solidityNode', 'eventServer', 'keyPairs']),
+      ...omit(this.getFullConfig(), PUBLIC_CONFIG_OMIT_FIELDS),
       keyPairs: this.addresses,
     }
   }

@@ -13,7 +13,7 @@ describe('RipplePaymentsFactory', () => {
     const config: HdRipplePaymentsConfig = {
       hdKey: XPRV,
     }
-    expect(factory.forConfig(config)).toBeInstanceOf(HdRipplePayments)
+    expect(factory.newPayments(config)).toBeInstanceOf(HdRipplePayments)
   })
   it('should instantiate AccountRipplePayments from key pairs', () => {
     const config: AccountRipplePaymentsConfig = {
@@ -26,9 +26,9 @@ describe('RipplePaymentsFactory', () => {
         publicKey: PUBLIC_KEYS[1],
       },
     }
-    expect(factory.forConfig(config)).toBeInstanceOf(AccountRipplePayments)
+    expect(factory.newPayments(config)).toBeInstanceOf(AccountRipplePayments)
   })
   it('should fail to instantiate unrecognized config', () => {
-    expect(() => factory.forConfig({} as any)).toThrow()
+    expect(() => factory.newPayments({} as any)).toThrow()
   })
 })

@@ -7,6 +7,9 @@ export interface PaymentsUtils {
   readonly coinName: string
   readonly coinDecimals: number
 
+  init(): Promise<void>
+  destroy(): Promise<void>
+
   /**
    * Converts to main denomination units
    * Example: convert "125000000000" moneroj to "0.125" XMR

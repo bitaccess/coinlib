@@ -13,7 +13,7 @@ describe('StellarPaymentsFactory', () => {
     const config: HdStellarPaymentsConfig = {
       seed: SEED,
     }
-    expect(factory.forConfig(config)).toBeInstanceOf(HdStellarPayments)
+    expect(factory.newPayments(config)).toBeInstanceOf(HdStellarPayments)
   })
   it('should instantiate AccountStellarPayments from key pairs', () => {
     const config: AccountStellarPaymentsConfig = {
@@ -26,9 +26,9 @@ describe('StellarPaymentsFactory', () => {
         secret: SECRETS[1],
       },
     }
-    expect(factory.forConfig(config)).toBeInstanceOf(AccountStellarPayments)
+    expect(factory.newPayments(config)).toBeInstanceOf(AccountStellarPayments)
   })
   it('should fail to instantiate unrecognized config', () => {
-    expect(() => factory.forConfig({} as any)).toThrow()
+    expect(() => factory.newPayments({} as any)).toThrow()
   })
 })

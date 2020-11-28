@@ -22,7 +22,7 @@ import { assertType } from '@faast/ts-common'
 const DEFAULT_BITCOINISH_CONFIG = {
   coinSymbol: COIN_SYMBOL,
   coinName: COIN_NAME,
-  decimals: DECIMAL_PLACES,
+  coinDecimals: DECIMAL_PLACES,
   dustThreshold: DEFAULT_DUST_THRESHOLD,
   networkMinRelayFee: DEFAULT_NETWORK_MIN_RELAY_FEE,
   minTxFee: {

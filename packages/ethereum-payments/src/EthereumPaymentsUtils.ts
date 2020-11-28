@@ -8,9 +8,7 @@ import {
 } from '@faast/ts-common'
 
 import { PACKAGE_NAME, ETH_DECIMAL_PLACES, ETH_NAME, ETH_SYMBOL } from './constants'
-import {
-  BaseEthereumPaymentsConfig,
-} from './types'
+import { EthereumPaymentsUtilsConfig } from './types'
 import { isValidXkey } from './bip44'
 import { NetworkData } from './NetworkData'
 
@@ -28,7 +26,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   eth: Web3['eth']
   gasStation: NetworkData
 
-  constructor(config: BaseEthereumPaymentsConfig) {
+  constructor(config: EthereumPaymentsUtilsConfig) {
     this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
     this.networkType = config.network || NetworkType.Mainnet
     this.coinName = config.name ?? ETH_NAME
@@ -61,6 +59,9 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
     this.toMainDenominationEth = ethUnitConverters.toMainDenominationString
     this.toBaseDenominationEth = ethUnitConverters.toBaseDenominationString
   }
+
+  async init() {}
+  async destroy() {}
 
   toMainDenominationBigNumber: UnitConverters['toMainDenominationBigNumber']
   toBaseDenominationBigNumber: UnitConverters['toMainDenominationBigNumber']

@@ -10,7 +10,7 @@ import {
   CreateTransactionOptions as TransactionOptions,
 } from '@faast/payments-common'
 
-import { getBlockcypherFeeEstimate, toBitcoinishConfig, estimateLitecoinTxSize } from './utils'
+import { toBitcoinishConfig, estimateLitecoinTxSize } from './utils'
 import {
   BaseLitecoinPaymentsConfig,
   LitecoinUnsignedTransaction,

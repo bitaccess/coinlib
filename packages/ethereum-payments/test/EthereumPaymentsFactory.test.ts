@@ -10,7 +10,7 @@ describe('EthereumPaymentsFactory', () => {
   const factory = new EthereumPaymentsFactory()
   it('should instantiate HdEthereumPayments', () => {
     const config: HdEthereumPaymentsConfig = { hdKey: hdAccount.rootChild[0].xkeys.xprv }
-    const hdP = factory.forConfig(config)
+    const hdP = factory.newPayments(config)
 
     expect(hdP).toBeInstanceOf(HdEthereumPayments)
     expect(hdP.getPublicConfig()).toStrictEqual({
@@ -23,7 +23,7 @@ describe('EthereumPaymentsFactory', () => {
     const config: KeyPairEthereumPaymentsConfig = {
       keyPairs: [ hdAccount.rootChild[0].xkeys.xprv, hdAccount.rootChild[0].keys.prv, hdAccount.rootChild[0].address.toLowerCase() ]
     }
-    const kP = factory.forConfig(config)
+    const kP = factory.newPayments(config)
 
     expect(kP).toBeInstanceOf(KeyPairEthereumPayments)
     expect(kP.getPublicConfig()).toStrictEqual({
@@ -32,6 +32,6 @@ describe('EthereumPaymentsFactory', () => {
   })
 
   it('should fail to instantiate unrecognized config', () => {
-    expect(() => factory.forConfig({} as any)).toThrow('Cannot instantiate ethereum payments for unsupported config')
+    expect(() => factory.newPayments({} as any)).toThrow('Cannot instantiate ethereum payments for unsupported config')
   })
 })
