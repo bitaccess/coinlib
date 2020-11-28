@@ -1,6 +1,8 @@
 import { FeeLevel } from '@faast/payments-common'
 
 export const PACKAGE_NAME = 'tron-payments'
+export const COIN_SYMBOL = 'TRX'
+export const COIN_NAME = 'Tron'
 export const DECIMAL_PLACES = 6
 
 // Note: Tron doesn't actually have a minimum balance, but 0.1 trx could be burned when sending to
@@ -17,3 +19,5 @@ export const TX_EXPIRATION_EXTENSION_SECONDS = 59 * 60 // + 1 = 60 mins
 
 /** Milliseconds to wait past tx expiration before recognizing it as expired. */
 export const EXPIRATION_FUDGE_MS = 10 * 1000
+
+export const PUBLIC_CONFIG_OMIT_FIELDS = ['logger', 'fullNode', 'solidityNode', 'eventServer', 'hdKey', 'keyPairs']

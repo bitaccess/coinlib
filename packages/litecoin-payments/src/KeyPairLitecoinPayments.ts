@@ -1,13 +1,15 @@
+import { omit } from 'lodash'
+import { isUndefined, isString } from '@faast/ts-common'
+import { PUBLIC_CONFIG_OMIT_FIELDS } from '@faast/bitcoin-payments'
+
 import { SinglesigLitecoinPayments } from './SinglesigLitecoinPayments'
 import { KeyPairLitecoinPaymentsConfig, LitecoinjsKeyPair } from './types'
-import { omit } from 'lodash'
 import {
   privateKeyToKeyPair,
   publicKeyToAddress,
   publicKeyToKeyPair,
   publicKeyToString,
 } from './helpers'
-import { isUndefined, isString } from '@faast/ts-common'
 
 export class KeyPairLitecoinPayments extends SinglesigLitecoinPayments<KeyPairLitecoinPaymentsConfig> {
   readonly publicKeys: { [index: number]: string | undefined } = {}
@@ -53,7 +55,7 @@ export class KeyPairLitecoinPayments extends SinglesigLitecoinPayments<KeyPairLi
 
   getPublicConfig(): KeyPairLitecoinPaymentsConfig {
     return {
-      ...omit(this.getFullConfig(), ['logger', 'server', 'keyPairs', 'blockcypherToken']),
+      ...omit(this.getFullConfig(), PUBLIC_CONFIG_OMIT_FIELDS),
       keyPairs: this.publicKeys,
     }
   }

@@ -1,4 +1,5 @@
-import { PaymentsUtils, Payport } from '@faast/payments-common'
+import { AutoFeeLevels, FeeLevel, FeeRate, FeeRateType, PaymentsUtils, Payport } from '@faast/payments-common'
+import { isNil, assertType, Numeric } from '@faast/ts-common'
 
 import {
   toMainDenominationString,
@@ -6,10 +7,14 @@ import {
   isValidAddress,
   isValidExtraId,
 } from './helpers'
-import { isNil, assertType, Numeric } from '@faast/ts-common'
-import { StellarConnected } from './StellarConnected';
+import { StellarConnected } from './StellarConnected'
+import { COIN_NAME, COIN_SYMBOL, DECIMAL_PLACES } from './constants'
 
 export class StellarPaymentsUtils extends StellarConnected implements PaymentsUtils {
+
+  readonly coinSymbol = COIN_SYMBOL
+  readonly coinName = COIN_NAME
+  readonly coinDecimals = DECIMAL_PLACES
 
   async isValidExtraId(extraId: string): Promise<boolean> {
     return isValidExtraId(extraId)
@@ -59,6 +64,20 @@ export class StellarPaymentsUtils extends StellarConnected implements PaymentsUt
 
   toBaseDenomination(amount: Numeric): string {
     return toBaseDenominationString(amount)
+  }
+
+  async getFeeRateRecommendation(level: AutoFeeLevels): Promise<FeeRate> {
+    const feeStats = await this._retryDced(() => this.getApi().feeStats())
+    let feeBase = feeStats.fee_charged.p10
+    if (level === FeeLevel.Medium) {
+      feeBase = feeStats.fee_charged.p50
+    } else if (level === FeeLevel.High) {
+      feeBase = feeStats.fee_charged.p95
+    }
+    return {
+      feeRate: feeBase,
+      feeRateType: FeeRateType.Base
+    }
   }
 
 }

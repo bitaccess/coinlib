@@ -29,7 +29,7 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
 extends BitcoinishPayments<Config> {
 
   readonly maximumFeeRate?: number
-  private readonly blockcypherToken?: string
+  readonly blockcypherToken?: string
 
   constructor(config: BaseLitecoinPaymentsConfig) {
     super(toBitcoinishConfig(config))

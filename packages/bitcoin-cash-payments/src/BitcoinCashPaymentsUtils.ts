@@ -1,5 +1,5 @@
-import { BitcoinishPaymentsUtils } from '@faast/bitcoin-payments'
-import { NetworkType, FeeLevel } from '@faast/payments-common'
+import { BitcoinishPaymentsUtils, getBlockbookFeeRecommendation } from '@faast/bitcoin-payments'
+import { AutoFeeLevels, FeeRate } from '@faast/payments-common'
 import { toBitcoinishConfig } from './utils'
 import { BitcoinCashPaymentsUtilsConfig } from './types'
 import { isValidAddress, isValidPrivateKey } from './helpers'
@@ -17,13 +17,7 @@ export class BitcoinCashPaymentsUtils extends BitcoinishPaymentsUtils {
     return isValidPrivateKey(privateKey, this.bitcoinjsNetwork)
   }
 
-  async getBlockBookFeeEstimate(feeLevel?: FeeLevel, networkType?: NetworkType): Promise<number> {
-    const body = await this.getApi().doRequest('GET', '/api/v1/estimatefee/3')
-    const fee = body['result']
-    if (!fee) {
-      throw new Error("Blockbook response is missing expected field 'result'")
-    }
-    const satPerByte = fee * 100000
-    return feeLevel === 'high' ? satPerByte * 2 : feeLevel === 'low' ? satPerByte / 2 : satPerByte
+  async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
+    return getBlockbookFeeRecommendation(feeLevel, this.coinSymbol, this.networkType, this.getApi(), this.logger)
   }
 }

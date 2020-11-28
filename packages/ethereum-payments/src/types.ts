@@ -47,18 +47,28 @@ export const EthereumSignatory = t.type(
 )
 export type EthereumSignatory = t.TypeOf<typeof EthereumSignatory>
 
-export const BaseEthereumPaymentsConfig = extendCodec(
+export const EthereumPaymentsUtilsConfig = extendCodec(
   BaseConfig,
   {},
   {
-    fullNode:   OptionalString,
+    fullNode: OptionalString,
     parityNode: OptionalString,
     gasStation: OptionalString,
+    symbol: OptionalString,
     name: OptionalString,
     decimals: t.number,
-    depositKeyIndex: OptionalNumber,
     providerOptions: t.any,
     web3: t.any,
+  },
+  'EthereumPaymentsUtilsConfig'
+)
+export type EthereumPaymentsUtilsConfig = t.TypeOf<typeof EthereumPaymentsUtilsConfig>
+
+export const BaseEthereumPaymentsConfig = extendCodec(
+  EthereumPaymentsUtilsConfig,
+  {},
+  {
+    depositKeyIndex: OptionalNumber,
   },
   'BaseEthereumPaymentsConfig',
 )

@@ -17,7 +17,7 @@ import {
   DEFAULT_SAT_PER_BYTE_LEVELS, BITCOIN_SEQUENCE_RBF,
 } from './constants'
 import { isValidAddress, isValidPrivateKey, isValidPublicKey } from './helpers'
-import { BitcoinishPayments, BitcoinishPaymentTx } from '@faast/bitcoin-payments'
+import { BitcoinishPayments, BitcoinishPaymentTx, getBlockbookFeeRecommendation } from '@faast/bitcoin-payments'
 
 // tslint:disable-next-line:max-line-length
 export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaymentsConfig> extends BitcoinishPayments<Config> {
@@ -49,17 +49,7 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
   }
 
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
-    let satPerByte: number
-    try {
-      satPerByte = await new BitcoinCashPaymentsUtils().getBlockBookFeeEstimate(feeLevel, this.networkType)
-      this.logger.log(`Retrieved ${this.coinSymbol} ${this.networkType} fee rate of ${satPerByte} sat/vbyte from blockbook for ${feeLevel} level`)
-    } catch (e) {
-      throw new Error(`Failed to retrieve ${this.coinSymbol} ${this.networkType} fee rate from blockbook - ${e.toString()}`)
-    }
-    return {
-      feeRate: satPerByte.toString(),
-      feeRateType: FeeRateType.BasePerWeight,
-    }
+    return getBlockbookFeeRecommendation(feeLevel, this.coinSymbol, this.networkType, this.getApi(), this.logger)
   }
 
   /** Return a string that can be passed into estimateBitcoinCashTxSize. Override to support multisig */

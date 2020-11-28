@@ -1,7 +1,12 @@
 import { Numeric } from '@faast/ts-common'
-import { Payport, MaybePromise } from './types'
+import { Payport, MaybePromise, AutoFeeLevels, FeeRate, NetworkType } from './types'
 
 export interface PaymentsUtils {
+  readonly networkType: NetworkType
+  readonly coinSymbol: string
+  readonly coinName: string
+  readonly coinDecimals: number
+
   /**
    * Converts to main denomination units
    * Example: convert "125000000000" moneroj to "0.125" XMR
@@ -38,4 +43,9 @@ export interface PaymentsUtils {
    * Return a validation message on invalid, undefined otherwise.
    */
   getPayportValidationMessage<O extends object>(payport: Payport, options?: O): MaybePromise<string | undefined>
+
+  /**
+   * Get a recommended fee for a certain level
+   */
+  getFeeRateRecommendation<O extends object>(level: AutoFeeLevels, options?: O): MaybePromise<FeeRate>
 }

@@ -1,12 +1,13 @@
 import { NetworkType, UtxoInfo, AutoFeeLevels, FeeRate, FeeRateType } from '@faast/payments-common'
 import { BlockbookBitcoin } from 'blockbook-client'
-import { isString, Logger, isMatchingError, toBigNumber } from '@faast/ts-common'
+import { isString, Logger, isMatchingError, toBigNumber, isNumber } from '@faast/ts-common'
 import request from 'request-promise-native'
 import promiseRetry from 'promise-retry'
 import BigNumber from 'bignumber.js'
 import crypto from 'crypto'
 
 import { BlockbookConnectedConfig } from './types'
+import { FeeLevel } from '../../../payments-common/src/types';
 
 export function resolveServer(server: BlockbookConnectedConfig['server'], network: NetworkType): {
   api: BlockbookBitcoin
@@ -111,7 +112,7 @@ export async function getBlockcypherFeeRecommendation(
   blockcypherToken: string | undefined,
   logger: Logger,
 ): Promise<FeeRate> {
-  let satPerByte: number
+  let feeRate: string
   try {
     const networkParam = networkType === NetworkType.Mainnet ? 'main' : 'test3'
     const tokenQs = blockcypherToken ? `?token=${blockcypherToken}` : ''
@@ -124,13 +125,51 @@ export async function getBlockcypherFeeRecommendation(
     if (!feePerKb) {
       throw new Error(`Response is missing expected field ${feePerKbField}`)
     }
-    satPerByte = feePerKb / 1000
+    const satPerByte = feePerKb / 1000
+    feeRate = String(satPerByte)
     logger.log(`Retrieved ${coinSymbol} ${networkType} fee rate of ${satPerByte} sat/vbyte from blockcypher for ${feeLevel} level`)
   } catch (e) {
     throw new Error(`Failed to retrieve ${coinSymbol} ${networkType} fee rate from blockcypher - ${e.toString()}`)
   }
   return {
-    feeRate: satPerByte.toString(),
+    feeRate,
+    feeRateType: FeeRateType.BasePerWeight,
+  }
+}
+
+/** Blockbook estimate fee returns a single value, scale it by a factor to get each level */
+const blockbookFeeRateMultipliers = {
+  [FeeLevel.High]: 2,
+  [FeeLevel.Medium]: 1,
+  [FeeLevel.Low]: 0.5,
+}
+
+export async function getBlockbookFeeRecommendation(
+  feeLevel: AutoFeeLevels,
+  coinSymbol: string,
+  networkType: NetworkType,
+  blockbookClient: BlockbookBitcoin,
+  logger: Logger,
+): Promise<FeeRate> {
+  let feeRate: string
+  try {
+    const body = await blockbookClient.doRequest('GET', '/api/v1/estimatefee/3')
+    const fee = body['result'] // main units per kb
+    if (!fee) {
+      throw new Error("Blockbook estimatefee response is missing expected field 'result'")
+    }
+    if (!isNumber(fee) || fee <= 0) {
+      throw new Error(`Blockbook estimatefee result is not a positive number: ${fee}`)
+    }
+    const satPerByte = fee * 100000
+    const multiplier = blockbookFeeRateMultipliers[feeLevel]
+    feeRate = String(satPerByte * multiplier)
+    logger.log(`Retrieved ${coinSymbol} ${networkType} fee rate of ${satPerByte} sat/vbyte from blockbook, using ${feeRate} for ${feeLevel} level`)
+  } catch (e) {
+    throw new Error(`Failed to retrieve ${coinSymbol} ${networkType} fee rate from blockbook - ${e.toString()}`)
+  }
+  return {
+    feeRate,
     feeRateType: FeeRateType.BasePerWeight,
   }
 }

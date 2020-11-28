@@ -35,8 +35,8 @@ export type BlockbookConnectedConfig = t.TypeOf<typeof BlockbookConnectedConfig>
 export type BitcoinishPaymentsUtilsConfig = BlockbookConnectedConfig & {
   coinSymbol: string,
   coinName: string,
+  coinDecimals: number,
   bitcoinjsNetwork: BitcoinjsNetwork,
-  decimals: number,
 }
 
 export type BitcoinishPaymentsConfig = BitcoinishPaymentsUtilsConfig & {

@@ -14,7 +14,7 @@ import {
 } from './bip44'
 import { HdBitcoinPaymentsConfig } from './types'
 import { SinglesigBitcoinPayments } from './SinglesigBitcoinPayments'
-import { DEFAULT_DERIVATION_PATHS } from './constants'
+import { DEFAULT_DERIVATION_PATHS, PUBLIC_CONFIG_OMIT_FIELDS } from './constants'
 import { bip32MagicNumberToPrefix } from './utils'
 
 export class HdBitcoinPayments extends SinglesigBitcoinPayments<HdBitcoinPaymentsConfig> {
@@ -74,7 +74,7 @@ export class HdBitcoinPayments extends SinglesigBitcoinPayments<HdBitcoinPayment
 
   getPublicConfig(): HdBitcoinPaymentsConfig {
     return {
-      ...omit(this.getFullConfig(), ['logger', 'server', 'hdKey', 'blockcypherToken']),
+      ...omit(this.getFullConfig(), PUBLIC_CONFIG_OMIT_FIELDS),
       hdKey: this.xpub,
     }
   }

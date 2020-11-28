@@ -4,6 +4,7 @@ import { deriveAddress, derivePrivateKey, xprvToXpub, generateNewKeys } from './
 import { Payport } from '@faast/payments-common'
 import { isValidXprv, isValidXpub, isValidAddress } from './helpers'
 import { omit } from 'lodash'
+import { PUBLIC_CONFIG_OMIT_FIELDS } from './constants'
 
 export class HdTronPayments extends BaseTronPayments<HdTronPaymentsConfig> {
   readonly xprv: string | null
@@ -34,7 +35,7 @@ export class HdTronPayments extends BaseTronPayments<HdTronPaymentsConfig> {
 
   getPublicConfig(): HdTronPaymentsConfig {
     return {
-      ...omit(this.config, ['logger', 'fullNode', 'solidityNode', 'eventServer', 'hdKey']),
+      ...omit(this.config, PUBLIC_CONFIG_OMIT_FIELDS),
       hdKey: this.getXpub(),
     }
   }

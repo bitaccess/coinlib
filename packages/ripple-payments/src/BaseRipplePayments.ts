@@ -38,6 +38,7 @@ import {
   MIN_BALANCE,
   DEFAULT_MAX_LEDGER_VERSION_OFFSET,
   NOT_FOUND_ERRORS,
+  DEFAULT_FEE_LEVEL,
 } from './constants'
 import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers'
 
@@ -57,6 +58,10 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       RippleBroadcastResult,
       RippleTransactionInfo
     > {
+
+  readonly coinSymbol = 'XRP'
+  readonly coinName = 'Ripple' // Yes, I know 'XRP' is the coin name too, but that's just confusing
+
   constructor(public config: Config) {
     super(config)
   }
@@ -280,39 +285,29 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
   }
 
   async resolveFeeOption(feeOption: FeeOption): Promise<ResolvedFeeOption> {
-    const { feeLevel } = feeOption
     let targetFeeLevel: FeeLevel
     let targetFeeRate: string
     let targetFeeRateType: FeeRateType
     let feeMain: string
     let feeBase: string
     if (FeeOptionCustom.is(feeOption)) {
-      targetFeeLevel = feeLevel || FeeLevel.Custom
+      targetFeeLevel = feeOption.feeLevel || FeeLevel.Custom
       targetFeeRate = feeOption.feeRate
       targetFeeRateType = feeOption.feeRateType
-      if (targetFeeRateType === FeeRateType.Base) {
-        feeBase = targetFeeRate
-        feeMain = this.toMainDenomination(feeBase)
-      } else if (targetFeeRateType === FeeRateType.Main) {
-        feeMain = targetFeeRate
-        feeBase = this.toBaseDenomination(feeMain)
-      } else {
-        throw new Error(`Unsupport ripple feeRateType ${feeOption.feeRateType}`)
-      }
     } else {
-      targetFeeLevel = feeOption.feeLevel || FeeLevel.Medium
-      let cushion: number | undefined
-      if (targetFeeLevel === FeeLevel.Low) {
-        cushion = 1
-      } else if (targetFeeLevel === FeeLevel.Medium) {
-        cushion = 1.2
-      } else if (targetFeeLevel === FeeLevel.High) {
-        cushion = 1.5
-      }
-      feeMain = await this._retryDced(() => this.api.getFee(cushion))
+      targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL
+      const { feeRate, feeRateType } = await this.getFeeRateRecommendation(targetFeeLevel)
+      targetFeeRate = feeRate
+      targetFeeRateType = feeRateType
+    }
+    if (targetFeeRateType === FeeRateType.Base) {
+      feeBase = targetFeeRate
+      feeMain = this.toMainDenomination(feeBase)
+    } else if (targetFeeRateType === FeeRateType.Main) {
+      feeMain = targetFeeRate
       feeBase = this.toBaseDenomination(feeMain)
-      targetFeeRate = feeMain
-      targetFeeRateType = FeeRateType.Main
+    } else {
+      throw new Error(`Unsupported ripple feeRateType ${targetFeeRateType}`)
     }
     return {
       targetFeeLevel,

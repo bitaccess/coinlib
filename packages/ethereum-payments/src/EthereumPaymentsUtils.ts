@@ -1,39 +1,61 @@
 import Web3 from 'web3'
-const web3 = new Web3()
-import { BigNumber } from 'bignumber.js'
-
-import { PaymentsUtils, Payport, createUnitConverters } from '@faast/payments-common'
+import { PaymentsUtils, Payport, createUnitConverters, AutoFeeLevels, FeeRate, FeeRateType, NetworkType } from '@faast/payments-common'
 import {
-  Numeric,
   Logger,
   DelegateLogger,
-  isNil,
-  assertType
+  assertType,
+  isNull
 } from '@faast/ts-common'
-import { PACKAGE_NAME, DECIMAL_PLACES } from './constants'
+
+import { PACKAGE_NAME, ETH_DECIMAL_PLACES, ETH_NAME, ETH_SYMBOL } from './constants'
 import {
   BaseEthereumPaymentsConfig,
-  BaseDenominationOptions,
 } from './types'
 import { isValidXkey } from './bip44'
+import { NetworkData } from './NetworkData'
 
 type UnitConverters = ReturnType<typeof createUnitConverters>
 
 export class EthereumPaymentsUtils implements PaymentsUtils {
+  readonly networkType: NetworkType
+  readonly coinSymbol: string
+  readonly coinName: string
+  readonly coinDecimals: number
+
   logger: Logger
-  decimals: number
+  server: string | null
+  web3: Web3
+  eth: Web3['eth']
+  gasStation: NetworkData
 
   constructor(config: BaseEthereumPaymentsConfig) {
     this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
-    this.decimals = isNil(config.decimals) ? DECIMAL_PLACES : config.decimals
+    this.networkType = config.network || NetworkType.Mainnet
+    this.coinName = config.name ?? ETH_NAME
+    this.coinSymbol = config.symbol ?? ETH_SYMBOL
+    this.coinDecimals = config.decimals ?? ETH_DECIMAL_PLACES
+    this.server = config.fullNode || null
+    if (config.web3) {
+      this.web3 = config.web3
+    } else if (isNull(this.server)) {
+      this.web3 = new Web3()
+    } else if (this.server.startsWith('http')) {
+      this.web3 = new Web3(new Web3.providers.HttpProvider(this.server, config.providerOptions))
+    } else if (this.server.startsWith('ws')) {
+      this.web3 = new Web3(new Web3.providers.WebsocketProvider(this.server, config.providerOptions))
+    } else {
+      throw new Error(`Invalid ethereum payments fullNode, must start with http or ws: ${this.server}`)
+    }
+    this.eth = this.web3.eth
+    this.gasStation = new NetworkData(this.eth, config.gasStation, config.parityNode, this.logger)
 
-    const unitConverters = createUnitConverters(this.decimals)
+    const unitConverters = createUnitConverters(this.coinDecimals)
     this.toMainDenominationBigNumber = unitConverters.toMainDenominationBigNumber
     this.toBaseDenominationBigNumber = unitConverters.toBaseDenominationBigNumber
     this.toMainDenomination = unitConverters.toMainDenominationString
     this.toBaseDenomination = unitConverters.toBaseDenominationString
 
-    const ethUnitConverters = createUnitConverters(DECIMAL_PLACES)
+    const ethUnitConverters = createUnitConverters(ETH_DECIMAL_PLACES)
     this.toMainDenominationBigNumberEth = ethUnitConverters.toMainDenominationBigNumber
     this.toBaseDenominationBigNumberEth = ethUnitConverters.toBaseDenominationBigNumber
     this.toMainDenominationEth = ethUnitConverters.toMainDenominationString
@@ -51,7 +73,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   toBaseDenominationEth: UnitConverters['toBaseDenominationString']
 
   async isValidAddress(address: string): Promise<boolean> {
-    return web3.utils.isAddress(address)
+    return this.web3.utils.isAddress(address)
   }
 
   async isValidExtraId(extraId: unknown): Promise<boolean> {
@@ -89,7 +111,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
 
   isValidPrivateKey(prv: string): boolean {
     try {
-      return !!web3.eth.accounts.privateKeyToAccount(prv)
+      return Boolean(this.web3.eth.accounts.privateKeyToAccount(prv))
     } catch (e) {
       return false
     }
@@ -103,7 +125,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
       key = `0x${prv}`
     }
 
-    return web3.eth.accounts.privateKeyToAccount(key).address.toLowerCase()
+    return this.web3.eth.accounts.privateKeyToAccount(key).address.toLowerCase()
   }
 
   private async _getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
@@ -116,5 +138,13 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
       return 'Invalid payport address'
     }
     return undefined
+  }
+
+  async getFeeRateRecommendation(level: AutoFeeLevels): Promise<FeeRate> {
+    const gasPrice = await this.gasStation.getGasPrice(level)
+    return {
+      feeRate: gasPrice,
+      feeRateType: FeeRateType.BasePerWeight,
+    }
   }
 }

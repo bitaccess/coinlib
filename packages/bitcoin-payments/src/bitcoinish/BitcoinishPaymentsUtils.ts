@@ -1,6 +1,7 @@
-import { PaymentsUtils, Payport, createUnitConverters, MaybePromise } from '@faast/payments-common'
+import { PaymentsUtils, Payport, createUnitConverters, MaybePromise, AutoFeeLevels, FeeRate, NetworkType } from '@faast/payments-common'
 import { Network as BitcoinjsNetwork } from 'bitcoinjs-lib'
 import { isNil, assertType, Numeric, isUndefined } from '@faast/ts-common'
+
 import { BlockbookConnected } from './BlockbookConnected'
 import { BitcoinishBlock, BitcoinishPaymentsUtilsConfig } from './types'
 
@@ -8,14 +9,21 @@ type UnitConverters = ReturnType<typeof createUnitConverters>
 
 export abstract class BitcoinishPaymentsUtils extends BlockbookConnected implements PaymentsUtils {
 
-  decimals: number
-  bitcoinjsNetwork: BitcoinjsNetwork
+  readonly networkType: NetworkType
+  readonly coinSymbol: string
+  readonly coinName: string
+  readonly coinDecimals: number
+  readonly bitcoinjsNetwork: BitcoinjsNetwork
 
   constructor(config: BitcoinishPaymentsUtilsConfig) {
     super(config)
-    this.decimals = config.decimals
+    this.networkType = config.network || NetworkType.Mainnet
+    this.coinSymbol = config.coinSymbol
+    this.coinName = config.coinName
+    this.coinDecimals = config.coinDecimals
     this.bitcoinjsNetwork = config.bitcoinjsNetwork
-    const unitConverters = createUnitConverters(this.decimals)
+
+    const unitConverters = createUnitConverters(this.coinDecimals)
     this.toMainDenominationString = unitConverters.toMainDenominationString
     this.toMainDenominationNumber = unitConverters.toMainDenominationNumber
     this.toMainDenominationBigNumber = unitConverters.toMainDenominationBigNumber
@@ -29,6 +37,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
   }
 
   abstract isValidAddress(address: string): MaybePromise<boolean>
+  abstract getFeeRateRecommendation(level: AutoFeeLevels): MaybePromise<FeeRate>
 
   private async _getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
     const { address, extraId } = payport

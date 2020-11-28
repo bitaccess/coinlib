@@ -1,4 +1,6 @@
-import { PaymentsUtils, NetworkType, Payport } from '@faast/payments-common'
+import { PaymentsUtils, NetworkType, Payport, AutoFeeLevels, FeeRate, FeeRateType } from '@faast/payments-common'
+import { Logger, DelegateLogger, isNil, assertType } from '@faast/ts-common'
+
 import {
   toMainDenominationString,
   toBaseDenominationString,
@@ -9,12 +11,15 @@ import {
   isValidPrivateKey,
   privateKeyToAddress,
 } from './helpers'
-import { Logger, DelegateLogger, isNil, assertType } from '@faast/ts-common'
-import { PACKAGE_NAME } from './constants'
+import { COIN_NAME, COIN_SYMBOL, DECIMAL_PLACES, PACKAGE_NAME } from './constants'
 import { BaseTronPaymentsConfig } from './types'
 
 export class TronPaymentsUtils implements PaymentsUtils {
-  networkType: NetworkType
+
+  readonly coinSymbol = COIN_SYMBOL
+  readonly coinName = COIN_NAME
+  readonly coinDecimals = DECIMAL_PLACES
+  readonly networkType: NetworkType
   logger: Logger
 
   constructor(config: BaseTronPaymentsConfig = {}) {
@@ -75,4 +80,8 @@ export class TronPaymentsUtils implements PaymentsUtils {
 
   isValidPrivateKey = isValidPrivateKey
   privateKeyToAddress = privateKeyToAddress
+
+  getFeeRateRecommendation(level: AutoFeeLevels): FeeRate {
+    return { feeRate: '0', feeRateType: FeeRateType.Base }
+  }
 }

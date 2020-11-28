@@ -48,8 +48,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     BitcoinishBroadcastResult,
     BitcoinishTransactionInfo
   > {
-  coinSymbol: string
-  coinName: string
   minTxFee?: FeeRate
   dustThreshold: number // base denom
   networkMinRelayFee: number // base denom
@@ -59,10 +57,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
   constructor(config: BitcoinishPaymentsConfig) {
     super(config)
-    this.coinSymbol = config.coinSymbol
-    this.coinName = config.coinName
-    this.decimals = config.decimals
-    this.bitcoinjsNetwork = config.bitcoinjsNetwork
     this.minTxFee = config.minTxFee
     this.dustThreshold = config.dustThreshold
     this.networkMinRelayFee = config.networkMinRelayFee
@@ -80,7 +74,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   abstract getAccountId(index: number): string
   abstract getAccountIds(index?: number): string[]
   abstract getAddress(index: number): string
-  abstract getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate>
   abstract isValidAddress(address: string): MaybePromise<boolean>
   abstract signTransaction(tx: BitcoinishUnsignedTransaction): Promise<BitcoinishSignedTransaction>
 

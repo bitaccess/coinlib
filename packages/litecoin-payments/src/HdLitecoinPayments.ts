@@ -2,6 +2,8 @@ import { omit } from 'lodash'
 import {
   assertType,
 } from '@faast/ts-common'
+import { PUBLIC_CONFIG_OMIT_FIELDS } from '@faast/bitcoin-payments'
+
 import {
   isValidXprv as isValidXprvHelper,
   isValidXpub as isValidXpubHelper,
@@ -75,7 +77,7 @@ export class HdLitecoinPayments extends SinglesigLitecoinPayments<HdLitecoinPaym
 
   getPublicConfig(): HdLitecoinPaymentsConfig {
     return {
-      ...omit(this.getFullConfig(), ['logger', 'server', 'hdKey', 'blockcypherToken']),
+      ...omit(this.getFullConfig(), PUBLIC_CONFIG_OMIT_FIELDS),
       hdKey: this.xpub,
     }
   }

@@ -58,3 +58,5 @@ export const DEFAULT_SAT_PER_BYTE_LEVELS = {
   [FeeLevel.Medium]: 50,
   [FeeLevel.Low]: 25,
 }
+
+export const PUBLIC_CONFIG_OMIT_FIELDS = ['logger', 'server', 'hdKey', 'keyPairs', 'blockcypherToken']

@@ -1,5 +1,5 @@
-import { PaymentsUtils, Payport } from '@faast/payments-common'
-import { isNil, assertType, SimpleReporter } from '@faast/ts-common'
+import { PaymentsUtils, Payport, AutoFeeLevels, FeeLevel, FeeRate, FeeRateType } from '@faast/payments-common'
+import { isNil, assertType } from '@faast/ts-common'
 
 import {
   toMainDenominationString,
@@ -11,8 +11,14 @@ import {
 } from './helpers'
 import { BaseRippleConfig } from './types'
 import { RippleConnected } from './RippleConnected'
+import { DECIMAL_PLACES, COIN_NAME, COIN_SYMBOL } from './constants'
 
 export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtils {
+
+  readonly coinSymbol = COIN_SYMBOL
+  readonly coinName = COIN_NAME
+  readonly coinDecimals = DECIMAL_PLACES
+
   constructor(config: BaseRippleConfig) {
     super(config)
   }
@@ -80,4 +86,20 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
 
   isValidXprv = isValidXprv
   isValidXpub = isValidXpub
+
+  async getFeeRateRecommendation(level: AutoFeeLevels): Promise<FeeRate> {
+    let cushion: number | undefined
+    if (level === FeeLevel.Low) {
+      cushion = 1
+    } else if (level === FeeLevel.Medium) {
+      cushion = 1.2
+    } else if (level === FeeLevel.High) {
+      cushion = 1.5
+    }
+    const feeMain = await this._retryDced(() => this.api.getFee(cushion))
+    return {
+      feeRate: feeMain,
+      feeRateType: FeeRateType.Main
+    }
+  }
 }

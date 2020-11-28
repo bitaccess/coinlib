@@ -52,31 +52,12 @@ export abstract class BaseEthereumPayments
   extends EthereumPaymentsUtils
 implements BasePayments
   <Config, EthereumUnsignedTransaction, EthereumSignedTransaction, EthereumBroadcastResult, EthereumTransactionInfo> {
-  server: string | null
-  web3: Web3
-  eth: Web3['eth']
-  gasStation: NetworkData
   private config: Config
   public depositKeyIndex: number
 
   constructor(config: Config) {
     super(config)
-
     this.config = config
-    this.server = config.fullNode || null
-    if (config.web3) {
-      this.web3 = config.web3
-    } else if (isNull(this.server)) {
-      this.web3 = new Web3()
-    } else if (this.server.startsWith('http')) {
-      this.web3 = new Web3(new Web3.providers.HttpProvider(this.server, config.providerOptions))
-    } else if (this.server.startsWith('ws')) {
-      this.web3 = new Web3(new Web3.providers.WebsocketProvider(this.server, config.providerOptions))
-    } else {
-      throw new Error(`Invalid ethereum payments fullNode, must start with http or ws: ${this.server}`)
-    }
-    this.eth = this.web3.eth
-    this.gasStation = new NetworkData(this.eth, config.gasStation, config.parityNode, this.logger)
     this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
   }
 
@@ -174,10 +155,7 @@ implements BasePayments
     feeLevel: AutoFeeLevels = DEFAULT_FEE_LEVEL,
     amountOfGas: string,
   ): Promise<EthereumResolvedFeeOption> {
-    const gasPrice = new BigNumber(
-      await this.gasStation.getGasPrice(feeLevel)
-    ).dp(0, BigNumber.ROUND_DOWN)
-
+    const gasPrice = new BigNumber(await this.gasStation.getGasPrice(feeLevel))
     const feeBase = gasPrice.multipliedBy(amountOfGas).toFixed()
 
     return {
@@ -396,7 +374,7 @@ implements BasePayments
 
     const unsignedRaw: any = cloneDeep(unsignedTx.data)
 
-    const extraParam = this.config.network === NetworkType.Testnet ?  {chain :'ropsten'} : undefined
+    const extraParam = this.networkType === NetworkType.Testnet ?  {chain :'ropsten'} : undefined
     const tx = new Tx(unsignedRaw, extraParam)
     const key = Buffer.from(fromPrivateKey.slice(2), 'hex')
     tx.sign(key)
