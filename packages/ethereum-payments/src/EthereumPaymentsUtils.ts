@@ -73,27 +73,27 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   toMainDenominationEth: UnitConverters['toMainDenominationString']
   toBaseDenominationEth: UnitConverters['toBaseDenominationString']
 
-  async isValidAddress(address: string): Promise<boolean> {
+  isValidAddress(address: string): boolean {
     return this.web3.utils.isAddress(address)
   }
 
-  async isValidExtraId(extraId: unknown): Promise<boolean> {
+  isValidExtraId(extraId: unknown): boolean {
     return false
   }
 
   // XXX Payport methods can be moved to payments-common
-  async isValidPayport(payport: Payport): Promise<boolean> {
-    return Payport.is(payport) && ! await this._getPayportValidationMessage(payport)
+  isValidPayport(payport: Payport): boolean {
+    return Payport.is(payport) && !this._getPayportValidationMessage(payport)
   }
 
-  async validatePayport(payport: Payport): Promise<void> {
-    const message = await this._getPayportValidationMessage(payport)
+  validatePayport(payport: Payport): void {
+    const message = this._getPayportValidationMessage(payport)
     if (message) {
       throw new Error(message)
     }
   }
 
-  async getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
+  getPayportValidationMessage(payport: Payport): string | undefined {
     try {
       payport = assertType(Payport, payport, 'payport')
     } catch (e) {
@@ -129,10 +129,10 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
     return this.web3.eth.accounts.privateKeyToAccount(key).address.toLowerCase()
   }
 
-  private async _getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
+  private _getPayportValidationMessage(payport: Payport): string | undefined {
     try {
       const { address } = payport
-      if (!(await this.isValidAddress(address))) {
+      if (!(this.isValidAddress(address))) {
         return 'Invalid payport address'
       }
     } catch (e) {

@@ -67,7 +67,7 @@ export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereu
 
   async getPayport(index: number): Promise<Payport> {
     const address = this.addresses[index] || ''
-    if (!await this.isValidAddress(address)) {
+    if (!this.isValidAddress(address)) {
       throw new Error(`Cannot get address ${index} - keyPair[${index}] is undefined or invalid address`)
     }
     return { address }

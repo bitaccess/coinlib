@@ -16,20 +16,20 @@ export class StellarPaymentsUtils extends StellarConnected implements PaymentsUt
   readonly coinName = COIN_NAME
   readonly coinDecimals = DECIMAL_PLACES
 
-  async isValidExtraId(extraId: string): Promise<boolean> {
+  isValidExtraId(extraId: string): boolean {
     return isValidExtraId(extraId)
   }
 
-  async isValidAddress(address: string): Promise<boolean> {
+  isValidAddress(address: string): boolean {
     return isValidAddress(address)
   }
 
   async _getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
     const { address, extraId } = payport
-    if (!(await this.isValidAddress(address))) {
+    if (!this.isValidAddress(address)) {
       return 'Invalid payport address'
     }
-    if (!isNil(extraId) && !(await this.isValidExtraId(extraId))) {
+    if (!isNil(extraId) && !this.isValidExtraId(extraId)) {
       return 'Invalid payport extraId'
     }
   }

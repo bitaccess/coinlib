@@ -23,17 +23,17 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
     super(config)
   }
 
-  async isValidExtraId(extraId: string): Promise<boolean> {
+  isValidExtraId(extraId: string): boolean {
     return isValidExtraId(extraId)
   }
 
-  async isValidAddress(address: string): Promise<boolean> {
+  isValidAddress(address: string): boolean {
     return isValidAddress(address)
   }
 
   private async _getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
     const { address, extraId } = payport
-    if (!(await this.isValidAddress(address))) {
+    if (!(this.isValidAddress(address))) {
       return 'Invalid payport address'
     }
     let requireExtraId = false
@@ -47,7 +47,7 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
       if (requireExtraId) {
         return `Payport extraId is required for address ${address} with ripple requireDestinationTag setting enabled`
       }
-    } else if (!(await this.isValidExtraId(extraId))) {
+    } else if (!(this.isValidExtraId(extraId))) {
       return 'Invalid payport extraId'
     }
   }

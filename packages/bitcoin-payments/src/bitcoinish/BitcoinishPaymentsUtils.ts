@@ -36,12 +36,12 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     return false // utxo coins don't use extraIds
   }
 
-  abstract isValidAddress(address: string): MaybePromise<boolean>
+  abstract isValidAddress(address: string): boolean
   abstract getFeeRateRecommendation(level: AutoFeeLevels): MaybePromise<FeeRate>
 
-  private async _getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
+  private _getPayportValidationMessage(payport: Payport): string | undefined {
     const { address, extraId } = payport
-    if (!await this.isValidAddress(address)) {
+    if (!this.isValidAddress(address)) {
       return 'Invalid payport address'
     }
     if (!isNil(extraId)) {
@@ -49,7 +49,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     }
   }
 
-  async getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
+  getPayportValidationMessage(payport: Payport): string | undefined {
     try {
       payport = assertType(Payport, payport, 'payport')
     } catch (e) {
@@ -58,16 +58,16 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     return this._getPayportValidationMessage(payport)
   }
 
-  async validatePayport(payport: Payport): Promise<void> {
+  validatePayport(payport: Payport): void {
     payport = assertType(Payport, payport, 'payport')
-    const message = await this._getPayportValidationMessage(payport)
+    const message = this._getPayportValidationMessage(payport)
     if (message) {
       throw new Error(message)
     }
   }
 
-  async isValidPayport(payport: Payport): Promise<boolean> {
-    return Payport.is(payport) && !(await this._getPayportValidationMessage(payport))
+  isValidPayport(payport: Payport): boolean {
+    return Payport.is(payport) && !(this._getPayportValidationMessage(payport))
   }
 
   toMainDenomination(amount: Numeric): string {

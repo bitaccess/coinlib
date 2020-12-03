@@ -31,11 +31,11 @@ export class TronPaymentsUtils implements PaymentsUtils {
   async init() {}
   async destroy() {}
 
-  async isValidExtraId(extraId: string): Promise<boolean> {
+  isValidExtraId(extraId: string): boolean {
     return isValidExtraId(extraId)
   }
 
-  async isValidAddress(address: string): Promise<boolean> {
+  isValidAddress(address: string): boolean {
     return isValidAddress(address)
   }
 

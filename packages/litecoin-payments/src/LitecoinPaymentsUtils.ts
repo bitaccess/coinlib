@@ -13,11 +13,11 @@ export class LitecoinPaymentsUtils extends BitcoinishPaymentsUtils {
     this.blockcypherToken = config.blockcypherToken
   }
 
-  async isValidAddress(address: string) {
+  isValidAddress(address: string) {
     return isValidAddress(address, this.bitcoinjsNetwork)
   }
 
-  async isValidPrivateKey(privateKey: string) {
+  isValidPrivateKey(privateKey: string) {
     return isValidPrivateKey(privateKey, this.bitcoinjsNetwork)
   }
 

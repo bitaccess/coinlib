@@ -25,15 +25,16 @@ export interface PaymentsUtils {
   /**
    * Return true if it's a valid address.
    */
-  isValidAddress<O extends object>(address: string, options?: O): MaybePromise<boolean>
+  isValidAddress<O extends object>(address: string, options?: O): boolean
 
   /**
    * Return true if it's a valid extra ID.
    */
-  isValidExtraId<O extends object>(extraId: string, options?: O): MaybePromise<boolean>
+  isValidExtraId<O extends object>(extraId: string, options?: O): boolean
 
   /**
-   * Return true if it's a valid payport.
+   * Return true if it's a valid payport. Must be async to allow for ripple to check if the account has
+   * requireDestinationTag set.
    */
   isValidPayport<O extends object>(payport: Payport, options?: O): MaybePromise<boolean>
 

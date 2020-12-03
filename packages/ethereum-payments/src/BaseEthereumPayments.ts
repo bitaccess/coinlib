@@ -72,16 +72,16 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     if (typeof payport === 'number') {
       return this.getPayport(payport)
     } else if (typeof payport === 'string') {
-      if (!await this.isValidAddress(payport)) {
+      if (!this.isValidAddress(payport)) {
         throw new Error(`Invalid Ethereum address: ${payport}`)
       }
       return { address: payport.toLowerCase() }
     }
 
-    if (!await this.isValidPayport(payport)) {
+    if (!this.isValidPayport(payport)) {
       throw new Error(`Invalid Ethereum payport: ${JSON.stringify(payport)}`)
     } else {
-      if(!await this.isValidAddress(payport.address)) {
+      if(!this.isValidAddress(payport.address)) {
         throw new Error(`Invalid Ethereum payport: ${JSON.stringify(payport)}`)
       }
     }
