@@ -28,7 +28,7 @@ export class TronPaymentsFactory extends PaymentsFactory<
   }
 
   newUtils(config: BaseTronPaymentsConfig): TronPaymentsUtils {
-    return new TronPaymentsUtils(assertType(BaseTronPaymentsConfig, config))
+    return new TronPaymentsUtils(assertType(BaseTronPaymentsConfig, config, 'config'))
   }
 }
 

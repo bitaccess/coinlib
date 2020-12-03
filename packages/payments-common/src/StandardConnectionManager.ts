@@ -10,7 +10,7 @@ export class StandardConnectionManager<
   Config extends { api?: Connection, server?: string | null } & BaseConfig,
 > implements PaymentsConnectionManager<Connection, Connected, Config> {
 
-  connections = {}
+  connections: { [url: string]: Connection } = {}
 
   getConnection(connected: Connected) {
     return connected.api

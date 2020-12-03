@@ -8,6 +8,7 @@ import {
   BaseRipplePaymentsConfig,
   RippleBalanceMonitorConfig,
   BaseRippleConfig,
+  RippleServerAPI,
 } from './types'
 import { PACKAGE_NAME } from './constants'
 import { BaseRipplePayments } from './BaseRipplePayments'
@@ -15,6 +16,7 @@ import { HdRipplePayments } from './HdRipplePayments'
 import { AccountRipplePayments } from './AccountRipplePayments'
 import { RipplePaymentsUtils } from './RipplePaymentsUtils'
 import { RippleBalanceMonitor } from './RippleBalanceMonitor'
+import { RippleConnected } from './RippleConnected'
 
 export class RipplePaymentsFactory extends PaymentsFactory<
   BaseRippleConfig,
@@ -30,19 +32,22 @@ export class RipplePaymentsFactory extends PaymentsFactory<
     if (AccountRipplePaymentsConfig.is(config)) {
       return new AccountRipplePayments(config)
     }
-    return new HdRipplePayments(assertType(HdRipplePaymentsConfig, config))
+    if (HdRipplePaymentsConfig.is(config)) {
+      return new HdRipplePayments(config)
+    }
+    throw new Error(`Cannot instantiate ${this.packageName} for unsupported config`)
   }
 
   newUtils(config: BaseRipplePaymentsConfig) {
-    return new RipplePaymentsUtils(assertType(BaseRipplePaymentsConfig, config))
+    return new RipplePaymentsUtils(assertType(BaseRipplePaymentsConfig, config, 'config'))
   }
 
   hasBalanceMonitor = true
   newBalanceMonitor(config: RippleBalanceMonitorConfig) {
-    return new RippleBalanceMonitor(assertType(RippleBalanceMonitorConfig, config))
+    return new RippleBalanceMonitor(assertType(RippleBalanceMonitorConfig, config, 'config'))
   }
 
-  connectionManager = new StandardConnectionManager()
+  connectionManager = new StandardConnectionManager<RippleServerAPI, RippleConnected, BaseRippleConfig>()
 }
 
 export default RipplePaymentsFactory

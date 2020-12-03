@@ -37,12 +37,12 @@ export class StellarPaymentsFactory extends PaymentsFactory<
   }
 
   newUtils(config: BaseStellarPaymentsConfig) {
-    return new StellarPaymentsUtils(assertType(BaseStellarPaymentsConfig, config))
+    return new StellarPaymentsUtils(assertType(BaseStellarPaymentsConfig, config, 'config'))
   }
 
   hasBalanceMonitor = true
   newBalanceMonitor(config: StellarBalanceMonitorConfig) {
-    return new StellarBalanceMonitor(assertType(StellarBalanceMonitorConfig, config))
+    return new StellarBalanceMonitor(assertType(StellarBalanceMonitorConfig, config, 'config'))
   }
 
   connectionManager = new StandardConnectionManager()

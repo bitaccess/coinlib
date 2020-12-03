@@ -34,7 +34,7 @@ export class KeyPairBitcoinCashPayments extends SinglesigBitcoinCashPayments<Key
         publicKey = privateKeyToKeyPair(value, this.bitcoinjsNetwork).publicKey
         privateKey = value
       } else {
-        throw new Error(`KeyPairBitcoinCashPaymentsConfig.keyPairs[${i}] is not a valid ${this.networkType} private key or address`)
+        throw new Error(`KeyPairBitcoinCashPaymentsConfig.keyPairs[${i}] is not a valid ${this.networkType} private or public key`)
       }
 
       const address = publicKeyToAddress(publicKey, this.bitcoinjsNetwork, this.addressType)

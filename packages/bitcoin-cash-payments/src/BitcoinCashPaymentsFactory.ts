@@ -32,7 +32,7 @@ export class BitcoinCashPaymentsFactory extends PaymentsFactory<
   }
 
   newUtils(config: BitcoinCashPaymentsUtilsConfig) {
-    return new BitcoinCashPaymentsUtils(assertType(BitcoinCashPaymentsUtilsConfig, config))
+    return new BitcoinCashPaymentsUtils(assertType(BitcoinCashPaymentsUtilsConfig, config, 'config'))
   }
 }
 

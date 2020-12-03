@@ -37,7 +37,7 @@ export class BitcoinPaymentsFactory extends PaymentsFactory<
   }
 
   newUtils(config: BitcoinPaymentsUtilsConfig) {
-    return new BitcoinPaymentsUtils(assertType(BitcoinPaymentsUtilsConfig, config))
+    return new BitcoinPaymentsUtils(assertType(BitcoinPaymentsUtilsConfig, config, 'config'))
   }
 }
 

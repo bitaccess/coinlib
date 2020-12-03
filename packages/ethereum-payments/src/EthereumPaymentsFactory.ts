@@ -47,7 +47,7 @@ export class EthereumPaymentsFactory extends PaymentsFactory<
   }
 
   newUtils(config: EthereumPaymentsUtilsConfig) {
-    return new EthereumPaymentsUtils(assertType(EthereumPaymentsUtilsConfig, config))
+    return new EthereumPaymentsUtils(assertType(EthereumPaymentsUtilsConfig, config, 'config'))
   }
 
   connectionManager = new EthereumConnectionManager()

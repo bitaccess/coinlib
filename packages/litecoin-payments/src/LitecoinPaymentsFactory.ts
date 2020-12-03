@@ -32,7 +32,7 @@ export class LitecoinPaymentsFactory extends PaymentsFactory<
   }
 
   newUtils(config: LitecoinPaymentsUtilsConfig) {
-    return new LitecoinPaymentsUtils(assertType(LitecoinPaymentsUtilsConfig, config))
+    return new LitecoinPaymentsUtils(assertType(LitecoinPaymentsUtilsConfig, config, 'config'))
   }
 }
 

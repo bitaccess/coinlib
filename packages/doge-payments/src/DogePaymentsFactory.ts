@@ -32,7 +32,7 @@ export class DogePaymentsFactory extends PaymentsFactory<
   }
 
   newUtils(config: DogePaymentsUtilsConfig) {
-    return new DogePaymentsUtils(assertType(DogePaymentsUtilsConfig, config))
+    return new DogePaymentsUtils(assertType(DogePaymentsUtilsConfig, config, 'config'))
   }
 }
 

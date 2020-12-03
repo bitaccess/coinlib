@@ -16,7 +16,7 @@ const LOCAL_NODE = 'http://localhost'
 const LOCAL_NODE_WS = 'ws://localhost'
 const LOCAL_PORT = 8545
 
-const logger = new TestLogger('HdEthereumPaymentsTest')
+const logger = new TestLogger('ethereum-payments')
 
 const factory = new EthereumPaymentsFactory()
 
