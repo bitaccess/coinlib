@@ -24,6 +24,13 @@ export class StellarPaymentsUtils extends StellarConnected implements PaymentsUt
     return isValidAddress(address)
   }
 
+  standardizeAddress(address: string): string | null {
+    if (!isValidAddress(address)) {
+      return null
+    }
+    return address
+  }
+
   async _getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
     const { address, extraId } = payport
     if (!this.isValidAddress(address)) {

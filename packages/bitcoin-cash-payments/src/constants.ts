@@ -1,6 +1,7 @@
+import { BitcoinjsNetwork } from '@faast/bitcoin-payments'
 import { FeeLevel, NetworkType } from '@faast/payments-common'
 import { networks } from 'bitcoinforksjs-lib'
-import { AddressType, SinglesigAddressType } from './types';
+import { BitcoinCashAddressFormat } from './types'
 
 export const PACKAGE_NAME = 'bitcoin-cash-payments'
 export const DECIMAL_PLACES = 8
@@ -31,16 +32,17 @@ export const BITCOIN_SEQUENCE_RBF = 0xFFFFFFFD
  */
 export const DEFAULT_MIN_TX_FEE = 1
 
-export const DEFAULT_SINGLESIG_ADDRESS_TYPE: SinglesigAddressType = AddressType.Legacy
-
-export const DEFAULT_DERIVATION_PATHS = {
-  [AddressType.Legacy]: "m/44'/145'/0'",
-}
+export const DEFAULT_DERIVATION_PATH = "m/44'/145'/0'"
 
 export const DEFAULT_NETWORK = NetworkType.Mainnet
 
 export const NETWORK_MAINNET = networks.bitcoin
 export const NETWORK_TESTNET = networks.testnet
+
+export const NETWORKS: { [networkType in NetworkType]: BitcoinjsNetwork } = {
+  [NetworkType.Mainnet]: NETWORK_MAINNET,
+  [NetworkType.Testnet]: NETWORK_TESTNET,
+}
 
 export const DEFAULT_MAINNET_SERVER = process.env.BITCOIN_CASH_SERVER_URL
   ? process.env.BITCOIN_CASH_SERVER_URL.split(',')
@@ -48,8 +50,5 @@ export const DEFAULT_MAINNET_SERVER = process.env.BITCOIN_CASH_SERVER_URL
 export const DEFAULT_TESTNET_SERVER = ''
 
 export const DEFAULT_FEE_LEVEL = FeeLevel.Low
-export const DEFAULT_SAT_PER_BYTE_LEVELS = {
-  [FeeLevel.High]: 10,
-  [FeeLevel.Medium]: 5,
-  [FeeLevel.Low]: 1,
-}
+
+export const DEFAULT_ADDRESS_FORMAT = BitcoinCashAddressFormat.Cash

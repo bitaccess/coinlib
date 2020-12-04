@@ -39,6 +39,13 @@ export class TronPaymentsUtils implements PaymentsUtils {
     return isValidAddress(address)
   }
 
+  standardizeAddress(address: string): string | null {
+    if (!isValidAddress(address)) {
+      return null
+    }
+    return address
+  }
+
   private async _getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
     const { address, extraId } = payport
     if (!isValidAddress(address)) {

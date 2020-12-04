@@ -1,5 +1,6 @@
 import * as t from 'io-ts'
 import {
+  enumCodec,
   extendCodec,
   Logger,
   nullable,
@@ -21,6 +22,12 @@ import {
   KeyPairsConfigParam,
   CreateTransactionOptions,
 } from '@faast/payments-common'
+
+export enum EthereumAddressFormat {
+  Lowercase = 'lowercase',
+  Checksum = 'checksum',
+}
+export const EthereumAddressFormatT = enumCodec<EthereumAddressFormat>(EthereumAddressFormat, 'EthereumAddressFormat')
 
 const keys = t.type({
     pub: t.string,

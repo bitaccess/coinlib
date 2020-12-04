@@ -7,8 +7,8 @@ import {
   isNull
 } from '@faast/ts-common'
 
-import { PACKAGE_NAME, ETH_DECIMAL_PLACES, ETH_NAME, ETH_SYMBOL } from './constants'
-import { EthereumPaymentsUtilsConfig } from './types'
+import { PACKAGE_NAME, ETH_DECIMAL_PLACES, ETH_NAME, ETH_SYMBOL, DEFAULT_ADDRESS_FORMAT } from './constants'
+import { EthereumAddressFormat, EthereumAddressFormatT, EthereumPaymentsUtilsConfig } from './types';
 import { isValidXkey } from './bip44'
 import { NetworkData } from './NetworkData'
 
@@ -73,8 +73,27 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   toMainDenominationEth: UnitConverters['toMainDenominationString']
   toBaseDenominationEth: UnitConverters['toBaseDenominationString']
 
-  isValidAddress(address: string): boolean {
+  isValidAddress(address: string, options: { format?: string } = {}): boolean {
+    const { format } = options
+    if (format === EthereumAddressFormat.Lowercase) {
+      return this.web3.utils.isAddress(address) &&
+        address === address.toLowerCase()
+    } else if (format === EthereumAddressFormat.Checksum) {
+      return this.web3.utils.checkAddressChecksum(address)
+    }
     return this.web3.utils.isAddress(address)
+  }
+
+  standardizeAddress(address: string, options?: { format?: string }): string | null {
+    if (!this.web3.utils.isAddress(address)) {
+      return null
+    }
+    const format = assertType(EthereumAddressFormatT, options?.format ?? DEFAULT_ADDRESS_FORMAT, 'format')
+    if (format === EthereumAddressFormat.Lowercase) {
+      return address.toLowerCase()
+    } else {
+      return this.web3.utils.toChecksumAddress(address)
+    }
   }
 
   isValidExtraId(extraId: unknown): boolean {

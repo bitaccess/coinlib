@@ -6,34 +6,25 @@ import {
 import { extendCodec, enumCodec, requiredOptionalCodec } from '@faast/ts-common'
 import { Signer as BitcoinjsSigner } from 'bitcoinforksjs-lib'
 import { BlockInfoBitcoin } from 'blockbook-client'
-import { BitcoinishPaymentTx, BlockbookConfigServer } from '@faast/bitcoin-payments'
+import { bitcoinish } from '@faast/bitcoin-payments'
 import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
 
-export type BitcoinjsKeyPair = BitcoinjsSigner & {
-  privateKey?: Buffer
-  toWIF(): string
+export { BitcoinjsKeyPair } from '@faast/bitcoin-payments'
+
+export enum BitcoinCashAddressFormat {
+  Cash = 'cashaddr',
+  BitPay = 'bitpay',
+  Legacy = 'legacy',
 }
+export const BitcoinCashAddressFormatT = enumCodec<BitcoinCashAddressFormat>(BitcoinCashAddressFormat, 'BitcoinCashAddressFormat')
 
 export interface PsbtInputData extends PsbtInput, TransactionInput {}
-
-export enum AddressType {
-  Legacy = 'p2pkh',
-}
-export const AddressTypeT = enumCodec<AddressType>(AddressType, 'AddressType')
-
-// For unclear reasons tsc throws TS4023 when this type is used in an external module.
-// Re-exporting the codec cast to the inferred type helps fix this.
-const SinglesigAddressTypeT = t.keyof({
-  [AddressType.Legacy]: null,
-}, 'SinglesigAddressType')
-export type SinglesigAddressType = t.TypeOf<typeof SinglesigAddressTypeT>
-export const SinglesigAddressType = SinglesigAddressTypeT as t.Type<SinglesigAddressType>
 
 export const BitcoinCashPaymentsUtilsConfig = extendCodec(
   BaseConfig,
   {},
   {
-    server: BlockbookConfigServer,
+    server: bitcoinish.BlockbookConfigServer,
   },
   'BitcoinCashPaymentsUtilsConfig',
 )
@@ -60,7 +51,6 @@ export const HdBitcoinCashPaymentsConfig = extendCodec(
     hdKey: t.string,
   },
   {
-    addressType: SinglesigAddressType,
     derivationPath: t.string,
   },
   'HdBitcoinCashPaymentsConfig',
@@ -71,9 +61,6 @@ export const KeyPairBitcoinCashPaymentsConfig = extendCodec(
   BaseBitcoinCashPaymentsConfig,
   {
     keyPairs: KeyPairsConfigParam,
-  },
-  {
-    addressType: SinglesigAddressType,
   },
   'KeyPairBitcoinCashPaymentsConfig',
 )
@@ -91,7 +78,7 @@ export const BitcoinCashPaymentsConfig = t.union([
 ], 'BitcoinCashPaymentsConfig')
 export type BitcoinCashPaymentsConfig = t.TypeOf<typeof BitcoinCashPaymentsConfig>
 
-export const BitcoinCashUnsignedTransactionData = BitcoinishPaymentTx
+export const BitcoinCashUnsignedTransactionData = bitcoinish.BitcoinishPaymentTx
 export type BitcoinCashUnsignedTransactionData = t.TypeOf<typeof BitcoinCashUnsignedTransactionData>
 
 export const BitcoinCashUnsignedTransaction = extendCodec(

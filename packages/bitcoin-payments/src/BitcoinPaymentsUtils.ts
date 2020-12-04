@@ -1,7 +1,7 @@
 import { BitcoinishPaymentsUtils, getBlockcypherFeeRecommendation } from './bitcoinish'
 import { toBitcoinishConfig } from './utils'
 import { BitcoinPaymentsUtilsConfig } from './types'
-import { isValidAddress, isValidPrivateKey } from './helpers'
+import { isValidAddress, isValidPrivateKey, standardizeAddress, isValidPublicKey } from './helpers'
 import { AutoFeeLevels, FeeRate } from '@faast/payments-common'
 
 export class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
@@ -14,11 +14,19 @@ export class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
   }
 
   isValidAddress(address: string) {
-    return isValidAddress(address, this.bitcoinjsNetwork)
+    return isValidAddress(address, this.networkType)
+  }
+
+  standardizeAddress(address: string): string | null {
+    return standardizeAddress(address, this.networkType)
+  }
+
+  isValidPublicKey(privateKey: string) {
+    return isValidPublicKey(privateKey, this.networkType)
   }
 
   isValidPrivateKey(privateKey: string) {
-    return isValidPrivateKey(privateKey, this.bitcoinjsNetwork)
+    return isValidPrivateKey(privateKey, this.networkType)
   }
 
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {

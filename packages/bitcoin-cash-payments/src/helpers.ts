@@ -1,12 +1,13 @@
-import { createUnitConverters } from '@faast/payments-common'
+import { createUnitConverters, NetworkType } from '@faast/payments-common'
+import { BitcoinjsNetwork, publicKeyToBuffer } from '@faast/bitcoin-payments'
 import * as bitcoin from 'bitcoinforksjs-lib'
 import bchaddrjs from 'bchaddrjs'
-import * as bip32 from 'bip32'
-import { isString } from '@faast/ts-common'
+import { assertType } from '@faast/ts-common'
 
-import { AddressType, BitcoinjsKeyPair, SinglesigAddressType } from './types'
-import { BitcoinjsNetwork } from '@faast/bitcoin-payments'
-import { DECIMAL_PLACES } from './constants'
+import { BitcoinjsKeyPair, BitcoinCashAddressFormat, BitcoinCashAddressFormatT } from './types'
+import { DECIMAL_PLACES, DEFAULT_ADDRESS_FORMAT, NETWORKS } from './constants'
+
+export { publicKeyToString, publicKeyToBuffer } from '@faast/bitcoin-payments'
 
 const {
   toMainDenominationBigNumber,
@@ -26,41 +27,71 @@ export {
   toBaseDenominationNumber,
 }
 
-export function isValidAddress(address: string, network: BitcoinjsNetwork): boolean {
-  try {
-    if (!bchaddrjs.isCashAddress(address)) { 
-      throw new Error('bitcoin cash address must use cash address format.')
-    }
-    return bchaddrjs.isValidAddress(address)
-  } catch (e) {
+export function isValidAddress(
+  address: string,
+  networkType: NetworkType,
+  options: { format?: string } = {},
+): boolean {
+  if (networkType === NetworkType.Mainnet && !bchaddrjs.isMainnetAddress(address)) {
+    return false
+  } else if (networkType === NetworkType.Testnet && !bchaddrjs.isTestnetAddress(address)) {
     return false
   }
-}
-
-export function isValidPublicKey(publicKey: string | Buffer, network: BitcoinjsNetwork): boolean {
+  const { format } = options
   try {
-    bitcoin.ECPair.fromPublicKey(publicKeyToBuffer(publicKey), { network })
+    if (format === BitcoinCashAddressFormat.Cash) {
+      return bchaddrjs.isCashAddress(address)
+    } else if (format === BitcoinCashAddressFormat.BitPay) {
+      return bchaddrjs.isBitpayAddress(address)
+    } else if (format === BitcoinCashAddressFormat.Legacy) {
+      return bchaddrjs.isLegacyAddress(address)
+    }
+    // already validated its a valid mainnet or testnet address above
     return true
   } catch (e) {
     return false
   }
 }
 
-export function isValidExtraId(extraId: string): boolean {
-  return false
+export function standardizeAddress(
+  address: string,
+  networkType: NetworkType,
+  options: { format?: string } = {}
+): string | null {
+  const format = assertType(BitcoinCashAddressFormatT, options?.format ?? DEFAULT_ADDRESS_FORMAT, 'format')
+  if (!isValidAddress(address, networkType, { format })) {
+    return null
+  }
+  if (format === BitcoinCashAddressFormat.Cash) {
+    return bchaddrjs.toCashAddress(address)
+  } else if (format === BitcoinCashAddressFormat.BitPay) {
+    return bchaddrjs.toBitpayAddress(address)
+  } else if (format === BitcoinCashAddressFormat.Legacy) {
+    return bchaddrjs.toLegacyAddress(address)
+  }
+  return null
 }
 
-export function publicKeyToBuffer(publicKey: string | Buffer): Buffer {
-  return isString(publicKey) ? Buffer.from(publicKey, 'hex') : publicKey
+export function isValidPublicKey(publicKey: string | Buffer, networkType: NetworkType): boolean {
+  try {
+    bitcoin.ECPair.fromPublicKey(publicKeyToBuffer(publicKey), { network: NETWORKS[networkType] })
+    return true
+  } catch (e) {
+    return false
+  }
 }
 
-export function publicKeyToString(publicKey: string | Buffer): string {
-  return isString(publicKey) ? publicKey : publicKey.toString('hex')
+export function isValidPrivateKey(privateKey: string, networkType: NetworkType): boolean {
+  try {
+    privateKeyToKeyPair(privateKey, NETWORKS[networkType])
+    return true
+  } catch (e) {
+    return false
+  }
 }
 
 export function getSinglesigPaymentScript(
   network: BitcoinjsNetwork,
-  addressType: SinglesigAddressType,
   pubkey: Buffer,
 ): bitcoin.payments.Payment {
   const scriptParams = { network, pubkey }
@@ -70,10 +101,9 @@ export function getSinglesigPaymentScript(
 export function publicKeyToAddress(
   publicKey: string | Buffer,
   network: BitcoinjsNetwork,
-  addressType: SinglesigAddressType,
 ): string {
   const pubkey = publicKeyToBuffer(publicKey)
-  const script = getSinglesigPaymentScript(network, addressType, pubkey)
+  const script = getSinglesigPaymentScript(network, pubkey)
   const { address } = script
   if (!address) {
     throw new Error('bitcoinforksjs-lib address derivation returned falsy value')
@@ -89,16 +119,7 @@ export function privateKeyToKeyPair(privateKey: string, network: BitcoinjsNetwor
   return bitcoin.ECPair.fromWIF(privateKey, network)
 }
 
-export function privateKeyToAddress(privateKey: string, network: BitcoinjsNetwork, addressType: SinglesigAddressType) {
+export function privateKeyToAddress(privateKey: string, network: BitcoinjsNetwork) {
   const keyPair = privateKeyToKeyPair(privateKey, network)
-  return publicKeyToAddress(keyPair.publicKey, network, addressType)
-}
-
-export function isValidPrivateKey(privateKey: string, network: BitcoinjsNetwork): boolean {
-  try {
-    privateKeyToKeyPair(privateKey, network)
-    return true
-  } catch (e) {
-    return false
-  }
+  return publicKeyToAddress(keyPair.publicKey, network)
 }

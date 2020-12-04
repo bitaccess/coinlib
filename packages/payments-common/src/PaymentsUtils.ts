@@ -25,7 +25,13 @@ export interface PaymentsUtils {
   /**
    * Return true if it's a valid address.
    */
-  isValidAddress<O extends object>(address: string, options?: O): boolean
+  isValidAddress<O extends { format?: string }>(address: string, options?: O): boolean
+
+  /**
+   * Return the address in a standardized format (ie checksum vs lowercase).
+   * Return null if address isn't in any valid format.
+   */
+  standardizeAddress<O extends { format?: string }>(address: string, options?: O): string | null
 
   /**
    * Return true if it's a valid extra ID.

@@ -1,7 +1,9 @@
 import * as bitcoin from 'bitcoinjs-lib'
 import {
-  FeeRateType, FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus,
+  FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus,
 } from '@faast/payments-common'
+import { bitcoinish } from '@faast/bitcoin-payments'
+
 import { toBitcoinishConfig, estimateBitcoinTxSize } from './utils'
 import {
   BaseDogePaymentsConfig,
@@ -14,11 +16,10 @@ import {
 import {
   BITCOIN_SEQUENCE_RBF,
 } from './constants'
-import { isValidAddress, isValidPrivateKey, isValidPublicKey } from './helpers'
-import { BitcoinishPayments, BitcoinishPaymentTx, getBlockcypherFeeRecommendation } from '@faast/bitcoin-payments'
+import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress } from './helpers'
 
 // tslint:disable-next-line:max-line-length
-export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> extends BitcoinishPayments<Config> {
+export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> extends bitcoinish.BitcoinishPayments<Config> {
 
   readonly maximumFeeRate?: number
   readonly blockcypherToken?: string
@@ -37,19 +38,23 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
   }
 
   isValidAddress(address: string): boolean {
-    return isValidAddress(address, this.bitcoinjsNetwork)
+    return isValidAddress(address, this.networkType)
+  }
+
+  standardizeAddress(address: string) {
+    return standardizeAddress(address, this.networkType)
   }
 
   isValidPrivateKey(privateKey: string): boolean {
-    return isValidPrivateKey(privateKey, this.bitcoinjsNetwork)
+    return isValidPrivateKey(privateKey, this.networkType)
   }
 
   isValidPublicKey(publicKey: string): boolean {
-    return isValidPublicKey(publicKey, this.bitcoinjsNetwork)
+    return isValidPublicKey(publicKey, this.networkType)
   }
 
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
-    return getBlockcypherFeeRecommendation(
+    return bitcoinish.getBlockcypherFeeRecommendation(
       feeLevel, this.coinSymbol, this.networkType, this.blockcypherToken, this.logger,
     )
   }
@@ -123,7 +128,7 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
     }
   }
 
-  async buildPsbt(paymentTx: BitcoinishPaymentTx, fromIndex: number): Promise<bitcoin.Psbt> {
+  async buildPsbt(paymentTx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<bitcoin.Psbt> {
     const { inputs, outputs } = paymentTx
     const inputPaymentScript = this.getPaymentScript(fromIndex)
     let psbt = new bitcoin.Psbt(this.psbtOptions)
@@ -144,7 +149,7 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
     return psbt
   }
 
-  async serializePaymentTx(tx: BitcoinishPaymentTx, fromIndex: number): Promise<string> {
+  async serializePaymentTx(tx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<string> {
     return (await this.buildPsbt(tx, fromIndex)).toHex()
   }
 

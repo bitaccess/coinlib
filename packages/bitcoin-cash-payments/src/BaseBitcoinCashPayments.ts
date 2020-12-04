@@ -1,26 +1,25 @@
 import * as bitcoin from 'bitcoinforksjs-lib'
 import bchAddr from 'bchaddrjs'
+import { bitcoinish, AddressType } from '@faast/bitcoin-payments'
 import {
-  FeeRateType, FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus,
+  FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus,
 } from '@faast/payments-common'
-import { BitcoinCashPaymentsUtils } from '../src'
 import { toBitcoinishConfig, estimateBitcoinTxSize } from './utils'
 import {
   BaseBitcoinCashPaymentsConfig,
   BitcoinCashUnsignedTransaction,
   BitcoinCashSignedTransactionData,
   BitcoinCashSignedTransaction,
-  AddressType,
   PsbtInputData,
+  BitcoinCashAddressFormat,
 } from './types'
 import {
-  DEFAULT_SAT_PER_BYTE_LEVELS, BITCOIN_SEQUENCE_RBF,
+  BITCOIN_SEQUENCE_RBF,
 } from './constants'
-import { isValidAddress, isValidPrivateKey, isValidPublicKey } from './helpers'
-import { BitcoinishPayments, BitcoinishPaymentTx, getBlockbookFeeRecommendation } from '@faast/bitcoin-payments'
+import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress } from './helpers';
 
 // tslint:disable-next-line:max-line-length
-export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaymentsConfig> extends BitcoinishPayments<Config> {
+export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaymentsConfig> extends bitcoinish.BitcoinishPayments<Config> {
 
   readonly maximumFeeRate?: number
 
@@ -30,31 +29,40 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
   }
 
   abstract getPaymentScript(index: number): bitcoin.payments.Payment
-  abstract addressType: AddressType
 
   async createServiceTransaction(): Promise<null> {
     return null
   }
 
-  isValidAddress(address: string): boolean {
-    return isValidAddress(address, this.bitcoinjsNetwork)
+  isValidAddress(address: string, options?: { format?: string }): boolean {
+    return isValidAddress(address, this.networkType, options)
+  }
+
+  standardizeAddress(address: string, options?: { format?: string }): string | null {
+    return standardizeAddress(address, this.networkType, options)
   }
 
   isValidPrivateKey(privateKey: string): boolean {
-    return isValidPrivateKey(privateKey, this.bitcoinjsNetwork)
+    return isValidPrivateKey(privateKey, this.networkType)
   }
 
   isValidPublicKey(publicKey: string): boolean {
-    return isValidPublicKey(publicKey, this.bitcoinjsNetwork)
+    return isValidPublicKey(publicKey, this.networkType)
   }
 
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
-    return getBlockbookFeeRecommendation(feeLevel, this.coinSymbol, this.networkType, this.getApi(), this.logger)
+    return bitcoinish.getBlockbookFeeRecommendation(
+      feeLevel,
+      this.coinSymbol,
+      this.networkType,
+      this.getApi(),
+      this.logger,
+    )
   }
 
   /** Return a string that can be passed into estimateBitcoinCashTxSize. Override to support multisig */
   getEstimateTxSizeInputKey(): string {
-    return this.addressType
+    return AddressType.Legacy
   }
 
   estimateTxSize(inputCount: number, changeOutputCount: number, externalOutputAddresses: string[]): number {
@@ -62,7 +70,7 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
       // @ts-ignore
       outputCounts[address] = 1
       return outputCounts
-    }, { [this.addressType]: changeOutputCount })
+    }, { [AddressType.Legacy]: changeOutputCount })
     return estimateBitcoinTxSize(
       { [this.getEstimateTxSizeInputKey()]: inputCount },
       outputCounts,
@@ -73,7 +81,7 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
   async getPsbtInputData(
     utxo: UtxoInfo,
     paymentScript: bitcoin.payments.Payment,
-    addressType: AddressType,
+    addressType: AddressType = AddressType.Legacy,
   ): Promise<PsbtInputData> {
     const utx = await this.getApi().getTx(utxo.txid)
     const result: PsbtInputData = {
@@ -121,7 +129,7 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
     }
   }
 
-  async buildPsbt(paymentTx: BitcoinishPaymentTx, fromIndex: number): Promise<bitcoin.Psbt> {
+  async buildPsbt(paymentTx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<bitcoin.Psbt> {
     const { inputs, outputs } = paymentTx
     const inputPaymentScript = this.getPaymentScript(fromIndex)
     let psbt = new bitcoin.Psbt(this.psbtOptions)
@@ -129,9 +137,8 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
     for (let input of inputs) {
       psbt.addInput({
         ...await this.getPsbtInputData(
-        input,
-        inputPaymentScript,
-        this.addressType,
+          input,
+          inputPaymentScript,
         ),
         sighashType: hashType
       })
@@ -145,7 +152,7 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
     return psbt
   }
 
-  async serializePaymentTx(tx: BitcoinishPaymentTx, fromIndex: number): Promise<string> {
+  async serializePaymentTx(tx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<string> {
     return (await this.buildPsbt(tx, fromIndex)).toHex()
   }
 

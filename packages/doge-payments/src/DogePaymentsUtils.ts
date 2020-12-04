@@ -1,11 +1,11 @@
-import { BitcoinishPaymentsUtils, getBlockcypherFeeRecommendation } from '@faast/bitcoin-payments'
+import { bitcoinish } from '@faast/bitcoin-payments'
 import { AutoFeeLevels, FeeRate } from '@faast/payments-common'
 
 import { toBitcoinishConfig } from './utils'
 import { DogePaymentsUtilsConfig } from './types'
-import { isValidAddress, isValidPrivateKey } from './helpers'
+import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress } from './helpers'
 
-export class DogePaymentsUtils extends BitcoinishPaymentsUtils {
+export class DogePaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils {
 
   readonly blockcypherToken?: string
 
@@ -15,15 +15,23 @@ export class DogePaymentsUtils extends BitcoinishPaymentsUtils {
   }
 
   isValidAddress(address: string) {
-    return isValidAddress(address, this.bitcoinjsNetwork)
+    return isValidAddress(address, this.networkType)
+  }
+
+  standardizeAddress(address: string) {
+    return standardizeAddress(address, this.networkType)
+  }
+
+  isValidPublicKey(publicKey: string) {
+    return isValidPublicKey(publicKey, this.networkType)
   }
 
   isValidPrivateKey(privateKey: string) {
-    return isValidPrivateKey(privateKey, this.bitcoinjsNetwork)
+    return isValidPrivateKey(privateKey, this.networkType)
   }
 
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
-    return getBlockcypherFeeRecommendation(
+    return bitcoinish.getBlockcypherFeeRecommendation(
       feeLevel, this.coinSymbol, this.networkType, this.blockcypherToken, this.logger,
     )
   }

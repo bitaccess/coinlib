@@ -1,5 +1,5 @@
 import { FeeLevel } from '@faast/payments-common'
-import { EthTxType } from './types'
+import { EthTxType, EthereumAddressFormat } from './types';
 
 export const PACKAGE_NAME = 'ethereum-payments'
 export const ETH_SYMBOL = 'ETH'
@@ -59,3 +59,5 @@ export const DEPOSIT_KEY_INDEX = 0
 export const PUBLIC_CONFIG_OMIT_FIELDS = [
   'logger', 'fullNode', 'parityNode', 'gasStation', 'keyPairs', 'hdKey', 'providerOptions', 'web3'
 ]
+
+export const DEFAULT_ADDRESS_FORMAT = EthereumAddressFormat.Lowercase

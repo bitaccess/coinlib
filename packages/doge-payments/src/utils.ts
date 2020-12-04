@@ -1,9 +1,9 @@
-import { NetworkType, FeeLevel, FeeRateType, AutoFeeLevels } from '@faast/payments-common'
-import request from 'request-promise-native'
+import { NetworkType, FeeRateType, AutoFeeLevels } from '@faast/payments-common'
 import bs58 from 'bs58'
 import * as bitcoin from 'bitcoinjs-lib'
 import { BaseDogePaymentsConfig, AddressType, SinglesigAddressType, AddressTypeT } from './types'
-import { BitcoinishPaymentsConfig } from '@faast/bitcoin-payments'
+import { bitcoinish } from '@faast/bitcoin-payments'
+import { assertType } from '@faast/ts-common'
 import {
   DEFAULT_NETWORK,
   NETWORK_TESTNET,
@@ -18,7 +18,6 @@ import {
   DEFAULT_MIN_TX_FEE,
   DEFAULT_FEE_LEVEL,
 } from './constants'
-import { assertType } from '@faast/ts-common';
 
 const DEFAULT_BITCOINISH_CONFIG = {
   coinSymbol: COIN_SYMBOL,
@@ -39,7 +38,7 @@ export function bip32MagicNumberToPrefix(magicNum: number): string {
   return bs58.encode(b).slice(0, 4)
 }
 
-export function toBitcoinishConfig<T extends BaseDogePaymentsConfig>(config: T): BitcoinishPaymentsConfig {
+export function toBitcoinishConfig<T extends BaseDogePaymentsConfig>(config: T): bitcoinish.BitcoinishPaymentsConfig {
   const configWithDefaults = {
     ...DEFAULT_BITCOINISH_CONFIG,
     ...config,

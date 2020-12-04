@@ -1,6 +1,6 @@
 import { FeeLevel, NetworkType } from '@faast/payments-common'
-import { networks } from 'bitcoinjs-lib'
-import { AddressType, SinglesigAddressType } from './types';
+import { BitcoinjsNetwork } from '@faast/bitcoin-payments'
+import { AddressType, SinglesigAddressType } from './types'
 
 export const PACKAGE_NAME = 'doge-payments'
 export const DECIMAL_PLACES = 8
@@ -65,14 +65,14 @@ export const NETWORK_TESTNET = {
   wif: 0xf1
 }
 
+export const NETWORKS: { [networkType in NetworkType]: BitcoinjsNetwork } = {
+  [NetworkType.Mainnet]: NETWORK_MAINNET,
+  [NetworkType.Testnet]: NETWORK_TESTNET,
+}
+
 export const DEFAULT_MAINNET_SERVER = process.env.DOGECOIN_SERVER_URL
   ? process.env.DOGECOIN_SERVER_URL.split(',')
   : ['https://doge1.trezor.io', 'https://doge2.trezor.io']
 export const DEFAULT_TESTNET_SERVER = ''
 
 export const DEFAULT_FEE_LEVEL = FeeLevel.High
-export const DEFAULT_SAT_PER_BYTE_LEVELS = {
-  [FeeLevel.High]: 500000,
-  [FeeLevel.Medium]: 350000,
-  [FeeLevel.Low]: 100000,
-}

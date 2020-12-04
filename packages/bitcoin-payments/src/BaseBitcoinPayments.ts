@@ -1,7 +1,8 @@
 import * as bitcoin from 'bitcoinjs-lib'
 import {
-  FeeRateType, FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus, BaseMultisigData,
+  FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus, BaseMultisigData,
 } from '@faast/payments-common'
+import BigNumber from 'bignumber.js'
 
 import { toBitcoinishConfig, estimateBitcoinTxSize } from './utils'
 import {
@@ -13,11 +14,10 @@ import {
   PsbtInputData,
 } from './types'
 import {
-  DEFAULT_SAT_PER_BYTE_LEVELS, BITCOIN_SEQUENCE_RBF,
+  BITCOIN_SEQUENCE_RBF,
 } from './constants'
-import { isValidAddress, isValidPrivateKey, isValidPublicKey } from './helpers'
+import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress } from './helpers'
 import { BitcoinishPayments, BitcoinishPaymentTx, BitcoinishTxOutput, getBlockcypherFeeRecommendation } from './bitcoinish'
-import BigNumber from 'bignumber.js'
 
 export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConfig> extends BitcoinishPayments<Config> {
 
@@ -38,15 +38,19 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
   }
 
   isValidAddress(address: string): boolean {
-    return isValidAddress(address, this.bitcoinjsNetwork)
+    return isValidAddress(address, this.networkType)
+  }
+
+  standardizeAddress(address: string): string | null {
+    return standardizeAddress(address, this.networkType)
   }
 
   isValidPrivateKey(privateKey: string): boolean {
-    return isValidPrivateKey(privateKey, this.bitcoinjsNetwork)
+    return isValidPrivateKey(privateKey, this.networkType)
   }
 
   isValidPublicKey(publicKey: string): boolean {
-    return isValidPublicKey(publicKey, this.bitcoinjsNetwork)
+    return isValidPublicKey(publicKey, this.networkType)
   }
 
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {

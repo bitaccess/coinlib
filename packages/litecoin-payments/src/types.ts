@@ -6,8 +6,14 @@ import {
 import { extendCodec, enumCodec, requiredOptionalCodec } from '@faast/ts-common'
 import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
 import { BlockInfoBitcoin } from 'blockbook-client'
-import { BitcoinishPaymentTx, BlockbookConfigServer } from '@faast/bitcoin-payments'
+import { bitcoinish } from '@faast/bitcoin-payments'
 import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
+
+export enum LitecoinAddressFormat {
+  Legacy = 'legacy',
+  Modern = 'modern',
+}
+export const LitecoinAddressFormatT = enumCodec<LitecoinAddressFormat>(LitecoinAddressFormat, 'LitecoinAddressFormat')
 
 export type LitecoinjsKeyPair = BitcoinjsSigner & {
   privateKey?: Buffer
@@ -48,7 +54,7 @@ export const LitecoinPaymentsUtilsConfig = extendCodec(
   BaseConfig,
   {},
   {
-    server: BlockbookConfigServer,
+    server: bitcoinish.BlockbookConfigServer,
     blockcypherToken: t.string,
   },
   'LitecoinPaymentsUtilsConfig',
@@ -107,7 +113,7 @@ export const LitecoinPaymentsConfig = t.union([
 ], 'LitecoinPaymentsConfig')
 export type LitecoinPaymentsConfig = t.TypeOf<typeof LitecoinPaymentsConfig>
 
-export const LitecoinUnsignedTransactionData = BitcoinishPaymentTx
+export const LitecoinUnsignedTransactionData = bitcoinish.BitcoinishPaymentTx
 export type LitecoinUnsignedTransactionData = t.TypeOf<typeof LitecoinUnsignedTransactionData>
 
 export const LitecoinUnsignedTransaction = extendCodec(

@@ -1,23 +1,37 @@
-import { BitcoinishPaymentsUtils, getBlockbookFeeRecommendation } from '@faast/bitcoin-payments'
+import { bitcoinish } from '@faast/bitcoin-payments'
 import { AutoFeeLevels, FeeRate } from '@faast/payments-common'
 import { toBitcoinishConfig } from './utils'
 import { BitcoinCashPaymentsUtilsConfig } from './types'
-import { isValidAddress, isValidPrivateKey } from './helpers'
+import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress } from './helpers'
 
-export class BitcoinCashPaymentsUtils extends BitcoinishPaymentsUtils {
+export class BitcoinCashPaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils {
   constructor(config: BitcoinCashPaymentsUtilsConfig = {}) {
     super(toBitcoinishConfig(config))
   }
 
-  isValidAddress(address: string) {
-    return isValidAddress(address, this.bitcoinjsNetwork)
+  isValidAddress(address: string, options?: { format?: string }) {
+    return isValidAddress(address, this.networkType, options)
+  }
+
+  standardizeAddress(address: string, options?: { format?: string }) {
+    return standardizeAddress(address, this.networkType, options)
+  }
+
+  isValidPublicKey(publicKey: string) {
+    return isValidPublicKey(publicKey, this.networkType)
   }
 
   isValidPrivateKey(privateKey: string) {
-    return isValidPrivateKey(privateKey, this.bitcoinjsNetwork)
+    return isValidPrivateKey(privateKey, this.networkType)
   }
 
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
-    return getBlockbookFeeRecommendation(feeLevel, this.coinSymbol, this.networkType, this.getApi(), this.logger)
+    return bitcoinish.getBlockbookFeeRecommendation(
+      feeLevel,
+      this.coinSymbol,
+      this.networkType,
+      this.getApi(),
+      this.logger,
+    )
   }
 }

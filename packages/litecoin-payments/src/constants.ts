@@ -1,6 +1,5 @@
 import { FeeLevel, NetworkType } from '@faast/payments-common'
-import { networks } from 'bitcoinjs-lib'
-import { AddressType, SinglesigAddressType } from './types';
+import { AddressType, SinglesigAddressType, LitecoinAddressFormat } from './types'
 
 export const PACKAGE_NAME = 'litecoin-payments'
 export const DECIMAL_PLACES = 8
@@ -65,14 +64,16 @@ export const NETWORK_TESTNET = {
   wif: 0xef
 }
 
+export const NETWORKS = {
+  [NetworkType.Mainnet]: NETWORK_MAINNET,
+  [NetworkType.Testnet]: NETWORK_TESTNET,
+}
+
 export const DEFAULT_MAINNET_SERVER = process.env.LITECOIN_SERVER_URL
   ? process.env.LITECOIN_SERVER_URL.split(',')
   : ['https://ltc1.trezor.io', 'https://ltc2.trezor.io']
 export const DEFAULT_TESTNET_SERVER = '' // will default to mainnet due to not testing LTC testnet
 
 export const DEFAULT_FEE_LEVEL = FeeLevel.Medium
-export const DEFAULT_SAT_PER_BYTE_LEVELS = {
-  [FeeLevel.High]: 50,
-  [FeeLevel.Medium]: 25,
-  [FeeLevel.Low]: 10,
-}
+
+export const DEFAULT_ADDRESS_FORMAT = LitecoinAddressFormat.Modern

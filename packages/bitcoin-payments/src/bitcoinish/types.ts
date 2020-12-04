@@ -1,13 +1,46 @@
 import * as t from 'io-ts'
 import {
   BaseUnsignedTransaction, BaseSignedTransaction, FeeRate, AutoFeeLevels,
-  BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, NetworkTypeT, ResolveablePayport,
+  BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, NetworkTypeT,
 } from '@faast/payments-common'
-import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger, Numeric } from '@faast/ts-common'
-import { Network as BitcoinjsNetwork } from 'bitcoinjs-lib'
+import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger, Numeric, enumCodec } from '@faast/ts-common'
+import { Network as BitcoinjsNetwork, Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
 import { BlockbookBitcoin, BlockInfoBitcoin } from 'blockbook-client'
 
 export { BitcoinjsNetwork }
+
+export type BitcoinjsKeyPair = BitcoinjsSigner & {
+  privateKey?: Buffer
+  toWIF(): string
+}
+
+export enum AddressType {
+  Legacy = 'p2pkh',
+  SegwitP2SH = 'p2sh-p2wpkh',
+  SegwitNative = 'p2wpkh',
+  MultisigLegacy = 'p2sh-p2ms',
+  MultisigSegwitP2SH = 'p2sh-p2wsh-p2ms',
+  MultisigSegwitNative = 'p2wsh-p2ms'
+}
+export const AddressTypeT = enumCodec<AddressType>(AddressType, 'AddressType')
+
+// For unclear reasons tsc throws TS4023 when this type is used in an external module.
+// Re-exporting the codec cast to the inferred type helps fix this.
+const SinglesigAddressTypeT = t.keyof({
+  [AddressType.Legacy]: null,
+  [AddressType.SegwitP2SH]: null,
+  [AddressType.SegwitNative]: null,
+}, 'SinglesigAddressType')
+export type SinglesigAddressType = t.TypeOf<typeof SinglesigAddressTypeT>
+export const SinglesigAddressType = SinglesigAddressTypeT as t.Type<SinglesigAddressType>
+
+const MultisigAddressTypeT = t.keyof({
+  [AddressType.MultisigLegacy]: null,
+  [AddressType.MultisigSegwitP2SH]: null,
+  [AddressType.MultisigSegwitNative]: null,
+}, 'MultisigAddressType')
+export type MultisigAddressType = t.TypeOf<typeof MultisigAddressTypeT>
+export const MultisigAddressType = MultisigAddressTypeT as t.Type<MultisigAddressType>
 
 /** A hack to get around TS2742 when config is re-exported from coin-payments */
 export class BlockbookServerAPI extends BlockbookBitcoin {}

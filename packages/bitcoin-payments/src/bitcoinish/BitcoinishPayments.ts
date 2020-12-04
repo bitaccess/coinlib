@@ -74,7 +74,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   abstract getAccountId(index: number): string
   abstract getAccountIds(index?: number): string[]
   abstract getAddress(index: number): string
-  abstract isValidAddress(address: string): boolean
   abstract signTransaction(tx: BitcoinishUnsignedTransaction): Promise<BitcoinishSignedTransaction>
 
   /**

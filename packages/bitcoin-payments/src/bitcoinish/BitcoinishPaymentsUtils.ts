@@ -36,7 +36,8 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     return false // utxo coins don't use extraIds
   }
 
-  abstract isValidAddress(address: string): boolean
+  abstract isValidAddress<O extends { format?: string }>(address: string, options?: O): boolean
+  abstract standardizeAddress<O extends { format?: string }>(address: string, options?: O): string | null
   abstract getFeeRateRecommendation(level: AutoFeeLevels): MaybePromise<FeeRate>
 
   private _getPayportValidationMessage(payport: Payport): string | undefined {
