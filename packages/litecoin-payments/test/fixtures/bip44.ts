@@ -1,5 +1,7 @@
 import { NETWORK_MAINNET } from '../../src'
+import { NetworkType } from '@faast/payments-common'
 
+export const NETWORK_TYPE = NetworkType.Mainnet
 export const NETWORK = NETWORK_MAINNET
 export const DERIVATION_PATH = "m/44'/2'/0'"
 export const MNEMONIC = 'width wide indicate decade slush hip repeat patient submit poem defense rally liberty wrap crucial'
@@ -18,4 +20,5 @@ export const DERIVED_XPUB = 'xpub6Bvk7TZL7RXk6vMPS3aTszwr57mYGEnWwS1gnoNiE3R7Cxv
 export const PRIVATE_KEY = 'T8tNFyw2AcnAJDCPNZusp6KJzSczaaQrawtbWsM2foVLoYMPAPq1'
 export const ADDRESS_LEGACY = 'LPHRhQyZ4pfUzbT4L7NmAHU51B66QfsPQm'
 export const ADDRESS_SEGWIT_P2SH = 'MSdUteBz8jBva5WK9rhXytoCkstyvWRQDF'
+export const ADDRESS_SEGWIT_P2SH_DEPRECATED = '3LRLakn2BcLVmaER3yiCAFYoSBJXsfYwuV'
 export const ADDRESS_SEGWIT_NATIVE = 'ltc1q9jy2da00sx99t7euhg5f3r3ju875elyafuvkhe'

@@ -10,7 +10,7 @@ import { bitcoinish } from '@faast/bitcoin-payments'
 import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
 
 export enum LitecoinAddressFormat {
-  Legacy = 'legacy',
+  Deprecated = 'deprecated',
   Modern = 'modern',
 }
 export const LitecoinAddressFormatT = enumCodec<LitecoinAddressFormat>(LitecoinAddressFormat, 'LitecoinAddressFormat')

@@ -1,15 +1,38 @@
 import { createUnitConverters, NetworkType } from '@faast/payments-common'
 import * as bitcoin from 'bitcoinjs-lib'
-import { assertType, isString } from '@faast/ts-common'
+import { assertType } from '@faast/ts-common'
 
-import { AddressType, LitecoinjsKeyPair, SinglesigAddressType, LitecoinAddressFormat, LitecoinAddressFormatT } from './types'
+import { LitecoinAddressFormat, LitecoinAddressFormatT } from './types'
 import {
   bitcoinish,
-  BitcoinjsNetwork,
-  isValidAddress as isValidBitcoinAddress,
   NETWORKS as BITCOIN_NETWORKS,
+  BitcoinjsNetwork,
+  estimateBitcoinTxSize,
 } from '@faast/bitcoin-payments'
 import { DECIMAL_PLACES, DEFAULT_ADDRESS_FORMAT, NETWORKS } from './constants'
+
+const {
+  getMultisigPaymentScript,
+  getSinglesigPaymentScript,
+  publicKeyToAddress,
+  publicKeyToKeyPair,
+  publicKeyToString,
+  publicKeyToBuffer,
+  privateKeyToKeyPair,
+  privateKeyToAddress,
+} = bitcoinish
+
+export {
+  getMultisigPaymentScript,
+  getSinglesigPaymentScript,
+  publicKeyToAddress,
+  publicKeyToKeyPair,
+  publicKeyToString,
+  publicKeyToBuffer,
+  privateKeyToKeyPair,
+  privateKeyToAddress,
+  estimateBitcoinTxSize as estimateLitecoinTxSize,
+}
 
 const {
   toMainDenominationBigNumber,
@@ -29,6 +52,42 @@ export {
   toBaseDenominationNumber,
 }
 
+const ADDRESS_FORMAT_NETWORKS = {
+  [LitecoinAddressFormat.Deprecated]: BITCOIN_NETWORKS,
+  [LitecoinAddressFormat.Modern]: NETWORKS,
+}
+
+function isP2shAddressForNetwork(address: string, network: BitcoinjsNetwork) {
+  try {
+    const decoded = bitcoin.address.fromBase58Check(address)
+    return decoded.version === network.scriptHash
+  } catch (e) {
+    return false
+  }
+}
+
+/**
+ * Return true if address is a deprecated p2sh address (bitcoin format)
+ * 3-prefix: mainnet
+ * 2-prefix: testnet
+ */
+export function isDeprecatedP2shAddress(address: string, networkType: NetworkType) {
+  return isP2shAddressForNetwork(address, BITCOIN_NETWORKS[networkType])
+}
+
+/**
+ * Return true if address is a modern p2sh address
+ * M-prefix: mainnet
+ * Q-prefix: testnet
+ */
+export function isModernP2shAddress(address: string, networkType: NetworkType) {
+  return isP2shAddressForNetwork(address, NETWORKS[networkType])
+}
+
+/**
+ * defined format: return true if address is valid in provided format
+ * undefined format: return true if address is valid in *any* format
+ */
 export function isValidAddress(
   address: string,
   networkType: NetworkType,
@@ -36,17 +95,16 @@ export function isValidAddress(
 ): boolean {
   const { format } = options
 
-  if (format === LitecoinAddressFormat.Legacy && address.startsWith('3')) {
-    // Litecoin legacy p2sh addresses are valid bitcoin addresses
-    return isValidBitcoinAddress(address, networkType)
-  }
   // Validation for modern addresses is the same as Bitcoin just using different network constants
-  return bitcoinish.isValidAddress(address, NETWORKS[networkType])
-}
+  const isModern = bitcoinish.isValidAddress(address, NETWORKS[networkType])
 
-const formatNetworks = {
-  [LitecoinAddressFormat.Legacy]: BITCOIN_NETWORKS,
-  [LitecoinAddressFormat.Modern]: NETWORKS,
+  if (format === LitecoinAddressFormat.Modern) {
+    return isModern
+  } else if (format === LitecoinAddressFormat.Deprecated) {
+    return (isModern || isDeprecatedP2shAddress(address, networkType)) && !isModernP2shAddress(address, networkType)
+  } else {
+    return isModern || isDeprecatedP2shAddress(address, networkType)
+  }
 }
 
 export function standardizeAddress(
@@ -59,17 +117,14 @@ export function standardizeAddress(
     return address
   }
 
-  // Litecoin legacy p2sh addresses use bitcoin `3` prefix
-  const toFormat = format === LitecoinAddressFormat.Modern
-    ? LitecoinAddressFormat.Legacy
+  const fromFormat = format === LitecoinAddressFormat.Modern
+    ? LitecoinAddressFormat.Deprecated
     : LitecoinAddressFormat.Modern
-  if (!isValidAddress(address, networkType, { format: toFormat })) {
-    return null
-  }
   try {
+    // Convert between p2sh legacy `3` prefix and modern `M` prefix
     const decoded = bitcoin.address.fromBase58Check(address)
-    const fromNetwork = formatNetworks[format][networkType]
-    const toNetwork = formatNetworks[toFormat][networkType]
+    const fromNetwork = ADDRESS_FORMAT_NETWORKS[fromFormat][networkType]
+    const toNetwork = ADDRESS_FORMAT_NETWORKS[format][networkType]
     if (decoded.version === fromNetwork.scriptHash) {
       return bitcoin.address.toBase58Check(decoded.hash, toNetwork.scriptHash)
     }

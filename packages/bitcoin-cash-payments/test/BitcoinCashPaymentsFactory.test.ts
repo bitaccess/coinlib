@@ -4,9 +4,9 @@ import {
 } from '../src'
 import { PRIVATE_KEY } from './fixtures'
 
-import { legacyAccount } from './fixtures/accounts'
+import { hdAccount } from './fixtures/accounts'
 
-const { xprv } = legacyAccount
+const { xprv } = hdAccount
 
 describe('BitcoinCashPaymentsFactory', () => {
   const factory = new BitcoinCashPaymentsFactory()

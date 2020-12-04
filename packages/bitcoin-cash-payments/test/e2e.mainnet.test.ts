@@ -2,16 +2,15 @@ import fs from 'fs'
 import path from 'path'
 import { omit } from 'lodash'
 import { FeeRateType, BalanceResult, TransactionStatus, NetworkType } from '@faast/payments-common'
+import { bitcoinish } from '@faast/bitcoin-payments'
 
 import {
   HdBitcoinCashPayments, BitcoinCashTransactionInfo, HdBitcoinCashPaymentsConfig,
-  BitcoinCashSignedTransaction, AddressType,
-  SinglesigAddressType
+  BitcoinCashSignedTransaction,
 } from '../src'
 
 import { txInfo_beae1 } from './fixtures/transactions'
-import { legacyAccount } from './fixtures/accounts'
-import { ADDRESS_INPUT_WEIGHTS } from '../src/utils'
+import { hdAccount } from './fixtures/accounts'
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
@@ -34,10 +33,6 @@ if (fs.existsSync(secretXprvFilePath)) {
     `File ${SECRET_XPRV_FILE} missing. Send and sweep e2e mainnet tests will be skipped. To enable them ask Dylan to share the file with you.`,
   )
 }
-
-const addressTypesToTest: SinglesigAddressType[] = [
-  AddressType.Legacy,
-];
 
 function assertTxInfo(actual: BitcoinCashTransactionInfo, expected: BitcoinCashTransactionInfo): void {
   expectEqualOmit({
@@ -96,7 +91,6 @@ describeAll('e2e mainnet', () => {
   const payments = new HdBitcoinCashPayments({
     hdKey: secretXprv,
     network: NetworkType.Mainnet,
-    addressType: AddressType.Legacy,
     logger,
     targetUtxoPoolSize: 1,
   })
@@ -290,12 +284,11 @@ describeAll('e2e mainnet', () => {
   })
 
   jest.setTimeout(300 * 1000)
-  
+
   describe('getTransactionInfo', () => {
     const paymentsConfig: HdBitcoinCashPaymentsConfig = {
       hdKey: secretXprv,
       network: NetworkType.Mainnet,
-      addressType: AddressType.Legacy,
       logger,
     }
     const payments = new HdBitcoinCashPayments(paymentsConfig)
@@ -325,110 +318,107 @@ describeAll('e2e mainnet', () => {
     })
   })
 
-  for (let addressType of addressTypesToTest) {
-    const { xpub, addresses, sweepTxSize } = legacyAccount
-
-    describe(addressType, () => {
-      const paymentsConfig: HdBitcoinCashPaymentsConfig = {
-        hdKey: secretXprv,
-        network: NetworkType.Mainnet,
-        addressType,
-        logger,
-        minChange: '0.01',
-        targetUtxoPoolSize: 5,
-      }
-      const payments = new HdBitcoinCashPayments(paymentsConfig)
-      it('get correct xpub', async () => {
-        expect(payments.xpub).toEqual(xpub)
-      })
-      for (let iStr in addresses) {
-        const i = Number.parseInt(iStr)
-        it(`get correct address for index ${i}`, async () => {
-          expect(await payments.getPayport(i)).toEqual({ address: (addresses as any)[i] })
-        })
-      }
-
-      jest.setTimeout(300 * 1000)
-
-      it('end to end sweep', async () => {
-        const indicesToTry = [5, 6]
-        const balances: { [i: number]: BalanceResult } = {}
-        let indexToSweep: number = -1
-        for (const index of indicesToTry) {
-          const balanceResult = await payments.getBalance(index)
-          balances[index] = balanceResult
-          if (balanceResult.sweepable) {
-            indexToSweep = index
-            break
-          }
-        }
-        if (indexToSweep < 0) {
-          const allAddresses = await Promise.all(indicesToTry.map(async i => (await payments.getPayport(i)).address))
-          throw new Error(`Cannot end to end test sweeping due to lack of funds. Send BCH to any of the following addresses and try again. ${JSON.stringify(allAddresses)}`)
-        }
-        const recipientIndex = indexToSweep === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
-        const satPerByte = 21
-        const unsignedTx = await payments.createSweepTransaction(indexToSweep, recipientIndex, {
-          feeRate: satPerByte.toString(),
-          feeRateType: FeeRateType.BasePerWeight,
-          useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
-        })
-        const signedTx = await payments.signTransaction(unsignedTx)
-        expect(signedTx.inputUtxos).toBeDefined()
-        const inputCount = signedTx.inputUtxos!.length
-        expect(inputCount).toBeGreaterThanOrEqual(1)
-        expect(signedTx.externalOutputs).toBeDefined()
-        expect(signedTx.externalOutputs!.length).toBe(1)
-        const feeNumber = new BigNumber(signedTx.fee).toNumber()
-        const extraInputs = inputCount - 1
-        let expectedTxSize = sweepTxSize
-        if (extraInputs) {
-          expectedTxSize += (extraInputs * ADDRESS_INPUT_WEIGHTS[addressType]) / 4
-        }
-
-        expect(feeNumber).toBe((expectedTxSize*satPerByte)*1e-8)
-        logger.log(`Sweeping ${signedTx.amount} from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
-        expect(await payments.broadcastTransaction(signedTx)).toEqual({
-          id: signedTx.id,
-        })
-        const tx = await payments.getTransactionInfo(signedTx.id)
-        expect(tx.amount).toEqual(signedTx.amount)
-        expect(tx.fee).toEqual(signedTx.fee)
-      })
-
-      it('end to end send', async () => {
-        const indicesToTry = [7, 8]
-        const balances: { [i: number]: BalanceResult } = {}
-        let indexToSend: number = -1
-        let highestBalance = toBigNumber(0)
-        for (const index of indicesToTry) {
-          const balanceResult = await payments.getBalance(index)
-          balances[index] = balanceResult
-          if (toBigNumber(balanceResult.confirmedBalance).gt(highestBalance)) {
-            indexToSend = index
-            break
-          }
-        }
-        if (indexToSend < 0) {
-          const allAddresses = await Promise.all(indicesToTry.map(async i => (await payments.getPayport(i)).address))
-          throw new Error(`Cannot end to end test sweeping due to lack of funds. Send BCH to any of the following addresses and try again. ${JSON.stringify(allAddresses)}`)
-        }
-        const recipientIndex = indexToSend === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
-        const unsignedTx = await payments.createTransaction(
-          indexToSend,
-          recipientIndex,
-          '0.0001',
-          { useUnconfirmedUtxos: true }, // Prevents consecutive tests from failing
-        )
-        const signedTx = await payments.signTransaction(unsignedTx)
-        logger.log(`Sending ${signedTx.amount} from ${indexToSend} to ${recipientIndex} in tx ${signedTx.id}`)
-        expect(await payments.broadcastTransaction(signedTx)).toEqual({
-          id: signedTx.id,
-        })
-        const tx = await payments.getTransactionInfo(signedTx.id)
-        expect(tx.amount).toEqual(signedTx.amount)
-        expect(tx.fee).toEqual(signedTx.fee)
-      })
+  describe('end to end', () => {
+    const { addresses, sweepTxSize } = hdAccount
+    const addressType = bitcoinish.AddressType.Legacy
+    const paymentsConfig: HdBitcoinCashPaymentsConfig = {
+      hdKey: secretXprv,
+      network: NetworkType.Mainnet,
+      logger,
+      minChange: '0.01',
+      targetUtxoPoolSize: 5,
+    }
+    const payments = new HdBitcoinCashPayments(paymentsConfig)
+    it('get correct xpub', async () => {
+      expect(payments.xpub).toEqual(xpub)
     })
-  }
+    for (let iStr in addresses) {
+      const i = Number.parseInt(iStr)
+      it(`get correct address for index ${i}`, async () => {
+        expect(await payments.getPayport(i)).toEqual({ address: (addresses as any)[i] })
+      })
+    }
+
+    jest.setTimeout(300 * 1000)
+
+    it('end to end sweep', async () => {
+      const indicesToTry = [5, 6]
+      const balances: { [i: number]: BalanceResult } = {}
+      let indexToSweep: number = -1
+      for (const index of indicesToTry) {
+        const balanceResult = await payments.getBalance(index)
+        balances[index] = balanceResult
+        if (balanceResult.sweepable) {
+          indexToSweep = index
+          break
+        }
+      }
+      if (indexToSweep < 0) {
+        const allAddresses = await Promise.all(indicesToTry.map(async i => (await payments.getPayport(i)).address))
+        throw new Error(`Cannot end to end test sweeping due to lack of funds. Send BCH to any of the following addresses and try again. ${JSON.stringify(allAddresses)}`)
+      }
+      const recipientIndex = indexToSweep === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
+      const satPerByte = 21
+      const unsignedTx = await payments.createSweepTransaction(indexToSweep, recipientIndex, {
+        feeRate: satPerByte.toString(),
+        feeRateType: FeeRateType.BasePerWeight,
+        useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
+      })
+      const signedTx = await payments.signTransaction(unsignedTx)
+      expect(signedTx.inputUtxos).toBeDefined()
+      const inputCount = signedTx.inputUtxos!.length
+      expect(inputCount).toBeGreaterThanOrEqual(1)
+      expect(signedTx.externalOutputs).toBeDefined()
+      expect(signedTx.externalOutputs!.length).toBe(1)
+      const feeNumber = new BigNumber(signedTx.fee).toNumber()
+      const extraInputs = inputCount - 1
+      let expectedTxSize = sweepTxSize
+      if (extraInputs) {
+        expectedTxSize += (extraInputs * bitcoinish.ADDRESS_INPUT_WEIGHTS[addressType]) / 4
+      }
+
+      expect(feeNumber).toBe((expectedTxSize*satPerByte)*1e-8)
+      logger.log(`Sweeping ${signedTx.amount} from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
+      expect(await payments.broadcastTransaction(signedTx)).toEqual({
+        id: signedTx.id,
+      })
+      const tx = await payments.getTransactionInfo(signedTx.id)
+      expect(tx.amount).toEqual(signedTx.amount)
+      expect(tx.fee).toEqual(signedTx.fee)
+    })
+
+    it('end to end send', async () => {
+      const indicesToTry = [7, 8]
+      const balances: { [i: number]: BalanceResult } = {}
+      let indexToSend: number = -1
+      let highestBalance = toBigNumber(0)
+      for (const index of indicesToTry) {
+        const balanceResult = await payments.getBalance(index)
+        balances[index] = balanceResult
+        if (toBigNumber(balanceResult.confirmedBalance).gt(highestBalance)) {
+          indexToSend = index
+          break
+        }
+      }
+      if (indexToSend < 0) {
+        const allAddresses = await Promise.all(indicesToTry.map(async i => (await payments.getPayport(i)).address))
+        throw new Error(`Cannot end to end test sweeping due to lack of funds. Send BCH to any of the following addresses and try again. ${JSON.stringify(allAddresses)}`)
+      }
+      const recipientIndex = indexToSend === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
+      const unsignedTx = await payments.createTransaction(
+        indexToSend,
+        recipientIndex,
+        '0.0001',
+        { useUnconfirmedUtxos: true }, // Prevents consecutive tests from failing
+      )
+      const signedTx = await payments.signTransaction(unsignedTx)
+      logger.log(`Sending ${signedTx.amount} from ${indexToSend} to ${recipientIndex} in tx ${signedTx.id}`)
+      expect(await payments.broadcastTransaction(signedTx)).toEqual({
+        id: signedTx.id,
+      })
+      const tx = await payments.getTransactionInfo(signedTx.id)
+      expect(tx.amount).toEqual(signedTx.amount)
+      expect(tx.fee).toEqual(signedTx.fee)
+    })
+  })
 })

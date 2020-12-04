@@ -3,7 +3,6 @@ import { Logger, assertType, DelegateLogger } from '@faast/ts-common'
 import { BlockbookBitcoin } from 'blockbook-client'
 
 import { BlockbookConnectedConfig } from './types'
-import { DEFAULT_NETWORK, PACKAGE_NAME } from '../constants'
 import { resolveServer, retryIfDisconnected } from './utils'
 
 export abstract class BlockbookConnected {

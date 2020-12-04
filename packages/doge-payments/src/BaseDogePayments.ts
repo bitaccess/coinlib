@@ -2,21 +2,20 @@ import * as bitcoin from 'bitcoinjs-lib'
 import {
   FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus,
 } from '@faast/payments-common'
-import { bitcoinish } from '@faast/bitcoin-payments'
+import { bitcoinish, AddressType } from '@faast/bitcoin-payments'
 
-import { toBitcoinishConfig, estimateBitcoinTxSize } from './utils'
+import { toBitcoinishConfig } from './utils'
 import {
   BaseDogePaymentsConfig,
   DogeUnsignedTransaction,
   DogeSignedTransactionData,
   DogeSignedTransaction,
-  AddressType,
   PsbtInputData,
 } from './types'
 import {
   BITCOIN_SEQUENCE_RBF,
 } from './constants'
-import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress } from './helpers'
+import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateDogeTxSize } from './helpers'
 
 // tslint:disable-next-line:max-line-length
 export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> extends bitcoinish.BitcoinishPayments<Config> {
@@ -31,7 +30,6 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
   }
 
   abstract getPaymentScript(index: number): bitcoin.payments.Payment
-  abstract addressType: AddressType
 
   async createServiceTransaction(): Promise<null> {
     return null
@@ -61,7 +59,7 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
 
   /** Return a string that can be passed into estimateDogeTxSize. Override to support multisig */
   getEstimateTxSizeInputKey(): string {
-    return this.addressType
+    return AddressType.Legacy
   }
 
   estimateTxSize(inputCount: number, changeOutputCount: number, externalOutputAddresses: string[]): number {
@@ -69,8 +67,8 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
       // @ts-ignore
       outputCounts[address] = 1
       return outputCounts
-    }, { [this.addressType]: changeOutputCount })
-    return estimateBitcoinTxSize(
+    }, { [AddressType.Legacy]: changeOutputCount })
+    return estimateDogeTxSize(
       { [this.getEstimateTxSizeInputKey()]: inputCount },
       outputCounts,
       this.bitcoinjsNetwork,
@@ -80,7 +78,7 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
   async getPsbtInputData(
     utxo: UtxoInfo,
     paymentScript: bitcoin.payments.Payment,
-    addressType: AddressType,
+    addressType: AddressType = AddressType.Legacy,
   ): Promise<PsbtInputData> {
     const utx = await this.getApi().getTx(utxo.txid)
     const result: PsbtInputData = {
@@ -136,7 +134,6 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
       psbt.addInput(await this.getPsbtInputData(
         input,
         inputPaymentScript,
-        this.addressType,
         ),
       )
     }

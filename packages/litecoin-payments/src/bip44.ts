@@ -1,11 +1,17 @@
 import { BIP32Interface as HDNode, fromBase58 } from 'bip32'
-import { SinglesigAddressType, LitecoinjsKeyPair } from './types'
 import { BitcoinjsNetwork } from '@faast/bitcoin-payments'
-import { publicKeyToAddress } from './helpers'
-import { bufferFromUInt32 } from './utils'
 import b58 from 'bs58check'
 
+import { SinglesigAddressType, LitecoinjsKeyPair } from './types'
+import { publicKeyToAddress } from './helpers'
+
 export { HDNode }
+
+function bufferFromUInt32(x: number) {
+  const b = Buffer.alloc(4)
+  b.writeUInt32BE(x, 0)
+  return b
+}
 
 /**
  * Split full path into array of indices

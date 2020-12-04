@@ -3,7 +3,7 @@ import { UtxoInfo } from '@faast/payments-common'
 
 export * from '../../../common/testUtils'
 import { TestLogger } from '../../../common/testUtils'
-import { BitcoinishTxOutput } from '@faast/bitcoin-payments'
+import { bitcoinish } from '@faast/bitcoin-payments'
 import { toBaseDenominationNumber } from '../src'
 export const logger = new TestLogger(PACKAGE_NAME)
 
@@ -26,7 +26,7 @@ export function makeUtxos(confirmedValues: string[], unconfirmedValues: string[]
   ]
 }
 
-export function makeOutputs(address: string, ...values: string[]): BitcoinishTxOutput[] {
+export function makeOutputs(address: string, ...values: string[]): bitcoinish.BitcoinishTxOutput[] {
   return values.map((value) => ({
     address,
     value: String(value),

@@ -2,7 +2,7 @@ import { omit } from 'lodash'
 import {
   assertType,
 } from '@faast/ts-common'
-import { PUBLIC_CONFIG_OMIT_FIELDS } from '@faast/bitcoin-payments'
+import { PUBLIC_CONFIG_OMIT_FIELDS, bitcoinish } from '@faast/bitcoin-payments'
 
 import {
   isValidXprv as isValidXprvHelper,
@@ -17,7 +17,6 @@ import {
 import { HdDogePaymentsConfig } from './types'
 import { SinglesigDogePayments } from './SinglesigDogePayments'
 import { DEFAULT_DERIVATION_PATHS } from './constants'
-import { bip32MagicNumberToPrefix } from './utils'
 
 export class HdDogePayments extends SinglesigDogePayments<HdDogePaymentsConfig> {
   readonly derivationPath: string
@@ -38,8 +37,8 @@ export class HdDogePayments extends SinglesigDogePayments<HdDogePaymentsConfig> 
       this.xprv = config.hdKey
     } else {
       const providedPrefix = config.hdKey.slice(0, 4)
-      const xpubPrefix = bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.public)
-      const xprvPrefix = bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.private)
+      const xpubPrefix = bitcoinish.bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.public)
+      const xprvPrefix = bitcoinish.bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.private)
       let reason = ''
       if (providedPrefix !== xpubPrefix && providedPrefix !== xprvPrefix) {
         reason = ` with prefix ${providedPrefix} but expected ${xprvPrefix} or ${xpubPrefix}`

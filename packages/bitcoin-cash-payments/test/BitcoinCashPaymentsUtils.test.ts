@@ -1,6 +1,7 @@
+import { FeeLevel } from '@faast/payments-common'
 import { BitcoinCashPaymentsUtils } from '../src'
-import { PRIVATE_KEY, ADDRESS_LEGACY } from './fixtures'
-const VALID_ADDRESS = ADDRESS_LEGACY
+import { PRIVATE_KEY, ADDRESS_CASH } from './fixtures'
+const VALID_ADDRESS = ADDRESS_CASH
 
 describe('BitcoinCashPaymentUtils', () => {
   let pu: BitcoinCashPaymentsUtils
@@ -17,9 +18,9 @@ describe('BitcoinCashPaymentUtils', () => {
     })
   })
 
-  describe('getFeeEstimate', () => {
+  describe('getFeeRateRecommendation', () => {
     test('should return a value', async () => {
-      expect(await pu.getBlockBookFeeEstimate()).toBeDefined()
+      expect(await pu.getFeeRateRecommendation(FeeLevel.Medium)).toBeDefined()
     })
   })
 

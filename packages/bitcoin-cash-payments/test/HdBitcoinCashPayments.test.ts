@@ -2,10 +2,10 @@ import fs from 'fs'
 import path from 'path'
 import { NetworkType, FeeRateType } from '@faast/payments-common';
 import {
-  HdBitcoinCashPayments, HdBitcoinCashPaymentsConfig, AddressType, SinglesigAddressType,
+  HdBitcoinCashPayments, HdBitcoinCashPaymentsConfig,
 } from '../src'
 
-import { EXTERNAL_ADDRESS, accountsByAddressType, AccountFixture, legacyAccount } from './fixtures'
+import { EXTERNAL_ADDRESS, AccountFixture, hdAccount as accountFixture } from './fixtures'
 import { logger, makeUtxos, makeOutputs, expectUtxosEqual } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 
@@ -37,7 +37,7 @@ describe('HdBitcoinCashPayments', () => {
   })
 
   describe('buildPaymentTx', () => {
-    const account = accountsByAddressType.p2pkh
+    const account = accountFixture
     const changeAddress = account.addresses[0]
     const feeMain = '0.001'
     const desiredFeeRate = { feeRate: feeMain, feeRateType: FeeRateType.Main }
@@ -45,7 +45,6 @@ describe('HdBitcoinCashPayments', () => {
     const targetUtxoPoolSize = 4
     const payments = new HdBitcoinCashPayments({
       hdKey: account.xpub,
-      addressType: AddressType.Legacy,
       logger,
       minChange,
       targetUtxoPoolSize,
@@ -188,37 +187,27 @@ describe('HdBitcoinCashPayments', () => {
     })
   })
 
-  for (let k in accountsByAddressType) {
-    const addressType = k as SinglesigAddressType
-    const accountFixture = legacyAccount
+  describe('hardcoded xpub', () => {
+    const config: HdBitcoinCashPaymentsConfig = {
+      hdKey: accountFixture.xpub,
+      network: NetworkType.Mainnet,
+      logger,
+    }
+    const payments = new HdBitcoinCashPayments(config)
 
-    describe(addressType, () => {
+    runHardcodedPublicKeyTests(payments, config, accountFixture)
+  })
 
-      describe('hardcoded xpub', () => {
-        const config: HdBitcoinCashPaymentsConfig = {
-          hdKey: accountFixture.xpub,
-          network: NetworkType.Mainnet,
-          addressType,
-          logger,
-        }
-        const payments = new HdBitcoinCashPayments(config)
+  describe('hardcoded xprv', () => {
+    const config: HdBitcoinCashPaymentsConfig = {
+      hdKey: secretXprv,
+      network: NetworkType.Mainnet,
+      logger,
+    }
+    const payments = new HdBitcoinCashPayments(config)
 
-        runHardcodedPublicKeyTests(payments, config, accountFixture)
-      })
-
-      describe('hardcoded xprv', () => {
-        const config: HdBitcoinCashPaymentsConfig = {
-          hdKey: secretXprv,
-          network: NetworkType.Mainnet,
-          addressType,
-          logger,
-        }
-        const payments = new HdBitcoinCashPayments(config)
-
-        runHardcodedPublicKeyTests(payments, config, accountFixture)
-      })
-    })
-  }
+    runHardcodedPublicKeyTests(payments, config, accountFixture)
+  })
 })
 
 function runHardcodedPublicKeyTests(
@@ -232,7 +221,6 @@ function runHardcodedPublicKeyTests(
       hdKey: config.hdKey,
       network: config.network,
       derivationPath,
-      addressType: config.addressType,
       logger,
     })
   })
@@ -241,7 +229,6 @@ function runHardcodedPublicKeyTests(
       hdKey: xpub,
       network: config.network,
       derivationPath,
-      addressType: config.addressType,
     })
   })
   it('getAccountIds', () => {

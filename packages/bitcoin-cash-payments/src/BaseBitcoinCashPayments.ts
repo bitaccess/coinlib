@@ -4,19 +4,18 @@ import { bitcoinish, AddressType } from '@faast/bitcoin-payments'
 import {
   FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus,
 } from '@faast/payments-common'
-import { toBitcoinishConfig, estimateBitcoinTxSize } from './utils'
+import { toBitcoinishConfig } from './utils'
 import {
   BaseBitcoinCashPaymentsConfig,
   BitcoinCashUnsignedTransaction,
   BitcoinCashSignedTransactionData,
   BitcoinCashSignedTransaction,
   PsbtInputData,
-  BitcoinCashAddressFormat,
 } from './types'
 import {
   BITCOIN_SEQUENCE_RBF,
 } from './constants'
-import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress } from './helpers';
+import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateBitcoinCashTxSize } from './helpers'
 
 // tslint:disable-next-line:max-line-length
 export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaymentsConfig> extends bitcoinish.BitcoinishPayments<Config> {
@@ -71,7 +70,7 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
       outputCounts[address] = 1
       return outputCounts
     }, { [AddressType.Legacy]: changeOutputCount })
-    return estimateBitcoinTxSize(
+    return estimateBitcoinCashTxSize(
       { [this.getEstimateTxSizeInputKey()]: inputCount },
       outputCounts,
       this.bitcoinjsNetwork,

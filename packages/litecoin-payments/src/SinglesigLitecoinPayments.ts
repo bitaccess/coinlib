@@ -6,7 +6,7 @@ import {
   SinglesigLitecoinPaymentsConfig,
   SinglesigAddressType,
 } from './types'
-import { BitcoinishPaymentTx } from '@faast/bitcoin-payments'
+import { bitcoinish } from '@faast/bitcoin-payments'
 import { publicKeyToString, getSinglesigPaymentScript } from './helpers'
 import { BaseLitecoinPayments } from './BaseLitecoinPayments'
 import { DEFAULT_SINGLESIG_ADDRESS_TYPE } from './constants'
@@ -23,7 +23,7 @@ export abstract class SinglesigLitecoinPayments<Config extends SinglesigLitecoin
 
   abstract getKeyPair(index: number): LitecoinjsKeyPair
 
-  getPaymentScript(index: number) {
+  getPaymentScript(index: number): bitcoin.payments.Payment {
     return getSinglesigPaymentScript(this.bitcoinjsNetwork, this.addressType, this.getKeyPair(index).publicKey)
   }
 
@@ -64,7 +64,7 @@ export abstract class SinglesigLitecoinPayments<Config extends SinglesigLitecoin
     if (tx.multisigData) {
       return this.signMultisigTransaction(tx)
     }
-    const paymentTx = tx.data as BitcoinishPaymentTx
+    const paymentTx = tx.data as bitcoinish.BitcoinishPaymentTx
     const { rawHex } = paymentTx
     let psbt: bitcoin.Psbt
     if (rawHex) {

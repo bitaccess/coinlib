@@ -1,7 +1,7 @@
 import { bitcoinish } from '@faast/bitcoin-payments'
 import { toBitcoinishConfig } from './utils'
-import { LitecoinPaymentsUtilsConfig, LitecoinAddressFormat } from './types'
-import { isValidAddress, isValidPrivateKey, standardizeAddress } from './helpers'
+import { LitecoinPaymentsUtilsConfig } from './types'
+import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress } from './helpers'
 import { AutoFeeLevels, FeeRate } from '@faast/payments-common'
 
 export class LitecoinPaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils {
@@ -19,6 +19,10 @@ export class LitecoinPaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils {
 
   standardizeAddress(address: string, options?: { format?: string }): string | null {
     return standardizeAddress(address, this.networkType, options)
+  }
+
+  isValidPublicKey(publicKey: string) {
+    return isValidPublicKey(publicKey, this.networkType)
   }
 
   isValidPrivateKey(privateKey: string) {

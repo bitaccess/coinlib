@@ -1,5 +1,5 @@
 import { createUnitConverters, NetworkType } from '@faast/payments-common'
-import { bitcoinish } from '@faast/bitcoin-payments'
+import { bitcoinish, estimateBitcoinTxSize } from '@faast/bitcoin-payments'
 
 import { DECIMAL_PLACES, NETWORKS } from './constants'
 
@@ -23,6 +23,7 @@ export {
   publicKeyToBuffer,
   privateKeyToKeyPair,
   privateKeyToAddress,
+  estimateBitcoinTxSize as estimateDogeTxSize,
 }
 
 const {

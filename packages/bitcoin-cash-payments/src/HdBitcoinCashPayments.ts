@@ -2,7 +2,7 @@ import { omit } from 'lodash'
 import {
   assertType,
 } from '@faast/ts-common'
-import { PUBLIC_CONFIG_OMIT_FIELDS } from '@faast/bitcoin-payments'
+import { PUBLIC_CONFIG_OMIT_FIELDS, bitcoinish } from '@faast/bitcoin-payments'
 
 import {
   isValidXprv as isValidXprvHelper,
@@ -16,8 +16,7 @@ import {
 } from './bip44'
 import { HdBitcoinCashPaymentsConfig } from './types'
 import { SinglesigBitcoinCashPayments } from './SinglesigBitcoinCashPayments'
-import { DEFAULT_DERIVATION_PATHS } from './constants'
-import { bip32MagicNumberToPrefix } from './utils'
+import { DEFAULT_DERIVATION_PATH } from './constants'
 
 export class HdBitcoinCashPayments extends SinglesigBitcoinCashPayments<HdBitcoinCashPaymentsConfig> {
   readonly derivationPath: string
@@ -28,7 +27,7 @@ export class HdBitcoinCashPayments extends SinglesigBitcoinCashPayments<HdBitcoi
   constructor(private config: HdBitcoinCashPaymentsConfig) {
     super(config)
     assertType(HdBitcoinCashPaymentsConfig, config)
-    this.derivationPath = config.derivationPath || DEFAULT_DERIVATION_PATHS[this.addressType]
+    this.derivationPath = config.derivationPath || DEFAULT_DERIVATION_PATH
 
     if (this.isValidXpub(config.hdKey)) {
       this.xpub = config.hdKey
@@ -38,8 +37,8 @@ export class HdBitcoinCashPayments extends SinglesigBitcoinCashPayments<HdBitcoi
       this.xprv = config.hdKey
     } else {
       const providedPrefix = config.hdKey.slice(0, 4)
-      const xpubPrefix = bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.public)
-      const xprvPrefix = bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.private)
+      const xpubPrefix = bitcoinish.bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.public)
+      const xprvPrefix = bitcoinish.bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.private)
       let reason = ''
       if (providedPrefix !== xpubPrefix && providedPrefix !== xprvPrefix) {
         reason = ` with prefix ${providedPrefix} but expected ${xprvPrefix} or ${xpubPrefix}`
@@ -69,7 +68,6 @@ export class HdBitcoinCashPayments extends SinglesigBitcoinCashPayments<HdBitcoi
     return {
       ...this.config,
       network: this.networkType,
-      addressType: this.addressType,
       derivationPath: this.derivationPath,
     }
   }
@@ -88,7 +86,7 @@ export class HdBitcoinCashPayments extends SinglesigBitcoinCashPayments<HdBitcoi
   }
 
   getAddress(index: number): string {
-    return deriveAddress(this.hdNode, index, this.bitcoinjsNetwork, this.addressType)
+    return deriveAddress(this.hdNode, index, this.bitcoinjsNetwork)
   }
 
   getKeyPair(index: number) {
