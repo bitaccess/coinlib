@@ -1,5 +1,5 @@
 import {
-  BitcoinPaymentsFactory, HdBitcoinPayments, KeyPairBitcoinPayments, BitcoinPaymentsConfig,
+  BitcoinPaymentsFactory, HdBitcoinPayments, KeyPairBitcoinPayments,
   HdBitcoinPaymentsConfig, KeyPairBitcoinPaymentsConfig, BitcoinPaymentsUtils,
 } from '../src'
 import { PRIVATE_KEY } from './fixtures'

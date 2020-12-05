@@ -1,5 +1,6 @@
 import { createUnitConverters, NetworkType } from '@faast/payments-common'
-import { bitcoinish, estimateBitcoinTxSize } from '@faast/bitcoin-payments'
+import { bitcoinish } from '@faast/bitcoin-payments'
+import * as bitcoin from 'bitcoinjs-lib'
 
 import { DECIMAL_PLACES, NETWORKS } from './constants'
 
@@ -23,7 +24,6 @@ export {
   publicKeyToBuffer,
   privateKeyToKeyPair,
   privateKeyToAddress,
-  estimateBitcoinTxSize as estimateDogeTxSize,
 }
 
 const {
@@ -62,4 +62,16 @@ export function isValidExtraId(extraId: string): boolean {
 
 export function isValidPrivateKey(privateKey: string, networkType: NetworkType): boolean {
   return bitcoinish.isValidPrivateKey(privateKey, NETWORKS[networkType])
+}
+
+export function estimateDogeTxSize(
+  inputCounts: { [k: string]: number },
+  outputCounts: { [k: string]: number },
+  networkType: NetworkType,
+) {
+  return bitcoinish.estimateTxSize(
+    inputCounts,
+    outputCounts,
+    (address: string) => bitcoin.address.toOutputScript(address, NETWORKS[networkType]),
+  )
 }

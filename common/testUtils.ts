@@ -40,7 +40,7 @@ export class TestLogger implements Logger {
 
   doLog(level: 'ERROR' | 'WARN' | 'INFO' | 'LOG' | 'DEBUG' | 'TRACE') {
     return (...args: any[]) => {
-      const message = `${level} ${formatArgs(...args)}\n`
+      const message = `${new Date().toISOString()} ${level} ${formatArgs(...args)}\n`
       if (process.env.VERBOSE || level === 'ERROR') {
         process.stderr.write(message)
       }

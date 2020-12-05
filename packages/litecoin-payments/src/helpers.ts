@@ -7,7 +7,6 @@ import {
   bitcoinish,
   NETWORKS as BITCOIN_NETWORKS,
   BitcoinjsNetwork,
-  estimateBitcoinTxSize,
 } from '@faast/bitcoin-payments'
 import { DECIMAL_PLACES, DEFAULT_ADDRESS_FORMAT, NETWORKS } from './constants'
 
@@ -31,7 +30,6 @@ export {
   publicKeyToBuffer,
   privateKeyToKeyPair,
   privateKeyToAddress,
-  estimateBitcoinTxSize as estimateLitecoinTxSize,
 }
 
 const {
@@ -140,4 +138,19 @@ export function isValidPublicKey(publicKey: string | Buffer, networkType: Networ
 
 export function isValidPrivateKey(privateKey: string, networkType: NetworkType): boolean {
   return bitcoinish.isValidPrivateKey(privateKey, NETWORKS[networkType])
+}
+
+export function estimateLitecoinTxSize(
+  inputCounts: { [k: string]: number },
+  outputCounts: { [k: string]: number },
+  networkType: NetworkType,
+) {
+  return bitcoinish.estimateTxSize(
+    inputCounts,
+    outputCounts,
+    (address: string) => bitcoin.address.toOutputScript(
+      standardizeAddress(address, networkType, { format: LitecoinAddressFormat.Modern }) || '',
+      NETWORKS[networkType],
+    ),
+  )
 }

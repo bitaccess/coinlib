@@ -13,16 +13,16 @@ describe('TronAddressValidator', () => {
 
   describe('isValidAddress', () => {
     test('should return true for valid', async () => {
-      expect(await tpu.isValidAddress(ADDRESSES[0])).toBe(true)
+      expect(tpu.isValidAddress(ADDRESSES[0])).toBe(true)
     })
     test('should return false for invalid', async () => {
-      expect(await tpu.isValidAddress('fake')).toBe(false)
+      expect(tpu.isValidAddress('fake')).toBe(false)
     })
   })
 
   describe('isValidExtraId', () => {
     test('should return false', async () => {
-      expect(await tpu.isValidExtraId('fake')).toBe(false)
+      expect(tpu.isValidExtraId('fake')).toBe(false)
     })
   })
 

@@ -6,7 +6,6 @@ import { PaymentsFactory, AnyPayments, NetworkType } from '@faast/payments-commo
 import {
   CoinPaymentsConfig,
   SupportedCoinPaymentsSymbol,
-  CoinPaymentsConfigs,
   paymentsConfigCodecs,
   CoinPaymentsPartialConfigs,
 } from './types'
@@ -56,16 +55,18 @@ export class CoinPayments {
       : Buffer.from(config.seed, 'hex'))) || undefined
     const accountIdSet = new Set<string>()
     SUPPORTED_NETWORK_SYMBOLS.forEach((networkSymbol) => {
-      const networkPayments = this.instantiatePayments(networkSymbol, config[networkSymbol])
-      if (!networkPayments) {
+      const networkConfig = config[networkSymbol]
+      if (!networkConfig && !this.seedBuffer) {
         return
       }
+      const networkPayments = this.newPayments(networkSymbol, networkConfig)
       this.payments[networkSymbol] = networkPayments
       networkPayments.getAccountIds().forEach((id) => accountIdSet.add(id))
     })
     this.accountIds = Array.from(accountIdSet)
   }
 
+  /** Get the global payments factory for a network */
   static getFactory(networkSymbol: SupportedCoinPaymentsSymbol): PaymentsFactory {
     const paymentsFactory = PAYMENTS_FACTORIES[networkSymbol]
     if (!paymentsFactory) {
@@ -74,26 +75,15 @@ export class CoinPayments {
     return paymentsFactory
   }
 
-  static getPayments<A extends SupportedCoinPaymentsSymbol>(
-    networkSymbol: A,
-    config: CoinPaymentsConfigs[A],
+  private newPayments(
+    networkSymbol: SupportedCoinPaymentsSymbol,
+    partialConfig: any,
   ): AnyPayments {
-    const factory = CoinPayments.getFactory(networkSymbol)
-    return factory.newPayments(config)
-  }
-
-  private instantiatePayments<A extends SupportedCoinPaymentsSymbol>(
-    networkSymbol: A,
-    partialConfig: CoinPaymentsPartialConfigs[A],
-  ) {
     let paymentsConfig: any = partialConfig
     if (this.seedBuffer) {
       paymentsConfig = addSeedIfNecessary(networkSymbol, this.seedBuffer, paymentsConfig || {})
     }
 
-    if (!paymentsConfig) {
-      return
-    }
     // Clone to avoid mutating external objects
     paymentsConfig = { ...paymentsConfig }
 
@@ -104,7 +94,7 @@ export class CoinPayments {
       paymentsConfig.logger = this.config.logger
     }
     assertType(paymentsConfigCodecs[networkSymbol] as any, paymentsConfig, `${networkSymbol} config`)
-    return PAYMENTS_FACTORIES[networkSymbol].newPayments(paymentsConfig)
+    return CoinPayments.getFactory(networkSymbol).newPayments(paymentsConfig)
   }
 
   getPublicConfig(): CoinPaymentsConfig {
@@ -136,10 +126,10 @@ export class CoinPayments {
     }
 
     if (extraConfig) {
-      return this.instantiatePayments(networkSymbol, {
+      return this.newPayments(networkSymbol, {
         ...payments.getFullConfig(),
         ...extraConfig,
-      })!
+      })
     }
     return payments!
   }

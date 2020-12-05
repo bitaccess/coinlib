@@ -41,7 +41,7 @@ function assertTxInfo(actual: BitcoinCashTransactionInfo, expected: BitcoinCashT
       ...actual.data,
       vout: (actual.data as any).vout.map((o: any) => omit(o, ['spent'])),
     },
-  }, expected, ['data.confirmations', 'confirmations'])
+  }, expected, ['data.confirmations', 'confirmations', 'currentBlockNumber'])
 }
 
 const describeAll = !secretXprv ? describe.skip : describe

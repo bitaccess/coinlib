@@ -9,7 +9,7 @@ import {
   isValidXpub,
   convertXPrefixHdKeys
 } from '../src/bip44'
-import { AddressType, NETWORK_TESTNET, NETWORK_MAINNET } from '../src'
+import { AddressType, NETWORK_TESTNET } from '../src'
 import { fromBase58 } from 'bip32'
 import {
   DERIVED_XPRV, DERIVATION_PATH, ROOT_XPRV, NETWORK, PARTIALLY_DERIVED_XPRV, ADDRESS_LEGACY,

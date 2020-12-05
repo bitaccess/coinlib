@@ -34,11 +34,9 @@ export const BITCOIN_SEQUENCE_RBF = 0xFFFFFFFD
  */
 export const DEFAULT_MIN_TX_FEE = 100000 // 1 DOGE per kb
 
-export const DEFAULT_SINGLESIG_ADDRESS_TYPE: SinglesigAddressType = AddressType.Legacy
+export const SINGLESIG_ADDRESS_TYPE: SinglesigAddressType = AddressType.Legacy
 
-export const DEFAULT_DERIVATION_PATHS = {
-  [AddressType.Legacy]: "m/44'/3'/0'",
-}
+export const DEFAULT_DERIVATION_PATH = "m/44'/3'/0'"
 
 export const DEFAULT_NETWORK = NetworkType.Mainnet
 

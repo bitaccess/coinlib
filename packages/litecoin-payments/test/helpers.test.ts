@@ -1,9 +1,17 @@
 import {
-  toMainDenominationString, toBaseDenominationString, isValidAddress, LitecoinAddressFormat, standardizeAddress,
+  toMainDenominationString,
+  toBaseDenominationString,
+  isValidAddress,
+  LitecoinAddressFormat,
+  standardizeAddress,
+  estimateLitecoinTxSize,
+  AddressType,
 } from '../src'
 import {
-  ADDRESS_LEGACY, ADDRESS_SEGWIT_NATIVE, ADDRESS_SEGWIT_P2SH, ADDRESS_SEGWIT_P2SH_DEPRECATED, NETWORK_TYPE,
+  ADDRESS_LEGACY, ADDRESS_SEGWIT_NATIVE, ADDRESS_SEGWIT_P2SH, ADDRESS_SEGWIT_P2SH_DEPRECATED, NETWORK, NETWORK_TYPE,
 } from './fixtures'
+
+const { Legacy, SegwitP2SH, SegwitNative } = AddressType
 
 describe('helpers', () => {
   describe('toMainDenomination', () => {
@@ -134,6 +142,41 @@ describe('helpers', () => {
       test('should return null for invalid address', async () => {
         expect(standardizeAddress('fake', NETWORK_TYPE, options)).toBe(null)
       })
+    })
+  })
+
+  describe('estimateLitecoinTxSize', () => {
+    it(`returns correct estimate for ${Legacy} sweep`, () => {
+      expect(estimateLitecoinTxSize({ [Legacy]: 1 }, { [Legacy]: 1 }, NETWORK_TYPE))
+        .toBe(192)
+    })
+    it(`returns correct estimate for ${SegwitP2SH} sweep`, () => {
+      expect(estimateLitecoinTxSize({ [SegwitP2SH]: 1 }, { [SegwitP2SH]: 1 }, NETWORK_TYPE))
+        .toBe(133)
+    })
+    it(`returns correct estimate for ${SegwitNative} sweep`, () => {
+      expect(estimateLitecoinTxSize({ [SegwitNative]: 1 }, { [SegwitNative]: 1 }, NETWORK_TYPE))
+        .toBe(109)
+    })
+    it(`returns correct estimate for ${Legacy} 2 to 2`, () => {
+      expect(estimateLitecoinTxSize({ [Legacy]: 2 }, { [Legacy]: 2 }, NETWORK_TYPE))
+        .toBe(374)
+    })
+    it(`returns correct estimate for ${SegwitP2SH} 2 to 2`, () => {
+      expect(estimateLitecoinTxSize({ [SegwitP2SH]: 2 }, { [SegwitP2SH]: 2 }, NETWORK_TYPE))
+        .toBe(256)
+    })
+    it(`returns correct estimate for ${SegwitNative} 2 to 2`, () => {
+      expect(estimateLitecoinTxSize({ [SegwitNative]: 2 }, { [SegwitNative]: 2 }, NETWORK_TYPE))
+        .toBe(208)
+    })
+    it(`returns correct estimate for ${SegwitNative} 3 to 5 mixed addresses`, () => {
+      expect(estimateLitecoinTxSize({ [SegwitNative]: 3 }, {
+        [ADDRESS_LEGACY]: 1,
+        [ADDRESS_SEGWIT_P2SH_DEPRECATED]: 1,
+        [ADDRESS_SEGWIT_NATIVE]: 1,
+      }, NETWORK_TYPE))
+        .toBe(311)
     })
   })
 })

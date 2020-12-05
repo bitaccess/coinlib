@@ -1,13 +1,12 @@
 import fs from 'fs'
 import path from 'path'
-import { NetworkType, FeeRateType } from '@faast/payments-common';
+import { NetworkType } from '@faast/payments-common'
 import {
-  HdDogePayments, HdDogePaymentsConfig, AddressType, SinglesigAddressType,
+  HdDogePayments, HdDogePaymentsConfig, SinglesigAddressType,
 } from '../src'
 
 import { EXTERNAL_ADDRESS, accountsByAddressType, AccountFixture, legacyAccount } from './fixtures'
-import { logger, makeUtxos, makeOutputs, expectUtxosEqual } from './utils'
-import { toBigNumber } from '@faast/ts-common'
+import { logger } from './utils'
 
 jest.setTimeout(30 * 1000)
 

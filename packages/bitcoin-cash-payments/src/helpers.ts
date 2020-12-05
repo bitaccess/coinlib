@@ -130,11 +130,11 @@ export function privateKeyToAddress(privateKey: string, network: BitcoinjsNetwor
 export function estimateBitcoinCashTxSize(
   inputCounts: { [k: string]: number },
   outputCounts: { [k: string]: number },
-  network: BitcoinjsNetwork,
+  networkType: NetworkType,
 ) {
   return bitcoinish.estimateTxSize(
     inputCounts,
     outputCounts,
-    (address: string) => bitcoincash.address.toOutputScript(address, network),
+    (address: string) => bitcoincash.address.toOutputScript(address, NETWORKS[networkType]),
   )
 }

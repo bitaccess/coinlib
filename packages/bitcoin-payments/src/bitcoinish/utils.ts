@@ -156,16 +156,17 @@ export async function getBlockbookFeeRecommendation(
   let feeRate: string
   try {
     const body = await blockbookClient.doRequest('GET', '/api/v1/estimatefee/3')
-    const fee = body['result'] // main units per kb
-    if (!fee) {
+    const result = body['result'] // main units per kb
+    if (!result) {
       throw new Error("Blockbook estimatefee response is missing expected field 'result'")
     }
-    if (!isNumber(fee) || fee <= 0) {
-      throw new Error(`Blockbook estimatefee result is not a positive number: ${fee}`)
+    const fee = new BigNumber(result)
+    if (fee.isNaN() || fee.lte(0)) {
+      throw new Error(`Blockbook estimatefee result is not a positive number: ${result}`)
     }
-    const satPerByte = fee * 100000
+    const satPerByte = fee.times(100000)
     const multiplier = blockbookFeeRateMultipliers[feeLevel]
-    feeRate = String(satPerByte * multiplier)
+    feeRate = satPerByte.times(multiplier).toFixed()
     logger.log(`Retrieved ${coinSymbol} ${networkType} fee rate of ${satPerByte} sat/vbyte from blockbook, using ${feeRate} for ${feeLevel} level`)
   } catch (e) {
     throw new Error(`Failed to retrieve ${coinSymbol} ${networkType} fee rate from blockbook - ${e.toString()}`)

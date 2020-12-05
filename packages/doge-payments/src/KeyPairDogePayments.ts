@@ -10,6 +10,7 @@ import {
   publicKeyToKeyPair,
   publicKeyToString,
 } from './helpers'
+import { SINGLESIG_ADDRESS_TYPE } from './constants'
 
 export class KeyPairDogePayments extends SinglesigDogePayments<KeyPairDogePaymentsConfig> {
   readonly publicKeys: { [index: number]: string | undefined } = {}
@@ -37,7 +38,7 @@ export class KeyPairDogePayments extends SinglesigDogePayments<KeyPairDogePaymen
         throw new Error(`KeyPairDogePaymentsConfig.keyPairs[${i}] is not a valid ${this.networkType} private or public key`)
       }
 
-      const address = publicKeyToAddress(publicKey, this.bitcoinjsNetwork, this.addressType)
+      const address = publicKeyToAddress(publicKey, this.bitcoinjsNetwork, SINGLESIG_ADDRESS_TYPE)
 
       this.publicKeys[i] = publicKeyToString(publicKey)
       this.privateKeys[i] = privateKey
@@ -49,7 +50,6 @@ export class KeyPairDogePayments extends SinglesigDogePayments<KeyPairDogePaymen
     return {
       ...this.config,
       network: this.networkType,
-      addressType: this.addressType,
     }
   }
 

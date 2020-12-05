@@ -2,7 +2,7 @@ import { BalanceMonitor } from './BalanceMonitor'
 import { AnyPayments } from './BasePayments'
 import { PaymentsConnectionManager } from './PaymentsConnectionManager'
 import { PaymentsUtils } from './PaymentsUtils'
-import { BalanceMonitorConfig, BaseConfig } from './types'
+import { BaseConfig } from './types'
 
 /**
  * A factory class for instantiating various payments objects. Includes basic connection management
@@ -12,7 +12,7 @@ export abstract class PaymentsFactory<
   C extends BaseConfig = BaseConfig,
   U extends PaymentsUtils = PaymentsUtils,
   P extends AnyPayments<C> = AnyPayments<C>,
-  B extends BalanceMonitor = never
+  B extends BalanceMonitor = BalanceMonitor
 > {
   abstract readonly packageName: string
 
@@ -21,7 +21,7 @@ export abstract class PaymentsFactory<
    * that can be shared across instantiated objects.
    * (ie web3 with websockets, Stellar.Server, RippleAPI, etc)
    */
-  connectionManager?: PaymentsConnectionManager<any, U | P | B, C>
+  connectionManager?: PaymentsConnectionManager<any, C>
 
   /** Instantiate a new Payments object */
   abstract newPayments(config: C): P

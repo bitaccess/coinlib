@@ -72,7 +72,7 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
     return estimateLitecoinTxSize(
       { [this.getEstimateTxSizeInputKey()]: inputCount },
       outputCounts,
-      this.bitcoinjsNetwork,
+      this.networkType,
     )
   }
 

@@ -73,7 +73,7 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
     return estimateBitcoinCashTxSize(
       { [this.getEstimateTxSizeInputKey()]: inputCount },
       outputCounts,
-      this.bitcoinjsNetwork,
+      this.networkType,
     )
   }
 

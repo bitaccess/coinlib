@@ -1,6 +1,6 @@
 import { DogePaymentsUtils } from '../src'
-import { PRIVATE_KEY, ADDRESS_LEGACY } from './fixtures'
-const VALID_ADDRESS = ADDRESS_LEGACY
+import { PRIVATE_KEY, ADDRESS_VALID } from './fixtures'
+const VALID_ADDRESS = ADDRESS_VALID
 
 describe('DogePaymentUtils', () => {
   let pu: DogePaymentsUtils

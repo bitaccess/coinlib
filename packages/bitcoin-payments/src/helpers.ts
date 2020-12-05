@@ -56,11 +56,11 @@ export function isValidPrivateKey(privateKey: string, networkType: NetworkType):
 export function estimateBitcoinTxSize(
   inputCounts: { [k: string]: number },
   outputCounts: { [k: string]: number },
-  network: BitcoinjsNetwork,
+  networkType: NetworkType,
 ) {
   return bitcoinish.estimateTxSize(
     inputCounts,
     outputCounts,
-    (address: string) => bitcoin.address.toOutputScript(address, network),
+    (address: string) => bitcoin.address.toOutputScript(address, NETWORKS[networkType]),
   )
 }

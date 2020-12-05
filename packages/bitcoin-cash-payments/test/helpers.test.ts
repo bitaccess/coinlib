@@ -4,7 +4,7 @@ import {
 } from '../src'
 
 const { Legacy } = bitcoinish.AddressType
-import { NETWORK, NETWORK_TYPE, ADDRESS_CASH, ADDRESS_BITPAY, ADDRESS_LEGACY } from './fixtures'
+import { NETWORK_TYPE, ADDRESS_CASH, ADDRESS_BITPAY, ADDRESS_LEGACY } from './fixtures'
 
 describe('helpers', () => {
 
@@ -90,11 +90,11 @@ describe('helpers', () => {
 
   describe('estimateBitcoinTxSize', () => {
     it(`returns correct estimate for ${Legacy} sweep`, () => {
-      expect(estimateBitcoinCashTxSize({ [Legacy]: 1 }, { [Legacy]: 1 }, NETWORK))
+      expect(estimateBitcoinCashTxSize({ [Legacy]: 1 }, { [Legacy]: 1 }, NETWORK_TYPE))
         .toBe(192)
     })
     it(`returns correct estimate for ${Legacy} 2 to 2`, () => {
-      expect(estimateBitcoinCashTxSize({ [Legacy]: 2 }, { [Legacy]: 2 }, NETWORK))
+      expect(estimateBitcoinCashTxSize({ [Legacy]: 2 }, { [Legacy]: 2 }, NETWORK_TYPE))
         .toBe(374)
     })
   })

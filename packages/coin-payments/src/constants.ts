@@ -1,4 +1,3 @@
-import { PaymentsFactory } from '@faast/payments-common'
 import { TronPaymentsFactory } from '@faast/tron-payments'
 import { RipplePaymentsFactory } from '@faast/ripple-payments'
 import { StellarPaymentsFactory } from '@faast/stellar-payments'
@@ -9,11 +8,8 @@ import { BitcoinCashPaymentsFactory } from '@faast/bitcoin-cash-payments'
 import { DogePaymentsFactory } from '@faast/doge-payments'
 
 import { keysOf } from './utils'
-import { SupportedCoinPaymentsSymbol } from './types'
 
-export const PAYMENTS_FACTORIES: {
-  [A in SupportedCoinPaymentsSymbol]: PaymentsFactory
-} = {
+export const PAYMENTS_FACTORIES = {
   TRX: new TronPaymentsFactory(),
   XRP: new RipplePaymentsFactory(),
   XLM: new StellarPaymentsFactory(),
@@ -22,9 +18,6 @@ export const PAYMENTS_FACTORIES: {
   LTC: new LitecoinPaymentsFactory(),
   BCH: new BitcoinCashPaymentsFactory(),
   DOGE: new DogePaymentsFactory(),
-}
+} as const
 
 export const SUPPORTED_NETWORK_SYMBOLS = keysOf(PAYMENTS_FACTORIES)
-
-/** @deprecated use SUPPORTED_NETWORK_SYMBOLS instead */
-export const SUPPORTED_ASSET_SYMBOLS = SUPPORTED_NETWORK_SYMBOLS

@@ -4,7 +4,7 @@ import {
 } from '@faast/payments-common'
 import BigNumber from 'bignumber.js'
 
-import { toBitcoinishConfig, estimateBitcoinTxSize } from './utils'
+import { toBitcoinishConfig } from './utils'
 import {
   BaseBitcoinPaymentsConfig,
   BitcoinUnsignedTransaction,
@@ -16,7 +16,7 @@ import {
 import {
   BITCOIN_SEQUENCE_RBF,
 } from './constants'
-import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress } from './helpers'
+import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateBitcoinTxSize } from './helpers'
 import { BitcoinishPayments, BitcoinishPaymentTx, BitcoinishTxOutput, getBlockcypherFeeRecommendation } from './bitcoinish'
 
 export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConfig> extends BitcoinishPayments<Config> {
@@ -72,7 +72,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     return estimateBitcoinTxSize(
       { [this.getEstimateTxSizeInputKey()]: inputCount },
       outputCounts,
-      this.bitcoinjsNetwork,
+      this.networkType,
     )
   }
 

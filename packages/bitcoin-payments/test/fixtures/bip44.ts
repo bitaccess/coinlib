@@ -1,5 +1,7 @@
 import { NETWORK_MAINNET } from '../../src'
+import { NetworkType } from '@faast/payments-common'
 
+export const NETWORK_TYPE = NetworkType.Mainnet
 export const NETWORK = NETWORK_MAINNET
 export const DERIVATION_PATH = "m/44'/0'/0'"
 export const MNEMONIC = 'parent solid gentle select carpet dolphin lunar pass half bleak siege puzzle'

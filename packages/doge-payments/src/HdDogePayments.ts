@@ -16,7 +16,7 @@ import {
 } from './bip44'
 import { HdDogePaymentsConfig } from './types'
 import { SinglesigDogePayments } from './SinglesigDogePayments'
-import { DEFAULT_DERIVATION_PATHS } from './constants'
+import { DEFAULT_DERIVATION_PATH } from './constants'
 
 export class HdDogePayments extends SinglesigDogePayments<HdDogePaymentsConfig> {
   readonly derivationPath: string
@@ -27,7 +27,7 @@ export class HdDogePayments extends SinglesigDogePayments<HdDogePaymentsConfig> 
   constructor(private config: HdDogePaymentsConfig) {
     super(config)
     assertType(HdDogePaymentsConfig, config)
-    this.derivationPath = config.derivationPath || DEFAULT_DERIVATION_PATHS[this.addressType]
+    this.derivationPath = config.derivationPath || DEFAULT_DERIVATION_PATH
 
     if (this.isValidXpub(config.hdKey)) {
       this.xpub = config.hdKey
@@ -68,7 +68,6 @@ export class HdDogePayments extends SinglesigDogePayments<HdDogePaymentsConfig> 
     return {
       ...this.config,
       network: this.networkType,
-      addressType: this.addressType,
       derivationPath: this.derivationPath,
     }
   }
@@ -87,7 +86,7 @@ export class HdDogePayments extends SinglesigDogePayments<HdDogePaymentsConfig> 
   }
 
   getAddress(index: number): string {
-    return deriveAddress(this.hdNode, index, this.bitcoinjsNetwork, this.addressType)
+    return deriveAddress(this.hdNode, index, this.bitcoinjsNetwork)
   }
 
   getKeyPair(index: number) {

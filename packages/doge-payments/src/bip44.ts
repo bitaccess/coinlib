@@ -2,6 +2,7 @@ import { BIP32Interface as HDNode, fromBase58 } from 'bip32'
 import { SinglesigAddressType, BitcoinjsKeyPair } from './types'
 import { BitcoinjsNetwork } from '@faast/bitcoin-payments'
 import { publicKeyToAddress } from './helpers'
+import { SINGLESIG_ADDRESS_TYPE } from './constants'
 
 export { HDNode }
 
@@ -40,10 +41,10 @@ export function deriveKeyPair(baseNode: HDNode, index: number, network: Bitcoinj
 }
 
 export function deriveAddress(
-  baseNode: HDNode, index: number, network: BitcoinjsNetwork, addressType: SinglesigAddressType,
+  baseNode: HDNode, index: number, network: BitcoinjsNetwork,
 ): string {
   const keyPair = deriveKeyPair(baseNode, index, network)
-  return publicKeyToAddress(keyPair.publicKey, network, addressType)
+  return publicKeyToAddress(keyPair.publicKey, network, SINGLESIG_ADDRESS_TYPE)
 }
 
 export function derivePrivateKey(baseNode: HDNode, index: number, network: BitcoinjsNetwork) {

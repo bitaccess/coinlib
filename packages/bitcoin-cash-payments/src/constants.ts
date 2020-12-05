@@ -1,4 +1,4 @@
-import { BitcoinjsNetwork } from '@faast/bitcoin-payments'
+import { BitcoinjsNetwork, AddressType } from '@faast/bitcoin-payments'
 import { FeeLevel, NetworkType } from '@faast/payments-common'
 import { networks } from 'bitcoinforksjs-lib'
 import { BitcoinCashAddressFormat } from './types'
@@ -31,6 +31,8 @@ export const BITCOIN_SEQUENCE_RBF = 0xFFFFFFFD
  * Unit: `sat/byte`
  */
 export const DEFAULT_MIN_TX_FEE = 1
+
+export const SINGLESIG_ADDRESS_TYPE = AddressType.Legacy
 
 export const DEFAULT_DERIVATION_PATH = "m/44'/145'/0'"
 
