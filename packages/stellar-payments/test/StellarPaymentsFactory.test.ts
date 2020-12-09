@@ -74,10 +74,10 @@ describe('StellarPaymentsFactory', () => {
 
   describe('initConnected', () => {
     it('should instantiate all with same ripple API instance', async () => {
-      const payments1 = await factory.getPayments(HD_CONFIG)
-      const payments2 = await factory.getPayments(ACCOUNT_CONFIG)
-      const utils = await factory.getUtils(UTILS_CONFIG)
-      const bm = await factory.getBalanceMonitor(BM_CONFIG)
+      const payments1 = await factory.initPayments(HD_CONFIG)
+      const payments2 = await factory.initPayments(ACCOUNT_CONFIG)
+      const utils = await factory.initUtils(UTILS_CONFIG)
+      const bm = await factory.initBalanceMonitor(BM_CONFIG)
       expect(payments1.api).toBeInstanceOf(StellarServerAPI)
       expect(payments1.api).toBe(payments2.api)
       expect(payments2.api).toBe(utils.api)

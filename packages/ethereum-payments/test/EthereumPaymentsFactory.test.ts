@@ -74,10 +74,12 @@ describe('EthereumPaymentsFactory', () => {
 
   describe('initConnected', () => {
     it('should instantiate both payments with same web3 instance', async () => {
-      const payments1 = await factory.getPayments(HD_CONFIG)
-      const payments2 = await factory.getPayments(KP_CONFIG)
+      const payments1 = await factory.initPayments(HD_CONFIG)
+      const payments2 = await factory.initPayments(KP_CONFIG)
+      const utils = await factory.initUtils(UTILS_CONFIG)
       expect(payments1.web3).toBeInstanceOf(Web3)
       expect(payments1.web3).toBe(payments2.web3)
+      expect(payments2.web3).toBe(utils.web3)
     })
   })
 })

@@ -39,17 +39,17 @@ export abstract class PaymentsFactory<
 
 
   /** Instantiate a Payments object using an existing connection */
-  getPayments(config: C): Promise<P> {
+  initPayments(config: C): Promise<P> {
     return this.initConnected(config, this.newPayments.bind(this))
   }
 
   /** Instantiate a PaymentsUtils object using an existing connection */
-  getUtils(config: C): Promise<U> {
+  initUtils(config: C): Promise<U> {
     return this.initConnected(config, this.newUtils.bind(this))
   }
 
   /** Instantiate a BalanceMonitor object using an existing connection */
-  getBalanceMonitor(config: C): Promise<B> {
+  initBalanceMonitor(config: C): Promise<B> {
     return this.initConnected(config, this.newBalanceMonitor.bind(this))
   }
 
