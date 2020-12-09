@@ -1,54 +1,30 @@
 import * as t from 'io-ts'
 import {
   BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, FeeRate,
-  BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, KeyPairsConfigParam,
+  BaseTransactionInfo, BaseBroadcastResult, KeyPairsConfigParam,
 } from '@faast/payments-common'
-import { extendCodec, enumCodec, requiredOptionalCodec } from '@faast/ts-common'
-import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
+import { extendCodec, requiredOptionalCodec } from '@faast/ts-common'
 import { BlockInfoBitcoin } from 'blockbook-client'
-import { BitcoinishPaymentTx, BlockbookConfigServer } from './bitcoinish'
+import { BitcoinishPaymentTx, BlockbookConfigServer, MultisigAddressType, SinglesigAddressType } from './bitcoinish'
 import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
 
-export type BitcoinjsKeyPair = BitcoinjsSigner & {
-  privateKey?: Buffer
-  toWIF(): string
-}
+export {
+  AddressType,
+  AddressTypeT,
+  SinglesigAddressType,
+  MultisigAddressType,
+  BitcoinjsKeyPair,
+  BitcoinjsNetwork,
+} from './bitcoinish'
 
 export interface PsbtInputData extends PsbtInput, TransactionInput {}
-
-export enum AddressType {
-  Legacy = 'p2pkh',
-  SegwitP2SH = 'p2sh-p2wpkh',
-  SegwitNative = 'p2wpkh',
-  MultisigLegacy = 'p2sh-p2ms',
-  MultisigSegwitP2SH = 'p2sh-p2wsh-p2ms',
-  MultisigSegwitNative = 'p2wsh-p2ms'
-}
-export const AddressTypeT = enumCodec<AddressType>(AddressType, 'AddressType')
-
-// For unclear reasons tsc throws TS4023 when this type is used in an external module.
-// Re-exporting the codec cast to the inferred type helps fix this.
-const SinglesigAddressTypeT = t.keyof({
-  [AddressType.Legacy]: null,
-  [AddressType.SegwitP2SH]: null,
-  [AddressType.SegwitNative]: null,
-}, 'SinglesigAddressType')
-export type SinglesigAddressType = t.TypeOf<typeof SinglesigAddressTypeT>
-export const SinglesigAddressType = SinglesigAddressTypeT as t.Type<SinglesigAddressType>
-
-const MultisigAddressTypeT = t.keyof({
-  [AddressType.MultisigLegacy]: null,
-  [AddressType.MultisigSegwitP2SH]: null,
-  [AddressType.MultisigSegwitNative]: null,
-}, 'MultisigAddressType')
-export type MultisigAddressType = t.TypeOf<typeof MultisigAddressTypeT>
-export const MultisigAddressType = MultisigAddressTypeT as t.Type<MultisigAddressType>
 
 export const BitcoinPaymentsUtilsConfig = extendCodec(
   BaseConfig,
   {},
   {
     server: BlockbookConfigServer,
+    blockcypherToken: t.string,
   },
   'BitcoinPaymentsUtilsConfig',
 )
@@ -64,7 +40,6 @@ export const BaseBitcoinPaymentsConfig = extendCodec(
     targetUtxoPoolSize: t.number, // # of available utxos to try and maintain
     minChange: t.string, // Soft minimum for each change generated to maintain utxo pool
     maximumFeeRate: t.number, // Hard sat/byte fee cap passed to Psbt constructor
-    blockcypherToken: t.string,
   },
   'BaseBitcoinPaymentsConfig',
 )

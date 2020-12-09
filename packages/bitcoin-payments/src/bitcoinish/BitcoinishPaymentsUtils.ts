@@ -1,6 +1,7 @@
-import { PaymentsUtils, Payport, createUnitConverters, MaybePromise } from '@faast/payments-common'
+import { PaymentsUtils, Payport, createUnitConverters, MaybePromise, AutoFeeLevels, FeeRate, NetworkType } from '@faast/payments-common'
 import { Network as BitcoinjsNetwork } from 'bitcoinjs-lib'
 import { isNil, assertType, Numeric, isUndefined } from '@faast/ts-common'
+
 import { BlockbookConnected } from './BlockbookConnected'
 import { BitcoinishBlock, BitcoinishPaymentsUtilsConfig } from './types'
 
@@ -8,14 +9,21 @@ type UnitConverters = ReturnType<typeof createUnitConverters>
 
 export abstract class BitcoinishPaymentsUtils extends BlockbookConnected implements PaymentsUtils {
 
-  decimals: number
-  bitcoinjsNetwork: BitcoinjsNetwork
+  readonly networkType: NetworkType
+  readonly coinSymbol: string
+  readonly coinName: string
+  readonly coinDecimals: number
+  readonly bitcoinjsNetwork: BitcoinjsNetwork
 
   constructor(config: BitcoinishPaymentsUtilsConfig) {
     super(config)
-    this.decimals = config.decimals
+    this.networkType = config.network || NetworkType.Mainnet
+    this.coinSymbol = config.coinSymbol
+    this.coinName = config.coinName
+    this.coinDecimals = config.coinDecimals
     this.bitcoinjsNetwork = config.bitcoinjsNetwork
-    const unitConverters = createUnitConverters(this.decimals)
+
+    const unitConverters = createUnitConverters(this.coinDecimals)
     this.toMainDenominationString = unitConverters.toMainDenominationString
     this.toMainDenominationNumber = unitConverters.toMainDenominationNumber
     this.toMainDenominationBigNumber = unitConverters.toMainDenominationBigNumber
@@ -28,11 +36,13 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     return false // utxo coins don't use extraIds
   }
 
-  abstract isValidAddress(address: string): MaybePromise<boolean>
+  abstract isValidAddress<O extends { format?: string }>(address: string, options?: O): boolean
+  abstract standardizeAddress<O extends { format?: string }>(address: string, options?: O): string | null
+  abstract getFeeRateRecommendation(level: AutoFeeLevels): MaybePromise<FeeRate>
 
-  private async _getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
+  private _getPayportValidationMessage(payport: Payport): string | undefined {
     const { address, extraId } = payport
-    if (!await this.isValidAddress(address)) {
+    if (!this.isValidAddress(address)) {
       return 'Invalid payport address'
     }
     if (!isNil(extraId)) {
@@ -40,7 +50,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     }
   }
 
-  async getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
+  getPayportValidationMessage(payport: Payport): string | undefined {
     try {
       payport = assertType(Payport, payport, 'payport')
     } catch (e) {
@@ -49,16 +59,16 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     return this._getPayportValidationMessage(payport)
   }
 
-  async validatePayport(payport: Payport): Promise<void> {
+  validatePayport(payport: Payport): void {
     payport = assertType(Payport, payport, 'payport')
-    const message = await this._getPayportValidationMessage(payport)
+    const message = this._getPayportValidationMessage(payport)
     if (message) {
       throw new Error(message)
     }
   }
 
-  async isValidPayport(payport: Payport): Promise<boolean> {
-    return Payport.is(payport) && !(await this._getPayportValidationMessage(payport))
+  isValidPayport(payport: Payport): boolean {
+    return Payport.is(payport) && !(this._getPayportValidationMessage(payport))
   }
 
   toMainDenomination(amount: Numeric): string {

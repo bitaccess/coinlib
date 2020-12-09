@@ -1,13 +1,16 @@
+import { omit } from 'lodash'
+import { isUndefined, isString } from '@faast/ts-common'
+import { PUBLIC_CONFIG_OMIT_FIELDS } from '@faast/bitcoin-payments'
+
 import { SinglesigBitcoinCashPayments } from './SinglesigBitcoinCashPayments'
 import { KeyPairBitcoinCashPaymentsConfig, BitcoinjsKeyPair } from './types'
-import { omit } from 'lodash'
+import { DEFAULT_ADDRESS_FORMAT } from './constants';
 import {
   privateKeyToKeyPair,
   publicKeyToAddress,
   publicKeyToKeyPair,
   publicKeyToString,
 } from './helpers'
-import { isUndefined, isString } from '@faast/ts-common'
 
 export class KeyPairBitcoinCashPayments extends SinglesigBitcoinCashPayments<KeyPairBitcoinCashPaymentsConfig> {
   readonly publicKeys: { [index: number]: string | undefined } = {}
@@ -29,13 +32,13 @@ export class KeyPairBitcoinCashPayments extends SinglesigBitcoinCashPayments<Key
       if (this.isValidPublicKey(value)) {
         publicKey = value
       } else if (this.isValidPrivateKey(value)) {
-        publicKey = privateKeyToKeyPair(value, this.bitcoinjsNetwork).publicKey
+        publicKey = privateKeyToKeyPair(value, this.networkType).publicKey
         privateKey = value
       } else {
-        throw new Error(`KeyPairBitcoinCashPaymentsConfig.keyPairs[${i}] is not a valid ${this.networkType} private key or address`)
+        throw new Error(`KeyPairBitcoinCashPaymentsConfig.keyPairs[${i}] is not a valid ${this.networkType} private or public key`)
       }
 
-      const address = publicKeyToAddress(publicKey, this.bitcoinjsNetwork, this.addressType)
+      const address = publicKeyToAddress(publicKey, this.networkType, this.validAddressFormat ?? DEFAULT_ADDRESS_FORMAT)
 
       this.publicKeys[i] = publicKeyToString(publicKey)
       this.privateKeys[i] = privateKey
@@ -47,13 +50,12 @@ export class KeyPairBitcoinCashPayments extends SinglesigBitcoinCashPayments<Key
     return {
       ...this.config,
       network: this.networkType,
-      addressType: this.addressType,
     }
   }
 
   getPublicConfig(): KeyPairBitcoinCashPaymentsConfig {
     return {
-      ...omit(this.getFullConfig(), ['logger', 'server', 'keyPairs']),
+      ...omit(this.getFullConfig(), PUBLIC_CONFIG_OMIT_FIELDS),
       keyPairs: this.publicKeys,
     }
   }
@@ -76,13 +78,13 @@ export class KeyPairBitcoinCashPayments extends SinglesigBitcoinCashPayments<Key
   getKeyPair(index: number): BitcoinjsKeyPair {
     const privateKey = this.privateKeys[index]
     if (privateKey) {
-      return privateKeyToKeyPair(privateKey, this.bitcoinjsNetwork)
+      return privateKeyToKeyPair(privateKey, this.networkType)
     }
     const publicKey = this.publicKeys[index] || ''
     if (!this.isValidPublicKey(publicKey)) {
       throw new Error(`Cannot get publicKey ${index} - keyPair[${index}] is undefined or invalid`)
     }
-    return publicKeyToKeyPair(publicKey, this.bitcoinjsNetwork)
+    return publicKeyToKeyPair(publicKey, this.networkType)
   }
 
   getAddress(index: number): string {

@@ -1,9 +1,9 @@
-import { CoinPayments, SUPPORTED_ASSET_SYMBOLS } from '../src'
-import { HdTronPayments, TronPaymentsFactory } from '@faast/tron-payments'
+import { CoinPayments, SUPPORTED_NETWORK_SYMBOLS } from '../src'
+import { HdTronPayments, TronPaymentsFactory, TronPaymentsConfig } from '@faast/tron-payments'
 import { omit } from 'lodash'
 import { NetworkType } from '@faast/payments-common'
 import { AddressType } from '@faast/bitcoin-payments'
-import { AddressTypeT } from '../../bitcoin-payments/src/types';
+import { StellarPaymentsConfig } from '@faast/stellar-payments'
 
 const TRX_XPUB = 'xpub6BfusYhSxkNBEVoXKgecUo69gdz3ghgpa1oHBxpB18Q8rGGQSEfPpfEGYFGg5x6sS8oRu1mMmb3PhDLekpCoLY5bSwJqDAnrq4pzFVSzH3m'
 const XLM_HOT = 'GB6NPF4YDMGKDOOOIJXTDGYZGTXBF5DBENSR44QTHYT7IVEF7BYYYOCS'
@@ -12,11 +12,11 @@ const XLM_DEPOSIT = 'GCKZUPOR6PEMW553RGEG23KNSZY6QZUU6I4LAOFGIWGI2RJWVCR5FYC7'
 const CONFIG = {
   TRX: {
     hdKey: TRX_XPUB,
-  },
+  } as TronPaymentsConfig,
   XLM: {
     hotAccount: XLM_HOT,
     depositAccount: XLM_DEPOSIT,
-  },
+  } as StellarPaymentsConfig,
   XRP: undefined,
 }
 
@@ -48,7 +48,7 @@ describe('CoinPayments', () => {
     })
     describe('getPayments', () => {
       it('returns for supported', () => {
-        expect(CoinPayments.getPayments(CONFIGURED_ASSET, CONFIG[CONFIGURED_ASSET])).toBeInstanceOf(EXPECTED_PAYMENTS_TYPE)
+        expect(CoinPayments.getFactory(CONFIGURED_ASSET).newPayments(CONFIG[CONFIGURED_ASSET])).toBeInstanceOf(EXPECTED_PAYMENTS_TYPE)
       })
       it('throws for unupported', () => {
         expect(() => CoinPayments.getFactory(UNSUPPORTED_ASSET)).toThrow()
@@ -59,39 +59,39 @@ describe('CoinPayments', () => {
   describe('instance manual', () => {
     const cp = new CoinPayments(CONFIG)
 
-    describe('forAsset', () => {
+    describe('forNetwork', () => {
       it('returns for configured', () => {
-        expect(cp.forAsset(CONFIGURED_ASSET)).toBeInstanceOf(EXPECTED_PAYMENTS_TYPE)
+        expect(cp.forNetwork(CONFIGURED_ASSET)).toBeInstanceOf(EXPECTED_PAYMENTS_TYPE)
       })
       it('throws for unconfigured', () => {
-        expect(() => cp.forAsset(UNCONFIGURED_ASSET)).toThrow()
+        expect(() => cp.forNetwork(UNCONFIGURED_ASSET)).toThrow()
       })
       it('throws for unsupported', () => {
-        expect(() => cp.forAsset(UNSUPPORTED_ASSET)).toThrow()
+        expect(() => cp.forNetwork(UNSUPPORTED_ASSET)).toThrow()
       })
     })
 
-    describe('isAssetConfigured', () => {
+    describe('isNetworkConfigured', () => {
       it('returns true for configured', () => {
-        expect(cp.isAssetConfigured(CONFIGURED_ASSET)).toBe(true)
+        expect(cp.isNetworkConfigured(CONFIGURED_ASSET)).toBe(true)
       })
       it('returns false for unconfigured', () => {
-        expect(cp.isAssetConfigured(UNCONFIGURED_ASSET)).toBe(false)
+        expect(cp.isNetworkConfigured(UNCONFIGURED_ASSET)).toBe(false)
       })
       it('returns false for unsupported', () => {
-        expect(cp.isAssetConfigured(UNSUPPORTED_ASSET)).toBe(false)
+        expect(cp.isNetworkConfigured(UNSUPPORTED_ASSET)).toBe(false)
       })
     })
 
-    describe('isAssetSupported', () => {
+    describe('isNetworkSupported', () => {
       it('returns true for configured', () => {
-        expect(cp.isAssetSupported(CONFIGURED_ASSET)).toBe(true)
+        expect(cp.isNetworkSupported(CONFIGURED_ASSET)).toBe(true)
       })
       it('returns true for unconfigured', () => {
-        expect(cp.isAssetSupported(UNCONFIGURED_ASSET)).toBe(true)
+        expect(cp.isNetworkSupported(UNCONFIGURED_ASSET)).toBe(true)
       })
       it('returns false for unsupported', () => {
-        expect(cp.isAssetSupported(UNSUPPORTED_ASSET)).toBe(false)
+        expect(cp.isNetworkSupported(UNSUPPORTED_ASSET)).toBe(false)
       })
     })
 
@@ -118,11 +118,11 @@ describe('CoinPayments', () => {
     describe('getPublicConfig', () => {
       it('returns all assets', () => {
         const publicConfig = cp.getPublicConfig()
-        expect(Object.keys(publicConfig).sort()).toEqual(SUPPORTED_ASSET_SYMBOLS.sort())
+        expect(Object.keys(publicConfig).sort()).toEqual(SUPPORTED_NETWORK_SYMBOLS.sort())
         expect(publicConfig.logger).toBeUndefined()
         expect(publicConfig.network).toBeUndefined()
         expect(publicConfig.seed).toBeUndefined()
-        for (let assetSymbol of SUPPORTED_ASSET_SYMBOLS) {
+        for (let assetSymbol of SUPPORTED_NETWORK_SYMBOLS) {
           const assetConfig: any = publicConfig[assetSymbol]
           expect(assetConfig.seed).toBeUndefined()
           if (assetConfig.hdKey) {
@@ -131,10 +131,10 @@ describe('CoinPayments', () => {
         }
       })
     })
-    describe('isAssetConfigured', () => {
+    describe('isNetworkConfigured', () => {
       it('returns true for all supported assets', () => {
-        SUPPORTED_ASSET_SYMBOLS.forEach((s) => {
-          expect(cp.isAssetConfigured(s)).toBe(true)
+        SUPPORTED_NETWORK_SYMBOLS.forEach((s) => {
+          expect(cp.isNetworkConfigured(s)).toBe(true)
         })
       })
     })
@@ -166,13 +166,11 @@ describe('CoinPayments', () => {
             'network': 'mainnet',
           },
           'BCH': {
-            'addressType': 'p2pkh',
             'derivationPath': "m/44'/145'/0'",
             'hdKey': 'xpub6CrWaNQ65RQXoUARmM9YQ2L4cjjkbzuCSri8atiTU5WXo7FiXCZEU9AehJjuxB69EMZbvAAjSGqTDRTCRmsMfWY4y2yXqE1udMmhoKSNmgW',
             'network': 'mainnet',
           },
           'DOGE': {
-            'addressType': 'p2pkh',
             'derivationPath': "m/44'/3'/0'",
             'hdKey': 'xpub6BkpqKsQa8pnP9fz2E6KtQF7GBFLknp1Q4Rao9muRT8sUxjnuD8szR9zrEmi9DcRGcSSgaDacMoNz4j5zr8VJNaSfrCsEtUgjYJKzMcUzPP',
             'network': 'mainnet',
@@ -198,10 +196,10 @@ describe('CoinPayments', () => {
         })
       })
     })
-    describe('isAssetConfigured', () => {
+    describe('isNetworkConfigured', () => {
       it('returns true for all supported assets', () => {
-        SUPPORTED_ASSET_SYMBOLS.forEach((s) => {
-          expect(cp.isAssetConfigured(s)).toBe(true)
+        SUPPORTED_NETWORK_SYMBOLS.forEach((s) => {
+          expect(cp.isNetworkConfigured(s)).toBe(true)
         })
       })
     })
@@ -227,7 +225,6 @@ describe('CoinPayments', () => {
             'network': 'testnet',
           },
           'DOGE': {
-            'addressType': 'p2pkh',
             'derivationPath': "m/44'/3'/0'",
             'hdKey': 'xpub6BkpqKsQa8pnP9fz2E6KtQF7GBFLknp1Q4Rao9muRT8sUxjnuD8szR9zrEmi9DcRGcSSgaDacMoNz4j5zr8VJNaSfrCsEtUgjYJKzMcUzPP',
             'network': 'testnet',
@@ -239,9 +236,8 @@ describe('CoinPayments', () => {
             'network': 'testnet',
           },
           'BCH': {
-            'addressType': 'p2pkh',
-            'derivationPath': "m/44'/1'/0'",
-            'hdKey': 'tpubDD44v815t4axrr6ad3hf8Q7mo53GJ6Wsk3jJXdxiCZiteDp2fo8LQ8eGvDKnaA9Ui6P8QmUbzt1nf1JxEwPidRrtZ7cfujPSrjESpMfLofr',
+            'derivationPath': "m/44'/145'/0'",
+            'hdKey': 'xpub6CrWaNQ65RQXoUARmM9YQ2L4cjjkbzuCSri8atiTU5WXo7FiXCZEU9AehJjuxB69EMZbvAAjSGqTDRTCRmsMfWY4y2yXqE1udMmhoKSNmgW',
             'network': 'testnet',
           },
           'ETH': {
@@ -265,10 +261,10 @@ describe('CoinPayments', () => {
         })
       })
     })
-    describe('isAssetConfigured', () => {
+    describe('isNetworkConfigured', () => {
       it('returns true for all supported assets', () => {
-        SUPPORTED_ASSET_SYMBOLS.forEach((s) => {
-          expect(cp.isAssetConfigured(s)).toBe(true)
+        SUPPORTED_NETWORK_SYMBOLS.forEach((s) => {
+          expect(cp.isNetworkConfigured(s)).toBe(true)
         })
       })
     })

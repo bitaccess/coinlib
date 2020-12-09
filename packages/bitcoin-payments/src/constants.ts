@@ -1,6 +1,7 @@
 import { FeeLevel, NetworkType } from '@faast/payments-common'
 import { networks } from 'bitcoinjs-lib'
-import { AddressType, SinglesigAddressType, MultisigAddressType } from './types';
+import { BitcoinjsNetwork } from './bitcoinish'
+import { AddressType, SinglesigAddressType, MultisigAddressType } from './types'
 
 export const PACKAGE_NAME = 'bitcoin-payments'
 export const DECIMAL_PLACES = 8
@@ -45,6 +46,11 @@ export const DEFAULT_NETWORK = NetworkType.Mainnet
 export const NETWORK_MAINNET = networks.bitcoin
 export const NETWORK_TESTNET = networks.testnet
 
+export const NETWORKS: { [networkType in NetworkType]: BitcoinjsNetwork } = {
+  [NetworkType.Mainnet]: NETWORK_MAINNET,
+  [NetworkType.Testnet]: NETWORK_TESTNET,
+}
+
 export const DEFAULT_MAINNET_SERVER = process.env.BITCOIN_SERVER_URL
   ? process.env.BITCOIN_SERVER_URL.split(',')
   : ['https://btc1.trezor.io', 'https://btc2.trezor.io']
@@ -53,8 +59,5 @@ export const DEFAULT_TESTNET_SERVER = process.env.BITCOIN_TESTNET_SERVER_URL
   : ['https://tbtc1.trezor.io', 'https://tbtc2.trezor.io']
 
 export const DEFAULT_FEE_LEVEL = FeeLevel.Medium
-export const DEFAULT_SAT_PER_BYTE_LEVELS = {
-  [FeeLevel.High]: 100,
-  [FeeLevel.Medium]: 50,
-  [FeeLevel.Low]: 25,
-}
+
+export const PUBLIC_CONFIG_OMIT_FIELDS = ['logger', 'server', 'hdKey', 'keyPairs', 'blockcypherToken']

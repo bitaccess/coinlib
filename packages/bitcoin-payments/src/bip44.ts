@@ -1,9 +1,9 @@
 import { BIP32Interface as HDNode, fromBase58 } from 'bip32'
 import { SinglesigAddressType, BitcoinjsKeyPair } from './types'
-import { BitcoinjsNetwork } from './bitcoinish/types'
+import { BitcoinjsNetwork, bip32MagicNumberToPrefix } from './bitcoinish'
 import { publicKeyToAddress } from './helpers'
 
-export { HDNode }
+export { HDNode, bip32MagicNumberToPrefix }
 
 /**
  * Split full path into array of indices

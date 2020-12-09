@@ -1,11 +1,10 @@
 import fs from 'fs'
 import path from 'path'
-import { omit } from 'lodash'
 import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel } from '@faast/payments-common'
 
 import {
   HdLitecoinPayments, LitecoinTransactionInfo, HdLitecoinPaymentsConfig,
-  LitecoinSignedTransaction, SinglesigAddressType, AddressType, DEFAULT_SAT_PER_BYTE_LEVELS,
+  LitecoinSignedTransaction, SinglesigAddressType, AddressType,
 } from '../src'
 
 import { txInfo_4d111 } from './fixtures'

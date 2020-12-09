@@ -1,3 +1,4 @@
+import { fromBase58 } from 'bip32'
 import {
   deriveAddress,
   derivePrivateKey,
@@ -8,11 +9,10 @@ import {
   isValidXprv,
   isValidXpub,
 } from '../src/bip44'
-import { AddressType } from '../src'
-import { fromBase58 } from 'bip32'
+import { BitcoinCashAddressFormat } from '../src'
 import {
-  DERIVED_XPRV, DERIVATION_PATH, ROOT_XPRV, NETWORK, PARTIALLY_DERIVED_XPRV, 
-  ADDRESS_LEGACY, PRIVATE_KEY, DERIVED_XPUB,
+  DERIVED_XPRV, DERIVATION_PATH, ROOT_XPRV, NETWORK, PARTIALLY_DERIVED_XPRV,
+  ADDRESS_CASH, PRIVATE_KEY, DERIVED_XPUB, NETWORK_TYPE,
 } from './fixtures'
 
 export const BASE_NODE = fromBase58(DERIVED_XPRV)
@@ -36,17 +36,17 @@ describe('bip44', () => {
   })
   describe('deriveKeyPair', () => {
     it('derives index correctly', () => {
-      expect(deriveKeyPair(BASE_NODE, 2, NETWORK)).toEqual(BASE_NODE.derive(0).derive(2))
+      expect(deriveKeyPair(BASE_NODE, 2)).toEqual(BASE_NODE.derive(0).derive(2))
     })
   })
   describe('deriveAddress', () => {
     it('derives legacy address', () => {
-      expect(deriveAddress(BASE_NODE, 2, NETWORK, AddressType.Legacy)).toBe(ADDRESS_LEGACY)
+      expect(deriveAddress(BASE_NODE, 2, NETWORK_TYPE, BitcoinCashAddressFormat.Cash)).toBe(ADDRESS_CASH)
     })
   })
   describe('derivePrivateKey', () => {
     it('derives private key', () => {
-      expect(derivePrivateKey(BASE_NODE, 2, NETWORK)).toBe(PRIVATE_KEY)
+      expect(derivePrivateKey(BASE_NODE, 2)).toBe(PRIVATE_KEY)
     })
   })
   describe('xprvToXpub', () => {

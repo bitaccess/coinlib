@@ -3,8 +3,6 @@
 // the salt as uint256 and the contract bytecode
 const Web3 = require('web3')
 const web3 = new Web3({})
-import { deriveSignatory as getSignatory } from '../bip44'
-import { EthereumSignatory } from '../types'
 import { TOKEN_PROXY_DATA } from '../constants'
 
 export function deriveAddress(creatorAddress: string, salt: string, hashed: boolean = false): string {

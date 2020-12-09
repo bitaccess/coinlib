@@ -1,12 +1,12 @@
 import * as t from 'io-ts'
 import {
   BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, FeeRate,
-  BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, KeyPairsConfigParam,
+  BaseTransactionInfo, BaseBroadcastResult, KeyPairsConfigParam,
 } from '@faast/payments-common'
 import { extendCodec, enumCodec, requiredOptionalCodec } from '@faast/ts-common'
 import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
 import { BlockInfoBitcoin } from 'blockbook-client'
-import { BitcoinishPaymentTx, BlockbookConfigServer } from '@faast/bitcoin-payments'
+import { bitcoinish } from '@faast/bitcoin-payments'
 import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
 
 export type BitcoinjsKeyPair = BitcoinjsSigner & {
@@ -33,7 +33,8 @@ export const DogePaymentsUtilsConfig = extendCodec(
   BaseConfig,
   {},
   {
-    server: BlockbookConfigServer,
+    server: bitcoinish.BlockbookConfigServer,
+    blockcypherToken: t.string,
   },
   'DogePaymentsUtilsConfig',
 )
@@ -49,7 +50,6 @@ export const BaseDogePaymentsConfig = extendCodec(
     targetUtxoPoolSize: t.number, // # of available utxos to try and maintain
     minChange: t.string, // Soft minimum for each change generated to maintain utxo pool
     maximumFeeRate: t.number, // Hard sat/byte fee cap passed to Psbt constructor
-    blockcypherToken: t.string,
   },
   'BaseDogePaymentsConfig',
 )
@@ -92,7 +92,7 @@ export const DogePaymentsConfig = t.union([
 ], 'DogePaymentsConfig')
 export type DogePaymentsConfig = t.TypeOf<typeof DogePaymentsConfig>
 
-export const DogeUnsignedTransactionData = BitcoinishPaymentTx
+export const DogeUnsignedTransactionData = bitcoinish.BitcoinishPaymentTx
 export type DogeUnsignedTransactionData = t.TypeOf<typeof DogeUnsignedTransactionData>
 
 export const DogeUnsignedTransaction = extendCodec(

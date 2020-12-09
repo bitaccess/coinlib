@@ -29,7 +29,8 @@ export const BaseRippleConfig = extendCodec(
   BaseConfig,
   {},
   {
-    server: t.union([t.string, instanceofCodec(RippleServerAPI), t.nullType]),
+    server: nullable(t.string),
+    api: instanceofCodec(RippleServerAPI),
   },
   'BaseRippleConfig',
 )

@@ -17,7 +17,7 @@ jest.setTimeout(60 * 1000)
 describe('RipplePaymentsUtils', () => {
   const rpu = new RipplePaymentsUtils({
     logger,
-    server: 'wss://s2.ripple.com',
+    server: 'wss://s1.ripple.com',
   })
 
   beforeAll(async () => {
@@ -30,25 +30,25 @@ describe('RipplePaymentsUtils', () => {
 
   describe('isValidAddress', () => {
     it('returns true for valid address', async () => {
-      expect(await rpu.isValidAddress(VALID_ADDRESS)).toBe(true)
+      expect(rpu.isValidAddress(VALID_ADDRESS)).toBe(true)
     })
     it('returns false for invalid address', async () => {
-      expect(await rpu.isValidAddress('invalid')).toBe(false)
+      expect(rpu.isValidAddress('invalid')).toBe(false)
     })
     it('returns false for number', async () => {
-      expect(await rpu.isValidAddress(123 as any)).toBe(false)
+      expect(rpu.isValidAddress(123 as any)).toBe(false)
     })
   })
 
   describe('isValidExtraId', () => {
     it('returns true for valid extraId string', async () => {
-      expect(await rpu.isValidExtraId('123')).toBe(true)
+      expect(rpu.isValidExtraId('123')).toBe(true)
     })
     it('returns false for invalid extraId string', async () => {
-      expect(await rpu.isValidExtraId('abc')).toBe(false)
+      expect(rpu.isValidExtraId('abc')).toBe(false)
     })
     it('returns false for number', async () => {
-      expect(await rpu.isValidExtraId(123 as any)).toBe(false)
+      expect(rpu.isValidExtraId(123 as any)).toBe(false)
     })
   })
 

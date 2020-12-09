@@ -1,5 +1,5 @@
-import { PaymentsUtils, Payport } from '@faast/payments-common'
-import { isNil, assertType, SimpleReporter } from '@faast/ts-common'
+import { PaymentsUtils, Payport, AutoFeeLevels, FeeLevel, FeeRate, FeeRateType } from '@faast/payments-common'
+import { isNil, assertType } from '@faast/ts-common'
 
 import {
   toMainDenominationString,
@@ -11,23 +11,36 @@ import {
 } from './helpers'
 import { BaseRippleConfig } from './types'
 import { RippleConnected } from './RippleConnected'
+import { DECIMAL_PLACES, COIN_NAME, COIN_SYMBOL, FEE_LEVEL_CUSHIONS } from './constants'
 
 export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtils {
+
+  readonly coinSymbol = COIN_SYMBOL
+  readonly coinName = COIN_NAME
+  readonly coinDecimals = DECIMAL_PLACES
+
   constructor(config: BaseRippleConfig) {
     super(config)
   }
 
-  async isValidExtraId(extraId: string): Promise<boolean> {
+  isValidExtraId(extraId: string): boolean {
     return isValidExtraId(extraId)
   }
 
-  async isValidAddress(address: string): Promise<boolean> {
+  isValidAddress(address: string): boolean {
     return isValidAddress(address)
+  }
+
+  standardizeAddress(address: string): string | null {
+    if (!isValidAddress(address)) {
+      return null
+    }
+    return address
   }
 
   private async _getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
     const { address, extraId } = payport
-    if (!(await this.isValidAddress(address))) {
+    if (!(this.isValidAddress(address))) {
       return 'Invalid payport address'
     }
     let requireExtraId = false
@@ -41,7 +54,7 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
       if (requireExtraId) {
         return `Payport extraId is required for address ${address} with ripple requireDestinationTag setting enabled`
       }
-    } else if (!(await this.isValidExtraId(extraId))) {
+    } else if (!(this.isValidExtraId(extraId))) {
       return 'Invalid payport extraId'
     }
   }
@@ -80,4 +93,12 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
 
   isValidXprv = isValidXprv
   isValidXpub = isValidXpub
+
+  async getFeeRateRecommendation(level: AutoFeeLevels): Promise<FeeRate> {
+    const feeMain = await this._retryDced(() => this.api.getFee(FEE_LEVEL_CUSHIONS[level]))
+    return {
+      feeRate: feeMain,
+      feeRateType: FeeRateType.Main
+    }
+  }
 }

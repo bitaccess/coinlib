@@ -5,8 +5,9 @@ export * from '@faast/payments-common'
 import * as Tron from '@faast/tron-payments'
 import * as Ripple from '@faast/ripple-payments'
 import * as Stellar from '@faast/stellar-payments'
+import * as Ethereum from '@faast/ethereum-payments'
 import * as Bitcoin from '@faast/bitcoin-payments'
 import * as Litecoin from '@faast/litecoin-payments'
 import * as BitcoinCash from '@faast/bitcoin-cash-payments'
 import * as Dogecoin from '@faast/doge-payments'
-export { Tron, Ripple, Stellar, Bitcoin, Litecoin, BitcoinCash, Dogecoin }
+export { Tron, Ripple, Stellar, Ethereum, Bitcoin, Litecoin, BitcoinCash, Dogecoin }

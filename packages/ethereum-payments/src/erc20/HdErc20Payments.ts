@@ -1,10 +1,10 @@
-import { PUBLIC_CONFIG_OMIT_FIELDS } from '../constants'
-import { BaseErc20Payments } from './BaseErc20Payments'
-
-import { deriveSignatory } from '../bip44'
-import { deriveAddress } from './deriveAddress'
 import { Payport } from '@faast/payments-common'
 import { omit } from 'lodash'
+
+import { PUBLIC_CONFIG_OMIT_FIELDS } from '../constants'
+import { BaseErc20Payments } from './BaseErc20Payments'
+import { deriveSignatory } from '../bip44'
+import { deriveAddress } from './deriveAddress'
 import { HdErc20PaymentsConfig, EthereumSignatory } from '../types'
 
 export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
@@ -73,7 +73,7 @@ export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
     }
     const address = deriveAddress(this.masterAddress, signatory.keys.pub)
 
-    if (!await this.isValidAddress(address)) {
+    if (!this.isValidAddress(address)) {
       // This should never happen
       throw new Error(`Cannot get address ${index} - validation failed for derived address`)
     }

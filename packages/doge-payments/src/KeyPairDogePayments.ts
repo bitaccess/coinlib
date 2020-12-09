@@ -1,13 +1,16 @@
+import { omit } from 'lodash'
+import { isUndefined, isString } from '@faast/ts-common'
+import { PUBLIC_CONFIG_OMIT_FIELDS } from '@faast/bitcoin-payments'
+
 import { SinglesigDogePayments } from './SinglesigDogePayments'
 import { KeyPairDogePaymentsConfig, BitcoinjsKeyPair } from './types'
-import { omit } from 'lodash'
 import {
   privateKeyToKeyPair,
   publicKeyToAddress,
   publicKeyToKeyPair,
   publicKeyToString,
 } from './helpers'
-import { isUndefined, isString } from '@faast/ts-common'
+import { SINGLESIG_ADDRESS_TYPE } from './constants'
 
 export class KeyPairDogePayments extends SinglesigDogePayments<KeyPairDogePaymentsConfig> {
   readonly publicKeys: { [index: number]: string | undefined } = {}
@@ -32,10 +35,10 @@ export class KeyPairDogePayments extends SinglesigDogePayments<KeyPairDogePaymen
         publicKey = privateKeyToKeyPair(value, this.bitcoinjsNetwork).publicKey
         privateKey = value
       } else {
-        throw new Error(`KeyPairDogePaymentsConfig.keyPairs[${i}] is not a valid ${this.networkType} private key or address`)
+        throw new Error(`KeyPairDogePaymentsConfig.keyPairs[${i}] is not a valid ${this.networkType} private or public key`)
       }
 
-      const address = publicKeyToAddress(publicKey, this.bitcoinjsNetwork, this.addressType)
+      const address = publicKeyToAddress(publicKey, this.bitcoinjsNetwork, SINGLESIG_ADDRESS_TYPE)
 
       this.publicKeys[i] = publicKeyToString(publicKey)
       this.privateKeys[i] = privateKey
@@ -47,13 +50,12 @@ export class KeyPairDogePayments extends SinglesigDogePayments<KeyPairDogePaymen
     return {
       ...this.config,
       network: this.networkType,
-      addressType: this.addressType,
     }
   }
 
   getPublicConfig(): KeyPairDogePaymentsConfig {
     return {
-      ...omit(this.getFullConfig(), ['logger', 'server', 'keyPairs']),
+      ...omit(this.getFullConfig(), PUBLIC_CONFIG_OMIT_FIELDS),
       keyPairs: this.publicKeys,
     }
   }

@@ -2,20 +2,19 @@ import fs from 'fs'
 import path from 'path'
 import { omit } from 'lodash'
 import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel } from '@faast/payments-common'
+import { toBigNumber } from '@faast/ts-common'
+import BigNumber from 'bignumber.js'
+import { bitcoinish } from '@faast/bitcoin-payments'
 
 import {
   HdDogePayments, DogeTransactionInfo, HdDogePaymentsConfig,
   DogeSignedTransaction, AddressType,
-  SinglesigAddressType
+  SinglesigAddressType, DEFAULT_NETWORK_MIN_RELAY_FEE
 } from '../src'
 
 import { txInfo_beae1 } from './fixtures/transactions'
 import { legacyAccount } from './fixtures/accounts'
-import { ADDRESS_INPUT_WEIGHTS } from '../src/utils'
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
-import { toBigNumber } from '@faast/ts-common'
-import BigNumber from 'bignumber.js'
-import { DEFAULT_NETWORK_MIN_RELAY_FEE } from '../src/constants'
 
 const EXTERNAL_ADDRESS = 'DB15Lt7u8hxkbT8s1JAKHA9Xbxr8SbxnC8'
 
@@ -411,7 +410,7 @@ describeAll('e2e mainnet', () => {
         const extraInputs = inputCount - 1
         let expectedTxSize = sweepTxSize
         if (extraInputs) {
-          expectedTxSize += (extraInputs * ADDRESS_INPUT_WEIGHTS[addressType]) / 4
+          expectedTxSize += (extraInputs * bitcoinish.ADDRESS_INPUT_WEIGHTS[addressType]) / 4
         }
 
         expect(feeNumber).toBe(BigNumber.max(MIN_FEE, (expectedTxSize*satPerByte)*1e-8).toNumber())
@@ -445,7 +444,7 @@ describeAll('e2e mainnet', () => {
         const unsignedTx = await payments.createTransaction(
           indexToSend,
           recipientIndex,
-          '300',
+          '3',
           { useUnconfirmedUtxos: true }, // Prevents consecutive tests from failing
         )
         const signedTx = await payments.signTransaction(unsignedTx)

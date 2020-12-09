@@ -1,29 +1,58 @@
-import { BitcoinishPaymentsUtils } from '@faast/bitcoin-payments'
-import { NetworkType, FeeLevel } from '@faast/payments-common'
+import { bitcoinish } from '@faast/bitcoin-payments'
+import { AutoFeeLevels, FeeRate } from '@faast/payments-common'
 import { toBitcoinishConfig } from './utils'
-import { BitcoinCashPaymentsUtilsConfig } from './types'
-import { isValidAddress, isValidPrivateKey } from './helpers'
+import { BitcoinCashPaymentsUtilsConfig, BitcoinCashAddressFormat, BitcoinCashAddressFormatT } from './types'
+import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress } from './helpers'
+import { DEFAULT_ADDRESS_FORMAT } from './constants'
+import { assertType, optional } from '@faast/ts-common'
 
-export class BitcoinCashPaymentsUtils extends BitcoinishPaymentsUtils {
+export class BitcoinCashPaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils {
+
+  readonly validAddressFormat?: BitcoinCashAddressFormat
+
   constructor(config: BitcoinCashPaymentsUtilsConfig = {}) {
     super(toBitcoinishConfig(config))
+    this.validAddressFormat = config.validAddressFormat
   }
 
-  async isValidAddress(address: string) {
-    return isValidAddress(address, this.bitcoinjsNetwork)
+  isValidAddress(address: string, options?: { format?: string }) {
+    // prefer argument over configured format, default to any (undefined)
+    const format = assertType(optional(BitcoinCashAddressFormatT), options?.format ?? this.validAddressFormat, 'format')
+    return isValidAddress(address, this.networkType, format)
   }
 
-  async isValidPrivateKey(privateKey: string) {
-    return isValidPrivateKey(privateKey, this.bitcoinjsNetwork)
-  }
-
-  async getBlockBookFeeEstimate(feeLevel?: FeeLevel, networkType?: NetworkType): Promise<number> {
-    const body = await this.getApi().doRequest('GET', '/api/v1/estimatefee/3')
-    const fee = body['result']
-    if (!fee) {
-      throw new Error("Blockbook response is missing expected field 'result'")
+  standardizeAddress(address: string, options?: { format?: string }) {
+    // prefer argument over configured format, default to cash address
+    const format = assertType(BitcoinCashAddressFormatT,
+      options?.format ?? this.validAddressFormat ?? DEFAULT_ADDRESS_FORMAT,
+      'format',
+    )
+    const standardized = standardizeAddress(
+      address,
+      this.networkType,
+      format,
+    )
+    if (standardized && address !== standardized) {
+      this.logger.log(`Standardized ${this.coinSymbol} address to ${format} format: ${address} -> ${standardized}`)
     }
-    const satPerByte = fee * 100000
-    return feeLevel === 'high' ? satPerByte * 2 : feeLevel === 'low' ? satPerByte / 2 : satPerByte
+    return standardized
+  }
+
+  isValidPublicKey(publicKey: string) {
+    return isValidPublicKey(publicKey, this.networkType)
+  }
+
+  isValidPrivateKey(privateKey: string) {
+    return isValidPrivateKey(privateKey, this.networkType)
+  }
+
+  async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
+    return bitcoinish.getBlockbookFeeRecommendation(
+      feeLevel,
+      this.coinSymbol,
+      this.networkType,
+      this.getApi(),
+      this.logger,
+    )
   }
 }

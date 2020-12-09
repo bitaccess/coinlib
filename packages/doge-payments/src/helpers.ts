@@ -1,11 +1,30 @@
-import { createUnitConverters } from '@faast/payments-common'
+import { createUnitConverters, NetworkType } from '@faast/payments-common'
+import { bitcoinish } from '@faast/bitcoin-payments'
 import * as bitcoin from 'bitcoinjs-lib'
-import * as bip32 from 'bip32'
-import { isString } from '@faast/ts-common'
 
-import { AddressType, BitcoinjsKeyPair, SinglesigAddressType } from './types'
-import { BitcoinjsNetwork } from '@faast/bitcoin-payments'
-import { DECIMAL_PLACES } from './constants'
+import { DECIMAL_PLACES, NETWORKS } from './constants'
+
+const {
+  getMultisigPaymentScript,
+  getSinglesigPaymentScript,
+  publicKeyToAddress,
+  publicKeyToKeyPair,
+  publicKeyToString,
+  publicKeyToBuffer,
+  privateKeyToKeyPair,
+  privateKeyToAddress,
+} = bitcoinish
+
+export {
+  getMultisigPaymentScript,
+  getSinglesigPaymentScript,
+  publicKeyToAddress,
+  publicKeyToKeyPair,
+  publicKeyToString,
+  publicKeyToBuffer,
+  privateKeyToKeyPair,
+  privateKeyToAddress,
+}
 
 const {
   toMainDenominationBigNumber,
@@ -25,77 +44,34 @@ export {
   toBaseDenominationNumber,
 }
 
-export function isValidAddress(address: string, network: BitcoinjsNetwork): boolean {
-  try {
-    bitcoin.address.toOutputScript(address, network)
-    return true
-  } catch (e) {
-    return false
-  }
+export function isValidAddress(address: string, networkType: NetworkType): boolean {
+  return bitcoinish.isValidAddress(address, NETWORKS[networkType])
 }
 
-export function isValidPublicKey(publicKey: string | Buffer, network: BitcoinjsNetwork): boolean {
-  try {
-    bitcoin.ECPair.fromPublicKey(publicKeyToBuffer(publicKey), { network })
-    return true
-  } catch (e) {
-    return false
-  }
+export function standardizeAddress(address: string, networkType: NetworkType): string | null {
+  return bitcoinish.standardizeAddress(address, NETWORKS[networkType])
+}
+
+export function isValidPublicKey(publicKey: string | Buffer, networkType: NetworkType): boolean {
+  return bitcoinish.isValidPublicKey(publicKey, NETWORKS[networkType])
 }
 
 export function isValidExtraId(extraId: string): boolean {
   return false
 }
 
-export function publicKeyToBuffer(publicKey: string | Buffer): Buffer {
-  return isString(publicKey) ? Buffer.from(publicKey, 'hex') : publicKey
+export function isValidPrivateKey(privateKey: string, networkType: NetworkType): boolean {
+  return bitcoinish.isValidPrivateKey(privateKey, NETWORKS[networkType])
 }
 
-export function publicKeyToString(publicKey: string | Buffer): string {
-  return isString(publicKey) ? publicKey : publicKey.toString('hex')
-}
-
-export function getSinglesigPaymentScript(
-  network: BitcoinjsNetwork,
-  addressType: SinglesigAddressType,
-  pubkey: Buffer,
-): bitcoin.payments.Payment {
-  const scriptParams = { network, pubkey }
-  return bitcoin.payments.p2pkh(scriptParams)
-}
-
-export function publicKeyToAddress(
-  publicKey: string | Buffer,
-  network: BitcoinjsNetwork,
-  addressType: SinglesigAddressType,
-): string {
-  const pubkey = publicKeyToBuffer(publicKey)
-  const script = getSinglesigPaymentScript(network, addressType, pubkey)
-  const { address } = script
-  if (!address) {
-    throw new Error('bitcoinjs-lib address derivation returned falsy value')
-  }
-  return address
-}
-
-export function publicKeyToKeyPair(publicKey: string | Buffer, network: BitcoinjsNetwork): BitcoinjsKeyPair {
-  return bitcoin.ECPair.fromPublicKey(publicKeyToBuffer(publicKey), { network })
-}
-
-export function privateKeyToKeyPair(privateKey: string, network: BitcoinjsNetwork): BitcoinjsKeyPair {
-  return bitcoin.ECPair.fromWIF(privateKey, network)
-}
-
-export function privateKeyToAddress(privateKey: string, network: BitcoinjsNetwork, addressType: SinglesigAddressType) {
-  const keyPair = privateKeyToKeyPair(privateKey, network)
-  return publicKeyToAddress(keyPair.publicKey, network, addressType)
-}
-
-export function isValidPrivateKey(privateKey: string, network: BitcoinjsNetwork): boolean {
-  try {
-    privateKeyToKeyPair(privateKey, network)
-    return true
-  } catch (e) {
-    return false
-  }
+export function estimateDogeTxSize(
+  inputCounts: { [k: string]: number },
+  outputCounts: { [k: string]: number },
+  networkType: NetworkType,
+) {
+  return bitcoinish.estimateTxSize(
+    inputCounts,
+    outputCounts,
+    (address: string) => bitcoin.address.toOutputScript(address, NETWORKS[networkType]),
+  )
 }

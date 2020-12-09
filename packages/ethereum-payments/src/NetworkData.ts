@@ -154,15 +154,14 @@ export class NetworkData {
 
     const gwei = new BigNumber(price10xGwei).dividedBy(10)
     this.logger.log(`Retrieved gas price of ${gwei} Gwei from ethgasstation using speed ${speed}`)
-    return gwei.multipliedBy(1e9).toFixed()
+    return gwei.multipliedBy(1e9).dp(0, BigNumber.ROUND_DOWN).toFixed()
   }
 
   private async getWeb3GasPrice(): Promise<string> {
     try {
-      const result = await this._retryDced(() => this.eth.getGasPrice())
-      const gwei = new BigNumber(result).div(1e9)
-      this.logger.log(`Retrieved gas price of ${gwei} Gwei from web3`)
-      return result
+      const wei = new BigNumber(await this._retryDced(() => this.eth.getGasPrice()))
+      this.logger.log(`Retrieved gas price of ${wei.div(1e9)} Gwei from web3`)
+      return wei.dp(0, BigNumber.ROUND_DOWN).toFixed()
     } catch (e) {
       this.logger.warn('Failed to retrieve gas price from web3 - ', e.toString())
       return ''

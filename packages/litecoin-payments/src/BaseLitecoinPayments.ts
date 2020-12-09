@@ -1,16 +1,14 @@
 import * as bitcoin from 'bitcoinjs-lib'
 import {
-  FeeRateType,
   FeeRate,
   AutoFeeLevels,
   UtxoInfo,
   TransactionStatus,
   BaseMultisigData,
-  PayportOutput,
-  CreateTransactionOptions as TransactionOptions,
 } from '@faast/payments-common'
+import { bitcoinish } from '@faast/bitcoin-payments'
 
-import { getBlockcypherFeeEstimate, toBitcoinishConfig, estimateLitecoinTxSize } from './utils'
+import { toBitcoinishConfig } from './utils'
 import {
   BaseLitecoinPaymentsConfig,
   LitecoinUnsignedTransaction,
@@ -18,44 +16,57 @@ import {
   LitecoinSignedTransaction,
   AddressType,
   PsbtInputData,
+  LitecoinAddressFormat,
 } from './types'
 import {
-  DEFAULT_SAT_PER_BYTE_LEVELS, LITECOIN_SEQUENCE_RBF,
+  LITECOIN_SEQUENCE_RBF,
 } from './constants'
-import { isValidAddress, isValidPrivateKey, isValidPublicKey } from './helpers'
-import { BitcoinishPayments, BitcoinishPaymentTx, getBlockcypherFeeRecommendation } from '@faast/bitcoin-payments'
+import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateLitecoinTxSize } from './helpers'
+import { LitecoinPaymentsUtils } from './LitecoinPaymentsUtils'
 
 export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsConfig>
-extends BitcoinishPayments<Config> {
+  extends bitcoinish.BitcoinishPayments<Config> {
 
   readonly maximumFeeRate?: number
-  private readonly blockcypherToken?: string
+  readonly blockcypherToken?: string
+  readonly validAddressFormat?: LitecoinAddressFormat
+  readonly utils: LitecoinPaymentsUtils
 
   constructor(config: BaseLitecoinPaymentsConfig) {
     super(toBitcoinishConfig(config))
     this.maximumFeeRate = config.maximumFeeRate
     this.blockcypherToken = config.blockcypherToken
+    this.validAddressFormat = config.validAddressFormat
+    this.utils = new LitecoinPaymentsUtils({
+      network: this.networkType,
+      logger: this.logger,
+      server: this.api,
+      blockcypherToken: this.blockcypherToken,
+      validAddressFormat: this.validAddressFormat,
+    })
   }
 
   abstract getPaymentScript(index: number): bitcoin.payments.Payment
   abstract addressType: AddressType
 
-  isValidAddress(address: string): boolean {
-    return isValidAddress(address, this.bitcoinjsNetwork)
+  isValidAddress(address: string, options?: { format?: string }): boolean {
+    return this.utils.isValidAddress(address, options)
+  }
+
+  standardizeAddress(address: string, options?: { format?: string }) {
+    return this.utils.standardizeAddress(address, options)
   }
 
   isValidPrivateKey(privateKey: string): boolean {
-    return isValidPrivateKey(privateKey, this.bitcoinjsNetwork)
+    return this.utils.isValidPrivateKey(privateKey)
   }
 
   isValidPublicKey(publicKey: string): boolean {
-    return isValidPublicKey(publicKey, this.bitcoinjsNetwork)
+    return this.utils.isValidPublicKey(publicKey)
   }
 
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
-    return getBlockcypherFeeRecommendation(
-      feeLevel, this.coinSymbol, this.networkType, this.blockcypherToken, this.logger,
-    )
+    return this.utils.getFeeRateRecommendation(feeLevel)
   }
 
   /** Return a string that can be passed into estimateLitecoinTxSize. Override to support multisig */
@@ -71,7 +82,7 @@ extends BitcoinishPayments<Config> {
     return estimateLitecoinTxSize(
       { [this.getEstimateTxSizeInputKey()]: inputCount },
       outputCounts,
-      this.bitcoinjsNetwork,
+      this.networkType,
     )
   }
 
@@ -126,7 +137,7 @@ extends BitcoinishPayments<Config> {
     }
   }
 
-  async buildPsbt(paymentTx: BitcoinishPaymentTx, fromIndex: number): Promise<bitcoin.Psbt> {
+  async buildPsbt(paymentTx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<bitcoin.Psbt> {
     const { inputs, outputs } = paymentTx
     const inputPaymentScript = this.getPaymentScript(fromIndex)
 
@@ -147,7 +158,7 @@ extends BitcoinishPayments<Config> {
     return psbt
   }
 
-  async serializePaymentTx(tx: BitcoinishPaymentTx, fromIndex: number): Promise<string> {
+  async serializePaymentTx(tx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<string> {
     return (await this.buildPsbt(tx, fromIndex)).toHex()
   }
 

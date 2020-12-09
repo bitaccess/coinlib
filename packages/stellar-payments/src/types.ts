@@ -31,7 +31,8 @@ export const BaseStellarConfig = extendCodec(
   BaseConfig,
   {},
   {
-    server: t.union([t.string, instanceofCodec(StellarServerAPI), t.nullType]),
+    server: nullable(t.string),
+    api: instanceofCodec(StellarServerAPI),
   },
   'BaseStellarConfig',
 )

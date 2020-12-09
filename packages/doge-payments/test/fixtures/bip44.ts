@@ -1,5 +1,7 @@
 import { NETWORK_MAINNET } from '../../src'
+import { NetworkType } from '@faast/payments-common'
 
+export const NETWORK_TYPE = NetworkType.Mainnet
 export const NETWORK = NETWORK_MAINNET
 export const DERIVATION_PATH = "m/44'/3'/0'"
 export const MNEMONIC = 'parent solid gentle select carpet dolphin lunar pass half bleak siege puzzle'
@@ -16,4 +18,4 @@ export const DERIVED_XPUB = 'xpub6D5k1geCx56YrTHmCB51B6opJasQ8dqpPSy1cdYF9wDYPRF
 
 // All of the following are derived from m/44'/3'/0'/0/2
 export const PRIVATE_KEY = 'QRaq8CwiNvLzYSXJjbWqd3CCpiML2J5VeAPMeozPixbG5QNDpYi1'
-export const ADDRESS_LEGACY = 'DRizV6jMk714avw1xcAxNGwwZsRnNfuRuY'
+export const ADDRESS_VALID = 'DRizV6jMk714avw1xcAxNGwwZsRnNfuRuY'

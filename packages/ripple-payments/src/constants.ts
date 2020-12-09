@@ -1,8 +1,11 @@
-import { NetworkType } from '@faast/payments-common'
+import { NetworkType, FeeLevel } from '@faast/payments-common'
 import { RippleCreateTransactionOptions } from './types'
+import { AutoFeeLevels } from '../../payments-common/src/types';
 
 export const PACKAGE_NAME = 'ripple-payments'
 
+export const COIN_SYMBOL = 'XRP'
+export const COIN_NAME = 'Ripple' // Yes, I know 'XRP' is the coin name too, but that's just confusing
 export const DECIMAL_PLACES = 6
 export const MIN_BALANCE = 20
 export const DEFAULT_CREATE_TRANSACTION_OPTIONS: RippleCreateTransactionOptions = {}
@@ -29,3 +32,13 @@ export const MAX_API_CALL_RETRIES = 2
 export const DEFAULT_NETWORK = NetworkType.Mainnet
 export const DEFAULT_MAINNET_SERVER = 'wss://s1.ripple.com'
 export const DEFAULT_TESTNET_SERVER = 'wss://s.altnet.rippletest.net:51233'
+
+export const DEFAULT_FEE_LEVEL: AutoFeeLevels = FeeLevel.Medium
+
+export const PUBLIC_CONFIG_OMIT_FIELDS = ['logger', 'server', 'api', 'hdKey', 'hotAccount', 'depositAccount']
+
+export const FEE_LEVEL_CUSHIONS = {
+  [FeeLevel.Low]: 1,
+  [FeeLevel.Medium]: 1.2,
+  [FeeLevel.High]: 1.5,
+}

@@ -1,40 +1,23 @@
-import { BitcoinCashPaymentsUtils } from '../src'
-import { PRIVATE_KEY, ADDRESS_LEGACY } from './fixtures'
-const VALID_ADDRESS = ADDRESS_LEGACY
+import { FeeLevel } from '@faast/payments-common'
+import { BitcoinCashAddressFormat, BitcoinCashPaymentsUtils } from '../src'
+import { PRIVATE_KEY, ADDRESS_CASH, ADDRESS_BITPAY, ADDRESS_LEGACY } from './fixtures'
+import { logger } from './utils'
 
 describe('BitcoinCashPaymentUtils', () => {
-  let pu: BitcoinCashPaymentsUtils
-  beforeEach(() => {
-    pu = new BitcoinCashPaymentsUtils()
-  })
+  const pu = new BitcoinCashPaymentsUtils({ logger })
 
-  describe('isValidAddress', () => {
-    test('should return true for valid', async () => {
-      expect(await pu.isValidAddress(VALID_ADDRESS)).toBe(true)
-    })
-    test('should return false for invalid', async () => {
-      expect(await pu.isValidAddress('fake')).toBe(false)
-    })
-  })
-
-  describe('getFeeEstimate', () => {
-    test('should return a value', async () => {
-      expect(await pu.getBlockBookFeeEstimate()).toBeDefined()
-    })
-  })
-
-  describe('isValidExtraId', () => {
-    test('should return false', async () => {
-      expect(await pu.isValidExtraId('fake')).toBe(false)
+  describe('getFeeRateRecommendation', () => {
+    it('should return a value', async () => {
+      expect(await pu.getFeeRateRecommendation(FeeLevel.Medium)).toBeDefined()
     })
   })
 
   describe('isValidPrivateKey', () => {
-    test('should return true for valid', async () => {
-      expect(await pu.isValidPrivateKey(PRIVATE_KEY)).toBe(true)
+    it('should return true for valid', async () => {
+      expect(pu.isValidPrivateKey(PRIVATE_KEY)).toBe(true)
     })
-    test('should return false for invalid', async () => {
-      expect(await pu.isValidPrivateKey('fake')).toBe(false)
+    it('should return false for invalid', async () => {
+      expect(pu.isValidPrivateKey('fake')).toBe(false)
     })
   })
 
@@ -43,7 +26,80 @@ describe('BitcoinCashPaymentUtils', () => {
       expect(await pu.getPayportValidationMessage({} as any)).toMatch('Invalid payport')
     })
     it('return string for valid address with invalid extraId', async () => {
-      expect(await pu.getPayportValidationMessage({ address: VALID_ADDRESS, extraId: '' })).toMatch('Invalid payport')
+      expect(await pu.getPayportValidationMessage({ address: ADDRESS_CASH, extraId: '' })).toMatch('Invalid payport')
+    })
+  })
+
+  describe('isValidExtraId', () => {
+    it('should return false', async () => {
+      expect(pu.isValidExtraId('fake')).toBe(false)
+    })
+  })
+
+  describe('validAddressFormat = undefined', () => {
+
+    describe('isValidAddress', () => {
+      it('should return true for cash address', async () => {
+        expect(pu.isValidAddress(ADDRESS_CASH)).toBe(true)
+      })
+      it('should return true for bitpay address', async () => {
+        expect(pu.isValidAddress(ADDRESS_BITPAY)).toBe(true)
+      })
+      it('should return true for legacy address', async () => {
+        expect(pu.isValidAddress(ADDRESS_LEGACY)).toBe(true)
+      })
+      it('should return false for invalid', async () => {
+        expect(pu.isValidAddress('fake')).toBe(false)
+      })
+    })
+
+    describe('standardizeAddress', () => {
+      it('should return same address for cash address', async () => {
+        expect(pu.standardizeAddress(ADDRESS_CASH)).toBe(ADDRESS_CASH)
+      })
+      it('should return cash address for bitpay address', async () => {
+        expect(pu.standardizeAddress(ADDRESS_BITPAY)).toBe(ADDRESS_CASH)
+      })
+      it('should return cash address for legacy address', async () => {
+        expect(pu.standardizeAddress(ADDRESS_LEGACY)).toBe(ADDRESS_CASH)
+      })
+      it('should return null for invalid address', async () => {
+        expect(pu.standardizeAddress('fake')).toBe(null)
+      })
+    })
+  })
+
+  describe('validAddressFormat = legacy', () => {
+    const puLegacy = new BitcoinCashPaymentsUtils({ logger, validAddressFormat: BitcoinCashAddressFormat.Legacy })
+
+    describe('isValidAddress', () => {
+      it('should return false for cash address', () => {
+        expect(puLegacy.isValidAddress(ADDRESS_CASH)).toBe(false)
+      })
+      it('should return false for bitpay address', async () => {
+        expect(puLegacy.isValidAddress(ADDRESS_BITPAY)).toBe(false)
+      })
+      it('should return true for legacy address', async () => {
+        expect(puLegacy.isValidAddress(ADDRESS_LEGACY)).toBe(true)
+      })
+      it('should return false for invalid', async () => {
+        expect(pu.isValidAddress('fake')).toBe(false)
+      })
+    })
+
+    describe('standardizeAddress', () => {
+      it('should return legacy address for cash address', async () => {
+        expect(puLegacy.standardizeAddress(ADDRESS_CASH)).toBe(ADDRESS_LEGACY)
+      })
+      it('should return legacy address for bitpay address', async () => {
+        expect(puLegacy.standardizeAddress(ADDRESS_BITPAY)).toBe(ADDRESS_LEGACY)
+      })
+      it('should return same address for legacy address', async () => {
+        expect(puLegacy.standardizeAddress(ADDRESS_LEGACY)).toBe(ADDRESS_LEGACY)
+      })
+      it('should return null for invalid address', async () => {
+        expect(puLegacy.standardizeAddress('fake')).toBe(null)
+      })
     })
   })
 })

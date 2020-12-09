@@ -23,15 +23,22 @@ export abstract class RippleConnected {
     assertType(BaseRippleConfig, config)
     this.networkType = config.network || DEFAULT_NETWORK
     this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
-    const { api, server } = this.resolveRippleServer(config.server, this.networkType)
+    const { api, server } = this.resolveRippleServer(config, this.networkType)
     this.api = api
     this.server = server
   }
 
   resolveRippleServer(
-    server: BaseRippleConfig['server'],
+    config: BaseRippleConfig,
     network: NetworkType,
   ): { api: RippleServerAPI, server: string | null } {
+    let { server, api } = config
+    if (api) {
+      return {
+        api,
+        server: (api.connection as any)._url || '',
+      }
+    }
     if (typeof server === 'undefined') {
       server = network === NetworkType.Testnet ? DEFAULT_TESTNET_SERVER : DEFAULT_MAINNET_SERVER
     }
@@ -53,11 +60,6 @@ export abstract class RippleConnected {
       return {
         api,
         server,
-      }
-    } else if (server instanceof RippleServerAPI) {
-      return {
-        api: server,
-        server: (server.connection as any)._url || '',
       }
     } else {
       // null server arg -> offline mode

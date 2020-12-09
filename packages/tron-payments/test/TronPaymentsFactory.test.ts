@@ -1,6 +1,6 @@
 import {
   TronPaymentsFactory, HdTronPayments, KeyPairTronPayments, TronPaymentsConfig,
-  HdTronPaymentsConfig, KeyPairTronPaymentsConfig,
+  HdTronPaymentsConfig, KeyPairTronPaymentsConfig, TronPaymentsUtils,
 } from '../src'
 
 import { hdAccount } from './fixtures/accounts'
@@ -9,19 +9,32 @@ const { XPRV, PRIVATE_KEYS, ADDRESSES } = hdAccount
 
 describe('TronPaymentsFactory', () => {
   const factory = new TronPaymentsFactory()
-  it('should instantiate HdTronPayments', () => {
-    const config: HdTronPaymentsConfig = {
-      hdKey: XPRV,
-    }
-    expect(factory.forConfig(config)).toBeInstanceOf(HdTronPayments)
+
+  describe('newPayments', () => {
+    it('should instantiate HdTronPayments', () => {
+      const config: HdTronPaymentsConfig = {
+        hdKey: XPRV,
+      }
+      expect(factory.newPayments(config)).toBeInstanceOf(HdTronPayments)
+    })
+    it('should instantiate KeyPairTronPayments', () => {
+      const config: KeyPairTronPaymentsConfig = {
+        keyPairs: [PRIVATE_KEYS[0], ADDRESSES[0]],
+      }
+      expect(factory.newPayments(config)).toBeInstanceOf(KeyPairTronPayments)
+    })
+    it('should fail to instantiate unrecognized config', () => {
+      expect(() => factory.newPayments({} as any)).toThrow()
+    })
   })
-  it('should instantiate KeyPairTronPayments', () => {
-    const config: KeyPairTronPaymentsConfig = {
-      keyPairs: [PRIVATE_KEYS[0], ADDRESSES[0]],
-    }
-    expect(factory.forConfig(config)).toBeInstanceOf(KeyPairTronPayments)
-  })
-  it('should fail to instantiate unrecognized config', () => {
-    expect(() => factory.forConfig({} as any)).toThrow()
+
+  describe('newUtils', () => {
+    it('should instantiate TronPaymentsUtils', () => {
+      expect(factory.newUtils({})).toBeInstanceOf(TronPaymentsUtils)
+    })
+
+    it('should fail to instantiate null config', () => {
+      expect(() => factory.newUtils(null as any)).toThrow('Invalid config')
+    })
   })
 })

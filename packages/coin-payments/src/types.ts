@@ -1,14 +1,25 @@
 import * as t from 'io-ts'
 import { extendCodec, Logger, optional } from '@faast/ts-common'
 import { NetworkTypeT } from '@faast/payments-common'
-import { TronPaymentsConfig, BaseTronPaymentsConfig } from '@faast/tron-payments'
-import { RipplePaymentsConfig, BaseRipplePaymentsConfig } from '@faast/ripple-payments'
-import { StellarPaymentsConfig, BaseStellarPaymentsConfig } from '@faast/stellar-payments'
-import { BitcoinPaymentsConfig, BaseBitcoinPaymentsConfig } from '@faast/bitcoin-payments'
-import { EthereumPaymentsConfig, BaseEthereumPaymentsConfig } from '@faast/ethereum-payments'
-import { LitecoinPaymentsConfig, BaseLitecoinPaymentsConfig } from '@faast/litecoin-payments'
-import { BitcoinCashPaymentsConfig, BaseBitcoinCashPaymentsConfig } from '@faast/bitcoin-cash-payments'
-import { DogePaymentsConfig, BaseDogePaymentsConfig } from '@faast/doge-payments'
+import { TronPaymentsConfig, BaseTronPaymentsConfig, TronPaymentsUtils } from '@faast/tron-payments'
+import { RipplePaymentsConfig, BaseRipplePaymentsConfig, RipplePaymentsUtils } from '@faast/ripple-payments'
+import { StellarPaymentsConfig, BaseStellarPaymentsConfig, StellarPaymentsUtils } from '@faast/stellar-payments'
+import { BitcoinPaymentsConfig, BaseBitcoinPaymentsConfig, BitcoinPaymentsUtils } from '@faast/bitcoin-payments'
+import { EthereumPaymentsConfig, BaseEthereumPaymentsConfig, EthereumPaymentsUtils } from '@faast/ethereum-payments'
+import { LitecoinPaymentsConfig, BaseLitecoinPaymentsConfig, LitecoinPaymentsUtils } from '@faast/litecoin-payments'
+import { BitcoinCashPaymentsConfig, BaseBitcoinCashPaymentsConfig, BitcoinCashPaymentsUtils } from '@faast/bitcoin-cash-payments'
+import { DogePaymentsConfig, BaseDogePaymentsConfig, DogePaymentsUtils } from '@faast/doge-payments'
+
+export type CoinPaymentsUtilsClasses = {
+  TRX: TronPaymentsUtils,
+  XRP: RipplePaymentsUtils,
+  XLM: StellarPaymentsUtils,
+  BTC: BitcoinPaymentsUtils,
+  ETH: EthereumPaymentsUtils,
+  LTC: LitecoinPaymentsUtils,
+  BCH: BitcoinCashPaymentsUtils,
+  DOGE: DogePaymentsUtils,
+}
 
 export const basePaymentsConfigCodecs = {
   TRX: BaseTronPaymentsConfig,

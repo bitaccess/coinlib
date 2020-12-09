@@ -41,7 +41,14 @@ export type ResolvedServer = {
   server: string | null
 }
 
-export function resolveStellarServer(server: BaseStellarConfig['server'], network: NetworkType): ResolvedServer {
+export function resolveStellarServer(config: BaseStellarConfig, network: NetworkType): ResolvedServer {
+  let { api, server } = config
+  if (api) {
+    return {
+      api,
+      server: api.serverURL.toString(),
+    }
+  }
   if (typeof server === 'undefined') {
     server = network === NetworkType.Testnet ? DEFAULT_TESTNET_SERVER : DEFAULT_MAINNET_SERVER
   }
@@ -49,11 +56,6 @@ export function resolveStellarServer(server: BaseStellarConfig['server'], networ
     return {
       api: new StellarServerAPI(server),
       server,
-    }
-  } else if (server instanceof StellarServerAPI) {
-    return {
-      api: server,
-      server: server.serverURL.toString(),
     }
   } else {
     // null server arg -> offline mode

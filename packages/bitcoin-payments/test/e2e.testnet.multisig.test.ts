@@ -5,8 +5,10 @@ import {
   MultisigAddressType,
   MultisigBitcoinPaymentsConfig,
   KeyPairBitcoinPayments,
+  BitcoinTransactionInfo,
+  BitcoinSignedTransaction,
 } from '../src'
-import { logger } from './utils'
+import { delay, END_TRANSACTION_STATES, expectEqualWhenTruthy, logger } from './utils'
 import { NetworkType, TransactionStatus, BaseMultisigData } from '@faast/payments-common'
 import path from 'path'
 import fs from 'fs'
@@ -42,6 +44,12 @@ const addressTypesToTest: MultisigAddressType[] = [
 const describeAll = !secretKeys ? describe.skip : describe
 
 describeAll('e2e multisig testnet', () => {
+  let testsComplete = false
+
+  afterAll(() => {
+    testsComplete = true
+  })
+
   // The signing parties for our multisig test.
   // NOTE: the signer address type is irrelevant because only the keypair of each signer is used,
   // which doesn't change across address types. However address type can influence the default
@@ -159,6 +167,37 @@ describeAll('e2e multisig testnet', () => {
         }
       }
 
+      async function pollUntilFound(signedTx: BitcoinSignedTransaction) {
+        const txId = signedTx.id
+        const endState = [...END_TRANSACTION_STATES, TransactionStatus.Pending]
+        logger.log(`polling until status ${endState.join('|')}`, txId)
+        let tx: BitcoinTransactionInfo | undefined
+        while (!testsComplete && (!tx || !endState.includes(tx.status))) {
+          try {
+            tx = await payments.getTransactionInfo(txId)
+          } catch (e) {
+            if (e.message.includes('not found')) {
+              logger.log('tx not found yet', txId, e.message)
+            } else {
+              throw e
+            }
+          }
+          await delay(5000)
+        }
+        if (!tx) {
+          throw new Error(`failed to poll until found ${txId}`)
+        }
+        logger.log(tx.status, tx)
+        expect(tx.id).toBe(signedTx.id)
+        expect(tx.fromAddress).toBe(signedTx.fromAddress)
+        expectEqualWhenTruthy(tx.fromExtraId, signedTx.fromExtraId)
+        expect(tx.toAddress).toBe(signedTx.toAddress)
+        expectEqualWhenTruthy(tx.toExtraId, signedTx.toExtraId)
+        expect(tx.data).toBeDefined()
+        expect(endState).toContain(tx.status)
+        return tx
+      }
+
       it('end to end send', async () => {
         const fromIndex = 0
         const unsignedTx = await payments.createTransaction(fromIndex, EXTERNAL_ADDRESS, '0.0001')
@@ -181,8 +220,7 @@ describeAll('e2e multisig testnet', () => {
         expect(await payments.broadcastTransaction(signedTx)).toEqual({
           id: signedTx.id,
         })
-        // const tx = await pollUntilEnded(signedTx)
-        const tx = await payments.getTransactionInfo(signedTx.id)
+        const tx = await pollUntilFound(signedTx)
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)
       }, 5 * 60 * 1000)

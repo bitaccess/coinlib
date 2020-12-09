@@ -1,11 +1,32 @@
-import { createUnitConverters } from '@faast/payments-common'
+import { createUnitConverters, NetworkType } from '@faast/payments-common'
 import * as bitcoin from 'bitcoinjs-lib'
-import * as bip32 from 'bip32'
-import { isString } from '@faast/ts-common'
+import { assertType } from '@faast/ts-common'
 
-import { AddressType, LitecoinjsKeyPair, SinglesigAddressType } from './types'
-import { BitcoinjsNetwork } from '@faast/bitcoin-payments'
-import { DECIMAL_PLACES } from './constants'
+import { LitecoinAddressFormat, LitecoinAddressFormatT, SinglesigAddressType } from './types'
+import {
+  bitcoinish,
+  NETWORKS as BITCOIN_NETWORKS,
+  BitcoinjsNetwork,
+} from '@faast/bitcoin-payments'
+import { DECIMAL_PLACES, DEFAULT_ADDRESS_FORMAT, NETWORKS } from './constants'
+
+const {
+  getMultisigPaymentScript,
+  getSinglesigPaymentScript,
+  publicKeyToKeyPair,
+  publicKeyToString,
+  publicKeyToBuffer,
+  privateKeyToKeyPair,
+} = bitcoinish
+
+export {
+  getMultisigPaymentScript,
+  getSinglesigPaymentScript,
+  publicKeyToKeyPair,
+  publicKeyToString,
+  publicKeyToBuffer,
+  privateKeyToKeyPair,
+}
 
 const {
   toMainDenominationBigNumber,
@@ -25,87 +46,129 @@ export {
   toBaseDenominationNumber,
 }
 
-export function isValidAddress(address: string, network: BitcoinjsNetwork): boolean {
+const ADDRESS_FORMAT_NETWORKS = {
+  [LitecoinAddressFormat.Deprecated]: BITCOIN_NETWORKS,
+  [LitecoinAddressFormat.Modern]: NETWORKS,
+}
+
+function isP2shAddressForNetwork(address: string, network: BitcoinjsNetwork) {
   try {
-    bitcoin.address.toOutputScript(address, network)
-    return true
+    const decoded = bitcoin.address.fromBase58Check(address)
+    return decoded.version === network.scriptHash
   } catch (e) {
     return false
   }
 }
 
-export function isValidPublicKey(publicKey: string | Buffer, network: BitcoinjsNetwork): boolean {
+/**
+ * Return true if address is a deprecated p2sh address (bitcoin format)
+ * 3-prefix: mainnet
+ * 2-prefix: testnet
+ */
+export function isDeprecatedP2shAddress(address: string, networkType: NetworkType) {
+  return isP2shAddressForNetwork(address, BITCOIN_NETWORKS[networkType])
+}
+
+/**
+ * Return true if address is a modern p2sh address
+ * M-prefix: mainnet
+ * Q-prefix: testnet
+ */
+export function isModernP2shAddress(address: string, networkType: NetworkType) {
+  return isP2shAddressForNetwork(address, NETWORKS[networkType])
+}
+
+/**
+ * defined format: return true if address is valid in provided format
+ * undefined format: return true if address is valid in *any* format
+ */
+export function isValidAddress(
+  address: string,
+  networkType: NetworkType,
+  format?: LitecoinAddressFormat, // undefined -> any
+): boolean {
+  // Validation for modern addresses is the same as Bitcoin just using different network constants
+  const isModern = bitcoinish.isValidAddress(address, NETWORKS[networkType])
+
+  if (format === LitecoinAddressFormat.Modern) {
+    return isModern
+  } else if (format === LitecoinAddressFormat.Deprecated) {
+    return (isModern || isDeprecatedP2shAddress(address, networkType)) && !isModernP2shAddress(address, networkType)
+  } else {
+    return isModern || isDeprecatedP2shAddress(address, networkType)
+  }
+}
+
+export function standardizeAddress(
+  address: string,
+  networkType: NetworkType,
+  format: LitecoinAddressFormat,
+): string | null {
+  if (isValidAddress(address, networkType, format)) {
+    return address
+  }
+
+  const fromFormat = format === LitecoinAddressFormat.Modern
+    ? LitecoinAddressFormat.Deprecated
+    : LitecoinAddressFormat.Modern
   try {
-    bitcoin.ECPair.fromPublicKey(publicKeyToBuffer(publicKey), { network })
-    return true
+    // Convert between p2sh legacy `3` prefix and modern `M` prefix
+    const decoded = bitcoin.address.fromBase58Check(address)
+    const fromNetwork = ADDRESS_FORMAT_NETWORKS[fromFormat][networkType]
+    const toNetwork = ADDRESS_FORMAT_NETWORKS[format][networkType]
+    if (decoded.version === fromNetwork.scriptHash) {
+      return bitcoin.address.toBase58Check(decoded.hash, toNetwork.scriptHash)
+    }
+    return null
   } catch (e) {
-    return false
+    return null
   }
 }
 
-export function isValidExtraId(extraId: string): boolean {
-  return false
+export function isValidPublicKey(publicKey: string | Buffer, networkType: NetworkType): boolean {
+  return bitcoinish.isValidPublicKey(publicKey, NETWORKS[networkType])
 }
 
-export function publicKeyToBuffer(publicKey: string | Buffer): Buffer {
-  return isString(publicKey) ? Buffer.from(publicKey, 'hex') : publicKey
+export function isValidPrivateKey(privateKey: string, networkType: NetworkType): boolean {
+  return bitcoinish.isValidPrivateKey(privateKey, NETWORKS[networkType])
 }
 
-export function publicKeyToString(publicKey: string | Buffer): string {
-  return isString(publicKey) ? publicKey : publicKey.toString('hex')
-}
-
-export function getSinglesigPaymentScript(
-  network: BitcoinjsNetwork,
-  addressType: SinglesigAddressType,
-  pubkey: Buffer,
-): bitcoin.payments.Payment {
-  const scriptParams = { network, pubkey }
-  switch(addressType) {
-    case AddressType.Legacy:
-      return bitcoin.payments.p2pkh(scriptParams)
-    case AddressType.SegwitNative:
-      return bitcoin.payments.p2wpkh(scriptParams)
-    case AddressType.SegwitP2SH:
-      return bitcoin.payments.p2sh({
-        redeem: bitcoin.payments.p2wpkh(scriptParams),
-        network,
-      })
-  }
+export function estimateLitecoinTxSize(
+  inputCounts: { [k: string]: number },
+  outputCounts: { [k: string]: number },
+  networkType: NetworkType,
+) {
+  return bitcoinish.estimateTxSize(
+    inputCounts,
+    outputCounts,
+    (address: string) => bitcoin.address.toOutputScript(
+      // Modern format needed so address matches the bitcoinjs network
+      standardizeAddress(address, networkType, LitecoinAddressFormat.Modern) || '',
+      NETWORKS[networkType],
+    ),
+  )
 }
 
 export function publicKeyToAddress(
   publicKey: string | Buffer,
-  network: BitcoinjsNetwork,
+  networkType: NetworkType,
   addressType: SinglesigAddressType,
-): string {
-  const pubkey = publicKeyToBuffer(publicKey)
-  const script = getSinglesigPaymentScript(network, addressType, pubkey)
-  const { address } = script
-  if (!address) {
-    throw new Error('bitcoinjs-lib address derivation returned falsy value')
+  format: LitecoinAddressFormat,
+) {
+  const address = bitcoinish.publicKeyToAddress(publicKey, NETWORKS[networkType], addressType)
+  const standardAddress = standardizeAddress(address, networkType, format)
+  if (!standardAddress) {
+    throw new Error('Failed to standardize derived LTC address')
   }
-  return address
+  return standardAddress
 }
 
-export function publicKeyToKeyPair(publicKey: string | Buffer, network: BitcoinjsNetwork): LitecoinjsKeyPair {
-  return bitcoin.ECPair.fromPublicKey(publicKeyToBuffer(publicKey), { network })
-}
-
-export function privateKeyToKeyPair(privateKey: string, network: BitcoinjsNetwork): LitecoinjsKeyPair {
-  return bitcoin.ECPair.fromWIF(privateKey, network)
-}
-
-export function privateKeyToAddress(privateKey: string, network: BitcoinjsNetwork, addressType: SinglesigAddressType) {
-  const keyPair = privateKeyToKeyPair(privateKey, network)
-  return publicKeyToAddress(keyPair.publicKey, network, addressType)
-}
-
-export function isValidPrivateKey(privateKey: string, network: BitcoinjsNetwork): boolean {
-  try {
-    privateKeyToKeyPair(privateKey, network)
-    return true
-  } catch (e) {
-    return false
-  }
+export function privateKeyToAddress(
+  privateKey: string,
+  networkType: NetworkType,
+  addressType: SinglesigAddressType,
+  format: LitecoinAddressFormat,
+) {
+  const keyPair = privateKeyToKeyPair(privateKey, NETWORKS[networkType])
+  return publicKeyToAddress(keyPair.publicKey, networkType, addressType, format)
 }

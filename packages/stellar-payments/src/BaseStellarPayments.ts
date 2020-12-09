@@ -14,6 +14,7 @@ import {
   NetworkType,
   PayportOutput,
   CreateTransactionOptions,
+  FeeOptionCustom,
 } from '@faast/payments-common'
 import { assertType, isNil, Numeric, isString, toBigNumber, isObject } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
@@ -37,6 +38,7 @@ import {
   NOT_FOUND_ERRORS,
   DEFAULT_TX_TIMEOUT_SECONDS,
   DEFAULT_FEE_LEVEL,
+  PUBLIC_CONFIG_OMIT_FIELDS,
 } from './constants'
 import { assertValidAddress, assertValidExtraIdOrNil, toBaseDenominationBigNumber } from './helpers'
 import { serializePayport, omitHidden, isMatchingError } from './utils'
@@ -50,6 +52,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       StellarBroadcastResult,
       StellarTransactionInfo
     > {
+
   constructor(public config: Config) {
     super(config)
   }
@@ -60,7 +63,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
 
   getPublicConfig() {
     return {
-      ...omit(this.config, ['logger', 'server', 'hdKey']),
+      ...omit(this.config, PUBLIC_CONFIG_OMIT_FIELDS),
       ...this.getPublicAccountConfig(),
     }
   }
@@ -292,36 +295,29 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
   }
 
   async resolveFeeOption(feeOption: FeeOption): Promise<ResolvedFeeOption> {
-    let targetFeeLevel
-    let targetFeeRate
-    let targetFeeRateType
+    let targetFeeLevel: FeeLevel
+    let targetFeeRate: string
+    let targetFeeRateType: FeeRateType
     let feeMain: string
     let feeBase: string
-    if (feeOption.feeLevel === FeeLevel.Custom) {
-      targetFeeLevel = feeOption.feeLevel
+    if (FeeOptionCustom.is(feeOption)) {
+      targetFeeLevel = feeOption.feeLevel || FeeLevel.Custom
       targetFeeRate = feeOption.feeRate
       targetFeeRateType = feeOption.feeRateType
-      if (targetFeeRateType === FeeRateType.Base) {
-        feeBase = targetFeeRate
-        feeMain = this.toMainDenomination(feeBase)
-      } else if (targetFeeRateType === FeeRateType.Main) {
-        feeMain = targetFeeRate
-        feeBase = this.toBaseDenomination(feeMain)
-      } else {
-        throw new Error(`Unsupport stellar feeRateType ${feeOption.feeRateType}`)
-      }
     } else {
       targetFeeLevel = feeOption.feeLevel || DEFAULT_FEE_LEVEL
-      const feeStats = await this._retryDced(() => this.getApi().feeStats())
-      feeBase = feeStats.fee_charged.p10
-      if (targetFeeLevel === FeeLevel.Medium) {
-        feeBase = feeStats.fee_charged.p50
-      } else if (targetFeeLevel === FeeLevel.High) {
-        feeBase = feeStats.fee_charged.p95
-      }
+      const { feeRate, feeRateType } = await this.getFeeRateRecommendation(targetFeeLevel)
+      targetFeeRate = feeRate
+      targetFeeRateType = feeRateType
+    }
+    if (targetFeeRateType === FeeRateType.Base) {
+      feeBase = targetFeeRate
       feeMain = this.toMainDenomination(feeBase)
-      targetFeeRate = feeMain
-      targetFeeRateType = FeeRateType.Main
+    } else if (targetFeeRateType === FeeRateType.Main) {
+      feeMain = targetFeeRate
+      feeBase = this.toBaseDenomination(feeMain)
+    } else {
+      throw new Error(`Unsupported ${this.coinSymbol} feeRateType ${targetFeeRateType}`)
     }
     return {
       targetFeeLevel,

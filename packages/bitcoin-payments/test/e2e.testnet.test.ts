@@ -5,14 +5,14 @@ import { BalanceResult, TransactionStatus, NetworkType, FeeRateType } from '@faa
 import {
   HdBitcoinPayments, BitcoinTransactionInfo,
   BitcoinSignedTransaction, AddressType, SinglesigAddressType,
+  bitcoinish,
 } from '../src'
 
-import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
+import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 import fixtures from './fixtures/singlesigTestnet'
 import { HdBitcoinPaymentsConfig } from '../src/types'
-import BigNumber from 'bignumber.js';
-import { ADDRESS_INPUT_WEIGHTS } from '../src/utils'
+import BigNumber from 'bignumber.js'
 
 const SECRET_XPRV_FILE = 'test/keys/testnet.key'
 
@@ -105,7 +105,7 @@ describeAll('e2e testnet', () => {
         const endState = [...END_TRANSACTION_STATES, TransactionStatus.Pending]
         logger.log(`polling until status ${endState.join('|')}`, txId)
         let tx: BitcoinTransactionInfo | undefined
-        while (!testsComplete && (!tx || !endState.includes(tx.status) || tx.confirmations === 0)) {
+        while (!testsComplete && (!tx || !endState.includes(tx.status))) {
           try {
             tx = await payments.getTransactionInfo(txId)
           } catch (e) {
@@ -165,7 +165,7 @@ describeAll('e2e testnet', () => {
         const extraInputs = inputCount - 1
         let expectedTxSize = sweepTxSize
         if (extraInputs) {
-          expectedTxSize += (extraInputs * ADDRESS_INPUT_WEIGHTS[addressType]) / 4
+          expectedTxSize += (extraInputs * bitcoinish.ADDRESS_INPUT_WEIGHTS[addressType]) / 4
         }
 
         expect(feeNumber).toBe((expectedTxSize*satPerByte)*1e-8)

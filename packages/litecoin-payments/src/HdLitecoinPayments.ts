@@ -2,6 +2,8 @@ import { omit } from 'lodash'
 import {
   assertType,
 } from '@faast/ts-common'
+import { PUBLIC_CONFIG_OMIT_FIELDS, bitcoinish } from '@faast/bitcoin-payments'
+
 import {
   isValidXprv as isValidXprvHelper,
   isValidXpub as isValidXpubHelper,
@@ -15,8 +17,7 @@ import {
 } from './bip44'
 import { HdLitecoinPaymentsConfig } from './types'
 import { SinglesigLitecoinPayments } from './SinglesigLitecoinPayments'
-import { DEFAULT_DERIVATION_PATHS } from './constants'
-import { bip32MagicNumberToPrefix } from './utils'
+import { DEFAULT_ADDRESS_FORMAT, DEFAULT_DERIVATION_PATHS } from './constants'
 
 export class HdLitecoinPayments extends SinglesigLitecoinPayments<HdLitecoinPaymentsConfig> {
   readonly derivationPath: string
@@ -33,13 +34,13 @@ export class HdLitecoinPayments extends SinglesigLitecoinPayments<HdLitecoinPaym
       this.xpub = config.hdKey
       this.xprv = null
     } else if (this.isValidXprv(config.hdKey)) {
-      this.xpub = xprvToXpub(config.hdKey, this.derivationPath, this.bitcoinjsNetwork)
+      this.xpub = xprvToXpub(config.hdKey, this.derivationPath, this.networkType)
       this.xprv = config.hdKey
     } else {
       const providedPrefix = config.hdKey.slice(0, 4)
       const validPrefixes = Array.from(new Set([
-        bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.public),
-        bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.private),
+        bitcoinish.bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.public),
+        bitcoinish.bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.private),
         'xprv',
         'xpub'
       ]).keys())
@@ -53,7 +54,7 @@ export class HdLitecoinPayments extends SinglesigLitecoinPayments<HdLitecoinPaym
         `Invalid ${this.networkType} hdKey provided to litecoin payments config${reason}`
       )
     }
-    this.hdNode = deriveHDNode(config.hdKey, this.derivationPath, this.bitcoinjsNetwork)
+    this.hdNode = deriveHDNode(config.hdKey, this.derivationPath, this.networkType)
   }
 
   isValidXprv(xprv: string) {
@@ -75,7 +76,7 @@ export class HdLitecoinPayments extends SinglesigLitecoinPayments<HdLitecoinPaym
 
   getPublicConfig(): HdLitecoinPaymentsConfig {
     return {
-      ...omit(this.getFullConfig(), ['logger', 'server', 'hdKey', 'blockcypherToken']),
+      ...omit(this.getFullConfig(), PUBLIC_CONFIG_OMIT_FIELDS),
       hdKey: this.xpub,
     }
   }
@@ -87,10 +88,16 @@ export class HdLitecoinPayments extends SinglesigLitecoinPayments<HdLitecoinPaym
   }
 
   getAddress(index: number): string {
-    return deriveAddress(this.hdNode, index, this.bitcoinjsNetwork, this.addressType)
+    return deriveAddress(
+      this.hdNode,
+      index,
+      this.networkType,
+      this.addressType,
+      this.validAddressFormat ?? DEFAULT_ADDRESS_FORMAT,
+    )
   }
 
   getKeyPair(index: number) {
-    return deriveKeyPair(this.hdNode, index, this.bitcoinjsNetwork)
+    return deriveKeyPair(this.hdNode, index)
   }
 }

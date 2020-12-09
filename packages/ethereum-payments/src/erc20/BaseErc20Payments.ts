@@ -1,29 +1,20 @@
 import InputDataDecoder from 'ethereum-input-data-decoder'
 import { BigNumber } from 'bignumber.js'
-import type { TransactionReceipt, TransactionConfig } from 'web3-core'
+import type { TransactionReceipt } from 'web3-core'
 import Contract from 'web3-eth-contract'
 
-import { deriveSignatory } from '../bip44'
 import { deriveAddress } from './deriveAddress'
 
 import {
   BalanceResult,
   TransactionStatus,
-  AutoFeeLevels,
-  FeeOptionCustom,
   ResolveablePayport,
   Payport,
 } from '@faast/payments-common'
-import {
-  isType,
-  isNumber,
-  Numeric,
-} from '@faast/ts-common'
 
 import {
   BaseErc20PaymentsConfig,
   EthereumUnsignedTransaction,
-  EthereumResolvedFeeOption,
   EthereumTransactionOptions,
   EthereumTransactionInfo,
 } from '../types'

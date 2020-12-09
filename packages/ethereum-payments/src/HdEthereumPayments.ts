@@ -53,7 +53,7 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
 
   async getPayport(index: number): Promise<Payport> {
     const { address } = deriveSignatory(this.getXpub(), index)
-    if (!await this.isValidAddress(address)) {
+    if (!this.isValidAddress(address)) {
       // This should never happen
       throw new Error(`Cannot get address ${index} - validation failed for derived address`)
     }

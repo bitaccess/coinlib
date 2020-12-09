@@ -1,8 +1,10 @@
 import { FeeLevel } from '@faast/payments-common'
-import { EthTxType } from './types'
+import { EthTxType, EthereumAddressFormat } from './types';
 
 export const PACKAGE_NAME = 'ethereum-payments'
-export const DECIMAL_PLACES = 18
+export const ETH_SYMBOL = 'ETH'
+export const ETH_NAME = 'Ethereum'
+export const ETH_DECIMAL_PLACES = 18
 
 export const DEFAULT_FULL_NODE = process.env.ETH_FULL_NODE_URL
 export const DEFAULT_SOLIDITY_NODE = process.env.ETH_SOLIDITY_NODE_URL
@@ -54,4 +56,8 @@ export const TOKEN_METHODS_ABI = JSON.parse(
 
 export const DEPOSIT_KEY_INDEX = 0
 
-export const PUBLIC_CONFIG_OMIT_FIELDS = ['logger', 'fullNode', 'solidityNode', 'eventServer', 'keyPairs', 'hdKey', 'providerOptions', 'web3']
+export const PUBLIC_CONFIG_OMIT_FIELDS = [
+  'logger', 'fullNode', 'parityNode', 'gasStation', 'keyPairs', 'hdKey', 'providerOptions', 'web3'
+]
+
+export const DEFAULT_ADDRESS_FORMAT = EthereumAddressFormat.Lowercase

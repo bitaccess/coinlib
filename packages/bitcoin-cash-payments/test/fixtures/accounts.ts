@@ -1,4 +1,3 @@
-import { AddressType, SinglesigAddressType } from '../../src'
 import { ROOT_XPRV } from './bip44'
 
 // Values calculated using https://iancoleman.io/bip39/
@@ -13,7 +12,7 @@ export type AccountFixture = {
   }
 }
 
-export const legacyAccount: AccountFixture = {
+export const hdAccount: AccountFixture = {
   derivationPath: "m/44'/145'/0'",
   xprv: ROOT_XPRV,
   sweepTxSize: 192,
@@ -29,8 +28,4 @@ export const legacyAccount: AccountFixture = {
     '10000': 'bitcoincash:qrx8fv76tp2x0c7fyh9whfxrwlp6ywvwesfkz3lvud',
     '20000': 'bitcoincash:qqnwqxpj3nq5s20x4alem4g6y540w78tksf46694ej'
   },
-}
-
-export const accountsByAddressType: { [type in SinglesigAddressType]: AccountFixture } = {
-  [AddressType.Legacy]: legacyAccount,
 }

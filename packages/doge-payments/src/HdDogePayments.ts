@@ -2,6 +2,8 @@ import { omit } from 'lodash'
 import {
   assertType,
 } from '@faast/ts-common'
+import { PUBLIC_CONFIG_OMIT_FIELDS, bitcoinish } from '@faast/bitcoin-payments'
+
 import {
   isValidXprv as isValidXprvHelper,
   isValidXpub as isValidXpubHelper,
@@ -14,8 +16,7 @@ import {
 } from './bip44'
 import { HdDogePaymentsConfig } from './types'
 import { SinglesigDogePayments } from './SinglesigDogePayments'
-import { DEFAULT_DERIVATION_PATHS } from './constants'
-import { bip32MagicNumberToPrefix } from './utils'
+import { DEFAULT_DERIVATION_PATH } from './constants'
 
 export class HdDogePayments extends SinglesigDogePayments<HdDogePaymentsConfig> {
   readonly derivationPath: string
@@ -26,7 +27,7 @@ export class HdDogePayments extends SinglesigDogePayments<HdDogePaymentsConfig> 
   constructor(private config: HdDogePaymentsConfig) {
     super(config)
     assertType(HdDogePaymentsConfig, config)
-    this.derivationPath = config.derivationPath || DEFAULT_DERIVATION_PATHS[this.addressType]
+    this.derivationPath = config.derivationPath || DEFAULT_DERIVATION_PATH
 
     if (this.isValidXpub(config.hdKey)) {
       this.xpub = config.hdKey
@@ -36,8 +37,8 @@ export class HdDogePayments extends SinglesigDogePayments<HdDogePaymentsConfig> 
       this.xprv = config.hdKey
     } else {
       const providedPrefix = config.hdKey.slice(0, 4)
-      const xpubPrefix = bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.public)
-      const xprvPrefix = bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.private)
+      const xpubPrefix = bitcoinish.bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.public)
+      const xprvPrefix = bitcoinish.bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.private)
       let reason = ''
       if (providedPrefix !== xpubPrefix && providedPrefix !== xprvPrefix) {
         reason = ` with prefix ${providedPrefix} but expected ${xprvPrefix} or ${xpubPrefix}`
@@ -67,14 +68,13 @@ export class HdDogePayments extends SinglesigDogePayments<HdDogePaymentsConfig> 
     return {
       ...this.config,
       network: this.networkType,
-      addressType: this.addressType,
       derivationPath: this.derivationPath,
     }
   }
 
   getPublicConfig(): HdDogePaymentsConfig {
     return {
-      ...omit(this.getFullConfig(), ['logger', 'server', 'hdKey']),
+      ...omit(this.getFullConfig(), PUBLIC_CONFIG_OMIT_FIELDS),
       hdKey: this.xpub,
     }
   }
@@ -86,7 +86,7 @@ export class HdDogePayments extends SinglesigDogePayments<HdDogePaymentsConfig> 
   }
 
   getAddress(index: number): string {
-    return deriveAddress(this.hdNode, index, this.bitcoinjsNetwork, this.addressType)
+    return deriveAddress(this.hdNode, index, this.bitcoinjsNetwork)
   }
 
   getKeyPair(index: number) {
