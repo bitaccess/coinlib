@@ -56,6 +56,7 @@ export const LitecoinPaymentsUtilsConfig = extendCodec(
   {
     server: bitcoinish.BlockbookConfigServer,
     blockcypherToken: t.string,
+    validAddressFormat: LitecoinAddressFormatT,
   },
   'LitecoinPaymentsUtilsConfig',
 )

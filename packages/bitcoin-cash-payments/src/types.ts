@@ -4,7 +4,6 @@ import {
   BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, KeyPairsConfigParam,
 } from '@faast/payments-common'
 import { extendCodec, enumCodec, requiredOptionalCodec } from '@faast/ts-common'
-import { Signer as BitcoinjsSigner } from 'bitcoinforksjs-lib'
 import { BlockInfoBitcoin } from 'blockbook-client'
 import { bitcoinish } from '@faast/bitcoin-payments'
 import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
@@ -25,6 +24,9 @@ export const BitcoinCashPaymentsUtilsConfig = extendCodec(
   {},
   {
     server: bitcoinish.BlockbookConfigServer,
+    // The only format to consider valid. Any addresses returned will be converted to this format. Any addresses
+    // provided will be rejected if not in this format.
+    validAddressFormat: BitcoinCashAddressFormatT,
   },
   'BitcoinCashPaymentsUtilsConfig',
 )

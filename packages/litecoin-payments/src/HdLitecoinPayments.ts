@@ -17,7 +17,7 @@ import {
 } from './bip44'
 import { HdLitecoinPaymentsConfig } from './types'
 import { SinglesigLitecoinPayments } from './SinglesigLitecoinPayments'
-import { DEFAULT_DERIVATION_PATHS } from './constants'
+import { DEFAULT_ADDRESS_FORMAT, DEFAULT_DERIVATION_PATHS } from './constants'
 
 export class HdLitecoinPayments extends SinglesigLitecoinPayments<HdLitecoinPaymentsConfig> {
   readonly derivationPath: string
@@ -34,7 +34,7 @@ export class HdLitecoinPayments extends SinglesigLitecoinPayments<HdLitecoinPaym
       this.xpub = config.hdKey
       this.xprv = null
     } else if (this.isValidXprv(config.hdKey)) {
-      this.xpub = xprvToXpub(config.hdKey, this.derivationPath, this.bitcoinjsNetwork)
+      this.xpub = xprvToXpub(config.hdKey, this.derivationPath, this.networkType)
       this.xprv = config.hdKey
     } else {
       const providedPrefix = config.hdKey.slice(0, 4)
@@ -54,7 +54,7 @@ export class HdLitecoinPayments extends SinglesigLitecoinPayments<HdLitecoinPaym
         `Invalid ${this.networkType} hdKey provided to litecoin payments config${reason}`
       )
     }
-    this.hdNode = deriveHDNode(config.hdKey, this.derivationPath, this.bitcoinjsNetwork)
+    this.hdNode = deriveHDNode(config.hdKey, this.derivationPath, this.networkType)
   }
 
   isValidXprv(xprv: string) {
@@ -88,10 +88,16 @@ export class HdLitecoinPayments extends SinglesigLitecoinPayments<HdLitecoinPaym
   }
 
   getAddress(index: number): string {
-    return deriveAddress(this.hdNode, index, this.bitcoinjsNetwork, this.addressType)
+    return deriveAddress(
+      this.hdNode,
+      index,
+      this.networkType,
+      this.addressType,
+      this.validAddressFormat ?? DEFAULT_ADDRESS_FORMAT,
+    )
   }
 
   getKeyPair(index: number) {
-    return deriveKeyPair(this.hdNode, index, this.bitcoinjsNetwork)
+    return deriveKeyPair(this.hdNode, index)
   }
 }

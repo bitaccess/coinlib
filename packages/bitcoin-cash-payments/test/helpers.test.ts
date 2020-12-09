@@ -42,48 +42,48 @@ describe('helpers', () => {
       })
     })
     describe('cash format', () => {
-      const options = { format: BitcoinCashAddressFormat.Cash }
+      const format = BitcoinCashAddressFormat.Cash
       test('should return true for valid cash address', async () => {
-        expect(isValidAddress(ADDRESS_CASH, NETWORK_TYPE, options)).toBe(true)
+        expect(isValidAddress(ADDRESS_CASH, NETWORK_TYPE, format)).toBe(true)
       })
       test('should return false for valid bitpay address', async () => {
-        expect(isValidAddress(ADDRESS_BITPAY, NETWORK_TYPE, options)).toBe(false)
+        expect(isValidAddress(ADDRESS_BITPAY, NETWORK_TYPE, format)).toBe(false)
       })
       test('should return false for valid legacy address', async () => {
-        expect(isValidAddress(ADDRESS_LEGACY, NETWORK_TYPE, options)).toBe(false)
+        expect(isValidAddress(ADDRESS_LEGACY, NETWORK_TYPE, format)).toBe(false)
       })
       test('should return false for invalid', async () => {
-        expect(isValidAddress('fake', NETWORK_TYPE, options)).toBe(false)
+        expect(isValidAddress('fake', NETWORK_TYPE, format)).toBe(false)
       })
     })
     describe('bitpay format', () => {
-      const options = { format: BitcoinCashAddressFormat.BitPay  }
+      const format = BitcoinCashAddressFormat.BitPay
       test('should return false for valid cash address', async () => {
-        expect(isValidAddress(ADDRESS_CASH, NETWORK_TYPE, options)).toBe(false)
+        expect(isValidAddress(ADDRESS_CASH, NETWORK_TYPE, format)).toBe(false)
       })
       test('should return true for valid bitpay address', async () => {
-        expect(isValidAddress(ADDRESS_BITPAY, NETWORK_TYPE, options)).toBe(true)
+        expect(isValidAddress(ADDRESS_BITPAY, NETWORK_TYPE, format)).toBe(true)
       })
       test('should return false for valid legacy address', async () => {
-        expect(isValidAddress(ADDRESS_LEGACY, NETWORK_TYPE, options)).toBe(false)
+        expect(isValidAddress(ADDRESS_LEGACY, NETWORK_TYPE, format)).toBe(false)
       })
       test('should return false for invalid', async () => {
-        expect(isValidAddress('fake', NETWORK_TYPE, options)).toBe(false)
+        expect(isValidAddress('fake', NETWORK_TYPE, format)).toBe(false)
       })
     })
     describe('legacy format', () => {
-      const options = { format: BitcoinCashAddressFormat.Legacy }
+      const format = BitcoinCashAddressFormat.Legacy
       test('should return false for valid cash address', async () => {
-        expect(isValidAddress(ADDRESS_CASH, NETWORK_TYPE, options)).toBe(false)
+        expect(isValidAddress(ADDRESS_CASH, NETWORK_TYPE, format)).toBe(false)
       })
       test('should return false for valid bitpay address', async () => {
-        expect(isValidAddress(ADDRESS_BITPAY, NETWORK_TYPE, options)).toBe(false)
+        expect(isValidAddress(ADDRESS_BITPAY, NETWORK_TYPE, format)).toBe(false)
       })
       test('should return true for valid legacy address', async () => {
-        expect(isValidAddress(ADDRESS_LEGACY, NETWORK_TYPE, options)).toBe(true)
+        expect(isValidAddress(ADDRESS_LEGACY, NETWORK_TYPE, format)).toBe(true)
       })
       test('should return false for invalid', async () => {
-        expect(isValidAddress('fake', NETWORK_TYPE, options)).toBe(false)
+        expect(isValidAddress('fake', NETWORK_TYPE, format)).toBe(false)
       })
     })
   })

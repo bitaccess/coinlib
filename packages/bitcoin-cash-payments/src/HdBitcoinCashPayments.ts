@@ -16,7 +16,7 @@ import {
 } from './bip44'
 import { HdBitcoinCashPaymentsConfig } from './types'
 import { SinglesigBitcoinCashPayments } from './SinglesigBitcoinCashPayments'
-import { DEFAULT_DERIVATION_PATH } from './constants'
+import { DEFAULT_DERIVATION_PATH, DEFAULT_ADDRESS_FORMAT } from './constants'
 
 export class HdBitcoinCashPayments extends SinglesigBitcoinCashPayments<HdBitcoinCashPaymentsConfig> {
   readonly derivationPath: string
@@ -86,10 +86,10 @@ export class HdBitcoinCashPayments extends SinglesigBitcoinCashPayments<HdBitcoi
   }
 
   getAddress(index: number): string {
-    return deriveAddress(this.hdNode, index, this.bitcoinjsNetwork)
+    return deriveAddress(this.hdNode, index, this.networkType, this.validAddressFormat ?? DEFAULT_ADDRESS_FORMAT)
   }
 
   getKeyPair(index: number) {
-    return deriveKeyPair(this.hdNode, index, this.bitcoinjsNetwork)
+    return deriveKeyPair(this.hdNode, index)
   }
 }

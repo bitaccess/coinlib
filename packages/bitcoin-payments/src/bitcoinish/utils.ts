@@ -8,28 +8,28 @@ import crypto from 'crypto'
 import bs58 from 'bs58'
 
 import {
-  AddressType, AddressTypeT, BlockbookConnectedConfig, MultisigAddressType, SinglesigAddressType,
+  AddressType, AddressTypeT, BlockbookConnectedConfig, BlockbookServerAPI, MultisigAddressType, SinglesigAddressType,
 } from './types'
 
 export function resolveServer(server: BlockbookConnectedConfig['server'], network: NetworkType): {
-  api: BlockbookBitcoin
+  api: BlockbookServerAPI
   server: string[] | null
 } {
   if (isString(server)) {
     return {
-      api: new BlockbookBitcoin({
+      api: new BlockbookServerAPI({
         nodes: [server],
       }),
       server: [server],
     }
-  } else if (server instanceof BlockbookBitcoin) {
+  } else if (server instanceof BlockbookBitcoin || server instanceof BlockbookServerAPI) {
     return {
       api: server,
       server: server.nodes,
     }
   } else if (Array.isArray(server)) {
     return {
-      api: new BlockbookBitcoin({
+      api: new BlockbookServerAPI({
         nodes: server,
       }),
       server,
@@ -37,7 +37,7 @@ export function resolveServer(server: BlockbookConnectedConfig['server'], networ
   } else {
     // null server arg -> offline mode
     return {
-      api: new BlockbookBitcoin({
+      api: new BlockbookServerAPI({
         nodes: [''],
       }),
       server: null,

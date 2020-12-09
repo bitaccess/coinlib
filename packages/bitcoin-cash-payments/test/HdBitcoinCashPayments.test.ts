@@ -2,10 +2,11 @@ import fs from 'fs'
 import path from 'path'
 import { NetworkType, FeeRateType } from '@faast/payments-common';
 import {
+  BitcoinCashAddressFormat,
   HdBitcoinCashPayments, HdBitcoinCashPaymentsConfig,
 } from '../src'
 
-import { EXTERNAL_ADDRESS, AccountFixture, hdAccount as accountFixture } from './fixtures'
+import { EXTERNAL_ADDRESS, AccountFixture, hdAccount as accountFixture, ADDRESS_LEGACY } from './fixtures'
 import { logger, makeUtxos, makeOutputs, expectUtxosEqual } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 
@@ -32,7 +33,7 @@ describe('HdBitcoinCashPayments', () => {
 
   describe('static', () => {
     it('should throw on invalid hdKey', () => {
-      expect(() => new HdBitcoinCashPayments({ hdKey: 'invalid' })).toThrow()
+      expect(() => new HdBitcoinCashPayments({ logger, hdKey: 'invalid' })).toThrow()
     })
   })
 
@@ -43,12 +44,14 @@ describe('HdBitcoinCashPayments', () => {
     const desiredFeeRate = { feeRate: feeMain, feeRateType: FeeRateType.Main }
     const minChange = '0.01'
     const targetUtxoPoolSize = 4
-    const payments = new HdBitcoinCashPayments({
+    const paymentsConfig: HdBitcoinCashPaymentsConfig = {
       hdKey: account.xpub,
       logger,
       minChange,
       targetUtxoPoolSize,
-    })
+      validAddressFormat: BitcoinCashAddressFormat.Cash,
+    }
+    const payments = new HdBitcoinCashPayments(paymentsConfig)
     it('sweep from single confirmed utxo', async () => {
       const utxos = makeUtxos(['0.05'], ['0.06'])
       const outputs = [{ address: EXTERNAL_ADDRESS, value: '0.05' }]
@@ -192,6 +195,7 @@ describe('HdBitcoinCashPayments', () => {
       hdKey: accountFixture.xpub,
       network: NetworkType.Mainnet,
       logger,
+      validAddressFormat: BitcoinCashAddressFormat.Cash,
     }
     const payments = new HdBitcoinCashPayments(config)
 
@@ -203,6 +207,7 @@ describe('HdBitcoinCashPayments', () => {
       hdKey: secretXprv,
       network: NetworkType.Mainnet,
       logger,
+      validAddressFormat: BitcoinCashAddressFormat.Cash,
     }
     const payments = new HdBitcoinCashPayments(config)
 
@@ -222,6 +227,7 @@ function runHardcodedPublicKeyTests(
       network: config.network,
       derivationPath,
       logger,
+      validAddressFormat: BitcoinCashAddressFormat.Cash,
     })
   })
   it('getPublicConfig', () => {
@@ -229,6 +235,7 @@ function runHardcodedPublicKeyTests(
       hdKey: xpub,
       network: config.network,
       derivationPath,
+      validAddressFormat: BitcoinCashAddressFormat.Cash,
     })
   })
   it('getAccountIds', () => {
@@ -265,6 +272,9 @@ function runHardcodedPublicKeyTests(
   })
   it('resolvePayport throws for invalid address', async () => {
     await expect(payments.resolvePayport('invalid')).rejects.toThrow()
+  })
+  it('resolvePayport throws for address in invalid format', async () => {
+    await expect(payments.resolvePayport(ADDRESS_LEGACY)).rejects.toThrow()
   })
   it('resolveFromTo is correct for (index, index)', async () => {
     expect(await payments.resolveFromTo(0, 2)).toEqual({

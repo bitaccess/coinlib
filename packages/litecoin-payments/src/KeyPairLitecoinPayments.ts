@@ -10,6 +10,7 @@ import {
   publicKeyToKeyPair,
   publicKeyToString,
 } from './helpers'
+import { DEFAULT_ADDRESS_FORMAT } from './constants'
 
 export class KeyPairLitecoinPayments extends SinglesigLitecoinPayments<KeyPairLitecoinPaymentsConfig> {
   readonly publicKeys: { [index: number]: string | undefined } = {}
@@ -37,7 +38,12 @@ export class KeyPairLitecoinPayments extends SinglesigLitecoinPayments<KeyPairLi
         throw new Error(`KeyPairBitcoinPaymentsConfig.keyPairs[${i}] is not a valid ${this.networkType} private or public key`)
       }
 
-      const address = publicKeyToAddress(publicKey, this.bitcoinjsNetwork, this.addressType)
+      const address = publicKeyToAddress(
+        publicKey,
+        this.networkType,
+        this.addressType,
+        this.validAddressFormat ?? DEFAULT_ADDRESS_FORMAT,
+      )
 
       this.publicKeys[i] = publicKeyToString(publicKey)
       this.privateKeys[i] = privateKey

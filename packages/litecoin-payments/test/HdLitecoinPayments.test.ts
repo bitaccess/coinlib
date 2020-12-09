@@ -1,14 +1,16 @@
 import { NetworkType, FeeRateType } from '@faast/payments-common';
 
 import {
-  HdLitecoinPayments, HdLitecoinPaymentsConfig, AddressType, SinglesigAddressType,
+  HdLitecoinPayments, HdLitecoinPaymentsConfig, AddressType, SinglesigAddressType, LitecoinAddressFormat,
 } from '../src'
 
-import { EXTERNAL_ADDRESS, accountsByAddressType, AccountFixture } from './fixtures'
+import { EXTERNAL_ADDRESS, accountsByAddressType, AccountFixture, ADDRESS_SEGWIT_P2SH_DEPRECATED } from './fixtures'
 import { logger, makeUtxos, makeOutputs, expectUtxosEqual } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 
 jest.setTimeout(30 * 1000)
+
+const validAddressFormat = LitecoinAddressFormat.Modern
 
 describe('HdLitecoinPayments', () => {
 
@@ -37,6 +39,7 @@ describe('HdLitecoinPayments', () => {
       logger,
       minChange,
       targetUtxoPoolSize,
+      validAddressFormat,
     })
     it('sweep from single confirmed utxo', async () => {
       const utxos = makeUtxos(['0.05'], ['0.06'])
@@ -188,6 +191,7 @@ describe('HdLitecoinPayments', () => {
           network: NetworkType.Mainnet,
           addressType,
           logger,
+          validAddressFormat,
         }
         const payments = new HdLitecoinPayments(config)
 
@@ -200,6 +204,7 @@ describe('HdLitecoinPayments', () => {
           network: NetworkType.Mainnet,
           addressType,
           logger,
+          validAddressFormat,
         }
         const payments = new HdLitecoinPayments(config)
 
@@ -222,6 +227,7 @@ function runHardcodedPublicKeyTests(
       derivationPath,
       addressType: config.addressType,
       logger,
+      validAddressFormat
     })
   })
   it('getPublicConfig', () => {
@@ -230,6 +236,7 @@ function runHardcodedPublicKeyTests(
       network: config.network,
       derivationPath,
       addressType: config.addressType,
+      validAddressFormat
     })
   })
   it('getAccountIds', () => {
@@ -266,6 +273,9 @@ function runHardcodedPublicKeyTests(
   })
   it('resolvePayport throws for invalid address', async () => {
     await expect(payments.resolvePayport('invalid')).rejects.toThrow()
+  })
+  it('resolvePayport throws for address in invalid format', async () => {
+    await expect(payments.resolvePayport(ADDRESS_SEGWIT_P2SH_DEPRECATED)).rejects.toThrow()
   })
   it('resolveFromTo is correct for (index, index)', async () => {
     expect(await payments.resolveFromTo(0, 2)).toEqual({

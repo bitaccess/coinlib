@@ -2,8 +2,10 @@ import { BIP32Interface as HDNode, fromBase58 } from 'bip32'
 import { BitcoinjsNetwork } from '@faast/bitcoin-payments'
 import b58 from 'bs58check'
 
-import { SinglesigAddressType, LitecoinjsKeyPair } from './types'
+import { SinglesigAddressType, LitecoinjsKeyPair, LitecoinAddressFormat } from './types';
 import { publicKeyToAddress } from './helpers'
+import { NetworkType } from '@faast/payments-common';
+import { NETWORKS } from './constants';
 
 export { HDNode }
 
@@ -53,7 +55,8 @@ export function convertXPrefixHdKeys(
  *
  * This partially applies the derivation path starting at the already derived depth of the provided key.
  */
-export function deriveHDNode(hdKey: string, derivationPath: string, network: BitcoinjsNetwork): HDNode {
+export function deriveHDNode(hdKey: string, derivationPath: string, networkType: NetworkType): HDNode {
+  const network = NETWORKS[networkType]
   const rootNode = fromBase58(convertXPrefixHdKeys(hdKey, network), network)
   const parts = splitDerivationPath(derivationPath).slice(rootNode.depth)
   let node = rootNode
@@ -63,24 +66,28 @@ export function deriveHDNode(hdKey: string, derivationPath: string, network: Bit
   return node
 }
 
-export function deriveKeyPair(baseNode: HDNode, index: number, network: BitcoinjsNetwork): LitecoinjsKeyPair {
+export function deriveKeyPair(baseNode: HDNode, index: number): LitecoinjsKeyPair {
   return baseNode.derive(0).derive(index)
 }
 
 export function deriveAddress(
-  baseNode: HDNode, index: number, network: BitcoinjsNetwork, addressType: SinglesigAddressType,
+  baseNode: HDNode,
+  index: number,
+  networkType: NetworkType,
+  addressType: SinglesigAddressType,
+  format: LitecoinAddressFormat,
 ): string {
-  const keyPair = deriveKeyPair(baseNode, index, network)
-  return publicKeyToAddress(keyPair.publicKey, network, addressType)
+  const keyPair = deriveKeyPair(baseNode, index)
+  return publicKeyToAddress(keyPair.publicKey, networkType, addressType, format)
 }
 
-export function derivePrivateKey(baseNode: HDNode, index: number, network: BitcoinjsNetwork) {
-  const keyPair = deriveKeyPair(baseNode, index, network)
+export function derivePrivateKey(baseNode: HDNode, index: number) {
+  const keyPair = deriveKeyPair(baseNode, index)
   return keyPair.toWIF()
 }
 
-export function xprvToXpub(xprv: string, derivationPath: string, network: BitcoinjsNetwork) {
-  const node = deriveHDNode(xprv, derivationPath, network)
+export function xprvToXpub(xprv: string, derivationPath: string, networkType: NetworkType) {
+  const node = deriveHDNode(xprv, derivationPath, networkType)
   return node.neutered().toBase58()
 }
 

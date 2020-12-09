@@ -162,7 +162,6 @@ describeAll('e2e mainnet', () => {
 
   it('get transaction by arbitrary hash', async () => {
     const tx = await payments.getTransactionInfo('036cbcbcfa286c1ea3a8c1846064974a107d3f2a982b0ee29f5e02bbedb01f15')
-    process.stderr.write(JSON.stringify(tx, null, 2))
     assertTxInfo(tx, txInfo_beae1)
   })
   it('fail to get an invalid transaction hash', async () => {

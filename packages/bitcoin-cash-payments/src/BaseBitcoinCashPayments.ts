@@ -11,20 +11,31 @@ import {
   BitcoinCashSignedTransactionData,
   BitcoinCashSignedTransaction,
   PsbtInputData,
+  BitcoinCashAddressFormat,
 } from './types'
 import {
   BITCOIN_SEQUENCE_RBF,
 } from './constants'
 import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateBitcoinCashTxSize } from './helpers'
+import { BitcoinCashPaymentsUtils } from './BitcoinCashPaymentsUtils'
 
 // tslint:disable-next-line:max-line-length
 export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaymentsConfig> extends bitcoinish.BitcoinishPayments<Config> {
 
   readonly maximumFeeRate?: number
+  readonly validAddressFormat?: BitcoinCashAddressFormat
+  readonly utils: BitcoinCashPaymentsUtils
 
   constructor(config: BaseBitcoinCashPaymentsConfig) {
     super(toBitcoinishConfig(config))
     this.maximumFeeRate = config.maximumFeeRate
+    this.validAddressFormat = config.validAddressFormat
+    this.utils = new BitcoinCashPaymentsUtils({
+      network: this.networkType,
+      logger: this.logger,
+      server: this.api,
+      validAddressFormat: this.validAddressFormat,
+    })
   }
 
   abstract getPaymentScript(index: number): bitcoin.payments.Payment
@@ -34,19 +45,19 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
   }
 
   isValidAddress(address: string, options?: { format?: string }): boolean {
-    return isValidAddress(address, this.networkType, options)
+    return this.utils.isValidAddress(address, options)
   }
 
   standardizeAddress(address: string, options?: { format?: string }): string | null {
-    return standardizeAddress(address, this.networkType, options)
+    return this.utils.standardizeAddress(address, options)
   }
 
   isValidPrivateKey(privateKey: string): boolean {
-    return isValidPrivateKey(privateKey, this.networkType)
+    return this.utils.isValidPrivateKey(privateKey)
   }
 
   isValidPublicKey(publicKey: string): boolean {
-    return isValidPublicKey(publicKey, this.networkType)
+    return this.utils.isValidPublicKey(publicKey)
   }
 
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {

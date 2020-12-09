@@ -16,47 +16,57 @@ import {
   LitecoinSignedTransaction,
   AddressType,
   PsbtInputData,
+  LitecoinAddressFormat,
 } from './types'
 import {
   LITECOIN_SEQUENCE_RBF,
 } from './constants'
 import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateLitecoinTxSize } from './helpers'
+import { LitecoinPaymentsUtils } from './LitecoinPaymentsUtils'
 
 export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsConfig>
   extends bitcoinish.BitcoinishPayments<Config> {
 
   readonly maximumFeeRate?: number
   readonly blockcypherToken?: string
+  readonly validAddressFormat?: LitecoinAddressFormat
+  readonly utils: LitecoinPaymentsUtils
 
   constructor(config: BaseLitecoinPaymentsConfig) {
     super(toBitcoinishConfig(config))
     this.maximumFeeRate = config.maximumFeeRate
     this.blockcypherToken = config.blockcypherToken
+    this.validAddressFormat = config.validAddressFormat
+    this.utils = new LitecoinPaymentsUtils({
+      network: this.networkType,
+      logger: this.logger,
+      server: this.api,
+      blockcypherToken: this.blockcypherToken,
+      validAddressFormat: this.validAddressFormat,
+    })
   }
 
   abstract getPaymentScript(index: number): bitcoin.payments.Payment
   abstract addressType: AddressType
 
   isValidAddress(address: string, options?: { format?: string }): boolean {
-    return isValidAddress(address, this.networkType, options)
+    return this.utils.isValidAddress(address, options)
   }
 
   standardizeAddress(address: string, options?: { format?: string }) {
-    return standardizeAddress(address, this.networkType, options)
+    return this.utils.standardizeAddress(address, options)
   }
 
   isValidPrivateKey(privateKey: string): boolean {
-    return isValidPrivateKey(privateKey, this.networkType)
+    return this.utils.isValidPrivateKey(privateKey)
   }
 
   isValidPublicKey(publicKey: string): boolean {
-    return isValidPublicKey(publicKey, this.networkType)
+    return this.utils.isValidPublicKey(publicKey)
   }
 
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
-    return bitcoinish.getBlockcypherFeeRecommendation(
-      feeLevel, this.coinSymbol, this.networkType, this.blockcypherToken, this.logger,
-    )
+    return this.utils.getFeeRateRecommendation(feeLevel)
   }
 
   /** Return a string that can be passed into estimateLitecoinTxSize. Override to support multisig */

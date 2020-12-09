@@ -51,96 +51,79 @@ describe('helpers', () => {
       })
     })
     describe('deprecated format', () => {
-      const options = { format: LitecoinAddressFormat.Deprecated }
+      const format = LitecoinAddressFormat.Deprecated
       test('should return true for valid legacy address', async () => {
-        expect(isValidAddress(ADDRESS_LEGACY, NETWORK_TYPE, options)).toBe(true)
+        expect(isValidAddress(ADDRESS_LEGACY, NETWORK_TYPE, format)).toBe(true)
       })
       test('should return false for valid modern p2sh segwit address', async () => {
-        expect(isValidAddress(ADDRESS_SEGWIT_P2SH, NETWORK_TYPE, options)).toBe(false)
+        expect(isValidAddress(ADDRESS_SEGWIT_P2SH, NETWORK_TYPE, format)).toBe(false)
       })
       test('should return true for valid deprecated p2sh segwit address', async () => {
-        expect(isValidAddress(ADDRESS_SEGWIT_P2SH_DEPRECATED, NETWORK_TYPE, options)).toBe(true)
+        expect(isValidAddress(ADDRESS_SEGWIT_P2SH_DEPRECATED, NETWORK_TYPE, format)).toBe(true)
       })
       test('should return true for valid native segwit address', async () => {
-        expect(isValidAddress(ADDRESS_SEGWIT_NATIVE, NETWORK_TYPE, options)).toBe(true)
+        expect(isValidAddress(ADDRESS_SEGWIT_NATIVE, NETWORK_TYPE, format)).toBe(true)
       })
       test('should return false for invalid address', async () => {
-        expect(isValidAddress('fake', NETWORK_TYPE, options)).toBe(false)
+        expect(isValidAddress('fake', NETWORK_TYPE, format)).toBe(false)
       })
     })
     describe('modern format', () => {
-      const options = { format: LitecoinAddressFormat.Modern }
+      const format = LitecoinAddressFormat.Modern
       test('should return true for valid legacy address', async () => {
-        expect(isValidAddress(ADDRESS_LEGACY, NETWORK_TYPE, options)).toBe(true)
+        expect(isValidAddress(ADDRESS_LEGACY, NETWORK_TYPE, format)).toBe(true)
       })
       test('should return true for valid modern p2sh segwit address', async () => {
-        expect(isValidAddress(ADDRESS_SEGWIT_P2SH, NETWORK_TYPE, options)).toBe(true)
+        expect(isValidAddress(ADDRESS_SEGWIT_P2SH, NETWORK_TYPE, format)).toBe(true)
       })
       test('should return false for valid deprecated p2sh segwit address', async () => {
-        expect(isValidAddress(ADDRESS_SEGWIT_P2SH_DEPRECATED, NETWORK_TYPE, options)).toBe(false)
+        expect(isValidAddress(ADDRESS_SEGWIT_P2SH_DEPRECATED, NETWORK_TYPE, format)).toBe(false)
       })
       test('should return true for valid native segwit address', async () => {
-        expect(isValidAddress(ADDRESS_SEGWIT_NATIVE, NETWORK_TYPE, options)).toBe(true)
+        expect(isValidAddress(ADDRESS_SEGWIT_NATIVE, NETWORK_TYPE, format)).toBe(true)
       })
       test('should return false for invalid address', async () => {
-        expect(isValidAddress('fake', NETWORK_TYPE, options)).toBe(false)
+        expect(isValidAddress('fake', NETWORK_TYPE, format)).toBe(false)
       })
     })
   })
 
   describe('standardizeAddress', () => {
-    describe('unspecified format', () => {
-      test('should return same address for valid legacy address', async () => {
-        expect(standardizeAddress(ADDRESS_LEGACY, NETWORK_TYPE)).toBe(ADDRESS_LEGACY)
-      })
-      test('should return same address for valid modern p2sh segwit address', async () => {
-        expect(standardizeAddress(ADDRESS_SEGWIT_P2SH, NETWORK_TYPE)).toBe(ADDRESS_SEGWIT_P2SH)
-      })
-      test('should return modern address for valid deprecated p2sh segwit address', async () => {
-        expect(standardizeAddress(ADDRESS_SEGWIT_P2SH_DEPRECATED, NETWORK_TYPE)).toBe(ADDRESS_SEGWIT_P2SH)
-      })
-      test('should return same address for valid native segwit address', async () => {
-        expect(standardizeAddress(ADDRESS_SEGWIT_NATIVE, NETWORK_TYPE)).toBe(ADDRESS_SEGWIT_NATIVE)
-      })
-      test('should return null for invalid address', async () => {
-        expect(standardizeAddress('fake', NETWORK_TYPE)).toBe(null)
-      })
-    })
     describe('modern format', () => {
-      const options = { format: LitecoinAddressFormat.Modern }
+      const format = LitecoinAddressFormat.Modern
       test('should return same address for valid legacy address', async () => {
-        expect(standardizeAddress(ADDRESS_LEGACY, NETWORK_TYPE, options)).toBe(ADDRESS_LEGACY)
+        expect(standardizeAddress(ADDRESS_LEGACY, NETWORK_TYPE, format)).toBe(ADDRESS_LEGACY)
       })
       test('should return same address for valid modern p2sh segwit address', async () => {
-        expect(standardizeAddress(ADDRESS_SEGWIT_P2SH, NETWORK_TYPE, options)).toBe(ADDRESS_SEGWIT_P2SH)
+        expect(standardizeAddress(ADDRESS_SEGWIT_P2SH, NETWORK_TYPE, format)).toBe(ADDRESS_SEGWIT_P2SH)
       })
       test('should return modern address for valid deprecated p2sh segwit address', async () => {
-        expect(standardizeAddress(ADDRESS_SEGWIT_P2SH_DEPRECATED, NETWORK_TYPE, options)).toBe(ADDRESS_SEGWIT_P2SH)
+        expect(standardizeAddress(ADDRESS_SEGWIT_P2SH_DEPRECATED, NETWORK_TYPE, format)).toBe(ADDRESS_SEGWIT_P2SH)
       })
       test('should return same address for valid native segwit address', async () => {
-        expect(standardizeAddress(ADDRESS_SEGWIT_NATIVE, NETWORK_TYPE, options)).toBe(ADDRESS_SEGWIT_NATIVE)
+        expect(standardizeAddress(ADDRESS_SEGWIT_NATIVE, NETWORK_TYPE, format)).toBe(ADDRESS_SEGWIT_NATIVE)
       })
       test('should return null for invalid address', async () => {
-        expect(standardizeAddress('fake', NETWORK_TYPE, options)).toBe(null)
+        expect(standardizeAddress('fake', NETWORK_TYPE, format)).toBe(null)
       })
     })
     describe('deprecated format', () => {
-      const options = { format: LitecoinAddressFormat.Deprecated }
+      const format = LitecoinAddressFormat.Deprecated
       test('should return same address for valid legacy address', async () => {
-        expect(standardizeAddress(ADDRESS_LEGACY, NETWORK_TYPE, options)).toBe(ADDRESS_LEGACY)
+        expect(standardizeAddress(ADDRESS_LEGACY, NETWORK_TYPE, format)).toBe(ADDRESS_LEGACY)
       })
       test('should return deprecated address for valid modern p2sh segwit address', async () => {
-        expect(standardizeAddress(ADDRESS_SEGWIT_P2SH, NETWORK_TYPE, options)).toBe(ADDRESS_SEGWIT_P2SH_DEPRECATED)
+        expect(standardizeAddress(ADDRESS_SEGWIT_P2SH, NETWORK_TYPE, format)).toBe(ADDRESS_SEGWIT_P2SH_DEPRECATED)
       })
       test('should return same address for valid deprecated p2sh segwit address', async () => {
-        expect(standardizeAddress(ADDRESS_SEGWIT_P2SH_DEPRECATED, NETWORK_TYPE, options))
+        expect(standardizeAddress(ADDRESS_SEGWIT_P2SH_DEPRECATED, NETWORK_TYPE, format))
           .toBe(ADDRESS_SEGWIT_P2SH_DEPRECATED)
       })
       test('should return same address for valid native segwit address', async () => {
-        expect(standardizeAddress(ADDRESS_SEGWIT_NATIVE, NETWORK_TYPE, options)).toBe(ADDRESS_SEGWIT_NATIVE)
+        expect(standardizeAddress(ADDRESS_SEGWIT_NATIVE, NETWORK_TYPE, format)).toBe(ADDRESS_SEGWIT_NATIVE)
       })
       test('should return null for invalid address', async () => {
-        expect(standardizeAddress('fake', NETWORK_TYPE, options)).toBe(null)
+        expect(standardizeAddress('fake', NETWORK_TYPE, format)).toBe(null)
       })
     })
   })

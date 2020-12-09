@@ -2,7 +2,7 @@ import { createUnitConverters, NetworkType } from '@faast/payments-common'
 import * as bitcoin from 'bitcoinjs-lib'
 import { assertType } from '@faast/ts-common'
 
-import { LitecoinAddressFormat, LitecoinAddressFormatT } from './types'
+import { LitecoinAddressFormat, LitecoinAddressFormatT, SinglesigAddressType } from './types'
 import {
   bitcoinish,
   NETWORKS as BITCOIN_NETWORKS,
@@ -13,23 +13,19 @@ import { DECIMAL_PLACES, DEFAULT_ADDRESS_FORMAT, NETWORKS } from './constants'
 const {
   getMultisigPaymentScript,
   getSinglesigPaymentScript,
-  publicKeyToAddress,
   publicKeyToKeyPair,
   publicKeyToString,
   publicKeyToBuffer,
   privateKeyToKeyPair,
-  privateKeyToAddress,
 } = bitcoinish
 
 export {
   getMultisigPaymentScript,
   getSinglesigPaymentScript,
-  publicKeyToAddress,
   publicKeyToKeyPair,
   publicKeyToString,
   publicKeyToBuffer,
   privateKeyToKeyPair,
-  privateKeyToAddress,
 }
 
 const {
@@ -89,10 +85,8 @@ export function isModernP2shAddress(address: string, networkType: NetworkType) {
 export function isValidAddress(
   address: string,
   networkType: NetworkType,
-  options: { format?: string } = {},
+  format?: LitecoinAddressFormat, // undefined -> any
 ): boolean {
-  const { format } = options
-
   // Validation for modern addresses is the same as Bitcoin just using different network constants
   const isModern = bitcoinish.isValidAddress(address, NETWORKS[networkType])
 
@@ -108,10 +102,9 @@ export function isValidAddress(
 export function standardizeAddress(
   address: string,
   networkType: NetworkType,
-  options?: { format?: string },
+  format: LitecoinAddressFormat,
 ): string | null {
-  const format = assertType(LitecoinAddressFormatT, options?.format ?? DEFAULT_ADDRESS_FORMAT, 'format')
-  if (isValidAddress(address, networkType, { format })) {
+  if (isValidAddress(address, networkType, format)) {
     return address
   }
 
@@ -149,8 +142,33 @@ export function estimateLitecoinTxSize(
     inputCounts,
     outputCounts,
     (address: string) => bitcoin.address.toOutputScript(
-      standardizeAddress(address, networkType, { format: LitecoinAddressFormat.Modern }) || '',
+      // Modern format needed so address matches the bitcoinjs network
+      standardizeAddress(address, networkType, LitecoinAddressFormat.Modern) || '',
       NETWORKS[networkType],
     ),
   )
+}
+
+export function publicKeyToAddress(
+  publicKey: string | Buffer,
+  networkType: NetworkType,
+  addressType: SinglesigAddressType,
+  format: LitecoinAddressFormat,
+) {
+  const address = bitcoinish.publicKeyToAddress(publicKey, NETWORKS[networkType], addressType)
+  const standardAddress = standardizeAddress(address, networkType, format)
+  if (!standardAddress) {
+    throw new Error('Failed to standardize derived LTC address')
+  }
+  return standardAddress
+}
+
+export function privateKeyToAddress(
+  privateKey: string,
+  networkType: NetworkType,
+  addressType: SinglesigAddressType,
+  format: LitecoinAddressFormat,
+) {
+  const keyPair = privateKeyToKeyPair(privateKey, NETWORKS[networkType])
+  return publicKeyToAddress(keyPair.publicKey, networkType, addressType, format)
 }

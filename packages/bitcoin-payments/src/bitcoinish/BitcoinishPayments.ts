@@ -104,15 +104,15 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     if (typeof payport === 'number') {
       return this.getPayport(payport)
     } else if (typeof payport === 'string') {
-      if (!await this.isValidAddress(payport)) {
-        throw new Error(`Invalid BTC address: ${payport}`)
+      if (!this.isValidAddress(payport)) {
+        throw new Error(`Invalid ${this.coinSymbol} address: ${payport}`)
       }
-      return { address: payport }
+      return { address: this.standardizeAddress(payport)! }
     } else if (Payport.is(payport)) {
-      if (!await this.isValidAddress(payport.address)) {
-        throw new Error(`Invalid BTC payport.address: ${payport.address}`)
+      if (!this.isValidAddress(payport.address)) {
+        throw new Error(`Invalid ${this.coinSymbol} payport.address: ${payport.address}`)
       }
-      return payport
+      return { ...payport, address: this.standardizeAddress(payport.address)! }
     } else {
       throw new Error('Invalid payport')
     }
@@ -633,11 +633,12 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
 
     for (let i = 0; i < tbc.desiredOutputs.length; i++) {
-      const { address, value } = tbc.desiredOutputs[i]
+      const { address: unvalidatedAddress, value } = tbc.desiredOutputs[i]
       // validate
-      if (!await this.isValidAddress(address)) {
-        throw new Error(`Invalid ${this.coinSymbol} address ${address} provided for output ${i}`)
+      if (!this.isValidAddress(unvalidatedAddress)) {
+        throw new Error(`Invalid ${this.coinSymbol} address ${unvalidatedAddress} provided for output ${i}`)
       }
+      const address = this.standardizeAddress(unvalidatedAddress)!
       const satoshis = this.toBaseDenominationNumber(value)
       if (isNaN(satoshis) || satoshis <= 0) {
         throw new Error(`Invalid ${this.coinSymbol} value (${value}) provided for output ${i} (${address}) - not a positive, non-zero number`)
@@ -650,7 +651,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       tbc.externalOutputTotal += satoshis
       tbc.desiredOutputTotal += satoshis
     }
-    if (!await this.isValidAddress(tbc.changeAddress)) {
+    if (!this.isValidAddress(tbc.changeAddress)) {
       throw new Error (`Invalid ${this.coinSymbol} change address ${tbc.changeAddress} provided`)
     }
     const unfilteredUtxoTotal = sumUtxoValue(params.unusedUtxos, params.useUnconfirmedUtxos)
@@ -852,7 +853,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       vout: vout || 0,
       value: this.toMainDenominationString(value || 0),
     }))
-    const fromAddress = get(tx, 'vin.0.addresses.0')
+    const fromAddress = this.standardizeAddress(get(tx, 'vin.0.addresses.0'))
     if (!fromAddress) {
       throw new Error(`Unable to determine fromAddress of ${this.coinSymbol} tx ${txId}`)
     }
@@ -860,7 +861,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const externalOutputs = tx.vout
       .map(({ addresses, value }): TransactionOutput => (
         {
-          address: addresses[0],
+          address: this.standardizeAddress(addresses[0]) || '',
           value: this.toMainDenominationString(value || 0),
         }
       ))

@@ -20,7 +20,7 @@ export abstract class SinglesigBitcoinCashPayments<Config extends SinglesigBitco
   abstract getKeyPair(index: number): BitcoinjsKeyPair
 
   getPaymentScript(index: number) {
-    return getSinglesigPaymentScript(this.bitcoinjsNetwork, this.getKeyPair(index).publicKey)
+    return getSinglesigPaymentScript(this.networkType, this.getKeyPair(index).publicKey)
   }
 
   async signTransaction(tx: BitcoinCashUnsignedTransaction): Promise<BitcoinCashSignedTransaction> {
