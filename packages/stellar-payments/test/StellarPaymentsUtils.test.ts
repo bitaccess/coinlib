@@ -29,22 +29,22 @@ describe('StellarPaymentsUtils', () => {
 
   describe('isValidAddress', () => {
     it('returns true for valid address', async () => {
-      expect(await pu.isValidAddress(VALID_ADDRESS)).toBe(true)
+      expect(pu.isValidAddress(VALID_ADDRESS)).toBe(true)
     })
     it('returns false for invalid address', async () => {
-      expect(await pu.isValidAddress('invalid')).toBe(false)
+      expect(pu.isValidAddress('invalid')).toBe(false)
     })
     it('returns false for number', async () => {
-      expect(await pu.isValidAddress(123 as any)).toBe(false)
+      expect(pu.isValidAddress(123 as any)).toBe(false)
     })
   })
 
   describe('isValidExtraId', () => {
     it('returns true for valid extraId string', async () => {
-      expect(await pu.isValidExtraId('123')).toBe(true)
+      expect(pu.isValidExtraId('123')).toBe(true)
     })
     it('returns false for number', async () => {
-      expect(await pu.isValidExtraId(123 as any)).toBe(false)
+      expect(pu.isValidExtraId(123 as any)).toBe(false)
     })
   })
 
