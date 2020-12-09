@@ -36,3 +36,9 @@ export const DEFAULT_TESTNET_SERVER = 'wss://s.altnet.rippletest.net:51233'
 export const DEFAULT_FEE_LEVEL: AutoFeeLevels = FeeLevel.Medium
 
 export const PUBLIC_CONFIG_OMIT_FIELDS = ['logger', 'server', 'api', 'hdKey', 'hotAccount', 'depositAccount']
+
+export const FEE_LEVEL_CUSHIONS = {
+  [FeeLevel.Low]: 1,
+  [FeeLevel.Medium]: 1.2,
+  [FeeLevel.High]: 1.5,
+}

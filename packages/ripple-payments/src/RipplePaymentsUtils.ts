@@ -11,7 +11,7 @@ import {
 } from './helpers'
 import { BaseRippleConfig } from './types'
 import { RippleConnected } from './RippleConnected'
-import { DECIMAL_PLACES, COIN_NAME, COIN_SYMBOL } from './constants'
+import { DECIMAL_PLACES, COIN_NAME, COIN_SYMBOL, FEE_LEVEL_CUSHIONS } from './constants'
 
 export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtils {
 
@@ -95,15 +95,7 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
   isValidXpub = isValidXpub
 
   async getFeeRateRecommendation(level: AutoFeeLevels): Promise<FeeRate> {
-    let cushion: number | undefined
-    if (level === FeeLevel.Low) {
-      cushion = 1
-    } else if (level === FeeLevel.Medium) {
-      cushion = 1.2
-    } else if (level === FeeLevel.High) {
-      cushion = 1.5
-    }
-    const feeMain = await this._retryDced(() => this.api.getFee(cushion))
+    const feeMain = await this._retryDced(() => this.api.getFee(FEE_LEVEL_CUSHIONS[level]))
     return {
       feeRate: feeMain,
       feeRateType: FeeRateType.Main

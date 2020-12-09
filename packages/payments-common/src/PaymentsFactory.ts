@@ -40,46 +40,51 @@ export abstract class PaymentsFactory<
 
   /** Instantiate a Payments object using an existing connection */
   initPayments(config: C): Promise<P> {
-    return this.initConnected(config, this.newPayments.bind(this))
+    return this.reuseConnection(config, this.newPayments.bind(this))
   }
 
   /** Instantiate a PaymentsUtils object using an existing connection */
   initUtils(config: C): Promise<U> {
-    return this.initConnected(config, this.newUtils.bind(this))
+    return this.reuseConnection(config, this.newUtils.bind(this))
   }
 
   /** Instantiate a BalanceMonitor object using an existing connection */
   initBalanceMonitor(config: C): Promise<B> {
-    return this.initConnected(config, this.newBalanceMonitor.bind(this))
+    return this.reuseConnection(config, this.newBalanceMonitor.bind(this))
   }
 
-  async initConnected<T extends U | P | B>(
+  private async createConnection<T extends U | P | B>(
     config: C,
-    instantiator: (c: C) => T
+    instantiator: (c: C) => T,
   ): Promise<T> {
-    if (this.connectionManager) {
-      const { getConnection, getConnectionUrl, setConnection, connections } = this.connectionManager
-      const url = getConnectionUrl(config)
-      if (url) {
-        const existingConnection = connections[url]
-        if (existingConnection) {
-          // connection is cached, pass it to instantiated object
-          config = { ...config } // avoid mutating external objects
-          setConnection(config, existingConnection)
-          const connected = instantiator(config)
-          await connected.init()
-          return connected
-        } else {
-          // connection isnt cached yet, get it and add it to cache
-          const connected = instantiator(config)
-          await connected.init()
-          connections[url] = getConnection(connected)
-          return connected
-        }
-      }
-    }
     const connected = instantiator(config)
     await connected.init()
     return connected
+  }
+
+  private async reuseConnection<T extends U | P | B>(
+    config: C,
+    instantiator: (c: C) => T
+  ): Promise<T> {
+    if (!this.connectionManager) {
+      return this.createConnection(config, instantiator)
+    }
+    const { getConnection, getConnectionUrl, setConnection, connections } = this.connectionManager
+    const url = getConnectionUrl(config)
+    if (!url) {
+      return this.createConnection(config, instantiator)
+    }
+    const existingConnection = connections[url]
+    if (existingConnection) {
+      // connection is cached, pass it to instantiated object
+      config = { ...config } // avoid mutating external objects
+      setConnection(config, existingConnection)
+      return this.createConnection(config, instantiator)
+    } else {
+      // connection isnt cached yet, get it and add it to cache
+      const connected = await this.createConnection(config, instantiator)
+      connections[url] = getConnection(connected)
+      return connected
+    }
   }
 }

@@ -18,6 +18,6 @@ export const PAYMENTS_FACTORIES = {
   LTC: new LitecoinPaymentsFactory(),
   BCH: new BitcoinCashPaymentsFactory(),
   DOGE: new DogePaymentsFactory(),
-} as const
+}
 
 export const SUPPORTED_NETWORK_SYMBOLS = keysOf(PAYMENTS_FACTORIES)
