@@ -47,7 +47,7 @@ export class RipplePaymentsFactory extends PaymentsFactory<
     return new RippleBalanceMonitor(assertType(RippleBalanceMonitorConfig, config, 'config'))
   }
 
-  connectionManager = new StandardConnectionManager<RippleServerAPI, RippleConnected, BaseRippleConfig>()
+  connectionManager = new StandardConnectionManager<RippleServerAPI, BaseRippleConfig>()
 }
 
 export default RipplePaymentsFactory
