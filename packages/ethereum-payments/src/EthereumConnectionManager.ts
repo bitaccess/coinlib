@@ -6,7 +6,6 @@ import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
 
 export class EthereumConnectionManager implements PaymentsConnectionManager<
   Web3,
-  EthereumPaymentsUtils,
   EthereumPaymentsUtilsConfig
 > {
 

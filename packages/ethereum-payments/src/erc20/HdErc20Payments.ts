@@ -73,7 +73,7 @@ export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
     }
     const address = deriveAddress(this.masterAddress, signatory.keys.pub)
 
-    if (!await this.isValidAddress(address)) {
+    if (!this.isValidAddress(address)) {
       // This should never happen
       throw new Error(`Cannot get address ${index} - validation failed for derived address`)
     }

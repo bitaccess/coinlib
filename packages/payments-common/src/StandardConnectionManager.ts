@@ -5,14 +5,13 @@ import { BalanceMonitor } from './BalanceMonitor';
 import { PaymentsUtils } from './PaymentsUtils';
 
 export class StandardConnectionManager<
-  Connection, // connection type
-  Connected extends { api: Connection, server: string | null | undefined },
+  Connection,
   Config extends { api?: Connection, server?: string | null } & BaseConfig,
-> implements PaymentsConnectionManager<Connection, Connected, Config> {
+> implements PaymentsConnectionManager<Connection, Config> {
 
   connections: { [url: string]: Connection } = {}
 
-  getConnection(connected: Connected) {
+  getConnection(connected: any) {
     return connected.api
   }
 
