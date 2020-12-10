@@ -1,6 +1,5 @@
-import { NetworkType, FeeLevel } from '@faast/payments-common'
+import { NetworkType, FeeLevel, AutoFeeLevels } from '@faast/payments-common'
 import { RippleCreateTransactionOptions } from './types'
-import { AutoFeeLevels } from '../../payments-common/src/types';
 
 export const PACKAGE_NAME = 'ripple-payments'
 
