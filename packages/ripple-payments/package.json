@@ -73,10 +73,10 @@
     "@faast/ts-common": "^0.6.0",
     "base-x": "^3.0.6",
     "bignumber.js": "^9.0.0",
-    "bip32": "^2.0.5",
+    "bip32": "^2.0.6",
     "io-ts": "^1.10.4",
     "lodash": "^4.17.15",
     "promise-retry": "^1.1.1",
-    "ripple-lib": "^1.4.0"
+    "ripple-lib": "^1.9.0"
   }
 }

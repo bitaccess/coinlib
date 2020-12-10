@@ -558,7 +558,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
       const existing = await this.getTransactionInfo(signedTx.id)
       rebroadcast = existing.id === signedTx.id
     } catch (e) {}
-    const result = (await this._retryDced(() => this.api.submit(signedTxString))) as any
+    const result = (await this._retryDced(() => this.api.submit(signedTxString, true))) as any
     this.logger.debug('broadcasted', result)
     const resultCode = result.engine_result || result.resultCode || ''
     if (resultCode === 'terPRE_SEQ') {
