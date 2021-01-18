@@ -1,7 +1,6 @@
 import { BigNumber } from 'bignumber.js'
 import { Transaction as Tx } from 'ethereumjs-tx'
-import Web3 from 'web3'
-import type { TransactionReceipt, TransactionConfig } from 'web3-core'
+import type { TransactionReceipt, Transaction, TransactionConfig } from 'web3-core'
 import { cloneDeep } from 'lodash'
 import {
   BalanceResult,
@@ -229,7 +228,12 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     // XXX it is suggested to keep 12 confirmations
     // https://ethereum.stackexchange.com/questions/319/what-number-of-confirmations-is-considered-secure-in-ethereum
     const minConfirmations = MIN_CONFIRMATIONS
-    const tx = await this._retryDced(() => this.eth.getTransaction(txid))
+    const tx: Transaction | null = await this._retryDced(() => this.eth.getTransaction(txid))
+
+    if (!tx) {
+      throw new Error(`Transaction ${txid} not found`)
+    }
+
     const currentBlockNumber = await this._retryDced(() => this.eth.getBlockNumber())
     let txInfo: TransactionReceipt | null = await this._retryDced(() => this.eth.getTransactionReceipt(txid))
 
