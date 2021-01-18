@@ -1,6 +1,6 @@
 import InputDataDecoder from 'ethereum-input-data-decoder'
 import { BigNumber } from 'bignumber.js'
-import type { TransactionReceipt } from 'web3-core'
+import type { TransactionReceipt, Transaction } from 'web3-core'
 import Contract from 'web3-eth-contract'
 
 import { deriveAddress } from './deriveAddress'
@@ -239,10 +239,14 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
   async getTransactionInfo(txid: string): Promise<EthereumTransactionInfo> {
     const minConfirmations = MIN_CONFIRMATIONS
-    const tx = await this._retryDced(() => this.eth.getTransaction(txid))
+    const tx: Transaction | null = await this._retryDced(() => this.eth.getTransaction(txid))
+
+    if (!tx) {
+      throw new Error(`Transaction ${txid} not found`)
+    }
 
     if (!tx.input) {
-      throw new Error(`Transaction ${txid} has no input for ERC20`)
+      throw new Error(`Transaction ${txid} has no input data so it can't be an ERC20 tx`)
     }
 
     const currentBlockNumber = await this._retryDced(() => this.eth.getBlockNumber())
@@ -267,7 +271,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       status = TransactionStatus.Confirmed
       isExecuted = true
       // No trust to types description of web3
-      if (txReceipt.hasOwnProperty('status')
+      if (txReceipt && txReceipt.hasOwnProperty('status')
         && (txReceipt.status === false || txReceipt.status.toString() === 'false')) {
         status = TransactionStatus.Failed
         isExecuted = false
