@@ -42,7 +42,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
   }
 
   abstract getAddressSalt(index: number): string
-  abstract async getPayport(index: number): Promise<Payport>
+  abstract getPayport(index: number): Promise<Payport>
 
   private newContract(...args: ConstructorParameters<typeof Contract>) {
     const contract = new Contract(...args)
@@ -67,17 +67,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
   }
 
   async isSweepableBalance(balance: string): Promise<boolean> {
-    const feeOption = await this.resolveFeeOption({})
-    const payport = await this.resolvePayport(this.depositKeyIndex)
-
-    const feeWei = new BigNumber(feeOption.feeBase)
-    const balanceWei = await this.eth.getBalance(payport.address)
-
-    if (balanceWei === '0' || balance === '0') {
-      return false
-    }
-
-    return ((new BigNumber(balanceWei)).isGreaterThanOrEqualTo(feeWei))
+    // Any ERC20 balance greater than 0 is sweepable
+    return new BigNumber(balance).isGreaterThan(0)
   }
 
   async createTransaction(

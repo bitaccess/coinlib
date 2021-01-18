@@ -42,6 +42,7 @@ import {
   TOKEN_WALLET_DATA,
   DEPOSIT_KEY_INDEX,
   TOKEN_PROXY_DATA,
+  MIN_SWEEPABLE_WEI,
 } from './constants'
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
 import { retryIfDisconnected } from './utils'
@@ -188,13 +189,15 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     return false
   }
 
-  abstract async getPayport(index: number): Promise<Payport>
+  abstract getPayport(index: number): Promise<Payport>
+
+  abstract getPrivateKey(index: number): Promise<string>
 
   async getBalance(resolveablePayport: ResolveablePayport): Promise<BalanceResult> {
     const payport = await this.resolvePayport(resolveablePayport)
     const balance = await this._retryDced(() => this.eth.getBalance(payport.address))
-    const sweepable = await this.isSweepableBalance(balance)
     const confirmedBalance = this.toMainDenomination(balance).toString()
+    const sweepable = await this.isSweepableBalance(confirmedBalance)
 
     return {
       confirmedBalance,
@@ -206,15 +209,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
   }
 
   async isSweepableBalance(balanceEth: string): Promise<boolean> {
-    const feeOption = await this.resolveFeeOption({})
-
-    const feeWei = new BigNumber(feeOption.feeBase)
-    const balanceWei = new BigNumber(this.toBaseDenomination(balanceEth))
-
-    if (balanceWei.minus(feeWei).isLessThanOrEqualTo(0)) {
-      return false
-    }
-    return true
+    return new BigNumber(this.toBaseDenomination(balanceEth)).gt(MIN_SWEEPABLE_WEI)
   }
 
   async getNextSequenceNumber(payport: ResolveablePayport) {
@@ -416,8 +411,6 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       throw new Error(`Ethereum broadcast tx unsuccessful: ${tx.id} ${e.message}`)
     }
   }
-
-  abstract async getPrivateKey(index: number): Promise<string>
 
   private async createTransactionObject(
     from: number,

@@ -24,6 +24,8 @@ export const TOKEN_TRANSFER_COST = '150000'
 /** Multiply all web3 estimateGas calls by this because it's innacurate */
 export const GAS_ESTIMATE_MULTIPLIER = 1.5
 
+export const MIN_SWEEPABLE_WEI = String(21000*10e9) // 21k gas @ 10Gwei: anything below this is dust ($0.2 @ $1200/ETH)
+
 export const GAS_STATION_FEE_SPEED = {
   [FeeLevel.Low]: 'safeLow',
   [FeeLevel.Medium]: 'average',
