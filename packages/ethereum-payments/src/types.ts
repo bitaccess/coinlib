@@ -60,6 +60,7 @@ export const EthereumPaymentsUtilsConfig = extendCodec(
   {
     fullNode: OptionalString,
     parityNode: OptionalString,
+    blockbookNode: OptionalString,
     gasStation: OptionalString,
     symbol: OptionalString,
     name: OptionalString,

@@ -21,6 +21,7 @@ import {
   AutoFeeLevels,
 } from '@faast/payments-common'
 import { isType, isString, isMatchingError } from '@faast/ts-common'
+import request from 'request-promise-native'
 
 import {
   EthereumTransactionInfo,
@@ -399,6 +400,15 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     }
 
     try {
+      if (this.config.blockbookNode) {
+        const url = `${this.config.blockbookNode}/api/sendtx/${tx.data.hex}`
+        request
+          .get(url, { json: true })
+          .then((res) => this.logger.log(`Successful secondary broadcast to trezor ethereum ${res.result}`))
+          .catch((e) =>
+            this.logger.log(`Failed secondary broadcast to trezor ethereum ${tx.id}: ${url} - ${e}`),
+          )
+      }
       const txId = await this.sendTransactionWithoutConfirmation(tx.data.hex)
       return {
         id: txId,
