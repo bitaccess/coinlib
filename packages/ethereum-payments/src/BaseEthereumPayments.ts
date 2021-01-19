@@ -20,7 +20,7 @@ import {
   PayportOutput,
   AutoFeeLevels,
 } from '@faast/payments-common'
-import { isType, isString, isUndefined, isNull } from '@faast/ts-common'
+import { isType, isString, isMatchingError } from '@faast/ts-common'
 
 import {
   EthereumTransactionInfo,
@@ -404,8 +404,14 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
         id: txId,
       }
     } catch (e) {
+      if (isMatchingError(e, ['already known'])) {
+        this.logger.log(`Ethereum broadcast tx already known ${tx.id}`)
+        return {
+          id: tx.id
+        }
+      }
       this.logger.warn(`Ethereum broadcast tx unsuccessful ${tx.id}: ${e.message}`)
-      if (isString(e.message) && e.message.includes('nonce too low')) {
+      if (isMatchingError(e, ['nonce too low'])) {
         throw new PaymentsError(PaymentsErrorCode.TxSequenceCollision, e.message)
       }
       throw new Error(`Ethereum broadcast tx unsuccessful: ${tx.id} ${e.message}`)
