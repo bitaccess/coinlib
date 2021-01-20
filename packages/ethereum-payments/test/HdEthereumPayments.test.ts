@@ -238,7 +238,7 @@ describe('HdEthereumPayments', () => {
           confirmedBalance: '0.00000000001',
           unconfirmedBalance: '0',
           spendableBalance: '0.00000000001',
-          sweepable: true,
+          sweepable: false,
           requiresActivation: false,
         })
       })
