@@ -404,9 +404,9 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
         const url = `${this.config.blockbookNode}/api/sendtx/${tx.data.hex}`
         request
           .get(url, { json: true })
-          .then((res) => this.logger.log(`Successful secondary broadcast to trezor ethereum ${res.result}`))
+          .then((res) => this.logger.log(`Successful secondary broadcast to blockbook ethereum ${res.result}`))
           .catch((e) =>
-            this.logger.log(`Failed secondary broadcast to trezor ethereum ${tx.id}: ${url} - ${e}`),
+            this.logger.log(`Failed secondary broadcast to blockbook ethereum ${tx.id}: ${url} - ${e}`),
           )
       }
       const txId = await this.sendTransactionWithoutConfirmation(tx.data.hex)
