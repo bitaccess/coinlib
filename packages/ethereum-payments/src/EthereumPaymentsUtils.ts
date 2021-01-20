@@ -33,17 +33,38 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
     this.coinSymbol = config.symbol ?? ETH_SYMBOL
     this.coinDecimals = config.decimals ?? ETH_DECIMAL_PLACES
     this.server = config.fullNode || null
+
+    let provider: any
     if (config.web3) {
       this.web3 = config.web3
     } else if (isNull(this.server)) {
       this.web3 = new Web3()
     } else if (this.server.startsWith('http')) {
-      this.web3 = new Web3(new Web3.providers.HttpProvider(this.server, config.providerOptions))
+      provider = new Web3.providers.HttpProvider(this.server, config.providerOptions)
+      this.web3 = new Web3(provider)
     } else if (this.server.startsWith('ws')) {
-      this.web3 = new Web3(new Web3.providers.WebsocketProvider(this.server, config.providerOptions))
+      provider = new Web3.providers.WebsocketProvider(this.server, config.providerOptions)
+      this.web3 = new Web3(provider)
     } else {
       throw new Error(`Invalid ethereum payments fullNode, must start with http or ws: ${this.server}`)
     }
+
+    // Debug mode to print out all outgoing req/res
+    if (provider && process.env.NODE_DEBUG && process.env.NODE_DEBUG.includes('ethereum-payments')) {
+      const send = provider.send
+      provider.send = (payload: any, cb: Function) => {
+        this.logger.debug(`web3 provider request ${this.server}`, payload)
+        send.call(provider, payload, (error: Error, result: any) => {
+          if (error) {
+            this.logger.debug(`web3 provider response error ${this.server}`, error)
+          } else {
+            this.logger.debug(`web3 provider response result ${this.server}`, result)
+          }
+          cb(error, result)
+        })
+      }
+    }
+
     this.eth = this.web3.eth
     this.gasStation = new NetworkData(this.eth, config.gasStation, config.parityNode, this.logger)
 
