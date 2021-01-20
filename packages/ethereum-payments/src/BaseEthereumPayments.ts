@@ -1,7 +1,6 @@
 import { BigNumber } from 'bignumber.js'
 import { Transaction as Tx } from 'ethereumjs-tx'
-import Web3 from 'web3'
-import type { TransactionReceipt, TransactionConfig } from 'web3-core'
+import type { TransactionReceipt, Transaction, TransactionConfig } from 'web3-core'
 import { cloneDeep } from 'lodash'
 import {
   BalanceResult,
@@ -21,7 +20,8 @@ import {
   PayportOutput,
   AutoFeeLevels,
 } from '@faast/payments-common'
-import { isType, isString, isUndefined, isNull } from '@faast/ts-common'
+import { isType, isString, isMatchingError } from '@faast/ts-common'
+import request from 'request-promise-native'
 
 import {
   EthereumTransactionInfo,
@@ -43,6 +43,7 @@ import {
   TOKEN_WALLET_DATA,
   DEPOSIT_KEY_INDEX,
   TOKEN_PROXY_DATA,
+  MIN_SWEEPABLE_WEI,
 } from './constants'
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
 import { retryIfDisconnected } from './utils'
@@ -189,13 +190,15 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     return false
   }
 
-  abstract async getPayport(index: number): Promise<Payport>
+  abstract getPayport(index: number): Promise<Payport>
+
+  abstract getPrivateKey(index: number): Promise<string>
 
   async getBalance(resolveablePayport: ResolveablePayport): Promise<BalanceResult> {
     const payport = await this.resolvePayport(resolveablePayport)
     const balance = await this._retryDced(() => this.eth.getBalance(payport.address))
-    const sweepable = await this.isSweepableBalance(balance)
     const confirmedBalance = this.toMainDenomination(balance).toString()
+    const sweepable = await this.isSweepableBalance(confirmedBalance)
 
     return {
       confirmedBalance,
@@ -207,15 +210,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
   }
 
   async isSweepableBalance(balanceEth: string): Promise<boolean> {
-    const feeOption = await this.resolveFeeOption({})
-
-    const feeWei = new BigNumber(feeOption.feeBase)
-    const balanceWei = new BigNumber(this.toBaseDenomination(balanceEth))
-
-    if (balanceWei.minus(feeWei).isLessThanOrEqualTo(0)) {
-      return false
-    }
-    return true
+    return new BigNumber(this.toBaseDenomination(balanceEth)).gt(MIN_SWEEPABLE_WEI)
   }
 
   async getNextSequenceNumber(payport: ResolveablePayport) {
@@ -229,7 +224,12 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     // XXX it is suggested to keep 12 confirmations
     // https://ethereum.stackexchange.com/questions/319/what-number-of-confirmations-is-considered-secure-in-ethereum
     const minConfirmations = MIN_CONFIRMATIONS
-    const tx = await this._retryDced(() => this.eth.getTransaction(txid))
+    const tx: Transaction | null = await this._retryDced(() => this.eth.getTransaction(txid))
+
+    if (!tx) {
+      throw new Error(`Transaction ${txid} not found`)
+    }
+
     const currentBlockNumber = await this._retryDced(() => this.eth.getBlockNumber())
     let txInfo: TransactionReceipt | null = await this._retryDced(() => this.eth.getTransactionReceipt(txid))
 
@@ -400,20 +400,33 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     }
 
     try {
+      if (this.config.blockbookNode) {
+        const url = `${this.config.blockbookNode}/api/sendtx/${tx.data.hex}`
+        request
+          .get(url, { json: true })
+          .then((res) => this.logger.log(`Successful secondary broadcast to trezor ethereum ${res.result}`))
+          .catch((e) =>
+            this.logger.log(`Failed secondary broadcast to trezor ethereum ${tx.id}: ${url} - ${e}`),
+          )
+      }
       const txId = await this.sendTransactionWithoutConfirmation(tx.data.hex)
       return {
         id: txId,
       }
     } catch (e) {
+      if (isMatchingError(e, ['already known'])) {
+        this.logger.log(`Ethereum broadcast tx already known ${tx.id}`)
+        return {
+          id: tx.id
+        }
+      }
       this.logger.warn(`Ethereum broadcast tx unsuccessful ${tx.id}: ${e.message}`)
-      if (isString(e.message) && e.message.includes('nonce too low')) {
+      if (isMatchingError(e, ['nonce too low'])) {
         throw new PaymentsError(PaymentsErrorCode.TxSequenceCollision, e.message)
       }
       throw new Error(`Ethereum broadcast tx unsuccessful: ${tx.id} ${e.message}`)
     }
   }
-
-  abstract async getPrivateKey(index: number): Promise<string>
 
   private async createTransactionObject(
     from: number,

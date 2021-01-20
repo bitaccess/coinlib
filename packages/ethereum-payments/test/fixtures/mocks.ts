@@ -3,56 +3,56 @@ interface Mock {
   res: Object
 }
 
-export function getNextNonceMocks (id: number, address: string, nonce: string): Mock {
+export function getNextNonceMocks (id: number | RegExp, address: string, nonce: string): Mock {
   return {
     req: getNextNonceRequest(id, address),
     res: getNextNonceResponse(id, nonce)
   }
 }
 
-export function getBalanceMocks(id: number, address: string, balance: string): Mock {
+export function getBalanceMocks(id: number | RegExp, address: string, balance: string): Mock {
   return {
     req: getBalanceRequest(id, address),
     res: getBalanceResponse(id, balance),
   }
 }
 
-export function getTransactionCountMocks(id: number, address: string, nonce: string): Mock {
+export function getTransactionCountMocks(id: number | RegExp, address: string, nonce: string): Mock {
   return {
     req: getTransactionCountRequest(id, address),
     res: getTransactionCountResponse(id, nonce)
   }
 }
 
-export function getSendRawTransactionMocks(id: number, rawTx: string, txHash: string): Mock {
+export function getSendRawTransactionMocks(id: number | RegExp, rawTx: string, txHash: string): Mock {
   return {
     req: getSendRawTransactionRequest(id, rawTx),
     res: getSendRawTransactionResponse(id, txHash)
   }
 }
 
-export function getTransactionReceiptMocks(id: number, from: string, to: string, status: string, blockNumber: string | null, txHash: string, blockHash: string | null): Mock {
+export function getTransactionReceiptMocks(id: number | RegExp, from: string, to: string, status: string, blockNumber: string | null, txHash: string, blockHash: string | null): Mock {
   return {
     req: getTransactionReceiptRequest(id, txHash),
     res: getTransactionReceiptResponse(id, from, to, status, blockNumber, txHash, blockHash)
   }
 }
 
-export function getTransactionByHashMocks(id: number, txHash: string, blockHash: string | null, blockNumber: number | null, from: string, to: string, value: string): Mock {
+export function getTransactionByHashMocks(id: number | RegExp, txHash: string, blockHash: string | null, blockNumber: number | null, from: string, to: string, value: string): Mock {
   return {
     req: getTransactionByHashRequest(id, txHash),
     res: getTransactionByHashResponse(id, txHash, blockHash, blockNumber, from, to, value)
   }
 }
 
-export function getBlockNumberMocks(id: number, count: string): Mock {
+export function getBlockNumberMocks(id: number | RegExp, count: string): Mock {
   return {
     req: getBlockNumberRequest(id),
     res: getBlockNumberResponse(id, count)
   }
 }
 
-export function getBlockByNumberMocks(id: number, blockNumber: string, blockHash: string, txHashes: [string]): Mock {
+export function getBlockByNumberMocks(id: number | RegExp, blockNumber: string, blockHash: string, txHashes: [string]): Mock {
   return {
     req: getBlockByNumberRequest(id, blockNumber),
     res: getBlockByNumberResponse(id, blockNumber, blockHash, txHashes)
@@ -99,7 +99,7 @@ export function getGasStationResponse(): Object {
   }
 }
 
-export function getGasPriceMocks(id: number, price: string) {
+export function getGasPriceMocks(id: number | RegExp, price: string) {
   return {
     req: {
       jsonrpc: '2.0',
@@ -115,7 +115,7 @@ export function getGasPriceMocks(id: number, price: string) {
   }
 }
 
-export function getEstimateGasMocks(id: number, from: string, to: string, result: string) {
+export function getEstimateGasMocks(id: number | RegExp, from: string, to: string, result: string) {
   return {
     req: {
       jsonrpc:'2.0',
@@ -133,7 +133,7 @@ export function getEstimateGasMocks(id: number, from: string, to: string, result
     }
   }
 }
-function getNextNonceRequest(id: number, address: string): Object {
+function getNextNonceRequest(id: number | RegExp, address: string): Object {
   return {
     jsonrpc: '2.0',
     method:'parity_nextNonce',
@@ -142,7 +142,7 @@ function getNextNonceRequest(id: number, address: string): Object {
   }
 }
 
-function getNextNonceResponse(id: number, nonce: string): Object {
+function getNextNonceResponse(id: number | RegExp, nonce: string): Object {
   return {
     jsonrpc: '2.0',
     id,
@@ -150,7 +150,7 @@ function getNextNonceResponse(id: number, nonce: string): Object {
   }
 }
 
-function getBalanceRequest(id: number, address: string): Object {
+function getBalanceRequest(id: number | RegExp, address: string): Object {
   return {
     jsonrpc:'2.0',
     id,
@@ -159,7 +159,7 @@ function getBalanceRequest(id: number, address: string): Object {
   }
 }
 
-function getBalanceResponse(id: number, balance: string): Object {
+function getBalanceResponse(id: number | RegExp, balance: string): Object {
   return {
     jsonrpc:'2.0',
     id,
@@ -167,7 +167,7 @@ function getBalanceResponse(id: number, balance: string): Object {
   }
 }
 
-function getTransactionCountRequest(id: number, address: string): Object {
+function getTransactionCountRequest(id: number | RegExp, address: string): Object {
   return {
     jsonrpc:'2.0',
     method:'eth_getTransactionCount',
@@ -176,7 +176,7 @@ function getTransactionCountRequest(id: number, address: string): Object {
   }
 }
 
-function getTransactionCountResponse(id: number, nonce: string): Object {
+function getTransactionCountResponse(id: number | RegExp, nonce: string): Object {
   return {
     jsonrpc: '2.0',
     id,
@@ -184,7 +184,7 @@ function getTransactionCountResponse(id: number, nonce: string): Object {
   }
 }
 
-function getSendRawTransactionRequest(id: number, rawTx: string): Object {
+function getSendRawTransactionRequest(id: number | RegExp, rawTx: string): Object {
   return {
     jsonrpc: '2.0',
     method: 'eth_sendRawTransaction',
@@ -193,7 +193,7 @@ function getSendRawTransactionRequest(id: number, rawTx: string): Object {
   }
 }
 
-function getSendRawTransactionResponse(id: number, txHash: string): Object {
+function getSendRawTransactionResponse(id: number | RegExp, txHash: string): Object {
   return {
     jsonrpc: '2.0',
     id,
@@ -201,7 +201,7 @@ function getSendRawTransactionResponse(id: number, txHash: string): Object {
   }
 }
 
-function getTransactionReceiptRequest(id: number, txHash: string): Object {
+function getTransactionReceiptRequest(id: number | RegExp, txHash: string): Object {
   return {
     jsonrpc: '2.0',
     id,
@@ -210,7 +210,7 @@ function getTransactionReceiptRequest(id: number, txHash: string): Object {
   }
 }
 
-function getTransactionReceiptResponse(id: number, from: string, to:string, status: string, blockNumber: string | null, txHash: string, blockHash: string | null): Object {
+function getTransactionReceiptResponse(id: number | RegExp, from: string, to:string, status: string, blockNumber: string | null, txHash: string, blockHash: string | null): Object {
   return {
     jsonrpc: '2.0',
     id,
@@ -230,7 +230,7 @@ function getTransactionReceiptResponse(id: number, from: string, to:string, stat
   }
 }
 
-function getTransactionByHashRequest(id: number, txHash: string): Object {
+function getTransactionByHashRequest(id: number | RegExp, txHash: string): Object {
   return {
     jsonrpc: '2.0',
     id,
@@ -239,7 +239,7 @@ function getTransactionByHashRequest(id: number, txHash: string): Object {
   }
 }
 
-function getTransactionByHashResponse(id: number, txHash: string, blockHash: string | null, blockNumber: number | null, from: string, to: string, value: string): Object {
+function getTransactionByHashResponse(id: number | RegExp, txHash: string, blockHash: string | null, blockNumber: number | null, from: string, to: string, value: string): Object {
   return {
     jsonrpc:'2.0',
     id,
@@ -259,7 +259,7 @@ function getTransactionByHashResponse(id: number, txHash: string, blockHash: str
   }
 }
 
-function getBlockNumberRequest(id: number): Object {
+function getBlockNumberRequest(id: number | RegExp): Object {
   return {
     jsonrpc: '2.0',
     id,
@@ -268,7 +268,7 @@ function getBlockNumberRequest(id: number): Object {
   }
 }
 
-function getBlockNumberResponse(id: number, count: string): Object {
+function getBlockNumberResponse(id: number | RegExp, count: string): Object {
   return {
     jsonrpc:'2.0',
     id,
@@ -276,7 +276,7 @@ function getBlockNumberResponse(id: number, count: string): Object {
   }
 }
 
-function getBlockByNumberRequest(id: number, blockNumber: string): Object {
+function getBlockByNumberRequest(id: number | RegExp, blockNumber: string): Object {
   return {
     jsonrpc: '2.0',
     id,
@@ -285,7 +285,7 @@ function getBlockByNumberRequest(id: number, blockNumber: string): Object {
   }
 }
 
-function getBlockByNumberResponse(id: number, blockNumber: string, blockHash: string, txHashes: [string]): Object {
+function getBlockByNumberResponse(id: number | RegExp, blockNumber: string, blockHash: string, txHashes: [string]): Object {
   return {
     jsonrpc:'2.0',
     id,
