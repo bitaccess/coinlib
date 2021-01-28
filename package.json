@@ -34,7 +34,7 @@
     "build": "bin/buildall.sh",
     "pretest": "lerna run --parallel lint",
     "test": "lerna run --parallel test",
-    "preversion": "bin/preversion.sh",
+    "preversion": "echo 'Use lerna version instead' && exit 1",
     "release": "npm run bs && lerna publish from-git"
   },
   "devDependencies": {
