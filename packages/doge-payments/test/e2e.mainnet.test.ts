@@ -1,3 +1,4 @@
+import { KeyPairDogePayments } from './../src/KeyPairDogePayments';
 import fs from 'fs'
 import path from 'path'
 import { omit } from 'lodash'
@@ -241,6 +242,19 @@ describeAll('e2e mainnet', () => {
     expect(tx.fromIndex).toEqual(10)
     expect(tx.toIndex).toEqual(null)
     expect(tx.inputUtxos).toBeTruthy()
+  })
+
+  it.only('can decode utxo tx with values exceeding 53 bits', async () => {
+    // This utxo has a value of 92M satoshis at vout 13 which causes problems when bitcoinjs tries to decode the tx
+    // because javascript precision breaks down after 53 bits (~90M). verifuint will throw a RangeError
+    // Try to spend any vout to make sure our patched version doesn't throw on these huge values
+    const tx = await payments.createTransaction(0, { address: EXTERNAL_ADDRESS }, '100', { availableUtxos: [{
+      txid: '8e529df6174c31547a1788c5a47ac104453688d7cfd873e4df42d3d1076c6af0',
+      vout: 15,
+      value: '2486366091067',
+      satoshis: 2486366091067,
+      height: '3587546'
+    }]})
   })
 
   it('create sweep transaction to an external address with unconfirmed utxos', async () => {
