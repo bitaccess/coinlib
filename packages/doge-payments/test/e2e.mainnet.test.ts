@@ -244,7 +244,7 @@ describeAll('e2e mainnet', () => {
     expect(tx.inputUtxos).toBeTruthy()
   })
 
-  it.only('can decode utxo tx with values exceeding 53 bits', async () => {
+  it('can decode utxo tx with values exceeding 53 bits', async () => {
     // This utxo has a value of 92M satoshis at vout 13 which causes problems when bitcoinjs tries to decode the tx
     // because javascript precision breaks down after 53 bits (~90M). verifuint will throw a RangeError
     // Try to spend any vout to make sure our patched version doesn't throw on these huge values

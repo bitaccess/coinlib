@@ -1,6 +1,6 @@
 import { createUnitConverters, NetworkType } from '@faast/payments-common'
 import { bitcoinish } from '@faast/bitcoin-payments'
-import * as bitcoin from 'bitcoinjs-lib'
+import * as bitcoin from 'bitcoinjs-lib-bigint'
 
 import { DECIMAL_PLACES, NETWORKS } from './constants'
 

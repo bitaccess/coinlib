@@ -1,4 +1,4 @@
-import * as bitcoin from 'bitcoinjs-lib'
+import * as bitcoin from 'bitcoinjs-lib-bigint'
 import {
   FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus,
 } from '@faast/payments-common'
@@ -93,13 +93,13 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
       if (!scriptPubKey) {
         throw new Error(`Cannot get scriptPubKey for utxo ${utxo.txid}:${utxo.vout}`)
       }
-      const utxoValue = this.toBaseDenominationNumber(utxo.value)
-      if (String(utxoValue) !== rawValue) {
+      const utxoValue = this.toBaseDenominationString(utxo.value)
+      if (utxoValue !== rawValue) {
         throw new Error(`Utxo ${utxo.txid}:${utxo.vout} has mismatched value - ${utxoValue} sat expected but network reports ${rawValue} sat`)
       }
       result.witnessUtxo = {
         script: Buffer.from(scriptPubKey, 'hex'),
-        value: utxoValue,
+        value: BigInt(utxoValue),
       }
     } else {
       // for non segwit inputs, you must pass the full transaction buffer

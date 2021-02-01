@@ -4,10 +4,10 @@ import {
   BaseTransactionInfo, BaseBroadcastResult, KeyPairsConfigParam,
 } from '@faast/payments-common'
 import { extendCodec, enumCodec, requiredOptionalCodec } from '@faast/ts-common'
-import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
+import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib-bigint'
 import { BlockInfoBitcoin } from 'blockbook-client'
 import { bitcoinish } from '@faast/bitcoin-payments'
-import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
+import { PsbtInput, TransactionInput } from 'bip174-bigint/src/lib/interfaces'
 
 export type BitcoinjsKeyPair = BitcoinjsSigner & {
   privateKey?: Buffer
