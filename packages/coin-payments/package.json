@@ -1,6 +1,6 @@
 {
   "name": "@faast/coin-payments",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "Library to assist in processing cryptocurrency payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -68,7 +68,7 @@
   "dependencies": {
     "@faast/bitcoin-cash-payments": "^4.0.0",
     "@faast/bitcoin-payments": "^4.0.0",
-    "@faast/doge-payments": "^4.0.2",
+    "@faast/doge-payments": "^4.0.3",
     "@faast/ethereum-payments": "^4.0.1",
     "@faast/litecoin-payments": "^4.0.0",
     "@faast/payments-common": "^4.0.0",
