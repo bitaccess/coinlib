@@ -17,9 +17,9 @@ export const GAS_STATION_URL = 'https://ethgasstation.info'
 
 // The following are effective maximum gas amounts for various txs we send
 export const ETHEREUM_TRANSFER_COST = '50000'
-export const CONTRACT_DEPLOY_COST = '285839'
-export const TOKEN_SWEEP_COST = '200000'
-export const TOKEN_TRANSFER_COST = '150000'
+export const CONTRACT_DEPLOY_COST = '300000'
+export const TOKEN_SWEEP_COST = '300000'
+export const TOKEN_TRANSFER_COST = '300000'
 
 /** Multiply all web3 estimateGas calls by this because it's innacurate */
 export const GAS_ESTIMATE_MULTIPLIER = 1.5
