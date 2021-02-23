@@ -128,6 +128,8 @@ export const BitcoinishPaymentTx = requiredOptionalCodec(
     rawHex: t.string,
     // sha256 hash of raw tx data
     rawHash: t.string,
+    // weight of transaction for fee purposes (ie vbytes, gas limit)
+    weight: t.number,
   },
   'BitcoinishPaymentTx'
 )

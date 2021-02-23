@@ -14,6 +14,7 @@ export const txInfo_beae1: BitcoinCashTransactionInfo = {
   'amount': '0.00009803',
   'fee': '0.00000227',
   'sequenceNumber': null,
+  'weight': 225,
   'confirmationId': '0000000000000000005e5f7db290865106895a50540f468396023100c9c8b6d2',
   'confirmationNumber': '645657',
   'confirmationTimestamp': new Date('2020-07-26T21:55:09.000Z'),

@@ -86,7 +86,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     const contract = this.newContract(TOKEN_METHODS_ABI, this.tokenAddress)
     const txData = contract.methods.transfer(fromTo.toAddress, `0x${amountBase.toString(16)}`).encodeABI()
 
-    const amountOfGas = await this.gasStation.estimateGas({
+    const amountOfGas = await this.gasOptionOrEstimate(options, {
       from: fromTo.fromAddress,
       to: this.tokenAddress,
       data: txData,
@@ -107,7 +107,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       to:       this.tokenAddress,
       data:     txData,
       value:    '0x0',
-      gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
+      gas:      `0x${amountOfGas.toString(16)}`,
       gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
       nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
     }
@@ -127,6 +127,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       targetFeeRate: feeOption.targetFeeRate,
       targetFeeRateType: feeOption.targetFeeRateType,
       sequenceNumber: nonce.toString(),
+      weight: amountOfGas,
       data: transactionObject,
     }
   }
@@ -169,7 +170,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       txData = contract.methods.proxyTransfer(salt, this.tokenAddress, toAddress, balance).encodeABI()
     }
 
-    const amountOfGas = await this.gasStation.estimateGas({
+    const amountOfGas = await this.gasOptionOrEstimate(options, {
       from: signerAddress,
       to: target,
       data: txData
@@ -198,7 +199,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       value:    '0x0',
       nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
       gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
-      gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
+      gas:      `0x${amountOfGas.toString(16)}`,
     }
 
     return {
@@ -215,6 +216,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       targetFeeRate: feeOption.targetFeeRate,
       targetFeeRateType: feeOption.targetFeeRateType,
       sequenceNumber: nonce.toString(),
+      weight: amountOfGas,
       data: transactionObject,
     }
   }
@@ -378,6 +380,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
         toIndex: null,
         fee: this.toMainDenominationEth((new BigNumber(tx.gasPrice)).multipliedBy(tx.gas)),
         sequenceNumber: tx.nonce,
+        weight: tx.gas,
         isExecuted: false,
         isConfirmed: false,
         confirmations: 0,
@@ -403,6 +406,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       toIndex: null,
       fee: this.toMainDenominationEth((new BigNumber(tx.gasPrice)).multipliedBy(txReceipt.gasUsed)),
       sequenceNumber: tx.nonce,
+      weight: txReceipt.gasUsed,
       // XXX if tx was confirmed but not accepted by network isExecuted must be false
       isExecuted,
       isConfirmed,

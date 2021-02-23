@@ -31,6 +31,7 @@ import {
   BaseEthereumPaymentsConfig,
   EthereumResolvedFeeOption,
   EthereumTransactionOptions,
+  EthTxType,
 } from './types'
 import { NetworkData } from './NetworkData'
 import {
@@ -107,7 +108,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
 
   async resolveFeeOption(
     feeOption: FeeOption,
-    amountOfGas: string = ETHEREUM_TRANSFER_COST,
+    amountOfGas: number = ETHEREUM_TRANSFER_COST,
   ): Promise<EthereumResolvedFeeOption> {
     if (new BigNumber(amountOfGas).dp() > 0) {
       throw new Error(`Amount of gas must be a whole number ${amountOfGas}`)
@@ -119,7 +120,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
 
   resolveCustomFeeOption(
     feeOption: FeeOptionCustom,
-    amountOfGas: string,
+    amountOfGas: number,
   ): EthereumResolvedFeeOption {
     const { feeRate, feeRateType } = feeOption
 
@@ -151,7 +152,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
 
   async resolveLeveledFeeOption(
     feeLevel: AutoFeeLevels = DEFAULT_FEE_LEVEL,
-    amountOfGas: string,
+    amountOfGas: number,
   ): Promise<EthereumResolvedFeeOption> {
     const gasPrice = new BigNumber(await this.gasStation.getGasPrice(feeLevel))
     const feeBase = gasPrice.multipliedBy(amountOfGas).toFixed()
@@ -262,6 +263,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
         toIndex: null,
         fee: this.toMainDenomination((new BigNumber(tx.gasPrice)).multipliedBy(tx.gas)),
         sequenceNumber: tx.nonce,
+        weight: tx.gas,
         isExecuted: false,
         isConfirmed: false,
         confirmations: 0,
@@ -311,6 +313,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       toIndex: null,
       fee: this.toMainDenomination((new BigNumber(tx.gasPrice)).multipliedBy(txInfo.gasUsed)),
       sequenceNumber: tx.nonce,
+      weight: txInfo.gasUsed,
       // XXX if tx was confirmed but not accepted by network isExecuted must be false
       isExecuted: status !== TransactionStatus.Failed,
       isConfirmed,
@@ -428,6 +431,18 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     }
   }
 
+  /** Helper for determining what gas limit should be used when creating tx. Prefer provided option over estimate. */
+  protected async gasOptionOrEstimate(
+    options: EthereumTransactionOptions,
+    txObject: TransactionConfig,
+    txType: EthTxType,
+  ): Promise<number> {
+    if (options.gas) {
+      return new BigNumber(options.gas).dp(0, BigNumber.ROUND_UP).toNumber()
+    }
+    return this.gasStation.estimateGas(txObject, txType)
+  }
+
   private async createTransactionObject(
     from: number,
     to: ResolveablePayport | undefined,
@@ -458,7 +473,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       txConfig.to = toPayport.address
     }
 
-    const amountOfGas = options.gas || await this.gasStation.estimateGas(txConfig, txType)
+    const amountOfGas = await this.gasOptionOrEstimate(options, txConfig, txType)
     const feeOption = await this.resolveFeeOption(options, amountOfGas)
 
     const { confirmedBalance: balanceEth } = await this.getBalance(fromPayport)
@@ -497,11 +512,12 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       targetFeeLevel: feeOption.targetFeeLevel,
       targetFeeRate: feeOption.targetFeeRate,
       targetFeeRateType: feeOption.targetFeeRateType,
+      weight: amountOfGas,
       sequenceNumber: nonce.toString(),
       data: {
         ...txConfig,
         value:    `0x${amountWei.toString(16)}`,
-        gas:      `0x${(new BigNumber(amountOfGas)).toString(16)}`,
+        gas:      `0x${amountOfGas.toString(16)}`,
         gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
         nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
       },

@@ -186,9 +186,9 @@ describeAll('e2e testnet', () => {
         for (const index of indicesToTry) {
           const balanceResult = await payments.getBalance(index)
           balances[index] = balanceResult
-          if (toBigNumber(balanceResult.confirmedBalance).gt(highestBalance)) {
+          if (toBigNumber(balanceResult.spendableBalance).gt(highestBalance)) {
             indexToSend = index
-            break
+            highestBalance = new BigNumber(balanceResult.spendableBalance)
           }
         }
         if (indexToSend < 0) {

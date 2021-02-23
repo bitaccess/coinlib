@@ -2,7 +2,7 @@
 import { DogeTransactionInfo, DogeSignedTransaction } from '../../src'
 import { FeeLevel, FeeRateType, TransactionStatus } from '@faast/payments-common'
 
-export const txInfo_beae1: DogeTransactionInfo = {
+export const txInfo_example: DogeTransactionInfo = {
   'status': TransactionStatus.Confirmed,
   'id': 'dc8ae0ebe273faf3e6e2f1192279df91fa6b8621e3daba08dc89ef9cb0539193',
   'fromIndex': null,
@@ -14,6 +14,7 @@ export const txInfo_beae1: DogeTransactionInfo = {
   'amount': '58575.13509193',
   'fee': '3',
   'sequenceNumber': null,
+  'weight': 225,
   'confirmationId': 'f04c4dc35d2f33756e9e913bece108dfa5ab5d5e6a97f1e7bd1eefbc3c3f9171',
   'confirmationNumber': '3368748',
   'confirmationTimestamp': new Date('2020-08-24T11:30:57.000Z'),
@@ -84,7 +85,7 @@ export const txInfo_beae1: DogeTransactionInfo = {
     }
   ]
 }
- 
+
 
 export const signedTx_valid: DogeSignedTransaction = {
   id: 'c7376e46f869a9cadfca43ca20bfdc3c1bfe856908a6a57de147fb881189c3a7',

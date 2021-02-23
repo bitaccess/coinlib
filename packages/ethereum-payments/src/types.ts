@@ -147,7 +147,7 @@ export const EthereumTransactionOptions = extendCodec(
   {},
   {
     data: t.string,
-    gas: t.string,
+    gas: Numeric,
     proxyAddress: t.string,
   },
   'EthereumTransactionOptions'
