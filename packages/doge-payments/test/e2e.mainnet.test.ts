@@ -1,4 +1,3 @@
-import { KeyPairDogePayments } from './../src/KeyPairDogePayments';
 import fs from 'fs'
 import path from 'path'
 import { omit } from 'lodash'
@@ -10,10 +9,11 @@ import { bitcoinish } from '@faast/bitcoin-payments'
 import {
   HdDogePayments, DogeTransactionInfo, HdDogePaymentsConfig,
   DogeSignedTransaction, AddressType,
-  SinglesigAddressType, DEFAULT_NETWORK_MIN_RELAY_FEE
+  SinglesigAddressType, DEFAULT_NETWORK_MIN_RELAY_FEE,
+  DEFAULT_MIN_TX_FEE,
 } from '../src'
 
-import { txInfo_beae1 } from './fixtures/transactions'
+import { txInfo_example } from './fixtures/transactions'
 import { legacyAccount } from './fixtures/accounts'
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
 
@@ -104,7 +104,7 @@ describeAll('e2e mainnet', () => {
     targetUtxoPoolSize: 1,
   }
   const payments = new HdDogePayments(paymentsConfig)
-  const feeRate = '210000'
+  const feeRate = new BigNumber(DEFAULT_MIN_TX_FEE).plus(10000).toString()
   const feeRateType = FeeRateType.BasePerWeight
   const address10 = 'DC2uUxHtZdSAQ67WgZ7rMw1rKFAheKBu7F'
   const address10balance = '1400'
@@ -201,7 +201,7 @@ describeAll('e2e mainnet', () => {
 
   it('get transaction by arbitrary hash', async () => {
     const tx = await payments.getTransactionInfo('dc8ae0ebe273faf3e6e2f1192279df91fa6b8621e3daba08dc89ef9cb0539193')
-    assertTxInfo(tx, txInfo_beae1)
+    assertTxInfo(tx, txInfo_example)
   })
   it('fail to get an invalid transaction hash', async () => {
     await expect(payments.getTransactionInfo('123456abcdef'))
@@ -212,6 +212,16 @@ describeAll('e2e mainnet', () => {
     const fee = '5'
     const tx = await payments.createSweepTransaction(10, 3, { feeRate: fee, feeRateType: FeeRateType.Main })
     expect(tx.fee).toBe(fee)
+  })
+
+  it('creates transaction with low fee rate using minimum fee rate', async () => {
+    const lowFeeRate = new BigNumber(DEFAULT_MIN_TX_FEE).div(2).toString()
+    const tx = await payments.createSweepTransaction(10, 3, {
+      feeRate: lowFeeRate,
+      feeRateType: FeeRateType.BasePerWeight,
+    })
+    expect(tx.weight).toBeDefined()
+    expect(tx.fee).toBe(new BigNumber(tx.weight! * DEFAULT_MIN_TX_FEE).div(1e8).toString())
   })
   it('create sweep transaction to an index', async () => {
     const tx = await payments.createSweepTransaction(10, 3, { feeRate, feeRateType })
@@ -258,7 +268,6 @@ describeAll('e2e mainnet', () => {
   })
 
   it('create sweep transaction to an external address with unconfirmed utxos', async () => {
-    const feeRate = '210000'
     const tx = await payments.createSweepTransaction(10, { address: EXTERNAL_ADDRESS }, {
       useUnconfirmedUtxos: true,
       availableUtxos: [{
@@ -283,7 +292,6 @@ describeAll('e2e mainnet', () => {
 
   it('create send transaction to an index', async () => {
     const amount = '300'
-    const feeRate = '210000'
     const tx = await payments.createTransaction(10, 3, amount, { feeRate, feeRateType })
     expect(tx).toBeDefined()
     expect(tx.amount).toEqual(amount)
@@ -294,11 +302,13 @@ describeAll('e2e mainnet', () => {
     expectEqualOmit(tx.inputUtxos, address10utxos, omitUtxoFieldEquality)
     expect(tx.externalOutputs).toEqual([{ address: address3, value: amount }])
     const expectedTxSize = 226
+    expect(tx.weight).toBe(expectedTxSize)
     const expectedFee = BigNumber.max(MIN_FEE, new BigNumber(feeRate).times(expectedTxSize).times(1e-8))
     expect(tx.fee).toBe(expectedFee.toString())
     const expectedChange = new BigNumber(address10balance).minus(amount).minus(expectedFee).toString()
     expect(tx.data.changeOutputs).toEqual([{ address: address10, value: expectedChange }])
   })
+
   it('create send transaction to an internal address', async () => {
     const amount = '300'
     const tx = await payments.createTransaction(10, { address: address3 }, amount, { feeRate, feeRateType })
@@ -408,7 +418,7 @@ describeAll('e2e mainnet', () => {
           throw new Error(`Cannot end to end test sweeping due to lack of funds. Send DOGE to any of the following addresses and try again. ${JSON.stringify(allAddresses)}`)
         }
         const recipientIndex = indexToSweep === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
-        const satPerByte = 210000
+        const satPerByte = 1010000
         const unsignedTx = await payments.createSweepTransaction(indexToSweep, recipientIndex, {
           feeRate: satPerByte.toString(),
           feeRateType: FeeRateType.BasePerWeight,
@@ -426,6 +436,7 @@ describeAll('e2e mainnet', () => {
         if (extraInputs) {
           expectedTxSize += (extraInputs * bitcoinish.ADDRESS_INPUT_WEIGHTS[addressType]) / 4
         }
+        expect(signedTx.weight).toBe(expectedTxSize)
 
         expect(feeNumber).toBe(BigNumber.max(MIN_FEE, (expectedTxSize*satPerByte)*1e-8).toNumber())
         logger.log(`Sweeping ${signedTx.amount} from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)

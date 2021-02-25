@@ -26,6 +26,7 @@ export const txInfo_4d111: LitecoinTransactionInfo = {
     },
   ],
   sequenceNumber: null,
+  weight: 207,
   isExecuted: true,
   isConfirmed: true,
   confirmations: 1234,

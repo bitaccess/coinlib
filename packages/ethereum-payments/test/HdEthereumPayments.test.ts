@@ -287,6 +287,7 @@ describe('HdEthereumPayments', () => {
           toIndex: null,
           fee: '0.042',
           sequenceNumber: 2,
+          weight: 21000,
           isExecuted: true,
           isConfirmed: false,
           confirmations: 0,
@@ -346,6 +347,7 @@ describe('HdEthereumPayments', () => {
           toIndex: null,
           fee: '0.042',
           sequenceNumber: 2,
+          weight: 21000,
           isExecuted: true,
           isConfirmed: true,
           confirmations: 1,
@@ -405,6 +407,7 @@ describe('HdEthereumPayments', () => {
           toIndex: null,
           fee: '0.042',
           sequenceNumber: 2,
+          weight: 21000,
           isExecuted: false,
           isConfirmed: true,
           confirmations: 1,
@@ -464,6 +467,7 @@ describe('HdEthereumPayments', () => {
           toIndex: null,
           fee: '0.042',
           sequenceNumber: 2,
+          weight: 21000,
           isExecuted: false,
           isConfirmed: false,
           confirmations: 0,
@@ -533,6 +537,7 @@ describe('HdEthereumPayments', () => {
           targetFeeRate: '3000000000',
           targetFeeRateType: 'base/weight',
           sequenceNumber: '27',
+          weight: 50000,
           data: {
             from: FROM_ADDRESS.toLowerCase(),
             to: TO_ADDRESS.toLowerCase(),
@@ -617,6 +622,7 @@ describe('HdEthereumPayments', () => {
           targetFeeRate: '3000000000',
           targetFeeRateType: 'base/weight',
           sequenceNumber: '27',
+          weight: 31770,
           data: {
             from: FROM_ADDRESS.toLowerCase(),
             to: to.address.toLowerCase(),
@@ -687,6 +693,7 @@ describe('HdEthereumPayments', () => {
           targetFeeRate: '0',
           targetFeeRateType: 'base',
           sequenceNumber: '27',
+          weight: 21000,
           data: {
             from: FROM_ADDRESS.toLowerCase(),
             to: to.address.toLowerCase(),
@@ -713,6 +720,7 @@ describe('HdEthereumPayments', () => {
           targetFeeRate: '0',
           targetFeeRateType: 'base',
           sequenceNumber: '27',
+          weight: 21000,
           data: {
             hex: '0xf86c1b8545d964b80082523c948f0bb36577b19da9826fc726fec2b4943c45e0148801e33c7f8ff555728029a0a7dafa27f75d1fd50e8544a0f1f31ac4275a65855b05585fdbe2796fab967e5aa057b626e4f993d1e2152fb0fa1ca72943aacaf27d56adca2f3f195ab90d253d73'
           }

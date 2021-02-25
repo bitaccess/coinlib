@@ -16,10 +16,10 @@ export const DEFAULT_GAS_PRICE_IN_WEI = '50000000000'
 export const GAS_STATION_URL = 'https://ethgasstation.info'
 
 // The following are effective maximum gas amounts for various txs we send
-export const ETHEREUM_TRANSFER_COST = '50000'
-export const CONTRACT_DEPLOY_COST = '300000'
-export const TOKEN_SWEEP_COST = '300000'
-export const TOKEN_TRANSFER_COST = '300000'
+export const ETHEREUM_TRANSFER_COST = 50000
+export const CONTRACT_DEPLOY_COST = 300000
+export const TOKEN_SWEEP_COST = 300000
+export const TOKEN_TRANSFER_COST = 300000
 
 /** Multiply all web3 estimateGas calls by this because it's innacurate */
 export const GAS_ESTIMATE_MULTIPLIER = 1.5
@@ -31,7 +31,7 @@ export const GAS_STATION_FEE_SPEED = {
   [FeeLevel.Medium]: 'average',
   [FeeLevel.High]: 'fast',
 }
-export const MAXIMUM_GAS: { [a in EthTxType]: string} = {
+export const MAXIMUM_GAS: { [a in EthTxType]: number} = {
   'ETHEREUM_TRANSFER': ETHEREUM_TRANSFER_COST,
   'CONTRACT_DEPLOY': CONTRACT_DEPLOY_COST,
   'TOKEN_SWEEP': TOKEN_SWEEP_COST,

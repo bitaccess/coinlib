@@ -664,6 +664,12 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     this.allocateChangeOutputs(tbc)
     this.logger.debug(`${this.coinSymbol} buildPaymentTx - context after allocating change outputs`, tbc)
 
+    const estimatedWeight = this.estimateTxSize(
+      tbc.inputUtxos.length,
+      tbc.changeOutputs.length,
+      tbc.externalOutputAddresses,
+    )
+
     this.validateBuildContext(tbc)
 
     const externalOutputsResult = this.convertOutputsToExternalFormat(tbc.externalOutputs)
@@ -679,6 +685,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       changeOutputs: changeOutputsResult,
       externalOutputs: externalOutputsResult,
       externalOutputTotal: this.toMainDenominationString(tbc.externalOutputTotal),
+      weight: estimatedWeight,
       rawHex: '',
       rawHash: '',
     }
@@ -767,6 +774,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       targetFeeRate,
       targetFeeRateType,
       fee: feeMain,
+      weight: paymentTx.weight,
       sequenceNumber: null,
       inputUtxos: paymentTx.inputs,
       externalOutputs: paymentTx.externalOutputs,
@@ -832,6 +840,10 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
   async getTransactionInfo(txId: string): Promise<BitcoinishTransactionInfo> {
     const tx = await this._retryDced(() => this.getApi().getTx(txId))
+    const txSpecific = await this._retryDced(() => this.getApi().getTxSpecific(txId))
+
+    // Our "weight" for fee purposes is vbytes, but that isn't a thing on all networks (BCH, DOGE)
+    const weight = txSpecific.vsize || txSpecific.size
 
     const fee = this.toMainDenominationString(tx.fees)
 
@@ -899,6 +911,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       data: tx,
       inputUtxos,
       externalOutputs,
+      weight,
     }
   }
 

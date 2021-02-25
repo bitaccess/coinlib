@@ -213,7 +213,8 @@ export const TransactionCommon = requiredOptionalCodec(
     toExtraId: nullable(t.string), // eg Monero payment ID or ripple destination tag
     sequenceNumber: nullable(t.union([t.string, t.number])), // eg Ethereum nonce or ripple sequence
     inputUtxos: t.array(UtxoInfo),
-    externalOutputs: t.array(TransactionOutput)
+    externalOutputs: t.array(TransactionOutput),
+    weight: t.number, // weight of this transaction for fee purposes (ie vbytes, gas limit)
   },
   'TransactionCommon',
 )
@@ -240,9 +241,9 @@ const UnsignedCommon = extendCodec(
     fromAddress: t.string,
     toAddress: t.string,
     fromIndex: t.number,
-    targetFeeLevel: FeeLevelT,
-    targetFeeRate: nullable(t.string),
-    targetFeeRateType: nullable(FeeRateTypeT),
+    targetFeeLevel: FeeLevelT, // fee level requested upon creation
+    targetFeeRate: nullable(t.string), // fee rate requested upon creation
+    targetFeeRateType: nullable(FeeRateTypeT), // fee rate type requested upon creation
   },
   {
     multisigData: BaseMultisigData,

@@ -40,7 +40,7 @@ export class NetworkData {
   ): Promise<{
     pricePerGasUnit: string,
     nonce: string,
-    amountOfGas: string,
+    amountOfGas: number,
   }> {
     const pricePerGasUnit = await this.getGasPrice(speed)
     const nonce = await this.getNonce(from)
@@ -71,21 +71,21 @@ export class NetworkData {
     return DEFAULT_GAS_PRICE_IN_WEI
   }
 
-  async estimateGas(txObject: TransactionConfig, txType: EthTxType): Promise<string> {
+  async estimateGas(txObject: TransactionConfig, txType: EthTxType): Promise<number> {
     try {
       // estimateGas mutates txObject so must pass in a clone
-      let gas = new BigNumber(await this._retryDced(() => this.eth.estimateGas({ ...txObject })))
-      if (gas.gt(21000)) {
+      let gas = await this._retryDced(() => this.eth.estimateGas({ ...txObject }))
+      if (gas > 21000) {
         // No need for multiplier for regular ethereum transfers
-        gas = gas.times(GAS_ESTIMATE_MULTIPLIER)
+        gas = gas * GAS_ESTIMATE_MULTIPLIER
       }
 
       const maxGas = MAXIMUM_GAS[txType]
-      if (gas.gt(maxGas)) {
-        gas = new BigNumber(maxGas)
+      if (gas > maxGas) {
+        gas = maxGas
       }
 
-      const result = gas.toFixed(0, BigNumber.ROUND_UP)
+      const result = Math.ceil(gas)
       this.logger.debug(`Estimated gas limit of ${result} for ${txType}`)
       return result
     } catch (e) {
