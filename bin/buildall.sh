@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Builds all of the packages
 
