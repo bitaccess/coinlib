@@ -162,11 +162,13 @@ export type BitcoinishBroadcastResult = t.TypeOf<typeof BitcoinishBroadcastResul
 export const BitcoinishBlock = BlockInfoBitcoin
 export type BitcoinishBlock = BlockInfoBitcoin
 
+export type UtxoInfoWithSats = UtxoInfo & { satoshis: number }
+
 export type BitcoinishTxBuildContext = {
-  /** Utxos we can select from (ie should exclude anything used by pending txs) */
-  readonly unusedUtxos: UtxoInfo[],
-  /** Utxos we must select from (ie should exclude anything used by pending txs) */
-  readonly enforcedUtxos: UtxoInfo[],
+  /** Utxos not already used by pending transactions */
+  readonly unusedUtxos: UtxoInfoWithSats[],
+  /** Utxos we must select from in order to RBF */
+  readonly enforcedUtxos: UtxoInfoWithSats[],
   /** External outputs the creator desires excluding change (amounts may end up lower if recipientPaysFee is enabled) */
   readonly desiredOutputs: BitcoinishTxOutput[],
   /** Address to send all change outputs to */
@@ -180,7 +182,11 @@ export type BitcoinishTxBuildContext = {
   /** true if fee should be deducted from outputs instead of paid by sender */
   readonly recipientPaysFee: boolean,
 
-  readonly unusedUtxoCount: number,
+  /** All unused utxos that aren't too small to be spent */
+  readonly nonDustUtxoCount: number,
+  /** Utxos we can select from (ie unusedUtxos less dust, and possibly unconfirmed) */
+  readonly selectableUtxos: UtxoInfoWithSats[],
+
   /** Sum of desiredOutputs value in satoshis */
   desiredOutputTotal: number,
 
@@ -197,7 +203,7 @@ export type BitcoinishTxBuildContext = {
   isSweep: boolean,
 
   /** Utxos selected as inputs for the tx */
-  inputUtxos: UtxoInfo[],
+  inputUtxos: UtxoInfoWithSats[],
 
   /** Sum of inputUtxos value in satoshis */
   inputTotal: number,
@@ -214,5 +220,8 @@ export type BitcoinishTxBuildContext = {
 
 export type BitcoinishBuildPaymentTxParams = Pick<
   BitcoinishTxBuildContext,
-  'unusedUtxos' | 'desiredOutputs' | 'changeAddress' | 'desiredFeeRate' | 'useAllUtxos' | 'useUnconfirmedUtxos' | 'recipientPaysFee' | 'enforcedUtxos'
->
+  'desiredOutputs' | 'changeAddress' | 'desiredFeeRate' | 'useAllUtxos' | 'useUnconfirmedUtxos' | 'recipientPaysFee'
+> & {
+  unusedUtxos: UtxoInfo[],
+  enforcedUtxos: UtxoInfo[],
+}
