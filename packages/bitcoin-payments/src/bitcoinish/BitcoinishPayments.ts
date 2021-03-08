@@ -282,9 +282,11 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
    */
   private determineTargetChangeOutputCount(unusedUtxoCount: number, inputUtxoCount: number) {
     const remainingUtxoCount = unusedUtxoCount - inputUtxoCount
-    return remainingUtxoCount < this.targetUtxoPoolSize
+    const additionalUtxosNeeded = remainingUtxoCount < this.targetUtxoPoolSize
       ? this.targetUtxoPoolSize - remainingUtxoCount
       : 1
+    // Only create at most (1 + input count) change outputs to amortize fee burden
+    return Math.min(additionalUtxosNeeded, inputUtxoCount + 1)
   }
 
   /** Adjust all the output amounts such that externalOutputTotal equals newOutputTotal (+/- a few satoshis less) */
