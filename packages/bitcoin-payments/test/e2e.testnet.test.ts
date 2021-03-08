@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { BalanceResult, TransactionStatus, NetworkType, FeeRateType } from '@faast/payments-common'
+import { BalanceResult, TransactionStatus, NetworkType, FeeRateType, FeeLevel } from '@faast/payments-common'
 
 import {
   HdBitcoinPayments, BitcoinTransactionInfo,
@@ -148,7 +148,7 @@ describeAll('e2e testnet', () => {
           throw new Error(`Cannot end to end test sweeping due to lack of funds. Send testnet BTC to any of the following addresses and try again. ${JSON.stringify(allAddresses)}`)
         }
         const recipientIndex = indexToSweep === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
-        const satPerByte = 44
+        const satPerByte = 22
         const unsignedTx = await payments.createSweepTransaction(indexToSweep, recipientIndex, {
           feeRate: satPerByte.toString(),
           feeRateType: FeeRateType.BasePerWeight,
@@ -200,7 +200,11 @@ describeAll('e2e testnet', () => {
           indexToSend,
           recipientIndex,
           '0.0001',
-          { useUnconfirmedUtxos: true }, // Prevents consecutive tests from failing
+          {
+            useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
+            feeRate: '10',
+            feeRateType: FeeRateType.BasePerWeight,
+          },
         )
         const signedTx = await payments.signTransaction(unsignedTx)
         logger.log(`Sending ${signedTx.amount} from ${indexToSend} to ${recipientIndex} in tx ${signedTx.id}`)

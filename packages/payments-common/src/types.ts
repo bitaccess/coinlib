@@ -144,6 +144,7 @@ export const CreateTransactionOptions = extendCodec(
     useAllUtxos: t.boolean, // Uses all available utxos (ie sweep)
     useUnconfirmedUtxos: t.boolean, // Allow unconfirmed utxos as inputs
     recipientPaysFee: t.boolean, // Deduct fee from outputs (only utxo coins supported for now)
+    maxFeePercent: Numeric, // Maximum fee as percent of output total
   },
   'CreateTransactionOptions',
 )

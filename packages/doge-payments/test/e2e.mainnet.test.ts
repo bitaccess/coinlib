@@ -470,7 +470,11 @@ describeAll('e2e mainnet', () => {
           indexToSend,
           recipientIndex,
           '3',
-          { useUnconfirmedUtxos: true }, // Prevents consecutive tests from failing
+          {
+            useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
+            maxFeePercent: 300,
+            feeLevel: FeeLevel.Low,
+          },
         )
         const signedTx = await payments.signTransaction(unsignedTx)
         logger.log(`Sending ${signedTx.amount} from ${indexToSend} to ${recipientIndex} in tx ${signedTx.id}`)

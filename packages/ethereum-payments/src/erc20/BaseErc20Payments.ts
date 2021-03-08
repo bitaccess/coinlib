@@ -10,6 +10,8 @@ import {
   TransactionStatus,
   ResolveablePayport,
   Payport,
+  PaymentsError,
+  PaymentsErrorCode,
 } from '@faast/payments-common'
 
 import {
@@ -99,7 +101,10 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     let ethBalance = await this.getEthBaseBalance(fromTo.fromAddress)
 
     if (feeBase.isGreaterThan(ethBalance)) {
-      throw new Error(`Insufficient ETH balance (${this.toMainDenominationEth(ethBalance)}) to pay transaction fee of ${feeOption.feeMain}`)
+      throw new PaymentsError(
+        PaymentsErrorCode.TxInsufficientBalance,
+        `Insufficient ETH balance (${this.toMainDenominationEth(ethBalance)}) to pay transaction fee of ${feeOption.feeMain}`,
+      )
     }
 
     const transactionObject = {
@@ -180,7 +185,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     const feeBase = new BigNumber(feeOption.feeBase)
     let ethBalance = await this.getEthBaseBalance(signerAddress)
     if (feeBase.isGreaterThan(ethBalance)) {
-      throw new Error(
+      throw new PaymentsError(
+        PaymentsErrorCode.TxInsufficientBalance,
         `Insufficient ETH balance (${this.toMainDenominationEth(ethBalance)}) at owner address ${signerAddress} `
         + `to sweep contract ${from} with fee of ${feeOption.feeMain} ETH`)
     }
@@ -188,7 +194,10 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     const { confirmedBalance: tokenBalanceMain } = await this.getBalance({ address: fromAddress })
     const tokenBalanceBase = this.toBaseDenominationBigNumber(tokenBalanceMain)
     if (tokenBalanceBase.isLessThan(0)) {
-      throw new Error(`Insufficient token balance (${tokenBalanceMain}) to sweep`)
+      throw new PaymentsError(
+        PaymentsErrorCode.TxInsufficientBalance,
+        `Insufficient token balance (${tokenBalanceMain}) to sweep`,
+      )
     }
 
     const nonce = options.sequenceNumber || await this.getNextSequenceNumber(signerAddress)

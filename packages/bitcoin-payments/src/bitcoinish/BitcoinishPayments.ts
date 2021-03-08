@@ -15,9 +15,11 @@ import {
   TransactionStatus,
   CreateTransactionOptions,
   BaseConfig,
-  MaybePromise,
   PayportOutput,
   TransactionOutput,
+  PaymentsError,
+  PaymentsErrorCode,
+  DEFAULT_MAX_FEE_PERCENT,
 } from '@faast/payments-common'
 import { isUndefined, isType, Numeric, toBigNumber, assertType, isNumber } from '@faast/ts-common'
 import { get } from 'lodash'
@@ -31,7 +33,6 @@ import {
   BitcoinishPaymentsConfig,
   BitcoinishPaymentTx,
   BitcoinishTxOutput,
-  BitcoinishTxOutputSatoshis,
   BitcoinishWeightedChangeOutput,
   BitcoinishTxBuildContext,
   BitcoinishBuildPaymentTxParams,
@@ -327,6 +328,14 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   private adjustTxFee(tbc: BitcoinishTxBuildContext, newFeeSat: number, description: string): void {
+    // Apply a hard limit on the maximum fee to avoid overpaying
+    if (newFeeSat > Math.ceil(tbc.desiredOutputTotal * (tbc.maxFeePercent / 100))) {
+      throw new PaymentsError(
+        PaymentsErrorCode.TxFeeTooHigh,
+        `${description} (${newFeeSat} sat) exceeds maximum fee percent (${tbc.maxFeePercent}%) `
+          + `of desired output total (${tbc.desiredOutputTotal} sat)`
+      )
+    }
     let feeSatAdjustment = newFeeSat - tbc.feeSat
     if (!tbc.recipientPaysFee && !tbc.isSweep) {
       this.applyFeeAdjustment(tbc, feeSatAdjustment, description)
@@ -353,7 +362,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
     // insufficient utxos
     if (tbc.externalOutputTotal + tbc.feeSat > tbc.inputTotal) {
-      throw new Error(
+      throw new PaymentsError(
+        PaymentsErrorCode.TxInsufficientBalance,
         `${this.coinSymbol} buildPaymentTx - You do not have enough UTXOs (${tbc.inputTotal} sat) ` +
         `to send ${tbc.externalOutputTotal} sat with ${tbc.feeSat} sat fee`
       )
@@ -753,6 +763,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       value: String(amount),
     })))
 
+    const maxFeePercent = new BigNumber(options.maxFeePercent ?? DEFAULT_MAX_FEE_PERCENT).toNumber()
     const { targetFeeLevel, targetFeeRate, targetFeeRateType } = await this.resolveFeeOption(options)
     this.logger.debug(`createMultiOutputTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`)
 
@@ -765,6 +776,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       useAllUtxos: options.useAllUtxos ?? false,
       useUnconfirmedUtxos: options.useUnconfirmedUtxos ?? false,
       recipientPaysFee: options.recipientPaysFee ?? false,
+      maxFeePercent,
     })
     const unsignedTxHex = await this.serializePaymentTx(paymentTx, from)
     paymentTx.rawHex = unsignedTxHex

@@ -44,6 +44,7 @@ describe('HdBitcoinPayments', () => {
         useAllUtxos: true,
         useUnconfirmedUtxos: false,
         recipientPaysFee: false,
+        maxFeePercent: 50,
       })
       const expectedOutputs = [{ address: EXTERNAL_ADDRESS, value: '0.049' }]
       expectUtxosEqual(paymentTx.inputs, [utxos[0]])
@@ -67,6 +68,7 @@ describe('HdBitcoinPayments', () => {
         useAllUtxos: true,
         useUnconfirmedUtxos: true,
         recipientPaysFee: false,
+        maxFeePercent: 50,
       })
       const expectedOutputs = [{ address: EXTERNAL_ADDRESS, value: '2.349' }]
       expectUtxosEqual(paymentTx.inputs, utxos)
@@ -90,6 +92,7 @@ describe('HdBitcoinPayments', () => {
         useAllUtxos: false,
         useUnconfirmedUtxos: false,
         recipientPaysFee: false,
+        maxFeePercent: 50,
       })
       expectUtxosEqual(paymentTx.inputs, [utxos[1]])
       expect(paymentTx.outputs).toEqual(outputs)
@@ -112,6 +115,7 @@ describe('HdBitcoinPayments', () => {
         useAllUtxos: false,
         useUnconfirmedUtxos: false,
         recipientPaysFee: false,
+        maxFeePercent: 50,
       })
       const changeOutputs = makeOutputs(changeAddress, '0.005')
       expectUtxosEqual(paymentTx.inputs, utxos.slice(0,2))
@@ -135,6 +139,7 @@ describe('HdBitcoinPayments', () => {
         useAllUtxos: false,
         useUnconfirmedUtxos: false,
         recipientPaysFee: false,
+        maxFeePercent: 50,
       })
       const changeOutputs = makeOutputs(changeAddress, '0.1', '0.2', '0.4')
       expectUtxosEqual(paymentTx.inputs, utxos.slice(0,3))
@@ -158,6 +163,7 @@ describe('HdBitcoinPayments', () => {
         useAllUtxos: false,
         useUnconfirmedUtxos: false,
         recipientPaysFee: false,
+        maxFeePercent: 50,
       })
       const changeOutputs = makeOutputs(changeAddress, '0.1', '0.2', '0.4')
       expect(paymentTx.inputs.includes(utxos[0]))
@@ -177,6 +183,7 @@ describe('HdBitcoinPayments', () => {
         useAllUtxos: false,
         useUnconfirmedUtxos: false,
         recipientPaysFee: false,
+        maxFeePercent: 50,
       })
       expectUtxosEqual(paymentTx.inputs, utxos)
       expect(paymentTx.outputs).toEqual(outputs)
@@ -201,6 +208,7 @@ describe('HdBitcoinPayments', () => {
         useAllUtxos: false,
         useUnconfirmedUtxos: false,
         recipientPaysFee: true,
+        maxFeePercent: 50,
       })
       expectUtxosEqual(paymentTx.inputs, unusedUtxos.slice(0, 2))
       const expectedOutputAmount = toBigNumber(amount).minus(feeMain).toString()
@@ -244,6 +252,7 @@ describe('HdBitcoinPayments', () => {
         useAllUtxos: false,
         useUnconfirmedUtxos: false,
         recipientPaysFee: true,
+        maxFeePercent: 50,
       })
       expectUtxosEqual(paymentTx.inputs, unusedUtxos)
       const expectedOutputAmount = toBigNumber(amount).minus(feeMain).toString()
@@ -275,6 +284,7 @@ describe('HdBitcoinPayments', () => {
         useAllUtxos: false,
         useUnconfirmedUtxos: false,
         recipientPaysFee: true,
+        maxFeePercent: 50,
       })
       expectUtxosEqual(paymentTx.inputs, unusedUtxos.slice(0, 2))
       const expectedOutputAmount = toBigNumber(amount).minus(paymentTx.fee).toString()

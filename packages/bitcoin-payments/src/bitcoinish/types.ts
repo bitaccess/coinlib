@@ -181,7 +181,8 @@ export type BitcoinishTxBuildContext = {
   readonly useUnconfirmedUtxos: boolean,
   /** true if fee should be deducted from outputs instead of paid by sender */
   readonly recipientPaysFee: boolean,
-
+  /** Maximum fee as percent of desired output total */
+  readonly maxFeePercent: number,
   /** All unused utxos that aren't too small to be spent */
   readonly nonDustUtxoCount: number,
   /** Utxos we can select from (ie unusedUtxos less dust, and possibly unconfirmed) */
@@ -220,7 +221,7 @@ export type BitcoinishTxBuildContext = {
 
 export type BitcoinishBuildPaymentTxParams = Pick<
   BitcoinishTxBuildContext,
-  'desiredOutputs' | 'changeAddress' | 'desiredFeeRate' | 'useAllUtxos' | 'useUnconfirmedUtxos' | 'recipientPaysFee'
+  'desiredOutputs' | 'changeAddress' | 'desiredFeeRate' | 'useAllUtxos' | 'useUnconfirmedUtxos' | 'recipientPaysFee' | 'maxFeePercent'
 > & {
   unusedUtxos: UtxoInfo[],
   enforcedUtxos: UtxoInfo[],

@@ -59,7 +59,7 @@ describeAll('e2e mainnet', () => {
     targetUtxoPoolSize: 1,
   }
   const payments = new HdLitecoinPayments(paymentsConfig)
-  const feeRate = '21'
+  const feeRate = '12'
   const feeRateType = FeeRateType.BasePerWeight
   const address0 = 'ltc1q9ek9srkxa69l8p9qdk8v2ntzs9vetxnr6xhvf4'
   const address0balance = '0.05'
@@ -199,7 +199,6 @@ describeAll('e2e mainnet', () => {
     expect(tx.inputUtxos).toBeTruthy()
   })
   it('create sweep transaction to an external address with unconfirmed utxos', async () => {
-    const feeRate = '21'
     const tx = await payments.createSweepTransaction(0, { address: EXTERNAL_ADDRESS }, {
       useUnconfirmedUtxos: true,
       availableUtxos: [{
@@ -225,7 +224,6 @@ describeAll('e2e mainnet', () => {
 
   it('create send transaction to an index', async () => {
     const amount = '0.00005'
-    const feeRate = '21'
     const tx = await payments.createTransaction(0, 3, amount, { feeRate, feeRateType })
     expect(tx).toBeDefined()
     expect(tx.amount).toEqual(amount)
@@ -398,7 +396,11 @@ describeAll('e2e mainnet', () => {
           indexToSend,
           recipientIndex,
           '0.0005',
-          { useUnconfirmedUtxos: true }, // Prevents consecutive tests from failing
+          {
+            useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
+            maxFeePercent: 100,
+            feeLevel: FeeLevel.Low,
+          },
         )
         const signedTx = await payments.signTransaction(unsignedTx)
         logger.log(`Sending ${signedTx.amount} from ${indexToSend} to ${recipientIndex} in tx ${signedTx.id}`)
