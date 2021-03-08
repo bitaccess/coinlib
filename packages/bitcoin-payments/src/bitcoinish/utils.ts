@@ -266,7 +266,7 @@ export function estimateTxSize(
     } else {
       try {
         const outputScript = toOutputScript(key)
-        totalWeight += (outputScript.length + 9) * 4
+        totalWeight += (outputScript.length + 9) * 4 * count
       } catch(e) {
         throw new Error('invalid outputCounts key: ' + key)
       }
