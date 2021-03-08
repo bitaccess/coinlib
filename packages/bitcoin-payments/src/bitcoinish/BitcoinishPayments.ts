@@ -378,67 +378,82 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   private selectInputUtxosPartial(tbc: BitcoinishTxBuildContext) {
-    for (const utxo of tbc.enforcedUtxos) {
-      tbc.inputTotal += utxo.satoshis as number
-      tbc.inputUtxos.push(utxo)
-    }
-
     if (tbc.enforcedUtxos && tbc.enforcedUtxos.length > 0) {
       return this.selectWithForcedUtxos(tbc)
     } else {
-      return this.selectWithoutForcedUtxos(tbc)
+      return this.selectFromAvailableUtxos(tbc)
     }
+  }
+
+  private estimateIdealUtxoSelectionFee(tbc: BitcoinishTxBuildContext, inputCount: number) {
+    return this.estimateTxFee(
+      tbc.desiredFeeRate,
+      inputCount,
+      0,
+      tbc.externalOutputAddresses
+    )
+  }
+
+  /** Ideal utxo selection is one which creates no change outputs */
+  private isIdealUtxoSelection(tbc: BitcoinishTxBuildContext, utxosSelected: UtxoInfoWithSats[]): boolean {
+    const idealSolutionFeeSat = this.estimateIdealUtxoSelectionFee(tbc, utxosSelected.length)
+    const idealSolutionMinSat = tbc.desiredOutputTotal + (tbc.recipientPaysFee ? 0 : idealSolutionFeeSat)
+    const idealSolutionMaxSat = idealSolutionMinSat + this.dustThreshold
+    let selectedTotal = 0
+    for (let utxo of utxosSelected) {
+      selectedTotal += utxo.satoshis
+    }
+    return selectedTotal >= idealSolutionMinSat && selectedTotal <= idealSolutionMaxSat
   }
 
   private selectWithForcedUtxos(tbc: BitcoinishTxBuildContext) {
-    const targetChangeOutputCount = this.determineTargetChangeOutputCount(tbc.nonDustUtxoCount, 0)
+    for (const utxo of tbc.enforcedUtxos) {
+      tbc.inputTotal += utxo.satoshis
+      tbc.inputUtxos.push(utxo)
+    }
 
-    const idealSolutionFeeSat = this.estimateTxFee(
+    // Check if an ideal solution is possible
+    if (this.isIdealUtxoSelection(tbc, tbc.inputUtxos)) {
+      const idealSolutionFeeSat = this.estimateIdealUtxoSelectionFee(tbc, tbc.inputUtxos.length)
+      this.adjustTxFee(tbc, idealSolutionFeeSat, 'forced inputs ideal solution fee')
+      return
+    }
+
+    // Check if we have enough forced inputs to cover fee when change outputs are added
+    const targetChangeOutputCount = this.determineTargetChangeOutputCount(
+      tbc.nonDustUtxoCount,
+      tbc.inputUtxos.length,
+    )
+    const feeSat = this.estimateTxFee(
       tbc.desiredFeeRate,
       tbc.inputUtxos.length,
       targetChangeOutputCount,
-      tbc.externalOutputAddresses
+      tbc.externalOutputAddresses,
     )
-    const idealSolutionMinSat = tbc.desiredOutputTotal + (tbc.recipientPaysFee ? 0 : idealSolutionFeeSat)
-    const idealSolutionMaxSat = idealSolutionMinSat + this.dustThreshold
-
-    let selectedTotalSat = tbc.inputUtxos.reduce((total, { satoshis }) => total.plus(satoshis || 0), new BigNumber(0))
-
-    const neededSat = tbc.externalOutputTotal + (tbc.recipientPaysFee ? 0 : idealSolutionFeeSat)
-
-    if (selectedTotalSat.gte(neededSat)) {
-      this.adjustTxFee(tbc, idealSolutionFeeSat, 'forced inputs ideal solution fee')
+    const minimumSat = tbc.desiredOutputTotal + (tbc.recipientPaysFee ? 0 : feeSat)
+    if (tbc.inputTotal >= minimumSat) {
+      this.adjustTxFee(tbc, feeSat, 'forced inputs fee')
       return
-    } else {
-      this.selectFromAvailableUtxos(tbc, idealSolutionMinSat, idealSolutionMaxSat, idealSolutionFeeSat)
     }
-  }
 
-  private selectWithoutForcedUtxos(tbc: BitcoinishTxBuildContext) {
-    // First try to find a single input that covers output without creating change
-    const idealSolutionFeeSat = this.estimateTxFee(tbc.desiredFeeRate, 1, 0, tbc.externalOutputAddresses)
-    const idealSolutionMinSat = tbc.desiredOutputTotal + (tbc.recipientPaysFee ? 0 : idealSolutionFeeSat)
-    const idealSolutionMaxSat = idealSolutionMinSat + this.dustThreshold
-
-    this.selectFromAvailableUtxos(tbc, idealSolutionMinSat, idealSolutionMaxSat, idealSolutionFeeSat)
+    // Not enough forced inputs to cover fee, select additional utxos
+    this.selectFromAvailableUtxos(tbc)
   }
 
   private selectFromAvailableUtxos(
     tbc: BitcoinishTxBuildContext,
-    idealSolutionMinSat: number,
-    idealSolutionMaxSat: number,
-    idealSolutionFeeSat: number,
   ) {
-    // check if there is any perfectly matching utxo to be used
+    // Ideal solution consists of a single additional input that covers outputs without creating change
     for (const utxo of tbc.selectableUtxos) {
-      if (utxo.satoshis as number >= idealSolutionMinSat && utxo.satoshis as number <= idealSolutionMaxSat) {
+      if (this.isIdealUtxoSelection(tbc, [...tbc.inputUtxos, utxo])) {
+        tbc.inputUtxos.push(utxo)
+        tbc.inputTotal += utxo.satoshis
+        const idealSolutionFeeSat = this.estimateIdealUtxoSelectionFee(tbc, tbc.inputUtxos.length)
         this.logger.log(`${this.coinSymbol} buildPaymentTx - `
           + `Found ideal ${this.coinSymbol} input utxo solution to send ${tbc.desiredOutputTotal} sat `
           + `${tbc.recipientPaysFee ? 'less' : 'plus'} fee of ${idealSolutionFeeSat} sat `
           + `using single utxo ${utxo.txid}:${utxo.vout}`
         )
-        tbc.inputUtxos.push(utxo)
-        tbc.inputTotal += utxo.satoshis as number
         this.adjustTxFee(tbc, idealSolutionFeeSat, 'ideal solution fee')
         return
       }
