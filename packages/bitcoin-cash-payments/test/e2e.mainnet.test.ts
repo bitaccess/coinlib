@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { omit } from 'lodash'
-import { FeeRateType, BalanceResult, TransactionStatus, NetworkType } from '@faast/payments-common'
+import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel } from '@faast/payments-common'
 import { bitcoinish } from '@faast/bitcoin-payments'
 
 import {
@@ -408,7 +408,11 @@ describeAll('e2e mainnet', () => {
         indexToSend,
         recipientIndex,
         '0.0001',
-        { useUnconfirmedUtxos: true }, // Prevents consecutive tests from failing
+        {
+          useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
+          maxFeePercent: 100,
+          feeLevel: FeeLevel.Low,
+        },
       )
       const signedTx = await payments.signTransaction(unsignedTx)
       logger.log(`Sending ${signedTx.amount} from ${indexToSend} to ${recipientIndex} in tx ${signedTx.id}`)

@@ -19,6 +19,7 @@ import {
   NetworkType,
   PayportOutput,
   AutoFeeLevels,
+  DEFAULT_MAX_FEE_PERCENT,
 } from '@faast/payments-common'
 import { isType, isString, isMatchingError } from '@faast/ts-common'
 import request from 'request-promise-native'
@@ -479,23 +480,53 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     const { confirmedBalance: balanceEth } = await this.getBalance(fromPayport)
     const nonce = options.sequenceNumber || await this.getNextSequenceNumber(fromPayport.address)
 
-    const feeWei = new BigNumber(feeOption.feeBase)
-    const balanceWei = this.toBaseDenomination(balanceEth)
+    const { feeMain, feeBase } = feeOption
+    const feeWei = new BigNumber(feeBase)
+    const maxFeePercent = new BigNumber(options.maxFeePercent ?? DEFAULT_MAX_FEE_PERCENT)
+    const balanceWei = this.toBaseDenominationBigNumberEth(balanceEth)
     let amountWei: BigNumber = new BigNumber(0)
 
+    if (balanceWei.eq(0)) {
+      throw new PaymentsError(
+        PaymentsErrorCode.TxInsufficientBalance,
+        `${fromPayport.address} No balance available (${balanceEth})`,
+      )
+    }
+
     if (sweepFlag) {
-      amountWei = (new BigNumber(balanceWei)).minus(feeWei)
-      if (amountWei.isLessThan(0)) {
-        throw new Error(`${fromPayport.address} Insufficient balance (${balanceEth}) to sweep with fee of ${feeOption.feeMain} `)
+      amountWei = balanceWei.minus(feeWei)
+      if (balanceWei.isLessThan(feeWei)) {
+        throw new PaymentsError(
+          PaymentsErrorCode.TxFeeTooHigh,
+          `${fromPayport.address} Insufficient balance (${balanceEth}) to pay sweep fee of ${feeMain}`,
+        )
+      }
+      if (feeWei.gt(maxFeePercent.times(balanceWei))) {
+        throw new PaymentsError(
+          PaymentsErrorCode.TxFeeTooHigh,
+          `${fromPayport.address} Sweep fee (${feeMain}) exceeds max fee percent (${maxFeePercent}%) of address balance (${balanceEth})`,
+        )
       }
     } else if (!sweepFlag && !serviceFlag){
-      amountWei = new BigNumber(this.toBaseDenomination(amountEth))
+      amountWei = this.toBaseDenominationBigNumberEth(amountEth)
       if (amountWei.plus(feeWei).isGreaterThan(balanceWei)) {
-        throw new Error(`${fromPayport.address} Insufficient balance (${balanceEth}) to send ${amountEth} including fee of ${feeOption.feeMain} `)
+        throw new PaymentsError(
+          PaymentsErrorCode.TxInsufficientBalance,
+          `${fromPayport.address} Insufficient balance (${balanceEth}) to send ${amountEth} including fee of ${feeOption.feeMain}`,
+        )
+      }
+      if (feeWei.gt(maxFeePercent.times(amountWei))) {
+        throw new PaymentsError(
+          PaymentsErrorCode.TxFeeTooHigh,
+          `${fromPayport.address} Sweep fee (${feeMain}) exceeds max fee percent (${maxFeePercent}%) of send amount (${amountEth})`,
+        )
       }
     } else {
-      if ((new BigNumber(balanceWei)).isLessThan(feeWei)) {
-        throw new Error(`${fromPayport.address} Insufficient balance (${balanceEth}) to deploy contract with fee of ${feeOption.feeMain} `)
+      if (balanceWei.isLessThan(feeWei)) {
+        throw new PaymentsError(
+          PaymentsErrorCode.TxFeeTooHigh,
+          `${fromPayport.address} Insufficient balance (${balanceEth}) to pay contract deploy fee of ${feeOption.feeMain}`,
+        )
       }
     }
 

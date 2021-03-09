@@ -9,7 +9,7 @@ import {
   BitcoinSignedTransaction,
 } from '../src'
 import { delay, END_TRANSACTION_STATES, expectEqualWhenTruthy, logger } from './utils'
-import { NetworkType, TransactionStatus, BaseMultisigData } from '@faast/payments-common'
+import { NetworkType, TransactionStatus, BaseMultisigData, FeeRateType } from '@faast/payments-common'
 import path from 'path'
 import fs from 'fs'
 import { DERIVATION_PATH, ADDRESSES, M, ACCOUNT_IDS, EXTERNAL_ADDRESS } from './fixtures/multisigTestnet'
@@ -145,7 +145,11 @@ describeAll('e2e multisig testnet', () => {
       })
 
       it('can create sweep', async () => {
-        const tx = await payments.createSweepTransaction(0, EXTERNAL_ADDRESS)
+        const tx = await payments.createSweepTransaction(0, EXTERNAL_ADDRESS, {
+          useUnconfirmedUtxos: true,
+          feeRate: '10',
+          feeRateType: FeeRateType.BasePerWeight,
+        })
         expect(tx.multisigData).toBeDefined()
       }, 30 * 1000)
 
@@ -200,7 +204,12 @@ describeAll('e2e multisig testnet', () => {
 
       it('end to end send', async () => {
         const fromIndex = 0
-        const unsignedTx = await payments.createTransaction(fromIndex, EXTERNAL_ADDRESS, '0.0001')
+        const unsignedTx = await payments.createTransaction(fromIndex, EXTERNAL_ADDRESS, '0.0001', {
+          useUnconfirmedUtxos: true,
+          feeRate: '10',
+          feeRateType: FeeRateType.BasePerWeight,
+          maxFeePercent: 75,
+        })
         assertMultisigData(unsignedTx.multisigData, fromIndex, [])
         const partiallySignedTxs = await Promise.all(signerPayments.map((signer) => signer.signTransaction(unsignedTx)))
         for (let i = 0; i < partiallySignedTxs.length; i++) {

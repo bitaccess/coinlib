@@ -59,7 +59,7 @@ describeAll('e2e mainnet', () => {
     targetUtxoPoolSize: 5,
   }
   const payments = new HdBitcoinPayments(paymentsConfig)
-  const feeRate = '21'
+  const feeRate = '12'
   const feeRateType = FeeRateType.BasePerWeight
   const address0 = 'bc1qz7v8smdfrgzqvjre3lrcxl4ul9x806e7umgf27'
   const address0balance = '0.00011'
@@ -170,7 +170,7 @@ describeAll('e2e mainnet', () => {
       feeRate: fee,
       feeRateType: FeeRateType.Main,
       recipientPaysFee: false,
-    })).rejects.toThrow('You do not have enough UTXOs')
+    })).rejects.toThrow('PAYMENTS_TX_INSUFFICIENT_BALANCE')
   })
 
   it('cannot create transaction output below dust threshold', async () => {
@@ -179,6 +179,54 @@ describeAll('e2e mainnet', () => {
       feeRate: fee,
       feeRateType: FeeRateType.Main,
     })).rejects.toThrow('below dust threshold')
+  })
+
+  it('cannot create send transaction when fee exceeds max percent', async () => {
+    const fee = '0.00003'
+    const amount = '0.00005'
+    await expect(payments.createTransaction(0, 3, amount, {
+      feeRate: fee,
+      feeRateType: FeeRateType.Main,
+      recipientPaysFee: false,
+      maxFeePercent: 40
+    })).rejects.toThrow('PAYMENTS_TX_FEE_TOO_HIGH')
+  })
+
+  it('cannot create send transaction when fee exceeds max percent and recipient pays fee', async () => {
+    const fee = '0.00003'
+    const amount = '0.00005'
+    await expect(payments.createTransaction(0, 3, amount, {
+      feeRate: fee,
+      feeRateType: FeeRateType.Main,
+      recipientPaysFee: true,
+      maxFeePercent: 40
+    })).rejects.toThrow('PAYMENTS_TX_FEE_TOO_HIGH')
+  })
+
+  it('can create send transaction when fee equals max percent', async () => {
+    const fee = '0.00002'
+    const amount = '0.00005'
+    const tx = await payments.createTransaction(0, 3, amount, {
+      feeRate: fee,
+      feeRateType: FeeRateType.Main,
+      recipientPaysFee: false,
+      maxFeePercent: 40
+    })
+    expect(tx.fee).toBe(fee)
+    expect(tx.amount).toBe(amount)
+  })
+
+  it('can create send transaction when fee equals max percent and recipient pays fee', async () => {
+    const fee = '0.00002'
+    const amount = '0.00005'
+    const tx = await payments.createTransaction(0, 3, amount, {
+      feeRate: fee,
+      feeRateType: FeeRateType.Main,
+      recipientPaysFee: true,
+      maxFeePercent: 40
+    })
+    expect(tx.fee).toBe(fee)
+    expect(tx.amount).toBe('0.00003')
   })
 
   it('creates ideal solution transaction with fee paid by sender', async () => {
@@ -293,7 +341,6 @@ describeAll('e2e mainnet', () => {
     expect(tx.inputUtxos).toBeTruthy()
   })
   it('create sweep transaction to an external address with unconfirmed utxos', async () => {
-    const feeRate = '21'
     const tx = await payments.createSweepTransaction(0, { address: EXTERNAL_ADDRESS }, {
       useUnconfirmedUtxos: true,
       availableUtxos: [{
@@ -318,7 +365,6 @@ describeAll('e2e mainnet', () => {
 
   it('create send transaction to an index', async () => {
     const amount = '0.00005'
-    const feeRate = '21'
     const tx = await payments.createTransaction(0, 3, amount, { feeRate, feeRateType })
     expect(tx).toBeDefined()
     expect(tx.amount).toEqual(amount)
@@ -328,11 +374,14 @@ describeAll('e2e mainnet', () => {
     expect(tx.toIndex).toEqual(3)
     expectEqualOmit(tx.inputUtxos, address0utxos, omitUtxoFieldEquality)
     expect(tx.externalOutputs).toEqual([{ address: address3, value: amount }])
-    const expectedTxSize = 140
+    const expectedTxSize = 171
     const expectedFee = new BigNumber(feeRate).times(expectedTxSize).times(1e-8).toString()
     expect(tx.fee).toBe(expectedFee)
-    const expectedChange = new BigNumber(address0balance).minus(amount).minus(expectedFee).toString()
-    expect(tx.data.changeOutputs).toEqual([{ address: address0, value: expectedChange }])
+    const expectedChange = new BigNumber(address0balance).minus(amount).minus(expectedFee)
+    expect(tx.data.changeOutputs).toEqual([
+      { address: address0, value: expectedChange.div(3).toString() },
+      { address: address0, value: expectedChange.div(3).times(2).toString() },
+    ])
   })
   it('create send transaction to an internal address', async () => {
     const amount = '0.00005'
