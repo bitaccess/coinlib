@@ -296,7 +296,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       if (txReceipt) {
         const actualAmount = this.getErc20TransferLogAmount(txReceipt)
         if (isExecuted && amount !== actualAmount) {
-          throw new Error(
+          this.logger.warn(
             `Transcation ${txid} tried to transfer ${amount} but only ${actualAmount} was actually transferred`
           )
         }
