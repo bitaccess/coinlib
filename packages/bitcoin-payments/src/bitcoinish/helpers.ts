@@ -15,6 +15,11 @@ export function standardizeAddress(address: string, network: BitcoinjsNetwork): 
   if (!isValidAddress(address, network)) {
     return null
   }
+  // Uppercase bech32 addresses are valid but lowercase is standard
+  const lowercase = address.toLowerCase()
+  if (lowercase.startsWith(network.bech32) && isValidAddress(lowercase, network)) {
+    return lowercase
+  }
   return address
 }
 
