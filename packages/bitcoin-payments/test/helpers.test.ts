@@ -1,8 +1,13 @@
 import {
   toMainDenominationString, toBaseDenominationString, isValidAddress, estimateBitcoinTxSize, AddressType,
+  standardizeAddress,
 } from '../src'
 import {
-  ADDRESS_LEGACY, ADDRESS_SEGWIT_NATIVE, ADDRESS_SEGWIT_P2SH, NETWORK_TYPE, NETWORK,
+  ADDRESS_LEGACY,
+  ADDRESS_SEGWIT_P2SH,
+  ADDRESS_SEGWIT_NATIVE,
+  ADDRESS_SEGWIT_NATIVE_UPPER,
+  NETWORK_TYPE,
 } from './fixtures'
 
 const { Legacy, SegwitP2SH, SegwitNative, MultisigLegacy, MultisigSegwitP2SH, MultisigSegwitNative } = AddressType
@@ -36,8 +41,35 @@ describe('helpers', () => {
     test('should return true for valid native segwit address', async () => {
       expect(isValidAddress(ADDRESS_SEGWIT_NATIVE, NETWORK_TYPE)).toBe(true)
     })
+    test('should return true for uppercase native segwit address', async () => {
+      expect(isValidAddress(ADDRESS_SEGWIT_NATIVE_UPPER, NETWORK_TYPE)).toBe(true)
+    })
     test('should return false for invalid', async () => {
       expect(isValidAddress('fake', NETWORK_TYPE)).toBe(false)
+    })
+  })
+
+  describe('standardizeAddress', () => {
+    test('should return same for valid legacy address', async () => {
+      expect(standardizeAddress(ADDRESS_LEGACY, NETWORK_TYPE)).toBe(ADDRESS_LEGACY)
+    })
+    test('should return same for uppercase legacy address', async () => {
+      expect(standardizeAddress(ADDRESS_LEGACY.toUpperCase(), NETWORK_TYPE)).toBe(null)
+    })
+    test('should return same for valid p2sh segwit address', async () => {
+      expect(standardizeAddress(ADDRESS_SEGWIT_P2SH, NETWORK_TYPE)).toBe(ADDRESS_SEGWIT_P2SH)
+    })
+    test('should return same for uppercase p2sh segwit address', async () => {
+      expect(standardizeAddress(ADDRESS_SEGWIT_P2SH.toUpperCase(), NETWORK_TYPE)).toBe(null)
+    })
+    test('should return same for valid native segwit address', async () => {
+      expect(standardizeAddress(ADDRESS_SEGWIT_NATIVE, NETWORK_TYPE)).toBe(ADDRESS_SEGWIT_NATIVE)
+    })
+    test('should return lowercase for uppercase native segwit address', async () => {
+      expect(standardizeAddress(ADDRESS_SEGWIT_NATIVE_UPPER, NETWORK_TYPE)).toBe(ADDRESS_SEGWIT_NATIVE)
+    })
+    test('should return null for invalid', async () => {
+      expect(standardizeAddress('fake', NETWORK_TYPE)).toBe(null)
     })
   })
 
