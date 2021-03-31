@@ -295,7 +295,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       amount = this.toMainDenomination(txData.inputs[1].toString())
       if (txReceipt) {
         const actualAmount = this.getErc20TransferLogAmount(txReceipt)
-        if (isExecuted && amount !== actualAmount) {
+        if (isExecuted && ((new BigNumber(amount)).minus(actualAmount)).isLessThan(this.toBaseDenomination(1))) {
           throw new Error(
             `Transcation ${txid} tried to transfer ${amount} but only ${actualAmount} was actually transferred`
           )
