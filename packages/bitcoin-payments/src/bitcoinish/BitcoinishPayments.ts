@@ -85,6 +85,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
    * with coin specific implementation (eg using Psbt for bitcoin). If coin doesn't have an unsigned
    * serialized tx format (ie most coins other than BTC) then leave as empty string.
    */
+
+  // TODO:
   abstract serializePaymentTx(paymentTx: BitcoinishPaymentTx, fromIndex: number): Promise<string>
 
   async init() {}
@@ -641,6 +643,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
    * serialization. Within this function they're converted to JS Numbers for convenient arithmetic
    * then converted back to strings before being returned.
    */
+  // TODO
   async buildPaymentTx(params: BitcoinishBuildPaymentTxParams): Promise<Required<BitcoinishPaymentTx>> {
     const nonDustUtxos = this.omitDustUtxos(params.unusedUtxos, params.desiredFeeRate)
 
@@ -737,7 +740,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   async createTransaction(
-    from: number,
+    from: number | string[],
     to: ResolveablePayport,
     amount: Numeric,
     options?: CreateTransactionOptions,
@@ -746,17 +749,33 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   async createMultiOutputTransaction(
-    from: number,
+    from: number | string[],
     to: PayportOutput[],
     options: CreateTransactionOptions = {},
   ): Promise<BitcoinishUnsignedTransaction> {
     assertType(t.array(PayportOutput), to)
     this.logger.debug('createMultiOutputTransaction', from, to, options)
 
-    const unusedUtxos = options.availableUtxos || await this.getUtxos(from)
+    let unusedUtxos;
+    if (options.availableUtxos) {
+      unusedUtxos = options.availableUtxos
+    } else if (typeof from === 'number') {
+      unusedUtxos = await this.getUtxos(from)
+    } else {
+      unusedUtxos = from.map(async (f) => (await this.getUtxos(f)))
+    }
+
     this.logger.debug('createMultiOutputTransaction unusedUtxos', unusedUtxos)
 
-    const { address: fromAddress } = await this.resolvePayport(from)
+    let fromAddress;
+    let changeAddress;
+    if (typeof from === 'number') {
+      fromAddress = (await this.resolvePayport(from)).address
+      changeAddress = fromAddress
+    } else {
+      // XXX?
+      changeAddress = from[0]
+    }
 
     const desiredOutputs = await Promise.all(to.map(async ({ payport, amount }) => ({
       address: (await this.resolvePayport(payport)).address,
@@ -771,13 +790,14 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       unusedUtxos,
       enforcedUtxos: options.forcedUtxos || [],
       desiredOutputs,
-      changeAddress: fromAddress,
+      changeAddress,
       desiredFeeRate: { feeRate: targetFeeRate, feeRateType: targetFeeRateType },
       useAllUtxos: options.useAllUtxos ?? false,
       useUnconfirmedUtxos: options.useUnconfirmedUtxos ?? false,
       recipientPaysFee: options.recipientPaysFee ?? false,
       maxFeePercent,
     })
+    // TODO:
     const unsignedTxHex = await this.serializePaymentTx(paymentTx, from)
     paymentTx.rawHex = unsignedTxHex
     paymentTx.rawHash = sha256FromHex(unsignedTxHex)

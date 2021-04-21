@@ -239,7 +239,7 @@ export type BaseMultisigData = t.TypeOf<typeof BaseMultisigData>
 const UnsignedCommon = extendCodec(
   TransactionCommon,
   {
-    fromAddress: t.string,
+    fromAddress: t.union([t.string, t.array(t.string)]),
     toAddress: t.string,
     fromIndex: t.number,
     targetFeeLevel: FeeLevelT, // fee level requested upon creation
