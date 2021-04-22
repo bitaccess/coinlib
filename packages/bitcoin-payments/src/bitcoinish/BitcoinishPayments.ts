@@ -291,7 +291,12 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   /** Adjust all the output amounts such that externalOutputTotal equals newOutputTotal (+/- a few satoshis less) */
-  private adjustOutputAmounts(tbc: BitcoinishTxBuildContext, newOutputTotal: number, description: string): void {
+  private adjustOutputAmounts(
+    tbc: BitcoinishTxBuildContext,
+    newOutputTotal: number,
+    description: string,
+    newError = (m: string) => new Error(m),
+  ): void {
     // positive adjustment -> increase outputs
     // negative adjustment -> decrease outputs
     const totalBefore = tbc.externalOutputTotal
@@ -312,12 +317,10 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
           + `after ${description} of ${amountChangePerOutput} sat is too small to send`
 
         if (externalOutput.satoshis + amountChangePerOutput <= 0) {
-          throw new Error(errorMessage)
+          throw newError(errorMessage)
         }
 
-        throw new Error(
-          `${errorMessage} (below dust threshold of ${this.dustThreshold} sat)`
-        )
+        throw newError(`${errorMessage} (below dust threshold of ${this.dustThreshold} sat)`)
       }
       externalOutput.satoshis += amountChangePerOutput
     }
@@ -341,7 +344,12 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       this.applyFeeAdjustment(tbc, feeSatAdjustment, description)
       return
     }
-    this.adjustOutputAmounts(tbc, tbc.externalOutputTotal - feeSatAdjustment, description)
+    this.adjustOutputAmounts(
+      tbc,
+      tbc.externalOutputTotal - feeSatAdjustment,
+      description,
+      (m) => new PaymentsError(PaymentsErrorCode.TxFeeTooHigh, m),
+    )
     this.applyFeeAdjustment(tbc, feeSatAdjustment, description)
   }
 
