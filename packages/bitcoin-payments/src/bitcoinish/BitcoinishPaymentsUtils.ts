@@ -67,6 +67,12 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     }
   }
 
+  validateAddress(address: string): void {
+    if (!this.isValidAddress(address)) {
+      throw new Error(`Invalid ${this.coinName} address: ${address}`)
+    }
+  }
+
   isValidPayport(payport: Payport): boolean {
     return Payport.is(payport) && !(this._getPayportValidationMessage(payport))
   }

@@ -72,6 +72,8 @@ export type BitcoinishPaymentsUtilsConfig = BlockbookConnectedConfig & {
   bitcoinjsNetwork: BitcoinjsNetwork,
 }
 
+export type BitcoinishBalanceMonitorConfig = BitcoinishPaymentsUtilsConfig
+
 export type BitcoinishPaymentsConfig = BitcoinishPaymentsUtilsConfig & {
   minTxFee: FeeRate,
   dustThreshold: number,

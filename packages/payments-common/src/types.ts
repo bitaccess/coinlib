@@ -308,7 +308,7 @@ export type BaseBroadcastResult = t.TypeOf<typeof BaseBroadcastResult>
 export const BalanceActivityType = t.union([t.literal('in'), t.literal('out')], 'BalanceActivityType')
 export type BalanceActivityType = t.TypeOf<typeof BalanceActivityType>
 
-export const BalanceActivity = t.type(
+export const BalanceActivity = requiredOptionalCodec(
   {
     type: BalanceActivityType,
     networkType: NetworkTypeT,
@@ -322,6 +322,13 @@ export const BalanceActivity = t.type(
     confirmationId: t.string,
     confirmationNumber: t.union([t.string, t.number]),
     timestamp: DateT,
+  },
+  {
+    confirmations: t.number,
+    // Utxos spent in this transaction applicable to the address
+    utxosSpent: t.array(UtxoInfo),
+    // Utxos create in this transaction applicable to the address
+    utxosCreated: t.array(UtxoInfo),
   },
   'BalanceActivity',
 )
