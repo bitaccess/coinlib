@@ -155,7 +155,7 @@ export async function getBlockbookFeeRecommendation(
 ): Promise<FeeRate> {
   let feeRate: string
   try {
-    const body = await blockbookClient.doRequest('GET', '/api/v1/estimatefee/3')
+    const body = await blockbookClient.httpRequest('GET', '/api/v1/estimatefee/3')
     const result = body['result'] // main units per kb
     if (!result) {
       throw new Error("Blockbook estimatefee response is missing expected field 'result'")
