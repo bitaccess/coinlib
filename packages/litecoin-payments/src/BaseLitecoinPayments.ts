@@ -21,7 +21,7 @@ import {
 import {
   LITECOIN_SEQUENCE_RBF,
 } from './constants'
-import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateLitecoinTxSize } from './helpers'
+import { estimateLitecoinTxSize } from './helpers'
 import { LitecoinPaymentsUtils } from './LitecoinPaymentsUtils'
 
 export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsConfig>
@@ -75,13 +75,12 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
   }
 
   estimateTxSize(inputCount: number, changeOutputCount: number, externalOutputAddresses: string[]): number {
-    const outputCounts = externalOutputAddresses.reduce((outputCounts, address) => {
-      outputCounts[address] = 1
-      return outputCounts
-    }, { [this.addressType]: changeOutputCount })
     return estimateLitecoinTxSize(
       { [this.getEstimateTxSizeInputKey()]: inputCount },
-      outputCounts,
+      {
+        ...bitcoinish.countOccurences(externalOutputAddresses),
+        [this.addressType]: changeOutputCount,
+      },
       this.networkType,
     )
   }

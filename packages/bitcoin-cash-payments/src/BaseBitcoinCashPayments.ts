@@ -14,9 +14,9 @@ import {
   BitcoinCashAddressFormat,
 } from './types'
 import {
-  BITCOIN_SEQUENCE_RBF,
+  BITCOIN_SEQUENCE_RBF, SINGLESIG_ADDRESS_TYPE,
 } from './constants'
-import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateBitcoinCashTxSize } from './helpers'
+import { estimateBitcoinCashTxSize } from './helpers'
 import { BitcoinCashPaymentsUtils } from './BitcoinCashPaymentsUtils'
 
 // tslint:disable-next-line:max-line-length
@@ -76,14 +76,12 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
   }
 
   estimateTxSize(inputCount: number, changeOutputCount: number, externalOutputAddresses: string[]): number {
-    const outputCounts = externalOutputAddresses.reduce((outputCounts, address) => {
-      // @ts-ignore
-      outputCounts[address] = 1
-      return outputCounts
-    }, { [AddressType.Legacy]: changeOutputCount })
     return estimateBitcoinCashTxSize(
       { [this.getEstimateTxSizeInputKey()]: inputCount },
-      outputCounts,
+      {
+        ...bitcoinish.countOccurences(externalOutputAddresses),
+        [SINGLESIG_ADDRESS_TYPE]: changeOutputCount,
+      },
       this.networkType,
     )
   }

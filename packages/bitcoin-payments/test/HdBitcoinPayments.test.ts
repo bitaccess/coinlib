@@ -318,6 +318,10 @@ describe('HdBitcoinPayments', () => {
         .toString()
       expect(paymentTx.fee).toBe(expectedFee)
     })
+
+    it('estimateTxSize provides correct estimate when address has multiple external outputs', () => {
+      expect(payments.estimateTxSize(1, 1, [EXTERNAL_ADDRESS, EXTERNAL_ADDRESS, EXTERNAL_ADDRESS])).toBe(211)
+    })
   })
 
   for (let k in accountsByAddressType) {
