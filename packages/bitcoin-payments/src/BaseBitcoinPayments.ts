@@ -17,7 +17,9 @@ import {
   BITCOIN_SEQUENCE_RBF,
 } from './constants'
 import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateBitcoinTxSize } from './helpers'
-import { BitcoinishPayments, BitcoinishPaymentTx, BitcoinishTxOutput, getBlockcypherFeeRecommendation } from './bitcoinish'
+import {
+  BitcoinishPayments, BitcoinishPaymentTx, BitcoinishTxOutput, countOccurences, getBlockcypherFeeRecommendation,
+} from './bitcoinish'
 
 export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConfig> extends BitcoinishPayments<Config> {
 
@@ -65,13 +67,12 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
   }
 
   estimateTxSize(inputCount: number, changeOutputCount: number, externalOutputAddresses: string[]): number {
-    const outputCounts = externalOutputAddresses.reduce((outputCounts, address) => {
-      outputCounts[address] = 1
-      return outputCounts
-    }, { [this.addressType]: changeOutputCount })
     return estimateBitcoinTxSize(
       { [this.getEstimateTxSizeInputKey()]: inputCount },
-      outputCounts,
+      {
+        ...countOccurences(externalOutputAddresses),
+        [this.addressType]: changeOutputCount,
+      },
       this.networkType,
     )
   }

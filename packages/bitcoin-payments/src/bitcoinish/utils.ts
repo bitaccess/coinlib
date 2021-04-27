@@ -83,6 +83,13 @@ export function sumUtxoValue(utxos: UtxoInfo[], includeUnconfirmed?: boolean): B
   return sumField(filtered, 'value')
 }
 
+export function countOccurences<T extends string[]>(a: T): { [key: string]: number } {
+  return a.reduce((result, element) => {
+    result[element] = (result[element] ?? 0) + 1
+    return result
+  }, {} as { [key: string]: number })
+}
+
 /**
  * Shuffle the utxos for input selection.
  */

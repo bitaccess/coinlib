@@ -63,14 +63,12 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
   }
 
   estimateTxSize(inputCount: number, changeOutputCount: number, externalOutputAddresses: string[]): number {
-    const outputCounts = externalOutputAddresses.reduce((outputCounts, address) => {
-      // @ts-ignore
-      outputCounts[address] = 1
-      return outputCounts
-    }, { [SINGLESIG_ADDRESS_TYPE]: changeOutputCount })
     return estimateDogeTxSize(
       { [this.getEstimateTxSizeInputKey()]: inputCount },
-      outputCounts,
+      {
+        ...bitcoinish.countOccurences(externalOutputAddresses),
+        [SINGLESIG_ADDRESS_TYPE]: changeOutputCount,
+      },
       this.networkType,
     )
   }
