@@ -67,8 +67,8 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
   abstract getPublicConfig(): Config
   abstract getAccountId(index: number): string
   abstract getAccountIds(): string[]
-  abstract async getPayport(index: number): Promise<Payport>
-  abstract async getPrivateKey(index: number): Promise<string>
+  abstract getPayport(index: number): Promise<Payport>
+  abstract getPrivateKey(index: number): Promise<string>
 
   async init() {}
   async destroy() {}
