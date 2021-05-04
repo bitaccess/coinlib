@@ -9,7 +9,6 @@ type UnitConverters = ReturnType<typeof createUnitConverters>
 
 export abstract class BitcoinishPaymentsUtils extends BlockbookConnected implements PaymentsUtils {
 
-  readonly networkType: NetworkType
   readonly coinSymbol: string
   readonly coinName: string
   readonly coinDecimals: number
@@ -17,7 +16,6 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
 
   constructor(config: BitcoinishPaymentsUtilsConfig) {
     super(config)
-    this.networkType = config.network || NetworkType.Mainnet
     this.coinSymbol = config.coinSymbol
     this.coinName = config.coinName
     this.coinDecimals = config.coinDecimals

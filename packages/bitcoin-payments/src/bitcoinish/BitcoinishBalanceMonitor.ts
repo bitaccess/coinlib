@@ -1,13 +1,13 @@
-import { UtxoInfo } from './../../../payments-common/src/types';
 import {
+  UtxoInfo,
   BalanceActivity,
   BalanceActivityCallback,
   BalanceMonitor,
   GetBalanceActivityOptions,
   RetrieveBalanceActivitiesResult,
+  NetworkType,
+  createUnitConverters,
 } from '@faast/payments-common'
-import { BitcoinishBalanceMonitorConfig } from './types'
-import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
 import { EventEmitter } from 'events'
 import {
   AddressDetailsBitcoinTxs,
@@ -18,23 +18,28 @@ import {
 import BigNumber from 'bignumber.js'
 import { isUndefined, Numeric } from '@faast/ts-common'
 
-export abstract class BitcoinishBalanceMonitor extends BitcoinishPaymentsUtils implements BalanceMonitor {
+import { BitcoinishBalanceMonitorConfig } from './types'
+import { BlockbookConnected } from './BlockbookConnected'
+import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
+
+export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implements BalanceMonitor {
+
+  readonly coinName: string
+  readonly coinSymbol: string
+  readonly utils: BitcoinishPaymentsUtils
 
   constructor(config: BitcoinishBalanceMonitorConfig) {
     super(config)
+    this.utils = config.utils
+    this.coinName = config.utils.coinName
+    this.coinSymbol = config.utils.coinSymbol
   }
 
   txEmitter = new EventEmitter()
 
-  _subscribeCancellors: Function[] = []
-
-  async destroy() {
-    this._subscribeCancellors.forEach((cancel) => cancel())
-  }
-
   async subscribeAddresses(addresses: string[]) {
     for (let address of addresses) {
-      this.validateAddress(address)
+      this.utils.validateAddress(address)
     }
     await this.getApi().subscribeAddresses(addresses, ({ address, tx }) => {
       this.txEmitter.emit('tx', { address, tx })
@@ -45,7 +50,7 @@ export abstract class BitcoinishBalanceMonitor extends BitcoinishPaymentsUtils i
     this.txEmitter.on('tx', async ({ address, tx }) => {
       const activity = await this.txToBalanceActivity(address, tx)
       if (activity) {
-        callbackFn(activity)
+        callbackFn(activity, tx)
       }
     })
   }
@@ -55,7 +60,7 @@ export abstract class BitcoinishBalanceMonitor extends BitcoinishPaymentsUtils i
     callbackFn: BalanceActivityCallback,
     options: GetBalanceActivityOptions = {},
   ): Promise<RetrieveBalanceActivitiesResult> {
-    this.validateAddress(address)
+    this.utils.validateAddress(address)
     const { from: fromOption, to: toOption } = options
     const from = new BigNumber(
       isUndefined(fromOption) ? 0 : (Numeric.is(fromOption) ? fromOption : fromOption.confirmationNumber)
@@ -98,7 +103,7 @@ export abstract class BitcoinishBalanceMonitor extends BitcoinishPaymentsUtils i
         }
         const activity = await this.txToBalanceActivity(address, tx)
         if (activity) {
-          await callbackFn(activity)
+          await callbackFn(activity, tx)
         }
       }
       lastTx = transactions[transactions.length - 1]
@@ -109,7 +114,7 @@ export abstract class BitcoinishBalanceMonitor extends BitcoinishPaymentsUtils i
 
   private extractStandardAddress(v: NormalizedTxBitcoinVout | NormalizedTxBitcoinVin): string | null {
     const address = v.isAddress && v.addresses?.[0]
-    return address ? this.standardizeAddress(address) : null
+    return address ? this.utils.standardizeAddress(address) : null
   }
 
   private extractUtxoInfo(tx: NormalizedTxBitcoin, v: NormalizedTxBitcoinVout | NormalizedTxBitcoinVin): UtxoInfo {
@@ -118,7 +123,7 @@ export abstract class BitcoinishBalanceMonitor extends BitcoinishPaymentsUtils i
       txid: tx.txid,
       vout: v.n,
       satoshis: v.value,
-      value: this.toMainDenominationString(v.value),
+      value: this.utils.toMainDenominationString(v.value),
       confirmations: tx.confirmations,
       height: tx.blockHeight ? String(tx.blockHeight) : undefined,
       coinbase: isCoinbase,
@@ -128,11 +133,10 @@ export abstract class BitcoinishBalanceMonitor extends BitcoinishPaymentsUtils i
   async txToBalanceActivity(address: string, tx: NormalizedTxBitcoin): Promise<BalanceActivity | null> {
     const externalId = tx.txid
     const confirmationNumber = tx.blockHeight
-    const standardizedAddress = this.standardizeAddress(address)
+    const standardizedAddress = this.utils.standardizeAddress(address)
     if (standardizedAddress === null) {
       throw new Error(`Cannot standardize ${this.coinName} address, likely invalid: ${address}`)
     }
-
 
     let netSatoshis = new BigNumber(0) // balance increase (positive), or decreased (negative)
     const utxosSpent: UtxoInfo[] = []
@@ -151,7 +155,9 @@ export abstract class BitcoinishBalanceMonitor extends BitcoinishPaymentsUtils i
       }
     }
 
-    if (netSatoshis.eq(0)) {
+    if (utxosSpent.length || utxosCreated.length) {
+      // Theoretically, netSatoshis could be 0, however unlikely, and the tx may still affect the address' utxos.
+      // Only return null if the tx has no zero effect on the address' utxos.
       this.logger.log(`${this.coinName} transaction ${externalId} does not affect balance of ${standardizedAddress}`)
       return null
     }
@@ -164,7 +170,7 @@ export abstract class BitcoinishBalanceMonitor extends BitcoinishPaymentsUtils i
       address: address,
       extraId: null,
 
-      amount: this.toMainDenominationString(netSatoshis),
+      amount: this.utils.toMainDenominationString(netSatoshis),
 
       externalId: tx.txid,
       activitySequence: '', // No longer used

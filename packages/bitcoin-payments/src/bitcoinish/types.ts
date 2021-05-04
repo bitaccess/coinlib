@@ -6,6 +6,7 @@ import {
 import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger, Numeric, enumCodec } from '@faast/ts-common'
 import { Network as BitcoinjsNetwork, Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
 import { BlockbookBitcoin, BlockInfoBitcoin } from 'blockbook-client'
+import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils';
 
 export { BitcoinjsNetwork }
 
@@ -72,7 +73,9 @@ export type BitcoinishPaymentsUtilsConfig = BlockbookConnectedConfig & {
   bitcoinjsNetwork: BitcoinjsNetwork,
 }
 
-export type BitcoinishBalanceMonitorConfig = BitcoinishPaymentsUtilsConfig
+export type BitcoinishBalanceMonitorConfig = BlockbookConnectedConfig & {
+  utils: BitcoinishPaymentsUtils,
+}
 
 export type BitcoinishPaymentsConfig = BitcoinishPaymentsUtilsConfig & {
   minTxFee: FeeRate,

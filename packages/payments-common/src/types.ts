@@ -346,7 +346,7 @@ export const GetBalanceActivityOptions = t.partial(
 )
 export type GetBalanceActivityOptions = t.TypeOf<typeof GetBalanceActivityOptions>
 
-export type BalanceActivityCallback = (ba: BalanceActivity) => Promise<void> | void
+export type BalanceActivityCallback = (ba: BalanceActivity, rawTx?: any) => Promise<void> | void
 export const BalanceActivityCallback = functionT<BalanceActivityCallback>('BalanceActivityCallback')
 
 export type FromTo = Pick<

@@ -19,16 +19,28 @@ export {
 
 export interface PsbtInputData extends PsbtInput, TransactionInput {}
 
-export const BitcoinPaymentsUtilsConfig = extendCodec(
+export const BitcoinBaseConfig = extendCodec(
   BaseConfig,
   {},
   {
     server: BlockbookConfigServer,
+  },
+  'BitcoinBaseConfig',
+)
+export type BitcoinBaseConfig = t.TypeOf<typeof BitcoinBaseConfig>
+
+export const BitcoinPaymentsUtilsConfig = extendCodec(
+  BitcoinBaseConfig,
+  {},
+  {
     blockcypherToken: t.string,
   },
   'BitcoinPaymentsUtilsConfig',
 )
 export type BitcoinPaymentsUtilsConfig = t.TypeOf<typeof BitcoinPaymentsUtilsConfig>
+
+export const BitcoinBalanceMonitorConfig = BitcoinBaseConfig
+export type BitcoinBalanceMonitorConfig = BitcoinBaseConfig
 
 export const BaseBitcoinPaymentsConfig = extendCodec(
   BitcoinPaymentsUtilsConfig,

@@ -1,3 +1,4 @@
+import { BalanceActivity } from './../../payments-common/src/types';
 import fs from 'fs'
 import path from 'path'
 import { BalanceResult, TransactionStatus, NetworkType, FeeRateType, FeeLevel } from '@faast/payments-common'
@@ -5,7 +6,7 @@ import { BalanceResult, TransactionStatus, NetworkType, FeeRateType, FeeLevel } 
 import {
   HdBitcoinPayments, BitcoinTransactionInfo,
   BitcoinSignedTransaction, AddressType, SinglesigAddressType,
-  bitcoinish,
+  bitcoinish, BitcoinBalanceMonitor,
 } from '../src'
 
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger } from './utils'
@@ -13,8 +14,12 @@ import { toBigNumber } from '@faast/ts-common'
 import fixtures from './fixtures/singlesigTestnet'
 import { HdBitcoinPaymentsConfig } from '../src/types'
 import BigNumber from 'bignumber.js'
+import { NormalizedTxBitcoin } from 'blockbook-client';
 
 const SECRET_XPRV_FILE = 'test/keys/testnet.key'
+
+const SWEEP_INDICES = [5, 6]
+const SEND_INDICES = [7, 8]
 
 const rootDir = path.resolve(__dirname, '..')
 const secretXprvFilePath = path.resolve(rootDir, SECRET_XPRV_FILE)
@@ -90,6 +95,23 @@ describeAll('e2e testnet', () => {
         targetUtxoPoolSize: 5,
       }
       const payments = new HdBitcoinPayments(paymentsConfig)
+      const balanceMonitor = new BitcoinBalanceMonitor({
+        network: NetworkType.Testnet,
+        logger,
+      })
+      const recordedBalanceActivities: Array<[BalanceActivity, NormalizedTxBitcoin]> = []
+      let addressesToWatch: string[] = []
+      let startBlockHeight: number
+      beforeAll(async () => {
+        balanceMonitor.init()
+        addressesToWatch = [...SWEEP_INDICES, ...SEND_INDICES].map((i) => payments.getAddress(i))
+        balanceMonitor.subscribeAddresses(addressesToWatch)
+        balanceMonitor.onBalanceActivity((ba, rawTx) => {
+          recordedBalanceActivities.push([ba, rawTx])
+        })
+        startBlockHeight = (await payments.getBlock()).height
+      })
+
       it('get correct xpub', async () => {
         expect(payments.xpub).toEqual(xpub)
       })
@@ -215,6 +237,20 @@ describeAll('e2e testnet', () => {
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)
       }, 5 * 60 * 1000)
+
+      it('recorded all balance activities', async () => {
+        expect(recordedBalanceActivities).toBe([])
+      })
+
+      it('can retrieve past activities', async () => {
+        const pastActivities: Array<[BalanceActivity, NormalizedTxBitcoin]> = []
+        addressesToWatch.forEach((a) => {
+          balanceMonitor.retrieveBalanceActivities(a, (ba, rawTx) => {
+            pastActivities.push([ba, rawTx])
+          })
+        })
+        expect(pastActivities).toBe(recordedBalanceActivities)
+      })
     })
   }
 })
