@@ -31,6 +31,9 @@ export const BitcoinBaseConfig = extendCodec(
 )
 export type BitcoinBaseConfig = t.TypeOf<typeof BitcoinBaseConfig>
 
+export const BitcoinBalanceMonitorConfig = BitcoinBaseConfig
+export type BitcoinBalanceMonitorConfig = BitcoinBaseConfig
+
 export const BitcoinPaymentsUtilsConfig = extendCodec(
   BitcoinBaseConfig,
   {},
@@ -40,9 +43,6 @@ export const BitcoinPaymentsUtilsConfig = extendCodec(
   'BitcoinPaymentsUtilsConfig',
 )
 export type BitcoinPaymentsUtilsConfig = t.TypeOf<typeof BitcoinPaymentsUtilsConfig>
-
-export const BitcoinBalanceMonitorConfig = BitcoinBaseConfig
-export type BitcoinBalanceMonitorConfig = BitcoinBaseConfig
 
 export const BaseBitcoinPaymentsConfig = extendCodec(
   BitcoinPaymentsUtilsConfig,
