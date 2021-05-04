@@ -37,6 +37,11 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
 
   txEmitter = new EventEmitter()
 
+  async destroy() {
+    this.txEmitter.removeAllListeners('tx')
+    super.destroy()
+  }
+
   async subscribeAddresses(addresses: string[]) {
     for (let address of addresses) {
       this.utils.validateAddress(address)
@@ -98,7 +103,12 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
         break
       }
       for (let tx of transactions) {
-        if ((lastTx && tx.txid === lastTx.txid) || from >= tx.blockHeight || to <= tx.blockHeight) {
+        if (lastTx && tx.txid === lastTx.txid) {
+          this.logger.debug('ignoring duplicate tx', tx)
+          continue
+        }
+        if (tx.blockHeight > 0 && (from > tx.blockHeight || to < tx.blockHeight)) {
+          this.logger.debug('ignoring out of range balance activity tx', tx)
           continue
         }
         const activity = await this.txToBalanceActivity(address, tx)
@@ -117,19 +127,6 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
     return address ? this.utils.standardizeAddress(address) : null
   }
 
-  private extractUtxoInfo(tx: NormalizedTxBitcoin, v: NormalizedTxBitcoinVout | NormalizedTxBitcoinVin): UtxoInfo {
-    const isCoinbase = tx.valueIn === '0' && tx.value !== '0'
-    return {
-      txid: tx.txid,
-      vout: v.n,
-      satoshis: v.value,
-      value: this.utils.toMainDenominationString(v.value),
-      confirmations: tx.confirmations,
-      height: tx.blockHeight ? String(tx.blockHeight) : undefined,
-      coinbase: isCoinbase,
-    }
-  }
-
   async txToBalanceActivity(address: string, tx: NormalizedTxBitcoin): Promise<BalanceActivity | null> {
     const externalId = tx.txid
     const confirmationNumber = tx.blockHeight
@@ -145,20 +142,49 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
     for (let input of tx.vin) {
       if (this.extractStandardAddress(input) === standardizedAddress) {
         netSatoshis = netSatoshis.minus(input.value)
-        utxosSpent.push(this.extractUtxoInfo(tx, input))
+        const inputTxid = input.txid
+        if (!inputTxid) {
+          this.logger.log(`Tx ${tx.txid} input ${input.n} has no txid or vout`, input)
+          continue
+        }
+        const inputTxInfo = await this._retryDced(() => this.getApi().getTx(inputTxid))
+        utxosSpent.push({
+          txid: inputTxid,
+          vout: input.vout ?? 0, // vout might be missing when 0
+          satoshis: new BigNumber(input.value).toNumber(),
+          value: this.utils.toMainDenominationString(input.value),
+          confirmations: inputTxInfo.confirmations,
+          height: inputTxInfo.blockHeight > 0 ? String(inputTxInfo.blockHeight) : undefined,
+          coinbase: !input.isAddress && input.value === '0',
+          lockTime: inputTxInfo.lockTime ? String(inputTxInfo.lockTime) : undefined,
+          rawTx: inputTxInfo.hex,
+        })
       }
     }
     for (let output of tx.vout) {
       if (this.extractStandardAddress(output) === standardizedAddress) {
         netSatoshis = netSatoshis.plus(output.value)
-        utxosCreated.push(this.extractUtxoInfo(tx, output))
+        utxosCreated.push({
+          txid: tx.txid,
+          vout: output.n,
+          satoshis: new BigNumber(output.value).toNumber(),
+          value: this.utils.toMainDenominationString(output.value),
+          confirmations: tx.confirmations,
+          height: tx.blockHeight > 0 ? String(tx.blockHeight) : undefined,
+          coinbase: tx.valueIn === '0' && tx.value !== '0',
+          lockTime: tx.lockTime ? String(tx.lockTime) : undefined,
+          rawTx: tx.hex,
+        })
       }
     }
 
-    if (utxosSpent.length || utxosCreated.length) {
+    if (!(utxosSpent.length || utxosCreated.length)) {
       // Theoretically, netSatoshis could be 0, however unlikely, and the tx may still affect the address' utxos.
-      // Only return null if the tx has no zero effect on the address' utxos.
-      this.logger.log(`${this.coinName} transaction ${externalId} does not affect balance of ${standardizedAddress}`)
+      // Only return null if the tx has no effect on the address' utxos.
+      this.logger.log(
+        `${this.coinName} transaction ${externalId} does not affect balance of ${standardizedAddress}`,
+        tx,
+      )
       return null
     }
 
@@ -175,9 +201,9 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
       externalId: tx.txid,
       activitySequence: '', // No longer used
       confirmationId: tx.blockHash ?? '',
-      confirmationNumber: confirmationNumber,
+      confirmationNumber: confirmationNumber > 0 ? confirmationNumber : -1,
       confirmations: tx.confirmations,
-      timestamp: new Date(tx.blockTime),
+      timestamp: new Date(tx.blockTime * 1000),
       utxosSpent,
       utxosCreated,
     }

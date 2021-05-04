@@ -5,7 +5,7 @@ import {
 } from '@faast/payments-common'
 import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger, Numeric, enumCodec } from '@faast/ts-common'
 import { Network as BitcoinjsNetwork, Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
-import { BlockbookBitcoin, BlockInfoBitcoin } from 'blockbook-client'
+import { BlockbookBitcoin, BlockInfoBitcoin, NormalizedTxBitcoin } from 'blockbook-client'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils';
 
 export { BitcoinjsNetwork }
@@ -158,7 +158,9 @@ export const BitcoinishSignedTransaction = extendCodec(BaseSignedTransaction, {
 }, {}, 'BitcoinishSignedTransaction')
 export type BitcoinishSignedTransaction = t.TypeOf<typeof BitcoinishSignedTransaction>
 
-export const BitcoinishTransactionInfo = extendCodec(BaseTransactionInfo, {}, {}, 'BitcoinishTransactionInfo')
+export const BitcoinishTransactionInfo = extendCodec(BaseTransactionInfo, {
+  data: NormalizedTxBitcoin,
+}, {}, 'BitcoinishTransactionInfo')
 export type BitcoinishTransactionInfo = t.TypeOf<typeof BitcoinishTransactionInfo>
 
 export const BitcoinishBroadcastResult = extendCodec(BaseBroadcastResult, {}, {}, 'BitcoinishBroadcastResult')

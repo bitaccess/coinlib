@@ -175,13 +175,14 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const { address } = await this.resolvePayport(payport)
     let utxosRaw = await this.getApi().getUtxosForAddress(address)
     const utxos: UtxoInfo[] = utxosRaw.map((data) => {
-      const { value, height, lockTime } = data
+      const { value, height, lockTime, coinbase } = data
       return {
         ...data,
         satoshis: Number.parseInt(value),
         value: this.toMainDenominationString(value),
-        height: isUndefined(height) ? undefined : String(height),
+        height: isUndefined(height) || height <= 0 ? undefined : String(height),
         lockTime: isUndefined(lockTime) ? undefined : String(lockTime),
+        coinbase: Boolean(coinbase),
       }
     })
     return utxos

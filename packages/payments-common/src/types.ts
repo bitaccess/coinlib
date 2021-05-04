@@ -119,6 +119,7 @@ export const UtxoInfo = requiredOptionalCodec(
     height: t.string,
     lockTime: t.string,
     coinbase: t.boolean,
+    rawTx: t.string, // hex
   },
   'UtxoInfo',
 )

@@ -1,12 +1,13 @@
-import { BalanceActivity } from './../../payments-common/src/types';
 import fs from 'fs'
 import path from 'path'
-import { BalanceResult, TransactionStatus, NetworkType, FeeRateType, FeeLevel } from '@faast/payments-common'
+import {
+  BalanceResult, TransactionStatus, NetworkType, FeeRateType, BalanceActivity,
+} from '@faast/payments-common'
 
 import {
   HdBitcoinPayments, BitcoinTransactionInfo,
   BitcoinSignedTransaction, AddressType, SinglesigAddressType,
-  bitcoinish, BitcoinBalanceMonitor,
+  bitcoinish, BitcoinBalanceMonitor, BitcoinUnsignedTransaction,
 } from '../src'
 
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger } from './utils'
@@ -14,7 +15,7 @@ import { toBigNumber } from '@faast/ts-common'
 import fixtures from './fixtures/singlesigTestnet'
 import { HdBitcoinPaymentsConfig } from '../src/types'
 import BigNumber from 'bignumber.js'
-import { NormalizedTxBitcoin } from 'blockbook-client';
+import { omit } from 'lodash'
 
 const SECRET_XPRV_FILE = 'test/keys/testnet.key'
 
@@ -99,17 +100,30 @@ describeAll('e2e testnet', () => {
         network: NetworkType.Testnet,
         logger,
       })
-      const recordedBalanceActivities: Array<[BalanceActivity, NormalizedTxBitcoin]> = []
+      const recordedBalanceActivities: BalanceActivity[] = []
       let addressesToWatch: string[] = []
       let startBlockHeight: number
+
+      let sweepTx: BitcoinUnsignedTransaction
+      let sweepTxInfo: BitcoinTransactionInfo
+
+      let sendTx: BitcoinUnsignedTransaction
+      let sendTxInfo: BitcoinTransactionInfo
+
       beforeAll(async () => {
-        balanceMonitor.init()
+        await balanceMonitor.init()
         addressesToWatch = [...SWEEP_INDICES, ...SEND_INDICES].map((i) => payments.getAddress(i))
-        balanceMonitor.subscribeAddresses(addressesToWatch)
+        logger.log('addressesToWatch', addressesToWatch)
+        await balanceMonitor.subscribeAddresses(addressesToWatch)
         balanceMonitor.onBalanceActivity((ba, rawTx) => {
-          recordedBalanceActivities.push([ba, rawTx])
+          logger.log('recorded balance activity', ba)
+          recordedBalanceActivities.push(ba)
         })
         startBlockHeight = (await payments.getBlock()).height
+      }, 15 * 1000)
+
+      afterAll(async () => {
+        await balanceMonitor.destroy()
       })
 
       it('get correct xpub', async () => {
@@ -198,6 +212,8 @@ describeAll('e2e testnet', () => {
         const tx = await pollUntilFound(signedTx)
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)
+        sweepTx = unsignedTx
+        sweepTxInfo = tx
       }, 5 * 60 * 1000)
 
       it('end to end send', async () => {
@@ -236,20 +252,144 @@ describeAll('e2e testnet', () => {
         const tx = await pollUntilFound(signedTx)
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)
+        sendTx = unsignedTx
+        sendTxInfo = tx
       }, 5 * 60 * 1000)
 
+      function compareBalanceActivities(
+        a: Pick<BalanceActivity, 'externalId' | 'address'>,
+        b: Pick<BalanceActivity, 'externalId' | 'address'>,
+      ) {
+        return a.externalId.localeCompare(b.externalId) || a.address.localeCompare(b.address)
+      }
+
+      // Fields to ignore for test equality purposes (ie unpredictable values)
+      const IGNORED_BALANCE_ACTIVITY_FIELDS = ['timestamp'] as const
+      type PartialBalanceActivity = Omit<BalanceActivity, typeof IGNORED_BALANCE_ACTIVITY_FIELDS[number]>
+      function sortAndOmitBalanceActivities(
+        activities: Array<PartialBalanceActivity>,
+      ) {
+        return [...activities].sort(compareBalanceActivities).map((ba) => ({
+          ...omit(ba, IGNORED_BALANCE_ACTIVITY_FIELDS),
+          utxosSpent: ba.utxosSpent?.map((utxo) => omit(utxo, 'rawTx')),
+        }))
+      }
+
       it('recorded all balance activities', async () => {
-        expect(recordedBalanceActivities).toBe([])
-      })
+        const expectedActivities: PartialBalanceActivity[] = [
+          {
+            'address': sweepTx.fromAddress,
+            'amount': new BigNumber(sweepTx.amount).plus(sweepTx.fee).times(-1).toString(),
+            'externalId': sweepTxInfo.id,
+            'assetSymbol': 'BTC',
+            'networkSymbol': 'BTC',
+            'networkType': NetworkType.Testnet,
+            'confirmationId': '',
+            'confirmationNumber': -1,
+            'confirmations': 0,
+            'activitySequence': '',
+            'extraId': null,
+            'type': 'out',
+            'utxosCreated': [],
+            'utxosSpent': sweepTx.inputUtxos,
+          },
+          {
+            'activitySequence': '',
+            'address': sweepTx.toAddress,
+            'amount': new BigNumber(sweepTx.amount).toString(),
+            'externalId': sweepTxInfo.id,
+            'assetSymbol': 'BTC',
+            'networkSymbol': 'BTC',
+            'networkType': NetworkType.Testnet,
+            'confirmationId': '',
+            'confirmationNumber': -1,
+            'confirmations': 0,
+            'extraId': null,
+            'type': 'in',
+            'utxosCreated': [
+              {
+                'coinbase': false,
+                'confirmations': 0,
+                'height': undefined,
+                'lockTime': undefined,
+                'satoshis': new BigNumber(sweepTx.amount).times(1e8).toNumber(),
+                'txid': sweepTxInfo.id,
+                'value': sweepTx.amount,
+                'vout': 0,
+                'rawTx': sweepTxInfo.data.hex,
+              },
+            ],
+            'utxosSpent': [],
+          },
+          {
+            'activitySequence': '',
+            'address': sendTx.fromAddress,
+            'amount': new BigNumber(sendTxInfo.amount).plus(sendTxInfo.fee).times(-1).toString(),
+            'externalId': sendTxInfo.id,
+            'assetSymbol': 'BTC',
+            'networkSymbol': 'BTC',
+            'networkType': NetworkType.Testnet,
+            'confirmationId': '',
+            'confirmationNumber': -1,
+            'confirmations': 0,
+            'extraId': null,
+            'type': 'out',
+            'utxosCreated': (sendTx.data.changeOutputs ?? []).map((changeOutput, i) => ({
+              'coinbase': false,
+              'confirmations': 0,
+              'height': undefined,
+              'lockTime': undefined,
+              'satoshis': new BigNumber(changeOutput.value).times(1e8).toNumber(),
+              'txid': sendTxInfo.id,
+              'value': changeOutput.value,
+              'vout': 1 + i,
+              'rawTx': sendTxInfo.data.hex,
+            })),
+            'utxosSpent': sendTx.inputUtxos,
+          },
+          {
+            'activitySequence': '',
+            'address': sendTxInfo.toAddress!,
+            'amount': sendTx.amount,
+            'externalId': sendTxInfo.id,
+            'assetSymbol': 'BTC',
+            'networkSymbol': 'BTC',
+            'networkType': NetworkType.Testnet,
+            'confirmationId': '',
+            'confirmationNumber': -1,
+            'confirmations': 0,
+            'extraId': null,
+            'type': 'in',
+            'utxosCreated': [
+              {
+                'coinbase': false,
+                'confirmations': 0,
+                'height': undefined,
+                'lockTime': undefined,
+                'satoshis': new BigNumber(sendTx.amount).times(1e8).toNumber(),
+                'txid': sendTxInfo.id,
+                'value': sendTx.amount,
+                'vout': 0,
+                'rawTx': sendTxInfo.data.hex,
+              },
+            ],
+            'utxosSpent': [],
+          },
+        ]
+        expect(sortAndOmitBalanceActivities(recordedBalanceActivities))
+          .toEqual(sortAndOmitBalanceActivities(expectedActivities))
+      }, 10 * 1000)
 
       it('can retrieve past activities', async () => {
-        const pastActivities: Array<[BalanceActivity, NormalizedTxBitcoin]> = []
-        addressesToWatch.forEach((a) => {
-          balanceMonitor.retrieveBalanceActivities(a, (ba, rawTx) => {
-            pastActivities.push([ba, rawTx])
-          })
-        })
-        expect(pastActivities).toBe(recordedBalanceActivities)
+        const pastActivities: BalanceActivity[] = []
+        await Promise.all(addressesToWatch.map((a) => balanceMonitor.retrieveBalanceActivities(a, (ba, rawTx) => {
+          if (ba.externalId === sweepTxInfo.id || ba.externalId === sendTxInfo.id) {
+            // ignore irrelevant transactions (ie past tests)
+            pastActivities.push(ba)
+          }
+        }, { from: startBlockHeight })))
+        expect(sortAndOmitBalanceActivities(pastActivities))
+          .toEqual(sortAndOmitBalanceActivities(recordedBalanceActivities))
       })
     })
   }
