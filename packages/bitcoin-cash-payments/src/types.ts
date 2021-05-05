@@ -19,11 +19,23 @@ export const BitcoinCashAddressFormatT = enumCodec<BitcoinCashAddressFormat>(Bit
 
 export interface PsbtInputData extends PsbtInput, TransactionInput {}
 
-export const BitcoinCashPaymentsUtilsConfig = extendCodec(
+export const BitcoinCashBaseConfig = extendCodec(
   BaseConfig,
   {},
   {
     server: bitcoinish.BlockbookConfigServer,
+  },
+  'BitcoinCashBaseConfig',
+)
+export type BitcoinCashBaseConfig = t.TypeOf<typeof BitcoinCashBaseConfig>
+
+export const BitcoinCashBalanceMonitorConfig = BitcoinCashBaseConfig
+export type BitcoinCashBalanceMonitorConfig = BitcoinCashBaseConfig
+
+export const BitcoinCashPaymentsUtilsConfig = extendCodec(
+  BitcoinCashBaseConfig,
+  {},
+  {
     // The only format to consider valid. Any addresses returned will be converted to this format. Any addresses
     // provided will be rejected if not in this format.
     validAddressFormat: BitcoinCashAddressFormatT,

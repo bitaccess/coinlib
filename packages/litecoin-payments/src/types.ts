@@ -50,11 +50,23 @@ const MultisigAddressTypeT = t.keyof({
 export type MultisigAddressType = t.TypeOf<typeof MultisigAddressTypeT>
 export const MultisigAddressType = MultisigAddressTypeT as t.Type<MultisigAddressType>
 
-export const LitecoinPaymentsUtilsConfig = extendCodec(
+export const LitecoinBaseConfig = extendCodec(
   BaseConfig,
   {},
   {
     server: bitcoinish.BlockbookConfigServer,
+  },
+  'LitecoinBaseConfig',
+)
+export type LitecoinBaseConfig = t.TypeOf<typeof LitecoinBaseConfig>
+
+export const LitecoinBalanceMonitorConfig = LitecoinBaseConfig
+export type LitecoinBalanceMonitorConfig = LitecoinBaseConfig
+
+export const LitecoinPaymentsUtilsConfig = extendCodec(
+  LitecoinBaseConfig,
+  {},
+  {
     blockcypherToken: t.string,
     validAddressFormat: LitecoinAddressFormatT,
   },

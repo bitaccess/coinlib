@@ -11,7 +11,7 @@ import {
   AddressType, AddressTypeT, BlockbookConnectedConfig, BlockbookServerAPI, MultisigAddressType, SinglesigAddressType,
 } from './types'
 
-export function resolveServer(server: BlockbookConnectedConfig['server'], network: NetworkType): {
+export function resolveServer(server: BlockbookConnectedConfig['server'], logger: Logger): {
   api: BlockbookServerAPI
   server: string[] | null
 } {
@@ -19,6 +19,7 @@ export function resolveServer(server: BlockbookConnectedConfig['server'], networ
     return {
       api: new BlockbookServerAPI({
         nodes: [server],
+        logger,
       }),
       server: [server],
     }
@@ -31,6 +32,7 @@ export function resolveServer(server: BlockbookConnectedConfig['server'], networ
     return {
       api: new BlockbookServerAPI({
         nodes: server,
+        logger,
       }),
       server,
     }
@@ -39,6 +41,7 @@ export function resolveServer(server: BlockbookConnectedConfig['server'], networ
     return {
       api: new BlockbookServerAPI({
         nodes: [''],
+        logger,
       }),
       server: null,
     }
@@ -162,7 +165,7 @@ export async function getBlockbookFeeRecommendation(
 ): Promise<FeeRate> {
   let feeRate: string
   try {
-    const body = await blockbookClient.doRequest('GET', '/api/v1/estimatefee/3')
+    const body = await blockbookClient.httpRequest('GET', '/api/v1/estimatefee/3')
     const result = body['result'] // main units per kb
     if (!result) {
       throw new Error("Blockbook estimatefee response is missing expected field 'result'")

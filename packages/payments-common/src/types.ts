@@ -119,6 +119,7 @@ export const UtxoInfo = requiredOptionalCodec(
     height: t.string,
     lockTime: t.string,
     coinbase: t.boolean,
+    rawTx: t.string, // hex
   },
   'UtxoInfo',
 )
@@ -308,7 +309,7 @@ export type BaseBroadcastResult = t.TypeOf<typeof BaseBroadcastResult>
 export const BalanceActivityType = t.union([t.literal('in'), t.literal('out')], 'BalanceActivityType')
 export type BalanceActivityType = t.TypeOf<typeof BalanceActivityType>
 
-export const BalanceActivity = t.type(
+export const BalanceActivity = requiredOptionalCodec(
   {
     type: BalanceActivityType,
     networkType: NetworkTypeT,
@@ -322,6 +323,13 @@ export const BalanceActivity = t.type(
     confirmationId: t.string,
     confirmationNumber: t.union([t.string, t.number]),
     timestamp: DateT,
+  },
+  {
+    confirmations: t.number,
+    // Utxos spent in this transaction applicable to the address
+    utxosSpent: t.array(UtxoInfo),
+    // Utxos create in this transaction applicable to the address
+    utxosCreated: t.array(UtxoInfo),
   },
   'BalanceActivity',
 )
@@ -339,7 +347,7 @@ export const GetBalanceActivityOptions = t.partial(
 )
 export type GetBalanceActivityOptions = t.TypeOf<typeof GetBalanceActivityOptions>
 
-export type BalanceActivityCallback = (ba: BalanceActivity) => Promise<void> | void
+export type BalanceActivityCallback = (ba: BalanceActivity, rawTx?: any) => Promise<void> | void
 export const BalanceActivityCallback = functionT<BalanceActivityCallback>('BalanceActivityCallback')
 
 export type FromTo = Pick<

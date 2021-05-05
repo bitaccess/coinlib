@@ -8,28 +8,32 @@ import { resolveServer, retryIfDisconnected } from './utils'
 export abstract class BlockbookConnected {
   networkType: NetworkType
   logger: Logger
-  api: BlockbookServerAPI | null
+  api: BlockbookServerAPI
   server: string[] | null
 
   constructor(config: BlockbookConnectedConfig) {
     assertType(BlockbookConnectedConfig, config)
     this.networkType = config.network
     this.logger = new DelegateLogger(config.logger)
-    const { api, server } = resolveServer(config.server, this.networkType)
+    const { api, server } = resolveServer(config.server, this.logger)
     this.api = api
     this.server = server
   }
 
   getApi(): BlockbookBitcoin {
-    if (this.api === null) {
+    if (this.server === null) {
       throw new Error('Cannot access blockbook network when configured with null server')
     }
     return this.api
   }
 
-  async init(): Promise<void> {}
+  async init(): Promise<void> {
+    await this.api.connect()
+  }
 
-  async destroy(): Promise<void> {}
+  async destroy(): Promise<void> {
+    await this.api.disconnect()
+  }
 
   async _retryDced<T>(fn: () => Promise<T>): Promise<T> {
     return retryIfDisconnected(fn, this.getApi(), this.logger)

@@ -29,11 +29,23 @@ const SinglesigAddressTypeT = t.keyof({
 export type SinglesigAddressType = t.TypeOf<typeof SinglesigAddressTypeT>
 export const SinglesigAddressType = SinglesigAddressTypeT as t.Type<SinglesigAddressType>
 
-export const DogePaymentsUtilsConfig = extendCodec(
+export const DogeBaseConfig = extendCodec(
   BaseConfig,
   {},
   {
     server: bitcoinish.BlockbookConfigServer,
+  },
+  'DogeBaseConfig',
+)
+export type DogeBaseConfig = t.TypeOf<typeof DogeBaseConfig>
+
+export const DogeBalanceMonitorConfig = DogeBaseConfig
+export type DogeBalanceMonitorConfig = DogeBaseConfig
+
+export const DogePaymentsUtilsConfig = extendCodec(
+  DogeBaseConfig,
+  {},
+  {
     blockcypherToken: t.string,
   },
   'DogePaymentsUtilsConfig',

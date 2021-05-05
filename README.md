@@ -55,14 +55,16 @@ See [@faast/coin-payments README](./packages/coin-payments/README.md) for usage.
 
 ## Packages
 
-- [@faast/coin-payments](./packages/coin-payments)
-- [@faast/payments-common](./packages/payments-common)
-- [@faast/tron-payments](./packages/tron-payments)
-- [@faast/stellar-payments](./packages/stellar-payments)
-- [@faast/ripple-payments](./packages/ripple-payments)
-- [@faast/litecoin-payments](./packages/litecoin-payments)
-- [@faast/ethereum-payments](./packages/ethereum-payments)
-- [@faast/bitcoin-cash-payments](./packages/bitcoin-cash-payments)
+- [@faast/coin-payments](./packages/coin-payments) - Wrapper for all coins
+- [@faast/payments-common](./packages/payments-common) - Common interfaces
+- [@faast/bitcoin-payments](./packages/bitcoin-payments) - BTC
+- [@faast/ethereum-payments](./packages/ethereum-payments) - ETH & ERC20
+- [@faast/litecoin-payments](./packages/litecoin-payments) - LTC
+- [@faast/doge-payments](./packages/doge-payments) - DOGE
+- [@faast/bitcoin-cash-payments](./packages/bitcoin-cash-payments) - BCH
+- [@faast/tron-payments](./packages/tron-payments) - TRX
+- [@faast/stellar-payments](./packages/stellar-payments) - XLM
+- [@faast/ripple-payments](./packages/ripple-payments) - XRP
 
 ## Publishing new version
 

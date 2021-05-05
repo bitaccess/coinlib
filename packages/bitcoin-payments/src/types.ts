@@ -5,7 +5,9 @@ import {
 } from '@faast/payments-common'
 import { extendCodec, requiredOptionalCodec } from '@faast/ts-common'
 import { BlockInfoBitcoin } from 'blockbook-client'
-import { BitcoinishPaymentTx, BlockbookConfigServer, MultisigAddressType, SinglesigAddressType } from './bitcoinish'
+import {
+  BitcoinishPaymentTx, BitcoinishTransactionInfo, BlockbookConfigServer, MultisigAddressType, SinglesigAddressType,
+} from './bitcoinish'
 import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
 
 export {
@@ -19,11 +21,23 @@ export {
 
 export interface PsbtInputData extends PsbtInput, TransactionInput {}
 
-export const BitcoinPaymentsUtilsConfig = extendCodec(
+export const BitcoinBaseConfig = extendCodec(
   BaseConfig,
   {},
   {
     server: BlockbookConfigServer,
+  },
+  'BitcoinBaseConfig',
+)
+export type BitcoinBaseConfig = t.TypeOf<typeof BitcoinBaseConfig>
+
+export const BitcoinBalanceMonitorConfig = BitcoinBaseConfig
+export type BitcoinBalanceMonitorConfig = BitcoinBaseConfig
+
+export const BitcoinPaymentsUtilsConfig = extendCodec(
+  BitcoinBaseConfig,
+  {},
+  {
     blockcypherToken: t.string,
   },
   'BitcoinPaymentsUtilsConfig',
@@ -133,7 +147,7 @@ export const BitcoinSignedTransaction = extendCodec(
 )
 export type BitcoinSignedTransaction = t.TypeOf<typeof BitcoinSignedTransaction>
 
-export const BitcoinTransactionInfo = extendCodec(BaseTransactionInfo, {}, {}, 'BitcoinTransactionInfo')
+export const BitcoinTransactionInfo = extendCodec(BitcoinishTransactionInfo, {}, {}, 'BitcoinTransactionInfo')
 export type BitcoinTransactionInfo = t.TypeOf<typeof BitcoinTransactionInfo>
 
 export const BitcoinBroadcastResult = extendCodec(BaseBroadcastResult, {}, {}, 'BitcoinBroadcastResult')
