@@ -30,12 +30,7 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
     super(toBitcoinishConfig(config))
     this.maximumFeeRate = config.maximumFeeRate
     this.validAddressFormat = config.validAddressFormat
-    this.utils = new BitcoinCashPaymentsUtils({
-      network: this.networkType,
-      logger: this.logger,
-      server: this.api,
-      validAddressFormat: this.validAddressFormat,
-    })
+    this.utils = new BitcoinCashPaymentsUtils(config)
   }
 
   abstract getPaymentScript(index: number): bitcoin.payments.Payment

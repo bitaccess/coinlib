@@ -3,7 +3,7 @@ import {
   BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, FeeRate,
   BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, KeyPairsConfigParam,
 } from '@faast/payments-common'
-import { extendCodec, enumCodec, requiredOptionalCodec } from '@faast/ts-common'
+import { extendCodec, enumCodec, requiredOptionalCodec, instanceofCodec } from '@faast/ts-common'
 import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
 import { BlockInfoBitcoin } from 'blockbook-client'
 import { bitcoinish } from '@faast/bitcoin-payments'
@@ -55,6 +55,7 @@ export const LitecoinBaseConfig = extendCodec(
   {},
   {
     server: bitcoinish.BlockbookConfigServer,
+    api: instanceofCodec(bitcoinish.BlockbookServerAPI),
   },
   'LitecoinBaseConfig',
 )

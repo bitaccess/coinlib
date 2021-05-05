@@ -11,11 +11,17 @@ import {
   AddressType, AddressTypeT, BlockbookConnectedConfig, BlockbookServerAPI, MultisigAddressType, SinglesigAddressType,
 } from './types'
 
-export function resolveServer(server: BlockbookConnectedConfig['server'], logger: Logger): {
+export function resolveServer(config: BlockbookConnectedConfig, logger: Logger): {
   api: BlockbookServerAPI
   server: string[] | null
 } {
-  if (isString(server)) {
+  const { server } = config
+  if (config.api) {
+    return {
+      api: config.api,
+      server: config.api.nodes,
+    }
+  } else if (isString(server)) {
     return {
       api: new BlockbookServerAPI({
         nodes: [server],

@@ -1,4 +1,4 @@
-import { PaymentsFactory } from '@faast/payments-common'
+import { PaymentsFactory, StandardConnectionManager } from '@faast/payments-common'
 import { assertType } from '@faast/ts-common'
 
 import {
@@ -8,18 +8,23 @@ import {
   MultisigBitcoinPaymentsConfig,
   BitcoinPaymentsUtilsConfig,
   BaseBitcoinPaymentsConfig,
+  BitcoinBalanceMonitorConfig,
+  BitcoinBaseConfig,
 } from './types'
+import { BlockbookServerAPI } from './bitcoinish/types'
 import { PACKAGE_NAME } from './constants'
 import { BaseBitcoinPayments } from './BaseBitcoinPayments'
 import { BitcoinPaymentsUtils } from './BitcoinPaymentsUtils'
 import { HdBitcoinPayments } from './HdBitcoinPayments'
 import { KeyPairBitcoinPayments } from './KeyPairBitcoinPayments'
 import { MultisigBitcoinPayments } from './MultisigBitcoinPayments'
+import { BitcoinBalanceMonitor } from './BitcoinBalanceMonitor'
 
 export class BitcoinPaymentsFactory extends PaymentsFactory<
   BitcoinPaymentsUtilsConfig,
   BitcoinPaymentsUtils,
-  BaseBitcoinPayments<BaseBitcoinPaymentsConfig>
+  BaseBitcoinPayments<BaseBitcoinPaymentsConfig>,
+  BitcoinBalanceMonitor
 > {
   readonly packageName = PACKAGE_NAME
 
@@ -39,6 +44,13 @@ export class BitcoinPaymentsFactory extends PaymentsFactory<
   newUtils(config: BitcoinPaymentsUtilsConfig) {
     return new BitcoinPaymentsUtils(assertType(BitcoinPaymentsUtilsConfig, config, 'config'))
   }
+
+  hasBalanceMonitor = true
+  newBalanceMonitor(config: BitcoinBalanceMonitorConfig) {
+    return new BitcoinBalanceMonitor(assertType(BitcoinBalanceMonitorConfig, config, 'config'))
+  }
+
+  connectionManager = new StandardConnectionManager<BlockbookServerAPI, BitcoinBaseConfig>()
 }
 
 export default BitcoinPaymentsFactory

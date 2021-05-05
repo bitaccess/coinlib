@@ -1,5 +1,6 @@
-import { PaymentsFactory } from '@faast/payments-common'
+import { PaymentsFactory, StandardConnectionManager } from '@faast/payments-common'
 import { assertType } from '@faast/ts-common'
+import { bitcoinish } from '@faast/bitcoin-payments'
 
 import {
   LitecoinPaymentsConfig,
@@ -7,17 +8,21 @@ import {
   KeyPairLitecoinPaymentsConfig,
   LitecoinPaymentsUtilsConfig,
   BaseLitecoinPaymentsConfig,
+  LitecoinBalanceMonitorConfig,
+  LitecoinBaseConfig,
 } from './types'
 import { PACKAGE_NAME } from './constants'
 import { BaseLitecoinPayments } from './BaseLitecoinPayments'
 import { LitecoinPaymentsUtils } from './LitecoinPaymentsUtils'
 import { HdLitecoinPayments } from './HdLitecoinPayments'
 import { KeyPairLitecoinPayments } from './KeyPairLitecoinPayments'
+import { LitecoinBalanceMonitor } from './LitecoinBalanceMonitor'
 
 export class LitecoinPaymentsFactory extends PaymentsFactory<
   LitecoinPaymentsUtilsConfig,
   LitecoinPaymentsUtils,
-  BaseLitecoinPayments<BaseLitecoinPaymentsConfig>
+  BaseLitecoinPayments<BaseLitecoinPaymentsConfig>,
+  LitecoinBalanceMonitor
 > {
   readonly packageName = PACKAGE_NAME
 
@@ -34,6 +39,13 @@ export class LitecoinPaymentsFactory extends PaymentsFactory<
   newUtils(config: LitecoinPaymentsUtilsConfig) {
     return new LitecoinPaymentsUtils(assertType(LitecoinPaymentsUtilsConfig, config, 'config'))
   }
+
+  hasBalanceMonitor = true
+  newBalanceMonitor(config: LitecoinBalanceMonitorConfig) {
+    return new LitecoinBalanceMonitor(assertType(LitecoinBalanceMonitorConfig, config, 'config'))
+  }
+
+  connectionManager = new StandardConnectionManager<bitcoinish.BlockbookServerAPI, LitecoinBaseConfig>()
 }
 
 export default LitecoinPaymentsFactory

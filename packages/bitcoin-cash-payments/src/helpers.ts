@@ -1,13 +1,12 @@
 import { createUnitConverters, NetworkType } from '@faast/payments-common'
-import { bitcoinish, BitcoinjsNetwork, publicKeyToBuffer } from '@faast/bitcoin-payments'
+import { bitcoinish, publicKeyToBuffer } from '@faast/bitcoin-payments'
 import * as bitcoincash from 'bitcoinforksjs-lib'
 import bchaddrjs from 'bchaddrjs'
-import { assertType } from '@faast/ts-common'
 
-import { BitcoinjsKeyPair, BitcoinCashAddressFormat, BitcoinCashAddressFormatT } from './types'
-import { DECIMAL_PLACES, DEFAULT_ADDRESS_FORMAT, NETWORKS } from './constants'
+import { BitcoinjsKeyPair, BitcoinCashAddressFormat } from './types'
+import { DECIMAL_PLACES, NETWORKS } from './constants'
 
-export { publicKeyToString, publicKeyToBuffer, bitcoinish } from '@faast/bitcoin-payments'
+export { publicKeyToString, publicKeyToBuffer } from '@faast/bitcoin-payments'
 
 const {
   toMainDenominationBigNumber,

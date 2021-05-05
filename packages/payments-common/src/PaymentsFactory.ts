@@ -74,7 +74,8 @@ export abstract class PaymentsFactory<
     if (!url) {
       return this.createConnection(config, instantiator)
     }
-    const existingConnection = connections[url]
+    const urlKey = String(url)
+    const existingConnection = connections[urlKey]
     if (existingConnection) {
       // connection is cached, pass it to instantiated object
       config = { ...config } // avoid mutating external objects
@@ -83,7 +84,7 @@ export abstract class PaymentsFactory<
     } else {
       // connection isnt cached yet, get it and add it to cache
       const connected = await this.createConnection(config, instantiator)
-      connections[url] = getConnection(connected)
+      connections[urlKey] = getConnection(connected)
       return connected
     }
   }

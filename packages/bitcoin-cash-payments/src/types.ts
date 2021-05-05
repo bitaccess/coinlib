@@ -3,7 +3,7 @@ import {
   BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, FeeRate,
   BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, KeyPairsConfigParam,
 } from '@faast/payments-common'
-import { extendCodec, enumCodec, requiredOptionalCodec } from '@faast/ts-common'
+import { extendCodec, enumCodec, requiredOptionalCodec, instanceofCodec } from '@faast/ts-common'
 import { BlockInfoBitcoin } from 'blockbook-client'
 import { bitcoinish } from '@faast/bitcoin-payments'
 import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
@@ -24,6 +24,7 @@ export const BitcoinCashBaseConfig = extendCodec(
   {},
   {
     server: bitcoinish.BlockbookConfigServer,
+    api: instanceofCodec(bitcoinish.BlockbookServerAPI),
   },
   'BitcoinCashBaseConfig',
 )

@@ -1,9 +1,10 @@
+import { BlockbookServerAPI } from './bitcoinish/types';
 import * as t from 'io-ts'
 import {
   BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, FeeRate,
   BaseTransactionInfo, BaseBroadcastResult, KeyPairsConfigParam,
 } from '@faast/payments-common'
-import { extendCodec, requiredOptionalCodec } from '@faast/ts-common'
+import { extendCodec, requiredOptionalCodec, instanceofCodec } from '@faast/ts-common'
 import { BlockInfoBitcoin } from 'blockbook-client'
 import {
   BitcoinishPaymentTx, BitcoinishTransactionInfo, BlockbookConfigServer, MultisigAddressType, SinglesigAddressType,
@@ -26,6 +27,7 @@ export const BitcoinBaseConfig = extendCodec(
   {},
   {
     server: BlockbookConfigServer,
+    api: instanceofCodec(BlockbookServerAPI),
   },
   'BitcoinBaseConfig',
 )

@@ -49,7 +49,6 @@ export class BlockbookServerAPI extends BlockbookBitcoin {}
 export const BlockbookConfigServer = t.union([
   t.string,
   t.array(t.string),
-  instanceofCodec(BlockbookServerAPI),
   t.null,
 ], 'BlockbookConfigServer')
 export type BlockbookConfigServer = t.TypeOf<typeof BlockbookConfigServer>
@@ -61,6 +60,7 @@ export const BlockbookConnectedConfig = requiredOptionalCodec(
   },
   {
     logger: nullable(Logger),
+    api: instanceofCodec(BlockbookServerAPI),
   },
   'BlockbookConnectedConfig',
 )

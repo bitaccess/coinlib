@@ -15,7 +15,7 @@ export abstract class BlockbookConnected {
     assertType(BlockbookConnectedConfig, config)
     this.networkType = config.network
     this.logger = new DelegateLogger(config.logger)
-    const { api, server } = resolveServer(config.server, this.logger)
+    const { api, server } = resolveServer(config, this.logger)
     this.api = api
     this.server = server
   }

@@ -9,6 +9,6 @@ export interface PaymentsConnectionManager<
 > {
   connections: { [url: string]: Connection }
   getConnection(x: any): Connection
-  getConnectionUrl(c: Config): string | null
+  getConnectionUrl(c: Config): string | string[] | null
   setConnection(c: Config, t: Connection): void
 }

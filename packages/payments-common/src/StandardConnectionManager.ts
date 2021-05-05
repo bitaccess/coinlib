@@ -6,7 +6,7 @@ import { PaymentsUtils } from './PaymentsUtils';
 
 export class StandardConnectionManager<
   Connection,
-  Config extends { api?: Connection, server?: string | null } & BaseConfig,
+  Config extends { api?: Connection, server?: string | string[] | null } & BaseConfig,
 > implements PaymentsConnectionManager<Connection, Config> {
 
   connections: { [url: string]: Connection } = {}

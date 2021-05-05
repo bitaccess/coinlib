@@ -37,13 +37,7 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
     this.maximumFeeRate = config.maximumFeeRate
     this.blockcypherToken = config.blockcypherToken
     this.validAddressFormat = config.validAddressFormat
-    this.utils = new LitecoinPaymentsUtils({
-      network: this.networkType,
-      logger: this.logger,
-      server: this.api,
-      blockcypherToken: this.blockcypherToken,
-      validAddressFormat: this.validAddressFormat,
-    })
+    this.utils = new LitecoinPaymentsUtils(config)
   }
 
   abstract getPaymentScript(index: number): bitcoin.payments.Payment

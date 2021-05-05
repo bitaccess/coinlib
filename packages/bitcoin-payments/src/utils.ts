@@ -1,5 +1,5 @@
 import { NetworkType, FeeRateType, AutoFeeLevels } from '@faast/payments-common'
-import { BaseBitcoinPaymentsConfig } from './types'
+import { BitcoinBaseConfig } from './types'
 import { BitcoinishPaymentsConfig } from './bitcoinish'
 import {
   DEFAULT_NETWORK,
@@ -29,7 +29,7 @@ const DEFAULT_BITCOINISH_CONFIG = {
   defaultFeeLevel: DEFAULT_FEE_LEVEL as AutoFeeLevels,
 }
 
-export function toBitcoinishConfig<T extends BaseBitcoinPaymentsConfig>(config: T): BitcoinishPaymentsConfig {
+export function toBitcoinishConfig<T extends BitcoinBaseConfig>(config: T): BitcoinishPaymentsConfig {
   const configWithDefaults = {
     ...DEFAULT_BITCOINISH_CONFIG,
     ...config,
@@ -39,10 +39,8 @@ export function toBitcoinishConfig<T extends BaseBitcoinPaymentsConfig>(config: 
   return {
     ...configWithDefaults,
     bitcoinjsNetwork: network === NetworkType.Testnet ? NETWORK_TESTNET : NETWORK_MAINNET,
-    server: typeof server !== 'undefined'
-      ? server
-      : (network === NetworkType.Testnet
-        ? DEFAULT_TESTNET_SERVER
-        : DEFAULT_MAINNET_SERVER),
+    server: config?.api?.nodes ?? server ?? (network === NetworkType.Testnet
+      ? DEFAULT_TESTNET_SERVER
+      : DEFAULT_MAINNET_SERVER)
   }
 }

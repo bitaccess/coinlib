@@ -1,15 +1,54 @@
 import {
-  LitecoinPaymentsFactory, HdLitecoinPayments, KeyPairLitecoinPayments, LitecoinPaymentsConfig,
-  HdLitecoinPaymentsConfig, KeyPairLitecoinPaymentsConfig, LitecoinPaymentsUtils,
+  LitecoinPaymentsFactory,
+  HdLitecoinPayments,
+  KeyPairLitecoinPayments,
+  HdLitecoinPaymentsConfig,
+  KeyPairLitecoinPaymentsConfig,
+  LitecoinPaymentsUtils,
+  DEFAULT_MAINNET_SERVER,
+  LitecoinPaymentsUtilsConfig,
+  LitecoinBalanceMonitorConfig,
+  LitecoinBalanceMonitor,
+  bitcoinish,
 } from '../src'
 
 import { legacyAccount } from './fixtures/accounts'
 import { PRIVATE_KEY } from './fixtures/bip44'
+import { logger } from './utils'
 
 const { xprv } = legacyAccount
 
+const SERVER = DEFAULT_MAINNET_SERVER
+const HD_CONFIG: HdLitecoinPaymentsConfig = {
+  logger,
+  server: SERVER,
+  hdKey: xprv,
+}
+const KEYPAIR_CONFIG: KeyPairLitecoinPaymentsConfig = {
+  logger,
+  server: SERVER,
+  keyPairs: [PRIVATE_KEY],
+}
+const UTILS_CONFIG: LitecoinPaymentsUtilsConfig = {
+  logger,
+  server: SERVER,
+}
+const BM_CONFIG: LitecoinBalanceMonitorConfig = {
+  logger,
+  server: SERVER,
+}
+
 describe('LitecoinPaymentsFactory', () => {
-  const factory = new LitecoinPaymentsFactory()
+  let factory: LitecoinPaymentsFactory
+
+  beforeEach(() => {
+    factory = new LitecoinPaymentsFactory()
+  })
+
+  afterEach(async () => {
+    // disconnect all connections
+    await Promise.all(Object.values(factory.connectionManager.connections).map((connection) => connection.disconnect()))
+  })
 
   describe('newPayments', () => {
     it('should instantiate HdLitecoinPayments', () => {
@@ -36,6 +75,30 @@ describe('LitecoinPaymentsFactory', () => {
 
     it('should fail to instantiate null config', () => {
       expect(() => factory.newUtils(null as any)).toThrow('Invalid config')
+    })
+  })
+
+  describe('newBalanceMonitor', () => {
+    it('should instantiate LitecoinBalanceMonitor', () => {
+      expect(factory.newBalanceMonitor(BM_CONFIG)).toBeInstanceOf(LitecoinBalanceMonitor)
+    })
+
+    it('should fail to instantiate null config', () => {
+      expect(() => factory.newUtils(null as any)).toThrow('Invalid config')
+    })
+  })
+
+  describe('initConnected', () => {
+    it('should instantiate all with same blockbook API instance', async () => {
+      const payments1 = await factory.initPayments(HD_CONFIG)
+      const payments2 = await factory.initPayments(KEYPAIR_CONFIG)
+      const utils = await factory.initUtils(UTILS_CONFIG)
+      const bm = await factory.initBalanceMonitor(BM_CONFIG)
+      expect(payments1.api).toBeInstanceOf(bitcoinish.BlockbookServerAPI)
+      expect(payments1.api).toBe(payments2.api)
+      expect(payments2.api).toBe(utils.api)
+      expect(utils.api).toBe(bm.api)
+      expect(bm.api.wsConnected).toBe(true)
     })
   })
 })

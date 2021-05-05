@@ -1,5 +1,6 @@
-import { PaymentsFactory } from '@faast/payments-common'
+import { PaymentsFactory, StandardConnectionManager } from '@faast/payments-common'
 import { assertType } from '@faast/ts-common'
+import { bitcoinish } from '@faast/bitcoin-payments'
 
 import {
   BitcoinCashPaymentsConfig,
@@ -7,17 +8,21 @@ import {
   KeyPairBitcoinCashPaymentsConfig,
   BitcoinCashPaymentsUtilsConfig,
   BaseBitcoinCashPaymentsConfig,
+  BitcoinCashBalanceMonitorConfig,
+  BitcoinCashBaseConfig,
 } from './types'
 import { PACKAGE_NAME } from './constants'
 import { BaseBitcoinCashPayments } from './BaseBitcoinCashPayments'
 import { BitcoinCashPaymentsUtils } from './BitcoinCashPaymentsUtils'
 import { HdBitcoinCashPayments } from './HdBitcoinCashPayments'
 import { KeyPairBitcoinCashPayments } from './KeyPairBitcoinCashPayments'
+import { BitcoinCashBalanceMonitor } from './BitcoinCashBalanceMonitor'
 
 export class BitcoinCashPaymentsFactory extends PaymentsFactory<
   BitcoinCashPaymentsUtilsConfig,
   BitcoinCashPaymentsUtils,
-  BaseBitcoinCashPayments<BaseBitcoinCashPaymentsConfig>
+  BaseBitcoinCashPayments<BaseBitcoinCashPaymentsConfig>,
+  BitcoinCashBalanceMonitor
 > {
   readonly packageName = PACKAGE_NAME
 
@@ -34,6 +39,13 @@ export class BitcoinCashPaymentsFactory extends PaymentsFactory<
   newUtils(config: BitcoinCashPaymentsUtilsConfig) {
     return new BitcoinCashPaymentsUtils(assertType(BitcoinCashPaymentsUtilsConfig, config, 'config'))
   }
+
+  hasBalanceMonitor = true
+  newBalanceMonitor(config: BitcoinCashBalanceMonitorConfig) {
+    return new BitcoinCashBalanceMonitor(assertType(BitcoinCashBalanceMonitorConfig, config, 'config'))
+  }
+
+  connectionManager = new StandardConnectionManager<bitcoinish.BlockbookServerAPI, BitcoinCashBaseConfig>()
 }
 
 export default BitcoinCashPaymentsFactory
