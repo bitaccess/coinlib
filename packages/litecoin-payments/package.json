@@ -85,7 +85,7 @@
     "bip174": "^1.0.1",
     "bip32": "^2.0.5",
     "bitcoinjs-lib": "^5.1.7",
-    "blockbook-client": "^0.3.13",
+    "blockbook-client": "^0.4.2",
     "bs58": "^4.0.1",
     "bs58check": "^2.1.2",
     "io-ts": "^1.10.4",
