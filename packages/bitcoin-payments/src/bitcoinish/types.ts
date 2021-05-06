@@ -56,6 +56,7 @@ export type BlockbookConfigServer = t.TypeOf<typeof BlockbookConfigServer>
 export const BlockbookConnectedConfig = requiredOptionalCodec(
   {
     network: NetworkTypeT,
+    packageName: t.string,
     server: BlockbookConfigServer,
   },
   {

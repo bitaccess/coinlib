@@ -14,6 +14,7 @@ import {
   DEFAULT_NETWORK_MIN_RELAY_FEE,
   DEFAULT_MIN_TX_FEE,
   DEFAULT_FEE_LEVEL,
+  PACKAGE_NAME,
 } from './constants'
 
 const DEFAULT_BITCOINISH_CONFIG = {
@@ -38,6 +39,7 @@ export function toBitcoinishConfig<T extends BitcoinCashBaseConfig>(config: T): 
   const { network, server } = configWithDefaults
   return {
     ...configWithDefaults,
+    packageName: PACKAGE_NAME,
     bitcoinjsNetwork: network === NetworkType.Testnet ? NETWORK_TESTNET : NETWORK_MAINNET,
     server: config?.api?.nodes ?? server ?? (network === NetworkType.Testnet
       ? DEFAULT_TESTNET_SERVER

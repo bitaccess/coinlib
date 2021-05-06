@@ -73,7 +73,8 @@ describeAll('e2e mainnet', () => {
       'value': '0.00011',
       'satoshis': 11000,
       'height': 613152,
-      'confirmations': 8753
+      'confirmations': 8753,
+      'coinbase': false,
     }
   ]
   const omitUtxoFieldEquality = ['height', 'confirmations', 'lockTime']

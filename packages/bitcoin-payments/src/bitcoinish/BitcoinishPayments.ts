@@ -381,12 +381,12 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
   private selectInputUtxosForAll(tbc: BitcoinishTxBuildContext) {
     for (const utxo of tbc.enforcedUtxos) {
-      tbc.inputTotal += utxo.satoshis as number
+      tbc.inputTotal += utxo.satoshis
       tbc.inputUtxos.push(utxo)
     }
 
     for (const utxo of tbc.selectableUtxos) {
-      tbc.inputTotal += utxo.satoshis as number
+      tbc.inputTotal += utxo.satoshis
       tbc.inputUtxos.push(utxo)
     }
 
@@ -484,7 +484,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     // Incrementally select utxos until we cover outputs and fees
     for (const utxo of shuffleUtxos(tbc.selectableUtxos)) {
       tbc.inputUtxos.push(utxo)
-      tbc.inputTotal += utxo.satoshis as number
+      tbc.inputTotal += utxo.satoshis
 
       const targetChangeOutputCount = this.determineTargetChangeOutputCount(
         tbc.nonDustUtxoCount,

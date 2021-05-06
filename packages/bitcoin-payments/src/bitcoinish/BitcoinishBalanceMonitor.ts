@@ -39,7 +39,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
 
   async destroy() {
     this.txEmitter.removeAllListeners('tx')
-    super.destroy()
+    await super.destroy()
   }
 
   async subscribeAddresses(addresses: string[]) {
