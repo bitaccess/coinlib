@@ -123,6 +123,7 @@ export const UtxoInfo = requiredOptionalCodec(
     scriptPubKeyHex: t.string,
     address: t.string,
     spent: t.boolean,
+    signer: t.number, // signing account address or index relative to accountId
   },
   'UtxoInfo',
 )
@@ -149,6 +150,7 @@ export const CreateTransactionOptions = extendCodec(
     useUnconfirmedUtxos: t.boolean, // Allow unconfirmed utxos as inputs
     recipientPaysFee: t.boolean, // Deduct fee from outputs (only utxo coins supported for now)
     maxFeePercent: Numeric, // Maximum fee as percent of output total
+    changeAddress: t.string, // Change address
   },
   'CreateTransactionOptions',
 )
@@ -208,7 +210,7 @@ export const TransactionCommon = requiredOptionalCodec(
     id: nullable(t.string), // network txid
     fromAddress: nullable(t.string), // sender address
     toAddress: nullable(t.string), // recipient address
-    fromIndex: nullable(t.number), // sender address index
+    fromIndex: nullable(t.union([t.number, t.array(t.number)])), // sender address index
     toIndex: nullable(t.number), // recipient address index, null if not ours
     amount: nullable(t.string), // main denomination (eg "0.125")
     fee: nullable(t.string), // total fee in main denomination
@@ -246,7 +248,7 @@ const UnsignedCommon = extendCodec(
   {
     fromAddress: t.string,
     toAddress: t.string,
-    fromIndex: t.number,
+    fromIndex: t.union([t.number, t.array(t.number)]),
     targetFeeLevel: FeeLevelT, // fee level requested upon creation
     targetFeeRate: nullable(t.string), // fee rate requested upon creation
     targetFeeRateType: nullable(FeeRateTypeT), // fee rate type requested upon creation

@@ -94,11 +94,21 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
     return address
   }
 
-  private createMultisigData(index: number): BaseMultisigData {
+  private createMultisigData(index: number | number[]): BaseMultisigData {
+    const indexes = Array.isArray(index) ? index : [index]
+    const accountIds = []
+    const publicKeys = []
+
+    for (let signer of this.signers) {
+      for (let index of indexes) {
+        accountIds.push(signer.getAccountId(index))
+        publicKeys.push(publicKeyToString(signer.getKeyPair(index).publicKey))
+      }
+    }
     return {
       m: this.m,
-      accountIds: this.signers.map((signer) => signer.getAccountId(index)),
-      publicKeys: this.signers.map((signer) => publicKeyToString(signer.getKeyPair(index).publicKey)),
+      accountIds,
+      publicKeys,
       signedAccountIds: [],
     }
   }
@@ -122,6 +132,18 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
     options: CreateTransactionOptions = {},
   ): Promise<BitcoinUnsignedTransaction> {
     const tx = await super.createMultiOutputTransaction(from, to, options)
+    return {
+      ...tx,
+      multisigData: this.createMultisigData(from),
+    }
+  }
+
+  async createJoinedTransaction(
+    from: number[],
+    to: PayportOutput[],
+    options: CreateTransactionOptions = {},
+  ): Promise<BitcoinUnsignedTransaction> {
+    const tx = await super.createJoinedTransaction(from, to, options)
     return {
       ...tx,
       multisigData: this.createMultisigData(from),

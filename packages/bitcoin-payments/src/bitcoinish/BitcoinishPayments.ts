@@ -84,7 +84,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
    * with coin specific implementation (eg using Psbt for bitcoin). If coin doesn't have an unsigned
    * serialized tx format (ie most coins other than BTC) then leave as empty string.
    */
-  abstract serializePaymentTx(paymentTx: BitcoinishPaymentTx, fromIndex: number): Promise<string>
+  abstract serializePaymentTx(paymentTx: BitcoinishPaymentTx, fromIndex?: number): Promise<string>
 
   async init() {}
   async destroy() {}
@@ -742,6 +742,10 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     this.logger.debug('createMultiOutputTransaction unusedUtxos', unusedUtxos)
 
     const { address: fromAddress } = await this.resolvePayport(from)
+    let changeAddress = options.changeAddress
+    if (!changeAddress) {
+      changeAddress = fromAddress
+    }
 
     const desiredOutputs = await Promise.all(to.map(async ({ payport, amount }) => ({
       address: (await this.resolvePayport(payport)).address,
@@ -756,7 +760,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       unusedUtxos,
       enforcedUtxos: options.forcedUtxos || [],
       desiredOutputs,
-      changeAddress: fromAddress,
+      changeAddress,
       desiredFeeRate: { feeRate: targetFeeRate, feeRateType: targetFeeRateType },
       useAllUtxos: options.useAllUtxos ?? false,
       useUnconfirmedUtxos: options.useUnconfirmedUtxos ?? false,
@@ -833,6 +837,91 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       useAllUtxos: true,
     }
     return this.createTransaction(from, to, outputAmount, updatedOptions)
+  }
+
+  async createJoinedTransaction(
+    from: number[],
+    to: PayportOutput[],
+    options: CreateTransactionOptions = {},
+  ): Promise<BitcoinishUnsignedTransaction> {
+    assertType(t.array(PayportOutput), to)
+    this.logger.debug('createJoinedTransaction', from, to, options)
+
+    const unusedUtxos = []
+    if (options.availableUtxos) {
+      for (let u of options.availableUtxos) {
+        if(!u.signer) {
+          u.signer = 0 // use HW by default
+        }
+        unusedUtxos.push(u)
+      }
+    } else {
+      for(let f of from) {
+        unusedUtxos.push(...(await this.getUtxos(f)))
+      }
+    }
+    this.logger.debug('createJoinedTransaction unusedUtxos', unusedUtxos)
+
+    let changeAddress = options.changeAddress
+    if (!changeAddress) {
+      ;({ address: changeAddress} = await this.resolvePayport(from[0]))
+    }
+
+    const desiredOutputs = await Promise.all(to.map(async ({ payport, amount }) => ({
+      address: (await this.resolvePayport(payport)).address,
+      value: String(amount),
+    })))
+
+    const maxFeePercent = new BigNumber(options.maxFeePercent ?? DEFAULT_MAX_FEE_PERCENT).toNumber()
+    const { targetFeeLevel, targetFeeRate, targetFeeRateType } = await this.resolveFeeOption(options)
+    this.logger.debug(`createMultiOutputTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`)
+
+    const paymentTx = await this.buildPaymentTx({
+      unusedUtxos,
+      enforcedUtxos: options.forcedUtxos || [],
+      desiredOutputs,
+      changeAddress,
+      desiredFeeRate: { feeRate: targetFeeRate, feeRateType: targetFeeRateType },
+      useAllUtxos: options.useAllUtxos ?? false,
+      useUnconfirmedUtxos: options.useUnconfirmedUtxos ?? false,
+      recipientPaysFee: options.recipientPaysFee ?? false,
+      maxFeePercent,
+    })
+
+    const unsignedTxHex = await this.serializePaymentTx(paymentTx)
+    paymentTx.rawHex = unsignedTxHex
+    paymentTx.rawHash = sha256FromHex(unsignedTxHex)
+    this.logger.debug('createMultiOutputTransaction data', paymentTx)
+    const feeMain = paymentTx.fee
+
+    let resultToAddress = 'batch'
+    let resultToIndex = null
+    if (paymentTx.externalOutputs.length === 1) {
+      const onlyOutput = paymentTx.externalOutputs[0]
+      resultToAddress = onlyOutput.address
+      resultToIndex = isNumber(to[0].payport) ? to[0].payport : null
+    }
+
+    return {
+      status: TransactionStatus.Unsigned,
+      id: null,
+      fromIndex: from,
+      fromAddress: 'batch',
+      fromExtraId: null,
+      toIndex: resultToIndex,
+      toAddress: resultToAddress,
+      toExtraId: null,
+      amount: paymentTx.externalOutputTotal,
+      targetFeeLevel,
+      targetFeeRate,
+      targetFeeRateType,
+      fee: feeMain,
+      weight: paymentTx.weight,
+      sequenceNumber: null,
+      inputUtxos: paymentTx.inputs,
+      externalOutputs: paymentTx.externalOutputs,
+      data: paymentTx,
+    }
   }
 
   async broadcastTransaction(tx: BitcoinishSignedTransaction): Promise<BitcoinishBroadcastResult> {

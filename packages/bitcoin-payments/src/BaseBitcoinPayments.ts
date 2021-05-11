@@ -124,15 +124,14 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     }
   }
 
-  async buildPsbt(paymentTx: BitcoinishPaymentTx, fromIndex: number): Promise<bitcoin.Psbt> {
+  async buildPsbt(paymentTx: BitcoinishPaymentTx, fromIndex?: number): Promise<bitcoin.Psbt> {
     const { inputs, outputs } = paymentTx
-    const inputPaymentScript = this.getPaymentScript(fromIndex)
 
     let psbt = new bitcoin.Psbt(this.psbtOptions)
     for (let input of inputs) {
       psbt.addInput(await this.getPsbtInputData(
         input,
-        inputPaymentScript,
+        this.getPaymentScript(fromIndex ?? input.signer ?? 0),
         this.addressType,
       ))
     }
@@ -145,7 +144,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     return psbt
   }
 
-  async serializePaymentTx(tx: BitcoinishPaymentTx, fromIndex: number): Promise<string> {
+  async serializePaymentTx(tx: BitcoinishPaymentTx, fromIndex?: number): Promise<string> {
     return (await this.buildPsbt(tx, fromIndex)).toHex()
   }
 
@@ -263,7 +262,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
         this.validatePsbtOutput(changeOutput, psbtOutput, i)
 
         // If we stop reusing addresses in the future this will need to be changed
-        if (changeOutput.address !== tx.fromAddress) {
+        if ((tx.fromAddress !== 'batch') && (changeOutput.address !== tx.fromAddress)) {
           throw new Error(`Invalid tx: change output ${i} address (${changeOutput.address}) doesn't match fromAddress (${tx.fromAddress})`)
         }
 

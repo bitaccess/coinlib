@@ -273,7 +273,7 @@ describeAll('e2e testnet', () => {
       ) {
         return [...activities].sort(compareBalanceActivities).map((ba) => ({
           ...omit(ba, IGNORED_BALANCE_ACTIVITY_FIELDS),
-          utxosSpent: ba.utxosSpent?.map((utxo) => omit(utxo, ['confirmations', 'lockTime'])),
+          utxosSpent: ba.utxosSpent?.map((utxo) => omit(utxo, ['confirmations', 'lockTime', 'signer'])),
         }))
       }
 
@@ -423,6 +423,29 @@ describeAll('e2e testnet', () => {
           expect(activity.confirmationNumber).toBe(blockNumber)
         }
       })
+
+      it('end to end joined send', async () => {
+        const unsignedTx = await payments.createJoinedTransaction(
+          [7, 8],
+          [{
+            payport: 0,
+            amount: '0.0001',
+          }],
+          {
+            useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
+            feeRate: '10',
+            feeRateType: FeeRateType.BasePerWeight,
+          }
+        )
+        const signedTx = await payments.signTransaction(unsignedTx)
+        logger.log(`Sending ${signedTx.amount} from ${[7, 8]} to ${[0]} in tx ${signedTx.id}`)
+        expect(await payments.broadcastTransaction(signedTx)).toEqual({
+          id: signedTx.id,
+        })
+        const tx = await pollUntilFound(signedTx)
+        expect(tx.amount).toEqual(signedTx.amount)
+        expect(tx.fee).toEqual(signedTx.fee)
+      }, 5 * 60 * 1000)
     })
   }
 })

@@ -233,6 +233,39 @@ describeAll('e2e multisig testnet', () => {
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)
       }, 5 * 60 * 1000)
+
+      it('end to end joined send', async () => {
+        const unsignedTx = await payments.createJoinedTransaction(
+          [0],
+          [{
+            payport: 0,
+            amount: '0.0001',
+          }],
+          {
+            useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
+            feeRate: '10',
+            feeRateType: FeeRateType.BasePerWeight,
+          }
+        )
+
+        const partiallySignedTxs = await Promise.all(signerPayments.map((signer) => signer.signTransaction(unsignedTx)))
+        for (let i = 0; i < partiallySignedTxs.length; i++) {
+          const partiallySignedTx = partiallySignedTxs[i]
+          expect(partiallySignedTx.data.partial).toBe(true)
+          expect(partiallySignedTx.data.hex).toMatch(/^[a-f0-9]+$/)
+          expect(partiallySignedTx.data.unsignedTxHash).toBe(unsignedTx.data.rawHash)
+        }
+        const signedTx = await payments.combinePartiallySignedTransactions(partiallySignedTxs)
+        expect(signedTx.status).toBe(TransactionStatus.Signed)
+
+        logger.log(`Sending ${signedTx.amount} from ${[0]} to ${[0]} in tx ${signedTx.id}`)
+        expect(await payments.broadcastTransaction(signedTx)).toEqual({
+          id: signedTx.id,
+        })
+        const tx = await pollUntilFound(signedTx)
+        expect(tx.amount).toEqual(signedTx.amount)
+        expect(tx.fee).toEqual(signedTx.fee)
+      }, 5 * 60 * 1000)
     })
   }
 })
