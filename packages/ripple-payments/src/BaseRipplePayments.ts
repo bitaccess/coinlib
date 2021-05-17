@@ -412,6 +412,10 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     }
   }
 
+  async createJoinedTransaction(): Promise<null> {
+    return null
+  }
+
   async createSweepTransaction(
     from: number,
     to: ResolveablePayport,

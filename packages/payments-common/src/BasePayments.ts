@@ -187,6 +187,20 @@ export interface BasePayments<
   ): Promise<UnsignedTransaction | null>
 
   /**
+   * Creates and signs a new payment transaction sending `amount` from payport `from` to payport `to`.
+   *
+   * @param from - The array of indecies of the payports to send from.
+   * @param to - Array of pairs { payport, amount }
+   * @param options - Object for additional parameters
+   * @returns An object representing the signed transaction
+   */
+  createJoinedTransaction<O extends CreateTransactionOptions>(
+    from: number[],
+    to: PayportOutput[],
+    options?: O,
+  ): Promise<UnsignedTransaction | null>
+
+  /**
    * Signs and returns unsigned transaction.
    *
    * @param from - The index of the payport to send from.

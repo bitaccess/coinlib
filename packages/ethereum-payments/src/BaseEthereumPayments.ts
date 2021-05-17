@@ -230,6 +230,10 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     return this.createTransactionObject(from, undefined, '', options)
   }
 
+  async createJoinedTransaction(): Promise<null> {
+    return null
+  }
+
   async createSweepTransaction(
     from: number | string,
     to: ResolveablePayport,

@@ -39,6 +39,10 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
     return null
   }
 
+  async createJoinedTransaction(): Promise<null> {
+    return null
+  }
+
   isValidAddress(address: string, options?: { format?: string }): boolean {
     return this.utils.isValidAddress(address, options)
   }

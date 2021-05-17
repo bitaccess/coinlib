@@ -372,6 +372,10 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     return null
   }
 
+  async createJoinedTransaction(): Promise<null> {
+    return null
+  }
+
   async createSweepTransaction(
     from: number,
     to: ResolveablePayport,
