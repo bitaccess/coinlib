@@ -189,6 +189,7 @@ describeAll('e2e testnet', () => {
           feeRate: satPerByte.toString(),
           feeRateType: FeeRateType.BasePerWeight,
           useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
+          maxFeePercent: 100,
         })
         const signedTx = await payments.signTransaction(unsignedTx)
         expect(signedTx.inputUtxos).toBeDefined()
@@ -242,6 +243,7 @@ describeAll('e2e testnet', () => {
             useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
             feeRate: '10',
             feeRateType: FeeRateType.BasePerWeight,
+            maxFeePercent: 100,
           },
         )
         const signedTx = await payments.signTransaction(unsignedTx)
@@ -271,7 +273,7 @@ describeAll('e2e testnet', () => {
       ) {
         return [...activities].sort(compareBalanceActivities).map((ba) => ({
           ...omit(ba, IGNORED_BALANCE_ACTIVITY_FIELDS),
-          utxosSpent: ba.utxosSpent?.map((utxo) => omit(utxo, 'rawTx')),
+          utxosSpent: ba.utxosSpent?.map((utxo) => omit(utxo, ['confirmations'])),
         }))
       }
 
@@ -311,12 +313,14 @@ describeAll('e2e testnet', () => {
                 'coinbase': false,
                 'confirmations': 0,
                 'height': undefined,
-                'lockTime': undefined,
+                'lockTime': sweepTxInfo.data.lockTime?.toString(),
                 'satoshis': new BigNumber(sweepTx.amount).times(1e8).toNumber(),
                 'txid': sweepTxInfo.id,
                 'value': sweepTx.amount,
                 'vout': 0,
-                'rawTx': sweepTxInfo.data.hex,
+                'txHex': sweepTxInfo.data.hex,
+                'scriptPubKeyHex': sweepTxInfo.data.vout[0].hex,
+                'address': sweepTx.toAddress,
               },
             ],
             'utxosSpent': [],
@@ -338,12 +342,14 @@ describeAll('e2e testnet', () => {
               'coinbase': false,
               'confirmations': 0,
               'height': undefined,
-              'lockTime': undefined,
+              'lockTime': sendTxInfo.data.lockTime?.toString(),
               'satoshis': new BigNumber(changeOutput.value).times(1e8).toNumber(),
               'txid': sendTxInfo.id,
               'value': changeOutput.value,
               'vout': 1 + i,
-              'rawTx': sendTxInfo.data.hex,
+              'txHex': sendTxInfo.data.hex,
+              'scriptPubKeyHex': sendTxInfo.data.vout[1 + i].hex,
+              'address': sendTx.fromAddress,
             })),
             'utxosSpent': sendTx.inputUtxos,
           },
@@ -365,12 +371,14 @@ describeAll('e2e testnet', () => {
                 'coinbase': false,
                 'confirmations': 0,
                 'height': undefined,
-                'lockTime': undefined,
+                'lockTime': sendTxInfo.data.lockTime?.toString(),
                 'satoshis': new BigNumber(sendTx.amount).times(1e8).toNumber(),
                 'txid': sendTxInfo.id,
                 'value': sendTx.amount,
                 'vout': 0,
-                'rawTx': sendTxInfo.data.hex,
+                'txHex': sendTxInfo.data.hex,
+                'scriptPubKeyHex': sendTxInfo.data.vout[0].hex,
+                'address': sendTxInfo.toAddress!,
               },
             ],
             'utxosSpent': [],
