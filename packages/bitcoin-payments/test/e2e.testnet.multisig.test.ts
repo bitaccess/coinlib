@@ -12,7 +12,7 @@ import { delay, END_TRANSACTION_STATES, expectEqualWhenTruthy, logger } from './
 import { NetworkType, TransactionStatus, BaseMultisigData, FeeRateType } from '@faast/payments-common'
 import path from 'path'
 import fs from 'fs'
-import { DERIVATION_PATH, ADDRESSES, M, ACCOUNT_IDS, EXTERNAL_ADDRESS } from './fixtures/multisigTestnet'
+import { DERIVATION_PATH, ADDRESSES, M, ACCOUNT_IDS_0, ACCOUNT_IDS_ALL, EXTERNAL_ADDRESS } from './fixtures/multisigTestnet'
 
 const SECRET_KEYS_FILE = 'test/keys/testnet.multisig.key'
 
@@ -58,7 +58,7 @@ describeAll('e2e multisig testnet', () => {
     new KeyPairBitcoinPayments({
       logger,
       network: NetworkType.Testnet,
-      keyPairs: [secretKeys[0]],
+      keyPairs: [secretKeys[0], secretKeys[4]],
     }),
     new HdBitcoinPayments({
       logger,
@@ -69,7 +69,7 @@ describeAll('e2e multisig testnet', () => {
     new KeyPairBitcoinPayments({
       logger,
       network: NetworkType.Testnet,
-      keyPairs: [secretKeys[2]],
+      keyPairs: [secretKeys[2], secretKeys[5]],
     }),
     new HdBitcoinPayments({
       logger,
@@ -110,12 +110,12 @@ describeAll('e2e multisig testnet', () => {
 
       it('getAccountIds returns all', () => {
         const accountIds = payments.getAccountIds()
-        expect(accountIds).toEqual(ACCOUNT_IDS)
+        expect(accountIds).toEqual(ACCOUNT_IDS_ALL)
       })
 
       it('getAccountIds(0) returns all', () => {
         const accountIds = payments.getAccountIds(0)
-        expect(accountIds).toEqual(ACCOUNT_IDS)
+        expect(accountIds).toEqual(ACCOUNT_IDS_0)
       })
 
       it('getAccountId throws', () => {
@@ -193,9 +193,13 @@ describeAll('e2e multisig testnet', () => {
         }
         logger.log(tx.status, tx)
         expect(tx.id).toBe(signedTx.id)
-        expect(tx.fromAddress).toBe(signedTx.fromAddress)
+        if (![signedTx.fromAddress, tx.fromAddress].includes('batch')) {
+          expect(tx.fromAddress).toBe(signedTx.fromAddress)
+        }
+        if (![signedTx.toAddress, tx.toAddress].includes('batch')) {
+          expect(tx.toAddress).toBe(signedTx.toAddress)
+        }
         expectEqualWhenTruthy(tx.fromExtraId, signedTx.fromExtraId)
-        expect(tx.toAddress).toBe(signedTx.toAddress)
         expectEqualWhenTruthy(tx.toExtraId, signedTx.toExtraId)
         expect(tx.data).toBeDefined()
         expect(endState).toContain(tx.status)
@@ -236,15 +240,16 @@ describeAll('e2e multisig testnet', () => {
 
       it('end to end multi-input send', async () => {
         const unsignedTx = await payments.createMultiInputTransaction(
-          [0],
+          [0, 1],
           [{
-            payport: 0,
+            payport: { address: '2NDj67pPQUNS8VYARENU2JMM36T9DPX9wZi' },
             amount: '0.0001',
           }],
           {
             useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
             feeRate: '10',
             feeRateType: FeeRateType.BasePerWeight,
+            changeAddress: '2MuSr4CwNibmFhuKeboKtV7krzYHL3uanES',
           }
         )
 

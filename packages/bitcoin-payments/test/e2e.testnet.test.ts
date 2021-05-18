@@ -439,6 +439,7 @@ describeAll('e2e testnet', () => {
             useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
             feeRate: '10',
             feeRateType: FeeRateType.BasePerWeight,
+            changeAddress: '2MuhoQzdBdNUYoyNxtbeSMUZdfmm6SvYBW8',
           }
         )
         const signedTx = await payments.signTransaction(unsignedTx)
