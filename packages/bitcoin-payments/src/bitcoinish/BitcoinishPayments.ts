@@ -742,10 +742,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     this.logger.debug('createMultiOutputTransaction unusedUtxos', unusedUtxos)
 
     const { address: fromAddress } = await this.resolvePayport(from)
-    let changeAddress = options.changeAddress
-    if (!changeAddress) {
-      changeAddress = fromAddress
-    }
+    let changeAddress = options.changeAddress ?? fromAddress
 
     const desiredOutputs = await Promise.all(to.map(async ({ payport, amount }) => ({
       address: (await this.resolvePayport(payport)).address,
@@ -839,20 +836,17 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     return this.createTransaction(from, to, outputAmount, updatedOptions)
   }
 
-  async createJoinedTransaction(
+  async createMultiInputTransaction(
     from: number[],
     to: PayportOutput[],
     options: CreateTransactionOptions = {},
   ): Promise<BitcoinishUnsignedTransaction> {
     assertType(t.array(PayportOutput), to)
-    this.logger.debug('createJoinedTransaction', from, to, options)
+    this.logger.debug('createMultiInputTransaction', from, to, options)
 
     const unusedUtxos = []
     if (options.availableUtxos) {
       for (let u of options.availableUtxos) {
-        if(!u.signer) {
-          u.signer = 0 // use HW by default
-        }
         unusedUtxos.push(u)
       }
     } else {
@@ -860,7 +854,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         unusedUtxos.push(...(await this.getUtxos(f)))
       }
     }
-    this.logger.debug('createJoinedTransaction unusedUtxos', unusedUtxos)
+    this.logger.debug('createMultiInputTransaction unusedUtxos', unusedUtxos)
 
     let changeAddress = options.changeAddress
     if (!changeAddress) {

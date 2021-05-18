@@ -35,10 +35,6 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
     return null
   }
 
-  async createJoinedTransaction(): Promise<null> {
-    return null
-  }
-
   isValidAddress(address: string): boolean {
     return isValidAddress(address, this.networkType)
   }

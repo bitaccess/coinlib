@@ -129,9 +129,13 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
 
     let psbt = new bitcoin.Psbt(this.psbtOptions)
     for (let input of inputs) {
+      const signer = input.signer ?? fromIndex
+      if (typeof signer === 'undefined') {
+        throw new Error('Signer index for utxo is not provided')
+      }
       psbt.addInput(await this.getPsbtInputData(
         input,
-        this.getPaymentScript(fromIndex ?? input.signer ?? 0),
+        this.getPaymentScript(signer),
         this.addressType,
       ))
     }

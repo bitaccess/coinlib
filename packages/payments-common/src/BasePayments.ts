@@ -194,7 +194,7 @@ export interface BasePayments<
    * @param options - Object for additional parameters
    * @returns An object representing the signed transaction
    */
-  createJoinedTransaction<O extends CreateTransactionOptions>(
+  createMultiInputTransaction<O extends CreateTransactionOptions>(
     from: number[],
     to: PayportOutput[],
     options?: O,

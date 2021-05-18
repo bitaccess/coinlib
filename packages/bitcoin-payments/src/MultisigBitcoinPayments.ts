@@ -138,12 +138,12 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
     }
   }
 
-  async createJoinedTransaction(
+  async createMultiInputTransaction(
     from: number[],
     to: PayportOutput[],
     options: CreateTransactionOptions = {},
   ): Promise<BitcoinUnsignedTransaction> {
-    const tx = await super.createJoinedTransaction(from, to, options)
+    const tx = await super.createMultiInputTransaction(from, to, options)
     return {
       ...tx,
       multisigData: this.createMultisigData(from),

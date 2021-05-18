@@ -158,9 +158,13 @@ describeAll('e2e testnet', () => {
         }
         logger.log(tx.status, tx)
         expect(tx.id).toBe(signedTx.id)
-        expect(tx.fromAddress).toBe(signedTx.fromAddress)
+        if (![signedTx.fromAddress, tx.fromAddress].includes('batch')) {
+          expect(tx.fromAddress).toBe(signedTx.fromAddress)
+        }
+        if (![signedTx.toAddress, tx.toAddress].includes('batch')) {
+          expect(tx.toAddress).toBe(signedTx.toAddress)
+        }
         expectEqualWhenTruthy(tx.fromExtraId, signedTx.fromExtraId)
-        expect(tx.toAddress).toBe(signedTx.toAddress)
         expectEqualWhenTruthy(tx.toExtraId, signedTx.toExtraId)
         expect(tx.data).toBeDefined()
         expect(endState).toContain(tx.status)
@@ -424,8 +428,8 @@ describeAll('e2e testnet', () => {
         }
       })
 
-      it('end to end joined send', async () => {
-        const unsignedTx = await payments.createJoinedTransaction(
+      it('end to end multi-input send', async () => {
+        const unsignedTx = await payments.createMultiInputTransaction(
           [7, 8],
           [{
             payport: 0,

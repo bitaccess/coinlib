@@ -234,8 +234,8 @@ describeAll('e2e multisig testnet', () => {
         expect(tx.fee).toEqual(signedTx.fee)
       }, 5 * 60 * 1000)
 
-      it('end to end joined send', async () => {
-        const unsignedTx = await payments.createJoinedTransaction(
+      it('end to end multi-input send', async () => {
+        const unsignedTx = await payments.createMultiInputTransaction(
           [0],
           [{
             payport: 0,

@@ -43,7 +43,10 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
     let res: BitcoinSignedTransaction | BitcoinUnsignedTransaction = tx
     const inputUtxos = tx.inputUtxos || []
     for (let i = 0; i < inputUtxos.length; i++) {
-      const accountId = this.getAccountId(inputUtxos[i].signer || 0)
+      if (typeof inputUtxos[i].signer === 'undefined') {
+        throw new Error('Uxto needs to have signer provided')
+      }
+      const accountId = this.getAccountId(inputUtxos[i].signer)
       const accountIdIndex = multisigData.accountIds.findIndex((x) => x === accountId)
 
       if (accountIdIndex === -1) {

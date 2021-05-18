@@ -148,7 +148,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
       const tx = txsById[data.txid] ?? (await this._retryDced(() => this.getApi().getTx(data.txid)))
       txsById[data.txid] = tx
       const output = tx.vout[data.vout]
-      return {
+      const res : UtxoInfo = {
         ...data,
         satoshis: Number.parseInt(value),
         value: this.toMainDenominationString(value),
@@ -160,6 +160,10 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
         address: output?.addresses?.[0],
         spent: false,
       }
+      if (typeof payport === 'number') {
+        res.signer = payport
+      }
+      return res
     }))
     return utxos
   }
