@@ -3,6 +3,7 @@ import {
   GetBalanceActivityOptions,
   RetrieveBalanceActivitiesResult,
   BalanceActivity,
+  NewBlockCallback,
 } from './types'
 
 /**
@@ -32,6 +33,7 @@ export interface BalanceMonitor {
   destroy(): Promise<void>
 
   /**
+   * Watch for mempool transactions and emit balance activities that apply to the specified addresses
    * @param addresses The addresses to watch for balance activity on
    */
   subscribeAddresses(addresses: string[]): Promise<void>
@@ -71,4 +73,30 @@ export interface BalanceMonitor {
    * @param tx The raw transaction object returned by the network
    */
   txToBalanceActivity(address: string, tx: object): Promise<BalanceActivity | null>
+
+  /**
+   * Watch for confirmed blocks and emit balance activities that apply to the result of the filter
+   * @param filterRelevantAddresses A callback to filter all block addresses to only relevant ones
+   */
+  subscribeNewBlock?: (filterRelevantAddresses: (addresses: string[]) => Promise<string[]>) => Promise<void>
+
+  /**
+   * Add an event listener that is called whenever a new block is confirmed.
+   * @param callbackFn A callback to receive incoming block hash/height
+   */
+  onNewBlock?: (callbackFn: NewBlockCallback) => void
+
+  /**
+   * Retrieve all balanace activities in a given block. The addresses affected by the block will be passed
+   * into the filterRelevantAddresses function and the resulting addresses will be applied to filter out
+   * irrelevant balance activities.
+   * @param block The block number or hash to look up
+   * @param callbackFn A callback for all emitted activities
+   * @param filterRelevantAddresses A callback for filtering what addresses balance activities should be emitted
+   */
+  retrieveBlockBalanceActivities?: (
+    block: number | string,
+    callbackFn: BalanceActivityCallback,
+    filterRelevantAddresses: (addresses: string[]) => string[] | Promise<string[]>,
+  ) => Promise<{ hash: string, height: number }>
 }

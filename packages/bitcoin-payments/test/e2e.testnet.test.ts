@@ -399,6 +399,19 @@ describeAll('e2e testnet', () => {
         expect(sortAndOmitBalanceActivities(pastActivities))
           .toEqual(sortAndOmitBalanceActivities(recordedBalanceActivities))
       })
+
+      it('can retrieve block activities', async () => {
+        const blockActivities: BalanceActivity[] = []
+        const blockNumber = 1975840
+        await balanceMonitor.retrieveBlockBalanceActivities(blockNumber, (activity) => {
+          blockActivities.push(activity)
+        }, (addresses) => addresses.filter((address) => addressesToWatch.includes(address)))
+        expect(blockActivities.length).toBe(4)
+        for (let activity of blockActivities) {
+          expect(addressesToWatch).toContain(activity.address)
+          expect(activity.confirmationNumber).toBe(blockNumber)
+        }
+      })
     })
   }
 })

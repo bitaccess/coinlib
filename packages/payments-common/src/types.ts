@@ -352,6 +352,9 @@ export type GetBalanceActivityOptions = t.TypeOf<typeof GetBalanceActivityOption
 export type BalanceActivityCallback = (ba: BalanceActivity, rawTx?: any) => Promise<void> | void
 export const BalanceActivityCallback = functionT<BalanceActivityCallback>('BalanceActivityCallback')
 
+export type NewBlockCallback = (b: { height: number, hash: string }) => Promise<void> | void
+export const NewBlockCallback = functionT<NewBlockCallback>('NewBlockCallback')
+
 export type FromTo = Pick<
   BaseUnsignedTransaction,
   'fromAddress' | 'fromIndex' | 'fromExtraId' | 'toAddress' | 'toIndex' | 'toExtraId'
