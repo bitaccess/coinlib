@@ -82,7 +82,6 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     paymentScript: bitcoin.payments.Payment,
     addressType: AddressType,
   ): Promise<PsbtInputData> {
-    const utx = await this.getApi().getTx(utxo.txid)
     const result: PsbtInputData = {
       hash: utxo.txid,
       index: utxo.vout,
@@ -90,25 +89,22 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     }
     if ((/p2wpkh|p2wsh/).test(addressType)) {
       // for segwit inputs, you only need the output script and value as an object.
-      const rawUtxo = utx.vout[utxo.vout]
-      const { hex: scriptPubKey, value: rawValue } = rawUtxo
+      const scriptPubKey = utxo.scriptPubKeyHex ?? (await this.getApi().getTx(utxo.txid)).vout[utxo.vout]?.hex
       if (!scriptPubKey) {
         throw new Error(`Cannot get scriptPubKey for utxo ${utxo.txid}:${utxo.vout}`)
       }
       const utxoValue = this.toBaseDenominationNumber(utxo.value)
-      if (String(utxoValue) !== rawValue) {
-        throw new Error(`Utxo ${utxo.txid}:${utxo.vout} has mismatched value - ${utxoValue} sat expected but network reports ${rawValue} sat`)
-      }
       result.witnessUtxo = {
         script: Buffer.from(scriptPubKey, 'hex'),
         value: utxoValue,
       }
     } else {
       // for non segwit inputs, you must pass the full transaction buffer
-      if (!utx.hex) {
+      const txHex = utxo.txHex ?? (await this.getApi().getTx(utxo.txid)).hex
+      if (!txHex) {
         throw new Error(`Cannot get raw hex of tx for utxo ${utxo.txid}:${utxo.vout}`)
       }
-      result.nonWitnessUtxo = Buffer.from(utx.hex, 'hex')
+      result.nonWitnessUtxo = Buffer.from(txHex, 'hex')
     }
     if (addressType.startsWith('p2sh-p2wsh')) {
       result.witnessScript = paymentScript.redeem!.redeem!.output

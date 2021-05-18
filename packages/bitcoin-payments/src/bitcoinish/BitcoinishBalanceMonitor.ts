@@ -147,17 +147,21 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
           this.logger.log(`Tx ${tx.txid} input ${input.n} has no txid or vout`, input)
           continue
         }
+        const vout = input.vout ?? 0
         const inputTxInfo = await this._retryDced(() => this.getApi().getTx(inputTxid))
+        const output = inputTxInfo.vout[vout]
         utxosSpent.push({
           txid: inputTxid,
-          vout: input.vout ?? 0, // vout might be missing when 0
+          vout, // vout might be missing when 0
           satoshis: new BigNumber(input.value).toNumber(),
           value: this.utils.toMainDenominationString(input.value),
           confirmations: inputTxInfo.confirmations,
           height: inputTxInfo.blockHeight > 0 ? String(inputTxInfo.blockHeight) : undefined,
           coinbase: !input.isAddress && input.value === '0',
           lockTime: inputTxInfo.lockTime ? String(inputTxInfo.lockTime) : undefined,
-          rawTx: inputTxInfo.hex,
+          txHex: inputTxInfo.hex,
+          scriptPubKeyHex: output.hex,
+          address: standardizedAddress,
         })
       }
     }
@@ -173,7 +177,9 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
           height: tx.blockHeight > 0 ? String(tx.blockHeight) : undefined,
           coinbase: tx.valueIn === '0' && tx.value !== '0',
           lockTime: tx.lockTime ? String(tx.lockTime) : undefined,
-          rawTx: tx.hex,
+          txHex: tx.hex,
+          scriptPubKeyHex: output.hex,
+          address: standardizedAddress,
         })
       }
     }

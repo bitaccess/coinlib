@@ -1,3 +1,4 @@
+import { NormalizedTxBitcoin } from 'blockbook-client';
 import {
   BasePayments,
   UtxoInfo,
@@ -174,8 +175,14 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   async getUtxos(payport: ResolveablePayport): Promise<UtxoInfo[]> {
     const { address } = await this.resolvePayport(payport)
     let utxosRaw = await this.getApi().getUtxosForAddress(address)
-    const utxos: UtxoInfo[] = utxosRaw.map((data) => {
+    const txsById: { [txid: string]: NormalizedTxBitcoin } = {}
+    const utxos: UtxoInfo[] = await Promise.all(utxosRaw.map(async (data) => {
       const { value, height, lockTime, coinbase } = data
+
+      // Retrieve the raw tx data to enable returning raw hex data. Memoize in a temporary object for efficiency
+      const tx = txsById[data.txid] ?? (await this._retryDced(() => this.getApi().getTx(data.txid)))
+      txsById[data.txid] = tx
+      const output = tx.vout[data.vout]
       return {
         ...data,
         satoshis: Number.parseInt(value),
@@ -183,8 +190,11 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         height: isUndefined(height) || height <= 0 ? undefined : String(height),
         lockTime: isUndefined(lockTime) ? undefined : String(lockTime),
         coinbase: Boolean(coinbase),
+        txHex: tx.hex,
+        scriptPubKeyHex: output?.hex,
+        address: output?.addresses[0],
       }
-    })
+    }))
     return utxos
   }
 
