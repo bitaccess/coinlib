@@ -72,6 +72,23 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
     this.events.on('activity', ({ activity, tx }) => callbackFn(activity, tx))
   }
 
+  private accumulateAddressTx(
+    addressTransactions: { [address: string]: Set<NormalizedTxBitcoin> },
+    tx: NormalizedTxBitcoin,
+    inout: NormalizedTxBitcoinVin | NormalizedTxBitcoinVout,
+  ) {
+    if (!(inout.isAddress && inout.addresses?.length)) {
+      return
+    }
+
+    const address = this.utils.standardizeAddress(inout.addresses[0])
+    if (address === null) {
+      return
+    }
+
+    (addressTransactions[address] = addressTransactions[address] ?? new Set()).add(tx)
+  }
+
   async retrieveBlockBalanceActivities(
     blockId: number | string,
     callbackFn: BalanceActivityCallback,
@@ -89,22 +106,10 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
       const addressTransactions: { [address: string]: Set<NormalizedTxBitcoin> } = {}
       for (let tx of blockPage.txs) {
         for (let input of tx.vin) {
-          if (input.isAddress && input.addresses?.length) {
-            const address = this.utils.standardizeAddress(input.addresses[0])
-            if (address === null) {
-              continue
-            }
-            (addressTransactions[address] = addressTransactions[address] ?? new Set()).add(tx)
-          }
+          this.accumulateAddressTx(addressTransactions, tx, input)
         }
         for (let output of tx.vout) {
-          if (output.isAddress && output.addresses?.length) {
-            const address = this.utils.standardizeAddress(output.addresses[0])
-            if (address === null) {
-              continue
-            }
-            (addressTransactions[address] = addressTransactions[address] ?? new Set()).add(tx)
-          }
+          this.accumulateAddressTx(addressTransactions, tx, output)
         }
       }
       // Emit events for all address/tx combinations
