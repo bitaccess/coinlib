@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { omit } from 'lodash'
-import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel } from '@faast/payments-common'
+import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel, UtxoInfo } from '@faast/payments-common'
 
 import {
   HdBitcoinPayments, BitcoinTransactionInfo, HdBitcoinPaymentsConfig,
@@ -66,18 +66,21 @@ describeAll('e2e mainnet', () => {
   const address3 = 'bc1q2qsxsvwx2tmrfqqg8f58qgu9swn3zau809tzty'
   const xpub =
     'xpub6CMNrExwWj5nM3zYW8fXmZ1LrhrAuggZQAnBeWKiMQdK9tBWd1Ed6f2g94uJ4VwmX74uT6wzmFKqSvCGb3aoX33NQnoGPf7Bk8Yg9LM6VVH'
-  const address0utxos = [
+  const address0utxos: UtxoInfo[] = [
     {
       'txid': '34ce1e85a6a934bcb2f08f833835db008274c1b59f236edba2f87c0ce21bc10b',
       'vout': 0,
       'value': '0.00011',
       'satoshis': 11000,
-      'height': 613152,
+      'height': '613152',
       'confirmations': 8753,
       'coinbase': false,
+      'address': 'bc1qz7v8smdfrgzqvjre3lrcxl4ul9x806e7umgf27',
+      'scriptPubKeyHex': '00141798786da91a040648798fc7837ebcf94c77eb3e',
+      'txHex': '02000000000101f871ced6c1e288f5e71ac7e5806b6520e7591ac940c551d5f058f64d958a7a380000000000ffffffff02f82a0000000000001600141798786da91a040648798fc7837ebcf94c77eb3e466002000000000016001453a82df79d3dd4226ae5d0c45cc6c01a2d13e652024730440220056048afa4db673faa7bf6b1f06951a1f7c736d86cb09986c8aeb21c42f4c3af02202f556189874bd25b17d01bd35e6dbdcc7a1f7725108c847e3f32b4d17f7561b3012102b1faf30d6ad23213e81b3b7e69e4c630bafe8d0acbb9a74e78ae84ae40dc786e00000000',
     }
   ]
-  const omitUtxoFieldEquality = ['height', 'confirmations', 'lockTime']
+  const omitUtxoFieldEquality = ['height', 'confirmations']
 
   it('get correct xpub', async () => {
     expect(payments.xpub).toEqual(xpub)

@@ -108,10 +108,15 @@ describeAll('e2e mainnet', () => {
       'value': '0.03',
       'satoshis': 3000000,
       'height': 613152,
-      'confirmations': 8753
+      'confirmations': 8753,
+      'txHex': '0100000001950708260ee1b332b1b2aa1687e99ac50d57b98000952e148e87d2b8a03de5dd000000006b4830450221009360e33ad04cdad31d2fa6190fea734db4a5710e1ef1201a21dd5225bf022c5b02204e4193aa847530187ce2085f0599cdeab7de607c96b6bb819c66a31028aa07e2412102bde4216a684b8bc73c8a6666398fb321b921407f0f3cdbf19f1abb01fcd1b983ffffffff02c0c62d00000000001976a914080edbe8eb5d0f3e188bbba18c7653be15e9739788ac97915000000000001976a9147fe0e88cb9f3a6248be40f291ae2a395d16703b388ac00000000',
+      'scriptPubKeyHex': '76a914080edbe8eb5d0f3e188bbba18c7653be15e9739788ac',
+      'coinbase': false,
+      'lockTime': undefined,
+      'address': 'bitcoincash:qqyqaklgadws70sc3wa6rrrk2wlpt6tnjuvyll86mu'
     }
   ]
-  const omitUtxoFieldEquality = ['height', 'confirmations', 'lockTime']
+  const omitUtxoFieldEquality = ['height', 'confirmations']
 
   it('get correct xpub', async () => {
     expect(payments.xpub).toEqual(xpub)
