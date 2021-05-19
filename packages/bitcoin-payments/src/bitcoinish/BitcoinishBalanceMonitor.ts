@@ -7,6 +7,7 @@ import {
   RetrieveBalanceActivitiesResult,
   NetworkType,
   createUnitConverters,
+  NewBlockCallback,
 } from '@faast/payments-common'
 import { EventEmitter } from 'events'
 import {
@@ -18,7 +19,7 @@ import {
 import BigNumber from 'bignumber.js'
 import { isUndefined, Numeric } from '@faast/ts-common'
 
-import { BitcoinishBalanceMonitorConfig } from './types'
+import { BitcoinishBalanceMonitorConfig, BitcoinishBlock } from './types'
 import { BlockbookConnected } from './BlockbookConnected'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
 
@@ -27,6 +28,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
   readonly coinName: string
   readonly coinSymbol: string
   readonly utils: BitcoinishPaymentsUtils
+  readonly events = new EventEmitter()
 
   constructor(config: BitcoinishBalanceMonitorConfig) {
     super(config)
@@ -35,10 +37,8 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
     this.coinSymbol = config.utils.coinSymbol
   }
 
-  txEmitter = new EventEmitter()
-
   async destroy() {
-    this.txEmitter.removeAllListeners('tx')
+    this.events.removeAllListeners('tx')
     await super.destroy()
   }
 
@@ -46,18 +46,87 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
     for (let address of addresses) {
       this.utils.validateAddress(address)
     }
-    await this.getApi().subscribeAddresses(addresses, ({ address, tx }) => {
-      this.txEmitter.emit('tx', { address, tx })
+    await this.getApi().subscribeAddresses(addresses, async ({ address, tx }) => {
+      this.events.emit('tx', { address, tx })
+      const activity = await this.txToBalanceActivity(address, tx as NormalizedTxBitcoin)
+      if (activity) {
+        this.events.emit('activity', { activity, tx })
+      }
     })
   }
 
-  onBalanceActivity(callbackFn: BalanceActivityCallback) {
-    this.txEmitter.on('tx', async ({ address, tx }) => {
-      const activity = await this.txToBalanceActivity(address, tx)
-      if (activity) {
-        callbackFn(activity, tx)
-      }
+  async subscribeNewBlock(filterRelevantAddresses: (addresses: string[]) => Promise<string[]>): Promise<void> {
+    await this.getApi().subscribeNewBlock(async (b) => {
+      this.events.emit('block', b)
+      await this.retrieveBlockBalanceActivities(b.hash, (activity, tx) => {
+        this.events.emit('activity', { activity, tx })
+      }, filterRelevantAddresses)
     })
+  }
+
+  onNewBlock(callbackFn: NewBlockCallback) {
+    this.events.on('block', callbackFn)
+  }
+
+  onBalanceActivity(callbackFn: BalanceActivityCallback) {
+    this.events.on('activity', ({ activity, tx }) => callbackFn(activity, tx))
+  }
+
+  private accumulateAddressTx(
+    addressTransactions: { [address: string]: Set<NormalizedTxBitcoin> },
+    tx: NormalizedTxBitcoin,
+    inout: NormalizedTxBitcoinVin | NormalizedTxBitcoinVout,
+  ) {
+    if (!(inout.isAddress && inout.addresses?.length)) {
+      return
+    }
+
+    const address = this.utils.standardizeAddress(inout.addresses[0])
+    if (address === null) {
+      return
+    }
+
+    (addressTransactions[address] = addressTransactions[address] ?? new Set()).add(tx)
+  }
+
+  async retrieveBlockBalanceActivities(
+    blockId: number | string,
+    callbackFn: BalanceActivityCallback,
+    filterRelevantAddresses: (addresses: string[]) => string[] | Promise<string[]>,
+  ): Promise<{ hash: string, height: number }> {
+    let page = 1
+    let blockPage: BitcoinishBlock | undefined
+    while(!blockPage || blockPage.page < blockPage.totalPages) {
+      blockPage = await this.getApi().getBlock(blockId, { page })
+      if (!blockPage.txs) {
+        this.logger.log(`No transactions returned for page ${page} of block ${blockId}`)
+        break
+      }
+      // Aggregate all block txs by the addresses they apply to
+      const addressTransactions: { [address: string]: Set<NormalizedTxBitcoin> } = {}
+      for (let tx of blockPage.txs) {
+        for (let input of tx.vin) {
+          this.accumulateAddressTx(addressTransactions, tx, input)
+        }
+        for (let output of tx.vout) {
+          this.accumulateAddressTx(addressTransactions, tx, output)
+        }
+      }
+      // Emit events for all address/tx combinations
+      const relevantAddresses = new Set<string>(
+        await filterRelevantAddresses(Array.from(Object.keys(addressTransactions)))
+      )
+      for (let address of relevantAddresses) {
+        const txs = addressTransactions[address] ?? []
+        for (let tx of txs) {
+          const activity = await this.txToBalanceActivity(address, tx)
+          if (activity) {
+            callbackFn(activity, tx)
+          }
+        }
+      }
+    }
+    return blockPage
   }
 
   async retrieveBalanceActivities(
@@ -132,7 +201,8 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
     const confirmationNumber = tx.blockHeight
     const standardizedAddress = this.utils.standardizeAddress(address)
     if (standardizedAddress === null) {
-      throw new Error(`Cannot standardize ${this.coinName} address, likely invalid: ${address}`)
+      this.logger.warn(`Cannot standardize ${this.coinName} address, likely invalid: ${address}`)
+      return null
     }
 
     let netSatoshis = new BigNumber(0) // balance increase (positive), or decreased (negative)
