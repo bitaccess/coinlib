@@ -53,7 +53,7 @@
     "jest-circus": "^26.1.0",
     "jest-config": "^26.1.0",
     "lint-staged": "^8.0.0",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "prettier": "^1.14.3",
     "rimraf": "^2.6.2",
     "rollup": "^2.27.0",
@@ -74,7 +74,7 @@
     "bignumber.js": "^9.0.0",
     "bip32": "^2.0.6",
     "io-ts": "^1.10.4",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "promise-retry": "^1.1.1",
     "ripple-lib": "^1.9.0"
   }

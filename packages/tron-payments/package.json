@@ -71,7 +71,7 @@
     "jest-circus": "^26.1.0",
     "jest-config": "^26.1.0",
     "lint-staged": "^8.0.0",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "prettier": "^1.14.3",
     "rimraf": "^2.6.2",
     "rollup": "^2.27.0",
