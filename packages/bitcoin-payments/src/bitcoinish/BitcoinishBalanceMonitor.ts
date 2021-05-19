@@ -55,17 +55,8 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
     })
   }
 
-  async subscribeNewBlock(filterRelevantAddresses: (addresses: string[]) => Promise<string[]>): Promise<void> {
-    await this.getApi().subscribeNewBlock(async (b) => {
-      this.events.emit('block', b)
-      await this.retrieveBlockBalanceActivities(b.hash, (activity, tx) => {
-        this.events.emit('activity', { activity, tx })
-      }, filterRelevantAddresses)
-    })
-  }
-
-  onNewBlock(callbackFn: NewBlockCallback) {
-    this.events.on('block', callbackFn)
+  async subscribeNewBlock(callbackFn: NewBlockCallback): Promise<void> {
+    await this.getApi().subscribeNewBlock(callbackFn)
   }
 
   onBalanceActivity(callbackFn: BalanceActivityCallback) {
@@ -121,7 +112,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
         for (let tx of txs) {
           const activity = await this.txToBalanceActivity(address, tx)
           if (activity) {
-            callbackFn(activity, tx)
+            await callbackFn(activity, tx)
           }
         }
       }

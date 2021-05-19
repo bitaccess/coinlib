@@ -75,16 +75,9 @@ export interface BalanceMonitor {
   txToBalanceActivity(address: string, tx: object): Promise<BalanceActivity | null>
 
   /**
-   * Watch for confirmed blocks and emit balance activities that apply to the result of the filter
-   * @param filterRelevantAddresses A callback to filter all block addresses to only relevant ones
+   * Watch for confirmed blocks
    */
-  subscribeNewBlock?: (filterRelevantAddresses: (addresses: string[]) => Promise<string[]>) => Promise<void>
-
-  /**
-   * Add an event listener that is called whenever a new block is confirmed.
-   * @param callbackFn A callback to receive incoming block hash/height
-   */
-  onNewBlock?: (callbackFn: NewBlockCallback) => void
+  subscribeNewBlock?: (callbackFn: NewBlockCallback) => Promise<void>
 
   /**
    * Retrieve all balanace activities in a given block. The addresses affected by the block will be passed
