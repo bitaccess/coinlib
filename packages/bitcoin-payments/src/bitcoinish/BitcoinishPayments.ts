@@ -192,7 +192,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         coinbase: Boolean(coinbase),
         txHex: tx.hex,
         scriptPubKeyHex: output?.hex,
-        address: output?.addresses[0],
+        address: output?.addresses?.[0],
       }
     }))
     return utxos
@@ -916,7 +916,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       vout: vout || 0,
       value: this.toMainDenominationString(value || 0),
     }))
-    const fromAddress = this.standardizeAddress(get(tx, 'vin.0.addresses.0'))
+    const fromAddress = this.standardizeAddress(get(tx, 'vin.0.addresses.0', ''))
     if (!fromAddress) {
       throw new Error(`Unable to determine fromAddress of ${this.coinSymbol} tx ${txId}`)
     }
@@ -924,7 +924,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const externalOutputs = tx.vout
       .map(({ addresses, value }): TransactionOutput => (
         {
-          address: this.standardizeAddress(addresses[0]) || '',
+          address: this.standardizeAddress(addresses?.[0] ?? '') || '',
           value: this.toMainDenominationString(value || 0),
         }
       ))
