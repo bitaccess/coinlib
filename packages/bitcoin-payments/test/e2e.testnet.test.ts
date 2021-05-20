@@ -141,9 +141,13 @@ describeAll('e2e testnet', () => {
         const endState = [...END_TRANSACTION_STATES, TransactionStatus.Pending]
         logger.log(`polling until status ${endState.join('|')}`, txId)
         let tx: BitcoinTransactionInfo | undefined
+        let changeAddress
+        if (signedTx.data.changeOutputs) {
+          changeAddress = signedTx.data.changeOutputs.map((ca) => ca.address)
+        }
         while (!testsComplete && (!tx || !endState.includes(tx.status))) {
           try {
-            tx = await payments.getTransactionInfo(txId)
+            tx = await payments.getTransactionInfo(txId, undefined, { changeAddress })
           } catch (e) {
             if (e.message.includes('not found')) {
               logger.log('tx not found yet', txId, e.message)
@@ -429,24 +433,27 @@ describeAll('e2e testnet', () => {
       })
 
       it('end to end multi-input send', async () => {
+        const fromIndicies = [7, 8]
+        const changeAddress = fromIndicies.map((i) => payments.getAddress(i))
+
         const unsignedTx = await payments.createMultiInputTransaction(
-          [7, 8],
+          fromIndicies,
           [{
             payport: 0,
-            amount: '0.0001',
+            amount: '0.001',
           }],
           {
             useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
-            feeRate: '10',
+            feeRate: '5',
             feeRateType: FeeRateType.BasePerWeight,
-            changeAddress: '2MuhoQzdBdNUYoyNxtbeSMUZdfmm6SvYBW8',
+            changeAddress,
           }
         )
+
         const signedTx = await payments.signTransaction(unsignedTx)
-        logger.log(`Sending ${signedTx.amount} from ${[7, 8]} to ${[0]} in tx ${signedTx.id}`)
-        expect(await payments.broadcastTransaction(signedTx)).toEqual({
-          id: signedTx.id,
-        })
+        logger.log(`Sending ${signedTx.amount} from ${fromIndicies} to ${[0]} in tx ${signedTx.id}`)
+        expect(await payments.broadcastTransaction(signedTx)).toEqual({ id: signedTx.id })
+
         const tx = await pollUntilFound(signedTx)
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)

@@ -187,8 +187,8 @@ export type BitcoinishTxBuildContext = {
   readonly enforcedUtxos: UtxoInfoWithSats[],
   /** External outputs the creator desires excluding change (amounts may end up lower if recipientPaysFee is enabled) */
   readonly desiredOutputs: BitcoinishTxOutput[],
-  /** Address to send all change outputs to */
-  readonly changeAddress: string,
+  /** Addresses to send all change outputs to */
+  readonly changeAddress: string[],
   /** Fee rate creator wants (may differ in reality because we can only estimate this) */
   readonly desiredFeeRate: FeeRate,
   /** true if every utxo should be included (ie sweeping or consolidating utxos) */
@@ -237,8 +237,9 @@ export type BitcoinishTxBuildContext = {
 
 export type BitcoinishBuildPaymentTxParams = Pick<
   BitcoinishTxBuildContext,
-  'desiredOutputs' | 'changeAddress' | 'desiredFeeRate' | 'useAllUtxos' | 'useUnconfirmedUtxos' | 'recipientPaysFee' | 'maxFeePercent'
+  'desiredOutputs' | 'desiredFeeRate' | 'useAllUtxos' | 'useUnconfirmedUtxos' | 'recipientPaysFee' | 'maxFeePercent'
 > & {
   unusedUtxos: UtxoInfo[],
   enforcedUtxos: UtxoInfo[],
+  changeAddress: string[],
 }

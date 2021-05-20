@@ -7,7 +7,12 @@ import {
 import { extendCodec, requiredOptionalCodec, instanceofCodec } from '@faast/ts-common'
 import { BlockInfoBitcoin } from 'blockbook-client'
 import {
-  BitcoinishPaymentTx, BitcoinishTransactionInfo, BlockbookConfigServer, MultisigAddressType, SinglesigAddressType,
+  BitcoinishPaymentTx,
+  BitcoinishTransactionInfo,
+  BlockbookConfigServer,
+  MultisigAddressType,
+  SinglesigAddressType,
+  BitcoinishTxOutput
 } from './bitcoinish'
 import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
 
@@ -135,6 +140,7 @@ export const BitcoinSignedTransactionData = requiredOptionalCodec(
     partial: t.boolean,
     // sha256 hash of the unsignedHex data for facilitating multisig tx combining
     unsignedTxHash: t.string,
+    changeOutputs: t.array(BitcoinishTxOutput),
   },
   'BitcoinSignedTransactionData',
 )

@@ -320,6 +320,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
         hex: txHex,
         partial: false,
         unsignedTxHash,
+        changeOutputs: tx.data?.changeOutputs
       },
     }
   }

@@ -58,7 +58,7 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
       }
       this.validatePsbt(tx, psbt)
 
-      psbt.signAllInputs(keyPair)
+      psbt.signInput(i, keyPair)
       signedAccountIds.add(accountId)
     }
     return this.updateMultisigTx(tx, psbt, [...signedAccountIds])

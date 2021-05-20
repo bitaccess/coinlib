@@ -176,9 +176,13 @@ describeAll('e2e multisig testnet', () => {
         const endState = [...END_TRANSACTION_STATES, TransactionStatus.Pending]
         logger.log(`polling until status ${endState.join('|')}`, txId)
         let tx: BitcoinTransactionInfo | undefined
+        let changeAddress
+        if (signedTx.data.changeOutputs) {
+          changeAddress = signedTx.data.changeOutputs.map((ca) => ca.address)
+        }
         while (!testsComplete && (!tx || !endState.includes(tx.status))) {
           try {
-            tx = await payments.getTransactionInfo(txId)
+            tx = await payments.getTransactionInfo(txId, undefined, { changeAddress })
           } catch (e) {
             if (e.message.includes('not found')) {
               logger.log('tx not found yet', txId, e.message)
@@ -239,17 +243,20 @@ describeAll('e2e multisig testnet', () => {
       }, 5 * 60 * 1000)
 
       it('end to end multi-input send', async () => {
+        const fromIndicies = [0, 1]
+        const changeAddress = fromIndicies.map((i) => payments.getAddress(i))
+
         const unsignedTx = await payments.createMultiInputTransaction(
-          [0, 1],
+          fromIndicies,
           [{
             payport: { address: '2NDj67pPQUNS8VYARENU2JMM36T9DPX9wZi' },
-            amount: '0.0001',
+            amount: '0.01',
           }],
           {
             useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
-            feeRate: '10',
+            feeRate: '5',
             feeRateType: FeeRateType.BasePerWeight,
-            changeAddress: '2MuSr4CwNibmFhuKeboKtV7krzYHL3uanES',
+            changeAddress,
           }
         )
 

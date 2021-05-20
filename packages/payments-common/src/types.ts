@@ -138,6 +138,9 @@ export const WeightedChangeOutput = t.type(
 )
 export type WeightedChangeOutput = t.TypeOf<typeof WeightedChangeOutput>
 
+export type TxInfoCb = (tx: any) => any[]
+export const TxInfoCb = functionT<TxInfoCb>('NewBlockCallback')
+
 export const CreateTransactionOptions = extendCodec(
   FeeOption,
   {},
@@ -150,7 +153,8 @@ export const CreateTransactionOptions = extendCodec(
     useUnconfirmedUtxos: t.boolean, // Allow unconfirmed utxos as inputs
     recipientPaysFee: t.boolean, // Deduct fee from outputs (only utxo coins supported for now)
     maxFeePercent: Numeric, // Maximum fee as percent of output total
-    changeAddress: t.string, // Change address
+    changeAddress: t.union([t.string, t.array(t.string)]), // Change address
+    txInfoCb: TxInfoCb
   },
   'CreateTransactionOptions',
 )

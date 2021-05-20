@@ -496,80 +496,30 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     )
     // Sort ascending by weight so we can drop small change outputs first and reduce total weight to avoid loose change
     const changeOutputWeights = this.createWeightedChangeOutputs(targetChangeOutputCount, tbc.changeAddress)
-      .sort((a, b) => a.weight - b.weight)
-    let totalChangeWeight = sumField(changeOutputWeights, 'weight').toNumber()
-    let totalChangeAllocated = 0 // Total sat of all change outputs we actually include (omitting dust)
-    for (let i = 0; i < changeOutputWeights.length; i++) {
-      const { address, weight } = changeOutputWeights[i]
-      // Distribute change proportional to each change outputs weight. Floored to not exceed inputTotal
-      const changeSat = Math.floor(tbc.totalChange * (weight / totalChangeWeight))
-      if (changeSat <= this.dustThreshold || changeSat < this.minChangeSat) {
-        this.logger.debug(
-          `${this.coinSymbol} buildPaymentTx - desired change output ${i} with weight ${weight}/${totalChangeWeight} is below dust threshold or minChange, `
-          + `reducing total weight to ${totalChangeWeight - weight}`
-        )
-        totalChangeWeight -= weight
-      } else {
-        tbc.changeOutputs.push({ address, satoshis: changeSat })
-        totalChangeAllocated += changeSat
-      }
-    }
+
+    // Total sat of all change outputs we actually include (omitting dust)
+    const totalChangeAllocated = this.calculateTotalChange(tbc, changeOutputWeights)
     let changeOutputCount = tbc.changeOutputs.length
-    this.logger.debug(
-      `${this.coinSymbol} buildPaymentTx`,
-      { changeOutputWeights, totalChangeWeight, totalChangeAllocated, changeOutputs: tbc.changeOutputs },
-    )
 
     // Amount of change not yet added to a change output
     let looseChange = tbc.totalChange - totalChangeAllocated
-
-    // If due to rounding or omitting dust outputs we have fewer change outputs than expected, adjust fees accordingly
     if (changeOutputCount < targetChangeOutputCount) {
-      const recalculatedFee = this.estimateTxFee(
-        tbc.desiredFeeRate,
-        tbc.inputUtxos.length,
-        changeOutputCount || 1, // minimum one change output for loose change
-        tbc.externalOutputAddresses,
-      )
-      if (tbc.feeSat > recalculatedFee) {
-        // Due to dropping change outputs we're now overpaying, reduce fee and reallocate to change
-        const looseChangeBefore = looseChange
-        this.adjustTxFee(tbc, recalculatedFee, 'dropped change outputs recalculated fee')
-        // Recalculate total and loose change because fee adjustments may alter output amount
-        tbc.totalChange = tbc.inputTotal - tbc.externalOutputTotal - tbc.feeSat
-        looseChange = tbc.totalChange - totalChangeAllocated
-        this.logger.log(
-          `${this.coinSymbol} buildPaymentTx - Adjusted looseChange from ${looseChangeBefore} sat to ${looseChange} sat after `
-          + 'applying dropped change outputs recalculated fee'
-        )
-      }
+      // If due to rounding or omitting dust outputs we have fewer change outputs than expected, adjust fees accordingly
+      looseChange = this.readjustTxFees(tbc, changeOutputCount, totalChangeAllocated, looseChange)
     }
 
     // Attempt to allocate any loose change to existing change outputs, or a single change output
     if (looseChange < 0) {
       throw new Error(`${this.coinSymbol} buildPaymentTx - looseChange should never be negative!`)
-    } else if (changeOutputCount > 0 && looseChange > 0) {
+    }
+
+    if (changeOutputCount > 0 && looseChange > 0) {
       // Enough loose change to reallocate amongst all change outputs
-      const extraSatPerChangeOutput = Math.floor(looseChange / changeOutputCount)
-      if (extraSatPerChangeOutput > 0) {
-        this.logger.log(
-          `${this.coinSymbol} buildPaymentTx - allocating ${extraSatPerChangeOutput * changeOutputCount} sat loose change `
-          + `across ${changeOutputCount} change outputs (${extraSatPerChangeOutput} sat each)`
-        )
-        for (let i = 0; i < changeOutputCount; i++) {
-          tbc.changeOutputs[i].satoshis += extraSatPerChangeOutput
-        }
-        looseChange -= extraSatPerChangeOutput * changeOutputCount
-      }
-      if (looseChange > 0) {
-        this.logger.log(`${this.coinSymbol} buildPaymentTx - allocating ${looseChange} sat loose change to first change output`)
-        // A few satoshis are leftover due to rounding, give it to the first change output
-        tbc.changeOutputs[0].satoshis += looseChange
-        looseChange = 0
-      }
+      looseChange = this.reallocateLooseChange(tbc, changeOutputCount, looseChange)
     } else if (changeOutputCount === 0 && looseChange > this.dustThreshold) {
       this.logger.log(`${this.coinSymbol} buildPaymentTx - allocating all loose change towards single ${looseChange} sat change output`)
-      tbc.changeOutputs.push({ address: tbc.changeAddress, satoshis: looseChange })
+      tbc.changeOutputs.push({ address: tbc.changeAddress[0], satoshis: looseChange })
+
       changeOutputCount += 1
       looseChange = 0
     }
@@ -666,8 +616,10 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       tbc.externalOutputTotal += satoshis
       tbc.desiredOutputTotal += satoshis
     }
-    if (!this.isValidAddress(tbc.changeAddress)) {
-      throw new Error (`Invalid ${this.coinSymbol} change address ${tbc.changeAddress} provided`)
+    for (let address of tbc.changeAddress) {
+      if (!this.isValidAddress(address)) {
+        throw new Error (`Invalid ${this.coinSymbol} change address ${address} provided`)
+      }
     }
     const unfilteredUtxoTotal = sumUtxoValue(params.unusedUtxos, params.useUnconfirmedUtxos)
     // TODO: createSweepTransaction could just pass this in directly
@@ -712,13 +664,91 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
    */
   private createWeightedChangeOutputs(
     changeOutputCount: number,
-    changeAddress: string,
+    changeAddress: string[],
   ): BitcoinishWeightedChangeOutput[] {
     const result: BitcoinishWeightedChangeOutput[] = []
     for (let i = 0; i < changeOutputCount; i++) {
-      result.push({ address: changeAddress, weight: 2 ** i })
+      // TODO: check if chcnageAddess.length < changeOutputCount
+      result.push({ address: changeAddress[i], weight: 2 ** i })
     }
-    return result
+    return result.sort((a, b) => a.weight - b.weight)
+  }
+
+  private calculateTotalChange(tbc: BitcoinishTxBuildContext, changeOutputWeights: BitcoinishWeightedChangeOutput[]): number {
+    let totalChangeWeight = sumField(changeOutputWeights, 'weight').toNumber()
+    let totalChangeAllocated = 0 // Total sat of all change outputs we actually include (omitting dust)
+    for (let i = 0; i < changeOutputWeights.length; i++) {
+      const { address, weight } = changeOutputWeights[i]
+      // Distribute change proportional to each change outputs weight. Floored to not exceed inputTotal
+      const changeSat = Math.floor(tbc.totalChange * (weight / totalChangeWeight))
+      if (changeSat <= this.dustThreshold || changeSat < this.minChangeSat) {
+        this.logger.debug(
+          `${this.coinSymbol} buildPaymentTx - desired change output ${i} with weight ${weight}/${totalChangeWeight} is below dust threshold or minChange, `
+          + `reducing total weight to ${totalChangeWeight - weight}`
+        )
+        totalChangeWeight -= weight
+      } else {
+        for (let address of tbc.changeAddress) {
+          tbc.changeOutputs.push({ address, satoshis: changeSat })
+          totalChangeAllocated += changeSat
+        }
+      }
+    }
+
+    this.logger.debug(
+      `${this.coinSymbol} buildPaymentTx`,
+      { changeOutputWeights, totalChangeWeight, totalChangeAllocated, changeOutputs: tbc.changeOutputs },
+    )
+
+    return totalChangeAllocated
+  }
+
+  private readjustTxFees(tbc: BitcoinishTxBuildContext, changeOutputCount: number, totalChangeAllocated: number, looseChange: number): number {
+    const recalculatedFee = this.estimateTxFee(
+      tbc.desiredFeeRate,
+      tbc.inputUtxos.length,
+      changeOutputCount || 1, // minimum one change output for loose change
+      tbc.externalOutputAddresses,
+    )
+    if (tbc.feeSat <= recalculatedFee) {
+      return looseChange
+    }
+
+    // Due to dropping change outputs we're now overpaying, reduce fee and reallocate to change
+    const looseChangeBefore = looseChange
+    this.adjustTxFee(tbc, recalculatedFee, 'dropped change outputs recalculated fee')
+    // Recalculate total and loose change because fee adjustments may alter output amount
+    tbc.totalChange = tbc.inputTotal - tbc.externalOutputTotal - tbc.feeSat
+    looseChange = tbc.totalChange - totalChangeAllocated
+    this.logger.log(
+      `${this.coinSymbol} buildPaymentTx - Adjusted looseChange from ${looseChangeBefore} sat to ${looseChange} sat after `
+      + 'applying dropped change outputs recalculated fee'
+    )
+
+    return looseChange
+  }
+
+  private reallocateLooseChange(tbc: BitcoinishTxBuildContext, changeOutputCount: number, looseChange: number): number {
+    const extraSatPerChangeOutput = Math.floor(looseChange / changeOutputCount)
+    if (extraSatPerChangeOutput > 0) {
+      this.logger.log(
+        `${this.coinSymbol} buildPaymentTx - allocating ${extraSatPerChangeOutput * changeOutputCount} sat loose change `
+        + `across ${changeOutputCount} change outputs (${extraSatPerChangeOutput} sat each)`
+      )
+      for (let i = 0; i < changeOutputCount; i++) {
+        tbc.changeOutputs[i].satoshis += extraSatPerChangeOutput
+      }
+      looseChange -= extraSatPerChangeOutput * changeOutputCount
+    }
+
+    if (looseChange > 0) {
+      this.logger.log(`${this.coinSymbol} buildPaymentTx - allocating ${looseChange} sat loose change to first change output`)
+      // A few satoshis are leftover due to rounding, give it to the first change output
+      tbc.changeOutputs[0].satoshis += looseChange
+      looseChange = 0
+    }
+
+    return looseChange
   }
 
   async createTransaction(
@@ -742,7 +772,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     this.logger.debug('createMultiOutputTransaction unusedUtxos', unusedUtxos)
 
     const { address: fromAddress } = await this.resolvePayport(from)
-    let changeAddress = options.changeAddress ?? fromAddress
 
     const desiredOutputs = await Promise.all(to.map(async ({ payport, amount }) => ({
       address: (await this.resolvePayport(payport)).address,
@@ -753,6 +782,17 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const { targetFeeLevel, targetFeeRate, targetFeeRateType } = await this.resolveFeeOption(options)
     this.logger.debug(`createMultiOutputTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`)
 
+    let changeAddress = [fromAddress]
+    if (options.changeAddress) {
+      if(Array.isArray(options.changeAddress)) {
+        changeAddress = options.changeAddress
+      } else {
+        changeAddress = [options.changeAddress]
+      }
+    } else {
+      let { address } = await this.resolvePayport(from)
+      changeAddress = [address]
+    }
     const paymentTx = await this.buildPaymentTx({
       unusedUtxos,
       enforcedUtxos: options.forcedUtxos || [],
@@ -856,9 +896,16 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
     this.logger.debug('createMultiInputTransaction unusedUtxos', unusedUtxos)
 
-    let changeAddress = options.changeAddress
-    if (!changeAddress) {
-      ;({ address: changeAddress} = await this.resolvePayport(from[0]))
+    let changeAddress: string[]
+    if (options.changeAddress) {
+      if(Array.isArray(options.changeAddress)) {
+        changeAddress = options.changeAddress
+      } else {
+        changeAddress = [options.changeAddress]
+      }
+    } else {
+      let { address } = await this.resolvePayport(from[0])
+      changeAddress = [address]
     }
 
     const desiredOutputs = await Promise.all(to.map(async ({ payport, amount }) => ({
@@ -870,6 +917,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const { targetFeeLevel, targetFeeRate, targetFeeRateType } = await this.resolveFeeOption(options)
     this.logger.debug(`createMultiOutputTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`)
 
+    // sets empty address to some of outputs
     const paymentTx = await this.buildPaymentTx({
       unusedUtxos,
       enforcedUtxos: options.forcedUtxos || [],
@@ -947,5 +995,12 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
           : toBigNumber(utxo.satoshis).toNumber()
       }
     })
+  }
+
+  private defaultCallback(tx: any, skipAddresses: string[]): BitcoinishTxOutput[] {
+    return (tx.vout as any[]).map(({ addresses, value }): TransactionOutput => ({
+      address: this.standardizeAddress(addresses?.[0] ?? '') || '',
+      value: this.toMainDenominationString(value || 0),
+    })).filter(({ address }) => !skipAddresses.includes(address))
   }
 }
