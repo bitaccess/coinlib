@@ -62,6 +62,7 @@ export const BlockbookConnectedConfig = requiredOptionalCodec(
   {
     logger: nullable(Logger),
     api: instanceofCodec(BlockbookServerAPI),
+    requestTimeoutMs: t.number,
   },
   'BlockbookConnectedConfig',
 )

@@ -26,6 +26,7 @@ export function resolveServer(config: BlockbookConnectedConfig, logger: Logger):
       api: new BlockbookServerAPI({
         nodes: [server],
         logger,
+        requestTimeoutMs: config.requestTimeoutMs,
       }),
       server: [server],
     }
@@ -39,6 +40,7 @@ export function resolveServer(config: BlockbookConnectedConfig, logger: Logger):
       api: new BlockbookServerAPI({
         nodes: server,
         logger,
+        requestTimeoutMs: config.requestTimeoutMs,
       }),
       server,
     }
@@ -48,6 +50,7 @@ export function resolveServer(config: BlockbookConnectedConfig, logger: Logger):
       api: new BlockbookServerAPI({
         nodes: [''],
         logger,
+        requestTimeoutMs: config.requestTimeoutMs,
       }),
       server: null,
     }
