@@ -8,6 +8,8 @@ import {
   NetworkType,
   createUnitConverters,
   NewBlockCallback,
+  FilterBlockAddressesCallback,
+  BasicBlockInfo,
 } from '@faast/payments-common'
 import { EventEmitter } from 'events'
 import {
@@ -83,8 +85,8 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
   async retrieveBlockBalanceActivities(
     blockId: number | string,
     callbackFn: BalanceActivityCallback,
-    filterRelevantAddresses: (addresses: string[]) => string[] | Promise<string[]>,
-  ): Promise<{ hash: string, height: number }> {
+    filterRelevantAddresses: FilterBlockAddressesCallback,
+  ): Promise<BasicBlockInfo> {
     let page = 1
     let blockPage: BitcoinishBlock | undefined
     while(!blockPage || blockPage.page < blockPage.totalPages) {
@@ -105,7 +107,10 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
       }
       // Emit events for all address/tx combinations
       const relevantAddresses = new Set<string>(
-        await filterRelevantAddresses(Array.from(Object.keys(addressTransactions)))
+        await filterRelevantAddresses(
+          Array.from(Object.keys(addressTransactions)),
+          { hash: blockPage.hash, height: blockPage.height, page },
+        )
       )
       for (let address of relevantAddresses) {
         const txs = addressTransactions[address] ?? []
@@ -116,6 +121,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
           }
         }
       }
+      page++
     }
     return blockPage
   }

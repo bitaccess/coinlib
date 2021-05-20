@@ -4,6 +4,8 @@ import {
   RetrieveBalanceActivitiesResult,
   BalanceActivity,
   NewBlockCallback,
+  FilterBlockAddressesCallback,
+  BasicBlockInfo,
 } from './types'
 
 /**
@@ -90,6 +92,6 @@ export interface BalanceMonitor {
   retrieveBlockBalanceActivities?: (
     block: number | string,
     callbackFn: BalanceActivityCallback,
-    filterRelevantAddresses: (addresses: string[]) => string[] | Promise<string[]>,
-  ) => Promise<{ hash: string, height: number }>
+    filterRelevantAddresses: FilterBlockAddressesCallback,
+  ) => Promise<BasicBlockInfo>
 }
