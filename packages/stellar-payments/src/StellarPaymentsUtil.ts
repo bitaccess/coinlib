@@ -87,4 +87,8 @@ export class StellarPaymentsUtils extends StellarConnected implements PaymentsUt
     }
   }
 
+  async getCurrentBlockNumber() {
+    return this._retryDced(async () => (await this.getBlock()).sequence)
+  }
+
 }

@@ -16,7 +16,7 @@ jest.setTimeout(60 * 1000)
 describe('StellarPaymentsUtils', () => {
   const pu = new StellarPaymentsUtils({
     logger,
-    server: 'https://horizon.stellar.com',
+    server: 'https://horizon.stellar.org',
   })
 
   beforeAll(async () => {
@@ -160,6 +160,12 @@ describe('StellarPaymentsUtils', () => {
     })
     it('converts from number', () => {
       expect(pu.toBaseDenomination(12.3456789)).toBe('123456789')
+    })
+  })
+
+  describe('getCurrentBlockNumber', () => {
+    it('returns a nonzero number', async () => {
+      expect(await pu.getCurrentBlockNumber()).toBeGreaterThan(0)
     })
   })
 

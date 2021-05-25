@@ -251,7 +251,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       throw new Error(`Transaction ${txid} has no input data so it can't be an ERC20 tx`)
     }
 
-    const currentBlockNumber = await this._retryDced(() => this.eth.getBlockNumber())
+    const currentBlockNumber = await this.getCurrentBlockNumber()
     let txReceipt: TransactionReceipt | null = await this._retryDced(() => this.eth.getTransactionReceipt(txid))
 
     let txBlock: any = null

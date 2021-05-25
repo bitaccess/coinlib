@@ -11,6 +11,7 @@ import { PACKAGE_NAME, ETH_DECIMAL_PLACES, ETH_NAME, ETH_SYMBOL, DEFAULT_ADDRESS
 import { EthereumAddressFormat, EthereumAddressFormatT, EthereumPaymentsUtilsConfig } from './types';
 import { isValidXkey } from './bip44'
 import { NetworkData } from './NetworkData'
+import { retryIfDisconnected } from './utils';
 
 type UnitConverters = ReturnType<typeof createUnitConverters>
 
@@ -187,5 +188,13 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
       feeRate: gasPrice,
       feeRateType: FeeRateType.BasePerWeight,
     }
+  }
+
+  async _retryDced<T>(fn: () => Promise<T>): Promise<T> {
+    return retryIfDisconnected(fn, this.logger)
+  }
+
+  async getCurrentBlockNumber() {
+    return this._retryDced(() => this.eth.getBlockNumber())
   }
 }

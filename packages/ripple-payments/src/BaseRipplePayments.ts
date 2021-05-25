@@ -257,7 +257,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     const isExecuted = isSuccessful
     const confirmationNumber = outcome.ledgerVersion
     const ledger = await this._retryDced(() => this.api.getLedger({ ledgerVersion: confirmationNumber }))
-    const currentLedgerVersion = await this._retryDced(() => this.api.getLedgerVersion())
+    const currentLedgerVersion = await this.getCurrentBlockNumber()
     const confirmationId = ledger.ledgerHash
     const confirmationTimestamp = outcome.timestamp ? new Date(outcome.timestamp) : null
     return {
