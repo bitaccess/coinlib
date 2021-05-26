@@ -50,17 +50,8 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
   // strings instead of Errors and now we need to convert them all ourselves
   // to be consistent.
 
-  fullNode: string
-  solidityNode: string
-  eventServer: string
-  tronweb: TronWeb
-
   constructor(config: Config) {
     super(config)
-    this.fullNode = config.fullNode || DEFAULT_FULL_NODE
-    this.solidityNode = config.solidityNode || DEFAULT_SOLIDITY_NODE
-    this.eventServer = config.eventServer || DEFAULT_EVENT_SERVER
-    this.tronweb = new TronWeb(this.fullNode, this.solidityNode, this.eventServer)
   }
 
   abstract getFullConfig(): Config
@@ -419,10 +410,6 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
     options: CreateTransactionOptions = {},
   ): Promise<null> {
     return null
-  }
-
-  async _retryDced<T>(fn: () => Promise<T>): Promise<T> {
-    return retryIfDisconnected(fn, this.logger)
   }
 }
 

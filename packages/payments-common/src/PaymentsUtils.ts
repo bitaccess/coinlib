@@ -58,4 +58,9 @@ export interface PaymentsUtils {
    * Get a recommended fee for a certain level
    */
   getFeeRateRecommendation<O extends object>(level: AutoFeeLevels, options?: O): MaybePromise<FeeRate>
+
+  /**
+   * Returns the current block number as a string
+   */
+  getCurrentBlockNumber(): MaybePromise<number>
 }

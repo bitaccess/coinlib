@@ -1,5 +1,6 @@
 import { PaymentsUtils, NetworkType, Payport, AutoFeeLevels, FeeRate, FeeRateType } from '@faast/payments-common'
 import { Logger, DelegateLogger, isNil, assertType } from '@faast/ts-common'
+import TronWeb from 'tronweb'
 
 import {
   toMainDenominationString,
@@ -11,8 +12,17 @@ import {
   isValidPrivateKey,
   privateKeyToAddress,
 } from './helpers'
-import { COIN_NAME, COIN_SYMBOL, DECIMAL_PLACES, PACKAGE_NAME } from './constants'
+import {
+  COIN_NAME,
+  COIN_SYMBOL,
+  DECIMAL_PLACES,
+  DEFAULT_EVENT_SERVER,
+  DEFAULT_FULL_NODE,
+  DEFAULT_SOLIDITY_NODE,
+  PACKAGE_NAME,
+} from './constants'
 import { BaseTronPaymentsConfig } from './types'
+import { retryIfDisconnected } from './utils'
 
 export class TronPaymentsUtils implements PaymentsUtils {
 
@@ -22,10 +32,19 @@ export class TronPaymentsUtils implements PaymentsUtils {
   readonly networkType: NetworkType
   logger: Logger
 
+  fullNode: string
+  solidityNode: string
+  eventServer: string
+  tronweb: TronWeb
+
   constructor(config: BaseTronPaymentsConfig = {}) {
     assertType(BaseTronPaymentsConfig, config)
     this.networkType = config.network || NetworkType.Mainnet
     this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
+    this.fullNode = config.fullNode || DEFAULT_FULL_NODE
+    this.solidityNode = config.solidityNode || DEFAULT_SOLIDITY_NODE
+    this.eventServer = config.eventServer || DEFAULT_EVENT_SERVER
+    this.tronweb = new TronWeb(this.fullNode, this.solidityNode, this.eventServer)
   }
 
   async init() {}
@@ -93,5 +112,13 @@ export class TronPaymentsUtils implements PaymentsUtils {
 
   getFeeRateRecommendation(level: AutoFeeLevels): FeeRate {
     return { feeRate: '0', feeRateType: FeeRateType.Base }
+  }
+
+  async _retryDced<T>(fn: () => Promise<T>): Promise<T> {
+    return retryIfDisconnected(fn, this.logger)
+  }
+
+  getCurrentBlockNumber() {
+    return this._retryDced(async () => (await this.tronweb.trx.getCurrentBlock()).block_header.raw_data.number)
   }
 }

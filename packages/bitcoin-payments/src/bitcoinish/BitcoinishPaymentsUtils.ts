@@ -97,4 +97,8 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     }
     return this.getApi().getBlock(id)
   }
+
+  async getCurrentBlockNumber() {
+    return this._retryDced(async () => (await this.getApi().getStatus()).blockbook.bestHeight)
+  }
 }

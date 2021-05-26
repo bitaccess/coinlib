@@ -232,7 +232,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       throw new Error(`Transaction ${txid} not found`)
     }
 
-    const currentBlockNumber = await this._retryDced(() => this.eth.getBlockNumber())
+    const currentBlockNumber = await this.getCurrentBlockNumber()
     let txInfo: TransactionReceipt | null = await this._retryDced(() => this.eth.getTransactionReceipt(txid))
 
     tx.from = tx.from ? tx.from.toLowerCase() : '';
@@ -555,10 +555,6 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     }
     this.logger.debug('createTransactionObject result', result)
     return result
-  }
-
-  async _retryDced<T>(fn: () => Promise<T>): Promise<T> {
-    return retryIfDisconnected(fn, this.logger)
   }
 }
 

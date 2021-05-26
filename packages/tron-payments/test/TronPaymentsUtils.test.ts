@@ -43,4 +43,10 @@ describe('TronAddressValidator', () => {
       expect(await tpu.getPayportValidationMessage({ address: VALID_ADDRESS, extraId: '' })).toMatch('Invalid payport')
     })
   })
+
+  describe('getCurrentBlockNumber', () => {
+    it('returns a nonzero number', async () => {
+      expect(await tpu.getCurrentBlockNumber()).toBeGreaterThan(0)
+    })
+  })
 })

@@ -41,4 +41,10 @@ describe('BitcoinPaymentUtils', () => {
       expect(await pu.getPayportValidationMessage({ address: VALID_ADDRESS, extraId: '' })).toMatch('Invalid payport')
     })
   })
+
+  describe('getCurrentBlockNumber', () => {
+    it('returns a nonzero number', async () => {
+      expect(await pu.getCurrentBlockNumber()).toBeGreaterThan(0)
+    })
+  })
 })

@@ -147,4 +147,10 @@ describe('end to end tests', () => {
       })
     })
   })
+
+  describe('getCurrentBlockNumber', () => {
+    test('returns a nonzero number', async () => {
+      expect(await hd.getCurrentBlockNumber()).toBeGreaterThan(0)
+    })
+  })
 })

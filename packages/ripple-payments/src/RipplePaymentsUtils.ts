@@ -101,4 +101,8 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
       feeRateType: FeeRateType.Main
     }
   }
+
+  async getCurrentBlockNumber() {
+    return this._retryDced(() => this.api.getLedgerVersion())
+  }
 }

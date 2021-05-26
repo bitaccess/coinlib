@@ -190,4 +190,10 @@ describe('RipplePaymentsUtils', () => {
       expect(rpu.isValidXprv('xpat1234')).toBe(false)
     })
   })
+
+  describe('getCurrentBlockNumber', () => {
+    it('returns a nonzero number', async () => {
+      expect(await rpu.getCurrentBlockNumber()).toBeGreaterThan(0)
+    })
+  })
 })
