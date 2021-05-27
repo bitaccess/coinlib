@@ -112,9 +112,15 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
           { hash: blockPage.hash, height: blockPage.height, page },
         )
       )
+      /**
+       * Block tx data doesn't always include input txids which is needed for determining utxosSpent.
+       * Hard lookup is needed for each tx, memoize to avoid redundant lookups.
+       */
+      const hardTxQueries: { [txid: string]: NormalizedTxBitcoin } = {}
       for (let address of relevantAddresses) {
         const txs = addressTransactions[address] ?? []
-        for (let tx of txs) {
+        for (let { txid } of txs) {
+          const tx = (hardTxQueries[txid] ??= await this._retryDced(() => this.getApi().getTx(txid)))
           const activity = await this.txToBalanceActivity(address, tx)
           if (activity) {
             await callbackFn(activity, tx)

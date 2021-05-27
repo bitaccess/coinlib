@@ -266,7 +266,7 @@ describeAll('e2e testnet', () => {
       }
 
       // Fields to ignore for test equality purposes (ie unpredictable values)
-      const IGNORED_BALANCE_ACTIVITY_FIELDS = ['timestamp'] as const
+      const IGNORED_BALANCE_ACTIVITY_FIELDS = ['timestamp', 'lockTime'] as const
       type PartialBalanceActivity = Omit<BalanceActivity, typeof IGNORED_BALANCE_ACTIVITY_FIELDS[number]>
       function sortAndOmitBalanceActivities(
         activities: Array<PartialBalanceActivity>,
@@ -313,7 +313,6 @@ describeAll('e2e testnet', () => {
                 'coinbase': false,
                 'confirmations': 0,
                 'height': undefined,
-                'lockTime': sweepTxInfo.data.lockTime?.toString(),
                 'satoshis': new BigNumber(sweepTx.amount).times(1e8).toNumber(),
                 'txid': sweepTxInfo.id,
                 'value': sweepTx.amount,
@@ -342,7 +341,6 @@ describeAll('e2e testnet', () => {
               'coinbase': false,
               'confirmations': 0,
               'height': undefined,
-              'lockTime': sendTxInfo.data.lockTime?.toString(),
               'satoshis': new BigNumber(changeOutput.value).times(1e8).toNumber(),
               'txid': sendTxInfo.id,
               'value': changeOutput.value,
@@ -371,7 +369,6 @@ describeAll('e2e testnet', () => {
                 'coinbase': false,
                 'confirmations': 0,
                 'height': undefined,
-                'lockTime': sendTxInfo.data.lockTime?.toString(),
                 'satoshis': new BigNumber(sendTx.amount).times(1e8).toNumber(),
                 'txid': sendTxInfo.id,
                 'value': sendTx.amount,
@@ -406,7 +403,8 @@ describeAll('e2e testnet', () => {
         await balanceMonitor.retrieveBlockBalanceActivities(blockNumber, (activity) => {
           blockActivities.push(activity)
         }, (addresses) => addresses.filter((address) => addressesToWatch.includes(address)))
-        expect(blockActivities.length).toBe(4)
+        logger.log('blockActivities', addressType, blockActivities)
+        expect(blockActivities.length).toBe(6)
         for (let activity of blockActivities) {
           expect(addressesToWatch).toContain(activity.address)
           expect(activity.confirmationNumber).toBe(blockNumber)
