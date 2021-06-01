@@ -11,6 +11,7 @@ import {
   AutoFeeLevels,
   Payport,
   ResolveablePayport,
+  DerivablePayport,
   BalanceResult,
   FromTo,
   TransactionStatus,
@@ -38,6 +39,7 @@ import {
   BitcoinishTxBuildContext,
   BitcoinishBuildPaymentTxParams,
   UtxoInfoWithSats,
+  AddressType,
 } from './types'
 import { sumUtxoValue, shuffleUtxos, isConfirmedUtxo, sha256FromHex, sumField } from './utils'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
@@ -56,6 +58,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   defaultFeeLevel: AutoFeeLevels
   targetUtxoPoolSize: number
   minChangeSat: number
+  abstract addressType: AddressType
 
   constructor(config: BitcoinishPaymentsConfig) {
     super(config)
@@ -63,6 +66,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     this.dustThreshold = config.dustThreshold
     this.defaultFeeLevel = config.defaultFeeLevel
     this.targetUtxoPoolSize = isUndefined(config.targetUtxoPoolSize) ? 1 : config.targetUtxoPoolSize
+
     const minChange = toBigNumber(isUndefined(config.minChange) ? 0 : config.minChange)
     if (minChange.lt(0)) {
       throw new Error(`invalid minChange amount ${config.minChange}, must be positive`)
@@ -74,7 +78,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   abstract getPublicConfig(): Config
   abstract getAccountId(index: number): string
   abstract getAccountIds(index?: number): string[]
-  abstract getAddress(index: number): string
+  abstract getAddress(index: number, addressType?: AddressType): string
   abstract signTransaction(tx: BitcoinishUnsignedTransaction): Promise<BitcoinishSignedTransaction>
 
   /**
@@ -110,6 +114,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         throw new Error(`Invalid ${this.coinSymbol} payport.address: ${payport.address}`)
       }
       return { ...payport, address: this.standardizeAddress(payport.address)! }
+    } else if (DerivablePayport.is(payport)) {
+      let { addressType = this.addressType } = payport
+      return { address: this.getAddress(payport.index, addressType as AddressType) }
     } else {
       throw new Error('Invalid payport')
     }
@@ -674,7 +681,10 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     return result.sort((a, b) => a.weight - b.weight)
   }
 
-  private calculateTotalChange(tbc: BitcoinishTxBuildContext, changeOutputWeights: BitcoinishWeightedChangeOutput[]): number {
+  private calculateTotalChange(
+    tbc: BitcoinishTxBuildContext,
+    changeOutputWeights: BitcoinishWeightedChangeOutput[]
+  ): number {
     let totalChangeWeight = sumField(changeOutputWeights, 'weight').toNumber()
     let totalChangeAllocated = 0 // Total sat of all change outputs we actually include (omitting dust)
     for (let i = 0; i < changeOutputWeights.length; i++) {
@@ -683,7 +693,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       const changeSat = Math.floor(tbc.totalChange * (weight / totalChangeWeight))
       if (changeSat <= this.dustThreshold || changeSat < this.minChangeSat) {
         this.logger.debug(
-          `${this.coinSymbol} buildPaymentTx - desired change output ${i} with weight ${weight}/${totalChangeWeight} is below dust threshold or minChange, `
+          `${this.coinSymbol} buildPaymentTx - desired change output ${i} with weight `
+          + `${weight}/${totalChangeWeight} is below dust threshold or minChange, `
           + `reducing total weight to ${totalChangeWeight - weight}`
         )
         totalChangeWeight -= weight
@@ -703,7 +714,12 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     return totalChangeAllocated
   }
 
-  private readjustTxFees(tbc: BitcoinishTxBuildContext, changeOutputCount: number, totalChangeAllocated: number, looseChange: number): number {
+  private readjustTxFees(
+    tbc: BitcoinishTxBuildContext,
+    changeOutputCount: number,
+    totalChangeAllocated: number,
+    looseChange: number
+  ): number {
     const recalculatedFee = this.estimateTxFee(
       tbc.desiredFeeRate,
       tbc.inputUtxos.length,
@@ -721,7 +737,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     tbc.totalChange = tbc.inputTotal - tbc.externalOutputTotal - tbc.feeSat
     looseChange = tbc.totalChange - totalChangeAllocated
     this.logger.log(
-      `${this.coinSymbol} buildPaymentTx - Adjusted looseChange from ${looseChangeBefore} sat to ${looseChange} sat after `
+      `${this.coinSymbol} buildPaymentTx - Adjusted looseChange from `
+      + `${looseChangeBefore} sat to ${looseChange} sat after `
       + 'applying dropped change outputs recalculated fee'
     )
 
@@ -742,7 +759,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
 
     if (looseChange > 0) {
-      this.logger.log(`${this.coinSymbol} buildPaymentTx - allocating ${looseChange} sat loose change to first change output`)
+      this.logger.log(`${this.coinSymbol} buildPaymentTx - allocating `
+        + `${looseChange} sat loose change to first change output`)
       // A few satoshis are leftover due to rounding, give it to the first change output
       tbc.changeOutputs[0].satoshis += looseChange
       looseChange = 0
@@ -780,7 +798,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
     const maxFeePercent = new BigNumber(options.maxFeePercent ?? DEFAULT_MAX_FEE_PERCENT).toNumber()
     const { targetFeeLevel, targetFeeRate, targetFeeRateType } = await this.resolveFeeOption(options)
-    this.logger.debug(`createMultiOutputTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`)
+    this.logger.debug('createMultiOutputTransaction resolvedFeeOption '
+      + `${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`)
 
     let changeAddress = [fromAddress]
     if (options.changeAddress) {
@@ -915,7 +934,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
     const maxFeePercent = new BigNumber(options.maxFeePercent ?? DEFAULT_MAX_FEE_PERCENT).toNumber()
     const { targetFeeLevel, targetFeeRate, targetFeeRateType } = await this.resolveFeeOption(options)
-    this.logger.debug(`createMultiOutputTransaction resolvedFeeOption ${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`)
+    this.logger.debug(`createMultiOutputTransaction resolvedFeeOption ${targetFeeLevel} `
+      + `${targetFeeRate} ${targetFeeRateType}`)
 
     // sets empty address to some of outputs
     const paymentTx = await this.buildPaymentTx({

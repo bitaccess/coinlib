@@ -13,7 +13,7 @@ import {
   deriveKeyPair,
   bip32MagicNumberToPrefix,
 } from './bip44'
-import { HdBitcoinPaymentsConfig } from './types'
+import { HdBitcoinPaymentsConfig, SinglesigAddressType } from './types'
 import { SinglesigBitcoinPayments } from './SinglesigBitcoinPayments'
 import { DEFAULT_DERIVATION_PATHS, PUBLIC_CONFIG_OMIT_FIELDS } from './constants'
 
@@ -85,8 +85,23 @@ export class HdBitcoinPayments extends SinglesigBitcoinPayments<HdBitcoinPayment
     return [this.xpub]
   }
 
-  getAddress(index: number): string {
-    return deriveAddress(this.hdNode, index, this.bitcoinjsNetwork, this.addressType)
+  getAddress(index: number, addressType?: SinglesigAddressType): string {
+    let hdNode = this.hdNode
+
+    if (addressType && addressType !== this.addressType) {
+      if (!this.isValidXprv(this.config.hdKey)) {
+        throw new Error('Retrieval of different address types possible only with private keys')
+      }
+
+      // re-derive HD node
+      hdNode = deriveHDNode(
+        this.config.hdKey,
+        DEFAULT_DERIVATION_PATHS[addressType],
+        this.bitcoinjsNetwork
+      )
+    }
+
+    return deriveAddress(hdNode, index, this.bitcoinjsNetwork, addressType || this.addressType)
   }
 
   getKeyPair(index: number) {

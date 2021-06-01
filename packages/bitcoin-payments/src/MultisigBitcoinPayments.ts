@@ -77,16 +77,16 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
     return this.signers.map((signer) => signer.getKeyPair(index).publicKey)
   }
 
-  getPaymentScript(index: number): bitcoin.payments.Payment {
+  getPaymentScript(index: number, addressType?: MultisigAddressType): bitcoin.payments.Payment {
     return getMultisigPaymentScript(
       this.bitcoinjsNetwork,
-      this.addressType,
+      addressType || this.addressType,
       this.getSignerPublicKeyBuffers(index),
       this.m,
     )
   }
 
-  getAddress(index: number): string {
+  getAddress(index: number, addressType?: MultisigAddressType): string {
     const { address } = this.getPaymentScript(index)
     if (!address) {
       throw new Error('bitcoinjs-lib address derivation returned falsy value')

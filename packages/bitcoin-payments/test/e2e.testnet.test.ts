@@ -83,14 +83,114 @@ describeAll('e2e testnet', () => {
     })
   })
 
-  for (let addressType of addressTypesToTest) {
+  describe('resolving addresses and payports of different address type', () => {
+    const TESTNET_XPUB_BTC_HOT = 'tpubDDCCjNA9Xw1Fpp3xAb3yjBBCui6wZ7idJxwcgj48Z7q3yTjEpay9cc2A1bjsr344ZTNGKv5j1djvU8bgzVTwoXaAXpX8cAEYVYG1Ch7fvVu'
+    const TESTNET_XPUB_BTC_DEPOSIT = 'tpubDCWCSpZSKfHb9B2ufCHBfDAVpr5S7K2XFKV53knzUrLmXuwi3HjTqkd1VGfSevwWRCDoYCuvVF3UkQAx53NQysVy3Tbd1vxTwKhHqDzJhws'
+
+    it('resolves payports for different types for payments created from xprv', async () => {
+      const depositPayments = new HdBitcoinPayments({
+        hdKey: secretXprv,
+        network: NetworkType.Testnet,
+        addressType: AddressType.SegwitP2SH,
+        logger,
+        minChange: '0.01',
+        targetUtxoPoolSize: 5,
+      } as HdBitcoinPaymentsConfig)
+
+      const hotwalletPayments = new HdBitcoinPayments({
+        hdKey: secretXprv,
+        network: NetworkType.Testnet,
+        addressType: AddressType.SegwitNative,
+        logger,
+        minChange: '0.01',
+        targetUtxoPoolSize: 5,
+      } as HdBitcoinPaymentsConfig)
+
+      expect(hotwalletPayments.getPublicConfig().hdKey).toEqual(TESTNET_XPUB_BTC_HOT)
+      expect(depositPayments.getPublicConfig().hdKey).toEqual(TESTNET_XPUB_BTC_DEPOSIT)
+
+      const depositAddress = depositPayments.getAddress(1)
+      const depositAddressFoerign = depositPayments.getAddress(1, AddressType.SegwitNative)
+
+      const hotwalletAddress = hotwalletPayments.getAddress(1)
+      const hotwalletAddressFoerign = hotwalletPayments.getAddress(1, AddressType.SegwitP2SH)
+
+      expect(depositAddress).toEqual(hotwalletAddressFoerign)
+      expect(hotwalletAddress).toEqual(depositAddressFoerign)
+
+      const { address: depositAddressPP } = await depositPayments.resolvePayport(1)
+      const { address: depositAddressFoerignPP } = await depositPayments.resolvePayport({
+        index: 1,
+        addressType: AddressType.SegwitNative
+      })
+
+      const { address: hotwalletAddressPP } = await hotwalletPayments.resolvePayport(1)
+      const { address: hotwalletAddressFoerignPP } = await hotwalletPayments.resolvePayport({
+        index: 1,
+        addressType: AddressType.SegwitP2SH
+      })
+
+      expect(depositAddressPP).toEqual(hotwalletAddressFoerignPP)
+      expect(hotwalletAddressPP).toEqual(depositAddressFoerignPP)
+    })
+
+    it('fails to resolve payports for different types for payments created from xpub', async () => {
+      const depositPayments = new HdBitcoinPayments({
+        hdKey: TESTNET_XPUB_BTC_DEPOSIT,
+        network: NetworkType.Testnet,
+        addressType: AddressType.SegwitP2SH,
+        logger,
+        minChange: '0.01',
+        targetUtxoPoolSize: 5,
+      } as HdBitcoinPaymentsConfig)
+
+      const hotwalletPayments = new HdBitcoinPayments({
+        hdKey: TESTNET_XPUB_BTC_HOT,
+        network: NetworkType.Testnet,
+        addressType: AddressType.SegwitNative,
+        logger,
+        minChange: '0.01',
+        targetUtxoPoolSize: 5,
+      } as HdBitcoinPaymentsConfig)
+
+      expect(hotwalletPayments.getPublicConfig().hdKey).toEqual(TESTNET_XPUB_BTC_HOT)
+      expect(depositPayments.getPublicConfig().hdKey).toEqual(TESTNET_XPUB_BTC_DEPOSIT)
+
+      const depositAddress = depositPayments.getAddress(1)
+      const { address: depositAddressPP } = await depositPayments.resolvePayport(1)
+
+      const hotwalletAddress = hotwalletPayments.getAddress(1)
+      const { address: hotwalletAddressPP } = await hotwalletPayments.resolvePayport(1)
+
+      expect(() => {
+        depositPayments.getAddress(1, AddressType.SegwitNative )
+      }).toThrowError('Retrieval of different address types possible only with private keys')
+
+      expect(() => {
+        hotwalletPayments.getAddress(1, AddressType.SegwitP2SH )
+      }).toThrowError('Retrieval of different address types possible only with private keys')
+
+      await expect(depositPayments.resolvePayport({
+        index: 1,
+        addressType: AddressType.SegwitNative
+      })).rejects.toThrowError('Retrieval of different address types possible only with private keys')
+
+      await expect(hotwalletPayments.resolvePayport({
+        index: 1,
+        addressType: AddressType.SegwitP2SH
+      })).rejects.toThrowError('Retrieval of different address types possible only with private keys')
+    })
+  })
+
+  for (let i = 0; i < addressTypesToTest.length; i++) {
+    let addressType = addressTypesToTest[i]
     const { xpub, addresses, sweepTxSize } = fixtures[addressType]
 
     describe(addressType, () => {
       const paymentsConfig: HdBitcoinPaymentsConfig = {
         hdKey: secretXprv,
         network: NetworkType.Testnet,
-        addressType,
+        addressType: addressType as SinglesigAddressType,
         logger,
         minChange: '0.01',
         targetUtxoPoolSize: 5,
@@ -129,6 +229,7 @@ describeAll('e2e testnet', () => {
       it('get correct xpub', async () => {
         expect(payments.xpub).toEqual(xpub)
       })
+
       for (let iStr in addresses) {
         const i = Number.parseInt(iStr)
         it(`get correct address for index ${i}`, async () => {

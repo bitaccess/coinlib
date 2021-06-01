@@ -49,7 +49,18 @@ export const Payport = requiredOptionalCodec(
 )
 export type Payport = t.TypeOf<typeof Payport>
 
-export const ResolveablePayport = t.union([Payport, t.string, t.number], 'ResolveablePayport')
+export const DerivablePayport = requiredOptionalCodec(
+  {
+    index: t.number
+  },
+  {
+    addressType: t.string // enum for each coin payments
+  },
+  'DerivablePayport'
+)
+export type DerivablePayport = t.TypeOf<typeof DerivablePayport>
+
+export const ResolveablePayport = t.union([Payport, DerivablePayport, t.string, t.number], 'ResolveablePayport')
 export type ResolveablePayport = t.TypeOf<typeof ResolveablePayport>
 
 export const PayportOutput = t.type({

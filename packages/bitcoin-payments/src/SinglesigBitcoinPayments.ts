@@ -26,8 +26,12 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
 
   abstract getKeyPair(index: number): BitcoinjsKeyPair
 
-  getPaymentScript(index: number) {
-    return getSinglesigPaymentScript(this.bitcoinjsNetwork, this.addressType, this.getKeyPair(index).publicKey)
+  getPaymentScript(index: number, addressType?: SinglesigAddressType) {
+    return getSinglesigPaymentScript(
+      this.bitcoinjsNetwork,
+      addressType || this.addressType,
+      this.getKeyPair(index).publicKey
+    )
   }
 
   signMultisigTransaction(
