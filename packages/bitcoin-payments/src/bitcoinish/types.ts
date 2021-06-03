@@ -6,9 +6,9 @@ import {
 import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger, Numeric, enumCodec } from '@faast/ts-common'
 import { Network as BitcoinjsNetwork, Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
 import { BlockbookBitcoin, BlockInfoBitcoin, NormalizedTxBitcoin } from 'blockbook-client'
-import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils';
+import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
 
-export { BitcoinjsNetwork }
+export { BitcoinjsNetwork, BlockbookBitcoin, BlockInfoBitcoin, NormalizedTxBitcoin }
 
 export type BitcoinjsKeyPair = BitcoinjsSigner & {
   privateKey?: Buffer

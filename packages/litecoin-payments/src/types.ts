@@ -5,7 +5,6 @@ import {
 } from '@faast/payments-common'
 import { extendCodec, enumCodec, requiredOptionalCodec, instanceofCodec } from '@faast/ts-common'
 import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
-import { BlockInfoBitcoin } from 'blockbook-client'
 import { bitcoinish } from '@faast/bitcoin-payments'
 import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
 
@@ -170,5 +169,5 @@ export type LitecoinTransactionInfo = t.TypeOf<typeof LitecoinTransactionInfo>
 export const LitecoinBroadcastResult = extendCodec(BaseBroadcastResult, {}, {}, 'LitecoinBroadcastResult')
 export type LitecoinBroadcastResult = t.TypeOf<typeof LitecoinBroadcastResult>
 
-export const LitecoinBlock = BlockInfoBitcoin
-export type LitecoinBlock = BlockInfoBitcoin
+export const LitecoinBlock = bitcoinish.BlockInfoBitcoin
+export type LitecoinBlock = bitcoinish.BlockInfoBitcoin
