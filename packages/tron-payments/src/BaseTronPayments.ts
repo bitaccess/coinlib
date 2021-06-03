@@ -98,10 +98,6 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
     return null
   }
 
-  async createJoinedTransaction(): Promise<null> {
-    return null
-  }
-
   async createSweepTransaction(
     from: number,
     to: ResolveablePayport,
@@ -311,6 +307,14 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
 
   async createMultiOutputTransaction(
     from: number,
+    to: PayportOutput[],
+    options: CreateTransactionOptions = {},
+  ): Promise<null> {
+    return null
+  }
+
+  async createMultiInputTransaction(
+    from: number[],
     to: PayportOutput[],
     options: CreateTransactionOptions = {},
   ): Promise<null> {
