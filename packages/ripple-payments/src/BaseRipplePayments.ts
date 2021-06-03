@@ -507,4 +507,12 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
   ): Promise<null> {
     return null
   }
+
+  async createMultiInputTransaction(
+    from: number,
+    to: PayportOutput[],
+    options: CreateTransactionOptions = {},
+  ): Promise<null> {
+    return null
+  }
 }
