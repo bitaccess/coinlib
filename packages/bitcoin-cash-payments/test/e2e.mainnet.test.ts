@@ -113,10 +113,11 @@ describeAll('e2e mainnet', () => {
       'scriptPubKeyHex': '76a914080edbe8eb5d0f3e188bbba18c7653be15e9739788ac',
       'coinbase': false,
       'lockTime': undefined,
+      'spent': false,
       'address': 'bitcoincash:qqyqaklgadws70sc3wa6rrrk2wlpt6tnjuvyll86mu'
     }
   ]
-  const omitUtxoFieldEquality = ['height', 'confirmations']
+  const omitUtxoFieldEquality = ['height', 'confirmations', 'lockTime']
 
   it('get correct xpub', async () => {
     expect(payments.xpub).toEqual(xpub)

@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import {
-  BalanceResult, TransactionStatus, NetworkType, FeeRateType, BalanceActivity,
+  BalanceResult, TransactionStatus, NetworkType, FeeRateType, BalanceActivity, UtxoInfo,
 } from '@faast/payments-common'
 
 import {
@@ -273,8 +273,12 @@ describeAll('e2e testnet', () => {
       ) {
         return [...activities].sort(compareBalanceActivities).map((ba) => ({
           ...omit(ba, IGNORED_BALANCE_ACTIVITY_FIELDS),
-          utxosSpent: ba.utxosSpent?.map((utxo) => omit(utxo, ['confirmations'])),
+          utxosSpent: ba.utxosSpent?.map((utxo) => omit(utxo, ['confirmations', 'lockTime'])),
         }))
+      }
+
+      function markSpent(utxos: UtxoInfo[]) {
+        return utxos.map((utxo) => ({ ...utxo, spent: true }))
       }
 
       it('recorded all balance activities', async () => {
@@ -293,7 +297,7 @@ describeAll('e2e testnet', () => {
             'extraId': null,
             'type': 'out',
             'utxosCreated': [],
-            'utxosSpent': sweepTx.inputUtxos,
+            'utxosSpent': markSpent(sweepTx.inputUtxos ?? []),
           },
           {
             'activitySequence': '',
@@ -320,6 +324,7 @@ describeAll('e2e testnet', () => {
                 'txHex': sweepTxInfo.data.hex,
                 'scriptPubKeyHex': sweepTxInfo.data.vout[0].hex,
                 'address': sweepTx.toAddress,
+                'spent': false,
               },
             ],
             'utxosSpent': [],
@@ -348,8 +353,9 @@ describeAll('e2e testnet', () => {
               'txHex': sendTxInfo.data.hex,
               'scriptPubKeyHex': sendTxInfo.data.vout[1 + i].hex,
               'address': sendTx.fromAddress,
+              'spent': false,
             })),
-            'utxosSpent': sendTx.inputUtxos,
+            'utxosSpent': markSpent(sendTx.inputUtxos ?? []),
           },
           {
             'activitySequence': '',
@@ -376,6 +382,7 @@ describeAll('e2e testnet', () => {
                 'txHex': sendTxInfo.data.hex,
                 'scriptPubKeyHex': sendTxInfo.data.vout[0].hex,
                 'address': sendTxInfo.toAddress!,
+                'spent': false,
               },
             ],
             'utxosSpent': [],

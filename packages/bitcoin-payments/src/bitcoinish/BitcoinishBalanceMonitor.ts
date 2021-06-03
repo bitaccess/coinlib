@@ -254,7 +254,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
           txHex: tx.hex,
           scriptPubKeyHex: output.hex,
           address: standardizedAddress,
-          spent: output.spent,
+          spent: Boolean(output.spent),
         })
       }
     }
