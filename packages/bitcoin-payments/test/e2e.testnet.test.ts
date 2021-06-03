@@ -407,9 +407,15 @@ describeAll('e2e testnet', () => {
       it('can retrieve block activities', async () => {
         const blockActivities: BalanceActivity[] = []
         const blockNumber = 1975840
-        await balanceMonitor.retrieveBlockBalanceActivities(blockNumber, (activity) => {
+        const blockInfo = await balanceMonitor.retrieveBlockBalanceActivities(blockNumber, (activity) => {
           blockActivities.push(activity)
         }, (addresses) => addresses.filter((address) => addressesToWatch.includes(address)))
+        expect(blockInfo).toEqual({
+          height: blockNumber,
+          hash: '00000000ee9885aa6108e75a02fd815d9ca5bac8f312077e363e961c48fc70f6',
+          previousBlockHash: '000000000000000e4cd33a7350e719d46bfd5fd25b57832cd3342a883a8ac0fb',
+          time: new Date(1621349965000),
+        })
         logger.log('blockActivities', addressType, blockActivities)
         expect(blockActivities.length).toBe(6)
         for (let activity of blockActivities) {

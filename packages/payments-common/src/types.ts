@@ -370,7 +370,7 @@ export const RetrieveBalanceActivitiesResult = t.type(
 )
 export type RetrieveBalanceActivitiesResult = t.TypeOf<typeof RetrieveBalanceActivitiesResult>
 
-export type BasicBlockInfo = { height: number, hash: string }
+export type BasicBlockInfo = { height: number, hash: string, previousBlockHash: string, time: Date }
 export type FilterBlockAddressesBlockInfo = BasicBlockInfo & { page: number }
 export type FilterBlockAddressesCallback = (
   addresses: string[], blockInfo: FilterBlockAddressesBlockInfo,
