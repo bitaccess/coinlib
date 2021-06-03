@@ -458,4 +458,12 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
   ): Promise<null> {
     return null
   }
+
+  async createMultiInputTransaction(
+    from: number,
+    to: PayportOutput[],
+    options: CreateTransactionOptions = {},
+  ): Promise<null> {
+    return null
+  }
 }
