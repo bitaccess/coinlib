@@ -252,6 +252,14 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     return null
   }
 
+  async createMultiInputTransaction(
+    from: number,
+    to: PayportOutput[],
+    options: CreateTransactionOptions = {},
+  ): Promise<null> {
+    return null
+  }
+
   async signTransaction(unsignedTx: EthereumUnsignedTransaction): Promise<EthereumSignedTransaction> {
     const fromPrivateKey = await this.getPrivateKey(unsignedTx.fromIndex)
     const payport = await this.getPayport(unsignedTx.fromIndex)
