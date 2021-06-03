@@ -32,7 +32,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     this.blockcypherToken = config.blockcypherToken
   }
 
-  abstract getPaymentScript(index: number): bitcoin.payments.Payment
+  abstract getPaymentScript(index: number, addressType?: AddressType): bitcoin.payments.Payment
   abstract addressType: AddressType
 
   async createServiceTransaction(): Promise<null> {
@@ -135,8 +135,8 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
       }
       psbt.addInput(await this.getPsbtInputData(
         input,
-        this.getPaymentScript(signer),
-        this.addressType,
+        this.getPaymentScript(signer, input.addressType as AddressType),
+        input.addressType || this.addressType,
       ))
     }
     for (let output of outputs) {

@@ -967,7 +967,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     return {
       status: TransactionStatus.Unsigned,
       id: null,
-      fromIndex: from,
+      fromIndex: null,
       fromAddress: 'batch',
       fromExtraId: null,
       toIndex: resultToIndex,

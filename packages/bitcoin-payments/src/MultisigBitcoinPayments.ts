@@ -87,7 +87,7 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
   }
 
   getAddress(index: number, addressType?: MultisigAddressType): string {
-    const { address } = this.getPaymentScript(index)
+    const { address } = this.getPaymentScript(index, addressType)
     if (!address) {
       throw new Error('bitcoinjs-lib address derivation returned falsy value')
     }

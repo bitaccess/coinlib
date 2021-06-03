@@ -225,7 +225,7 @@ export const TransactionCommon = requiredOptionalCodec(
     id: nullable(t.string), // network txid
     fromAddress: nullable(t.string), // sender address
     toAddress: nullable(t.string), // recipient address
-    fromIndex: nullable(t.union([t.number, t.array(t.number)])), // sender address index
+    fromIndex: nullable(t.number), // sender address index
     toIndex: nullable(t.number), // recipient address index, null if not ours
     amount: nullable(t.string), // main denomination (eg "0.125")
     fee: nullable(t.string), // total fee in main denomination
@@ -263,7 +263,7 @@ const UnsignedCommon = extendCodec(
   {
     fromAddress: t.string,
     toAddress: t.string,
-    fromIndex: t.union([t.number, t.array(t.number)]),
+    fromIndex: t.number,
     targetFeeLevel: FeeLevelT, // fee level requested upon creation
     targetFeeRate: nullable(t.string), // fee rate requested upon creation
     targetFeeRateType: nullable(FeeRateTypeT), // fee rate type requested upon creation

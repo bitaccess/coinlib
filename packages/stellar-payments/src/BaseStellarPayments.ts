@@ -9,6 +9,7 @@ import {
   FeeRateType,
   TransactionStatus,
   ResolveablePayport,
+  DerivablePayport,
   PaymentsError,
   PaymentsErrorCode,
   NetworkType,
@@ -96,6 +97,8 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     } else if (typeof payport === 'string') {
       assertValidAddress(payport)
       return { address: payport }
+    } else if (DerivablePayport.is(payport)) {
+      throw new Error(`Invalid Stellar payport: ${JSON.stringify(payport)}`)
     }
     assertValidAddress(payport.address)
     assertValidExtraIdOrNil(payport.extraId)
@@ -372,10 +375,6 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     return null
   }
 
-  async createJoinedTransaction(): Promise<null> {
-    return null
-  }
-
   async createSweepTransaction(
     from: number,
     to: ResolveablePayport,
@@ -460,7 +459,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
   }
 
   async createMultiInputTransaction(
-    from: number,
+    from: number[],
     to: PayportOutput[],
     options: CreateTransactionOptions = {},
   ): Promise<null> {

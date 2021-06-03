@@ -12,6 +12,7 @@ import {
   Payport,
   FromTo,
   ResolveablePayport,
+  DerivablePayport,
   PaymentsError,
   PaymentsErrorCode,
   PayportOutput,
@@ -283,8 +284,9 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
         throw new Error(`Invalid TRON address: ${payport}`)
       }
       return { address: payport }
-    }
-    if (!this.isValidPayport(payport)) {
+    } else if (DerivablePayport.is(payport)) {
+      throw new Error(`Invalid TRON payport: ${JSON.stringify(payport)}`)
+    } else if (!this.isValidPayport(payport)) {
       throw new Error(`Invalid TRON payport: ${JSON.stringify(payport)}`)
     }
     return payport

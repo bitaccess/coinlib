@@ -13,6 +13,7 @@ import {
   Payport,
   FromTo,
   ResolveablePayport,
+  DerivablePayport,
   PaymentsError,
   PaymentsErrorCode,
   CreateTransactionOptions as TransactionOptions,
@@ -79,6 +80,8 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
         throw new Error(`Invalid Ethereum address: ${payport}`)
       }
       return { address: payport.toLowerCase() }
+    } else if (DerivablePayport.is(payport)) {
+      throw new Error(`Invalid Ethereum address: ${payport}`)
     }
 
     if (!this.isValidPayport(payport)) {
@@ -253,7 +256,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
   }
 
   async createMultiInputTransaction(
-    from: number,
+    from: number[],
     to: PayportOutput[],
     options: CreateTransactionOptions = {},
   ): Promise<null> {
