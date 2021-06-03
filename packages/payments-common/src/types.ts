@@ -122,6 +122,7 @@ export const UtxoInfo = requiredOptionalCodec(
     txHex: t.string,
     scriptPubKeyHex: t.string,
     address: t.string,
+    spent: t.boolean,
   },
   'UtxoInfo',
 )

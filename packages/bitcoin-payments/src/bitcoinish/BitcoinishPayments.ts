@@ -193,6 +193,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         txHex: tx.hex,
         scriptPubKeyHex: output?.hex,
         address: output?.addresses?.[0],
+        spent: false,
       }
     }))
     return utxos
