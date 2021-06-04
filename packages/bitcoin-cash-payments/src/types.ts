@@ -4,7 +4,6 @@ import {
   BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, KeyPairsConfigParam,
 } from '@faast/payments-common'
 import { extendCodec, enumCodec, requiredOptionalCodec, instanceofCodec } from '@faast/ts-common'
-import { BlockInfoBitcoin } from 'blockbook-client'
 import { bitcoinish } from '@faast/bitcoin-payments'
 import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
 
@@ -136,5 +135,5 @@ export type BitcoinCashTransactionInfo = t.TypeOf<typeof BitcoinCashTransactionI
 export const BitcoinCashBroadcastResult = extendCodec(BaseBroadcastResult, {}, {}, 'BitcoinCashBroadcastResult')
 export type BitcoinCashBroadcastResult = t.TypeOf<typeof BitcoinCashBroadcastResult>
 
-export const BitcoinCashBlock = BlockInfoBitcoin
-export type BitcoinCashBlock = BlockInfoBitcoin
+export const BitcoinCashBlock = bitcoinish.BlockInfoBitcoin
+export type BitcoinCashBlock = bitcoinish.BlockInfoBitcoin

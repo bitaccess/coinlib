@@ -5,7 +5,6 @@ import {
 } from '@faast/payments-common'
 import { extendCodec, enumCodec, requiredOptionalCodec, instanceofCodec } from '@faast/ts-common'
 import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib-bigint'
-import { BlockInfoBitcoin } from 'blockbook-client'
 import { bitcoinish } from '@faast/bitcoin-payments'
 import { PsbtInput, TransactionInput } from 'bip174-bigint/src/lib/interfaces'
 
@@ -148,5 +147,5 @@ export type DogeTransactionInfo = t.TypeOf<typeof DogeTransactionInfo>
 export const DogeBroadcastResult = extendCodec(BaseBroadcastResult, {}, {}, 'DogeBroadcastResult')
 export type DogeBroadcastResult = t.TypeOf<typeof DogeBroadcastResult>
 
-export const DogeBlock = BlockInfoBitcoin
-export type DogeBlock = BlockInfoBitcoin
+export const DogeBlock = bitcoinish.BlockInfoBitcoin
+export type DogeBlock = bitcoinish.BlockInfoBitcoin

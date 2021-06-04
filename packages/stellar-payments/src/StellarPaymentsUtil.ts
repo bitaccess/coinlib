@@ -1,5 +1,5 @@
-import { AutoFeeLevels, FeeLevel, FeeRate, FeeRateType, PaymentsUtils, Payport } from '@faast/payments-common'
-import { isNil, assertType, Numeric } from '@faast/ts-common'
+import { AutoFeeLevels, BalanceResult, FeeLevel, FeeRate, FeeRateType, PaymentsUtils, Payport } from '@faast/payments-common'
+import { isNil, assertType, Numeric, isMatchingError } from '@faast/ts-common'
 
 import {
   toMainDenominationString,
@@ -8,7 +8,8 @@ import {
   isValidExtraId,
 } from './helpers'
 import { StellarConnected } from './StellarConnected'
-import { COIN_NAME, COIN_SYMBOL, DECIMAL_PLACES } from './constants'
+import { COIN_NAME, COIN_SYMBOL, DECIMAL_PLACES, MIN_BALANCE, NOT_FOUND_ERRORS } from './constants'
+import BigNumber from 'bignumber.js'
 
 export class StellarPaymentsUtils extends StellarConnected implements PaymentsUtils {
 
@@ -89,6 +90,67 @@ export class StellarPaymentsUtils extends StellarConnected implements PaymentsUt
 
   async getCurrentBlockNumber() {
     return this._retryDced(async () => (await this.getBlock()).sequence)
+  }
+
+  async getAddressUtxos() {
+    return []
+  }
+
+  isAddressBalanceSweepable(balance: Numeric): boolean {
+    return new BigNumber(balance).gt(MIN_BALANCE)
+  }
+
+  async loadAccount(address: string) {
+    let accountInfo
+    try {
+      accountInfo = await this._retryDced(() => this.getApi().loadAccount(address))
+    } catch (e) {
+      if (isMatchingError(e, NOT_FOUND_ERRORS)) {
+        this.logger.debug(`Address ${address} not found`)
+        return null
+      }
+      throw e
+    }
+    // this.logger.debug(`api.loadAccount ${address}`, omitHidden(accountInfo))
+    return accountInfo
+  }
+
+  async loadAccountOrThrow(address: string) {
+    const accountInfo = await this.loadAccount(address)
+    if (accountInfo === null) {
+      throw new Error(`Account not found ${address}`)
+    }
+    return accountInfo
+  }
+
+  async getAddressBalance(address: string): Promise<BalanceResult> {
+    const accountInfo = await this.loadAccount(address)
+    if (accountInfo === null) {
+      return {
+        confirmedBalance: '0',
+        unconfirmedBalance: '0',
+        spendableBalance: '0',
+        sweepable: false,
+        requiresActivation: true,
+        minimumBalance: String(MIN_BALANCE),
+      }
+    }
+    const balanceLine = accountInfo.balances.find((line) => line.asset_type === 'native')
+    const amountMain = new BigNumber(balanceLine && balanceLine.balance ? balanceLine.balance : '0')
+    const spendableBalance = amountMain.minus(MIN_BALANCE)
+    return {
+      confirmedBalance: amountMain.toString(),
+      unconfirmedBalance: '0',
+      spendableBalance: spendableBalance.toString(),
+      sweepable: this.isAddressBalanceSweepable(amountMain),
+      requiresActivation: amountMain.lt(MIN_BALANCE),
+      minimumBalance: String(MIN_BALANCE),
+    }
+  }
+
+  async getAddressNextSequenceNumber(address: string) {
+    const accountInfo = await this.loadAccountOrThrow(address)
+    return new BigNumber(accountInfo.sequence).plus(1).toString()
   }
 
 }

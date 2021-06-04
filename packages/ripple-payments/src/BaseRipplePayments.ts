@@ -140,19 +140,12 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     return [this.getHotSignatory().address, this.getDepositSignatory().address]
   }
 
-  isSweepableAddressBalance(balance: Numeric): boolean {
-    return new BigNumber(balance).gt(0)
-  }
-
-  isSweepableBalance(balance: string, payport?: ResolveablePayport): boolean {
-    const balanceBase = toBaseDenominationBigNumber(balance)
-    if (payport) {
-      payport = this.doResolvePayport(payport)
-      if (isNil(payport.extraId)) {
-        return this.isSweepableAddressBalance(balanceBase)
-      }
+  isSweepableBalance(balance: Numeric, payport?: ResolveablePayport): boolean {
+    if (payport && this.doResolvePayport(payport).extraId) {
+      // Payports with extraId don't care about min balance
+      return new BigNumber(balance).gt(0)
     }
-    return balanceBase.gt(0)
+    return this.isAddressBalanceSweepable(balance)
   }
 
   /**
@@ -166,36 +159,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     if (!isNil(extraId)) {
       throw new Error(`Cannot getBalance of ripple payport with extraId ${extraId}, use BalanceMonitor instead`)
     }
-    let balances
-    try {
-      balances = await this._retryDced(() => this.api.getBalances(address))
-    } catch (e) {
-      if (isMatchingError(e, NOT_FOUND_ERRORS)) {
-        this.logger.debug(`Address ${address} not found`)
-        return {
-          confirmedBalance: '0',
-          unconfirmedBalance: '0',
-          spendableBalance: '0',
-          sweepable: false,
-          requiresActivation: true,
-          minimumBalance: String(MIN_BALANCE),
-        }
-      }
-      throw e
-    }
-    this.logger.debug(`rippleApi.getBalance ${address}`, balances)
-    const xrpBalance = balances.find(({ currency }) => currency === 'XRP')
-    const xrpAmount = xrpBalance && xrpBalance.value ? xrpBalance.value : '0'
-    const confirmedBalance = new BigNumber(xrpAmount)
-    const spendableBalance = BigNumber.max(0, confirmedBalance.minus(MIN_BALANCE))
-    return {
-      confirmedBalance: confirmedBalance.toString(),
-      unconfirmedBalance: '0',
-      spendableBalance: spendableBalance.toString(),
-      sweepable: this.isSweepableAddressBalance(xrpAmount),
-      requiresActivation: confirmedBalance.lt(MIN_BALANCE),
-      minimumBalance: String(MIN_BALANCE),
-    }
+    return this.getAddressBalance(address)
   }
 
   usesUtxos() {
@@ -212,9 +176,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
 
   async getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<string> {
     const payport = await this.resolvePayport(payportOrIndex)
-    const { address } = payport
-    const accountInfo = await this._retryDced(() => this.api.getAccountInfo(address))
-    return new BigNumber(accountInfo.sequence).toString()
+    return this.getAddressNextSequenceNumber(payport.address)
   }
 
   resolveIndexFromAdjustment(adjustment: Adjustment): number | null {

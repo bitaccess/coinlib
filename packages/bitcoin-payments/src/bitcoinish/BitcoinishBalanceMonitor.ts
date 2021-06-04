@@ -89,8 +89,15 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
   ): Promise<BasicBlockInfo> {
     let page = 1
     let blockPage: BitcoinishBlock | undefined
+    let basicBlockInfo: BasicBlockInfo
     while(!blockPage || blockPage.page < blockPage.totalPages) {
       blockPage = await this.getApi().getBlock(blockId, { page })
+      basicBlockInfo = {
+        hash: blockPage.hash,
+        height: blockPage.height,
+        previousBlockHash: blockPage.previousBlockHash!,
+        time: new Date(blockPage.time! * 1000),
+      }
       if (!blockPage.txs) {
         this.logger.log(`No transactions returned for page ${page} of block ${blockId}`)
         break
@@ -109,7 +116,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
       const relevantAddresses = new Set<string>(
         await filterRelevantAddresses(
           Array.from(Object.keys(addressTransactions)),
-          { hash: blockPage.hash, height: blockPage.height, page },
+          { ...basicBlockInfo, page },
         )
       )
       /**
@@ -129,7 +136,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
       }
       page++
     }
-    return blockPage
+    return basicBlockInfo!
   }
 
   async retrieveBalanceActivities(
@@ -235,6 +242,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
           txHex: inputTxInfo.hex,
           scriptPubKeyHex: output.hex,
           address: standardizedAddress,
+          spent: true,
         })
       }
     }
@@ -253,6 +261,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
           txHex: tx.hex,
           scriptPubKeyHex: output.hex,
           address: standardizedAddress,
+          spent: Boolean(output.spent),
         })
       }
     }

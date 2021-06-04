@@ -1,3 +1,4 @@
+import { Numeric } from '@faast/ts-common'
 import {
   BalanceResult,
   BaseUnsignedTransaction,
@@ -106,7 +107,7 @@ export interface BasePayments<
    * externally track balances. If payport is unspecified assume it applies to a deposit payport rather than
    * a hot wallet.
    */
-  isSweepableBalance(balance: string, payport?: ResolveablePayport): Promise<boolean> | boolean
+  isSweepableBalance(balance: Numeric, payport?: ResolveablePayport): Promise<boolean> | boolean
 
   usesUtxos(): boolean
 

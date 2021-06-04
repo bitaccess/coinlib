@@ -1,5 +1,5 @@
 import { PaymentsUtils, Payport, AutoFeeLevels, FeeLevel, FeeRate, FeeRateType } from '@faast/payments-common'
-import { isNil, assertType } from '@faast/ts-common'
+import { isNil, assertType, Numeric, isMatchingError } from '@faast/ts-common'
 
 import {
   toMainDenominationString,
@@ -11,7 +11,8 @@ import {
 } from './helpers'
 import { BaseRippleConfig } from './types'
 import { RippleConnected } from './RippleConnected'
-import { DECIMAL_PLACES, COIN_NAME, COIN_SYMBOL, FEE_LEVEL_CUSHIONS } from './constants'
+import { DECIMAL_PLACES, COIN_NAME, COIN_SYMBOL, FEE_LEVEL_CUSHIONS, NOT_FOUND_ERRORS, MIN_BALANCE } from './constants'
+import BigNumber from 'bignumber.js'
 
 export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtils {
 
@@ -104,5 +105,51 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
 
   async getCurrentBlockNumber() {
     return this._retryDced(() => this.api.getLedgerVersion())
+  }
+
+  async getAddressUtxos() {
+    return []
+  }
+
+  isAddressBalanceSweepable(balance: Numeric) {
+    return new BigNumber(balance).gt(MIN_BALANCE)
+  }
+
+  async getAddressBalance(address: string) {
+    let balances
+    try {
+      balances = await this._retryDced(() => this.api.getBalances(address))
+    } catch (e) {
+      if (isMatchingError(e, NOT_FOUND_ERRORS)) {
+        this.logger.debug(`Address ${address} not found`)
+        return {
+          confirmedBalance: '0',
+          unconfirmedBalance: '0',
+          spendableBalance: '0',
+          sweepable: false,
+          requiresActivation: true,
+          minimumBalance: String(MIN_BALANCE),
+        }
+      }
+      throw e
+    }
+    this.logger.debug(`rippleApi.getBalance ${address}`, balances)
+    const xrpBalance = balances.find(({ currency }) => currency === 'XRP')
+    const xrpAmount = xrpBalance && xrpBalance.value ? xrpBalance.value : '0'
+    const confirmedBalance = new BigNumber(xrpAmount)
+    const spendableBalance = BigNumber.max(0, confirmedBalance.minus(MIN_BALANCE))
+    return {
+      confirmedBalance: confirmedBalance.toString(),
+      unconfirmedBalance: '0',
+      spendableBalance: spendableBalance.toString(),
+      sweepable: this.isAddressBalanceSweepable(xrpAmount),
+      requiresActivation: confirmedBalance.lt(MIN_BALANCE),
+      minimumBalance: String(MIN_BALANCE),
+    }
+  }
+
+  async getAddressNextSequenceNumber(address: string): Promise<string> {
+    const accountInfo = await this._retryDced(() => this.api.getAccountInfo(address))
+    return new BigNumber(accountInfo.sequence).toString()
   }
 }

@@ -6,9 +6,9 @@ import {
 import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger, Numeric, enumCodec } from '@faast/ts-common'
 import { Network as BitcoinjsNetwork, Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
 import { BlockbookBitcoin, BlockInfoBitcoin, NormalizedTxBitcoin } from 'blockbook-client'
-import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils';
+import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
 
-export { BitcoinjsNetwork }
+export { BitcoinjsNetwork, BlockbookBitcoin, BlockInfoBitcoin, NormalizedTxBitcoin }
 
 export type BitcoinjsKeyPair = BitcoinjsSigner & {
   privateKey?: Buffer
@@ -73,6 +73,7 @@ export type BitcoinishPaymentsUtilsConfig = BlockbookConnectedConfig & {
   coinName: string,
   coinDecimals: number,
   bitcoinjsNetwork: BitcoinjsNetwork,
+  networkMinRelayFee: number, // base denom
 }
 
 export type BitcoinishBalanceMonitorConfig = BlockbookConnectedConfig & {
@@ -82,7 +83,6 @@ export type BitcoinishBalanceMonitorConfig = BlockbookConnectedConfig & {
 export type BitcoinishPaymentsConfig = BitcoinishPaymentsUtilsConfig & {
   minTxFee: FeeRate,
   dustThreshold: number,
-  networkMinRelayFee: number,
   defaultFeeLevel: AutoFeeLevels,
   targetUtxoPoolSize?: number, // # of available utxos to try and maintain
   minChange?: Numeric, // Soft minimum for each change generated to maintain utxo pool

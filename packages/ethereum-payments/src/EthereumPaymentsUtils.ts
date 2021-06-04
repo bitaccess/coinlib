@@ -1,17 +1,28 @@
 import Web3 from 'web3'
-import { PaymentsUtils, Payport, createUnitConverters, AutoFeeLevels, FeeRate, FeeRateType, NetworkType } from '@faast/payments-common'
+import {
+  PaymentsUtils,
+  Payport,
+  createUnitConverters,
+  AutoFeeLevels,
+  FeeRate,
+  FeeRateType,
+  NetworkType,
+  BalanceResult,
+} from '@faast/payments-common'
 import {
   Logger,
   DelegateLogger,
   assertType,
-  isNull
+  isNull,
+  Numeric
 } from '@faast/ts-common'
 
-import { PACKAGE_NAME, ETH_DECIMAL_PLACES, ETH_NAME, ETH_SYMBOL, DEFAULT_ADDRESS_FORMAT } from './constants'
+import { PACKAGE_NAME, ETH_DECIMAL_PLACES, ETH_NAME, ETH_SYMBOL, DEFAULT_ADDRESS_FORMAT, MIN_SWEEPABLE_WEI } from './constants'
 import { EthereumAddressFormat, EthereumAddressFormatT, EthereumPaymentsUtilsConfig } from './types';
 import { isValidXkey } from './bip44'
 import { NetworkData } from './NetworkData'
 import { retryIfDisconnected } from './utils';
+import BigNumber from 'bignumber.js';
 
 type UnitConverters = ReturnType<typeof createUnitConverters>
 
@@ -196,5 +207,31 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
 
   async getCurrentBlockNumber() {
     return this._retryDced(() => this.eth.getBlockNumber())
+  }
+
+  isAddressBalanceSweepable(balanceEth: Numeric): boolean {
+    return this.toBaseDenominationBigNumberEth(balanceEth).gt(MIN_SWEEPABLE_WEI)
+  }
+
+  async getAddressBalance(address: string): Promise<BalanceResult> {
+    const balance = await this._retryDced(() => this.eth.getBalance(address))
+    const confirmedBalance = this.toMainDenomination(balance).toString()
+    const sweepable = this.isAddressBalanceSweepable(confirmedBalance)
+
+    return {
+      confirmedBalance,
+      unconfirmedBalance: '0',
+      spendableBalance: confirmedBalance,
+      sweepable,
+      requiresActivation: false,
+    }
+  }
+
+  async getAddressNextSequenceNumber(address: string) {
+    return this.gasStation.getNonce(address)
+  }
+
+  async getAddressUtxos() {
+    return []
   }
 }
