@@ -29,6 +29,7 @@ import {
 } from '../constants'
 import { BaseEthereumPayments } from '../BaseEthereumPayments'
 import * as SIGNATURE from './constants'
+import { Numeric } from '@faast/ts-common'
 
 export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig> extends BaseEthereumPayments<Config> {
   public tokenAddress: string
@@ -68,7 +69,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     }
   }
 
-  async isSweepableBalance(balance: string): Promise<boolean> {
+  async isSweepableBalance(balance: Numeric): Promise<boolean> {
     // Any ERC20 balance greater than 0 is sweepable
     return new BigNumber(balance).isGreaterThan(0)
   }

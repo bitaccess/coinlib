@@ -1,5 +1,5 @@
-import { PaymentsUtils, NetworkType, Payport, AutoFeeLevels, FeeRate, FeeRateType } from '@faast/payments-common'
-import { Logger, DelegateLogger, isNil, assertType } from '@faast/ts-common'
+import { PaymentsUtils, NetworkType, Payport, AutoFeeLevels, FeeRate, FeeRateType, BalanceResult } from '@faast/payments-common'
+import { Logger, DelegateLogger, isNil, assertType, Numeric } from '@faast/ts-common'
 import TronWeb from 'tronweb'
 
 import {
@@ -11,6 +11,7 @@ import {
   isValidExtraId,
   isValidPrivateKey,
   privateKeyToAddress,
+  toMainDenominationBigNumber,
 } from './helpers'
 import {
   COIN_NAME,
@@ -19,10 +20,13 @@ import {
   DEFAULT_EVENT_SERVER,
   DEFAULT_FULL_NODE,
   DEFAULT_SOLIDITY_NODE,
+  MIN_BALANCE_SUN,
+  MIN_BALANCE_TRX,
   PACKAGE_NAME,
 } from './constants'
 import { BaseTronPaymentsConfig } from './types'
-import { retryIfDisconnected } from './utils'
+import { retryIfDisconnected, toError } from './utils'
+import BigNumber from 'bignumber.js'
 
 export class TronPaymentsUtils implements PaymentsUtils {
 
@@ -120,5 +124,40 @@ export class TronPaymentsUtils implements PaymentsUtils {
 
   getCurrentBlockNumber() {
     return this._retryDced(async () => (await this.tronweb.trx.getCurrentBlock()).block_header.raw_data.number)
+  }
+
+  async getAddressUtxos() {
+    return []
+  }
+
+  async getAddressNextSequenceNumber() {
+    return null
+  }
+
+  protected canSweepBalanceSun(balanceSun: number): boolean {
+    return balanceSun > MIN_BALANCE_SUN
+  }
+
+  isAddressBalanceSweepable(balanceTrx: Numeric): boolean {
+    return new BigNumber(balanceTrx).gt(MIN_BALANCE_TRX)
+  }
+
+  async getAddressBalance(address: string): Promise<BalanceResult> {
+    try {
+      const balanceSun = await this._retryDced(() => this.tronweb.trx.getBalance(address))
+      const sweepable = this.canSweepBalanceSun(balanceSun)
+      const confirmedBalance = toMainDenominationBigNumber(balanceSun)
+      const spendableBalance = BigNumber.max(0, confirmedBalance.minus(MIN_BALANCE_TRX))
+      return {
+        confirmedBalance: confirmedBalance.toString(),
+        unconfirmedBalance: '0',
+        spendableBalance: spendableBalance.toString(),
+        sweepable,
+        requiresActivation: false,
+        minimumBalance: String(MIN_BALANCE_TRX),
+      }
+    } catch (e) {
+      throw toError(e)
+    }
   }
 }

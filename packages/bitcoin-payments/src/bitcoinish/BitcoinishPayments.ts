@@ -53,7 +53,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   > {
   minTxFee?: FeeRate
   dustThreshold: number // base denom
-  networkMinRelayFee: number // base denom
   defaultFeeLevel: AutoFeeLevels
   targetUtxoPoolSize: number
   minChangeSat: number
@@ -62,7 +61,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     super(config)
     this.minTxFee = config.minTxFee
     this.dustThreshold = config.dustThreshold
-    this.networkMinRelayFee = config.networkMinRelayFee
     this.defaultFeeLevel = config.defaultFeeLevel
     this.targetUtxoPoolSize = isUndefined(config.targetUtxoPoolSize) ? 1 : config.targetUtxoPoolSize
     const minChange = toBigNumber(isUndefined(config.minChange) ? 0 : config.minChange)
@@ -93,10 +91,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
   requiresBalanceMonitor() {
     return false
-  }
-
-  isSweepableBalance(balance: Numeric): boolean {
-    return this.toBaseDenominationNumber(balance) > this.networkMinRelayFee
   }
 
   async getPayport(index: number): Promise<Payport> {
@@ -154,18 +148,11 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
   async getBalance(payport: ResolveablePayport): Promise<BalanceResult> {
     const { address } = await this.resolvePayport(payport)
-    const result = await this._retryDced(() => this.getApi().getAddressDetails(address, { details: 'basic' }))
-    const confirmedBalance = this.toMainDenominationBigNumber(result.balance)
-    const unconfirmedBalance = this.toMainDenominationBigNumber(result.unconfirmedBalance)
-    const spendableBalance = confirmedBalance.plus(unconfirmedBalance)
-    this.logger.debug('getBalance', address, confirmedBalance, unconfirmedBalance)
-    return {
-      confirmedBalance: confirmedBalance.toString(),
-      unconfirmedBalance: unconfirmedBalance.toString(),
-      spendableBalance: spendableBalance.toString(),
-      sweepable: this.isSweepableBalance(spendableBalance),
-      requiresActivation: false,
-    }
+    return this.getAddressBalance(address)
+  }
+
+  isSweepableBalance(balance: Numeric) {
+    return this.isAddressBalanceSweepable(balance)
   }
 
   usesUtxos() {
@@ -174,29 +161,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
   async getUtxos(payport: ResolveablePayport): Promise<UtxoInfo[]> {
     const { address } = await this.resolvePayport(payport)
-    let utxosRaw = await this.getApi().getUtxosForAddress(address)
-    const txsById: { [txid: string]: NormalizedTxBitcoin } = {}
-    const utxos: UtxoInfo[] = await Promise.all(utxosRaw.map(async (data) => {
-      const { value, height, lockTime, coinbase } = data
-
-      // Retrieve the raw tx data to enable returning raw hex data. Memoize in a temporary object for efficiency
-      const tx = txsById[data.txid] ?? (await this._retryDced(() => this.getApi().getTx(data.txid)))
-      txsById[data.txid] = tx
-      const output = tx.vout[data.vout]
-      return {
-        ...data,
-        satoshis: Number.parseInt(value),
-        value: this.toMainDenominationString(value),
-        height: isUndefined(height) || height <= 0 ? undefined : String(height),
-        lockTime: isUndefined(lockTime) ? undefined : String(lockTime),
-        coinbase: Boolean(coinbase),
-        txHex: tx.hex,
-        scriptPubKeyHex: output?.hex,
-        address: output?.addresses?.[0],
-        spent: false,
-      }
-    }))
-    return utxos
+    return this.getAddressUtxos(address)
   }
 
   usesSequenceNumber() {

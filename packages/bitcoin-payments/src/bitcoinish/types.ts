@@ -73,6 +73,7 @@ export type BitcoinishPaymentsUtilsConfig = BlockbookConnectedConfig & {
   coinName: string,
   coinDecimals: number,
   bitcoinjsNetwork: BitcoinjsNetwork,
+  networkMinRelayFee: number, // base denom
 }
 
 export type BitcoinishBalanceMonitorConfig = BlockbookConnectedConfig & {
@@ -82,7 +83,6 @@ export type BitcoinishBalanceMonitorConfig = BlockbookConnectedConfig & {
 export type BitcoinishPaymentsConfig = BitcoinishPaymentsUtilsConfig & {
   minTxFee: FeeRate,
   dustThreshold: number,
-  networkMinRelayFee: number,
   defaultFeeLevel: AutoFeeLevels,
   targetUtxoPoolSize?: number, // # of available utxos to try and maintain
   minChange?: Numeric, // Soft minimum for each change generated to maintain utxo pool

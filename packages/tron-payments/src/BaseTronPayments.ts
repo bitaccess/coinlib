@@ -16,7 +16,7 @@ import {
   PaymentsErrorCode,
   PayportOutput,
 } from '@faast/payments-common'
-import { isType } from '@faast/ts-common'
+import { isType, Numeric } from '@faast/ts-common'
 
 import {
   TronTransactionInfo,
@@ -69,24 +69,8 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
   }
 
   async getBalance(resolveablePayport: ResolveablePayport): Promise<BalanceResult> {
-    try {
-      const payport = await this.resolvePayport(resolveablePayport)
-      const balanceSun = await this._retryDced(() => this.tronweb.trx.getBalance(payport.address))
-      this.logger.debug(`trx.getBalance(${payport.address}) -> ${balanceSun}`)
-      const sweepable = this.canSweepBalance(balanceSun)
-      const confirmedBalance = toMainDenominationBigNumber(balanceSun)
-      const spendableBalance = BigNumber.max(0, confirmedBalance.minus(MIN_BALANCE_TRX))
-      return {
-        confirmedBalance: confirmedBalance.toString(),
-        unconfirmedBalance: '0',
-        spendableBalance: spendableBalance.toString(),
-        sweepable,
-        requiresActivation: false,
-        minimumBalance: String(MIN_BALANCE_TRX),
-      }
-    } catch (e) {
-      throw toError(e)
-    }
+    const payport = await this.resolvePayport(resolveablePayport)
+    return this.getAddressBalance(payport.address)
   }
 
   async resolveFeeOption(feeOption: FeeOption): Promise<ResolvedFeeOption> {
@@ -132,7 +116,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
       const feeSun = Number.parseInt(feeBase)
       const { confirmedBalance: balanceTrx } = await this.getBalance(fromPayport)
       const balanceSun = toBaseDenominationNumber(balanceTrx)
-      if (!this.canSweepBalance(balanceSun)) {
+      if (!this.canSweepBalanceSun(balanceSun)) {
         throw new Error(
           `Insufficient balance (${balanceTrx}) to sweep with fee of ${feeMain} ` +
             `while maintaining a minimum required balance of ${MIN_BALANCE_TRX}`,
@@ -330,8 +314,8 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
     }
   }
 
-  isSweepableBalance(balanceTrx: string): boolean {
-    return this.canSweepBalance(toBaseDenominationNumber(balanceTrx))
+  isSweepableBalance(balanceTrx: Numeric): boolean {
+    return this.isAddressBalanceSweepable(balanceTrx)
   }
 
   usesSequenceNumber() {
@@ -351,10 +335,6 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
   }
 
   // HELPERS
-
-  private canSweepBalance(balanceSun: number): boolean {
-    return balanceSun > MIN_BALANCE_SUN
-  }
 
   private extractTxFields(tx: TronTransaction) {
     const contractParam = get(tx, 'raw_data.contract[0].parameter.value')

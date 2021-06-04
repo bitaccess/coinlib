@@ -1,9 +1,18 @@
-import { PaymentsUtils, Payport, createUnitConverters, MaybePromise, AutoFeeLevels, FeeRate, NetworkType } from '@faast/payments-common'
+import {
+  PaymentsUtils,
+  Payport,
+  createUnitConverters,
+  MaybePromise,
+  AutoFeeLevels,
+  FeeRate,
+  UtxoInfo,
+  BalanceResult,
+} from '@faast/payments-common'
 import { Network as BitcoinjsNetwork } from 'bitcoinjs-lib'
 import { isNil, assertType, Numeric, isUndefined } from '@faast/ts-common'
 
 import { BlockbookConnected } from './BlockbookConnected'
-import { BitcoinishBlock, BitcoinishPaymentsUtilsConfig } from './types'
+import { BitcoinishBlock, BitcoinishPaymentsUtilsConfig, NormalizedTxBitcoin } from './types'
 
 type UnitConverters = ReturnType<typeof createUnitConverters>
 
@@ -13,6 +22,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
   readonly coinName: string
   readonly coinDecimals: number
   readonly bitcoinjsNetwork: BitcoinjsNetwork
+  readonly networkMinRelayFee: number // base denom
 
   constructor(config: BitcoinishPaymentsUtilsConfig) {
     super(config)
@@ -20,6 +30,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     this.coinName = config.coinName
     this.coinDecimals = config.coinDecimals
     this.bitcoinjsNetwork = config.bitcoinjsNetwork
+    this.networkMinRelayFee = config.networkMinRelayFee
 
     const unitConverters = createUnitConverters(this.coinDecimals)
     this.toMainDenominationString = unitConverters.toMainDenominationString
@@ -100,5 +111,54 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
 
   async getCurrentBlockNumber() {
     return this._retryDced(async () => (await this.getApi().getStatus()).blockbook.bestHeight)
+  }
+
+  isAddressBalanceSweepable(balance: Numeric): boolean {
+    return this.toBaseDenominationNumber(balance) > this.networkMinRelayFee
+  }
+
+  async getAddressBalance(address: string): Promise<BalanceResult> {
+    const result = await this._retryDced(() => this.getApi().getAddressDetails(address, { details: 'basic' }))
+    const confirmedBalance = this.toMainDenominationBigNumber(result.balance)
+    const unconfirmedBalance = this.toMainDenominationBigNumber(result.unconfirmedBalance)
+    const spendableBalance = confirmedBalance.plus(unconfirmedBalance)
+    this.logger.debug('getBalance', address, confirmedBalance, unconfirmedBalance)
+    return {
+      confirmedBalance: confirmedBalance.toString(),
+      unconfirmedBalance: unconfirmedBalance.toString(),
+      spendableBalance: spendableBalance.toString(),
+      sweepable: this.isAddressBalanceSweepable(spendableBalance),
+      requiresActivation: false,
+    }
+  }
+
+  async getAddressUtxos(address: string): Promise<UtxoInfo[]> {
+    let utxosRaw = await this.getApi().getUtxosForAddress(address)
+    const txsById: { [txid: string]: NormalizedTxBitcoin } = {}
+    const utxos: UtxoInfo[] = await Promise.all(utxosRaw.map(async (data) => {
+      const { value, height, lockTime, coinbase } = data
+
+      // Retrieve the raw tx data to enable returning raw hex data. Memoize in a temporary object for efficiency
+      const tx = txsById[data.txid] ?? (await this._retryDced(() => this.getApi().getTx(data.txid)))
+      txsById[data.txid] = tx
+      const output = tx.vout[data.vout]
+      return {
+        ...data,
+        satoshis: Number.parseInt(value),
+        value: this.toMainDenominationString(value),
+        height: isUndefined(height) || height <= 0 ? undefined : String(height),
+        lockTime: isUndefined(lockTime) ? undefined : String(lockTime),
+        coinbase: Boolean(coinbase),
+        txHex: tx.hex,
+        scriptPubKeyHex: output?.hex,
+        address: output?.addresses?.[0],
+        spent: false,
+      }
+    }))
+    return utxos
+  }
+
+  async getAddressNextSequenceNumber() {
+    return null
   }
 }

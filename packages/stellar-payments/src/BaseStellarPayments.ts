@@ -133,41 +133,11 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     return [this.getHotSignatory().address, this.getDepositSignatory().address]
   }
 
-  isSweepableAddressBalance(balance: Numeric): boolean {
-    return new BigNumber(balance).gt(0)
-  }
-
-  isSweepableBalance(balance: string, payport?: ResolveablePayport): boolean {
-    const balanceBase = toBaseDenominationBigNumber(balance)
-    if (payport) {
-      payport = this.doResolvePayport(payport)
-      if (isNil(payport.extraId)) {
-        return this.isSweepableAddressBalance(balanceBase)
-      }
+  isSweepableBalance(balance: Numeric, payport?: ResolveablePayport): boolean {
+    if (payport && this.doResolvePayport(payport).extraId) {
+      return new BigNumber(balance).gt(0)
     }
-    return balanceBase.gt(0)
-  }
-  async loadAccount(address: string) {
-    let accountInfo
-    try {
-      accountInfo = await this._retryDced(() => this.getApi().loadAccount(address))
-    } catch (e) {
-      if (isMatchingError(e, NOT_FOUND_ERRORS)) {
-        this.logger.debug(`Address ${address} not found`)
-        return null
-      }
-      throw e
-    }
-    // this.logger.debug(`api.loadAccount ${address}`, omitHidden(accountInfo))
-    return accountInfo
-  }
-
-  async loadAccountOrThrow(address: string) {
-    const accountInfo = await this.loadAccount(address)
-    if (accountInfo === null) {
-      throw new Error(`Account not found ${address}`)
-    }
-    return accountInfo
+    return this.isAddressBalanceSweepable(balance)
   }
 
   async getBalance(payportOrIndex: ResolveablePayport): Promise<BalanceResult> {
@@ -176,29 +146,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     if (!isNil(extraId)) {
       throw new Error(`Cannot getBalance of stellar payport with extraId ${extraId}, use BalanceMonitor instead`)
     }
-    const accountInfo = await this.loadAccount(address)
-    if (accountInfo === null) {
-      return {
-        confirmedBalance: '0',
-        unconfirmedBalance: '0',
-        spendableBalance: '0',
-        sweepable: false,
-        requiresActivation: true,
-        minimumBalance: String(MIN_BALANCE),
-      }
-    }
-    const balanceLine = accountInfo.balances.find((line) => line.asset_type === 'native')
-    const amountMain = new BigNumber(balanceLine && balanceLine.balance ? balanceLine.balance : '0')
-    this.logger.debug(`getBalance ${address}/${extraId}`, amountMain)
-    const spendableBalance = amountMain.minus(MIN_BALANCE)
-    return {
-      confirmedBalance: amountMain.toString(),
-      unconfirmedBalance: '0',
-      spendableBalance: spendableBalance.toString(),
-      sweepable: this.isSweepableAddressBalance(amountMain),
-      requiresActivation: amountMain.lt(MIN_BALANCE),
-      minimumBalance: String(MIN_BALANCE),
-    }
+    return this.getAddressBalance(address)
   }
 
   usesUtxos() {
@@ -215,9 +163,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
 
   async getNextSequenceNumber(payportOrIndex: ResolveablePayport): Promise<string> {
     const payport = await this.resolvePayport(payportOrIndex)
-    const { address } = payport
-    const accountInfo = await this.loadAccountOrThrow(address)
-    return new BigNumber(accountInfo.sequence).plus(1).toString()
+    return this.getAddressNextSequenceNumber(payport.address)
   }
 
   resolveIndexFromAddressAndMemo(address: string, memo?: string): number | null {

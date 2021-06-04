@@ -1,5 +1,5 @@
 import { Numeric } from '@faast/ts-common'
-import { Payport, MaybePromise, AutoFeeLevels, FeeRate, NetworkType } from './types'
+import { Payport, MaybePromise, AutoFeeLevels, FeeRate, NetworkType, UtxoInfo, BalanceResult } from './types'
 
 export interface PaymentsUtils {
   readonly networkType: NetworkType
@@ -63,4 +63,27 @@ export interface PaymentsUtils {
    * Returns the current block number as a string
    */
   getCurrentBlockNumber(): MaybePromise<number>
+
+  /**
+   * Return utxos for the provided address
+   */
+  getAddressUtxos(address: string): Promise<UtxoInfo[]>
+
+  /**
+   * Return true if the balance is likely sweepable
+   * @param balance The balance to determine if sweepable
+   * @param address Optionally the address the balance is for
+   */
+  isAddressBalanceSweepable(balance: Numeric, address?: string): boolean
+
+  /**
+   * Return the balance of an address
+   */
+  getAddressBalance(address: string): Promise<BalanceResult>
+
+  /**
+   * Get the next unused transaction sequenceNumber for an address.
+   * @returns null if the network doesn't use sequence numbers, or if it cannot be determined.
+   */
+  getAddressNextSequenceNumber(address: string): Promise<string | null>
 }

@@ -21,7 +21,7 @@ import {
   AutoFeeLevels,
   DEFAULT_MAX_FEE_PERCENT,
 } from '@faast/payments-common'
-import { isType, isString, isMatchingError } from '@faast/ts-common'
+import { isType, isString, isMatchingError, Numeric } from '@faast/ts-common'
 import request from 'request-promise-native'
 
 import {
@@ -198,28 +198,16 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
 
   async getBalance(resolveablePayport: ResolveablePayport): Promise<BalanceResult> {
     const payport = await this.resolvePayport(resolveablePayport)
-    const balance = await this._retryDced(() => this.eth.getBalance(payport.address))
-    const confirmedBalance = this.toMainDenomination(balance).toString()
-    const sweepable = await this.isSweepableBalance(confirmedBalance)
-
-    return {
-      confirmedBalance,
-      unconfirmedBalance: '0',
-      spendableBalance: confirmedBalance,
-      sweepable,
-      requiresActivation: false,
-    }
+    return this.getAddressBalance(payport.address)
   }
 
-  async isSweepableBalance(balanceEth: string): Promise<boolean> {
-    return new BigNumber(this.toBaseDenomination(balanceEth)).gt(MIN_SWEEPABLE_WEI)
+  async isSweepableBalance(balance: Numeric) {
+    return this.isAddressBalanceSweepable(balance)
   }
 
   async getNextSequenceNumber(payport: ResolveablePayport) {
     const resolvedPayport = await this.resolvePayport(payport)
-    const sequenceNumber = await this.gasStation.getNonce(resolvedPayport.address)
-
-    return sequenceNumber
+    return this.getAddressNextSequenceNumber(resolvedPayport.address)
   }
 
   async getTransactionInfo(txid: string): Promise<EthereumTransactionInfo> {
