@@ -160,9 +160,6 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
         address: output?.addresses?.[0],
         spent: false,
       }
-      if (typeof payport === 'number') {
-        res.signer = payport
-      }
       return res
     }))
     return utxos

@@ -5,6 +5,7 @@ import {
   BitcoinUnsignedTransaction,
   BitcoinSignedTransaction,
   MultisigAddressType,
+  AddressType,
 } from './types'
 import { omit } from 'lodash'
 import { HdBitcoinPayments } from './HdBitcoinPayments'
@@ -210,6 +211,20 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
   async signTransaction(tx: BitcoinUnsignedTransaction): Promise<BitcoinSignedTransaction> {
     const partiallySignedTxs = await Promise.all(this.signers.map((signer) => signer.signTransaction(tx)))
     return this.combinePartiallySignedTransactions(partiallySignedTxs)
+  }
+
+  getAddressType(address?: string): AddressType {
+    if (!address) {
+      return this.addressType
+    }
+    if (address.startsWith('3') || address.startsWith('2')) {
+      // XXX which one to return?
+      return AddressType.MultisigLegacy || AddressType.MultisigSegwitP2SH
+    } else if (address.startsWith('bc1') ||  address.startsWith('tb1')) {
+      return AddressType.MultisigSegwitNative
+    } else {
+      throw new Error('Failed to identify address')
+    }
   }
 }
 

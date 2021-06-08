@@ -263,7 +263,7 @@ const UnsignedCommon = extendCodec(
   {
     fromAddress: t.string,
     toAddress: t.string,
-    fromIndex: t.number,
+    fromIndex: nullable(t.number), // same as multioutput
     targetFeeLevel: FeeLevelT, // fee level requested upon creation
     targetFeeRate: nullable(t.string), // fee rate requested upon creation
     targetFeeRateType: nullable(FeeRateTypeT), // fee rate type requested upon creation

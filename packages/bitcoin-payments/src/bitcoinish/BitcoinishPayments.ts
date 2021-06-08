@@ -168,7 +168,15 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
   async getUtxos(payport: ResolveablePayport): Promise<UtxoInfo[]> {
     const { address } = await this.resolvePayport(payport)
-    return this.getAddressUtxos(address)
+    const utxos = await this.getAddressUtxos(address)
+
+    if (typeof payport === 'number') {
+      utxos.forEach((u: UtxoInfo) => u.signer = payport)
+    } else if (DerivablePayport.is(payport)) {
+      utxos.forEach((u: UtxoInfo) => u.signer = payport.index)
+    }
+
+    return utxos
   }
 
   usesSequenceNumber() {
@@ -675,8 +683,10 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   ): BitcoinishWeightedChangeOutput[] {
     const result: BitcoinishWeightedChangeOutput[] = []
     for (let i = 0; i < changeOutputCount; i++) {
-      // TODO: check if chcnageAddess.length < changeOutputCount
-      result.push({ address: changeAddress[i], weight: 2 ** i })
+      result.push({
+        address: (changeAddress[i] || changeAddress[changeAddress.length % i]),
+        weight: 2 ** i
+      })
     }
     return result.sort((a, b) => a.weight - b.weight)
   }

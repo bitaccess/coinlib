@@ -6,6 +6,7 @@ import {
   BitcoinSignedTransaction,
   SinglesigBitcoinPaymentsConfig,
   SinglesigAddressType,
+  AddressType,
 } from './types'
 import { BitcoinishPaymentTx, BitcoinishTxOutput } from './bitcoinish/types'
 import { publicKeyToString, getSinglesigPaymentScript } from './helpers'
@@ -92,5 +93,21 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
     }
 
     return this.validateAndFinalizeSignedTx(tx, psbt)
+  }
+
+  getAddressType(address?: string): SinglesigAddressType {
+    if (!address) {
+      return this.addressType
+    }
+
+    if (address.startsWith('1') || address.startsWith('m') || address.startsWith('n')) {
+      return AddressType.Legacy
+    } else if (address.startsWith('3') || address.startsWith('2')) {
+      return AddressType.SegwitP2SH
+    } else if (address.startsWith('bc1') ||  address.startsWith('tb1')) {
+      return AddressType.SegwitNative
+    } else {
+      throw new Error('Failed to identify address')
+    }
   }
 }
