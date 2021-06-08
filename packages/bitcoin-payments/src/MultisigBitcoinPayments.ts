@@ -213,13 +213,20 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
     return this.combinePartiallySignedTransactions(partiallySignedTxs)
   }
 
-  getAddressType(address?: string): AddressType {
-    if (!address) {
-      return this.addressType
-    }
+  getAddressType(address: string, index: number): AddressType {
     if (address.startsWith('3') || address.startsWith('2')) {
-      // XXX which one to return?
-      return AddressType.MultisigLegacy || AddressType.MultisigSegwitP2SH
+      const lA = this.getAddress(index, AddressType.MultisigLegacy)
+      const sA = this.getAddress(index, AddressType.MultisigSegwitP2SH)
+
+      if (address === lA) {
+        return AddressType.MultisigLegacy
+      }
+
+      if (address === sA) {
+        return AddressType.MultisigSegwitP2SH
+      }
+
+      throw new Error('Failed to identify address')
     } else if (address.startsWith('bc1') ||  address.startsWith('tb1')) {
       return AddressType.MultisigSegwitNative
     } else {

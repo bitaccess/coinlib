@@ -34,7 +34,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
 
   abstract getPaymentScript(index: number, addressType?: AddressType): bitcoin.payments.Payment
   abstract addressType: AddressType
-  abstract getAddressType(address?: string): AddressType
+  abstract getAddressType(address: string, index: number): AddressType
 
   async createServiceTransaction(): Promise<null> {
     return null
@@ -135,7 +135,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
         throw new Error('Signer index for utxo is not provided')
       }
 
-      const addressType = this.getAddressType(input.address)
+      const addressType = this.getAddressType(input.address!, signer)
       psbt.addInput(await this.getPsbtInputData(
         input,
         this.getPaymentScript(signer, addressType),

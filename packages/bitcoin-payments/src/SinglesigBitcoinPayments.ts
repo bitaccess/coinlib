@@ -95,11 +95,7 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
     return this.validateAndFinalizeSignedTx(tx, psbt)
   }
 
-  getAddressType(address?: string): SinglesigAddressType {
-    if (!address) {
-      return this.addressType
-    }
-
+  getAddressType(address: string, index: number): SinglesigAddressType {
     if (address.startsWith('1') || address.startsWith('m') || address.startsWith('n')) {
       return AddressType.Legacy
     } else if (address.startsWith('3') || address.startsWith('2')) {
