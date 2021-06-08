@@ -684,7 +684,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const result: BitcoinishWeightedChangeOutput[] = []
     for (let i = 0; i < changeOutputCount; i++) {
       result.push({
-        address: (changeAddress[i] || changeAddress[changeAddress.length % i]),
+        address: (changeAddress[i] || changeAddress[(changeAddress.length - 1) % i]),
         weight: 2 ** i
       })
     }
@@ -709,10 +709,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         )
         totalChangeWeight -= weight
       } else {
-        for (let address of tbc.changeAddress) {
-          tbc.changeOutputs.push({ address, satoshis: changeSat })
-          totalChangeAllocated += changeSat
-        }
+        tbc.changeOutputs.push({ address, satoshis: changeSat })
+        totalChangeAllocated += changeSat
       }
     }
 
