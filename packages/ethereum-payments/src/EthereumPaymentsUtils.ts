@@ -8,6 +8,7 @@ import {
   FeeRateType,
   NetworkType,
   BalanceResult,
+  TransactionStatus,
 } from '@faast/payments-common'
 import {
   Logger,
@@ -16,13 +17,16 @@ import {
   isNull,
   Numeric
 } from '@faast/ts-common'
+import BigNumber from 'bignumber.js'
+import { Transaction, TransactionReceipt } from 'web3-core'
 
-import { PACKAGE_NAME, ETH_DECIMAL_PLACES, ETH_NAME, ETH_SYMBOL, DEFAULT_ADDRESS_FORMAT, MIN_SWEEPABLE_WEI } from './constants'
-import { EthereumAddressFormat, EthereumAddressFormatT, EthereumPaymentsUtilsConfig } from './types';
+import {
+  PACKAGE_NAME, ETH_DECIMAL_PLACES, ETH_NAME, ETH_SYMBOL, DEFAULT_ADDRESS_FORMAT, MIN_SWEEPABLE_WEI, MIN_CONFIRMATIONS,
+} from './constants'
+import { EthereumAddressFormat, EthereumAddressFormatT, EthereumPaymentsUtilsConfig, EthereumTransactionInfo } from './types'
 import { isValidXkey } from './bip44'
 import { NetworkData } from './NetworkData'
-import { retryIfDisconnected } from './utils';
-import BigNumber from 'bignumber.js';
+import { retryIfDisconnected } from './utils'
 
 type UnitConverters = ReturnType<typeof createUnitConverters>
 
@@ -233,5 +237,114 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
 
   async getAddressUtxos() {
     return []
+  }
+
+  async getTransactionInfo(txid: string): Promise<EthereumTransactionInfo> {
+    // XXX it is suggested to keep 12 confirmations
+    // https://ethereum.stackexchange.com/questions/319/what-number-of-confirmations-is-considered-secure-in-ethereum
+    const minConfirmations = MIN_CONFIRMATIONS
+    const tx: Transaction | null = await this._retryDced(() => this.eth.getTransaction(txid))
+
+    if (!tx) {
+      throw new Error(`Transaction ${txid} not found`)
+    }
+
+    const currentBlockNumber = await this.getCurrentBlockNumber()
+    let txInfo: TransactionReceipt | null = await this._retryDced(() => this.eth.getTransactionReceipt(txid))
+
+    tx.from = tx.from ? tx.from.toLowerCase() : '';
+    tx.to = tx.to ? tx.to.toLowerCase() : '';
+
+    // NOTE: for the sake of consistent schema return
+    if (!txInfo) {
+      txInfo = {
+        transactionHash: tx.hash,
+        from: tx.from,
+        to: tx.to,
+        status: true,
+        blockNumber: 0,
+        cumulativeGasUsed: 0,
+        gasUsed: 0,
+        transactionIndex: 0,
+        blockHash: '',
+        logs: [],
+        logsBloom: ''
+      }
+
+      return {
+        id: txid,
+        amount: this.toMainDenomination(tx.value),
+        toAddress: tx.to ? tx.to.toLowerCase() : null,
+        fromAddress: tx.from ? tx.from.toLowerCase() : null,
+        toExtraId: null,
+        fromIndex: null,
+        toIndex: null,
+        fee: this.toMainDenomination((new BigNumber(tx.gasPrice)).multipliedBy(tx.gas)),
+        sequenceNumber: tx.nonce,
+        weight: tx.gas,
+        isExecuted: false,
+        isConfirmed: false,
+        confirmations: 0,
+        confirmationId: null,
+        confirmationTimestamp: null,
+        currentBlockNumber: currentBlockNumber,
+        status: TransactionStatus.Pending,
+        data: {
+          ...tx,
+          ...txInfo,
+          currentBlock: currentBlockNumber
+        },
+      }
+    }
+
+    let isConfirmed = false
+    let confirmationTimestamp: Date | null = null
+    let confirmations = 0
+    if (tx.blockNumber) {
+      confirmations = currentBlockNumber - tx.blockNumber
+      if (confirmations > minConfirmations) {
+        isConfirmed = true
+        const txBlock = await this._retryDced(() => this.eth.getBlock(tx.blockNumber!))
+        confirmationTimestamp = new Date(Number(txBlock.timestamp) * 1000)
+      }
+    }
+
+    let status: TransactionStatus = TransactionStatus.Pending
+    if (isConfirmed) {
+      status = TransactionStatus.Confirmed
+      // No trust to types description of web3
+      if (txInfo.hasOwnProperty('status') && (txInfo.status === false || txInfo.status.toString() === 'false')) {
+        status = TransactionStatus.Failed
+      }
+    }
+
+    txInfo.from = tx.from
+    txInfo.to = tx.to
+
+    return {
+      id: txid,
+      amount: this.toMainDenomination(tx.value),
+      toAddress: tx.to ? tx.to.toLowerCase() : null,
+      fromAddress: tx.from ? tx.from.toLowerCase() : null,
+      toExtraId: null,
+      fromIndex: null,
+      toIndex: null,
+      fee: this.toMainDenomination((new BigNumber(tx.gasPrice)).multipliedBy(txInfo.gasUsed)),
+      sequenceNumber: tx.nonce,
+      weight: txInfo.gasUsed,
+      // XXX if tx was confirmed but not accepted by network isExecuted must be false
+      isExecuted: status !== TransactionStatus.Failed,
+      isConfirmed,
+      confirmations,
+      confirmationId: tx.blockHash,
+      confirmationTimestamp,
+      status,
+      currentBlockNumber: currentBlockNumber,
+      data: {
+        ...tx,
+        ...txInfo,
+        currentBlock: currentBlockNumber
+      },
+    }
   }
 }

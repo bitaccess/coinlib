@@ -1,4 +1,4 @@
-import { PaymentsUtils, Payport, AutoFeeLevels, FeeLevel, FeeRate, FeeRateType } from '@faast/payments-common'
+import { PaymentsUtils, Payport, AutoFeeLevels, FeeLevel, FeeRate, FeeRateType, TransactionStatus } from '@faast/payments-common'
 import { isNil, assertType, Numeric, isMatchingError } from '@faast/ts-common'
 
 import {
@@ -9,10 +9,12 @@ import {
   isValidAddress,
   isValidExtraId,
 } from './helpers'
-import { BaseRippleConfig } from './types'
+import { BaseRippleConfig, RippleTransactionInfo } from './types'
 import { RippleConnected } from './RippleConnected'
 import { DECIMAL_PLACES, COIN_NAME, COIN_SYMBOL, FEE_LEVEL_CUSHIONS, NOT_FOUND_ERRORS, MIN_BALANCE } from './constants'
 import BigNumber from 'bignumber.js'
+import { FormattedPaymentTransaction } from 'ripple-lib'
+import { Amount } from 'ripple-lib/dist/npm/common/types/objects'
 
 export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtils {
 
@@ -151,5 +153,58 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
   async getAddressNextSequenceNumber(address: string): Promise<string> {
     const accountInfo = await this._retryDced(() => this.api.getAccountInfo(address))
     return new BigNumber(accountInfo.sequence).toString()
+  }
+
+  async getTransactionInfo(txId: string): Promise<RippleTransactionInfo> {
+    let tx
+    try {
+      tx = await this._retryDced(() => this.api.getTransaction(txId))
+    } catch (e) {
+      const eString = e.toString()
+      if (NOT_FOUND_ERRORS.some(type => eString.includes(type))) {
+        throw new Error(`Transaction not found: ${eString}`)
+      }
+      throw e
+    }
+    this.logger.debug('getTransaction', txId, tx)
+    if (tx.type !== 'payment') {
+      throw new Error(`Unsupported ripple tx type ${tx.type}`)
+    }
+    const { specification, outcome } = tx as FormattedPaymentTransaction
+    const { source, destination } = specification
+    const amountObject = ((source as any).maxAmount || source.amount) as Amount
+    if (amountObject.currency !== 'XRP') {
+      throw new Error(`Unsupported ripple tx currency ${amountObject.currency}`)
+    }
+    const amount = amountObject.value
+    const isSuccessful = outcome.result.startsWith('tes')
+    const isCostDestroyed = outcome.result.startsWith('tec')
+    const status = isSuccessful || isCostDestroyed ? TransactionStatus.Confirmed : TransactionStatus.Failed
+    const isExecuted = isSuccessful
+    const confirmationNumber = outcome.ledgerVersion
+    const ledger = await this._retryDced(() => this.api.getLedger({ ledgerVersion: confirmationNumber }))
+    const currentLedgerVersion = await this.getCurrentBlockNumber()
+    const confirmationId = ledger.ledgerHash
+    const confirmationTimestamp = outcome.timestamp ? new Date(outcome.timestamp) : null
+    return {
+      status,
+      id: tx.id,
+      fromIndex: null,
+      fromAddress: source.address,
+      fromExtraId: typeof source.tag !== 'undefined' ? String(source.tag) : null,
+      toIndex: null,
+      toAddress: destination.address,
+      toExtraId: typeof destination.tag !== 'undefined' ? String(destination.tag) : null,
+      amount: amount,
+      fee: outcome.fee,
+      sequenceNumber: String(tx.sequence),
+      confirmationId,
+      confirmationNumber: String(confirmationNumber),
+      confirmationTimestamp,
+      isExecuted,
+      isConfirmed: Boolean(confirmationNumber),
+      confirmations: currentLedgerVersion - confirmationNumber,
+      data: tx,
+    }
   }
 }
