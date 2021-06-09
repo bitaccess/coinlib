@@ -74,6 +74,36 @@ export const txInfo_beae1: BitcoinCashTransactionInfo = {
       'value': '0.06922681'
     }
   ],
+  'outputUtxos': [
+    {
+      'address': 'bitcoincash:qpnljd3cler4sz7ky2gxhp0ffew22j6ryg6kjxga4f',
+      'coinbase': false,
+      'confirmations': 45863,
+      'height': '645657',
+      'lockTime': undefined,
+      'satoshis': 9803,
+      'scriptPubKeyHex': '76a91467f93638fe47580bd622906b85e94e5ca54b432288ac',
+      'spent': true,
+      'txHex': '020000000140f5f66545d28eeeaa1fddf820ef8939bf3d9ec004c964df54b62963b1c7761e010000006a473044022055f88571f8b94c11b7b2145fc41fec9c35e1d7cb1bdac35c9033f9a78c55dadd02201f4aaf3c52c19defa3e8093bedb13007df30fbc504bb912ac62a7721beaa42da412102dd03e5a8da4e99d20b7b67088185994bf11eb51978f696994ebba824174a2724ffffffff024b260000000000001976a91467f93638fe47580bd622906b85e94e5ca54b432288ac8b7a6900000000001976a914297422b97f3ac1fd0e02e1cf3caa906d94d34f2188ac00000000',
+      'txid': '036cbcbcfa286c1ea3a8c1846064974a107d3f2a982b0ee29f5e02bbedb01f15',
+      'value': '0.00009803',
+      'vout': 0,
+    },
+    {
+      'address': 'bitcoincash:qq5hgg4e0uavrlgwqtsu7092jpkef560yyedt26jks',
+      'coinbase': false,
+      'confirmations': 45863,
+      'height': '645657',
+      'lockTime': undefined,
+      'satoshis': 6912651,
+      'scriptPubKeyHex': '76a914297422b97f3ac1fd0e02e1cf3caa906d94d34f2188ac',
+      'spent': true,
+      'txHex': '020000000140f5f66545d28eeeaa1fddf820ef8939bf3d9ec004c964df54b62963b1c7761e010000006a473044022055f88571f8b94c11b7b2145fc41fec9c35e1d7cb1bdac35c9033f9a78c55dadd02201f4aaf3c52c19defa3e8093bedb13007df30fbc504bb912ac62a7721beaa42da412102dd03e5a8da4e99d20b7b67088185994bf11eb51978f696994ebba824174a2724ffffffff024b260000000000001976a91467f93638fe47580bd622906b85e94e5ca54b432288ac8b7a6900000000001976a914297422b97f3ac1fd0e02e1cf3caa906d94d34f2188ac00000000',
+      'txid': '036cbcbcfa286c1ea3a8c1846064974a107d3f2a982b0ee29f5e02bbedb01f15',
+      'value': '0.06912651',
+      'vout': 1,
+    },
+  ],
   'externalOutputs': [
     {
       'address': 'bitcoincash:qpnljd3cler4sz7ky2gxhp0ffew22j6ryg6kjxga4f',

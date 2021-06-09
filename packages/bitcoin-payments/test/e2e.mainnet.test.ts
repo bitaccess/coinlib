@@ -1,7 +1,8 @@
 import fs from 'fs'
 import path from 'path'
-import { omit } from 'lodash'
 import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel, UtxoInfo } from '@faast/payments-common'
+import { toBigNumber } from '@faast/ts-common'
+import BigNumber from 'bignumber.js'
 
 import {
   HdBitcoinPayments, BitcoinTransactionInfo, HdBitcoinPaymentsConfig,
@@ -10,8 +11,7 @@ import {
 
 import { txInfo_beae1 } from './fixtures/transactions'
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
-import { toBigNumber } from '@faast/ts-common'
-import BigNumber from 'bignumber.js'
+import { assertBitcoinishTxInfoEquality } from '../../../common/testUtils'
 
 const EXTERNAL_ADDRESS = '14Z2k3tU19TSzBfT8s4QFAcYsbECUJnxiK'
 
@@ -30,21 +30,6 @@ if (fs.existsSync(secretXprvFilePath)) {
   logger.log(
     `File ${SECRET_XPRV_FILE} missing. Send and sweep e2e mainnet tests will be skipped. To enable them ask Dylan to share the file with you.`,
   )
-}
-
-function stripTxInfoForEquality(txInfo: BitcoinTransactionInfo) {
-  return omit({
-    ...txInfo,
-    data: {
-      ...txInfo.data,
-      vout: (txInfo.data as any).vout.map((o: any) => omit(o, ['spent'])),
-    },
-    outputUtxos: txInfo.outputUtxos?.map((o) => omit(o, ['confirmations'])),
-  }, ['data.confirmations', 'confirmations', 'currentBlockNumber'])
-}
-
-function assertTxInfo(actual: BitcoinTransactionInfo, expected: BitcoinTransactionInfo): void {
-  expect(stripTxInfoForEquality(actual)).toEqual(stripTxInfoForEquality(expected))
 }
 
 const describeAll = !secretXprv ? describe.skip : describe
@@ -137,7 +122,7 @@ describeAll('e2e mainnet', () => {
 
   it('get transaction by arbitrary hash', async () => {
     const tx = await payments.getTransactionInfo('beae121a09459bd76995ee7de20f2dcd8f52abbbf513a32f24be572737b17ef3')
-    assertTxInfo(tx, txInfo_beae1)
+    assertBitcoinishTxInfoEquality(tx, txInfo_beae1)
   })
   it('fail to get an invalid transaction hash', async () => {
     await expect(payments.getTransactionInfo('123456abcdef'))

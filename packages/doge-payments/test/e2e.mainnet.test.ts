@@ -5,6 +5,7 @@ import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel } 
 import { toBigNumber } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
 import { bitcoinish } from '@faast/bitcoin-payments'
+import { assertBitcoinishTxInfoEquality } from '@faast/bitcoin-payments/test/utils'
 
 import {
   HdDogePayments, DogeTransactionInfo, HdDogePaymentsConfig,
@@ -40,17 +41,7 @@ if (fs.existsSync(secretXprvFilePath)) {
 
 const addressTypesToTest: SinglesigAddressType[] = [
   AddressType.Legacy,
-];
-
-function assertTxInfo(actual: DogeTransactionInfo, expected: DogeTransactionInfo): void {
-  expectEqualOmit({
-    ...actual,
-    data: {
-      ...actual.data,
-      vout: (actual.data as any).vout.map((o: any) => omit(o, ['spent'])),
-    },
-  }, expected, ['data.confirmations', 'confirmations', 'currentBlockNumber'])
-}
+]
 
 const describeAll = !secretXprv ? describe : describe
 
@@ -206,7 +197,7 @@ describeAll('e2e mainnet', () => {
 
   it('get transaction by arbitrary hash', async () => {
     const tx = await payments.getTransactionInfo('dc8ae0ebe273faf3e6e2f1192279df91fa6b8621e3daba08dc89ef9cb0539193')
-    assertTxInfo(tx, txInfo_example)
+    assertBitcoinishTxInfoEquality(tx, txInfo_example)
   })
   it('fail to get an invalid transaction hash', async () => {
     await expect(payments.getTransactionInfo('123456abcdef'))

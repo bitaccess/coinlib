@@ -122,9 +122,7 @@ describe('e2e', () => {
     it('should create tx correctly when sequenceNumber option provided', async () => {
       const sequenceNumber = '5'
       const tx = await rp.createTransaction(0, 1, '1.2', { sequenceNumber })
-      expect(tx.fromIndex).toBe(0)
       expect(tx.fromAddress).toBe(HOT_ADDRESS)
-      expect(tx.toIndex).toBe(1)
       expect(tx.toAddress).toBe(DEPOSIT_ADDRESS)
       expect(tx.sequenceNumber).toEqual(sequenceNumber)
       expect((tx.data as any).instructions.sequence).toBe(parseInt(sequenceNumber))
@@ -151,7 +149,6 @@ describe('e2e', () => {
       const serviceTx = await rp.createServiceTransaction(0)
       expect(serviceTx).toBeDefined()
       expect(serviceTx.status).toBe(TransactionStatus.Unsigned)
-      expect(serviceTx.fromIndex).toBe(0)
       expect(serviceTx.fromAddress).toBe(HOT_ADDRESS)
       expect(serviceTx.fromExtraId).toBe(null)
       expect(serviceTx.amount).toBe('')
@@ -201,10 +198,8 @@ describe('e2e', () => {
     expect(tx.id).toBe(signedTx.id)
     expect(tx.fromAddress).toBe(signedTx.fromAddress)
     expectEqualWhenTruthy(tx.fromExtraId, signedTx.fromExtraId)
-    expect(tx.fromIndex).toBe(signedTx.fromIndex)
     expect(tx.toAddress).toBe(signedTx.toAddress)
     expectEqualWhenTruthy(tx.toExtraId, signedTx.toExtraId)
-    expect(tx.toIndex).toBe(signedTx.toIndex)
     expect(tx.data).toBeDefined()
     expect(tx.status).toBe(TransactionStatus.Confirmed)
     expect(tx.isConfirmed).toBe(true)
