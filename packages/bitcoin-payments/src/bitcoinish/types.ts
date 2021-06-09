@@ -5,10 +5,17 @@ import {
 } from '@faast/payments-common'
 import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger, Numeric, enumCodec } from '@faast/ts-common'
 import { Network as BitcoinjsNetwork, Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
-import { BlockbookBitcoin, BlockInfoBitcoin, NormalizedTxBitcoin } from 'blockbook-client'
+import { BlockbookBitcoin, BlockInfoBitcoin, NormalizedTxBitcoin, NormalizedTxBitcoinVin, NormalizedTxBitcoinVout } from 'blockbook-client'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
 
-export { BitcoinjsNetwork, BlockbookBitcoin, BlockInfoBitcoin, NormalizedTxBitcoin }
+export {
+  BitcoinjsNetwork,
+  BlockbookBitcoin,
+  BlockInfoBitcoin,
+  NormalizedTxBitcoin,
+  NormalizedTxBitcoinVout,
+  NormalizedTxBitcoinVin,
+}
 
 export type BitcoinjsKeyPair = BitcoinjsSigner & {
   privateKey?: Buffer

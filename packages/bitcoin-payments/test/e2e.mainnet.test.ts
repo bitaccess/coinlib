@@ -32,14 +32,19 @@ if (fs.existsSync(secretXprvFilePath)) {
   )
 }
 
-function assertTxInfo(actual: BitcoinTransactionInfo, expected: BitcoinTransactionInfo): void {
-  expectEqualOmit({
-    ...actual,
+function stripTxInfoForEquality(txInfo: BitcoinTransactionInfo) {
+  return omit({
+    ...txInfo,
     data: {
-      ...actual.data,
-      vout: (actual.data as any).vout.map((o: any) => omit(o, ['spent'])),
+      ...txInfo.data,
+      vout: (txInfo.data as any).vout.map((o: any) => omit(o, ['spent'])),
     },
-  }, expected, ['data.confirmations', 'confirmations', 'currentBlockNumber'])
+    outputUtxos: txInfo.outputUtxos?.map((o) => omit(o, ['confirmations'])),
+  }, ['data.confirmations', 'confirmations', 'currentBlockNumber'])
+}
+
+function assertTxInfo(actual: BitcoinTransactionInfo, expected: BitcoinTransactionInfo): void {
+  expect(stripTxInfoForEquality(actual)).toEqual(stripTxInfoForEquality(expected))
 }
 
 const describeAll = !secretXprv ? describe.skip : describe

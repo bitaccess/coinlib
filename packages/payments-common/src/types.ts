@@ -218,6 +218,7 @@ export const TransactionCommon = requiredOptionalCodec(
     toExtraId: nullable(t.string), // eg Monero payment ID or ripple destination tag
     sequenceNumber: nullable(t.union([t.string, t.number])), // eg Ethereum nonce or ripple sequence
     inputUtxos: t.array(UtxoInfo),
+    outputUtxos: t.array(UtxoInfo),
     externalOutputs: t.array(TransactionOutput),
     weight: t.number, // weight of this transaction for fee purposes (ie vbytes, gas limit)
   },
