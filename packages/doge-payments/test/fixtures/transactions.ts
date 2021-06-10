@@ -74,6 +74,34 @@ export const txInfo_example: DogeTransactionInfo = {
       'value': '58578.13509193'
     }
   ],
+  'outputUtxos': [
+    {
+      'address': 'D8mDfMWavhe4BwJYhsRBy8VbNUWQkaHdhg',
+      'coinbase': false,
+      'height': '3368748',
+      'lockTime': undefined,
+      'satoshis': 462542944913,
+      'scriptPubKeyHex': '76a91427bd4c230c46bce00c3dad4279643f18710d797d88ac',
+      'spent': true,
+      'txHex': '01000000018f7285f11fca1cfd4a40771adaa4a34a24d6a1d99046987076c07134a2a8ac39010000006a47304402204860ae17691d3ed96879fa900ea25e7c96fff8f27e8eb21dc5766b696856c72d02203002a1195729128c3632c47ca09b6bbb2a91e11e9d2ae1a7190a403dcd2ad62401210296621610fd3183c7b9f3835384bdb8f0633fa786092f2c4374752e4722a784dbffffffff02913ab5b16b0000001976a91427bd4c230c46bce00c3dad4279643f18710d797d88acb8d64d1de80400001976a914c7cc3691a66171dc4d177f4ae332f2e010671ccb88ac00000000',
+      'txid': 'dc8ae0ebe273faf3e6e2f1192279df91fa6b8621e3daba08dc89ef9cb0539193',
+      'value': '4625.42944913',
+      'vout': 0,
+    },
+    {
+      'address': 'DPMXeQqXrC5ThpT1cG5b7661NAY9MKjYmG',
+      'coinbase': false,
+      'height': '3368748',
+      'lockTime': undefined,
+      'satoshis': 5394970564280,
+      'scriptPubKeyHex': '76a914c7cc3691a66171dc4d177f4ae332f2e010671ccb88ac',
+      'spent': true,
+      'txHex': '01000000018f7285f11fca1cfd4a40771adaa4a34a24d6a1d99046987076c07134a2a8ac39010000006a47304402204860ae17691d3ed96879fa900ea25e7c96fff8f27e8eb21dc5766b696856c72d02203002a1195729128c3632c47ca09b6bbb2a91e11e9d2ae1a7190a403dcd2ad62401210296621610fd3183c7b9f3835384bdb8f0633fa786092f2c4374752e4722a784dbffffffff02913ab5b16b0000001976a91427bd4c230c46bce00c3dad4279643f18710d797d88acb8d64d1de80400001976a914c7cc3691a66171dc4d177f4ae332f2e010671ccb88ac00000000',
+      'txid': 'dc8ae0ebe273faf3e6e2f1192279df91fa6b8621e3daba08dc89ef9cb0539193',
+      'value': '53949.7056428',
+      'vout': 1,
+    },
+ ],
   'externalOutputs': [
     {
       'address': 'D8mDfMWavhe4BwJYhsRBy8VbNUWQkaHdhg',

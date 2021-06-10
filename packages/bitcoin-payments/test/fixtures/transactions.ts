@@ -73,6 +73,36 @@ export const txInfo_beae1: BitcoinTransactionInfo = {
       'value': '0.20045195'
     }
   ],
+  'outputUtxos': [
+    {
+      'txid': 'beae121a09459bd76995ee7de20f2dcd8f52abbbf513a32f24be572737b17ef3',
+      'vout': 0,
+      'value': '0.08301009',
+      'address': '32BXkczC5Nr9mQKMifEaJf2p6Hb9JULakA',
+      'coinbase': false,
+      'confirmations': 48626,
+      'height': '638347',
+      'lockTime': undefined,
+      'satoshis': 8301009,
+      'scriptPubKeyHex': 'a91405648bff10f4cce3aacd8a2cc925cac248cdbe5b87',
+      'spent': true,
+      'txHex': '020000000001019ec39ebfecf5c3da1f4f42613ae4e894a15845700c4c38e9fab889693519ae010500000000fdffffff02d1a97e000000000017a91405648bff10f4cce3aacd8a2cc925cac248cdbe5b87371ab30000000000160014e836775cf01e909354bb68451779e2a9ccdbbc2202473044022067c4d3f664308375db86e6dfaed80b8d1810556f8915d367a15283b4750f38ed022030020b89b8908141ffadcc7ee6c9b9e22cea99f1b9dd7b9862d11460376696b30121024b23cd7cf072bc737bfc56861a58c9e52f386c98b3ba75095490456e5951255f00000000',
+    },
+    {
+      'address': 'bc1qaqm8wh8sr6gfx49mdpz3w70z48xdh0pzlf5kgr',
+      'coinbase': false,
+      'confirmations': 48626,
+      'height': '638347',
+      'lockTime': undefined,
+      'satoshis': 11737655,
+      'scriptPubKeyHex': '0014e836775cf01e909354bb68451779e2a9ccdbbc22',
+      'spent': true,
+      'txHex': '020000000001019ec39ebfecf5c3da1f4f42613ae4e894a15845700c4c38e9fab889693519ae010500000000fdffffff02d1a97e000000000017a91405648bff10f4cce3aacd8a2cc925cac248cdbe5b87371ab30000000000160014e836775cf01e909354bb68451779e2a9ccdbbc2202473044022067c4d3f664308375db86e6dfaed80b8d1810556f8915d367a15283b4750f38ed022030020b89b8908141ffadcc7ee6c9b9e22cea99f1b9dd7b9862d11460376696b30121024b23cd7cf072bc737bfc56861a58c9e52f386c98b3ba75095490456e5951255f00000000',
+      'txid': 'beae121a09459bd76995ee7de20f2dcd8f52abbbf513a32f24be572737b17ef3',
+      'value': '0.11737655',
+      'vout': 1,
+    },
+  ],
   'externalOutputs': [
     {
       'address': '32BXkczC5Nr9mQKMifEaJf2p6Hb9JULakA',

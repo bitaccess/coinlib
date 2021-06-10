@@ -1,8 +1,10 @@
 import fs from 'fs'
 import path from 'path'
-import { omit } from 'lodash'
 import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel } from '@faast/payments-common'
 import { bitcoinish } from '@faast/bitcoin-payments'
+import { toBigNumber } from '@faast/ts-common'
+import BigNumber from 'bignumber.js'
+import { assertBitcoinishTxInfoEquality } from '@faast/bitcoin-payments/test/utils'
 
 import {
   HdBitcoinCashPayments, BitcoinCashTransactionInfo, HdBitcoinCashPaymentsConfig,
@@ -12,8 +14,6 @@ import {
 import { txInfo_beae1 } from './fixtures/transactions'
 import { hdAccount } from './fixtures/accounts'
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
-import { toBigNumber } from '@faast/ts-common'
-import BigNumber from 'bignumber.js'
 
 const EXTERNAL_ADDRESS = 'bitcoincash:qqq50km70cjgpla3tnkt8nxgdt09wp0m7y9ctca8f6'
 
@@ -32,16 +32,6 @@ if (fs.existsSync(secretXprvFilePath)) {
   logger.log(
     `File ${SECRET_XPRV_FILE} missing. Send and sweep e2e mainnet tests will be skipped. To enable them ask Dylan to share the file with you.`,
   )
-}
-
-function assertTxInfo(actual: BitcoinCashTransactionInfo, expected: BitcoinCashTransactionInfo): void {
-  expectEqualOmit({
-    ...actual,
-    data: {
-      ...actual.data,
-      vout: (actual.data as any).vout.map((o: any) => omit(o, ['spent'])),
-    },
-  }, expected, ['data.confirmations', 'confirmations', 'currentBlockNumber'])
 }
 
 const describeAll = !secretXprv ? describe.skip : describe
@@ -168,7 +158,7 @@ describeAll('e2e mainnet', () => {
 
   it('get transaction by arbitrary hash', async () => {
     const tx = await payments.getTransactionInfo('036cbcbcfa286c1ea3a8c1846064974a107d3f2a982b0ee29f5e02bbedb01f15')
-    assertTxInfo(tx, txInfo_beae1)
+    assertBitcoinishTxInfoEquality(tx, txInfo_beae1)
   })
   it('fail to get an invalid transaction hash', async () => {
     await expect(payments.getTransactionInfo('123456abcdef'))

@@ -1,5 +1,5 @@
 import { Numeric } from '@faast/ts-common'
-import { Payport, MaybePromise, AutoFeeLevels, FeeRate, NetworkType, UtxoInfo, BalanceResult } from './types'
+import { Payport, MaybePromise, AutoFeeLevels, FeeRate, NetworkType, UtxoInfo, BalanceResult, BaseTransactionInfo } from './types'
 
 export interface PaymentsUtils {
   readonly networkType: NetworkType
@@ -86,4 +86,15 @@ export interface PaymentsUtils {
    * @returns null if the network doesn't use sequence numbers, or if it cannot be determined.
    */
   getAddressNextSequenceNumber(address: string): Promise<string | null>
+
+  /**
+   * Get the info and status of a transaction.
+   *
+   * @param txId - The transaction ID to lookup
+   * @returns Info about the transaction
+   * @throws Error if transaction is not found
+   */
+  getTransactionInfo(
+    txId: string,
+  ): Promise<BaseTransactionInfo>
 }

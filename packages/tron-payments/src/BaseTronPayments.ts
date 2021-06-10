@@ -1,5 +1,5 @@
-import TronWeb, { Transaction as TronTransaction } from 'tronweb'
-import { pick, get, cloneDeep } from 'lodash'
+import { Transaction as TronTransaction } from 'tronweb'
+import { cloneDeep } from 'lodash'
 import {
   BalanceResult,
   BasePayments,
@@ -28,11 +28,8 @@ import {
   TronWebTransaction,
 } from './types'
 import { toBaseDenominationNumber, isValidAddress, toMainDenominationBigNumber } from './helpers'
-import { retryIfDisconnected, toError } from './utils'
+import { toError } from './utils'
 import {
-  DEFAULT_FULL_NODE,
-  DEFAULT_EVENT_SERVER,
-  DEFAULT_SOLIDITY_NODE,
   MIN_BALANCE_SUN,
   MIN_BALANCE_TRX,
   DEFAULT_FEE_LEVEL,
@@ -40,7 +37,6 @@ import {
   TX_EXPIRATION_EXTENSION_SECONDS,
 } from './constants'
 import { TronPaymentsUtils } from './TronPaymentsUtils'
-import BigNumber from 'bignumber.js';
 
 export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> extends TronPaymentsUtils
   implements
@@ -257,63 +253,6 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
     }
   }
 
-  async getTransactionInfo(txid: string): Promise<TronTransactionInfo> {
-    try {
-      const [tx, txInfo, currentBlock] = await Promise.all([
-        this._retryDced(() => this.tronweb.trx.getTransaction(txid)),
-        this._retryDced(() => this.tronweb.trx.getTransactionInfo(txid)),
-        this._retryDced(() => this.tronweb.trx.getCurrentBlock()),
-      ])
-
-      const { amountTrx, fromAddress, toAddress } = this.extractTxFields(tx)
-
-      const contractRet = get(tx, 'ret[0].contractRet')
-      const isExecuted = contractRet === 'SUCCESS'
-
-      const block = txInfo.blockNumber || null
-      const feeTrx = this.toMainDenomination(txInfo.fee || 0)
-
-      const currentBlockNumber = get(currentBlock, 'block_header.raw_data.number', 0)
-      const confirmations = currentBlockNumber && block ? currentBlockNumber - block : 0
-      const isConfirmed = confirmations > 0
-
-      const confirmationTimestamp = txInfo.blockTimeStamp ? new Date(txInfo.blockTimeStamp) : null
-
-      let status: TransactionStatus = TransactionStatus.Pending
-      if (isConfirmed) {
-        if (!isExecuted) {
-          status = TransactionStatus.Failed
-        }
-        status = TransactionStatus.Confirmed
-      }
-
-      return {
-        id: tx.txID,
-        amount: amountTrx,
-        toAddress,
-        fromAddress,
-        toExtraId: null,
-        fromIndex: null,
-        toIndex: null,
-        fee: feeTrx,
-        sequenceNumber: null,
-        isExecuted,
-        isConfirmed,
-        confirmations,
-        confirmationId: block ? String(block) : null,
-        confirmationTimestamp,
-        status,
-        data: {
-          ...tx,
-          ...txInfo,
-          currentBlock: pick(currentBlock, 'block_header', 'blockID'),
-        },
-      }
-    } catch (e) {
-      throw toError(e)
-    }
-  }
-
   isSweepableBalance(balanceTrx: Numeric): boolean {
     return this.isAddressBalanceSweepable(balanceTrx)
   }
@@ -335,24 +274,6 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
   }
 
   // HELPERS
-
-  private extractTxFields(tx: TronTransaction) {
-    const contractParam = get(tx, 'raw_data.contract[0].parameter.value')
-    if (!(contractParam && typeof contractParam.amount === 'number')) {
-      throw new Error('Unable to get transaction')
-    }
-
-    const amountSun = contractParam.amount || 0
-    const amountTrx = this.toMainDenomination(amountSun)
-    const toAddress = this.tronweb.address.fromHex(contractParam.to_address)
-    const fromAddress = this.tronweb.address.fromHex(contractParam.owner_address)
-    return {
-      amountTrx,
-      amountSun,
-      toAddress,
-      fromAddress,
-    }
-  }
 
   async resolvePayport(payport: ResolveablePayport): Promise<Payport> {
     if (typeof payport === 'number') {

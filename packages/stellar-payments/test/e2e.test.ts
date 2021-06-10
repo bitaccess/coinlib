@@ -192,15 +192,9 @@ describe('e2e', () => {
 
     // Stellar has no way to record fromExtraId so can't properly check it
     expect(tx.fromExtraId).toBe(null)
-    if (signedTx.fromIndex === 0) {
-      expect(tx.fromIndex).toBe(0)
-    } else {
-      expect(tx.fromIndex).toBe(1)
-    }
 
     expect(tx.toAddress).toBe(signedTx.toAddress)
     expectEqualWhenTruthy(tx.toExtraId, signedTx.toExtraId)
-    expect(tx.toIndex).toBe(signedTx.toIndex)
     expect(tx.data).toBeDefined()
     expect(tx.status).toBe(TransactionStatus.Confirmed)
     expect(tx.isConfirmed).toBe(true)

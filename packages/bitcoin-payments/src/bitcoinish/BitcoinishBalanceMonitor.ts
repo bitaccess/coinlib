@@ -249,20 +249,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
     for (let output of tx.vout) {
       if (this.extractStandardAddress(output) === standardizedAddress) {
         netSatoshis = netSatoshis.plus(output.value)
-        utxosCreated.push({
-          txid: tx.txid,
-          vout: output.n,
-          satoshis: new BigNumber(output.value).toNumber(),
-          value: this.utils.toMainDenominationString(output.value),
-          confirmations: tx.confirmations,
-          height: tx.blockHeight > 0 ? String(tx.blockHeight) : undefined,
-          coinbase: tx.valueIn === '0' && tx.value !== '0',
-          lockTime: tx.lockTime ? String(tx.lockTime) : undefined,
-          txHex: tx.hex,
-          scriptPubKeyHex: output.hex,
-          address: standardizedAddress,
-          spent: Boolean(output.spent),
-        })
+        utxosCreated.push(this.utils.txVoutToUtxoInfo(tx, output))
       }
     }
 

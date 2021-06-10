@@ -7,12 +7,18 @@ import {
   FeeRate,
   UtxoInfo,
   BalanceResult,
+  TransactionStatus,
+  TransactionOutput,
 } from '@faast/payments-common'
 import { Network as BitcoinjsNetwork } from 'bitcoinjs-lib'
 import { isNil, assertType, Numeric, isUndefined } from '@faast/ts-common'
+import BigNumber from 'bignumber.js'
 
 import { BlockbookConnected } from './BlockbookConnected'
-import { BitcoinishBlock, BitcoinishPaymentsUtilsConfig, NormalizedTxBitcoin } from './types'
+import {
+  BitcoinishBlock, BitcoinishPaymentsUtilsConfig, BitcoinishTransactionInfo,
+  NormalizedTxBitcoin, NormalizedTxBitcoinVout,
+} from './types'
 
 type UnitConverters = ReturnType<typeof createUnitConverters>
 
@@ -160,5 +166,98 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
 
   async getAddressNextSequenceNumber() {
     return null
+  }
+
+  txVoutToUtxoInfo(tx: NormalizedTxBitcoin, output: NormalizedTxBitcoinVout): UtxoInfo & TransactionOutput {
+    return {
+      txid: tx.txid,
+      vout: output.n,
+      satoshis: new BigNumber(output.value).toNumber(),
+      value: this.toMainDenominationString(output.value),
+      confirmations: tx.confirmations,
+      height: tx.blockHeight > 0 ? String(tx.blockHeight) : undefined,
+      coinbase: tx.valueIn === '0' && tx.value !== '0',
+      lockTime: tx.lockTime ? String(tx.lockTime) : undefined,
+      txHex: tx.hex,
+      scriptPubKeyHex: output.hex,
+      address: this.standardizeAddress(output.addresses?.[0] ?? '') ?? '',
+      spent: Boolean(output.spent),
+    }
+  }
+
+  async getTransactionInfo(txId: string): Promise<BitcoinishTransactionInfo> {
+    const tx = await this._retryDced(() => this.getApi().getTx(txId))
+    const txSpecific = await this._retryDced(() => this.getApi().getTxSpecific(txId))
+
+    // Our "weight" for fee purposes is vbytes, but that isn't a thing on all networks (BCH, DOGE)
+    const weight = txSpecific.vsize || txSpecific.size
+
+    const fee = this.toMainDenominationString(tx.fees)
+
+    const currentBlockNumber = (await this.getApi().getStatus()).blockbook.bestHeight
+
+    const confirmationId = tx.blockHash || null
+    const confirmationNumber = tx.blockHeight ? String(tx.blockHeight) : undefined
+    const confirmationTimestamp = tx.blockTime ? new Date(tx.blockTime * 1000) : null
+    if (tx.confirmations > 0x7FFFFFFF) {
+      // If confirmations exceeds the max value of a signed 32 bit integer, assume we have bad data
+      // Blockbook sometimes returns a confirmations count equal to `0xFFFFFFFF`
+      // Bitcoin won't have that many confirmations for 40,000 years
+      throw new Error(`Blockbook returned confirmations count for tx ${txId} that's way too big to be real (${tx.confirmations})`)
+    }
+    const isConfirmed = Boolean(tx.confirmations && tx.confirmations > 0)
+    const status = isConfirmed ? TransactionStatus.Confirmed : TransactionStatus.Pending
+    const inputUtxos = tx.vin.map(({ txid, vout, value }): UtxoInfo => ({
+      txid: txid || '',
+      vout: vout || 0,
+      value: this.toMainDenominationString(value || 0),
+    }))
+    const fromAddress = this.standardizeAddress(tx.vin?.[0]?.addresses?.[0] ??  '')
+    if (!fromAddress) {
+      throw new Error(`Unable to determine fromAddress of ${this.coinSymbol} tx ${txId}`)
+    }
+
+    const outputUtxos = tx.vout
+      .map((output) => this.txVoutToUtxoInfo(tx, output as NormalizedTxBitcoinVout))
+
+    const externalOutputs = outputUtxos
+      .map(({ address, value }) => ({ address, value }))
+      .filter(({ address }) => address !== fromAddress)
+    const amount = externalOutputs.reduce((total, { value }) => total.plus(value), new BigNumber(0))
+
+    let toAddress
+    if (externalOutputs.length > 1) {
+      toAddress = 'multioutput'
+    } else if (externalOutputs.length === 1) {
+      toAddress = externalOutputs[0].address!
+    } else {
+      throw new Error(`Unable to determine toAddress of ${this.coinSymbol} tx ${txId}`)
+    }
+
+    return {
+      status,
+      id: tx.txid,
+      fromIndex: null,
+      fromAddress,
+      fromExtraId: null,
+      toIndex: null,
+      toAddress,
+      toExtraId: null,
+      amount: amount.toFixed(),
+      fee,
+      sequenceNumber: null,
+      confirmationId,
+      confirmationNumber,
+      currentBlockNumber,
+      confirmationTimestamp,
+      isExecuted: isConfirmed,
+      isConfirmed,
+      confirmations: tx.confirmations,
+      data: tx,
+      inputUtxos,
+      outputUtxos,
+      externalOutputs,
+      weight,
+    }
   }
 }
