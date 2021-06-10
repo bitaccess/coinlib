@@ -10,8 +10,14 @@ import {
 } from '../src'
 
 import { txInfo_beae1 } from './fixtures/transactions'
-import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
-import { assertBitcoinishTxInfoEquality } from '../../../common/testUtils'
+import {
+  END_TRANSACTION_STATES,
+  delay,
+  expectEqualWhenTruthy,
+  logger,
+  expectEqualOmit,
+  assertBitcoinishTxInfoEquality,
+} from './utils'
 
 const EXTERNAL_ADDRESS = '14Z2k3tU19TSzBfT8s4QFAcYsbECUJnxiK'
 

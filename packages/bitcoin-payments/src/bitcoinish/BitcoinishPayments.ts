@@ -78,6 +78,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   abstract getPublicConfig(): Config
   abstract getAccountId(index: number): string
   abstract getAccountIds(index?: number): string[]
+  abstract getSupportedAddressTypes(): AddressType[]
   abstract getAddress(index: number, addressType?: AddressType): string
   abstract signTransaction(tx: BitcoinishUnsignedTransaction): Promise<BitcoinishSignedTransaction>
 
@@ -99,6 +100,16 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
   async getPayport(index: number): Promise<Payport> {
     return { address: this.getAddress(index) }
+  }
+
+  getAddressType(address: string, index: number): AddressType {
+    const standartizedAddress = this.standardizeAddress(address)
+    for (let addressType of this.getSupportedAddressTypes()) {
+      if (standartizedAddress === this.getAddress(index, addressType)) {
+        return addressType
+      }
+    }
+    throw new Error(`Failed to identify address ${address} at index ${index}`)
   }
 
   async resolvePayport(payport: ResolveablePayport): Promise<Payport> {
@@ -377,6 +388,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
 
     for (const utxo of tbc.selectableUtxos) {
+      if (tbc.inputUtxos.map((u) => `${u.txid}${u.vout}`).includes(`${utxo.txid}${utxo.vout}`)) {
+        continue
+      }
       tbc.inputTotal += utxo.satoshis
       tbc.inputUtxos.push(utxo)
     }
@@ -513,14 +527,19 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const changeOutputWeights = this.createWeightedChangeOutputs(targetChangeOutputCount, tbc.changeAddress)
 
     // Total sat of all change outputs we actually include (omitting dust)
-    const totalChangeAllocated = this.calculateTotalChange(tbc, changeOutputWeights)
+    const totalChangeAllocated = this.allocateChangeUsingWeights(tbc, changeOutputWeights)
     let changeOutputCount = tbc.changeOutputs.length
 
     // Amount of change not yet added to a change output
     let looseChange = tbc.totalChange - totalChangeAllocated
     if (changeOutputCount < targetChangeOutputCount) {
       // If due to rounding or omitting dust outputs we have fewer change outputs than expected, adjust fees accordingly
-      looseChange = this.readjustTxFees(tbc, changeOutputCount, totalChangeAllocated, looseChange)
+      looseChange = this.readjustTxFeeAfterDroppingChangeOutputs(
+        tbc,
+        changeOutputCount,
+        totalChangeAllocated,
+        looseChange
+      )
     }
 
     // Attempt to allocate any loose change to existing change outputs, or a single change output
@@ -684,14 +703,14 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const result: BitcoinishWeightedChangeOutput[] = []
     for (let i = 0; i < changeOutputCount; i++) {
       result.push({
-        address: (changeAddress[i] || changeAddress[(changeAddress.length - 1) % i]),
+        address: changeAddress[i % changeAddress.length],
         weight: 2 ** i
       })
     }
     return result.sort((a, b) => a.weight - b.weight)
   }
 
-  private calculateTotalChange(
+  private allocateChangeUsingWeights(
     tbc: BitcoinishTxBuildContext,
     changeOutputWeights: BitcoinishWeightedChangeOutput[]
   ): number {
@@ -722,7 +741,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     return totalChangeAllocated
   }
 
-  private readjustTxFees(
+  private readjustTxFeeAfterDroppingChangeOutputs(
     tbc: BitcoinishTxBuildContext,
     changeOutputCount: number,
     totalChangeAllocated: number,
@@ -942,10 +961,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
     const maxFeePercent = new BigNumber(options.maxFeePercent ?? DEFAULT_MAX_FEE_PERCENT).toNumber()
     const { targetFeeLevel, targetFeeRate, targetFeeRateType } = await this.resolveFeeOption(options)
-    this.logger.debug(`createMultiOutputTransaction resolvedFeeOption ${targetFeeLevel} `
+    this.logger.debug(`createMultiInputTransaction resolvedFeeOption ${targetFeeLevel} `
       + `${targetFeeRate} ${targetFeeRateType}`)
 
-    // sets empty address to some of outputs
     const paymentTx = await this.buildPaymentTx({
       unusedUtxos,
       enforcedUtxos: options.forcedUtxos || [],
@@ -961,7 +979,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const unsignedTxHex = await this.serializePaymentTx(paymentTx)
     paymentTx.rawHex = unsignedTxHex
     paymentTx.rawHash = sha256FromHex(unsignedTxHex)
-    this.logger.debug('createMultiOutputTransaction data', paymentTx)
+    this.logger.debug('createMultiInputTransaction data', paymentTx)
     const feeMain = paymentTx.fee
 
     let resultToAddress = 'batch'
@@ -1023,12 +1041,5 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
           : toBigNumber(utxo.satoshis).toNumber()
       }
     })
-  }
-
-  private defaultCallback(tx: any, skipAddresses: string[]): BitcoinishTxOutput[] {
-    return (tx.vout as any[]).map(({ addresses, value }): TransactionOutput => ({
-      address: this.standardizeAddress(addresses?.[0] ?? '') || '',
-      value: this.toMainDenominationString(value || 0),
-    })).filter(({ address }) => !skipAddresses.includes(address))
   }
 }

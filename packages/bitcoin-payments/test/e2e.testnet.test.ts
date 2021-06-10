@@ -87,65 +87,9 @@ describeAll('e2e testnet', () => {
     const TESTNET_XPUB_BTC_HOT = 'tpubDDCCjNA9Xw1Fpp3xAb3yjBBCui6wZ7idJxwcgj48Z7q3yTjEpay9cc2A1bjsr344ZTNGKv5j1djvU8bgzVTwoXaAXpX8cAEYVYG1Ch7fvVu'
     const TESTNET_XPUB_BTC_DEPOSIT = 'tpubDCWCSpZSKfHb9B2ufCHBfDAVpr5S7K2XFKV53knzUrLmXuwi3HjTqkd1VGfSevwWRCDoYCuvVF3UkQAx53NQysVy3Tbd1vxTwKhHqDzJhws'
 
-    it('resolves payports for different types for payments created from xprv', async () => {
-      const depositPayments = new HdBitcoinPayments({
-        hdKey: secretXprv,
-        network: NetworkType.Testnet,
-        addressType: AddressType.SegwitP2SH,
-        logger,
-        minChange: '0.01',
-        targetUtxoPoolSize: 5,
-      } as HdBitcoinPaymentsConfig)
-
-      const hotwalletPayments = new HdBitcoinPayments({
-        hdKey: secretXprv,
-        network: NetworkType.Testnet,
-        addressType: AddressType.SegwitNative,
-        logger,
-        minChange: '0.01',
-        targetUtxoPoolSize: 5,
-      } as HdBitcoinPaymentsConfig)
-
-      expect(hotwalletPayments.getPublicConfig().hdKey).toEqual(TESTNET_XPUB_BTC_HOT)
-      expect(depositPayments.getPublicConfig().hdKey).toEqual(TESTNET_XPUB_BTC_DEPOSIT)
-
-      const depositAddress = depositPayments.getAddress(1)
-      const depositAddressFoerign = depositPayments.getAddress(1, AddressType.SegwitNative)
-
-      const hotwalletAddress = hotwalletPayments.getAddress(1)
-      const hotwalletAddressFoerign = hotwalletPayments.getAddress(1, AddressType.SegwitP2SH)
-
-      expect(depositAddress).toEqual(hotwalletAddressFoerign)
-      expect(hotwalletAddress).toEqual(depositAddressFoerign)
-
-      const { address: depositAddressPP } = await depositPayments.resolvePayport(1)
-      const { address: depositAddressFoerignPP } = await depositPayments.resolvePayport({
-        index: 1,
-        addressType: AddressType.SegwitNative
-      })
-
-      const { address: hotwalletAddressPP } = await hotwalletPayments.resolvePayport(1)
-      const { address: hotwalletAddressFoerignPP } = await hotwalletPayments.resolvePayport({
-        index: 1,
-        addressType: AddressType.SegwitP2SH
-      })
-
-      expect(depositAddressPP).toEqual(hotwalletAddressFoerignPP)
-      expect(hotwalletAddressPP).toEqual(depositAddressFoerignPP)
-    })
-
     it('resolves payports for different types for payments created from xpub', async () => {
-      const depositPayments = new HdBitcoinPayments({
-        hdKey: TESTNET_XPUB_BTC_DEPOSIT,
-        network: NetworkType.Testnet,
-        addressType: AddressType.SegwitP2SH,
-        logger,
-        minChange: '0.01',
-        targetUtxoPoolSize: 5,
-      } as HdBitcoinPaymentsConfig)
-
       const hotwalletPayments = new HdBitcoinPayments({
-        hdKey: TESTNET_XPUB_BTC_DEPOSIT,
+        hdKey: secretXprv,
         network: NetworkType.Testnet,
         addressType: AddressType.SegwitNative,
         logger,
@@ -153,23 +97,41 @@ describeAll('e2e testnet', () => {
         targetUtxoPoolSize: 5,
       } as HdBitcoinPaymentsConfig)
 
-      const depositAddress = depositPayments.getAddress(1)
-      const depositAddressFoerign = depositPayments.getAddress(1, AddressType.SegwitNative)
+      const p2shClient = new HdBitcoinPayments({
+        hdKey: hotwalletPayments.getPublicConfig().hdKey,
+        network: NetworkType.Testnet,
+        addressType: AddressType.SegwitP2SH,
+        logger,
+        minChange: '0.01',
+        targetUtxoPoolSize: 5,
+      } as HdBitcoinPaymentsConfig)
 
-      const hotwalletAddress = hotwalletPayments.getAddress(1)
-      const hotwalletAddressFoerign = hotwalletPayments.getAddress(1, AddressType.SegwitP2SH)
+      const nativeClient = new HdBitcoinPayments({
+        hdKey: hotwalletPayments.getPublicConfig().hdKey,
+        network: NetworkType.Testnet,
+        addressType: AddressType.SegwitNative,
+        logger,
+        minChange: '0.01',
+        targetUtxoPoolSize: 5,
+      } as HdBitcoinPaymentsConfig)
+
+      const depositAddress = p2shClient.getAddress(1)
+      const depositAddressFoerign = p2shClient.getAddress(1, AddressType.SegwitNative)
+
+      const hotwalletAddress = nativeClient.getAddress(1)
+      const hotwalletAddressFoerign = nativeClient.getAddress(1, AddressType.SegwitP2SH)
 
       expect(depositAddress).toEqual(hotwalletAddressFoerign)
       expect(hotwalletAddress).toEqual(depositAddressFoerign)
 
-      const { address: depositAddressPP } = await depositPayments.resolvePayport(1)
-      const { address: depositAddressFoerignPP } = await depositPayments.resolvePayport({
+      const { address: depositAddressPP } = await p2shClient.resolvePayport(1)
+      const { address: depositAddressFoerignPP } = await p2shClient.resolvePayport({
         index: 1,
         addressType: AddressType.SegwitNative
       })
 
-      const { address: hotwalletAddressPP } = await hotwalletPayments.resolvePayport(1)
-      const { address: hotwalletAddressFoerignPP } = await hotwalletPayments.resolvePayport({
+      const { address: hotwalletAddressPP } = await nativeClient.resolvePayport(1)
+      const { address: hotwalletAddressFoerignPP } = await nativeClient.resolvePayport({
         index: 1,
         addressType: AddressType.SegwitP2SH
       })
@@ -178,6 +140,100 @@ describeAll('e2e testnet', () => {
       expect(hotwalletAddressPP).toEqual(depositAddressFoerignPP)
     })
   })
+
+    it('end to end multi-input send', async () => {
+    /*
+    p2pkh 1 n4Rk4fqGfY9HqZ41K6KNo44eG3MXA4YPMg
+    p2sh-p2wpkh 1 2MyRADTg8pPEReSLL6HGYVAAQwixJ278dki
+    p2wpkh 1 tb1qld8f5lh09h9ckh7spdkrz2rw4g3y0vpj0s5dla
+
+    p2pkh 2 mhFduWNyuHrWYwPhyGZNnuDYtPVgCshGg6
+    p2sh-p2wpkh 2 2N5wGX6qKBYe78LBfK8jRpsbvqnV7T6mpEP
+    p2wpkh 2 tb1qzv92j7996qv7kt2fts7skqqfz5sx7cx6n00248
+
+    p2pkh 3 mrv2DZTNQeqhj9rqDJvb8YqCEJ1Lqbwgd5
+    p2sh-p2wpkh 3 2MvBJ2J4K36pYadpaoDL1JzyUtmzN4TwBgd
+    p2wpkh 3 tb1q05rrngpddrtc470cg0wnq5m95u7977ega6vsut
+
+    p2pkh 4 n12JSAoPSsMvUrAvReGMvZeHcrxiYhvGBx
+    p2sh-p2wpkh 4 2MwjsSV2uh7SBWf4M6Dtmv3oogNaoWLE2Zt
+    p2wpkh 4 tb1q6hm58359np407zf5e4au9zlvl3wus9klafgt2v
+     */
+    const paymentsConfig: HdBitcoinPaymentsConfig = {
+      hdKey: secretXprv,
+      network: NetworkType.Testnet,
+      addressType: addressTypesToTest[0],
+      logger,
+      minChange: '0.001',
+      targetUtxoPoolSize: 5,
+    }
+
+    const hotWalletPayments = new HdBitcoinPayments(paymentsConfig)
+    const clientPayments = new HdBitcoinPayments({
+      ...paymentsConfig,
+      hdKey: hotWalletPayments.getPublicConfig().hdKey
+    })
+
+    const allIndexes = [1, 2, 3, 4]
+    const fromIndexes: number[] = []
+    const toIndexes: number[] = []
+    const forcedUtxos: UtxoInfo[] = []
+
+    const indexedUtxos: { [i: number]: UtxoInfo[] } = []
+
+    for(let index of allIndexes) {
+      for (let addressType of addressTypesToTest) {
+        const tmpUTXOs = await clientPayments.getUtxos({ index, addressType })
+        if (!indexedUtxos[index]) {
+          indexedUtxos[index] = []
+        }
+        // just take the first one from each address
+        if (tmpUTXOs[0]) {
+          indexedUtxos[index].push(tmpUTXOs[tmpUTXOs.length - 1])
+        }
+      }
+    }
+
+    for (let index in indexedUtxos) {
+      if (fromIndexes.length === 2 && toIndexes.length > 0) {
+        break
+      } else if (indexedUtxos[index].length === 0) {
+        toIndexes.push(parseInt(index))
+      } else if (indexedUtxos[index].length === addressTypesToTest.length) {
+        fromIndexes.push(parseInt(index))
+        forcedUtxos.push(...indexedUtxos[index])
+      } else {
+        throw new Error('unfortunate situation')
+      }
+    }
+
+    const changeAddress = fromIndexes.map((i: number) => clientPayments.getAddress(i))
+
+    const unsignedTx = await clientPayments.createMultiInputTransaction(
+      fromIndexes,
+      [
+        {
+          payport: toIndexes[0],
+          amount: '0.001',
+        },
+      ],
+      {
+        useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
+        feeRate: '1',
+        feeRateType: FeeRateType.BasePerWeight,
+        changeAddress,
+        forcedUtxos,
+      }
+    )
+
+    const signedTx = await hotWalletPayments.signTransaction(unsignedTx)
+    logger.log(`Sending ${signedTx.amount} from ${fromIndexes} to ${[0]} in tx ${signedTx.id}`)
+    expect(await hotWalletPayments.broadcastTransaction(signedTx)).toEqual({ id: signedTx.id })
+
+      const tx = await pollUntilFound(signedTx)
+      expect(tx.amount).toEqual(signedTx.amount)
+      expect(tx.fee).toEqual(signedTx.fee)
+  }, 5 * 60 * 1000)
 
   for (let i = 0; i < addressTypesToTest.length; i++) {
     let addressType = addressTypesToTest[i]
@@ -529,35 +585,6 @@ describeAll('e2e testnet', () => {
           expect(activity.confirmationNumber).toBe(blockNumber)
         }
       })
-
-      it('end to end multi-input send', async () => {
-        // 1 one from send 1 form sweep
-        const fromIndicies = [6, 8]
-
-        const changeAddress = fromIndicies.map((i) => payments.getAddress(i))
-
-        const unsignedTx = await payments.createMultiInputTransaction(
-          fromIndicies,
-          [{
-            payport: 0,
-            amount: '0.001',
-          }],
-          {
-            useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
-            feeRate: '5',
-            feeRateType: FeeRateType.BasePerWeight,
-            changeAddress,
-          }
-        )
-
-        const signedTx = await payments.signTransaction(unsignedTx)
-        logger.log(`Sending ${signedTx.amount} from ${fromIndicies} to ${[0]} in tx ${signedTx.id}`)
-        expect(await payments.broadcastTransaction(signedTx)).toEqual({ id: signedTx.id })
-
-        const tx = await pollUntilFound(signedTx)
-        expect(tx.amount).toEqual(signedTx.amount)
-        expect(tx.fee).toEqual(signedTx.fee)
-      }, 5 * 60 * 1000)
     })
   }
 })

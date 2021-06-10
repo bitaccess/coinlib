@@ -34,7 +34,6 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
 
   abstract getPaymentScript(index: number, addressType?: AddressType): bitcoin.payments.Payment
   abstract addressType: AddressType
-  abstract getAddressType(address: string, index: number): AddressType
 
   async createServiceTransaction(): Promise<null> {
     return null

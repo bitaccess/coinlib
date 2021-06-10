@@ -86,18 +86,7 @@ export class HdBitcoinPayments extends SinglesigBitcoinPayments<HdBitcoinPayment
   }
 
   getAddress(index: number, addressType?: SinglesigAddressType): string {
-    let hdNode = this.hdNode
-
-    if (addressType && addressType !== this.addressType && this.isValidXprv(this.config.hdKey)) {
-      // re-derive HD node
-      hdNode = deriveHDNode(
-        this.config.hdKey,
-        DEFAULT_DERIVATION_PATHS[addressType],
-        this.bitcoinjsNetwork
-      )
-    }
-
-    return deriveAddress(hdNode, index, this.bitcoinjsNetwork, addressType || this.addressType)
+    return deriveAddress(this.hdNode, index, this.bitcoinjsNetwork, addressType || this.addressType)
   }
 
   getKeyPair(index: number) {
