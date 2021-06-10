@@ -258,6 +258,22 @@ export const BaseMultisigData = t.type(
 )
 export type BaseMultisigData = t.TypeOf<typeof BaseMultisigData>
 
+export const AddressMultisigData = extendCodec(
+  BaseMultisigData,
+  {
+    signerIndex: t.number,
+    inputIndices: t.array(t.number),
+  },
+  'AddressMultisigData',
+)
+export type AddressMultisigData = t.TypeOf<typeof AddressMultisigData>
+
+export const MultiInputMultisigData = t.record(t.string, AddressMultisigData, 'MultiInputMultisigData')
+export type MultiInputMultisigData = t.TypeOf<typeof MultiInputMultisigData>
+
+export const MultisigData = t.union([BaseMultisigData, MultiInputMultisigData])
+export type MultisigData = t.TypeOf<typeof MultisigData>
+
 const UnsignedCommon = extendCodec(
   TransactionCommon,
   {
@@ -269,7 +285,7 @@ const UnsignedCommon = extendCodec(
     targetFeeRateType: nullable(FeeRateTypeT), // fee rate type requested upon creation
   },
   {
-    multisigData: BaseMultisigData,
+    multisigData: MultisigData,
   },
   'UnsignedCommon',
 )

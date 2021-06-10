@@ -1,6 +1,6 @@
 import * as bitcoin from 'bitcoinjs-lib'
 import {
-  FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus, BaseMultisigData,
+  FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus, BaseMultisigData, MultisigData,
 } from '@faast/payments-common'
 import BigNumber from 'bignumber.js'
 
@@ -16,7 +16,9 @@ import {
 import {
   BITCOIN_SEQUENCE_RBF,
 } from './constants'
-import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateBitcoinTxSize } from './helpers'
+import {
+  isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateBitcoinTxSize, isMultisigFullySigned,
+} from './helpers'
 import {
   BitcoinishPayments, BitcoinishPaymentTx, BitcoinishTxOutput, countOccurences, getBlockcypherFeeRecommendation,
 } from './bitcoinish'
@@ -327,21 +329,16 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     }
   }
 
-  updateMultisigTx(
+  updateSignedMultisigTx(
     tx: BitcoinSignedTransaction | BitcoinUnsignedTransaction,
     psbt: bitcoin.Psbt,
-    signedAccountIds: string[],
+    updatedMultisigData: MultisigData,
   ): BitcoinSignedTransaction {
-    const multisigData = tx.multisigData!
-    const combinedMultisigData: BaseMultisigData = {
-      ...multisigData,
-      signedAccountIds: [...signedAccountIds.values()]
-    }
-    if (signedAccountIds.length >= multisigData.m) {
+    if (isMultisigFullySigned(updatedMultisigData)) {
       const finalizedTx =  this.validateAndFinalizeSignedTx(tx, psbt)
       return {
         ...finalizedTx,
-        multisigData: combinedMultisigData,
+        multisigData: updatedMultisigData,
       }
     }
     const combinedHex = psbt.toHex()
@@ -350,11 +347,12 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
       ...tx,
       id: '',
       status: TransactionStatus.Signed,
-      multisigData: combinedMultisigData,
+      multisigData: updatedMultisigData,
       data: {
         hex: combinedHex,
         partial: true,
         unsignedTxHash,
+        changeOutputs: tx.data?.changeOutputs,
       }
     }
   }

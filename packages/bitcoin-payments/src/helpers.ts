@@ -1,4 +1,4 @@
-import { createUnitConverters, NetworkType } from '@faast/payments-common'
+import { BaseMultisigData, createUnitConverters, MultisigData, NetworkType } from '@faast/payments-common'
 import * as bitcoin from 'bitcoinjs-lib'
 import { DECIMAL_PLACES, NETWORKS } from './constants'
 import * as bitcoinish from './bitcoinish'
@@ -63,4 +63,11 @@ export function estimateBitcoinTxSize(
     outputCounts,
     (address: string) => bitcoin.address.toOutputScript(address, NETWORKS[networkType]),
   )
+}
+
+export function isMultisigFullySigned(multisigData: MultisigData): boolean {
+  if (BaseMultisigData.is(multisigData)) {
+    return multisigData.signedAccountIds.length >= multisigData.m
+  }
+  return Object.values(multisigData).every(isMultisigFullySigned)
 }

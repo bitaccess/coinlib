@@ -71,6 +71,7 @@ describeAll('e2e mainnet', () => {
       'height': '613152',
       'confirmations': 8753,
       'coinbase': false,
+      'signer': 0,
       'spent': false,
       'address': 'bc1qz7v8smdfrgzqvjre3lrcxl4ul9x806e7umgf27',
       'scriptPubKeyHex': '00141798786da91a040648798fc7837ebcf94c77eb3e',

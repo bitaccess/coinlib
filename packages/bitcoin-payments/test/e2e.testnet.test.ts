@@ -7,7 +7,7 @@ import {
 import {
   HdBitcoinPayments, BitcoinTransactionInfo,
   BitcoinSignedTransaction, AddressType, SinglesigAddressType,
-  bitcoinish, BitcoinBalanceMonitor, BitcoinUnsignedTransaction,
+  bitcoinish, BitcoinBalanceMonitor, BitcoinUnsignedTransaction, BaseBitcoinPayments,
 } from '../src'
 
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger } from './utils'
@@ -141,6 +141,45 @@ describeAll('e2e testnet', () => {
     })
   })
 
+  async function pollUntilFound(signedTx: BitcoinSignedTransaction, payments: HdBitcoinPayments) {
+    const txId = signedTx.id
+    const endState = [...END_TRANSACTION_STATES, TransactionStatus.Pending]
+    logger.log(`polling until status ${endState.join('|')}`, txId)
+    let tx: BitcoinTransactionInfo | undefined
+    let changeAddress
+    if (signedTx.data.changeOutputs) {
+      changeAddress = signedTx.data.changeOutputs.map((ca) => ca.address)
+    }
+    while (!testsComplete && (!tx || !endState.includes(tx.status))) {
+      try {
+        tx = await payments.getTransactionInfo(txId, undefined, { changeAddress })
+      } catch (e) {
+        if (e.message.includes('not found')) {
+          logger.log('tx not found yet', txId, e.message)
+        } else {
+          throw e
+        }
+      }
+      await delay(5000)
+    }
+    if (!tx) {
+      throw new Error(`failed to poll until found ${txId}`)
+    }
+    logger.log(tx.status, tx)
+    expect(tx.id).toBe(signedTx.id)
+    if (![signedTx.fromAddress, tx.fromAddress].includes('batch')) {
+      expect(tx.fromAddress).toBe(signedTx.fromAddress)
+    }
+    if (![signedTx.toAddress, tx.toAddress].includes('batch')) {
+      expect(tx.toAddress).toBe(signedTx.toAddress)
+    }
+    expectEqualWhenTruthy(tx.fromExtraId, signedTx.fromExtraId)
+    expectEqualWhenTruthy(tx.toExtraId, signedTx.toExtraId)
+    expect(tx.data).toBeDefined()
+    expect(endState).toContain(tx.status)
+    return tx
+  }
+
     it('end to end multi-input send', async () => {
     /*
     p2pkh 1 n4Rk4fqGfY9HqZ41K6KNo44eG3MXA4YPMg
@@ -230,7 +269,7 @@ describeAll('e2e testnet', () => {
     logger.log(`Sending ${signedTx.amount} from ${fromIndexes} to ${[0]} in tx ${signedTx.id}`)
     expect(await hotWalletPayments.broadcastTransaction(signedTx)).toEqual({ id: signedTx.id })
 
-      const tx = await pollUntilFound(signedTx)
+      const tx = await pollUntilFound(signedTx, hotWalletPayments)
       expect(tx.amount).toEqual(signedTx.amount)
       expect(tx.fee).toEqual(signedTx.fee)
   }, 5 * 60 * 1000)
@@ -290,45 +329,6 @@ describeAll('e2e testnet', () => {
         })
       }
 
-      async function pollUntilFound(signedTx: BitcoinSignedTransaction) {
-        const txId = signedTx.id
-        const endState = [...END_TRANSACTION_STATES, TransactionStatus.Pending]
-        logger.log(`polling until status ${endState.join('|')}`, txId)
-        let tx: BitcoinTransactionInfo | undefined
-        let changeAddress
-        if (signedTx.data.changeOutputs) {
-          changeAddress = signedTx.data.changeOutputs.map((ca) => ca.address)
-        }
-        while (!testsComplete && (!tx || !endState.includes(tx.status))) {
-          try {
-            tx = await payments.getTransactionInfo(txId, undefined, { changeAddress })
-          } catch (e) {
-            if (e.message.includes('not found')) {
-              logger.log('tx not found yet', txId, e.message)
-            } else {
-              throw e
-            }
-          }
-          await delay(5000)
-        }
-        if (!tx) {
-          throw new Error(`failed to poll until found ${txId}`)
-        }
-        logger.log(tx.status, tx)
-        expect(tx.id).toBe(signedTx.id)
-        if (![signedTx.fromAddress, tx.fromAddress].includes('batch')) {
-          expect(tx.fromAddress).toBe(signedTx.fromAddress)
-        }
-        if (![signedTx.toAddress, tx.toAddress].includes('batch')) {
-          expect(tx.toAddress).toBe(signedTx.toAddress)
-        }
-        expectEqualWhenTruthy(tx.fromExtraId, signedTx.fromExtraId)
-        expectEqualWhenTruthy(tx.toExtraId, signedTx.toExtraId)
-        expect(tx.data).toBeDefined()
-        expect(endState).toContain(tx.status)
-        return tx
-      }
-
       it('end to end sweep', async () => {
         const indicesToTry = [5, 6]
         const balances: { [i: number]: BalanceResult } = {}
@@ -372,7 +372,7 @@ describeAll('e2e testnet', () => {
         expect(await payments.broadcastTransaction(signedTx)).toEqual({
           id: signedTx.id,
         })
-        const tx = await pollUntilFound(signedTx)
+        const tx = await pollUntilFound(signedTx, payments)
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)
         sweepTx = unsignedTx
@@ -413,7 +413,7 @@ describeAll('e2e testnet', () => {
         expect(await payments.broadcastTransaction(signedTx)).toEqual({
           id: signedTx.id,
         })
-        const tx = await pollUntilFound(signedTx)
+        const tx = await pollUntilFound(signedTx, payments)
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)
         sendTx = unsignedTx
