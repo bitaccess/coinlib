@@ -429,13 +429,15 @@ describeAll('e2e testnet', () => {
 
       // Fields to ignore for test equality purposes (ie unpredictable values)
       const IGNORED_BALANCE_ACTIVITY_FIELDS = ['timestamp', 'lockTime'] as const
+      const IGNORED_UTXO_FIELDS = ['confirmations', 'lockTime', 'signer', 'height'] as const
       type PartialBalanceActivity = Omit<BalanceActivity, typeof IGNORED_BALANCE_ACTIVITY_FIELDS[number]>
       function sortAndOmitBalanceActivities(
         activities: Array<PartialBalanceActivity>,
       ) {
         return [...activities].sort(compareBalanceActivities).map((ba) => ({
           ...omit(ba, IGNORED_BALANCE_ACTIVITY_FIELDS),
-          utxosSpent: ba.utxosSpent?.map((utxo) => omit(utxo, ['confirmations', 'lockTime', 'signer'])),
+          utxosCreated: ba.utxosCreated?.map((utxo) => omit(utxo, IGNORED_UTXO_FIELDS)),
+          utxosSpent: ba.utxosSpent?.map((utxo) => omit(utxo, IGNORED_UTXO_FIELDS)),
         }))
       }
 
