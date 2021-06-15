@@ -201,13 +201,13 @@ describeAll('e2e multisig testnet', () => {
         expect(multiInputMultisigData).toBeDefined()
         expect(MultiInputMultisigData.is(multiInputMultisigData)).toBe(true)
         const multisigData = multiInputMultisigData[address]
-        expect(multisigData!.m).toBe(M)
-        expect(multisigData!.accountIds.length).toBe(signerPayments.length)
-        expect(multisigData!.signedAccountIds).toEqual(expectedSignatures.map((i) => multisigData!.accountIds[i]))
+        expect(multisigData.m).toBe(M)
+        expect(multisigData.accountIds.length).toBe(signerPayments.length)
+        expect(multisigData.signedAccountIds).toEqual(expectedSignatures.map((i) => multisigData.accountIds[i]))
         for (let i = 0; i < signerPayments.length; i++) {
           const signerPayment = signerPayments[i]
-          const accountId = multisigData!.accountIds[i]
-          const publicKey = multisigData!.publicKeys[i]
+          const accountId = multisigData.accountIds[i]
+          const publicKey = multisigData.publicKeys[i]
           expect(accountId).toBe(signerPayment.getAccountId(fromIndex))
           expect(publicKey).toBe(signerPayment.getKeyPair(fromIndex).publicKey.toString('hex'))
         }
