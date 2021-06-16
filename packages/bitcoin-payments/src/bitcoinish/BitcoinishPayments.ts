@@ -627,7 +627,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       changeOutputs: [],
       unusedUtxos: this.prepareUtxos(params.unusedUtxos),
       enforcedUtxos: this.prepareUtxos(params.enforcedUtxos),
-      selectableUtxos: nonDustUtxos.filter((utxo) => (params.useUnconfirmedUtxos || isConfirmedUtxo(utxo))),
+      selectableUtxos: nonDustUtxos
+        .filter((utxo) => (params.useUnconfirmedUtxos || isConfirmedUtxo(utxo)))
+        .filter((utxo) => !params.enforcedUtxos.map((u) => `${u.txid}${u.vout}`).includes(`${utxo.txid}${utxo.vout}`)),
       nonDustUtxoCount: nonDustUtxos.length,
     }
 

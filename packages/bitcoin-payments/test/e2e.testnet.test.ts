@@ -13,6 +13,7 @@ import {
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 import fixtures from './fixtures/singlesigTestnet'
+import { forcedUtxos } from './fixtures/multiInput'
 import { HdBitcoinPaymentsConfig } from '../src/types'
 import BigNumber from 'bignumber.js'
 import { omit } from 'lodash'
@@ -203,7 +204,7 @@ describeAll('e2e testnet', () => {
       network: NetworkType.Testnet,
       addressType: addressTypesToTest[0],
       logger,
-      minChange: '0.001',
+      minChange: '0.0001',
       targetUtxoPoolSize: 5,
     }
 
@@ -213,65 +214,54 @@ describeAll('e2e testnet', () => {
       hdKey: hotWalletPayments.getPublicConfig().hdKey
     })
 
-    const allIndexes = [1, 2, 3, 4]
-    const fromIndexes: number[] = []
-    const toIndexes: number[] = []
-    const forcedUtxos: UtxoInfo[] = []
 
-    const indexedUtxos: { [i: number]: UtxoInfo[] } = []
+    const fromIndexes: number[] = [1, 2]
 
-    for(let index of allIndexes) {
-      let addressCount = 0
-      for (let addressType of addressTypesToTest) {
-        const tmpUTXOs = await clientPayments.getUtxos({ index, addressType })
-        if (!indexedUtxos[index]) {
-          indexedUtxos[index] = []
-        }
-        if (tmpUTXOs[0]) {
-          indexedUtxos[index].push(tmpUTXOs[tmpUTXOs.length - 1]!)
-          addressCount++
-        }
-      }
-
-      if (addressCount === addressTypesToTest.length) {
-        fromIndexes.push(index)
-        forcedUtxos.push(...indexedUtxos[index])
-      } else if (addressCount === 0) {
-        toIndexes.push(index)
-      } else if (addressCount < addressTypesToTest.length) {
-        if (fromIndexes.length > 0) {
-          toIndexes.push(index)
-        } else {
-          fromIndexes.push(index)
-          forcedUtxos.push(...indexedUtxos[index])
-        }
-      }
-    }
-
-    if (fromIndexes.length === 0) {
-      throw new Error(`Setup is not sufficient for tests: ${indexedUtxos}`)
-    }
-
-    const changeAddress = fromIndexes.map((i: number) => clientPayments.getAddress(i))
+    const changeAddresses = [4, 5, 6].map((i: number) => clientPayments.getAddress(i))
 
     const unsignedTx = await clientPayments.createMultiInputTransaction(
       fromIndexes,
       [
         {
-          payport: toIndexes[0],
-          amount: '0.001',
+          payport: 3,
+          amount: '0.0021',
         },
       ],
       {
         useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
         feeRate: '1',
         feeRateType: FeeRateType.BasePerWeight,
-        changeAddress,
-        forcedUtxos,
+        changeAddress: changeAddresses,
+        forcedUtxos, // total is 0.0007
       }
     )
 
+    for (let utxo of forcedUtxos) {
+      expect(unsignedTx.inputUtxos!.indexOf(utxo) >= 0)
+    }
+    expect(unsignedTx.fromAddress).toEqual('batch')
+
+    expect(unsignedTx.data!.changeOutputs!.length > 1)
+    for (let cO of unsignedTx.data!.changeOutputs!) {
+      expect(changeAddresses.indexOf(cO.address) >= 0)
+    }
+
     const signedTx = await hotWalletPayments.signTransaction(unsignedTx)
+
+    expectEqualWhenTruthy(unsignedTx.fromExtraId, signedTx.fromExtraId)
+    expectEqualWhenTruthy(unsignedTx.toExtraId, signedTx.toExtraId)
+    expect(unsignedTx.amount).toEqual(signedTx.amount)
+    expect(unsignedTx.toAddress).toEqual(signedTx.toAddress)
+    expect(unsignedTx.targetFeeLevel).toEqual(signedTx.targetFeeLevel)
+    expect(unsignedTx.targetFeeRate).toEqual(signedTx.targetFeeRate)
+    expect(unsignedTx.targetFeeRateType).toEqual(signedTx.targetFeeRateType)
+    expect(unsignedTx.fee).toEqual(signedTx.fee)
+
+    expect(signedTx.data).toBeDefined()
+    expect(signedTx.data!.changeOutputs!.length > 1)
+    for (let cO of signedTx.data!.changeOutputs!) {
+      expect(changeAddresses.indexOf(cO.address) >= 0)
+    }
   }, 5 * 60 * 1000)
 
   for (let i = 0; i < addressTypesToTest.length; i++) {
