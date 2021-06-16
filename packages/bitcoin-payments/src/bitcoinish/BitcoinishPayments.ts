@@ -627,10 +627,10 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       changeOutputs: [],
       unusedUtxos: this.prepareUtxos(params.unusedUtxos),
       enforcedUtxos: this.prepareUtxos(params.enforcedUtxos),
+      nonDustUtxoCount: nonDustUtxos.length,
       selectableUtxos: nonDustUtxos
         .filter((utxo) => (params.useUnconfirmedUtxos || isConfirmedUtxo(utxo)))
-        .filter((utxo) => !params.enforcedUtxos.map((u) => `${u.txid}${u.vout}`).includes(`${utxo.txid}${utxo.vout}`)),
-      nonDustUtxoCount: nonDustUtxos.length,
+        .filter((utxo) => !params.enforcedUtxos!.find((u) => u.txid === utxo.txid && u.vout === utxo.vout))
     }
 
     for (let i = 0; i < tbc.desiredOutputs.length; i++) {
@@ -662,6 +662,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     tbc.isSweep = tbc.useAllUtxos && tbc.desiredOutputTotal >= unfilteredUtxoTotal.toNumber()
 
     this.selectInputUtxos(tbc)
+    tbc.inputUtxos = tbc.inputUtxos.sort((a, b) => `${a.txid}${a.vout}` > `${b.txid}${b.vout}` && 1 || -1)
+
     this.logger.debug(`${this.coinSymbol} buildPaymentTx - context after utxo input selection`, tbc)
 
     this.allocateChangeOutputs(tbc)

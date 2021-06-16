@@ -13,7 +13,7 @@ import {
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 import fixtures from './fixtures/singlesigTestnet'
-import { forcedUtxos } from './fixtures/multiInput'
+import { forcedUtxos, availableUtxos, unsignedHash, signedHex, mitxId } from './fixtures/multiInput'
 import { HdBitcoinPaymentsConfig } from '../src/types'
 import BigNumber from 'bignumber.js'
 import { omit } from 'lodash'
@@ -233,8 +233,11 @@ describeAll('e2e testnet', () => {
         feeRateType: FeeRateType.BasePerWeight,
         changeAddress: changeAddresses,
         forcedUtxos, // total is 0.0007
+        availableUtxos,
       }
     )
+
+    expect(unsignedTx.data!.rawHash).toEqual(unsignedHash)
 
     for (let utxo of forcedUtxos) {
       expect(unsignedTx.inputUtxos!.indexOf(utxo) >= 0)
@@ -247,6 +250,8 @@ describeAll('e2e testnet', () => {
     }
 
     const signedTx = await hotWalletPayments.signTransaction(unsignedTx)
+
+    expect(signedTx.data!.unsignedTxHash).toEqual(unsignedHash)
 
     expectEqualWhenTruthy(unsignedTx.fromExtraId, signedTx.fromExtraId)
     expectEqualWhenTruthy(unsignedTx.toExtraId, signedTx.toExtraId)
@@ -262,6 +267,26 @@ describeAll('e2e testnet', () => {
     for (let cO of signedTx.data!.changeOutputs!) {
       expect(changeAddresses.indexOf(cO.address) >= 0)
     }
+
+    expect(signedTx.data!.hex).toEqual(signedHex)
+
+    const tx = await hotWalletPayments.getTransactionInfo(mitxId, undefined, { changeAddress: changeAddresses } )
+    const inputUtxos = [...forcedUtxos, ...availableUtxos].map((u): UtxoInfo => {
+      return {
+        txid: u.txid,
+        vout: u.vout,
+        value: u.value
+      }
+    }).sort((a, b) => `${a.txid}${a.vout}` > `${b.txid}${b.vout}` && 1 || -1)
+    const actualUtxos = tx.inputUtxos!.sort((a, b) => `${a.txid}${a.vout}` > `${b.txid}${b.vout}` && 1 || -1)
+
+
+    expect(inputUtxos).toEqual(actualUtxos)
+    expect(tx.data!.hex).toEqual(signedHex)
+    expect(tx.amount).toBe('0.0021')
+     expect(tx.externalOutputs).toEqual([
+      { address: 'mrv2DZTNQeqhj9rqDJvb8YqCEJ1Lqbwgd5', value: '0.0021' }
+    ])
   }, 5 * 60 * 1000)
 
   for (let i = 0; i < addressTypesToTest.length; i++) {
