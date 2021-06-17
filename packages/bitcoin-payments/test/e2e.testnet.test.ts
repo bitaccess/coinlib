@@ -237,21 +237,21 @@ describeAll('e2e testnet', () => {
       }
     )
 
-    expect(unsignedTx.data!.rawHash).toEqual(unsignedHash)
+    expect(unsignedTx.data.rawHash).toEqual(unsignedHash)
 
     for (let utxo of forcedUtxos) {
       expect(unsignedTx.inputUtxos!.indexOf(utxo) >= 0)
     }
     expect(unsignedTx.fromAddress).toEqual('batch')
 
-    expect(unsignedTx.data!.changeOutputs!.length > 1)
-    for (let cO of unsignedTx.data!.changeOutputs!) {
+    expect(unsignedTx.data.changeOutputs!.length > 1)
+    for (let cO of unsignedTx.data.changeOutputs!) {
       expect(changeAddresses.indexOf(cO.address) >= 0)
     }
 
     const signedTx = await hotWalletPayments.signTransaction(unsignedTx)
 
-    expect(signedTx.data!.unsignedTxHash).toEqual(unsignedHash)
+    expect(signedTx.data.unsignedTxHash).toEqual(unsignedHash)
 
     expectEqualWhenTruthy(unsignedTx.fromExtraId, signedTx.fromExtraId)
     expectEqualWhenTruthy(unsignedTx.toExtraId, signedTx.toExtraId)
@@ -263,12 +263,12 @@ describeAll('e2e testnet', () => {
     expect(unsignedTx.fee).toEqual(signedTx.fee)
 
     expect(signedTx.data).toBeDefined()
-    expect(signedTx.data!.changeOutputs!.length > 1)
-    for (let cO of signedTx.data!.changeOutputs!) {
+    expect(signedTx.data.changeOutputs!.length > 1)
+    for (let cO of signedTx.data.changeOutputs!) {
       expect(changeAddresses.indexOf(cO.address) >= 0)
     }
 
-    expect(signedTx.data!.hex).toEqual(signedHex)
+    expect(signedTx.data.hex).toEqual(signedHex)
 
     const tx = await hotWalletPayments.getTransactionInfo(mitxId, undefined, { changeAddress: changeAddresses } )
     const inputUtxos = [...forcedUtxos, ...availableUtxos].map((u): UtxoInfo => {
@@ -282,7 +282,7 @@ describeAll('e2e testnet', () => {
 
 
     expect(inputUtxos).toEqual(actualUtxos)
-    expect(tx.data!.hex).toEqual(signedHex)
+    expect(tx.data.hex).toEqual(signedHex)
     expect(tx.amount).toBe('0.0021')
      expect(tx.externalOutputs).toEqual([
       { address: 'mrv2DZTNQeqhj9rqDJvb8YqCEJ1Lqbwgd5', value: '0.0021' }

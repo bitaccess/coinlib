@@ -165,7 +165,7 @@ export class TronPaymentsUtils implements PaymentsUtils {
   }
 
   private extractTxFields(tx: TronTransaction) {
-    const contractParam = tx.raw_data?.contract?.[0]?.parameter?.value ?? null
+    const contractParam = (tx.raw_data?.contract?.[0]?.parameter?.value as any) ?? null
     if (!(contractParam && typeof contractParam.amount === 'number')) {
       throw new Error('Unable to get transaction')
     }

@@ -630,7 +630,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       nonDustUtxoCount: nonDustUtxos.length,
       selectableUtxos: nonDustUtxos
         .filter((utxo) => (params.useUnconfirmedUtxos || isConfirmedUtxo(utxo)))
-        .filter((utxo) => !params.enforcedUtxos!.find((u) => u.txid === utxo.txid && u.vout === utxo.vout))
+        .filter((utxo) => !params.enforcedUtxos.find((u) => u.txid === utxo.txid && u.vout === utxo.vout ))
     }
 
     for (let i = 0; i < tbc.desiredOutputs.length; i++) {
