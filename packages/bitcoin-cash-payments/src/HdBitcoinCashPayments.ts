@@ -23,11 +23,14 @@ export class HdBitcoinCashPayments extends SinglesigBitcoinCashPayments<HdBitcoi
   readonly xpub: string
   readonly xprv: string | null
   readonly hdNode: HDNode
+  readonly addressType: null
+
 
   constructor(private config: HdBitcoinCashPaymentsConfig) {
     super(config)
     assertType(HdBitcoinCashPaymentsConfig, config)
     this.derivationPath = config.derivationPath || DEFAULT_DERIVATION_PATH
+    this.addressType = null
 
     if (this.isValidXpub(config.hdKey)) {
       this.xpub = config.hdKey
@@ -91,5 +94,9 @@ export class HdBitcoinCashPayments extends SinglesigBitcoinCashPayments<HdBitcoi
 
   getKeyPair(index: number) {
     return deriveKeyPair(this.hdNode, index)
+  }
+
+  getSupportedAddressTypes(): null {
+    return this.addressType
   }
 }

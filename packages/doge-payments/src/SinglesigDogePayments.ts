@@ -29,12 +29,16 @@ export abstract class SinglesigDogePayments<Config extends SinglesigDogePayments
     if (rawHex) {
       psbt = bitcoin.Psbt.fromHex(rawHex, this.psbtOptions)
     } else {
-      psbt = await this.buildPsbt(paymentTx, tx.fromIndex)
+      psbt = await this.buildPsbt(paymentTx, tx.fromIndex!)
     }
 
-    const keyPair = this.getKeyPair(tx.fromIndex)
+    const keyPair = this.getKeyPair(tx.fromIndex!)
     psbt.signAllInputs(keyPair)
 
     return this.validateAndFinalizeSignedTx(tx, psbt)
+  }
+
+  getSupportedAddressTypes(): AddressType[] {
+    return [AddressType.Legacy]
   }
 }

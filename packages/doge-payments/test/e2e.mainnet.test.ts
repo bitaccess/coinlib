@@ -5,7 +5,7 @@ import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel } 
 import { toBigNumber } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
 import { bitcoinish } from '@faast/bitcoin-payments'
-import { assertBitcoinishTxInfoEquality } from '@faast/bitcoin-payments/test/utils'
+import { assertBitcoinishTxInfoEquality } from '../../bitcoin-payments/test/utils'
 
 import {
   HdDogePayments, DogeTransactionInfo, HdDogePaymentsConfig,
@@ -114,6 +114,7 @@ describeAll('e2e mainnet', () => {
       'coinbase': false,
       'spent': false,
       'scriptPubKeyHex': '76a9144b9d27a2598625721c97693da1634020be8622e688ac',
+      'signer': 10,
       'txHex': '010000000106a1c739df453a6195a63833290446f2b41c3663c27f4ab4338843f9fdf0e2da010000006b483045022100cc3acc5500c887822b806da03a9496666984d4249563ad8874948e71557df14d022063ff01b2b49edc37a810e0801a571c8af227d325ee4d6d4bacf6430425f447fa012103a97aa62fdd0727cea13c9eada937fa2901f3be91475ec8950b7abad32ebf7adcffffffff020078a698200000001976a9144b9d27a2598625721c97693da1634020be8622e688ac1af79b1c370200001976a91456cfc66df7b5638c2b551566daf34b9fe25e286d88ac00000000'
     }
   ]

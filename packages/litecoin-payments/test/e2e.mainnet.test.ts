@@ -3,7 +3,7 @@ import path from 'path'
 import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel } from '@faast/payments-common'
 import { toBigNumber } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
-import { assertBitcoinishTxInfoEquality } from '@faast/bitcoin-payments/test/utils'
+import { assertBitcoinishTxInfoEquality } from '../../bitcoin-payments/test/utils'
 
 import {
   HdLitecoinPayments, LitecoinTransactionInfo, HdLitecoinPaymentsConfig,
@@ -72,6 +72,7 @@ describeAll('e2e mainnet', () => {
       'height': 613152,
       'confirmations': 8753,
       'scriptPubKeyHex': '00142e6c580ec6ee8bf384a06d8ec54d628159959a63',
+      'signer': 0,
       'txHex': '0200000000010130e01b319d140a4cb9ea681102d68895c1e940dce25807e223bc3587b525af570000000000fdffffff06404b4c00000000001600142e6c580ec6ee8bf384a06d8ec54d628159959a63eb74020000000000160014d9efcb28440dace960cc73bd95adec1fb453809ad7e9040000000000160014d9efcb28440dace960cc73bd95adec1fb453809aaed3090000000000160014d9efcb28440dace960cc73bd95adec1fb453809a5ca7130000000000160014d9efcb28440dace960cc73bd95adec1fb453809ab94e270000000000160014d9efcb28440dace960cc73bd95adec1fb453809a0247304402206c6e6c0a1d02040131be99869ea99276bb2385aea2342e0cff334fef762a785702207e0c3b112734506cf5d2d65c656d8a1f984c967e6506a7523aa076473c6c316d01210307af618c38460fd0d8526b1f285658db267e40c03939de07bccf4fdbbc9d609600000000',
       'coinbase': false,
       'address': 'ltc1q9ek9srkxa69l8p9qdk8v2ntzs9vetxnr6xhvf4',

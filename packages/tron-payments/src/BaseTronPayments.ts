@@ -189,7 +189,7 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
 
   async signTransaction(unsignedTx: TronUnsignedTransaction): Promise<TronSignedTransaction> {
     try {
-      const fromPrivateKey = await this.getPrivateKey(unsignedTx.fromIndex)
+      const fromPrivateKey = await this.getPrivateKey(unsignedTx.fromIndex!)
       const unsignedRaw = cloneDeep(unsignedTx.data) as TronWebTransaction // tron modifies unsigned object
       const signedTx = await this.tronweb.trx.sign(unsignedRaw, fromPrivateKey)
       return {

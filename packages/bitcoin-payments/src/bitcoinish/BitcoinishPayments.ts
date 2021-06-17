@@ -58,7 +58,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   defaultFeeLevel: AutoFeeLevels
   targetUtxoPoolSize: number
   minChangeSat: number
-  abstract addressType: AddressType
+  abstract addressType: AddressType | null
 
   constructor(config: BitcoinishPaymentsConfig) {
     super(config)
@@ -78,7 +78,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   abstract getPublicConfig(): Config
   abstract getAccountId(index: number): string
   abstract getAccountIds(index?: number): string[]
-  abstract getSupportedAddressTypes(): AddressType[]
+  abstract getSupportedAddressTypes(): AddressType[] | null
   abstract getAddress(index: number, addressType?: AddressType): string
   abstract signTransaction(tx: BitcoinishUnsignedTransaction): Promise<BitcoinishSignedTransaction>
 
@@ -104,7 +104,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
   getAddressType(address: string, index: number): AddressType {
     const standartizedAddress = this.standardizeAddress(address)
-    for (let addressType of this.getSupportedAddressTypes()) {
+    for (let addressType of this.getSupportedAddressTypes()!) {
       if (standartizedAddress === this.getAddress(index, addressType)) {
         return addressType
       }
