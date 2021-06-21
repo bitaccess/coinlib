@@ -2,7 +2,7 @@ import { omit } from 'lodash'
 import { isUndefined, isString } from '@faast/ts-common'
 
 import { SinglesigBitcoinPayments } from './SinglesigBitcoinPayments'
-import { KeyPairBitcoinPaymentsConfig, BitcoinjsKeyPair } from './types'
+import { KeyPairBitcoinPaymentsConfig, BitcoinjsKeyPair, SinglesigAddressType } from './types'
 import {
   privateKeyToKeyPair,
   publicKeyToAddress,
@@ -87,7 +87,7 @@ export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitc
     return publicKeyToKeyPair(publicKey, this.bitcoinjsNetwork)
   }
 
-  getAddress(index: number): string {
+  getAddress(index: number, addressType?: SinglesigAddressType): string {
     const address = this.addresses[index] || ''
     if (!this.isValidAddress(address)) {
       throw new Error(`Cannot get address ${index} - keyPair[${index}] is undefined or invalid address`)

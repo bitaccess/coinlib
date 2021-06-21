@@ -47,7 +47,7 @@ function stripBitcoinishTxInfoForEquality(txInfo: any) {
     ...txInfo,
     data: {
       ...txInfo.data,
-      vout: (txInfo.data as any).vout.map((o: any) => omit(o, ['spent'])),
+      vout: txInfo.data.vout.map((o: any) => omit(o, ['spent'])),
     },
     outputUtxos: txInfo.outputUtxos?.map((o: any) => omit(o, ['confirmations'])),
   }, ['data.confirmations', 'confirmations', 'currentBlockNumber'])

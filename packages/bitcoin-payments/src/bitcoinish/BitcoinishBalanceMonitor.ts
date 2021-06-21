@@ -89,7 +89,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
   ): Promise<BasicBlockInfo> {
     let page = 1
     let blockPage: BitcoinishBlock | undefined
-    let basicBlockInfo: BasicBlockInfo
+    let basicBlockInfo: BasicBlockInfo | undefined
     while(!blockPage || blockPage.page < blockPage.totalPages) {
       blockPage = await this.getApi().getBlock(blockId, { page })
       basicBlockInfo = {

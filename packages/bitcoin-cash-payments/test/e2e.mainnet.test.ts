@@ -4,7 +4,7 @@ import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel } 
 import { bitcoinish } from '@faast/bitcoin-payments'
 import { toBigNumber } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
-import { assertBitcoinishTxInfoEquality } from '@faast/bitcoin-payments/test/utils'
+import { assertBitcoinishTxInfoEquality } from '../../bitcoin-payments/test/utils'
 
 import {
   HdBitcoinCashPayments, BitcoinCashTransactionInfo, HdBitcoinCashPaymentsConfig,
@@ -104,6 +104,7 @@ describeAll('e2e mainnet', () => {
       'coinbase': false,
       'lockTime': undefined,
       'spent': false,
+      'signer': 0,
       'address': 'bitcoincash:qqyqaklgadws70sc3wa6rrrk2wlpt6tnjuvyll86mu'
     }
   ]
@@ -289,7 +290,15 @@ describeAll('e2e mainnet', () => {
     const payments = new HdBitcoinCashPayments(paymentsConfig)
 
     it('get multi output send', async () => {
-      const tx = await payments.getTransactionInfo('3909748b7180634861df44c61bf17c0c0509c87dfb33dc9442639cc4eb97939c')
+      const tx = await payments.getTransactionInfo('3909748b7180634861df44c61bf17c0c0509c87dfb33dc9442639cc4eb97939c',
+        undefined,
+        { filterChangeAddresses: async () => {
+          return [
+            'bitcoincash:pzputkzlp6vm05sqkc47tz8ql6pfm2wzpsycz64tvn',
+            'bitcoincash:qpwwp5zq7ns7fx4ujegfghf258d0yazfwul78c4vua'
+          ]
+        } }
+      )
       expect(tx.amount).toBe('0.07534328')
       expect(tx.externalOutputs).toEqual([
         {
@@ -384,12 +393,14 @@ describeAll('e2e mainnet', () => {
 
     it('end to end send', async () => {
       const indicesToTry = [7, 8]
-      const balances: { [i: number]: BalanceResult } = {}
+      const balances: { [address: string]: BalanceResult } = {}
       let indexToSend: number = -1
-      let highestBalance = toBigNumber(0)
-      for (const index of indicesToTry) {
+      let { confirmedBalance: highestBalance } = await payments.getBalance(indicesToTry[0])
+      for (let i = 1; i < indicesToTry.length; i++) {
+        const index = indicesToTry[i]
+        const address = payments.getAddress(index)
         const balanceResult = await payments.getBalance(index)
-        balances[index] = balanceResult
+        balances[address] = balanceResult
         if (toBigNumber(balanceResult.confirmedBalance).gt(highestBalance)) {
           indexToSend = index
           break

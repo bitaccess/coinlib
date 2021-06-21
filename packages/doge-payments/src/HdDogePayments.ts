@@ -23,11 +23,13 @@ export class HdDogePayments extends SinglesigDogePayments<HdDogePaymentsConfig> 
   readonly xpub: string
   readonly xprv: string | null
   readonly hdNode: HDNode
+  readonly addressType: null
 
   constructor(private config: HdDogePaymentsConfig) {
     super(config)
     assertType(HdDogePaymentsConfig, config)
     this.derivationPath = config.derivationPath || DEFAULT_DERIVATION_PATH
+    this.addressType = null
 
     if (this.isValidXpub(config.hdKey)) {
       this.xpub = config.hdKey
@@ -91,5 +93,9 @@ export class HdDogePayments extends SinglesigDogePayments<HdDogePaymentsConfig> 
 
   getKeyPair(index: number) {
     return deriveKeyPair(this.hdNode, index, this.bitcoinjsNetwork)
+  }
+
+  getSupportedAddressTypes(): null {
+    return this.addressType
   }
 }

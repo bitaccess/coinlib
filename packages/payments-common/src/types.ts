@@ -49,7 +49,18 @@ export const Payport = requiredOptionalCodec(
 )
 export type Payport = t.TypeOf<typeof Payport>
 
-export const ResolveablePayport = t.union([Payport, t.string, t.number], 'ResolveablePayport')
+export const DerivablePayport = requiredOptionalCodec(
+  {
+    index: t.number
+  },
+  {
+    addressType: t.string // enum for each coin payments
+  },
+  'DerivablePayport'
+)
+export type DerivablePayport = t.TypeOf<typeof DerivablePayport>
+
+export const ResolveablePayport = t.union([Payport, DerivablePayport, t.string, t.number], 'ResolveablePayport')
 export type ResolveablePayport = t.TypeOf<typeof ResolveablePayport>
 
 export const PayportOutput = t.type({
@@ -123,6 +134,7 @@ export const UtxoInfo = requiredOptionalCodec(
     scriptPubKeyHex: t.string,
     address: t.string,
     spent: t.boolean,
+    signer: t.number, // signing account address or index relative to accountId
   },
   'UtxoInfo',
 )
@@ -137,6 +149,9 @@ export const WeightedChangeOutput = t.type(
 )
 export type WeightedChangeOutput = t.TypeOf<typeof WeightedChangeOutput>
 
+export type FilterChangeAddresses = (addresses: string[]) => Promise<string[]>
+export const FilterChangeAddresses = functionT<FilterChangeAddresses>('NewBlockCallback')
+
 export const CreateTransactionOptions = extendCodec(
   FeeOption,
   {},
@@ -149,6 +164,8 @@ export const CreateTransactionOptions = extendCodec(
     useUnconfirmedUtxos: t.boolean, // Allow unconfirmed utxos as inputs
     recipientPaysFee: t.boolean, // Deduct fee from outputs (only utxo coins supported for now)
     maxFeePercent: Numeric, // Maximum fee as percent of output total
+    changeAddress: t.union([t.string, t.array(t.string)]), // Change address
+    filterChangeAddresses: FilterChangeAddresses
   },
   'CreateTransactionOptions',
 )
@@ -241,18 +258,34 @@ export const BaseMultisigData = t.type(
 )
 export type BaseMultisigData = t.TypeOf<typeof BaseMultisigData>
 
+export const AddressMultisigData = extendCodec(
+  BaseMultisigData,
+  {
+    signerIndex: t.number,
+    inputIndices: t.array(t.number),
+  },
+  'AddressMultisigData',
+)
+export type AddressMultisigData = t.TypeOf<typeof AddressMultisigData>
+
+export const MultiInputMultisigData = t.record(t.string, AddressMultisigData, 'MultiInputMultisigData')
+export type MultiInputMultisigData = t.TypeOf<typeof MultiInputMultisigData>
+
+export const MultisigData = t.union([BaseMultisigData, MultiInputMultisigData])
+export type MultisigData = t.TypeOf<typeof MultisigData>
+
 const UnsignedCommon = extendCodec(
   TransactionCommon,
   {
     fromAddress: t.string,
     toAddress: t.string,
-    fromIndex: t.number,
+    fromIndex: nullable(t.number), // same as multioutput
     targetFeeLevel: FeeLevelT, // fee level requested upon creation
     targetFeeRate: nullable(t.string), // fee rate requested upon creation
     targetFeeRateType: nullable(FeeRateTypeT), // fee rate type requested upon creation
   },
   {
-    multisigData: BaseMultisigData,
+    multisigData: MultisigData,
   },
   'UnsignedCommon',
 )

@@ -37,7 +37,7 @@ export abstract class SinglesigLitecoinPayments<Config extends SinglesigLitecoin
     if (!rawHex) throw new Error('Cannot sign multisig tx without unsigned tx hex')
 
     const psbt = bitcoin.Psbt.fromHex(rawHex, this.psbtOptions)
-    const accountId = this.getAccountId(tx.fromIndex)
+    const accountId = this.getAccountId(tx.fromIndex!)
     const accountIdIndex = multisigData.accountIds.findIndex((x) => x === accountId)
     if (accountIdIndex === -1) {
       throw new Error('Not a signer for provided multisig tx')
@@ -46,7 +46,7 @@ export abstract class SinglesigLitecoinPayments<Config extends SinglesigLitecoin
     if (signedAccountIds.includes(accountId)) {
       throw new Error('Already signed multisig tx')
     }
-    const keyPair = this.getKeyPair(tx.fromIndex)
+    const keyPair = this.getKeyPair(tx.fromIndex!)
     const publicKeyString = publicKeyToString(keyPair.publicKey)
     const signerPublicKey = multisigData.publicKeys[accountIdIndex]
     if (signerPublicKey !== publicKeyString) {
@@ -70,10 +70,10 @@ export abstract class SinglesigLitecoinPayments<Config extends SinglesigLitecoin
     if (rawHex) {
       psbt = bitcoin.Psbt.fromHex(rawHex, this.psbtOptions)
     } else {
-      psbt = await this.buildPsbt(paymentTx, tx.fromIndex)
+      psbt = await this.buildPsbt(paymentTx, tx.fromIndex!)
     }
 
-    const keyPair = this.getKeyPair(tx.fromIndex)
+    const keyPair = this.getKeyPair(tx.fromIndex!)
     psbt.signAllInputs(keyPair)
 
     return this.validateAndFinalizeSignedTx(tx, psbt)

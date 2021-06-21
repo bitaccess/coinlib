@@ -1,6 +1,6 @@
 import * as bitcoin from 'bitcoinjs-lib'
 import {
-  FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus, BaseMultisigData,
+  FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus, BaseMultisigData, MultisigData,
 } from '@faast/payments-common'
 import BigNumber from 'bignumber.js'
 
@@ -16,7 +16,9 @@ import {
 import {
   BITCOIN_SEQUENCE_RBF,
 } from './constants'
-import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateBitcoinTxSize } from './helpers'
+import {
+  isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateBitcoinTxSize, isMultisigFullySigned,
+} from './helpers'
 import {
   BitcoinishPayments, BitcoinishPaymentTx, BitcoinishTxOutput, countOccurences, getBlockcypherFeeRecommendation,
 } from './bitcoinish'
@@ -32,7 +34,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     this.blockcypherToken = config.blockcypherToken
   }
 
-  abstract getPaymentScript(index: number): bitcoin.payments.Payment
+  abstract getPaymentScript(index: number, addressType?: AddressType): bitcoin.payments.Payment
   abstract addressType: AddressType
 
   async createServiceTransaction(): Promise<null> {
@@ -124,16 +126,21 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     }
   }
 
-  async buildPsbt(paymentTx: BitcoinishPaymentTx, fromIndex: number): Promise<bitcoin.Psbt> {
+  async buildPsbt(paymentTx: BitcoinishPaymentTx, fromIndex?: number): Promise<bitcoin.Psbt> {
     const { inputs, outputs } = paymentTx
-    const inputPaymentScript = this.getPaymentScript(fromIndex)
 
     let psbt = new bitcoin.Psbt(this.psbtOptions)
     for (let input of inputs) {
+      const signer = input.signer ?? fromIndex
+      if (typeof signer === 'undefined') {
+        throw new Error('Signer index for utxo is not provided')
+      }
+
+      const addressType = this.getAddressType(input.address!, signer)
       psbt.addInput(await this.getPsbtInputData(
         input,
-        inputPaymentScript,
-        this.addressType,
+        this.getPaymentScript(signer, addressType),
+        addressType,
       ))
     }
     for (let output of outputs) {
@@ -145,7 +152,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     return psbt
   }
 
-  async serializePaymentTx(tx: BitcoinishPaymentTx, fromIndex: number): Promise<string> {
+  async serializePaymentTx(tx: BitcoinishPaymentTx, fromIndex?: number): Promise<string> {
     return (await this.buildPsbt(tx, fromIndex)).toHex()
   }
 
@@ -263,7 +270,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
         this.validatePsbtOutput(changeOutput, psbtOutput, i)
 
         // If we stop reusing addresses in the future this will need to be changed
-        if (changeOutput.address !== tx.fromAddress) {
+        if ((tx.fromAddress !== 'batch') && (changeOutput.address !== tx.fromAddress)) {
           throw new Error(`Invalid tx: change output ${i} address (${changeOutput.address}) doesn't match fromAddress (${tx.fromAddress})`)
         }
 
@@ -317,25 +324,21 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
         hex: txHex,
         partial: false,
         unsignedTxHash,
+        changeOutputs: tx.data?.changeOutputs
       },
     }
   }
 
-  updateMultisigTx(
+  updateSignedMultisigTx(
     tx: BitcoinSignedTransaction | BitcoinUnsignedTransaction,
     psbt: bitcoin.Psbt,
-    signedAccountIds: string[],
+    updatedMultisigData: MultisigData,
   ): BitcoinSignedTransaction {
-    const multisigData = tx.multisigData!
-    const combinedMultisigData: BaseMultisigData = {
-      ...multisigData,
-      signedAccountIds: [...signedAccountIds.values()]
-    }
-    if (signedAccountIds.length >= multisigData.m) {
+    if (isMultisigFullySigned(updatedMultisigData)) {
       const finalizedTx =  this.validateAndFinalizeSignedTx(tx, psbt)
       return {
         ...finalizedTx,
-        multisigData: combinedMultisigData,
+        multisigData: updatedMultisigData,
       }
     }
     const combinedHex = psbt.toHex()
@@ -344,13 +347,13 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
       ...tx,
       id: '',
       status: TransactionStatus.Signed,
-      multisigData: combinedMultisigData,
+      multisigData: updatedMultisigData,
       data: {
         hex: combinedHex,
         partial: true,
         unsignedTxHash,
+        changeOutputs: tx.data?.changeOutputs,
       }
     }
   }
-
 }

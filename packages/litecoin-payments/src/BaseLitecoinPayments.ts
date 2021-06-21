@@ -211,4 +211,8 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
       }
     }
   }
+
+  getSupportedAddressTypes(): AddressType[] {
+    return AddressType
+  }
 }

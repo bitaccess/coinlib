@@ -9,6 +9,7 @@ import {
   FeeRateType,
   TransactionStatus,
   ResolveablePayport,
+  DerivablePayport,
   PaymentsError,
   PaymentsErrorCode,
   isMatchingError,
@@ -103,6 +104,8 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     } else if (typeof payport === 'string') {
       assertValidAddress(payport)
       return { address: payport }
+    } else if (DerivablePayport.is(payport)) {
+      throw new Error(`Invalid Ripple payport: ${JSON.stringify(payport)}`)
     }
     assertValidAddress(payport.address)
     assertValidExtraIdOrNil(payport.extraId)
@@ -498,6 +501,14 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
 
   async createMultiOutputTransaction(
     from: number,
+    to: PayportOutput[],
+    options: CreateTransactionOptions = {},
+  ): Promise<null> {
+    return null
+  }
+
+  async createMultiInputTransaction(
+    from: number[],
     to: PayportOutput[],
     options: CreateTransactionOptions = {},
   ): Promise<null> {

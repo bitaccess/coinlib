@@ -1,6 +1,7 @@
 import {
   PaymentsUtils,
   Payport,
+  ResolveablePayport,
   createUnitConverters,
   MaybePromise,
   AutoFeeLevels,
@@ -9,6 +10,7 @@ import {
   BalanceResult,
   TransactionStatus,
   TransactionOutput,
+  CreateTransactionOptions
 } from '@faast/payments-common'
 import { Network as BitcoinjsNetwork } from 'bitcoinjs-lib'
 import { isNil, assertType, Numeric, isUndefined } from '@faast/ts-common'
@@ -54,6 +56,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
   abstract isValidAddress<O extends { format?: string }>(address: string, options?: O): boolean
   abstract standardizeAddress<O extends { format?: string }>(address: string, options?: O): string | null
   abstract getFeeRateRecommendation(level: AutoFeeLevels): MaybePromise<FeeRate>
+
 
   private _getPayportValidationMessage(payport: Payport): string | undefined {
     const { address, extraId } = payport
@@ -148,7 +151,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
       const tx = txsById[data.txid] ?? (await this._retryDced(() => this.getApi().getTx(data.txid)))
       txsById[data.txid] = tx
       const output = tx.vout[data.vout]
-      return {
+      const res : UtxoInfo = {
         ...data,
         satoshis: Number.parseInt(value),
         value: this.toMainDenominationString(value),
@@ -160,6 +163,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
         address: output?.addresses?.[0],
         spent: false,
       }
+      return res
     }))
     return utxos
   }
@@ -185,7 +189,11 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     }
   }
 
-  async getTransactionInfo(txId: string): Promise<BitcoinishTransactionInfo> {
+  async getTransactionInfo(
+    txId: string,
+    payport?: ResolveablePayport,
+    options?: CreateTransactionOptions
+  ): Promise<BitcoinishTransactionInfo> {
     const tx = await this._retryDced(() => this.getApi().getTx(txId))
     const txSpecific = await this._retryDced(() => this.getApi().getTxSpecific(txId))
 
@@ -212,26 +220,45 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
       vout: vout || 0,
       value: this.toMainDenominationString(value || 0),
     }))
-    const fromAddress = this.standardizeAddress(tx.vin?.[0]?.addresses?.[0] ??  '')
-    if (!fromAddress) {
-      throw new Error(`Unable to determine fromAddress of ${this.coinSymbol} tx ${txId}`)
+
+    const fromAddresses = tx.vin.map(({ addresses = [] }) => {
+      return this.standardizeAddress(addresses[0]) || ''
+    })
+
+    let changeAddresses = [...fromAddresses]
+    if(options?.changeAddress) {
+      if(Array.isArray(options?.changeAddress)) {
+        changeAddresses = changeAddresses.concat(options.changeAddress)
+      } else {
+        changeAddresses.push(options.changeAddress)
+      }
     }
 
-    const outputUtxos = tx.vout
-      .map((output) => this.txVoutToUtxoInfo(tx, output as NormalizedTxBitcoinVout))
+    let fromAddress = 'batch'
+    if (fromAddresses.length === 0) {
+      throw new Error(`Unable to determine fromAddress of ${this.coinSymbol} tx ${txId}`)
+    } else if (fromAddresses.length === 1) {
+      fromAddress = fromAddresses[0]
+    }
+
+    const outputUtxos = tx.vout.map((output) => this.txVoutToUtxoInfo(tx, output as NormalizedTxBitcoinVout))
+    const outputAddresses = outputUtxos.map(({ address }) => address)
+
+    const externalAddresses = options?.filterChangeAddresses ?
+      (await options.filterChangeAddresses(outputAddresses)) :
+      outputAddresses.filter((oA) => !changeAddresses.includes(oA))
 
     const externalOutputs = outputUtxos
       .map(({ address, value }) => ({ address, value }))
-      .filter(({ address }) => address !== fromAddress)
-    const amount = externalOutputs.reduce((total, { value }) => total.plus(value), new BigNumber(0))
+      .filter(({ address }) => externalAddresses.includes(address))
 
-    let toAddress
-    if (externalOutputs.length > 1) {
-      toAddress = 'multioutput'
+    const amount = externalOutputs.reduce((total, { value }) => total.plus(value), new BigNumber(0)).toFixed()
+
+    let toAddress = 'batch'
+    if (externalOutputs.length === 0){
+      throw new Error(`${this.coinSymbol} transaction has no external outputs ${txId}`)
     } else if (externalOutputs.length === 1) {
-      toAddress = externalOutputs[0].address!
-    } else {
-      throw new Error(`Unable to determine toAddress of ${this.coinSymbol} tx ${txId}`)
+      toAddress = externalOutputs[0].address
     }
 
     return {
@@ -243,7 +270,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
       toIndex: null,
       toAddress,
       toExtraId: null,
-      amount: amount.toFixed(),
+      amount,
       fee,
       sequenceNumber: null,
       confirmationId,

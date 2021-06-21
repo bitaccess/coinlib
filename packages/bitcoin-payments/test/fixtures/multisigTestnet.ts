@@ -1,20 +1,24 @@
 import { AddressType } from '../../src'
 import singlesigFixtures from './singlesigTestnet'
 
-export const DERIVATION_PATH = "m/44'/1'/0'"
+export const DERIVATION_PATH = "m/1234'/1'/0'"
 
-// Corresponds to each private key in test/keys/testnet.multisig.key
-export const ACCOUNT_IDS = [
-  '03f17de9004239bde1e3de1c0df4257a5980e0420c16ce331ec8b7af2bb1e6033e',
-  'tpubDDhbeKTD26qn1rSKVJwskPYPfXADmF5ByxdXKiD9PZfZwcuopfTix637Y41VKoSKFzepSEo8N1bFMxmN1cDeZScVsRq9LwaeUuFHGLQB4qv',
-  '0355c2914341e40247f2fb414d6780eda19d196cc3af982a953456929d5063c1ce',
-  'tpubDDUT4ANr119kxYqHxZmhMibA7ZMvAmtWS9nu9YPKHuXkMWADUDhSZbDqbsShqbnRwNSy8DYChbFtoCwVF6JeH2gSqtEdV4VEz53vE5gh5mN',
-]
-
-export const ADDRESSES = {
-  [AddressType.MultisigLegacy]: '2MyDfXtRKRkmBgSsbkJn6U5z8hAw3RfBcR1',
-  [AddressType.MultisigSegwitP2SH]: '2NDLJLHWjxWyEm292WcapZW3ci6J2D4vwiw',
-  [AddressType.MultisigSegwitNative]: 'tb1q7ynjlttcuk7ce2y8wpumaqtu7ptjmcdvzgvgyvwh6ta5prlunl0suul9gs',
+export const ADDRESSES: { [addressType: string]: { [i: number]: string } } = {
+  [AddressType.MultisigLegacy]: {
+    0: '2N3b6CkAy5CVycCVP6hf8QRVuaJk32yCGjg',
+    1: '2N4qmjMk9LqzUvyYo4dwyRuSUvFHMgXGnuC',
+    2: '2NAJU1We7Ay74uNhEvLebLfAh7Zb3yzBHY6',
+  },
+  [AddressType.MultisigSegwitP2SH]: {
+    0: '2N87ixD3MXExQHNxK5A1bBWk3mKz4FAXYRp',
+    1: '2Myv4dTQeyKQpRiUDxgN1q92GtF8AFvbCPS',
+    2: '2N9SETvz9d9hcizmMkhJYJqkxWVncmuRxQC',
+  },
+  [AddressType.MultisigSegwitNative]: {
+    0: 'tb1qs3ym3gltz2uaw8ttrhg779w6k39x2yn5yytnttvhvkpzcxmh6vuqxnjpwl',
+    1: 'tb1q93kp525h5mkzhfjm74d7rpja0egnw67ntn2uc8huft6g2q7cy98q82wfju',
+    2: 'tb1qcx5u374mjdc745q7nlscdve74szdgsz85sgxmyaszsr6nkum308qnyukam',
+  },
 }
 
 export const M = 2

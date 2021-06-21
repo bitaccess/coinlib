@@ -7,12 +7,13 @@ import {
 import {
   HdBitcoinPayments, BitcoinTransactionInfo,
   BitcoinSignedTransaction, AddressType, SinglesigAddressType,
-  bitcoinish, BitcoinBalanceMonitor, BitcoinUnsignedTransaction,
+  bitcoinish, BitcoinBalanceMonitor, BitcoinUnsignedTransaction, BaseBitcoinPayments,
 } from '../src'
 
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 import fixtures from './fixtures/singlesigTestnet'
+import { forcedUtxos, availableUtxos, unsignedHash, signedHex, mitxId } from './fixtures/multiInput'
 import { HdBitcoinPaymentsConfig } from '../src/types'
 import BigNumber from 'bignumber.js'
 import { omit } from 'lodash'
@@ -83,14 +84,220 @@ describeAll('e2e testnet', () => {
     })
   })
 
-  for (let addressType of addressTypesToTest) {
+  describe('resolving addresses and payports of different address type', () => {
+    const TESTNET_XPUB_BTC_HOT = 'tpubDDCCjNA9Xw1Fpp3xAb3yjBBCui6wZ7idJxwcgj48Z7q3yTjEpay9cc2A1bjsr344ZTNGKv5j1djvU8bgzVTwoXaAXpX8cAEYVYG1Ch7fvVu'
+    const TESTNET_XPUB_BTC_DEPOSIT = 'tpubDCWCSpZSKfHb9B2ufCHBfDAVpr5S7K2XFKV53knzUrLmXuwi3HjTqkd1VGfSevwWRCDoYCuvVF3UkQAx53NQysVy3Tbd1vxTwKhHqDzJhws'
+
+    it('resolves payports for different types for payments created from xpub', async () => {
+      const hotwalletPayments = new HdBitcoinPayments({
+        hdKey: secretXprv,
+        network: NetworkType.Testnet,
+        addressType: AddressType.SegwitNative,
+        logger,
+        minChange: '0.01',
+        targetUtxoPoolSize: 5,
+      } as HdBitcoinPaymentsConfig)
+
+      const p2shClient = new HdBitcoinPayments({
+        hdKey: hotwalletPayments.getPublicConfig().hdKey,
+        network: NetworkType.Testnet,
+        addressType: AddressType.SegwitP2SH,
+        logger,
+        minChange: '0.01',
+        targetUtxoPoolSize: 5,
+      } as HdBitcoinPaymentsConfig)
+
+      const nativeClient = new HdBitcoinPayments({
+        hdKey: hotwalletPayments.getPublicConfig().hdKey,
+        network: NetworkType.Testnet,
+        addressType: AddressType.SegwitNative,
+        logger,
+        minChange: '0.01',
+        targetUtxoPoolSize: 5,
+      } as HdBitcoinPaymentsConfig)
+
+      const depositAddress = p2shClient.getAddress(1)
+      const depositAddressFoerign = p2shClient.getAddress(1, AddressType.SegwitNative)
+
+      const hotwalletAddress = nativeClient.getAddress(1)
+      const hotwalletAddressFoerign = nativeClient.getAddress(1, AddressType.SegwitP2SH)
+
+      expect(depositAddress).toEqual(hotwalletAddressFoerign)
+      expect(hotwalletAddress).toEqual(depositAddressFoerign)
+
+      const { address: depositAddressPP } = await p2shClient.resolvePayport(1)
+      const { address: depositAddressFoerignPP } = await p2shClient.resolvePayport({
+        index: 1,
+        addressType: AddressType.SegwitNative
+      })
+
+      const { address: hotwalletAddressPP } = await nativeClient.resolvePayport(1)
+      const { address: hotwalletAddressFoerignPP } = await nativeClient.resolvePayport({
+        index: 1,
+        addressType: AddressType.SegwitP2SH
+      })
+
+      expect(depositAddressPP).toEqual(hotwalletAddressFoerignPP)
+      expect(hotwalletAddressPP).toEqual(depositAddressFoerignPP)
+    })
+  })
+
+  async function pollUntilFound(signedTx: BitcoinSignedTransaction, payments: HdBitcoinPayments) {
+    const txId = signedTx.id
+    const endState = [...END_TRANSACTION_STATES, TransactionStatus.Pending]
+    logger.log(`polling until status ${endState.join('|')}`, txId)
+    let tx: BitcoinTransactionInfo | undefined
+    let changeAddress
+    if (signedTx.data.changeOutputs) {
+      changeAddress = signedTx.data.changeOutputs.map((ca) => ca.address)
+    }
+    while (!testsComplete && (!tx || !endState.includes(tx.status))) {
+      try {
+        tx = await payments.getTransactionInfo(txId, undefined, { changeAddress })
+      } catch (e) {
+        if (e.message.includes('not found')) {
+          logger.log('tx not found yet', txId, e.message)
+        } else {
+          throw e
+        }
+      }
+      await delay(5000)
+    }
+    if (!tx) {
+      throw new Error(`failed to poll until found ${txId}`)
+    }
+    logger.log(tx.status, tx)
+    expect(tx.id).toBe(signedTx.id)
+    if (![signedTx.fromAddress, tx.fromAddress].includes('batch')) {
+      expect(tx.fromAddress).toBe(signedTx.fromAddress)
+    }
+    if (![signedTx.toAddress, tx.toAddress].includes('batch')) {
+      expect(tx.toAddress).toBe(signedTx.toAddress)
+    }
+    expectEqualWhenTruthy(tx.fromExtraId, signedTx.fromExtraId)
+    expectEqualWhenTruthy(tx.toExtraId, signedTx.toExtraId)
+    expect(tx.data).toBeDefined()
+    expect(endState).toContain(tx.status)
+    return tx
+  }
+
+    it('end to end multi-input send', async () => {
+    /*
+      p2pkh 1 n4Rk4fqGfY9HqZ41K6KNo44eG3MXA4YPMg
+      p2sh-p2wpkh 1 2MyRADTg8pPEReSLL6HGYVAAQwixJ278dki
+      p2wpkh 1 tb1qld8f5lh09h9ckh7spdkrz2rw4g3y0vpj0s5dla
+
+      p2pkh 2 mhFduWNyuHrWYwPhyGZNnuDYtPVgCshGg6
+      p2sh-p2wpkh 2 2N5wGX6qKBYe78LBfK8jRpsbvqnV7T6mpEP
+      p2wpkh 2 tb1qzv92j7996qv7kt2fts7skqqfz5sx7cx6n00248
+
+      p2pkh 3 mrv2DZTNQeqhj9rqDJvb8YqCEJ1Lqbwgd5
+      p2sh-p2wpkh 3 2MvBJ2J4K36pYadpaoDL1JzyUtmzN4TwBgd
+      p2wpkh 3 tb1q05rrngpddrtc470cg0wnq5m95u7977ega6vsut
+
+      p2pkh 4 n12JSAoPSsMvUrAvReGMvZeHcrxiYhvGBx
+      p2sh-p2wpkh 4 2MwjsSV2uh7SBWf4M6Dtmv3oogNaoWLE2Zt
+      p2wpkh 4 tb1q6hm58359np407zf5e4au9zlvl3wus9klafgt2v
+     */
+    const paymentsConfig: HdBitcoinPaymentsConfig = {
+      hdKey: secretXprv,
+      network: NetworkType.Testnet,
+      addressType: addressTypesToTest[0],
+      logger,
+      minChange: '0.0001',
+      targetUtxoPoolSize: 5,
+    }
+
+    const hotWalletPayments = new HdBitcoinPayments(paymentsConfig)
+    const clientPayments = new HdBitcoinPayments({
+      ...paymentsConfig,
+      hdKey: hotWalletPayments.getPublicConfig().hdKey
+    })
+
+
+    const fromIndexes: number[] = [1, 2]
+
+    const changeAddresses = [4, 5, 6].map((i: number) => clientPayments.getAddress(i))
+
+    const unsignedTx = await clientPayments.createMultiInputTransaction(
+      fromIndexes,
+      [
+        {
+          payport: 3,
+          amount: '0.0021',
+        },
+      ],
+      {
+        useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
+        feeRate: '1',
+        feeRateType: FeeRateType.BasePerWeight,
+        changeAddress: changeAddresses,
+        forcedUtxos, // total is 0.0007
+        availableUtxos,
+      }
+    )
+
+    expect(unsignedTx.data.rawHash).toEqual(unsignedHash)
+
+    for (let utxo of forcedUtxos) {
+      expect(unsignedTx.inputUtxos!.indexOf(utxo) >= 0)
+    }
+    expect(unsignedTx.fromAddress).toEqual('batch')
+
+    expect(unsignedTx.data.changeOutputs!.length > 1)
+    for (let cO of unsignedTx.data.changeOutputs!) {
+      expect(changeAddresses.indexOf(cO.address) >= 0)
+    }
+
+    const signedTx = await hotWalletPayments.signTransaction(unsignedTx)
+
+    expect(signedTx.data.unsignedTxHash).toEqual(unsignedHash)
+
+    expectEqualWhenTruthy(unsignedTx.fromExtraId, signedTx.fromExtraId)
+    expectEqualWhenTruthy(unsignedTx.toExtraId, signedTx.toExtraId)
+    expect(unsignedTx.amount).toEqual(signedTx.amount)
+    expect(unsignedTx.toAddress).toEqual(signedTx.toAddress)
+    expect(unsignedTx.targetFeeLevel).toEqual(signedTx.targetFeeLevel)
+    expect(unsignedTx.targetFeeRate).toEqual(signedTx.targetFeeRate)
+    expect(unsignedTx.targetFeeRateType).toEqual(signedTx.targetFeeRateType)
+    expect(unsignedTx.fee).toEqual(signedTx.fee)
+
+    expect(signedTx.data).toBeDefined()
+    expect(signedTx.data.changeOutputs!.length > 1)
+    for (let cO of signedTx.data.changeOutputs!) {
+      expect(changeAddresses.indexOf(cO.address) >= 0)
+    }
+
+    expect(signedTx.data.hex).toEqual(signedHex)
+
+    const tx = await hotWalletPayments.getTransactionInfo(mitxId, undefined, { changeAddress: changeAddresses } )
+    const inputUtxos = [...forcedUtxos, ...availableUtxos].map((u): UtxoInfo => {
+      return {
+        txid: u.txid,
+        vout: u.vout,
+        value: u.value
+      }
+    }).sort((a, b) => `${a.txid}${a.vout}` > `${b.txid}${b.vout}` && 1 || -1)
+    const actualUtxos = tx.inputUtxos!.sort((a, b) => `${a.txid}${a.vout}` > `${b.txid}${b.vout}` && 1 || -1)
+
+
+    expect(inputUtxos).toEqual(actualUtxos)
+    expect(tx.data.hex).toEqual(signedHex)
+    expect(tx.amount).toBe('0.0021')
+     expect(tx.externalOutputs).toEqual([
+      { address: 'mrv2DZTNQeqhj9rqDJvb8YqCEJ1Lqbwgd5', value: '0.0021' }
+    ])
+  }, 5 * 60 * 1000)
+
+  for (let i = 0; i < addressTypesToTest.length; i++) {
+    let addressType = addressTypesToTest[i]
     const { xpub, addresses, sweepTxSize } = fixtures[addressType]
 
     describe(addressType, () => {
       const paymentsConfig: HdBitcoinPaymentsConfig = {
         hdKey: secretXprv,
         network: NetworkType.Testnet,
-        addressType,
+        addressType: addressType as SinglesigAddressType,
         logger,
         minChange: '0.01',
         targetUtxoPoolSize: 5,
@@ -129,42 +336,12 @@ describeAll('e2e testnet', () => {
       it('get correct xpub', async () => {
         expect(payments.xpub).toEqual(xpub)
       })
+
       for (let iStr in addresses) {
         const i = Number.parseInt(iStr)
         it(`get correct address for index ${i}`, async () => {
           expect(await payments.getPayport(i)).toEqual({ address: (addresses as any)[i] })
         })
-      }
-
-      async function pollUntilFound(signedTx: BitcoinSignedTransaction) {
-        const txId = signedTx.id
-        const endState = [...END_TRANSACTION_STATES, TransactionStatus.Pending]
-        logger.log(`polling until status ${endState.join('|')}`, txId)
-        let tx: BitcoinTransactionInfo | undefined
-        while (!testsComplete && (!tx || !endState.includes(tx.status))) {
-          try {
-            tx = await payments.getTransactionInfo(txId)
-          } catch (e) {
-            if (e.message.includes('not found')) {
-              logger.log('tx not found yet', txId, e.message)
-            } else {
-              throw e
-            }
-          }
-          await delay(5000)
-        }
-        if (!tx) {
-          throw new Error(`failed to poll until found ${txId}`)
-        }
-        logger.log(tx.status, tx)
-        expect(tx.id).toBe(signedTx.id)
-        expect(tx.fromAddress).toBe(signedTx.fromAddress)
-        expectEqualWhenTruthy(tx.fromExtraId, signedTx.fromExtraId)
-        expect(tx.toAddress).toBe(signedTx.toAddress)
-        expectEqualWhenTruthy(tx.toExtraId, signedTx.toExtraId)
-        expect(tx.data).toBeDefined()
-        expect(endState).toContain(tx.status)
-        return tx
       }
 
       it('end to end sweep', async () => {
@@ -210,7 +387,7 @@ describeAll('e2e testnet', () => {
         expect(await payments.broadcastTransaction(signedTx)).toEqual({
           id: signedTx.id,
         })
-        const tx = await pollUntilFound(signedTx)
+        const tx = await pollUntilFound(signedTx, payments)
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)
         sweepTx = unsignedTx
@@ -251,7 +428,7 @@ describeAll('e2e testnet', () => {
         expect(await payments.broadcastTransaction(signedTx)).toEqual({
           id: signedTx.id,
         })
-        const tx = await pollUntilFound(signedTx)
+        const tx = await pollUntilFound(signedTx, payments)
         expect(tx.amount).toEqual(signedTx.amount)
         expect(tx.fee).toEqual(signedTx.fee)
         sendTx = unsignedTx
@@ -267,13 +444,15 @@ describeAll('e2e testnet', () => {
 
       // Fields to ignore for test equality purposes (ie unpredictable values)
       const IGNORED_BALANCE_ACTIVITY_FIELDS = ['timestamp', 'lockTime'] as const
+      const IGNORED_UTXO_FIELDS = ['confirmations', 'lockTime', 'signer', 'height'] as const
       type PartialBalanceActivity = Omit<BalanceActivity, typeof IGNORED_BALANCE_ACTIVITY_FIELDS[number]>
       function sortAndOmitBalanceActivities(
         activities: Array<PartialBalanceActivity>,
       ) {
         return [...activities].sort(compareBalanceActivities).map((ba) => ({
           ...omit(ba, IGNORED_BALANCE_ACTIVITY_FIELDS),
-          utxosSpent: ba.utxosSpent?.map((utxo) => omit(utxo, ['confirmations', 'lockTime'])),
+          utxosCreated: ba.utxosCreated?.map((utxo) => omit(utxo, IGNORED_UTXO_FIELDS)),
+          utxosSpent: ba.utxosSpent?.map((utxo) => omit(utxo, IGNORED_UTXO_FIELDS)),
         }))
       }
 

@@ -9,7 +9,7 @@ export const txInfo_example: DogeTransactionInfo = {
   'fromAddress': 'DAK9Qiat3AvZ7rPC5BhWyW2iFgDnMQ2fHB',
   'fromExtraId': null,
   'toIndex': null,
-  'toAddress': 'multioutput',
+  'toAddress': 'batch',
   'toExtraId': null,
   'amount': '58575.13509193',
   'fee': '3',
