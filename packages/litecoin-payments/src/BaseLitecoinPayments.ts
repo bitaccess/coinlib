@@ -180,39 +180,8 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
     }
   }
 
-  updateMultisigTx(
-    tx: LitecoinSignedTransaction | LitecoinUnsignedTransaction,
-    psbt: bitcoin.Psbt,
-    signedAccountIds: string[],
-  ): LitecoinSignedTransaction {
-    const multisigData = tx.multisigData!
-    const combinedMultisigData: BaseMultisigData = {
-      ...multisigData,
-      signedAccountIds: [...signedAccountIds.values()]
-    }
-    if (signedAccountIds.length >= multisigData.m) {
-      const finalizedTx =  this.validateAndFinalizeSignedTx(tx, psbt)
-      return {
-        ...finalizedTx,
-        multisigData: combinedMultisigData,
-      }
-    }
-    const combinedHex = psbt.toHex()
-    const unsignedTxHash = LitecoinSignedTransactionData.is(tx.data) ? tx.data.unsignedTxHash : tx.data.rawHash
-    return {
-      ...tx,
-      id: '',
-      status: TransactionStatus.Signed,
-      multisigData: combinedMultisigData,
-      data: {
-        hex: combinedHex,
-        partial: true,
-        unsignedTxHash,
-      }
-    }
-  }
 
   getSupportedAddressTypes(): AddressType[] {
-    return AddressType
+    return [this.addressType]
   }
 }

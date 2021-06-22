@@ -25,12 +25,14 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
   readonly maximumFeeRate?: number
   readonly validAddressFormat?: BitcoinCashAddressFormat
   readonly utils: BitcoinCashPaymentsUtils
+  readonly addressType: AddressType
 
   constructor(config: BaseBitcoinCashPaymentsConfig) {
     super(toBitcoinishConfig(config))
     this.maximumFeeRate = config.maximumFeeRate
     this.validAddressFormat = config.validAddressFormat
     this.utils = new BitcoinCashPaymentsUtils(config)
+    this.addressType = AddressType.Legacy
   }
 
   abstract getPaymentScript(index: number): bitcoin.payments.Payment
@@ -182,5 +184,9 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
         unsignedTxHash,
       },
     }
+  }
+
+  getSupportedAddressTypes(): AddressType[] {
+    return [this.addressType]
   }
 }

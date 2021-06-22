@@ -22,11 +22,13 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
 
   readonly maximumFeeRate?: number
   readonly blockcypherToken?: string
+  readonly addressType: AddressType
 
   constructor(config: BaseDogePaymentsConfig) {
     super(toBitcoinishConfig(config))
     this.maximumFeeRate = config.maximumFeeRate
     this.blockcypherToken = config.blockcypherToken
+    this.addressType = AddressType.Legacy
   }
 
   abstract getPaymentScript(index: number): bitcoin.payments.Payment
@@ -171,5 +173,9 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
         unsignedTxHash,
       },
     }
+  }
+
+  getSupportedAddressTypes(): AddressType[] {
+    return [AddressType.Legacy]
   }
 }
