@@ -1,5 +1,5 @@
 {
-  "name": "@faast/coin-payments",
+  "name": "@bitaccess/coinlib",
   "version": "0.17.2",
   "description": "Unified interface for sending and receiving crypto payments",
   "main": "packages/coin-payments/dist/index.cjs.js",
@@ -7,7 +7,7 @@
   "browser": "packages/coin-payments/dist/index.umd.js",
   "types": "packages/coin-payments/dist/lib/index.d.ts",
   "esnext": "packages/coin-payments/dist/lib/index.js",
-  "repository": "https://github.com/go-faast/coin-payments/tree/master/packages/coin-payments",
+  "repository": "https://github.com/bitaccess/coin-payments/tree/master/packages/coin-payments",
   "keywords": [
     "coin",
     "payments",
@@ -18,7 +18,7 @@
   "author": "Dylan Seago <dylan@bitaccess.co>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/go-faast/payments-common/issues"
+    "url": "https://github.com/bitaccess/payments-common/issues"
   },
   "engines": {
     "node": ">=12.0.0"
