@@ -3,7 +3,7 @@ import { UtxoInfo } from '@bitaccess/coinlib-common'
 
 export * from '../../../common/testUtils'
 import { TestLogger } from '../../../common/testUtils'
-import { bitcoinish } from '@faast/bitcoin-payments'
+import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { toBaseDenominationNumber } from '../src'
 export const logger = new TestLogger(PACKAGE_NAME)
 

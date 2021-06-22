@@ -1,4 +1,4 @@
-import { createUnitConverters, NetworkType } from '@bitaccess/coinlib-payments'
+import { createUnitConverters, NetworkType } from '@bitaccess/coinlib-common'
 import * as bitcoin from 'bitcoinjs-lib'
 import { assertType } from '@faast/ts-common'
 

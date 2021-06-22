@@ -1,6 +1,6 @@
 /* tslint:disable: max-line-length variable-name */
 import { TronTransactionInfo, TronSignedTransaction } from '../../src'
-import { FeeLevel, FeeRateType, TransactionStatus } from '@faast/payments-common'
+import { FeeLevel, FeeRateType, TransactionStatus } from '@bitaccess/coinlib-common'
 
 export const txInfo_209F8: TronTransactionInfo = {
   id: '209f8dbefe6bbb9395f1be76dfb581b7bb53197d27cb28fbfe6c819b914c140c',

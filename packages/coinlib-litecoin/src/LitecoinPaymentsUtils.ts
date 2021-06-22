@@ -2,7 +2,7 @@ import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { toBitcoinishConfig } from './utils'
 import { LitecoinPaymentsUtilsConfig, LitecoinAddressFormat, LitecoinAddressFormatT } from './types'
 import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress } from './helpers'
-import { AutoFeeLevels, FeeRate } from '@bitaccess/coinlib-payments'
+import { AutoFeeLevels, FeeRate } from '@bitaccess/coinlib-common'
 import { assertType, optional } from '@faast/ts-common'
 import { DEFAULT_ADDRESS_FORMAT } from './constants'
 

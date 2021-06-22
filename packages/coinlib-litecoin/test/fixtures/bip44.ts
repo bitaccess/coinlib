@@ -1,5 +1,5 @@
 import { NETWORK_MAINNET } from '../../src'
-import { NetworkType } from '@bitaccess/coinlib-payments'
+import { NetworkType } from '@bitaccess/coinlib-common'
 
 export const NETWORK_TYPE = NetworkType.Mainnet
 export const NETWORK = NETWORK_MAINNET

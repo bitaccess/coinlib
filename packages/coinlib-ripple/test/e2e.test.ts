@@ -1,4 +1,10 @@
-import { TransactionStatus, BalanceActivity, NetworkType, GetBalanceActivityOptions, FeeRateType } from '@faast/payments-common'
+import {
+  TransactionStatus,
+  BalanceActivity,
+  NetworkType,
+  GetBalanceActivityOptions,
+  FeeRateType
+} from '@bitaccess/coinlib-common'
 import BigNumber from 'bignumber.js'
 import { omit, sortBy } from 'lodash'
 

@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { omit } from 'lodash'
-import { FeeRateType, BalanceResult, TransactionStatus, NetworkType } from '@faast/payments-common'
+import { FeeRateType, BalanceResult, TransactionStatus, NetworkType } from '@bitaccess/coinlib-common'
 import { Transaction } from 'tronweb'
 
 import {

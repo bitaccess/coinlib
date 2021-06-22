@@ -73,7 +73,7 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "@bitaccess/coinlib-payments": "file:../coinlib-common",
+    "@bitaccess/coinlib-common": "file:../coinlib-common",
     "@bitaccess/coinlib-bitcoin": "file:../coinlib-bitcoin",
     "@faast/ts-common": "^0.6.0",
     "bignumber.js": "^9.0.0",

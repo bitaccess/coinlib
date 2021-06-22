@@ -5,7 +5,7 @@ import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel } 
 import { toBigNumber } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
-import { assertBitcoinishTxInfoEquality } from '../../bitcoin-payments/test/utils'
+import { assertBitcoinishTxInfoEquality } from '../../coinlib-bitcoin/test/utils'
 
 import {
   HdDogePayments, DogeTransactionInfo, HdDogePaymentsConfig,

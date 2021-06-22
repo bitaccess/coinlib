@@ -1,9 +1,9 @@
 import { CoinPayments, SUPPORTED_NETWORK_SYMBOLS } from '../src'
-import { HdTronPayments, TronPaymentsFactory, TronPaymentsConfig } from '@faast/tron-payments'
+import { HdTronPayments, TronPaymentsFactory, TronPaymentsConfig } from '@bitaccess/coinlib-tron'
 import { omit } from 'lodash'
-import { NetworkType } from '@faast/payments-common'
-import { AddressType } from '@faast/bitcoin-payments'
-import { StellarPaymentsConfig } from '@faast/stellar-payments'
+import { NetworkType } from '@bitaccess/coinlib-common'
+import { AddressType } from '@bitaccess/coinlib-bitcoin'
+import { StellarPaymentsConfig } from '@bitaccess/coinlib-stellar'
 
 const TRX_XPUB = 'xpub6BfusYhSxkNBEVoXKgecUo69gdz3ghgpa1oHBxpB18Q8rGGQSEfPpfEGYFGg5x6sS8oRu1mMmb3PhDLekpCoLY5bSwJqDAnrq4pzFVSzH3m'
 const XLM_HOT = 'GB6NPF4YDMGKDOOOIJXTDGYZGTXBF5DBENSR44QTHYT7IVEF7BYYYOCS'

@@ -5,7 +5,7 @@ import {
   UtxoInfo,
   TransactionStatus,
   BaseMultisigData,
-} from '@bitaccess/coinlib-payments'
+} from '@bitaccess/coinlib-common'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 
 import { toBitcoinishConfig } from './utils'

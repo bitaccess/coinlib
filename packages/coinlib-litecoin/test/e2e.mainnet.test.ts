@@ -3,7 +3,7 @@ import path from 'path'
 import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel } from '@bitaccess/coinlib-common'
 import { toBigNumber } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
-import { assertBitcoinishTxInfoEquality } from '../../bitcoin-payments/test/utils'
+import { assertBitcoinishTxInfoEquality } from '../../coinlib-bitcoin/test/utils'
 
 import {
   HdLitecoinPayments, LitecoinTransactionInfo, HdLitecoinPaymentsConfig,

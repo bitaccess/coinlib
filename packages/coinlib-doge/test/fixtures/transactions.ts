@@ -1,6 +1,6 @@
 /* tslint:disable: max-line-length variable-name */
 import { DogeTransactionInfo, DogeSignedTransaction } from '../../src'
-import { FeeLevel, FeeRateType, TransactionStatus } from '@faast/payments-common'
+import { FeeLevel, FeeRateType, TransactionStatus } from '@bitaccess/coinlib-common'
 
 export const txInfo_example: DogeTransactionInfo = {
   'status': TransactionStatus.Confirmed,
