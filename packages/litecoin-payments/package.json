@@ -76,8 +76,8 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "@faast/bitcoin-payments": "^4.7.0",
-    "@faast/payments-common": "^4.7.0",
+    "@faast/bitcoin-payments": "file:../bitcoin-payments",
+    "@faast/payments-common": "file:../payments-common",
     "@faast/ts-common": "^0.6.0",
     "@types/lodash": "^4.14.150",
     "bignumber.js": "^9.0.0",

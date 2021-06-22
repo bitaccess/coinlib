@@ -1,6 +1,6 @@
 import * as bitcoin from 'bitcoinjs-lib'
 import {
-  FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus, BaseMultisigData, MultisigData,
+  FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus, MultisigData,
 } from '@faast/payments-common'
 import BigNumber from 'bignumber.js'
 

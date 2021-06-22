@@ -74,8 +74,8 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "@faast/bitcoin-payments": "^4.7.0",
-    "@faast/payments-common": "^4.7.0",
+    "@faast/payments-common": "file:../payments-common",
+    "@faast/bitcoin-payments": "file:../bitcoin-payments",
     "@faast/ts-common": "^0.6.0",
     "bignumber.js": "^9.0.0",
     "bip174-bigint": "github:go-faast/bip174#bigint",

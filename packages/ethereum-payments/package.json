@@ -75,7 +75,7 @@
     "web3-core": "^1.3.6"
   },
   "dependencies": {
-    "@faast/payments-common": "^4.7.0",
+    "@faast/payments-common": "file:../payments-common",
     "@faast/ts-common": "^0.6.0",
     "bignumber.js": "^9.0.0",
     "bip32": "^2.0.5",
