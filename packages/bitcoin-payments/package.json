@@ -5,7 +5,7 @@
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "browser": "dist/index.umd.js",
-  "types": "dist/lib/index.d.ts",
+  "types": "dist/lib/bitcoin-payments/src/index.d.ts",
   "esnext": "dist/lib/index.js",
   "repository": "https://github.com/go-faast/coin-payments/tree/master/packages/bitcoin-payments",
   "homepage": "https://github.com/go-faast/coin-payments/tree/master/packages/bitcoin-payments#readme",
@@ -75,7 +75,7 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "@faast/payments-common": "^4.7.0",
+    "@faast/payments-common": "file:../payments-common",
     "@faast/ts-common": "^0.6.0",
     "bignumber.js": "^9.0.0",
     "bip174": "^1.0.1",
