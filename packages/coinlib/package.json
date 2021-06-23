@@ -1,5 +1,5 @@
 {
-  "name": "@bitaccess/coinlib-payments",
+  "name": "@bitaccess/coinlib",
   "version": "4.7.0",
   "description": "Library to assist in processing cryptocurrency payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
@@ -7,8 +7,8 @@
   "browser": "dist/index.umd.js",
   "types": "dist/lib/index.d.ts",
   "esnext": "dist/lib/index.js",
-  "repository": "https://github.com/bitaccess/coinlib/tree/master/packages/coinlib-payments",
-  "homepage": "https://github.com/bitaccess/coinlib/tree/master/packages/coinlib-payments#readme",
+  "repository": "https://github.com/bitaccess/coinlib/tree/master/packages/coinlib",
+  "homepage": "https://github.com/bitaccess/coinlib/tree/master/packages/coinlib#readme",
   "bugs": {
     "url": "https://github.com/bitaccess/coinlib/issues"
   },
