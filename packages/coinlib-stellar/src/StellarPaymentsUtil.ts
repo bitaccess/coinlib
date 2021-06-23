@@ -1,5 +1,15 @@
-import { AutoFeeLevels, BalanceResult, FeeLevel, FeeRate, FeeRateType, PaymentsUtils, Payport, TransactionStatus } from '@bitaccess/coinlib-common'
-import { isNil, assertType, Numeric, isMatchingError } from '@faast/ts-common'
+import {
+  AutoFeeLevels,
+  BalanceResult,
+  FeeLevel,
+  FeeRate,
+  FeeRateType,
+  PaymentsUtils,
+  Payport,
+  TransactionStatus,
+  BlockInfo,
+} from '@bitaccess/coinlib-common'
+import { isNil, assertType, Numeric, isMatchingError, isUndefined } from '@faast/ts-common'
 import * as Stellar from 'stellar-sdk'
 
 import {
@@ -91,7 +101,7 @@ export class StellarPaymentsUtils extends StellarConnected implements PaymentsUt
   }
 
   async getCurrentBlockNumber() {
-    return this._retryDced(async () => (await this.getBlock()).sequence)
+    return this._retryDced(async () => (await this.getBlock()).height)
   }
 
   async getAddressUtxos() {

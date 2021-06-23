@@ -443,7 +443,7 @@ describeAll('e2e testnet', () => {
       }
 
       // Fields to ignore for test equality purposes (ie unpredictable values)
-      const IGNORED_BALANCE_ACTIVITY_FIELDS = ['timestamp', 'lockTime'] as const
+      const IGNORED_BALANCE_ACTIVITY_FIELDS = ['timestamp', 'lockTime', 'confirmationId', 'confirmations', 'confirmationNumber'] as const
       const IGNORED_UTXO_FIELDS = ['confirmations', 'lockTime', 'signer', 'height'] as const
       type PartialBalanceActivity = Omit<BalanceActivity, typeof IGNORED_BALANCE_ACTIVITY_FIELDS[number]>
       function sortAndOmitBalanceActivities(
@@ -469,9 +469,6 @@ describeAll('e2e testnet', () => {
             'assetSymbol': 'BTC',
             'networkSymbol': 'BTC',
             'networkType': NetworkType.Testnet,
-            'confirmationId': '',
-            'confirmationNumber': -1,
-            'confirmations': 0,
             'activitySequence': '',
             'extraId': null,
             'type': 'out',
@@ -486,9 +483,6 @@ describeAll('e2e testnet', () => {
             'assetSymbol': 'BTC',
             'networkSymbol': 'BTC',
             'networkType': NetworkType.Testnet,
-            'confirmationId': '',
-            'confirmationNumber': -1,
-            'confirmations': 0,
             'extraId': null,
             'type': 'in',
             'utxosCreated': [
@@ -516,9 +510,6 @@ describeAll('e2e testnet', () => {
             'assetSymbol': 'BTC',
             'networkSymbol': 'BTC',
             'networkType': NetworkType.Testnet,
-            'confirmationId': '',
-            'confirmationNumber': -1,
-            'confirmations': 0,
             'extraId': null,
             'type': 'out',
             'utxosCreated': (sendTx.data.changeOutputs ?? []).map((changeOutput, i) => ({
@@ -544,9 +535,6 @@ describeAll('e2e testnet', () => {
             'assetSymbol': 'BTC',
             'networkSymbol': 'BTC',
             'networkType': NetworkType.Testnet,
-            'confirmationId': '',
-            'confirmationNumber': -1,
-            'confirmations': 0,
             'extraId': null,
             'type': 'in',
             'utxosCreated': [
@@ -589,10 +577,10 @@ describeAll('e2e testnet', () => {
         const blockInfo = await balanceMonitor.retrieveBlockBalanceActivities(blockNumber, (activity) => {
           blockActivities.push(activity)
         }, (addresses) => addresses.filter((address) => addressesToWatch.includes(address)))
-        expect(blockInfo).toEqual({
+        expect(omit(blockInfo, ['raw'])).toEqual({
           height: blockNumber,
-          hash: '00000000ee9885aa6108e75a02fd815d9ca5bac8f312077e363e961c48fc70f6',
-          previousBlockHash: '000000000000000e4cd33a7350e719d46bfd5fd25b57832cd3342a883a8ac0fb',
+          id: '00000000ee9885aa6108e75a02fd815d9ca5bac8f312077e363e961c48fc70f6',
+          previousId: '000000000000000e4cd33a7350e719d46bfd5fd25b57832cd3342a883a8ac0fb',
           time: new Date(1621349965000),
         })
         logger.log('blockActivities', addressType, blockActivities)

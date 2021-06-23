@@ -153,4 +153,24 @@ describe('end to end tests', () => {
       expect(await hd.getCurrentBlockNumber()).toBeGreaterThan(0)
     })
   })
+
+  describe('getBlock', () => {
+    it('can retrieve latest', async () => {
+      const block = await hd.getBlock()
+      expect(block.id).toBeTruthy()
+      expect(block.height).toBeGreaterThan(0)
+      expect(block.previousId).toBeTruthy()
+      expect(block.time).toBeTruthy()
+      expect(Date.now() - block.time.getTime()).toBeLessThan(10 * 60 * 1000) // latest was within past 10 minutes
+      expect(block.raw).toBeDefined()
+    })
+    it('can retrieve 1', async () => {
+      const block = await hd.getBlock(1)
+      expect(block.id).toBeTruthy()
+      expect(block.height).toBe(1)
+      expect(block.previousId).toBeTruthy()
+      expect(block.time).toBeTruthy()
+      expect(block.raw).toBeDefined()
+    })
+  })
 })

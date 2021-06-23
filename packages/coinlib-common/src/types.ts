@@ -404,8 +404,8 @@ export const RetrieveBalanceActivitiesResult = t.type(
 )
 export type RetrieveBalanceActivitiesResult = t.TypeOf<typeof RetrieveBalanceActivitiesResult>
 
-export type BasicBlockInfo = { height: number, hash: string, previousBlockHash: string, time: Date }
-export type FilterBlockAddressesBlockInfo = BasicBlockInfo & { page: number }
+export type BlockInfo = { id: string, height: number, time: Date, previousId?: string, raw?: any }
+export type FilterBlockAddressesBlockInfo = BlockInfo & { page: number }
 export type FilterBlockAddressesCallback = (
   addresses: string[], blockInfo: FilterBlockAddressesBlockInfo,
 ) => string[] | Promise<string[]>

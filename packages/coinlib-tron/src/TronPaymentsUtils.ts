@@ -1,7 +1,15 @@
 import {
-  PaymentsUtils, NetworkType, Payport, AutoFeeLevels, FeeRate, FeeRateType, BalanceResult, TransactionStatus
+  PaymentsUtils,
+  NetworkType,
+  Payport,
+  AutoFeeLevels,
+  FeeRate,
+  FeeRateType,
+  BalanceResult,
+  TransactionStatus,
+  BlockInfo
 } from '@bitaccess/coinlib-common'
-import { Logger, DelegateLogger, isNil, assertType, Numeric } from '@faast/ts-common'
+import { Logger, DelegateLogger, isNil, assertType, Numeric, isUndefined } from '@faast/ts-common'
 import TronWeb, { Transaction as TronTransaction } from 'tronweb'
 
 import {
@@ -233,6 +241,24 @@ export class TronPaymentsUtils implements PaymentsUtils {
           ...txInfo,
           currentBlock: pick(currentBlock, 'block_header', 'blockID'),
         },
+      }
+    } catch (e) {
+      throw toError(e)
+    }
+  }
+
+  async getBlock(id?: string | number): Promise<BlockInfo> {
+    try {
+      const raw = await this._retryDced(() =>
+        isUndefined(id)
+          ? this.tronweb.trx.getCurrentBlock()
+          : this.tronweb.trx.getBlock(id))
+      return {
+        id: raw.blockID,
+        height: raw.block_header.raw_data.number,
+        previousId: raw.block_header.raw_data.parentHash,
+        time: new Date(raw.block_header.raw_data.timestamp * 1000),
+        raw,
       }
     } catch (e) {
       throw toError(e)

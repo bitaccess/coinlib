@@ -9,7 +9,7 @@ import {
   createUnitConverters,
   NewBlockCallback,
   FilterBlockAddressesCallback,
-  BasicBlockInfo,
+  BlockInfo,
 } from '@bitaccess/coinlib-common'
 import { EventEmitter } from 'events'
 import {
@@ -86,17 +86,21 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
     blockId: number | string,
     callbackFn: BalanceActivityCallback,
     filterRelevantAddresses: FilterBlockAddressesCallback,
-  ): Promise<BasicBlockInfo> {
+  ): Promise<BlockInfo> {
     let page = 1
     let blockPage: BitcoinishBlock | undefined
-    let basicBlockInfo: BasicBlockInfo | undefined
+    let basicBlockInfo: BlockInfo | undefined
     while(!blockPage || blockPage.page < blockPage.totalPages) {
       blockPage = await this.getApi().getBlock(blockId, { page })
       basicBlockInfo = {
-        hash: blockPage.hash,
+        id: blockPage.hash,
         height: blockPage.height,
-        previousBlockHash: blockPage.previousBlockHash!,
+        previousId: blockPage.previousBlockHash,
         time: new Date(blockPage.time! * 1000),
+        raw: {
+          ...blockPage,
+          txs: undefined,
+        },
       }
       if (!blockPage.txs) {
         this.logger.log(`No transactions returned for page ${page} of block ${blockId}`)
