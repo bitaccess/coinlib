@@ -45,7 +45,7 @@
     "version": "npm run build"
   },
   "dependencies": {
-    "@bitaccess/coinlib-common": "file:../coinlib-common",
+    "@bitaccess/coinlib-common": "^4.7.0",
     "@faast/ts-common": "^0.6.0",
     "bignumber.js": "^9.0.0",
     "bip32": "^2.0.5",

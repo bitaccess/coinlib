@@ -75,8 +75,8 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "@bitaccess/coinlib-common": "file:../coinlib-common",
-    "@bitaccess/coinlib-bitcoin": "file:../coinlib-bitcoin",
+    "@bitaccess/coinlib-common": "^4.7.0",
+    "@bitaccess/coinlib-bitcoin": "^4.7.0",
     "@faast/ts-common": "^0.6.0",
     "@types/bchaddrjs": "^0.4.0",
     "bchaddrjs": "^0.4.9",
