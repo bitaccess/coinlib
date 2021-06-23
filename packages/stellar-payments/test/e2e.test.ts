@@ -47,7 +47,7 @@ describe('e2e', () => {
       network: NetworkType.Mainnet,
     })
     await monitorMainnet.init()
-    startLedgerVersion = (await payments.getBlock()).sequence
+    startLedgerVersion = (await payments.getBlock()).height
     monitor.onBalanceActivity(activity => {
       logger.log('onBalanceActivity', activity)
       emittedBalanceActivities.push(activity)
