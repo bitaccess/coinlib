@@ -5,7 +5,7 @@ import {
   BalanceActivity,
   NewBlockCallback,
   FilterBlockAddressesCallback,
-  BasicBlockInfo,
+  BlockInfo,
 } from './types'
 
 /**
@@ -93,5 +93,5 @@ export interface BalanceMonitor {
     block: number | string,
     callbackFn: BalanceActivityCallback,
     filterRelevantAddresses: FilterBlockAddressesCallback,
-  ) => Promise<BasicBlockInfo>
+  ) => Promise<BlockInfo>
 }

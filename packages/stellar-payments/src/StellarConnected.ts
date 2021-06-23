@@ -1,4 +1,4 @@
-import { NetworkType } from '@faast/payments-common'
+import { NetworkType, BlockInfo } from '@faast/payments-common'
 import { Logger, assertType, DelegateLogger } from '@faast/ts-common'
 import * as Stellar from 'stellar-sdk'
 
@@ -38,7 +38,7 @@ export abstract class StellarConnected {
     return retryIfDisconnected(fn, this.getApi(), this.logger)
   }
 
-  async getBlock(id?: string | number): Promise<StellarRawLedger> {
+  async getBlock(id?: string | number): Promise<BlockInfo> {
     let query = this.getApi()
       .ledgers()
       .order('desc')
@@ -47,16 +47,22 @@ export abstract class StellarConnected {
       query = query.ledger(id)
     }
     const ledgerCallResult = await this._retryDced(() => query.call())
-    let ledger: StellarLedger
+    let raw: StellarLedger
     if (ledgerCallResult.records) {
-      ledger = ledgerCallResult.records[0]
+      raw = ledgerCallResult.records[0]
     } else if (isStellarLedger(ledgerCallResult)) {
-      ledger = ledgerCallResult
+      raw = ledgerCallResult
     } else {
       this.logger.log(`getBlock(${id ? id : ''}) ledgerCallResult`, ledgerCallResult)
       throw new Error(`Cannot get stellar ledger ${id ? id : 'head'}`)
     }
-    return ledger
+    return {
+      id: raw.hash,
+      height: raw.sequence,
+      previousId: raw.prev_hash,
+      time: new Date(raw.closed_at),
+      raw,
+    }
   }
 
   async _normalizeTxOperation(

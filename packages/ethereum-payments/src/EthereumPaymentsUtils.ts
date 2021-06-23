@@ -9,13 +9,16 @@ import {
   NetworkType,
   BalanceResult,
   TransactionStatus,
+  BlockInfo,
 } from '@faast/payments-common'
 import {
   Logger,
   DelegateLogger,
   assertType,
   isNull,
-  Numeric
+  Numeric,
+  isUndefined,
+  isNumber
 } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
 import { Transaction, TransactionReceipt } from 'web3-core'
@@ -345,6 +348,17 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
         ...txInfo,
         currentBlock: currentBlockNumber
       },
+    }
+  }
+
+  async getBlock(id?: string | number): Promise<BlockInfo> {
+    const raw = await this.eth.getBlock(id ?? 'latest')
+    return {
+      id: raw.hash,
+      height: raw.number,
+      previousId: raw.parentHash,
+      time: new Date(isNumber(raw.timestamp) ? raw.timestamp * 1000 : raw.timestamp),
+      raw: raw
     }
   }
 }

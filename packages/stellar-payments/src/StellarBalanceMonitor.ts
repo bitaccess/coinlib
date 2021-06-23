@@ -160,9 +160,9 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
 
       externalId: tx.id,
       activitySequence,
-      confirmationId: ledger.hash,
+      confirmationId: ledger.id,
       confirmationNumber: String(confirmationNumber),
-      timestamp: new Date(ledger.closed_at),
+      timestamp: ledger.time,
     }
   }
 }
