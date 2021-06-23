@@ -1,5 +1,5 @@
-import { PaymentsUtils, Payport, AutoFeeLevels, FeeLevel, FeeRate, FeeRateType, TransactionStatus } from '@faast/payments-common'
-import { isNil, assertType, Numeric, isMatchingError } from '@faast/ts-common'
+import { PaymentsUtils, Payport, AutoFeeLevels, FeeLevel, FeeRate, FeeRateType, TransactionStatus, BlockInfo } from '@faast/payments-common'
+import { isNil, assertType, Numeric, isMatchingError, isUndefined, isString } from '@faast/ts-common'
 
 import {
   toMainDenominationString,
@@ -205,6 +205,22 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
       isConfirmed: Boolean(confirmationNumber),
       confirmations: currentLedgerVersion - confirmationNumber,
       data: tx,
+    }
+  }
+
+  async getBlock(id?: string | number): Promise<BlockInfo> {
+    if (isUndefined(id)) {
+      id = await this.api.getLedgerVersion()
+    }
+    const raw = await this.api.getLedger(isString(id)
+      ? { ledgerHash: id }
+      : { ledgerVersion: id })
+    return {
+      id: raw.ledgerHash,
+      height: raw.ledgerVersion,
+      previousId: raw.parentLedgerHash,
+      time: new Date(raw.closeTime),
+      raw,
     }
   }
 }

@@ -1,5 +1,8 @@
 import { Numeric } from '@faast/ts-common'
-import { Payport, MaybePromise, AutoFeeLevels, FeeRate, NetworkType, UtxoInfo, BalanceResult, BaseTransactionInfo } from './types'
+import {
+  Payport, MaybePromise, AutoFeeLevels, FeeRate, NetworkType,
+  UtxoInfo, BalanceResult, BaseTransactionInfo, BlockInfo
+} from './types'
 
 export interface PaymentsUtils {
   readonly networkType: NetworkType
@@ -97,4 +100,6 @@ export interface PaymentsUtils {
   getTransactionInfo(
     txId: string,
   ): Promise<BaseTransactionInfo>
+
+  getBlock(id?: string | number): Promise<BlockInfo>
 }

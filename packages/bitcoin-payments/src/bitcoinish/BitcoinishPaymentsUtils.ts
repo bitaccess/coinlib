@@ -10,7 +10,8 @@ import {
   BalanceResult,
   TransactionStatus,
   TransactionOutput,
-  CreateTransactionOptions
+  CreateTransactionOptions,
+  BlockInfo,
 } from '@faast/payments-common'
 import { Network as BitcoinjsNetwork } from 'bitcoinjs-lib'
 import { isNil, assertType, Numeric, isUndefined } from '@faast/ts-common'
@@ -111,11 +112,24 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
   toBaseDenominationNumber: UnitConverters['toMainDenominationNumber']
   toBaseDenominationBigNumber: UnitConverters['toMainDenominationBigNumber']
 
-  async getBlock(id?: string | number): Promise<BitcoinishBlock> {
+  async getBlock(id?: string | number): Promise<BlockInfo> {
     if (isUndefined(id)) {
       id = (await this.getApi().getStatus()).backend.bestBlockHash
     }
-    return this.getApi().getBlock(id)
+    const raw = await this.getApi().getBlock(id)
+    if (!raw.time) {
+      throw new Error(`Bitcoin block ${id ?? 'latest'} missing timestamp`)
+    }
+    return {
+      id: raw.hash,
+      height: raw.height,
+      previousId: raw.previousBlockHash,
+      time: new Date(raw.time! * 1000),
+      raw: {
+        ...raw,
+        txs: undefined,
+      },
+    }
   }
 
   async getCurrentBlockNumber() {
