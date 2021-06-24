@@ -1,15 +1,15 @@
-# coin-payments
+# coinlib
 
 Library to assist in processing cryptocurrency payments.
 
 ## Getting Started
 
 ```bash
-npm i @faast/coin-payments
+npm i @coinlib/coinlib
 ```
 
 ```typescript
-import { CoinPayments } from '@faast/coin-payments'
+import { CoinPayments } from '@bitaccess/coinlib'
 
 const coinPayments = new CoinPayments({
   seed: '5cf2d4a8b0...ca676651f'

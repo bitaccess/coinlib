@@ -1,3 +1,4 @@
-# ripple-payments
+coinlib-ripple
+=================
 
-Please refer to the [@faast/coin-payments README](../coin-payments/README.md) for more detailed information.
+Please refer to the [@bitaccess/coinlib README](../coinlib/README.md) for more detailed information.
