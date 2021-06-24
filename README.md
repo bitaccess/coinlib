@@ -55,16 +55,16 @@ See [@bitaccess/coinlib README](./packages/coinlib/README.md) for usage.
 
 ## Packages
 
-- [@bitaccess/coinlib](./packages/coinlib) - Wrapper for all coins
-- [@bitaccess/coinlib-common](./packages/coinlib-common) - Common interfaces
-- [@bitaccess/coinlib-bitcoin](./packages/coinlib-bitcoin) - BTC
-- [@bitaccess/coinlib-ethereum](./packages/coinlib-ethereum) - ETH & ERC20
-- [@bitaccess/coinlib-litecoin](./packages/coinlib-litecoin) - LTC
-- [@bitaccess/coinlib-doge](./packages/coinlib-doge) - DOGE
-- [@bitaccess/coinlib-bitcoin-cash](./packages/coinlib-bitcoin-cash) - BCH
-- [@bitaccess/coinlib-tron](./packages/coinlib-tron) - TRX
-- [@bitaccess/coinlib-stellar](./packages/coinlib-stellar) - XLM
-- [@bitaccess/coinlib-ripple](./packages/coinlib-ripple) - XRP
+- [@bitaccess/coinlib](https://github.com/bitaccess/coinlib/blob/master/packages/coinlib) - Wrapper for all coins
+- [@bitaccess/coinlib-common](https://github.com/bitaccess/coinlib/blob/master/packages/coinlib-common) - Common interfaces
+- [@bitaccess/coinlib-bitcoin](https://github.com/bitaccess/coinlib/blob/master/packages/coinlib-bitcoin) - BTC
+- [@bitaccess/coinlib-ethereum](https://github.com/bitaccess/coinlib/blob/master/packages/coinlib-ethereum) - ETH & ERC20
+- [@bitaccess/coinlib-litecoin](https://github.com/bitaccess/coinlib/blob/master/packages/coinlib-litecoin) - LTC
+- [@bitaccess/coinlib-doge](https://github.com/bitaccess/coinlib/blob/master/packages/coinlib-doge) - DOGE
+- [@bitaccess/coinlib-bitcoin-cash](https://github.com/bitaccess/coinlib/blob/master/packages/coinlib-bitcoin-cash) - BCH
+- [@bitaccess/coinlib-tron](https://github.com/bitaccess/coinlib/blob/master/packages/coinlib-tron) - TRX
+- [@bitaccess/coinlib-stellar](https://github.com/bitaccess/coinlib/blob/master/packages/coinlib-stellar) - XLM
+- [@bitaccess/coinlib-ripple](https://github.com/bitaccess/coinlib/blob/master/packages/coinlib-ripple) - XRP
 
 ## Publishing new version
 
