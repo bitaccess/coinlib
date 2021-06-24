@@ -5,7 +5,7 @@
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "browser": "dist/index.umd.js",
-  "types": "dist/lib/coinlib-bitcoin/src/index.d.ts",
+  "types": "dist/lib/index.d.ts",
   "esnext": "dist/lib/index.js",
   "repository": "https://github.com/bitaccess/coinlib/tree/master/packages/coinlib-bitcoin",
   "homepage": "https://github.com/bitaccess/coinlib/tree/master/packages/coinlib-bitcoin#readme",
