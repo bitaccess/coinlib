@@ -1,4 +1,4 @@
-# coin-payments monorepo
+# coinlib monorepo
 
 A nodejs library providing a unified API for sending and receiving crypto payments for multiple coin networks.
 
@@ -37,34 +37,34 @@ git config commit.template  ./.gitmessage
 #### Importing packages
 Use lerna to import packages (More info in [lerna docs](https://github.com/lerna/lerna/))
 #### Configuring assets
-Add payment factory to `packages/coin-payments/src/constants.ts`
+Add payment factory to `packages/coinlib/src/constants.ts`
 
 #### Registering assets
-Add payment config to `packages/coin-payments/src/types.ts`
+Add payment config to `packages/coinlib/src/types.ts`
 
 ### Abstractions to implement
-Find types and interfaces at `packages/payments-common/src/`
+Find types and interfaces at `packages/coinlib-common/src/`
 
 ## Usage
 
 ```bash
-npm i @faast/coin-payments
+npm i @bitaccess/coinlib
 ```
 
-See [@faast/coin-payments README](./packages/coin-payments/README.md) for usage.
+See [@bitaccess/coinlib README](./packages/coinlib/README.md) for usage.
 
 ## Packages
 
-- [@faast/coin-payments](./packages/coin-payments) - Wrapper for all coins
-- [@faast/payments-common](./packages/payments-common) - Common interfaces
-- [@faast/bitcoin-payments](./packages/bitcoin-payments) - BTC
-- [@faast/ethereum-payments](./packages/ethereum-payments) - ETH & ERC20
-- [@faast/litecoin-payments](./packages/litecoin-payments) - LTC
-- [@faast/doge-payments](./packages/doge-payments) - DOGE
-- [@faast/bitcoin-cash-payments](./packages/bitcoin-cash-payments) - BCH
-- [@faast/tron-payments](./packages/tron-payments) - TRX
-- [@faast/stellar-payments](./packages/stellar-payments) - XLM
-- [@faast/ripple-payments](./packages/ripple-payments) - XRP
+- [@bitaccess/coinlib](./packages/coinlib) - Wrapper for all coins
+- [@bitaccess/coinlib-common](./packages/coinlib-common) - Common interfaces
+- [@bitaccess/coinlib-bitcoin](./packages/coinlib-bitcoin) - BTC
+- [@bitaccess/coinlib-ethereum](./packages/coinlib-ethereum) - ETH & ERC20
+- [@bitaccess/coinlib-litecoin](./packages/coinlib-litecoin) - LTC
+- [@bitaccess/coinlib-doge](./packages/coinlib-doge) - DOGE
+- [@bitaccess/coinlib-bitcoin-cash](./packages/coinlib-bitcoin-cash) - BCH
+- [@bitaccess/coinlib-tron](./packages/coinlib-tron) - TRX
+- [@bitaccess/coinlib-stellar](./packages/coinlib-stellar) - XLM
+- [@bitaccess/coinlib-ripple](./packages/coinlib-ripple) - XRP
 
 ## Publishing new version
 
