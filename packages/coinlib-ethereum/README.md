@@ -1,3 +1,4 @@
-# `ethereum-payments`
+coinlib-ethereum
+=================
 
-Please refer to the [@bitaccess/coinlib-payments README](../coin-payments/README.md) for more detailed information.
+Please refer to the [@bitaccess/coinlib README](../coinlib/README.md) for more detailed information.
