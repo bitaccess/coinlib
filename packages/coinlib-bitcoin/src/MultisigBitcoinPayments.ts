@@ -1,4 +1,4 @@
-import { AddressMultisigData } from './../../coinlib-common/src/types';
+import { AddressMultisigData } from '@bitaccess/coinlib-common';
 import { BaseBitcoinPayments } from './BaseBitcoinPayments'
 import {
   MultisigBitcoinPaymentsConfig,
