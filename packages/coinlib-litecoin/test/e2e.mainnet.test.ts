@@ -379,12 +379,14 @@ describeAll('e2e mainnet', () => {
 
       it('end to end send', async () => {
         const indicesToTry = [7, 8]
-        const balances: { [i: number]: BalanceResult } = {}
+        const balances: { [address: string]: BalanceResult } = {}
         let indexToSend: number = -1
-        let highestBalance = toBigNumber(0)
-        for (const index of indicesToTry) {
+        let { confirmedBalance: highestBalance } = await payments.getBalance(indicesToTry[0])
+        for (let i = 1; i < indicesToTry.length; i++) {
+          const index = indicesToTry[i]
+          const address = payments.getAddress(index)
           const balanceResult = await payments.getBalance(index)
-          balances[index] = balanceResult
+          balances[address] = balanceResult
           if (toBigNumber(balanceResult.confirmedBalance).gt(highestBalance)) {
             indexToSend = index
             break
