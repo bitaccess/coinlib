@@ -3,7 +3,7 @@ import { Logger } from '@faast/ts-common'
 import util from 'util'
 import fs from 'fs'
 import path from 'path'
-import { TransactionStatus } from '../packages/payments-common/src'
+import { TransactionStatus } from '../packages/coinlib-common/src'
 
 export const END_TRANSACTION_STATES = [TransactionStatus.Confirmed, TransactionStatus.Failed]
 

@@ -1,0 +1,1 @@
+export const EXTERNAL_ADDRESS = 'DB15Lt7u8hxkbT8s1JAKHA9Xbxr8SbxnC8'
