@@ -1,4 +1,3 @@
-import { AddressMultisigData } from '@bitaccess/coinlib-common';
 import { BaseBitcoinPayments } from './BaseBitcoinPayments'
 import {
   MultisigBitcoinPaymentsConfig,
@@ -12,7 +11,15 @@ import { cloneDeep, omit } from 'lodash'
 import { HdBitcoinPayments } from './HdBitcoinPayments'
 import { KeyPairBitcoinPayments } from './KeyPairBitcoinPayments'
 import * as bitcoin from 'bitcoinjs-lib'
-import { CreateTransactionOptions, ResolveablePayport, BaseMultisigData, PayportOutput, MultisigData, UtxoInfo } from '@bitaccess/coinlib-common'
+import {
+  CreateTransactionOptions,
+  ResolveablePayport,
+  BaseMultisigData,
+  PayportOutput,
+  MultisigData,
+  UtxoInfo,
+  AddressMultisigData
+} from '@bitaccess/coinlib-common'
 import { publicKeyToString, getMultisigPaymentScript, isMultisigFullySigned } from './helpers'
 import { isNumber, Numeric } from '@faast/ts-common'
 import { DEFAULT_MULTISIG_ADDRESS_TYPE } from './constants'
