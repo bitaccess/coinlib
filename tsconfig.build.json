@@ -7,8 +7,7 @@
     "strict": true,
     "paths": {
       "@faast/ts-common": ["node_modules/@faast/ts-common"],
-      "@faast/payments-common": ["node_modules/@faast/payments-common"],
-      "@faast/*-payments": ["node_modules/@faast/*-payments"]
+      "@bitaccess/coinlib-*": ["node_modules/@bitaccess/coinlib-*"]
     }
   }
 }
