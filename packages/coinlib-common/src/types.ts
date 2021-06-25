@@ -412,7 +412,7 @@ export const BlockInfo = requiredOptionalCodec(
   },
   {
     previousId: t.string,
-    raw: t.UnknownRecord,
+    raw: t.object,
   },
   'BlockInfo',
 )
