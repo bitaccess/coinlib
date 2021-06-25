@@ -404,7 +404,20 @@ export const RetrieveBalanceActivitiesResult = t.type(
 )
 export type RetrieveBalanceActivitiesResult = t.TypeOf<typeof RetrieveBalanceActivitiesResult>
 
-export type BlockInfo = { id: string, height: number, time: Date, previousId?: string, raw?: any }
+export const BlockInfo = requiredOptionalCodec(
+  {
+    id: t.string,
+    height: t.number,
+    time: DateT,
+  },
+  {
+    previousId: t.string,
+    raw: t.UnknownRecord,
+  },
+  'BlockInfo',
+)
+export type BlockInfo = t.TypeOf<typeof BlockInfo>
+
 export type FilterBlockAddressesBlockInfo = BlockInfo & { page: number }
 export type FilterBlockAddressesCallback = (
   addresses: string[], blockInfo: FilterBlockAddressesBlockInfo,
