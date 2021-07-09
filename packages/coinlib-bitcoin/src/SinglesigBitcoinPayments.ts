@@ -80,24 +80,28 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
 
     const updatedMultisigTx = cloneDeep(multisigData)
 
+    let inputsSigned = 0
+
     for (let address of Object.keys(multisigData)) {
       const addressMultisigData = multisigData[address]
-      const signerIndex = addressMultisigData.signerIndex
+      const { signerIndex, accountIds, signedAccountIds, publicKeys, inputIndices } = addressMultisigData
       const accountId = this.getAccountId(signerIndex)
-      const accountIdIndex = addressMultisigData.accountIds.findIndex((x) => x === accountId)
+      const accountIdIndex = accountIds.findIndex((x) => x === accountId)
 
       if (accountIdIndex === -1) {
         // Not a signer for address
+        this.logger.debug(`Not a signer for address ${address} because ${accountId} is not in ${accountIds}`)
         continue
       }
-      if (addressMultisigData.signedAccountIds.includes(accountId)) {
+      if (signedAccountIds.includes(accountId)) {
         // Already signed all inputs for this address
+        this.logger.debug(`Already signed all inputs for address ${address} using account ${accountId}`)
         continue
       }
 
       const keyPair = this.getKeyPair(signerIndex)
       const publicKeyString = publicKeyToString(keyPair.publicKey)
-      const signerPublicKey = addressMultisigData.publicKeys[accountIdIndex]
+      const signerPublicKey = publicKeys[accountIdIndex]
       if (signerPublicKey !== publicKeyString) {
         throw new Error(
           `Mismatched publicKey for keyPair ${accountId}/${tx.fromIndex} - `
@@ -105,10 +109,15 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
         )
       }
 
-      for (let inputIndex of addressMultisigData.inputIndices) {
+      for (let inputIndex of inputIndices) {
         psbt.signInput(inputIndex, keyPair)
+        inputsSigned++
+        this.logger.debug(`Signed tx input #${inputIndex} for address ${address}`)
       }
       updatedMultisigTx[address].signedAccountIds.push(accountId)
+    }
+    if (inputsSigned === 0) {
+      throw new Error('No inputs were signed')
     }
     return this.updateSignedMultisigTx(tx, psbt, updatedMultisigTx)
   }
