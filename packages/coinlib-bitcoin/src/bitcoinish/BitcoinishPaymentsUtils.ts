@@ -22,6 +22,7 @@ import {
   BitcoinishBlock, BitcoinishPaymentsUtilsConfig, BitcoinishTransactionInfo,
   NormalizedTxBitcoin, NormalizedTxBitcoinVout,
 } from './types'
+import { GetBlockOptions } from 'blockbook-client'
 
 type UnitConverters = ReturnType<typeof createUnitConverters>
 
@@ -112,13 +113,14 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
   toBaseDenominationNumber: UnitConverters['toMainDenominationNumber']
   toBaseDenominationBigNumber: UnitConverters['toMainDenominationBigNumber']
 
-  async getBlock(id?: string | number): Promise<BlockInfo> {
+  async getBlock(id?: string | number, options: GetBlockOptions & { includeTxs?: boolean } = {}): Promise<BlockInfo> {
     if (isUndefined(id)) {
-      id = (await this.getApi().getStatus()).backend.bestBlockHash
+      id = await this.getCurrentBlockHash()
     }
-    const raw = await this.getApi().getBlock(id)
+    const { includeTxs, ...getBlockOptions } = options
+    const raw = await this._retryDced(() => this.getApi().getBlock(id!, getBlockOptions))
     if (!raw.time) {
-      throw new Error(`Bitcoin block ${id ?? 'latest'} missing timestamp`)
+      throw new Error(`${this.coinSymbol} block ${id ?? 'latest'} missing timestamp`)
     }
     return {
       id: raw.hash,
@@ -127,9 +129,13 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
       time: new Date(raw.time * 1000),
       raw: {
         ...raw,
-        txs: undefined,
+        txs: includeTxs ? raw.txs : undefined,
       },
     }
+  }
+
+  async getCurrentBlockHash() {
+    return this._retryDced(async () => (await this.getApi().getStatus()).backend.bestBlockHash)
   }
 
   async getCurrentBlockNumber() {

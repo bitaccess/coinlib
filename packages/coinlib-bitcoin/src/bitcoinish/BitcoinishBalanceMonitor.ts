@@ -24,6 +24,7 @@ import { isUndefined, Numeric } from '@faast/ts-common'
 import { BitcoinishBalanceMonitorConfig, BitcoinishBlock } from './types'
 import { BlockbookConnected } from './BlockbookConnected'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
+import { omit } from 'lodash'
 
 export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implements BalanceMonitor {
 
@@ -88,27 +89,19 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
     filterRelevantAddresses: FilterBlockAddressesCallback,
   ): Promise<BlockInfo> {
     let page = 1
-    let blockPage: BitcoinishBlock | undefined
-    let basicBlockInfo: BlockInfo | undefined
-    while(!blockPage || blockPage.page < blockPage.totalPages) {
-      blockPage = await this.getApi().getBlock(blockId, { page })
-      basicBlockInfo = {
-        id: blockPage.hash,
-        height: blockPage.height,
-        previousId: blockPage.previousBlockHash,
-        time: new Date(blockPage.time! * 1000),
-        raw: {
-          ...blockPage,
-          txs: undefined,
-        },
-      }
-      if (!blockPage.txs) {
+    let blockRaw: BitcoinishBlock | undefined
+    let blockInfoResult: BlockInfo | undefined
+    while(!blockRaw || blockRaw.page < blockRaw.totalPages) {
+      const getBlockResult = await this.utils.getBlock(blockId, { page, includeTxs: true })
+      blockInfoResult = omit(getBlockResult, ['raw.txs']) as BlockInfo // omit large tx list from returned/cb value
+      blockRaw = getBlockResult.raw as BitcoinishBlock
+      if (!blockRaw?.txs) {
         this.logger.log(`No transactions returned for page ${page} of block ${blockId}`)
         break
       }
       // Aggregate all block txs by the addresses they apply to
       const addressTransactions: { [address: string]: Set<NormalizedTxBitcoin> } = {}
-      for (let tx of blockPage.txs) {
+      for (let tx of blockRaw.txs) {
         for (let input of tx.vin) {
           this.accumulateAddressTx(addressTransactions, tx, input)
         }
@@ -120,7 +113,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
       const relevantAddresses = new Set<string>(
         await filterRelevantAddresses(
           Array.from(Object.keys(addressTransactions)),
-          { ...basicBlockInfo, page },
+          { ...blockInfoResult, page },
         )
       )
       /**
@@ -140,7 +133,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
       }
       page++
     }
-    return basicBlockInfo!
+    return blockInfoResult!
   }
 
   async retrieveBalanceActivities(
