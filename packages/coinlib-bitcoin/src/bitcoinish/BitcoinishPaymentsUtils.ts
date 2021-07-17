@@ -227,11 +227,12 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     const confirmationId = tx.blockHash || null
     const confirmationNumber = tx.blockHeight ? String(tx.blockHeight) : undefined
     const confirmationTimestamp = tx.blockTime ? new Date(tx.blockTime * 1000) : null
-    if (tx.confirmations > 0x7FFFFFFF) {
+    if (tx.confirmations >= 0x7FFFFFFF) {
       // If confirmations exceeds the max value of a signed 32 bit integer, assume we have bad data
-      // Blockbook sometimes returns a confirmations count equal to `0xFFFFFFFF`
+      // Blockbook sometimes returns a confirmations count equal to `0xFFFFFFFF` when unconfirmed
       // Bitcoin won't have that many confirmations for 40,000 years
-      throw new Error(`Blockbook returned confirmations count for tx ${txId} that's way too big to be real (${tx.confirmations})`)
+      this.logger.log(`Blockbook returned confirmations count for tx ${txId} that's way too big to be real (${tx.confirmations}), assuming 0`)
+      tx.confirmations = 0
     }
     const isConfirmed = Boolean(tx.confirmations && tx.confirmations > 0)
     const status = isConfirmed ? TransactionStatus.Confirmed : TransactionStatus.Pending
