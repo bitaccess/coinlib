@@ -1,6 +1,6 @@
 {
   "name": "@bitaccess/coinlib",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "description": "Library to assist in processing cryptocurrency payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -67,12 +67,12 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "@bitaccess/coinlib-bitcoin": "^5.0.1",
-    "@bitaccess/coinlib-bitcoin-cash": "^5.0.1",
+    "@bitaccess/coinlib-bitcoin": "^5.0.2",
+    "@bitaccess/coinlib-bitcoin-cash": "^5.0.2",
     "@bitaccess/coinlib-common": "^5.0.1",
-    "@bitaccess/coinlib-doge": "^5.0.1",
+    "@bitaccess/coinlib-doge": "^5.0.2",
     "@bitaccess/coinlib-ethereum": "^5.0.1",
-    "@bitaccess/coinlib-litecoin": "^5.0.1",
+    "@bitaccess/coinlib-litecoin": "^5.0.2",
     "@bitaccess/coinlib-ripple": "^5.0.1",
     "@bitaccess/coinlib-stellar": "^5.0.1",
     "@bitaccess/coinlib-tron": "^5.0.1",
