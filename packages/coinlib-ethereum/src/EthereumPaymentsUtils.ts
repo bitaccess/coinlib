@@ -141,7 +141,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   }
 
   // XXX Payport methods can be moved to payments-common
-  isValidPayport(payport: Payport): boolean {
+  isValidPayport(payport: Payport): payport is Payport {
     return Payport.is(payport) && !this._getPayportValidationMessage(payport)
   }
 

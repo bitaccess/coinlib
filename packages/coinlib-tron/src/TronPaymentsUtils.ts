@@ -80,7 +80,7 @@ export class TronPaymentsUtils implements PaymentsUtils {
     return address
   }
 
-  private async _getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
+  private _getPayportValidationMessage(payport: Payport): string | undefined {
     const { address, extraId } = payport
     if (!isValidAddress(address)) {
       return 'Invalid payport address'
@@ -90,7 +90,7 @@ export class TronPaymentsUtils implements PaymentsUtils {
     }
   }
 
-  async getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
+  getPayportValidationMessage(payport: Payport): string | undefined {
     try {
       payport = assertType(Payport, payport, 'payport')
     } catch (e) {
@@ -99,16 +99,16 @@ export class TronPaymentsUtils implements PaymentsUtils {
     return this._getPayportValidationMessage(payport)
   }
 
-  async validatePayport(payport: Payport): Promise<void> {
+  validatePayport(payport: Payport): void {
     payport = assertType(Payport, payport, 'payport')
-    const message = await this._getPayportValidationMessage(payport)
+    const message = this._getPayportValidationMessage(payport)
     if (message) {
       throw new Error(message)
     }
   }
 
-  async isValidPayport(payport: Payport): Promise<boolean> {
-    return Payport.is(payport) && !(await this._getPayportValidationMessage(payport))
+  isValidPayport(payport: Payport): payport is Payport {
+    return Payport.is(payport) && !(this._getPayportValidationMessage(payport))
   }
 
   toMainDenomination(amount: string | number): string {

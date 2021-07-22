@@ -102,12 +102,20 @@ describe('HdEthereumPayments', () => {
     })
 
     describe('resolvePayport', () => {
-      test('returns object address derived from the provided key', async () => {
+      test('returns payport derived from the provided index', async () => {
         expect(await hdEP.resolvePayport(1)).toStrictEqual({ address: FROM_ADDRESS.toLowerCase() })
       })
 
-      test('returns object address if provided input is string', async () => {
+      test('returns payport using input address', async () => {
         expect(await hdEP.resolvePayport(FROM_ADDRESS)).toStrictEqual({ address: FROM_ADDRESS.toLowerCase() })
+      })
+
+      test('returns payport using input payport', async () => {
+        expect(await hdEP.resolvePayport({ address: FROM_ADDRESS })).toStrictEqual({ address: FROM_ADDRESS.toLowerCase() })
+      })
+
+      test('returns payport using input payport with index', async () => {
+        expect(await hdEP.resolvePayport({ index: 1, address: FROM_ADDRESS })).toStrictEqual({ index: 1, address: FROM_ADDRESS.toLowerCase() })
       })
 
       test('thorws an error for invalid address', async () => {
