@@ -104,12 +104,12 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     } else if (typeof payport === 'string') {
       assertValidAddress(payport)
       return { address: payport }
-    } else if (DerivablePayport.is(payport)) {
-      throw new Error(`Invalid Ripple payport: ${JSON.stringify(payport)}`)
+    } else if (Payport.is(payport)) {
+      assertValidAddress(payport.address)
+      assertValidExtraIdOrNil(payport.extraId)
+      return payport
     }
-    assertValidAddress(payport.address)
-    assertValidExtraIdOrNil(payport.extraId)
-    return payport
+    throw new Error(`Invalid Ripple payport: ${JSON.stringify(payport)}`)
   }
 
   async resolvePayport(payport: ResolveablePayport): Promise<Payport> {
