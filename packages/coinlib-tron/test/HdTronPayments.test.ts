@@ -85,6 +85,10 @@ function runHardcodedPublicKeyTests(tp: HdTronPayments, config: HdTronPaymentsCo
     const payport = { address: ADDRESSES[1] }
     expect(await tp.resolvePayport(payport)).toEqual(payport)
   })
+  it('resolvePayport resolves for payport with index', async () => {
+    const payport = { index: 1, address: ADDRESSES[1] }
+    expect(await tp.resolvePayport(payport)).toEqual(payport)
+  })
   it('resolvePayport throws for invalid address', async () => {
     await expect(tp.resolvePayport('invalid')).rejects.toThrow()
   })

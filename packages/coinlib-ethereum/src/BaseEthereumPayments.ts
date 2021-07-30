@@ -80,19 +80,12 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
         throw new Error(`Invalid Ethereum address: ${payport}`)
       }
       return { address: payport.toLowerCase() }
-    } else if (DerivablePayport.is(payport)) {
-      throw new Error(`Invalid Ethereum address: ${payport}`)
     }
 
-    if (!this.isValidPayport(payport)) {
-      throw new Error(`Invalid Ethereum payport: ${JSON.stringify(payport)}`)
-    } else {
-      if(!this.isValidAddress(payport.address)) {
-        throw new Error(`Invalid Ethereum payport: ${JSON.stringify(payport)}`)
-      }
+    if (this.isValidPayport(payport as any)) {
+      return { ...payport, address: (payport as any).address.toLowerCase() }
     }
-
-    return { ...payport, address: payport.address.toLowerCase() }
+    throw new Error(`Invalid Ethereum payport: ${JSON.stringify(payport)}`)
   }
 
   async resolveFromTo(from: number, to: ResolveablePayport): Promise<FromTo> {

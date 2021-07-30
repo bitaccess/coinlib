@@ -284,12 +284,10 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
         throw new Error(`Invalid TRON address: ${payport}`)
       }
       return { address: payport }
-    } else if (DerivablePayport.is(payport)) {
-      throw new Error(`Invalid TRON payport: ${JSON.stringify(payport)}`)
-    } else if (!this.isValidPayport(payport)) {
-      throw new Error(`Invalid TRON payport: ${JSON.stringify(payport)}`)
+    } else if (this.isValidPayport(payport as any)) {
+      return payport as Payport
     }
-    return payport
+    throw new Error(`Invalid TRON payport: ${JSON.stringify(payport)}`)
   }
 
   async resolveFromTo(from: number, to: ResolveablePayport): Promise<FromTo> {
