@@ -45,14 +45,20 @@ export class CoinPayments {
   readonly network: NetworkType
   readonly logger: Logger
   private readonly seedBuffer?: Buffer
+  /** BIP32 root key identifier for seedBuffer */
+  readonly seedIdentifier?: string
 
   constructor(public readonly config: CoinPaymentsConfig) {
     assertType(CoinPaymentsConfig, config)
     this.network = config.network || NetworkType.Mainnet
     this.logger = config.logger || console
-    this.seedBuffer = (config.seed && (config.seed.includes(' ')
-      ? bip39.mnemonicToSeedSync(config.seed)
-      : Buffer.from(config.seed, 'hex'))) || undefined
+    if (config.seed) {
+      this.seedBuffer = config.seed.includes(' ')
+        ? bip39.mnemonicToSeedSync(config.seed)
+        : Buffer.from(config.seed, 'hex')
+      this.seedIdentifier = bip32.fromSeed(this.seedBuffer).identifier.toString('hex')
+    }
+
     const accountIdSet = new Set<string>()
     SUPPORTED_NETWORK_SYMBOLS.forEach((networkSymbol) => {
       const networkConfig = config[networkSymbol]
