@@ -236,10 +236,13 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     }
     const isConfirmed = Boolean(tx.confirmations && tx.confirmations > 0)
     const status = isConfirmed ? TransactionStatus.Confirmed : TransactionStatus.Pending
-    const inputUtxos = tx.vin.map(({ txid, vout, value }): UtxoInfo => ({
-      txid: txid || '',
-      vout: vout || 0,
-      value: this.toMainDenominationString(value || 0),
+    const inputUtxos = tx.vin.map((utxo): UtxoInfo => ({
+      txid: utxo.txid || '',
+      vout: utxo.vout || 0,
+      value: this.toMainDenominationString(utxo.value ?? 0),
+      address: utxo.addresses?.[0],
+      satoshis: Number.parseInt(utxo.value ?? '0'),
+      scriptPubKeyHex: utxo.hex,
     }))
 
     const fromAddresses = tx.vin.map(({ addresses = [] }) => {
