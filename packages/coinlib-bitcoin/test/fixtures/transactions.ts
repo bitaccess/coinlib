@@ -70,7 +70,10 @@ export const txInfo_beae1: BitcoinTransactionInfo = {
     {
       'txid': '01ae19356989b8fae9384c0c704558a194e8e43a61424f1fdac3f5ecbf9ec39e',
       'vout': 5,
-      'value': '0.20045195'
+      'value': '0.20045195',
+      'address': 'bc1qaqm8wh8sr6gfx49mdpz3w70z48xdh0pzlf5kgr',
+      'satoshis': 20045195,
+      'scriptPubKeyHex': undefined,
     }
   ],
   'outputUtxos': [
