@@ -35,7 +35,7 @@ export function makeOutputs(address: string, ...values: string[]): BitcoinishTxO
 }
 
 export function sortUtxosByTxid(utxos: UtxoInfo[]): UtxoInfo[] {
-  return [...utxos].sort((a, b) => a.txid.localeCompare(b.txid))
+  return [...utxos].sort((a, b) => a.txid.localeCompare(b.txid) || (b.vout - a.vout))
 }
 
 export function expectUtxosEqual(expectedUtxos: UtxoInfo[], actualUtxos: UtxoInfo[]) {

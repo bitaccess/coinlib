@@ -10,13 +10,13 @@ import {
   bitcoinish, BitcoinBalanceMonitor, BitcoinUnsignedTransaction, BaseBitcoinPayments,
 } from '../src'
 
-import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger } from './utils'
+import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectUtxosEqual } from './utils'
 import { toBigNumber } from '@faast/ts-common'
 import fixtures from './fixtures/singlesigTestnet'
 import { forcedUtxos, availableUtxos, unsignedHash, signedHex, mitxId } from './fixtures/multiInput'
 import { HdBitcoinPaymentsConfig } from '../src/types'
 import BigNumber from 'bignumber.js'
-import { omit } from 'lodash'
+import { omit, pick } from 'lodash'
 
 const SECRET_XPRV_FILE = 'test/keys/testnet.key'
 
@@ -79,7 +79,10 @@ describeAll('e2e testnet', () => {
       expect(tx.inputUtxos).toEqual([{
         txid: 'd9671e060bfb9e32c39116bcb3087884293c444c7f657a57ef532e5c9c20ec87',
         vout: 1,
-        value: '0.12666496'
+        value: '0.12666496',
+        address: 'tb1qs7t3rftap0kkdar67npu4zujj6vmh4qsmym534',
+        satoshis: 12666496,
+        scriptPubKeyHex: undefined,
       }])
     })
   })
@@ -271,17 +274,12 @@ describeAll('e2e testnet', () => {
     expect(signedTx.data.hex).toEqual(signedHex)
 
     const tx = await hotWalletPayments.getTransactionInfo(mitxId, undefined, { changeAddress: changeAddresses } )
-    const inputUtxos = [...forcedUtxos, ...availableUtxos].map((u): UtxoInfo => {
-      return {
-        txid: u.txid,
-        vout: u.vout,
-        value: u.value
-      }
-    }).sort((a, b) => `${a.txid}${a.vout}` > `${b.txid}${b.vout}` && 1 || -1)
-    const actualUtxos = tx.inputUtxos!.sort((a, b) => `${a.txid}${a.vout}` > `${b.txid}${b.vout}` && 1 || -1)
+    const expectedUtxos = [...forcedUtxos, ...availableUtxos]
+      .map((u) => pick(u, ['txid', 'vout', 'value', 'address', 'satoshis']))
+    const actualUtxos = tx.inputUtxos!
 
 
-    expect(inputUtxos).toEqual(actualUtxos)
+    expectUtxosEqual(expectedUtxos, actualUtxos)
     expect(tx.data.hex).toEqual(signedHex)
     expect(tx.amount).toBe('0.0021')
      expect(tx.externalOutputs).toEqual([
