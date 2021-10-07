@@ -36,7 +36,7 @@
     "prebuild": "lerna run --parallel prebuild",
     "build": "bin/buildall.sh",
     "pretest": "lerna run --parallel lint",
-    "test": "lerna run --parallel test",
+    "test": "lerna run --no-bail --ignore @bitaccess/coinlib --ignore @bitaccess/coinlib-ripple --parallel test",
     "preversion": "echo 'Use lerna version instead' && exit 1",
     "release": "npm run bs && lerna publish from-git"
   },

@@ -20,6 +20,8 @@ export const txInfo_4d111: LitecoinTransactionInfo = {
   ],
   inputUtxos: [
     {
+      'address': 'MUzMaBkrmwVgvKr15wo61qVTUHLCZeK8Ax',
+      'satoshis': 826000000,
       'txid': '9b64ee72b0674cdc44e9130a14c94719ec21997c9e9d3573ce956759a3bd6898',
       'value': '8.26',
       'vout': 0,

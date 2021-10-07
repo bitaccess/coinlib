@@ -37,10 +37,10 @@ describe('TronAddressValidator', () => {
 
   describe('getPayportValidationMessage', () => {
     it('returns string for empty object', async () => {
-      expect(await tpu.getPayportValidationMessage({} as any)).toMatch('Invalid payport')
+      expect(tpu.getPayportValidationMessage({} as any)).toMatch('Invalid payport')
     })
     it('return string for valid address with invalid extraId', async () => {
-      expect(await tpu.getPayportValidationMessage({ address: VALID_ADDRESS, extraId: '' })).toMatch('Invalid payport')
+      expect(tpu.getPayportValidationMessage({ address: VALID_ADDRESS, extraId: '' })).toMatch('Invalid payport')
     })
   })
 

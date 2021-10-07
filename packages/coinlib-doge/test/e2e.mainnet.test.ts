@@ -366,6 +366,8 @@ describeAll('e2e mainnet', () => {
         },
       ])
       expect(tx.inputUtxos).toEqual([{
+        address: 'DB15Lt7u8hxkbT8s1JAKHA9Xbxr8SbxnC8',
+        satoshis: 3109794440218,
         txid: '47c5eb2473f5fdb119b5c7cc806efeaa4a3916a93a9753b51940aaa66c5a3eb3',
         vout: 0,
         value: '31097.94440218'

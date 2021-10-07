@@ -311,10 +311,14 @@ describeAll('e2e mainnet', () => {
         },
       ])
       expect(tx.inputUtxos).toEqual([{
+        address: 'bitcoincash:qqaltza007utd8mlflamrg2xc49v0zrnuyvepla7tj',
+        satoshis: 160066239,
         txid: '43d6508286b883e7a3a282547e5041b19304fac3f9ef2befac5db094fb9c982b',
         vout: 1,
         value: '1.60066239'
       }, {
+        address: 'bitcoincash:qpwwp5zq7ns7fx4ujegfghf258d0yazfwul78c4vua',
+        satoshis: 1111,
         txid: 'a64fd45e6c869e539bf19d9f841ef69435d485db999a73586087a4384f568c42',
         value: '0.00001111',
         vout: 2,

@@ -69,6 +69,8 @@ export const txInfo_beae1: BitcoinCashTransactionInfo = {
   },
   'inputUtxos': [
     {
+      'address': 'bitcoincash:qq5hgg4e0uavrlgwqtsu7092jpkef560yyedt26jks',
+      'satoshis': 6922681,
       'txid': '1e76c7b16329b654df64c904c09e3dbf3989ef20f8dd1faaee8ed24565f6f540',
       'vout': 1,
       'value': '0.06922681'
