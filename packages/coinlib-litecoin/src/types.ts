@@ -69,6 +69,7 @@ export const LitecoinPaymentsUtilsConfig = extendCodec(
   {
     blockcypherToken: t.string,
     validAddressFormat: LitecoinAddressFormatT,
+    feeLevelBlockTargets: bitcoinish.FeeLevelBlockTargets,
   },
   'LitecoinPaymentsUtilsConfig',
 )

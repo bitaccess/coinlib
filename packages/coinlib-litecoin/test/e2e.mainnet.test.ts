@@ -139,31 +139,48 @@ describeAll('e2e mainnet', () => {
 
   describe('getFeeRateRecommendation', () => {
 
-    it('succeeds without token', async () => {
-      const estimate = await payments.getFeeRateRecommendation(FeeLevel.High)
-      expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
-      expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThan(1)
-    })
+    describe('blockcypher', () => {
 
-    ;(process.env.BLOCKCYPHER_TOKEN ? it : it.skip)('succeeds with token', async () => {
-      const paymentsWithToken = new HdLitecoinPayments({
-        ...paymentsConfig,
-        blockcypherToken: process.env.BLOCKCYPHER_TOKEN,
+      it('succeeds without token', async () => {
+        const estimate = await payments.getFeeRateRecommendation(FeeLevel.High, { source: 'blockcypher' })
+        expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
+        expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThanOrEqual(1)
       })
-      const estimate = await paymentsWithToken.getFeeRateRecommendation(FeeLevel.High)
-      expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
-      expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThan(1)
-    })
 
-    it('throws on invalid token', async () => {
-      const paymentsWithToken = new HdLitecoinPayments({
-        ...paymentsConfig,
-        blockcypherToken: 'invalid',
+      ;(process.env.BLOCKCYPHER_TOKEN ? it : it.skip)('succeeds with token', async () => {
+        const paymentsWithToken = new HdLitecoinPayments({
+          ...paymentsConfig,
+          blockcypherToken: process.env.BLOCKCYPHER_TOKEN,
+        })
+        const estimate = await paymentsWithToken.getFeeRateRecommendation(FeeLevel.High, { source: 'blockcypher' })
+        expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
+        expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThanOrEqual(1)
       })
-      await expect(() => paymentsWithToken.getFeeRateRecommendation(FeeLevel.High))
-        .rejects.toThrow('Failed to retrieve LTC mainnet fee rate from blockcypher')
+
+      it('throws on invalid token', async () => {
+        const paymentsWithToken = new HdLitecoinPayments({
+          ...paymentsConfig,
+          blockcypherToken: 'invalid',
+        })
+        await expect(() => paymentsWithToken.getFeeRateRecommendation(FeeLevel.High, { source: 'blockcypher' }))
+          .rejects.toThrow('Failed to retrieve LTC mainnet fee rate from blockcypher')
+      })
     })
 
+    describe('blockbook', () => {
+
+      it('succeeds for high level', async () => {
+        const estimate = await payments.getFeeRateRecommendation(FeeLevel.High, { source: 'blockbook' })
+        expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
+        expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThanOrEqual(1)
+      })
+
+      it('succeeds for low level', async () => {
+        const estimate = await payments.getFeeRateRecommendation(FeeLevel.Low, { source: 'blockbook' })
+        expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
+        expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThanOrEqual(1)
+      })
+    })
   })
 
   it('creates transaction with fixed fee', async () => {

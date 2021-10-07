@@ -1,3 +1,4 @@
+import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { FeeLevel, NetworkType } from '@bitaccess/coinlib-common'
 import { AddressType, SinglesigAddressType, LitecoinAddressFormat } from './types'
 
@@ -77,3 +78,9 @@ export const DEFAULT_TESTNET_SERVER = '' // will default to mainnet due to not t
 export const DEFAULT_FEE_LEVEL = FeeLevel.Medium
 
 export const DEFAULT_ADDRESS_FORMAT = LitecoinAddressFormat.Modern
+
+export const DEFAULT_FEE_LEVEL_BLOCK_TARGETS: bitcoinish.FeeLevelBlockTargets = {
+  [FeeLevel.High]: 4,
+  [FeeLevel.Medium]: 4 * 24,
+  [FeeLevel.Low]: 4 * 144,
+}

@@ -1,7 +1,7 @@
 import { Numeric } from '@faast/ts-common'
 import {
   Payport, MaybePromise, AutoFeeLevels, FeeRate, NetworkType,
-  UtxoInfo, BalanceResult, BaseTransactionInfo, BlockInfo
+  UtxoInfo, BalanceResult, BaseTransactionInfo, BlockInfo, GetFeeRecommendationOptions
 } from './types'
 
 export interface PaymentsUtils {
@@ -60,7 +60,10 @@ export interface PaymentsUtils {
   /**
    * Get a recommended fee for a certain level
    */
-  getFeeRateRecommendation<O extends object>(level: AutoFeeLevels, options?: O): MaybePromise<FeeRate>
+  getFeeRateRecommendation<O extends GetFeeRecommendationOptions = GetFeeRecommendationOptions>(
+    level: AutoFeeLevels,
+    options?: O,
+  ): MaybePromise<FeeRate>
 
   /**
    * Returns the current block number as a string

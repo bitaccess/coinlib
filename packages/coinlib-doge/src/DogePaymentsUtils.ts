@@ -1,17 +1,15 @@
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
-import { AutoFeeLevels, FeeRate } from '@bitaccess/coinlib-common'
 
 import { toBitcoinishConfig } from './utils'
 import { DogePaymentsUtilsConfig } from './types'
 import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress } from './helpers'
+import { DEFAULT_FEE_LEVEL_BLOCK_TARGETS } from './constants'
 
 export class DogePaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils {
 
-  readonly blockcypherToken?: string
-
   constructor(config: DogePaymentsUtilsConfig = {}) {
     super(toBitcoinishConfig(config))
-    this.blockcypherToken = config.blockcypherToken
+    this.feeLevelBlockTargets = config.feeLevelBlockTargets ?? DEFAULT_FEE_LEVEL_BLOCK_TARGETS
   }
 
   isValidAddress(address: string) {
@@ -28,12 +26,6 @@ export class DogePaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils {
 
   isValidPrivateKey(privateKey: string) {
     return isValidPrivateKey(privateKey, this.networkType)
-  }
-
-  async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
-    return bitcoinish.getBlockcypherFeeRecommendation(
-      feeLevel, this.coinSymbol, this.networkType, this.blockcypherToken, this.logger,
-    )
   }
 
 }

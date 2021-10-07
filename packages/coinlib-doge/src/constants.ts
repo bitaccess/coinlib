@@ -1,5 +1,5 @@
 import { FeeLevel, NetworkType } from '@bitaccess/coinlib-common'
-import { BitcoinjsNetwork } from '@bitaccess/coinlib-bitcoin'
+import { BitcoinjsNetwork, bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { AddressType, SinglesigAddressType } from './types'
 
 export const PACKAGE_NAME = 'doge-payments'
@@ -74,3 +74,10 @@ export const DEFAULT_MAINNET_SERVER = process.env.DOGECOIN_SERVER_URL
 export const DEFAULT_TESTNET_SERVER = ''
 
 export const DEFAULT_FEE_LEVEL = FeeLevel.High
+
+// dogecoin estimatefee only works for targets between 3 and 25
+export const DEFAULT_FEE_LEVEL_BLOCK_TARGETS: bitcoinish.FeeLevelBlockTargets = {
+  [FeeLevel.High]: 3,
+  [FeeLevel.Medium]: 12,
+  [FeeLevel.Low]: 24,
+}

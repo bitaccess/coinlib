@@ -422,3 +422,8 @@ export type FilterBlockAddressesBlockInfo = BlockInfo & { page: number }
 export type FilterBlockAddressesCallback = (
   addresses: string[], blockInfo: FilterBlockAddressesBlockInfo,
 ) => string[] | Promise<string[]>
+
+export const GetFeeRecommendationOptions = t.partial({
+  source: t.string, // ie blockbook, blockcypher, ethgasstation, etc
+}, 'GetFeeRecommendationOptions')
+export type GetFeeRecommendationOptions = t.TypeOf<typeof GetFeeRecommendationOptions>

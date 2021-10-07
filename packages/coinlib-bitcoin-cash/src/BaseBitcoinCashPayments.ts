@@ -19,8 +19,8 @@ import {
 import { estimateBitcoinCashTxSize } from './helpers'
 import { BitcoinCashPaymentsUtils } from './BitcoinCashPaymentsUtils'
 
-// tslint:disable-next-line:max-line-length
-export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaymentsConfig> extends bitcoinish.BitcoinishPayments<Config> {
+export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaymentsConfig>
+  extends bitcoinish.BitcoinishPayments<Config> {
 
   readonly maximumFeeRate?: number
   readonly validAddressFormat?: BitcoinCashAddressFormat
@@ -55,16 +55,6 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
 
   isValidPublicKey(publicKey: string): boolean {
     return this.utils.isValidPublicKey(publicKey)
-  }
-
-  async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
-    return bitcoinish.getBlockbookFeeRecommendation(
-      feeLevel,
-      this.coinSymbol,
-      this.networkType,
-      this.getApi(),
-      this.logger,
-    )
   }
 
   /** Return a string that can be passed into estimateBitcoinCashTxSize. Override to support multisig */

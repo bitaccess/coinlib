@@ -169,29 +169,47 @@ describeAll('e2e mainnet', () => {
 
   describe('getFeeRateRecommendation', () => {
 
-    it('succeeds without token', async () => {
-      const estimate = await payments.getFeeRateRecommendation(FeeLevel.High)
-      expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
-      expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThan(1)
+    describe('blockcypher', () => {
+
+      it('succeeds without token', async () => {
+        const estimate = await payments.getFeeRateRecommendation(FeeLevel.High, { source: 'blockcypher' })
+        expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
+        expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThanOrEqual(1)
+      })
+
+      ;(process.env.BLOCKCYPHER_TOKEN ? it : it.skip)('succeeds with token', async () => {
+        const paymentsWithToken = new HdDogePayments({
+          ...paymentsConfig,
+          blockcypherToken: process.env.BLOCKCYPHER_TOKEN,
+        })
+        const estimate = await paymentsWithToken.getFeeRateRecommendation(FeeLevel.High, { source: 'blockcypher' })
+        expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
+        expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThanOrEqual(1)
+      })
+
+      it('throws on invalid token', async () => {
+        const paymentsWithToken = new HdDogePayments({
+          ...paymentsConfig,
+          blockcypherToken: 'invalid',
+        })
+        await expect(() => paymentsWithToken.getFeeRateRecommendation(FeeLevel.High, { source: 'blockcypher' }))
+          .rejects.toThrow('Failed to retrieve DOGE mainnet fee rate from blockcypher')
+      })
     })
 
-    ;(process.env.BLOCKCYPHER_TOKEN ? it : it.skip)('succeeds with token', async () => {
-      const paymentsWithToken = new HdDogePayments({
-        ...paymentsConfig,
-        blockcypherToken: process.env.BLOCKCYPHER_TOKEN,
-      })
-      const estimate = await paymentsWithToken.getFeeRateRecommendation(FeeLevel.High)
-      expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
-      expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThan(1)
-    })
+    describe('blockbook', () => {
 
-    it('throws on invalid token', async () => {
-      const paymentsWithToken = new HdDogePayments({
-        ...paymentsConfig,
-        blockcypherToken: 'invalid',
+      it('succeeds for high level', async () => {
+        const estimate = await payments.getFeeRateRecommendation(FeeLevel.High, { source: 'blockbook' })
+        expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
+        expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThanOrEqual(1)
       })
-      await expect(() => paymentsWithToken.getFeeRateRecommendation(FeeLevel.High))
-        .rejects.toThrow('Failed to retrieve DOGE mainnet fee rate from blockcypher')
+
+      it('succeeds for low level', async () => {
+        const estimate = await payments.getFeeRateRecommendation(FeeLevel.Low, { source: 'blockbook' })
+        expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
+        expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThanOrEqual(1)
+      })
     })
 
   })

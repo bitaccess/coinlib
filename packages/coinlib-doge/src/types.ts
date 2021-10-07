@@ -47,6 +47,7 @@ export const DogePaymentsUtilsConfig = extendCodec(
   {},
   {
     blockcypherToken: t.string,
+    feeLevelBlockTargets: bitcoinish.FeeLevelBlockTargets,
   },
   'DogePaymentsUtilsConfig',
 )

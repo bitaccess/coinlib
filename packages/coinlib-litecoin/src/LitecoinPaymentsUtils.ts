@@ -8,12 +8,10 @@ import { DEFAULT_ADDRESS_FORMAT } from './constants'
 
 export class LitecoinPaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils {
 
-  readonly blockcypherToken?: string
   readonly validAddressFormat?: LitecoinAddressFormat
 
   constructor(config: LitecoinPaymentsUtilsConfig = {}) {
     super(toBitcoinishConfig(config))
-    this.blockcypherToken = config.blockcypherToken
     this.validAddressFormat = config.validAddressFormat
   }
 
@@ -46,12 +44,6 @@ export class LitecoinPaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils {
 
   isValidPrivateKey(privateKey: string) {
     return isValidPrivateKey(privateKey, this.networkType)
-  }
-
-  async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
-    return bitcoinish.getBlockcypherFeeRecommendation(
-      feeLevel, this.coinSymbol, this.networkType, this.blockcypherToken, this.logger,
-    )
   }
 
 }

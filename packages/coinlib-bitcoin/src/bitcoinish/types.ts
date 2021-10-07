@@ -1,15 +1,15 @@
+import { FeeLevelT } from './../../../coinlib-common/src/types'
 import * as t from 'io-ts'
 import {
   BaseUnsignedTransaction, BaseSignedTransaction, FeeRate, AutoFeeLevels,
-  BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, NetworkTypeT,
+  BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, NetworkTypeT, FeeLevel,
 } from '@bitaccess/coinlib-common'
 import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger, Numeric, enumCodec } from '@faast/ts-common'
-import { Network as BitcoinjsNetwork, Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
+import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
 import { BlockbookBitcoin, BlockInfoBitcoin, NormalizedTxBitcoin, NormalizedTxBitcoinVin, NormalizedTxBitcoinVout } from 'blockbook-client'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
 
 export {
-  BitcoinjsNetwork,
   BlockbookBitcoin,
   BlockInfoBitcoin,
   NormalizedTxBitcoin,
@@ -50,6 +50,9 @@ const MultisigAddressTypeT = t.keyof({
 export type MultisigAddressType = t.TypeOf<typeof MultisigAddressTypeT>
 export const MultisigAddressType = MultisigAddressTypeT as t.Type<MultisigAddressType>
 
+export const FeeLevelBlockTargets = t.record(AutoFeeLevels, t.number, 'FeeLevelBlockTargets')
+export type FeeLevelBlockTargets = t.TypeOf<typeof FeeLevelBlockTargets>
+
 /** A hack to get around TS2742 when config is re-exported from coin-payments */
 export class BlockbookServerAPI extends BlockbookBitcoin {}
 
@@ -75,13 +78,35 @@ export const BlockbookConnectedConfig = requiredOptionalCodec(
 )
 export type BlockbookConnectedConfig = t.TypeOf<typeof BlockbookConnectedConfig>
 
-export type BitcoinishPaymentsUtilsConfig = BlockbookConnectedConfig & {
-  coinSymbol: string,
-  coinName: string,
-  coinDecimals: number,
-  bitcoinjsNetwork: BitcoinjsNetwork,
-  networkMinRelayFee: number, // base denom
-}
+export const BitcoinjsNetwork = t.type({
+  messagePrefix: t.string,
+  bech32: t.string,
+  bip32: t.type({
+    public: t.number,
+    private: t.number,
+  }),
+  pubKeyHash: t.number,
+  scriptHash: t.number,
+  wif: t.number,
+}, 'BitcoinjsNetwork')
+export type BitcoinjsNetwork = t.TypeOf<typeof BitcoinjsNetwork>
+
+export const BitcoinishPaymentsUtilsConfig = extendCodec(
+  BlockbookConnectedConfig,
+  {
+    coinSymbol: t.string,
+    coinName: t.string,
+    coinDecimals: t.number,
+    bitcoinjsNetwork: BitcoinjsNetwork,
+    networkMinRelayFee: t.number, // base denom
+  },
+  {
+    blockcypherToken: t.string,
+    feeLevelBlockTargets: FeeLevelBlockTargets,
+  },
+  'BitcoinishPaymentsUtilsConfig'
+)
+export type BitcoinishPaymentsUtilsConfig = t.TypeOf<typeof BitcoinishPaymentsUtilsConfig>
 
 export type BitcoinishBalanceMonitorConfig = BlockbookConnectedConfig & {
   utils: BitcoinishPaymentsUtils,

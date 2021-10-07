@@ -19,6 +19,7 @@ import {
   LitecoinAddressFormat,
 } from './types'
 import {
+  DEFAULT_FEE_LEVEL_BLOCK_TARGETS,
   LITECOIN_SEQUENCE_RBF,
 } from './constants'
 import { estimateLitecoinTxSize } from './helpers'
@@ -28,15 +29,14 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
   extends bitcoinish.BitcoinishPayments<Config> {
 
   readonly maximumFeeRate?: number
-  readonly blockcypherToken?: string
   readonly validAddressFormat?: LitecoinAddressFormat
   readonly utils: LitecoinPaymentsUtils
 
   constructor(config: BaseLitecoinPaymentsConfig) {
     super(toBitcoinishConfig(config))
     this.maximumFeeRate = config.maximumFeeRate
-    this.blockcypherToken = config.blockcypherToken
     this.validAddressFormat = config.validAddressFormat
+    this.feeLevelBlockTargets = config.feeLevelBlockTargets ?? DEFAULT_FEE_LEVEL_BLOCK_TARGETS
     this.utils = new LitecoinPaymentsUtils(config)
   }
 
@@ -57,10 +57,6 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
 
   isValidPublicKey(publicKey: string): boolean {
     return this.utils.isValidPublicKey(publicKey)
-  }
-
-  async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
-    return this.utils.getFeeRateRecommendation(feeLevel)
   }
 
   /** Return a string that can be passed into estimateLitecoinTxSize. Override to support multisig */

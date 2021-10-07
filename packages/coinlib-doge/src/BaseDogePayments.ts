@@ -13,7 +13,7 @@ import {
   PsbtInputData,
 } from './types'
 import {
-  BITCOIN_SEQUENCE_RBF, SINGLESIG_ADDRESS_TYPE,
+  BITCOIN_SEQUENCE_RBF, DEFAULT_FEE_LEVEL_BLOCK_TARGETS, SINGLESIG_ADDRESS_TYPE,
 } from './constants'
 import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateDogeTxSize } from './helpers'
 
@@ -21,14 +21,13 @@ import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress
 export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> extends bitcoinish.BitcoinishPayments<Config> {
 
   readonly maximumFeeRate?: number
-  readonly blockcypherToken?: string
   readonly addressType: AddressType
 
   constructor(config: BaseDogePaymentsConfig) {
     super(toBitcoinishConfig(config))
     this.maximumFeeRate = config.maximumFeeRate
-    this.blockcypherToken = config.blockcypherToken
     this.addressType = AddressType.Legacy
+    this.feeLevelBlockTargets = config.feeLevelBlockTargets ?? DEFAULT_FEE_LEVEL_BLOCK_TARGETS
   }
 
   abstract getPaymentScript(index: number): bitcoin.payments.Payment
@@ -51,12 +50,6 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
 
   isValidPublicKey(publicKey: string): boolean {
     return isValidPublicKey(publicKey, this.networkType)
-  }
-
-  async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
-    return bitcoinish.getBlockcypherFeeRecommendation(
-      feeLevel, this.coinSymbol, this.networkType, this.blockcypherToken, this.logger,
-    )
   }
 
   /** Return a string that can be passed into estimateDogeTxSize. Override to support multisig */
