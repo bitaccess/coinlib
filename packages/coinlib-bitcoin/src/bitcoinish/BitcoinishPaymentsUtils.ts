@@ -280,7 +280,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
 
     let toAddress = 'batch'
     if (externalOutputs.length === 0){
-      throw new Error(`${this.coinSymbol} transaction has no external outputs ${txId}`)
+      // throw new Error(`${this.coinSymbol} transaction has no external outputs ${txId}`)
     } else if (externalOutputs.length === 1) {
       toAddress = externalOutputs[0].address
     }
