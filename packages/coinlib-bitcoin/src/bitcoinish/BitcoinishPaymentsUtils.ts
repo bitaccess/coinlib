@@ -142,7 +142,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
       id = await this.getCurrentBlockHash()
     }
     const { includeTxs, ...getBlockOptions } = options
-    const raw = await this._retryDced(() => this.getApi().getBlock(id!, getBlockOptions))
+    const raw = await this._retryDced(() => this.getApi().getBlock(id!, getBlockOptions), ['not found'])
     if (!raw.time) {
       throw new Error(`${this.coinSymbol} block ${id ?? 'latest'} missing timestamp`)
     }

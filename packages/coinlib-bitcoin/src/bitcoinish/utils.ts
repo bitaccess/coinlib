@@ -63,11 +63,16 @@ const RETRYABLE_ERRORS = [
 ]
 const MAX_RETRIES = 2
 
-export function retryIfDisconnected<T>(fn: () => Promise<T>, api: BlockbookBitcoin, logger: Logger): Promise<T> {
+export function retryIfDisconnected<T>(
+  fn: () => Promise<T>,
+  api: BlockbookBitcoin,
+  logger: Logger,
+  additionalRetryableErrors: string[] = [],
+): Promise<T> {
   return promiseRetry(
     (retry, attempt) => {
       return fn().catch(async e => {
-        if (isMatchingError(e, RETRYABLE_ERRORS)) {
+        if (isMatchingError(e, [...RETRYABLE_ERRORS, ...additionalRetryableErrors])) {
           logger.log(
             `Retryable error during blockbook server call, retrying ${MAX_RETRIES - attempt} more times`,
             e.toString(),
