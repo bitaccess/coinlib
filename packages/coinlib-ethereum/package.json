@@ -39,7 +39,7 @@
     "prebuild": "rimraf dist && rimraf docs",
     "build": "bin/build.sh",
     "start": "rollup -c rollup.config.ts -w",
-    "test": "jest --runInBand --detectOpenHandles --bail",
+    "test": "jest --runInBand --bail",
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
     "version": "npm run build",
     "sandbox": "bin/ts-node.sh test/sandbox.ts"

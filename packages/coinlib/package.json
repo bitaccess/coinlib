@@ -38,7 +38,7 @@
     "prebuild": "rimraf dist && rimraf docs",
     "build": "bin/build.sh",
     "start": "rollup -c rollup.config.js -w",
-    "test": "jest --runInBand --detectOpenHandles",
+    "test": "jest --runInBand",
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
     "version": "npm run build"
   },
