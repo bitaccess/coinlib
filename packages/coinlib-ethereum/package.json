@@ -91,6 +91,5 @@
     "request-promise-native": "^1.0.8",
     "web3": "^1.3.6",
     "web3-eth-contract": "^1.3.6"
-  },
-  "gitHead": "de574821548dda30a9cf8799e6aea76cca47241c"
+  }
 }

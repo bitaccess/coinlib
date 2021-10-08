@@ -83,6 +83,5 @@
     "promise-retry": "^1.1.1",
     "stellar-hd-wallet": "0.0.10",
     "stellar-sdk": "^4.0.1"
-  },
-  "gitHead": "de574821548dda30a9cf8799e6aea76cca47241c"
+  }
 }
