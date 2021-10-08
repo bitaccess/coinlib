@@ -1,11 +1,10 @@
 import fs from 'fs'
 import path from 'path'
-import { omit } from 'lodash'
 import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel } from '@bitaccess/coinlib-common'
 import { toBigNumber } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
-import { assertBitcoinishTxInfoEquality } from '../../coinlib-bitcoin/test/utils'
+import { assertBitcoinishTxInfoEquality } from '@bitaccess/coinlib-bitcoin/test/utils'
 
 import {
   HdDogePayments, DogeTransactionInfo, HdDogePaymentsConfig,

@@ -1,4 +1,3 @@
-import { FeeLevelT } from './../../../coinlib-common/src/types'
 import * as t from 'io-ts'
 import {
   BaseUnsignedTransaction, BaseSignedTransaction, FeeRate, AutoFeeLevels,
