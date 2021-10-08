@@ -12,17 +12,23 @@ import {
   TransactionOutput,
   CreateTransactionOptions,
   BlockInfo,
+  FeeRateType,
+  FeeLevel,
+  GetFeeRecommendationOptions,
 } from '@bitaccess/coinlib-common'
-import { Network as BitcoinjsNetwork } from 'bitcoinjs-lib'
 import { isNil, assertType, Numeric, isUndefined } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
+import { GetBlockOptions } from 'blockbook-client'
 
+import { DEFAULT_FEE_LEVEL_BLOCK_TARGETS } from './constants'
 import { BlockbookConnected } from './BlockbookConnected'
 import {
-  BitcoinishBlock, BitcoinishPaymentsUtilsConfig, BitcoinishTransactionInfo,
+  BitcoinishPaymentsUtilsConfig, BitcoinishTransactionInfo,
+  BitcoinjsNetwork,
+  FeeLevelBlockTargets,
   NormalizedTxBitcoin, NormalizedTxBitcoinVout,
 } from './types'
-import { GetBlockOptions } from 'blockbook-client'
+import { getBlockbookFeeRecommendation, getBlockcypherFeeRecommendation } from './utils'
 
 type UnitConverters = ReturnType<typeof createUnitConverters>
 
@@ -33,6 +39,8 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
   readonly coinDecimals: number
   readonly bitcoinjsNetwork: BitcoinjsNetwork
   readonly networkMinRelayFee: number // base denom
+  readonly blockcypherToken?: string
+  feeLevelBlockTargets: FeeLevelBlockTargets
 
   constructor(config: BitcoinishPaymentsUtilsConfig) {
     super(config)
@@ -41,6 +49,8 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     this.coinDecimals = config.coinDecimals
     this.bitcoinjsNetwork = config.bitcoinjsNetwork
     this.networkMinRelayFee = config.networkMinRelayFee
+    this.feeLevelBlockTargets = config.feeLevelBlockTargets ?? DEFAULT_FEE_LEVEL_BLOCK_TARGETS
+    this.blockcypherToken = config.blockcypherToken
 
     const unitConverters = createUnitConverters(this.coinDecimals)
     this.toMainDenominationString = unitConverters.toMainDenominationString
@@ -57,7 +67,21 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
 
   abstract isValidAddress<O extends { format?: string }>(address: string, options?: O): boolean
   abstract standardizeAddress<O extends { format?: string }>(address: string, options?: O): string | null
-  abstract getFeeRateRecommendation(level: AutoFeeLevels): MaybePromise<FeeRate>
+
+  async getFeeRateRecommendation(feeLevel: AutoFeeLevels, options: GetFeeRecommendationOptions = {}): Promise<FeeRate> {
+    if (options.source === 'blockcypher') {
+      return getBlockcypherFeeRecommendation(
+        feeLevel, this.coinSymbol, this.networkType, this.blockcypherToken, this.logger,
+      )
+    }
+    if (options.source && options.source !== 'blockbook') {
+      throw new Error(`Unsupported fee recommendation source: ${options.source}`)
+    }
+    // use blockbook by default
+    return getBlockbookFeeRecommendation(
+      this.feeLevelBlockTargets[feeLevel], this.coinSymbol, this.networkType, this.api, this.logger,
+    )
+  }
 
 
   private _getPayportValidationMessage(payport: Payport): string | undefined {
@@ -118,7 +142,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
       id = await this.getCurrentBlockHash()
     }
     const { includeTxs, ...getBlockOptions } = options
-    const raw = await this._retryDced(() => this.getApi().getBlock(id!, getBlockOptions))
+    const raw = await this._retryDced(() => this.getApi().getBlock(id!, getBlockOptions), ['not found'])
     if (!raw.time) {
       throw new Error(`${this.coinSymbol} block ${id ?? 'latest'} missing timestamp`)
     }
@@ -311,3 +335,4 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     }
   }
 }
+

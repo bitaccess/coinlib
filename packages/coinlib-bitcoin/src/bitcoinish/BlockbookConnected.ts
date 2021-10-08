@@ -35,7 +35,7 @@ export abstract class BlockbookConnected {
     await this.api.disconnect()
   }
 
-  async _retryDced<T>(fn: () => Promise<T>): Promise<T> {
-    return retryIfDisconnected(fn, this.getApi(), this.logger)
+  async _retryDced<T>(fn: () => Promise<T>, additionalRetryableErrors?: string[]): Promise<T> {
+    return retryIfDisconnected(fn, this.getApi(), this.logger, additionalRetryableErrors)
   }
 }

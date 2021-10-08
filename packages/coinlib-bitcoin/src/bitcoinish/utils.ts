@@ -8,7 +8,8 @@ import crypto from 'crypto'
 import bs58 from 'bs58'
 
 import {
-  AddressType, AddressTypeT, BlockbookConnectedConfig, BlockbookServerAPI, MultisigAddressType, SinglesigAddressType,
+  AddressType, AddressTypeT, BlockbookConnectedConfig,
+  BlockbookServerAPI, MultisigAddressType, SinglesigAddressType,
 } from './types'
 
 export function resolveServer(config: BlockbookConnectedConfig, logger: Logger): {
@@ -62,11 +63,16 @@ const RETRYABLE_ERRORS = [
 ]
 const MAX_RETRIES = 2
 
-export function retryIfDisconnected<T>(fn: () => Promise<T>, api: BlockbookBitcoin, logger: Logger): Promise<T> {
+export function retryIfDisconnected<T>(
+  fn: () => Promise<T>,
+  api: BlockbookBitcoin,
+  logger: Logger,
+  additionalRetryableErrors: string[] = [],
+): Promise<T> {
   return promiseRetry(
     (retry, attempt) => {
       return fn().catch(async e => {
-        if (isMatchingError(e, RETRYABLE_ERRORS)) {
+        if (isMatchingError(e, [...RETRYABLE_ERRORS, ...additionalRetryableErrors])) {
           logger.log(
             `Retryable error during blockbook server call, retrying ${MAX_RETRIES - attempt} more times`,
             e.toString(),
@@ -158,15 +164,8 @@ export async function getBlockcypherFeeRecommendation(
   }
 }
 
-/** Blockbook estimate fee returns a single value, scale it by a factor to get each level */
-const blockbookFeeRateMultipliers = {
-  [FeeLevel.High]: 2,
-  [FeeLevel.Medium]: 1,
-  [FeeLevel.Low]: 0.5,
-}
-
 export async function getBlockbookFeeRecommendation(
-  feeLevel: AutoFeeLevels,
+  blockTarget: number,
   coinSymbol: string,
   networkType: NetworkType,
   blockbookClient: BlockbookBitcoin,
@@ -174,19 +173,14 @@ export async function getBlockbookFeeRecommendation(
 ): Promise<FeeRate> {
   let feeRate: string
   try {
-    const body = await blockbookClient.httpRequest('GET', '/api/v1/estimatefee/3')
-    const result = body['result'] // main units per kb
-    if (!result) {
-      throw new Error("Blockbook estimatefee response is missing expected field 'result'")
-    }
-    const fee = new BigNumber(result)
+    const btcPerKbString = await blockbookClient.estimateFee(blockTarget)
+    const fee = new BigNumber(btcPerKbString)
     if (fee.isNaN() || fee.lte(0)) {
-      throw new Error(`Blockbook estimatefee result is not a positive number: ${result}`)
+      throw new Error(`Blockbook estimatefee result is not a positive number: ${btcPerKbString}`)
     }
     const satPerByte = fee.times(100000)
-    const multiplier = blockbookFeeRateMultipliers[feeLevel]
-    feeRate = satPerByte.times(multiplier).toFixed()
-    logger.log(`Retrieved ${coinSymbol} ${networkType} fee rate of ${satPerByte} sat/vbyte from blockbook, using ${feeRate} for ${feeLevel} level`)
+    feeRate = satPerByte.toFixed()
+    logger.log(`Retrieved ${coinSymbol} ${networkType} fee rate of ${satPerByte} sat/vbyte from blockbook, using ${feeRate} for ${blockTarget} block target`)
   } catch (e) {
     throw new Error(`Failed to retrieve ${coinSymbol} ${networkType} fee rate from blockbook - ${e.toString()}`)
   }

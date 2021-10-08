@@ -592,14 +592,15 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
   }
 
-  private omitDustUtxos(utxos: UtxoInfo[], feeRate: FeeRate): UtxoInfoWithSats[] {
+  private omitDustUtxos(utxos: UtxoInfo[], feeRate: FeeRate, maxFeePercent: number): UtxoInfoWithSats[] {
     const utxoSpendCost = this.estimateTxFee(feeRate, 1, 0, [])
       - this.estimateTxFee(feeRate, 0, 0, [])
+    const minUtxoSatoshis = Math.ceil((100 * utxoSpendCost) / maxFeePercent)
     return this.prepareUtxos(utxos).filter((utxo) => {
-      if (utxo.satoshis > utxoSpendCost) {
+      if (utxo.satoshis > minUtxoSatoshis) {
         return true
       }
-      this.logger.log(`${this.coinSymbol} buildPaymentTx - Ignoring dust utxo (${utxoSpendCost} sat or lower) ${utxo.txid}:${utxo.vout}`)
+      this.logger.log(`${this.coinSymbol} buildPaymentTx - Ignoring dust utxo (${minUtxoSatoshis} sat or lower) ${utxo.txid}:${utxo.vout}`)
     })
   }
 
@@ -611,7 +612,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
    * then converted back to strings before being returned.
    */
   async buildPaymentTx(params: BitcoinishBuildPaymentTxParams): Promise<Required<BitcoinishPaymentTx>> {
-    const nonDustUtxos = this.omitDustUtxos(params.unusedUtxos, params.desiredFeeRate)
+    const nonDustUtxos = this.omitDustUtxos(params.unusedUtxos, params.desiredFeeRate, params.maxFeePercent)
 
     const tbc: BitcoinishTxBuildContext = {
       ...params,

@@ -69,6 +69,8 @@ export const txInfo_example: DogeTransactionInfo = {
   },
   'inputUtxos': [
     {
+      'address': 'DAK9Qiat3AvZ7rPC5BhWyW2iFgDnMQ2fHB',
+      'satoshis': 5857813509193,
       'txid': '39aca8a23471c07670984690d9a1d6244aa3a4da1a77404afd1cca1ff185728f',
       'vout': 1,
       'value': '58578.13509193'

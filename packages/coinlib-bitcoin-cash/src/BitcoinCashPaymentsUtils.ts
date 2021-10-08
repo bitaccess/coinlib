@@ -45,14 +45,4 @@ export class BitcoinCashPaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils
   isValidPrivateKey(privateKey: string) {
     return isValidPrivateKey(privateKey, this.networkType)
   }
-
-  async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
-    return bitcoinish.getBlockbookFeeRecommendation(
-      feeLevel,
-      this.coinSymbol,
-      this.networkType,
-      this.getApi(),
-      this.logger,
-    )
-  }
 }

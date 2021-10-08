@@ -57,12 +57,6 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     return isValidPublicKey(publicKey, this.networkType)
   }
 
-  async getFeeRateRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
-    return getBlockcypherFeeRecommendation(
-      feeLevel, this.coinSymbol, this.networkType, this.blockcypherToken, this.logger,
-    )
-  }
-
   /** Return a string that can be passed into estimateBitcoinTxSize. Override to support multisig */
   getEstimateTxSizeInputKey(): string {
     return this.addressType
