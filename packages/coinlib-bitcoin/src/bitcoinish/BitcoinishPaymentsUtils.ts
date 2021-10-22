@@ -159,11 +159,11 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
   }
 
   async getCurrentBlockHash() {
-    return this._retryDced(async () => (await this.getApi().getStatus()).backend.bestBlockHash)
+    return this._retryDced(async () => (await this.getApi().getBestBlock()).hash)
   }
 
   async getCurrentBlockNumber() {
-    return this._retryDced(async () => (await this.getApi().getStatus()).blockbook.bestHeight)
+    return this._retryDced(async () => (await this.getApi().getBestBlock()).height)
   }
 
   isAddressBalanceSweepable(balance: Numeric): boolean {
@@ -186,7 +186,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
   }
 
   async getAddressUtxos(address: string): Promise<UtxoInfo[]> {
-    let utxosRaw = await this.getApi().getUtxosForAddress(address)
+    let utxosRaw = await this._retryDced(() => this.getApi().getUtxosForAddress(address))
     const txsById: { [txid: string]: NormalizedTxBitcoin } = {}
     const utxos: UtxoInfo[] = await Promise.all(utxosRaw.map(async (data) => {
       const { value, height, lockTime, coinbase } = data
@@ -246,7 +246,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
 
     const fee = this.toMainDenominationString(tx.fees)
 
-    const currentBlockNumber = (await this.getApi().getStatus()).blockbook.bestHeight
+    const currentBlockNumber = await this.getCurrentBlockNumber()
 
     const confirmationId = tx.blockHash || null
     const confirmationNumber = tx.blockHeight ? String(tx.blockHeight) : undefined
