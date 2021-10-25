@@ -131,7 +131,7 @@ export class CoinPayments {
         ...extraConfig,
       })
     }
-    return payments
+    return payments as AnyPayments
   }
 
   isNetworkSupported(networkSymbol: string): networkSymbol is SupportedCoinPaymentsSymbol {

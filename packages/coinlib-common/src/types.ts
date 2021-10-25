@@ -150,7 +150,7 @@ export const WeightedChangeOutput = t.type(
 export type WeightedChangeOutput = t.TypeOf<typeof WeightedChangeOutput>
 
 export type FilterChangeAddresses = (addresses: string[]) => Promise<string[]>
-export const FilterChangeAddresses = functionT<FilterChangeAddresses>('NewBlockCallback')
+export const FilterChangeAddresses = functionT<FilterChangeAddresses>('FilterChangeAddresses')
 
 export const CreateTransactionOptions = extendCodec(
   FeeOption,
@@ -165,11 +165,16 @@ export const CreateTransactionOptions = extendCodec(
     recipientPaysFee: t.boolean, // Deduct fee from outputs (only utxo coins supported for now)
     maxFeePercent: Numeric, // Maximum fee as percent of output total
     changeAddress: t.union([t.string, t.array(t.string)]), // Change address
-    filterChangeAddresses: FilterChangeAddresses
   },
   'CreateTransactionOptions',
 )
 export type CreateTransactionOptions = t.TypeOf<typeof CreateTransactionOptions>
+
+export const GetTransactionInfoOptions = t.partial({
+  changeAddress: t.union([t.string, t.array(t.string)]), // To differentiate external/change outputs
+  filterChangeAddresses: FilterChangeAddresses, // Callback to filter out any change addresses from address list
+})
+export type GetTransactionInfoOptions = t.TypeOf<typeof GetTransactionInfoOptions>
 
 export const GetPayportOptions = t.partial({}, 'GetPayportOptions')
 export type GetPayportOptions = t.TypeOf<typeof GetPayportOptions>

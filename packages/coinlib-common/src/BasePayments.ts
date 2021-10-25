@@ -126,21 +126,6 @@ export interface BasePayments<
   getNextSequenceNumber(payport: ResolveablePayport): Promise<string | null>
 
   /**
-   * Get the info and status of a transaction.
-   *
-   * @param txId - The transaction ID to lookup
-   * @param payport - The payport, or the index of a payport, that is associated with this transaction.
-   * This is necessary to allow for looking up XMR txs but can be ignored for conventional coins like BTC/ETH.
-   * @returns Info about the transaction
-   * @throws Error if transaction is not found
-   */
-  getTransactionInfo<O extends object>(
-    txId: string,
-    payport?: ResolveablePayport,
-    options?: O,
-  ): Promise<TransactionInfo>
-
-  /**
    * Creates and signs a new payment transaction sending `amount` from payport `from` to payport `to`.
    *
    * @param from - The index of the payport to send from.

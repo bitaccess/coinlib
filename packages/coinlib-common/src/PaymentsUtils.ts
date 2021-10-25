@@ -1,7 +1,7 @@
 import { Numeric } from '@faast/ts-common'
 import {
   Payport, MaybePromise, AutoFeeLevels, FeeRate, NetworkType,
-  UtxoInfo, BalanceResult, BaseTransactionInfo, BlockInfo, GetFeeRecommendationOptions
+  UtxoInfo, BalanceResult, BaseTransactionInfo, BlockInfo, GetFeeRecommendationOptions, GetTransactionInfoOptions
 } from './types'
 
 export interface PaymentsUtils {
@@ -97,11 +97,13 @@ export interface PaymentsUtils {
    * Get the info and status of a transaction.
    *
    * @param txId - The transaction ID to lookup
+   * @param options - Additional options, such as change address classifiers
    * @returns Info about the transaction
    * @throws Error if transaction is not found
    */
-  getTransactionInfo(
+  getTransactionInfo<O extends GetTransactionInfoOptions>(
     txId: string,
+    options: O,
   ): Promise<BaseTransactionInfo>
 
   getBlock(id?: string | number): Promise<BlockInfo>
