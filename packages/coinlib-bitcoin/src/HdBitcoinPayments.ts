@@ -78,9 +78,11 @@ export class HdBitcoinPayments extends SinglesigBitcoinPayments<HdBitcoinPayment
       hdKey: this.xpub,
     }
   }
+
   getAccountId(index: number): string {
     return this.xpub
   }
+
   getAccountIds(index?: number): string[] {
     return [this.xpub]
   }

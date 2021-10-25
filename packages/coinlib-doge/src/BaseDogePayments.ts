@@ -102,12 +102,12 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
       result.nonWitnessUtxo = Buffer.from(utx.hex, 'hex')
     }
     if (addressType.startsWith('p2sh-p2wsh')) {
-      result.witnessScript = paymentScript.redeem!.redeem!.output
-      result.redeemScript = paymentScript.redeem!.output
+      result.witnessScript = paymentScript.redeem?.redeem?.output
+      result.redeemScript = paymentScript.redeem?.output
     } else if (addressType.startsWith('p2sh')) {
-      result.redeemScript = paymentScript.redeem!.output
+      result.redeemScript = paymentScript.redeem?.output
     } else if (addressType.startsWith('p2wsh')) {
-      result.witnessScript = paymentScript.redeem!.output
+      result.witnessScript = paymentScript.redeem?.output
     }
     return result
   }
@@ -122,15 +122,15 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
   async buildPsbt(paymentTx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<bitcoin.Psbt> {
     const { inputs, outputs } = paymentTx
     const inputPaymentScript = this.getPaymentScript(fromIndex)
-    let psbt = new bitcoin.Psbt(this.psbtOptions)
-    for (let input of inputs) {
+    const psbt = new bitcoin.Psbt(this.psbtOptions)
+    for (const input of inputs) {
       psbt.addInput(await this.getPsbtInputData(
         input,
         inputPaymentScript,
         ),
       )
     }
-    for (let output of outputs) {
+    for (const output of outputs) {
       psbt.addOutput({
         address: output.address,
         value: this.toBaseDenominationNumber(output.value)

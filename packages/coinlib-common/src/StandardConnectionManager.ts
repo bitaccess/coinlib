@@ -20,6 +20,6 @@ export class StandardConnectionManager<
   }
 
   setConnection(config: Config, connection: Connection) {
-    return config.api = connection
+    config.api = connection
   }
 }

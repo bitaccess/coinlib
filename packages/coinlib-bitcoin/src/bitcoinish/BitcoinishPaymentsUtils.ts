@@ -182,7 +182,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
   }
 
   async getAddressUtxos(address: string): Promise<UtxoInfo[]> {
-    let utxosRaw = await this._retryDced(() => this.getApi().getUtxosForAddress(address))
+    const utxosRaw = await this._retryDced(() => this.getApi().getUtxosForAddress(address))
     const txsById: { [txid: string]: NormalizedTxBitcoin } = {}
     const utxos: UtxoInfo[] = await Promise.all(utxosRaw.map(async (data) => {
       const { value, height, lockTime, coinbase } = data

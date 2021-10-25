@@ -99,7 +99,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
     const nonce = options.sequenceNumber || await this.getNextSequenceNumber(txFromAddress)
 
-    let ethBalance = await this.getEthBaseBalance(fromTo.fromAddress)
+    const ethBalance = await this.getEthBaseBalance(fromTo.fromAddress)
 
     if (feeBase.isGreaterThan(ethBalance)) {
       throw new PaymentsError(
@@ -184,7 +184,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     const feeOption = await this.resolveFeeOption(options, amountOfGas)
 
     const feeBase = new BigNumber(feeOption.feeBase)
-    let ethBalance = await this.getEthBaseBalance(signerAddress)
+    const ethBalance = await this.getEthBaseBalance(signerAddress)
     if (feeBase.isGreaterThan(ethBalance)) {
       throw new PaymentsError(
         PaymentsErrorCode.TxInsufficientBalance,
@@ -274,8 +274,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       status = TransactionStatus.Confirmed
       isExecuted = true
       // No trust to types description of web3
-      if (txReceipt && txReceipt.hasOwnProperty('status')
-        && (txReceipt.status === false || txReceipt.status.toString() === 'false')) {
+      if (txReceipt && (txReceipt?.status === false || txReceipt.status.toString() === 'false')) {
         status = TransactionStatus.Failed
         isExecuted = false
       }

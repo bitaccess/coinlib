@@ -3,7 +3,7 @@
 
 import { BIP32Interface as HDNode, fromBase58, fromSeed } from 'bip32'
 import { keccak256 } from 'js-sha3'
-import jsSHA from 'jssha'
+import JsSha from 'jssha'
 import { ec as EC } from 'elliptic'
 import crypto from 'crypto'
 
@@ -108,7 +108,7 @@ function bip32PrivateToTronPrivate(priKeyBytes: Buffer): string {
   while (priKeyHex.length < 64) {
     priKeyHex = `0${priKeyHex}`
   }
-  let privArray = hexStr2byteArray(priKeyHex)
+  const privArray = hexStr2byteArray(priKeyHex)
   return byteArray2hexStr(privArray)
 }
 
@@ -125,7 +125,7 @@ function byte2hexStr(byte: number): string {
 }
 
 function hexStr2byteArray(str: string): number[] {
-  const byteArray = Array()
+  const byteArray = []
   let d = 0
   let j = 0
   let k = 0
@@ -138,7 +138,7 @@ function hexStr2byteArray(str: string): number[] {
       d += hexChar2byte(c)
       j++
 
-      if (0 === j % 2) {
+      if (j % 2 === 0) {
         byteArray[k++] = d
         d = 0
       }
@@ -195,7 +195,7 @@ function addressBytesToB58CheckAddress(addressBytes: number[]) {
 }
 
 function SHA256(msgBytes: number[]): number[] {
-  const shaObj = new jsSHA('SHA-256', 'HEX')
+  const shaObj = new JsSha('SHA-256', 'HEX')
   const msgHex = byteArray2hexStr(msgBytes)
   shaObj.update(msgHex)
   const hashHex = shaObj.getHash('HEX')

@@ -255,13 +255,13 @@ export function estimateTxSize(
     checkUInt53(count)
     if (key.includes(':')) {
       // ex. "p2sh-p2ms:2-3" would mean 2 of 3 P2SH MULTISIG
-      let keyParts = key.split(':')
+      const keyParts = key.split(':')
       if (keyParts.length !== 2) throw new Error('invalid inputCounts key: ' + key)
-      let addressType = assertType(MultisigAddressType, keyParts[0], 'inputCounts key')
-      let [m,n] = keyParts[1].split('-').map((x) => parseInt(x))
+      const addressType = assertType(MultisigAddressType, keyParts[0], 'inputCounts key')
+      const [m,n] = keyParts[1].split('-').map((x) => parseInt(x))
 
       totalWeight += ADDRESS_INPUT_WEIGHTS[addressType] * count
-      let multiplyer = (addressType === AddressType.MultisigLegacy) ? 4 : 1
+      const multiplyer = (addressType === AddressType.MultisigLegacy) ? 4 : 1
       totalWeight += ((73 * m) + (34 * n)) * multiplyer * count
     } else {
       const addressType = assertType(SinglesigAddressType, key, 'inputCounts key')

@@ -5,8 +5,6 @@ import { Logger, DelegateLogger } from '@faast/ts-common'
 import type { TransactionConfig } from 'web3-core'
 import { AutoFeeLevels } from '@bitaccess/coinlib-common'
 
-type Eth = Web3['eth']
-
 import {
   DEFAULT_GAS_PRICE_IN_WEI,
   GAS_STATION_URL,
@@ -17,6 +15,8 @@ import {
 } from './constants'
 import { EthTxType } from './types'
 import { retryIfDisconnected } from './utils'
+
+type Eth = Web3['eth']
 
 export class NetworkData {
   private gasStationUrl: string | undefined

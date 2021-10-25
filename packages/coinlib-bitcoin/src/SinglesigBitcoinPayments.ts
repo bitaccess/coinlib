@@ -82,7 +82,7 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
 
     let inputsSigned = 0
 
-    for (let address of Object.keys(multisigData)) {
+    for (const address of Object.keys(multisigData)) {
       const addressMultisigData = multisigData[address]
       const { signerIndex, accountIds, signedAccountIds, publicKeys, inputIndices } = addressMultisigData
       const accountId = this.getAccountId(signerIndex)
@@ -109,7 +109,7 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
         )
       }
 
-      for (let inputIndex of inputIndices) {
+      for (const inputIndex of inputIndices) {
         psbt.signInput(inputIndex, keyPair)
         inputsSigned++
         this.logger.debug(`Signed tx input #${inputIndex} for address ${address}`)

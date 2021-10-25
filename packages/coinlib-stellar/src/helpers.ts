@@ -1,7 +1,6 @@
 import { createUnitConverters } from '@bitaccess/coinlib-common'
-import { isNil } from '@faast/ts-common'
+import { isNil, isString } from '@faast/ts-common'
 import * as Stellar from 'stellar-sdk'
-import { isString } from 'util'
 
 import { DECIMAL_PLACES } from './constants'
 

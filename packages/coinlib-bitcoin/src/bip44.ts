@@ -11,7 +11,7 @@ export { HDNode, bip32MagicNumberToPrefix }
  * @example "m/44'/0'/0'/1/23" -> ["44'", "0'", "0'", "1", "23"]
  */
 export function splitDerivationPath(path: string): string[] {
-  let parts = path.split('/')
+  const parts = path.split('/')
   if (parts[0] === 'm') {
     return parts.slice(1)
   }

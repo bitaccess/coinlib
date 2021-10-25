@@ -1,5 +1,5 @@
 import * as t from 'io-ts'
-import { extendCodec, Logger, optional } from '@faast/ts-common'
+import { extendCodec, Logger } from '@faast/ts-common'
 import { NetworkTypeT } from '@bitaccess/coinlib-common'
 import { TronPaymentsConfig, BaseTronPaymentsConfig, TronPaymentsUtils } from '@bitaccess/coinlib-tron'
 import { RipplePaymentsConfig, BaseRipplePaymentsConfig, RipplePaymentsUtils } from '@bitaccess/coinlib-ripple'

@@ -13,10 +13,6 @@ import { BaseBitcoinCashPayments } from './BaseBitcoinCashPayments'
 export abstract class SinglesigBitcoinCashPayments<Config extends SinglesigBitcoinCashPaymentsConfig>
   extends BaseBitcoinCashPayments<Config> {
 
-  constructor(config: SinglesigBitcoinCashPaymentsConfig) {
-    super(config)
-  }
-
   abstract getKeyPair(index: number): BitcoinjsKeyPair
 
   getPaymentScript(index: number) {

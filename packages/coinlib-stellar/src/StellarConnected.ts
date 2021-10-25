@@ -53,8 +53,8 @@ export abstract class StellarConnected {
     } else if (isStellarLedger(ledgerCallResult)) {
       raw = ledgerCallResult
     } else {
-      this.logger.log(`getBlock(${id ? id : ''}) ledgerCallResult`, ledgerCallResult)
-      throw new Error(`Cannot get stellar ledger ${id ? id : 'head'}`)
+      this.logger.log(`getBlock(${id || ''}) ledgerCallResult`, ledgerCallResult)
+      throw new Error(`Cannot get stellar ledger ${id || 'head'}`)
     }
     return {
       id: raw.hash,

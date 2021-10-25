@@ -23,7 +23,7 @@ export class RippleBalanceMonitor extends RippleConnected implements BalanceMoni
   }
 
   async subscribeAddresses(addresses: string[]) {
-    for (let address of addresses) {
+    for (const address of addresses) {
       assertValidAddress(address)
     }
     try {
@@ -40,11 +40,16 @@ export class RippleBalanceMonitor extends RippleConnected implements BalanceMoni
   }
 
   onBalanceActivity(callbackFn: BalanceActivityCallback) {
-    this.api.connection.on('transaction', async (tx: FormattedTransactionType) => {
-      const activity = await this.txToBalanceActivity(tx.address, tx)
-      if (activity) {
-        callbackFn(activity)
-      }
+    this.api.connection.on('transaction', (tx: FormattedTransactionType) => {
+      this.txToBalanceActivity(tx.address, tx)
+        .then((activity) => {
+          if (activity) {
+            return callbackFn(activity)
+          }
+        })
+        .catch(
+          (e) => this.logger.warn(`Error in onBalanceActivity handling ripple connection transaction event`)
+        )
     })
   }
 
@@ -117,7 +122,7 @@ export class RippleBalanceMonitor extends RippleConnected implements BalanceMoni
         throw e
       }
       this.logger.debug(`retrieved ripple txs for ${address}`, transactions)
-      for (let tx of transactions) {
+      for (const tx of transactions) {
         if ((lastTx && tx.id === lastTx.id) || from.gte(tx.outcome.ledgerVersion) || to.lte(tx.outcome.ledgerVersion)) {
           continue
         }

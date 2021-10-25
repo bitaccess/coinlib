@@ -46,7 +46,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
   }
 
   async subscribeAddresses(addresses: string[]) {
-    for (let address of addresses) {
+    for (const address of addresses) {
       this.utils.validateAddress(address)
     }
     await this.getApi().subscribeAddresses(addresses, async ({ address, tx }) => {
@@ -63,7 +63,13 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
   }
 
   onBalanceActivity(callbackFn: BalanceActivityCallback) {
-    this.events.on('activity', ({ activity, tx }) => callbackFn(activity, tx))
+    this.events.on('activity', ({ activity, tx }) => {
+      callbackFn(activity, tx)
+        ?.catch((e) => this.logger.error(
+          `Error in ${this.coinSymbol} ${this.networkType} onBalanceActivity callback`,
+          e,
+        ))
+    })
   }
 
   private accumulateAddressTx(
@@ -101,11 +107,11 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
       }
       // Aggregate all block txs by the addresses they apply to
       const addressTransactions: { [address: string]: Set<NormalizedTxBitcoin> } = {}
-      for (let tx of blockRaw.txs) {
-        for (let input of tx.vin) {
+      for (const tx of blockRaw.txs) {
+        for (const input of tx.vin) {
           this.accumulateAddressTx(addressTransactions, tx, input)
         }
-        for (let output of tx.vout) {
+        for (const output of tx.vout) {
           this.accumulateAddressTx(addressTransactions, tx, output)
         }
       }
@@ -121,9 +127,9 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
        * Hard lookup is needed for each tx, memoize to avoid redundant lookups.
        */
       const hardTxQueries: { [txid: string]: NormalizedTxBitcoin } = {}
-      for (let address of relevantAddresses) {
+      for (const address of relevantAddresses) {
         const txs = addressTransactions[address] ?? []
-        for (let { txid } of txs) {
+        for (const { txid } of txs) {
           const tx = (hardTxQueries[txid] ??= await this._retryDced(() => this.getApi().getTx(txid)))
           const activity = await this.txToBalanceActivity(address, tx)
           if (activity) {
@@ -151,7 +157,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
     ).toNumber()
 
     let page = 1
-    let limit = 10
+    const limit = 10
     let lastTx: NormalizedTxBitcoin | undefined
     let transactionPage: AddressDetailsBitcoinTxs | undefined
     let transactions: NormalizedTxBitcoin[] | undefined
@@ -178,7 +184,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
       if (!transactions || transactions.length === 0) {
         break
       }
-      for (let tx of transactions) {
+      for (const tx of transactions) {
         if (lastTx && tx.txid === lastTx.txid) {
           this.logger.debug('ignoring duplicate tx', tx)
           continue
@@ -216,7 +222,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
     const utxosSpent: UtxoInfo[] = []
     const utxosCreated: UtxoInfo[] = []
 
-    for (let input of tx.vin) {
+    for (const input of tx.vin) {
       if (this.extractStandardAddress(input) === standardizedAddress) {
         netSatoshis = netSatoshis.minus(input.value)
         const inputTxid = input.txid
@@ -243,7 +249,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
         })
       }
     }
-    for (let output of tx.vout) {
+    for (const output of tx.vout) {
       if (this.extractStandardAddress(output) === standardizedAddress) {
         netSatoshis = netSatoshis.plus(output.value)
         utxosCreated.push(this.utils.txVoutToUtxoInfo(tx, output))
