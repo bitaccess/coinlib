@@ -1,20 +1,16 @@
 import {
   PaymentsUtils,
   Payport,
-  ResolveablePayport,
   createUnitConverters,
-  MaybePromise,
   AutoFeeLevels,
   FeeRate,
   UtxoInfo,
   BalanceResult,
   TransactionStatus,
   TransactionOutput,
-  CreateTransactionOptions,
   BlockInfo,
-  FeeRateType,
-  FeeLevel,
   GetFeeRecommendationOptions,
+  GetTransactionInfoOptions,
 } from '@bitaccess/coinlib-common'
 import { isNil, assertType, Numeric, isUndefined } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
@@ -235,8 +231,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
 
   async getTransactionInfo(
     txId: string,
-    payport?: ResolveablePayport,
-    options?: CreateTransactionOptions
+    options?: GetTransactionInfoOptions
   ): Promise<BitcoinishTransactionInfo> {
     const tx = await this._retryDced(() => this.getApi().getTx(txId))
     const txSpecific = await this._retryDced(() => this.getApi().getTxSpecific(txId))
@@ -291,9 +286,10 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     const outputUtxos = tx.vout.map((output) => this.txVoutToUtxoInfo(tx, output as NormalizedTxBitcoinVout))
     const outputAddresses = outputUtxos.map(({ address }) => address)
 
-    const externalAddresses = options?.filterChangeAddresses ?
-      (await options.filterChangeAddresses(outputAddresses)) :
-      outputAddresses.filter((oA) => !changeAddresses.includes(oA))
+    let externalAddresses = outputAddresses.filter((oA) => !changeAddresses.includes(oA))
+    if (options?.filterChangeAddresses) {
+      externalAddresses = await options.filterChangeAddresses(externalAddresses)
+    }
 
     const externalOutputs = outputUtxos
       .map(({ address, value }) => ({ address, value }))
