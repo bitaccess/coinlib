@@ -18,5 +18,5 @@ export function generateMnemonic(): string {
 }
 
 export function mnemonicToSeed(mnemonic: string): string {
-  return bip39.mnemonicToSeedSync(mnemonic).toString('hex')
+  return bip39.mnemonicToSeed(mnemonic).toString('hex')
 }
