@@ -156,7 +156,7 @@ describeAll('e2e testnet', () => {
     }
     while (!testsComplete && (!tx || !endState.includes(tx.status))) {
       try {
-        tx = await payments.getTransactionInfo(txId, undefined, { changeAddress })
+        tx = await payments.getTransactionInfo(txId, { changeAddress })
       } catch (e) {
         if (e.message.includes('not found')) {
           logger.log('tx not found yet', txId, e.message)
@@ -273,7 +273,7 @@ describeAll('e2e testnet', () => {
 
     expect(signedTx.data.hex).toEqual(signedHex)
 
-    const tx = await hotWalletPayments.getTransactionInfo(mitxId, undefined, { changeAddress: changeAddresses } )
+    const tx = await hotWalletPayments.getTransactionInfo(mitxId, { changeAddress: changeAddresses })
     const expectedUtxos = [...forcedUtxos, ...availableUtxos]
       .map((u) => pick(u, ['txid', 'vout', 'value', 'address', 'satoshis']))
     const actualUtxos = tx.inputUtxos!
