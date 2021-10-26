@@ -52,9 +52,9 @@ describeAll('e2e multisig testnet', () => {
     testsComplete = true
   })
 
-  let HD_SIGNERS = 2
-  let KEYPAIR_SIGNERS = 2
-  let ADDRESSES_NEEDED_PER_SIGNER = 3
+  const HD_SIGNERS = 2
+  const KEYPAIR_SIGNERS = 2
+  const ADDRESSES_NEEDED_PER_SIGNER = 3
 
   // Derive arbitrary paths using the singlesig xprv so that all HD and keypair accounts are deterministic but unique
   const XPUBS: string[] = []
@@ -108,7 +108,7 @@ describeAll('e2e multisig testnet', () => {
     }),
   ]
 
-  for (let addressType of addressTypesToTest) {
+  for (const addressType of addressTypesToTest) {
     const address0 = ADDRESSES[addressType][0]
 
     describe(addressType, () => {
@@ -165,7 +165,7 @@ describeAll('e2e multisig testnet', () => {
       })
 
       describe('getAddress', () => {
-        for (let iS in Object.keys(ADDRESSES[addressType])) {
+        for (const iS of Object.keys(ADDRESSES[addressType])) {
           const i = parseInt(iS)
           it(`can get address ${i}`, async () => {
             const address = payments.getAddress(i)
@@ -224,7 +224,7 @@ describeAll('e2e multisig testnet', () => {
         }
         while (!testsComplete && (!tx || !endState.includes(tx.status))) {
           try {
-            tx = await payments.getTransactionInfo(txId, undefined, { changeAddress })
+            tx = await payments.getTransactionInfo(txId, { changeAddress })
           } catch (e) {
             if (e.message.includes('not found')) {
               logger.log('tx not found yet', txId, e.message)

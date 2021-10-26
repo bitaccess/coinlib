@@ -1,10 +1,10 @@
 import Web3 from 'web3'
-const web3 = new Web3()
 import { EthereumPaymentsUtils } from '../src/EthereumPaymentsUtils'
 import { hdAccount } from './fixtures/accounts'
 
 import { TestLogger } from '../../../common/testUtils'
 import { EthereumAddressFormat } from '../src/types';
+const web3 = new Web3()
 const logger = new TestLogger('EthereumPaymentUtilssTest')
 
 const INVALID_ADDRESS = 'totally invalid'

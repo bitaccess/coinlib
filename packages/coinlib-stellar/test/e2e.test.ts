@@ -165,7 +165,7 @@ describe('e2e', () => {
         targetFeeLevel: FeeLevel.Custom,
         targetFeeRateType: FeeRateType.Main,
       })).rejects.toThrow(
-        'submitTransaction failed: Request failed with status code 400 -- {\"type\":\"https://stellar.org/horizon-errors/transaction_failed\"'
+        'submitTransaction failed: Request failed with status code 400 -- {"type":"https://stellar.org/horizon-errors/transaction_failed"'
       )
     })
   })
@@ -173,6 +173,7 @@ describe('e2e', () => {
   async function pollTxId(txId: string) {
     logger.log('polling until ended', txId)
     let tx: StellarTransactionInfo | undefined
+    // eslint-disable-next-line no-unmodified-loop-condition
     while (!testsComplete && (!tx || !END_TRANSACTION_STATES.includes(tx.status) || tx.confirmations === 0)) {
       try {
         tx = await payments.getTransactionInfo(txId)

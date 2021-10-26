@@ -8,7 +8,7 @@ describe('BitcoinCashPaymentUtils', () => {
 
   describe('getFeeRateRecommendation', () => {
     it('should return a value', async () => {
-      expect(await pu.getFeeRateRecommendation(FeeLevel.Medium)).toBeDefined()
+      expect(pu.getFeeRateRecommendation(FeeLevel.Medium)).toBeDefined()
     })
   })
 
@@ -23,10 +23,10 @@ describe('BitcoinCashPaymentUtils', () => {
 
   describe('getPayportValidationMessage', () => {
     it('returns string for empty object', async () => {
-      expect(await pu.getPayportValidationMessage({} as any)).toMatch('Invalid payport')
+      expect(pu.getPayportValidationMessage({} as any)).toMatch('Invalid payport')
     })
     it('return string for valid address with invalid extraId', async () => {
-      expect(await pu.getPayportValidationMessage({ address: ADDRESS_CASH, extraId: '' })).toMatch('Invalid payport')
+      expect(pu.getPayportValidationMessage({ address: ADDRESS_CASH, extraId: '' })).toMatch('Invalid payport')
     })
   })
 

@@ -291,7 +291,6 @@ describeAll('e2e mainnet', () => {
 
     it('get multi output send', async () => {
       const tx = await payments.getTransactionInfo('3909748b7180634861df44c61bf17c0c0509c87dfb33dc9442639cc4eb97939c',
-        undefined,
         { filterChangeAddresses: async () => {
           return [
             'bitcoincash:pzputkzlp6vm05sqkc47tz8ql6pfm2wzpsycz64tvn',
@@ -340,7 +339,7 @@ describeAll('e2e mainnet', () => {
     it('get correct xpub', async () => {
       expect(payments.xpub).toEqual(xpub)
     })
-    for (let iStr in addresses) {
+    for (const iStr in addresses) {
       const i = Number.parseInt(iStr)
       it(`get correct address for index ${i}`, async () => {
         expect(await payments.getPayport(i)).toEqual({ address: (addresses as any)[i] })
@@ -399,7 +398,7 @@ describeAll('e2e mainnet', () => {
       const indicesToTry = [7, 8]
       const balances: { [address: string]: BalanceResult } = {}
       let indexToSend: number = -1
-      let { confirmedBalance: highestBalance } = await payments.getBalance(indicesToTry[0])
+      const { confirmedBalance: highestBalance } = await payments.getBalance(indicesToTry[0])
       for (let i = 1; i < indicesToTry.length; i++) {
         const index = indicesToTry[i]
         const address = payments.getAddress(index)

@@ -9,9 +9,9 @@ import { TransactionStatus, NetworkType } from '@bitaccess/coinlib-common'
 import { omit } from 'lodash'
 import * as Stellar from 'stellar-sdk'
 import { PACKAGE_NAME } from '../src/constants'
+import { TestLogger } from '../../../common/testUtils'
 
 export * from '../../../common/testUtils'
-import { TestLogger } from '../../../common/testUtils'
 export const logger = new TestLogger(PACKAGE_NAME)
 
 const TESTNET_SERVER = 'https://horizon-testnet.stellar.org'

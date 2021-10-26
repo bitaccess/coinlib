@@ -33,7 +33,7 @@ describe('types', () => {
     expect(() => assertType(BalanceResult, {})).toThrow()
   })
   test('TransactionStatusT validates successfully', () => {
-    for (let status of Object.values(TransactionStatus)) {
+    for (const status of Object.values(TransactionStatus)) {
       assertType(TransactionStatusT, status)
     }
   })

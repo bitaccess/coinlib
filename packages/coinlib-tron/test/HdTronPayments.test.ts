@@ -196,7 +196,7 @@ describe('HdTronPayments', () => {
 
   describe('static', () => {
     it('generateNewKeys should return xprv and xpub', async () => {
-      let keys = HdTronPayments.generateNewKeys()
+      const keys = HdTronPayments.generateNewKeys()
       expect(keys.xpub).toMatch(/^xpub\w{107}/)
       expect(keys.xprv).toMatch(/^xprv\w{107}/)
     })

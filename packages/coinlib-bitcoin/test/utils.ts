@@ -1,11 +1,11 @@
 import { PACKAGE_NAME } from '../src/constants'
 import { UtxoInfo } from '@bitaccess/coinlib-common'
-
-export * from '../../../common/testUtils'
 import { TestLogger } from '../../../common/testUtils'
 import { BitcoinishTxOutput } from '../src/bitcoinish/types'
 import { toBaseDenominationNumber } from '../src'
 import { omit } from 'lodash'
+
+export * from '../../../common/testUtils'
 export const logger = new TestLogger(PACKAGE_NAME)
 
 export function makeUtxos(confirmedValues: string[], unconfirmedValues: string[] = []): UtxoInfo[] {
