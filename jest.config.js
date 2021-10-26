@@ -2,13 +2,13 @@ const base = require('@faast/ts-config/library/jest.config.js')
 
 module.exports = Object.assign({}, base, {
   'testRunner': 'jest-circus/runner',
-  "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
+  'moduleFileExtensions': [
+    'js',
+    'json',
+    'ts'
+  ],
   'transformIgnorePatterns': [
     '/node_modules/',
-    `/dist/`,
-  ],
+    '/dist/',
+  ]
 })
