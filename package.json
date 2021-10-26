@@ -41,12 +41,11 @@
     "link": "lerna link convert && link-parent-bin",
     "postinstall": "link-parent-bin",
     "clean-node-modules": "lerna exec -- rm -rf node_modules && rm -rf node_modules",
-    "freshinstall": "npm run clean-node-modules && npm install"
+    "cleaninstall": "npm run clean-node-modules && npm install"
   },
   "devDependencies": {
     "@faast/ts-common": "^0.6.0",
     "@faast/ts-config": "^1.3.5",
-    "@types/bip39": "^2.4.2",
     "@types/bs58": "^4.0.1",
     "@types/elliptic": "^6.4.10",
     "@types/jest": "^27.0.2",
@@ -91,7 +90,8 @@
     "ts-node": "^8.10.2",
     "tsconfig-paths": "^3.9.0",
     "typescript": "^4.4.4",
-    "web3-core": "^1.3.6"
+    "web3-core": "^1.3.6",
+    "web3-provider-engine": "^16.0.3"
   },
   "dependencies": {
     "@bitaccess/coinlib": "file:packages/coinlib",
