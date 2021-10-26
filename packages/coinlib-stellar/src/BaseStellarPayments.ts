@@ -331,7 +331,7 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
         })
 
     const preparedTx = new Stellar.TransactionBuilder(sourceAccount, {
-        fee: Number.parseInt(feeBase),
+        fee: feeBase,
         networkPassphrase: this.getStellarNetwork(),
         memo: toExtraId ? Stellar.Memo.text(toExtraId) : undefined,
       })

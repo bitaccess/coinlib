@@ -10,7 +10,7 @@ import { Numeric, isUndefined } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
 import { EventEmitter } from 'events'
 
-import { padLeft, omitHidden } from './utils';
+import { padLeft } from './utils'
 import { StellarRawTransaction, StellarCollectionPage } from './types'
 import { assertValidAddress } from './helpers'
 import { StellarConnected } from './StellarConnected'
