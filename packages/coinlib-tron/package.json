@@ -58,6 +58,6 @@
     "jssha": "^2.3.1",
     "lodash": "^4.17.15",
     "promise-retry": "^1.1.1",
-    "tronweb": "^2.10.1"
+    "tronweb": "^4.0.0"
   }
 }

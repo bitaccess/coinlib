@@ -61,7 +61,7 @@ export function decode58(s: string): number[] {
   const bytes = [0]
 
   for (i = 0; i < s.length; i++) {
-    const c = s[i]
+    const c: string = s[i]
 
     if (!(c in ALPHABET_MAP)) {
       throw new Error('Non-base58 character')
