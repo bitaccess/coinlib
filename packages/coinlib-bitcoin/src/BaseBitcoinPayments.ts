@@ -205,7 +205,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
       throw new Error('Invalid tx: Missing data.change')
     }
 
-    /// / Check inputs
+    // Check inputs
 
     if (inputUtxos.length !== data.inputs.length) {
       throw new Error(
@@ -228,7 +228,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
       inputTotal = inputTotal.plus(data.inputs[i].value)
     }
 
-    /// / Check outputs
+    // Check outputs
 
     if (externalOutputs.length !== data.externalOutputs.length) {
       throw new Error(
@@ -275,7 +275,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
       }
     }
 
-    /// / Check totals
+    // Check totals
 
 
     if (data.inputTotal && !inputTotal.eq(data.inputTotal)) {

@@ -360,7 +360,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const feeBefore = tbc.feeSat
     tbc.feeSat += feeSatAdjustment
     this.logger.log(`${this.coinSymbol} buildPaymentTx - Adjusted fee from ${feeBefore} sat to ${tbc.feeSat} sat for ${description}`)
-
   }
 
   /* Select inputs, calculate appropriate fee, set fee, adjust output amounts if necessary */
