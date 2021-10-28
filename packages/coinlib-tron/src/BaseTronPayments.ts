@@ -47,10 +47,6 @@ export abstract class BaseTronPayments<Config extends BaseTronPaymentsConfig> ex
   // strings instead of Errors and now we need to convert them all ourselves
   // to be consistent.
 
-  constructor(config: Config) {
-    super(config)
-  }
-
   abstract getFullConfig(): Config
   abstract getPublicConfig(): Config
   abstract getAccountId(index: number): string

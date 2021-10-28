@@ -280,9 +280,26 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
   }
 
   private sendTransactionWithoutConfirmation(txHex: string): Promise<string> {
-    return this._retryDced(() => new Promise((resolve, reject) => this.eth.sendSignedTransaction(txHex)
-        .on('transactionHash', resolve)
-        .on('error', reject)))
+    return this._retryDced(() => new Promise((resolve, reject) => {
+      let done = false
+      const errorHandler = (e: Error) => {
+        if (!done) {
+          done = true
+          reject(e)
+        }
+      }
+      const successHandler = (hash: string) => {
+        if (!done) {
+          done = true
+          resolve(hash)
+        }
+      }
+      this.eth.sendSignedTransaction(txHex)
+        .on('transactionHash', successHandler)
+        .on('error', errorHandler)
+        .then((r) => successHandler(r.transactionHash))
+        .catch(errorHandler)
+    }))
   }
 
   async broadcastTransaction(tx: EthereumSignedTransaction): Promise<EthereumBroadcastResult> {

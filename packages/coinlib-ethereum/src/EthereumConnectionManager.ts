@@ -20,6 +20,6 @@ export class EthereumConnectionManager implements PaymentsConnectionManager<
   }
 
   setConnection(config: EthereumPaymentsUtilsConfig, web3: Web3) {
-    return config.web3 = web3
+    config.web3 = web3
   }
 }

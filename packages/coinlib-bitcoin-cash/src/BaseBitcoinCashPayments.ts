@@ -127,9 +127,9 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
   async buildPsbt(paymentTx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<bitcoin.Psbt> {
     const { inputs, outputs } = paymentTx
     const inputPaymentScript = this.getPaymentScript(fromIndex)
-    let psbt = new bitcoin.Psbt(this.psbtOptions)
+    const psbt = new bitcoin.Psbt(this.psbtOptions)
     const hashType = bitcoin.Transaction.SIGHASH_ALL | bitcoin.Transaction.SIGHASH_BITCOINCASHBIP143
-    for (let input of inputs) {
+    for (const input of inputs) {
       psbt.addInput({
         ...await this.getPsbtInputData(
           input,
@@ -138,7 +138,7 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
         sighashType: hashType
       })
     }
-    for (let output of outputs) {
+    for (const output of outputs) {
       psbt.addOutput({
         address: bchAddr.toLegacyAddress(output.address),
         value: this.toBaseDenominationNumber(output.value)

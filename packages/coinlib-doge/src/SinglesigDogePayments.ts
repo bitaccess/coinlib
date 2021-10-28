@@ -12,10 +12,6 @@ import { BaseDogePayments } from './BaseDogePayments'
 export abstract class SinglesigDogePayments<Config extends SinglesigDogePaymentsConfig>
   extends BaseDogePayments<Config> {
 
-  constructor(config: SinglesigDogePaymentsConfig) {
-    super(config)
-  }
-
   abstract getKeyPair(index: number): BitcoinjsKeyPair
 
   getPaymentScript(index: number): bitcoin.payments.Payment {

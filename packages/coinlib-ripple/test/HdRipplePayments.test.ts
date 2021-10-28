@@ -23,7 +23,7 @@ function commonTests(rp: HdRipplePayments) {
 describe('HdRipplePayments', () => {
   describe('static', () => {
     it('generateNewKeys should return xprv and xpub', async () => {
-      let keys = HdRipplePayments.generateNewKeys()
+      const keys = HdRipplePayments.generateNewKeys()
       expect(keys.xpub).toMatch(XPUB_REGEX)
       expect(keys.xprv).toMatch(XPRV_REGEX)
     })
@@ -40,7 +40,7 @@ describe('HdRipplePayments', () => {
     })
   })
   describe('xprv', () => {
-    let rp = new HdRipplePayments({ hdKey: XPRV })
+    const rp = new HdRipplePayments({ hdKey: XPRV })
     it('should not be readonly', () => {
       expect(rp.isReadOnly()).toBe(false)
     })
@@ -57,7 +57,7 @@ describe('HdRipplePayments', () => {
     commonTests(rp)
   })
   describe('xpub', () => {
-    let rp = new HdRipplePayments({ hdKey: XPUB })
+    const rp = new HdRipplePayments({ hdKey: XPUB })
     it('should be readonly', () => {
       expect(rp.isReadOnly()).toBe(true)
     })

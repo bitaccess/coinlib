@@ -1,5 +1,7 @@
+import { RequestBodyMatcher } from 'nock/types'
+
 interface Mock {
-  req: Object
+  req: RequestBodyMatcher
   res: Object
 }
 
@@ -133,7 +135,7 @@ export function getEstimateGasMocks(id: number | RegExp, from: string, to: strin
     }
   }
 }
-function getNextNonceRequest(id: number | RegExp, address: string): Object {
+function getNextNonceRequest(id: number | RegExp, address: string): RequestBodyMatcher {
   return {
     jsonrpc: '2.0',
     method:'parity_nextNonce',
@@ -150,7 +152,7 @@ function getNextNonceResponse(id: number | RegExp, nonce: string): Object {
   }
 }
 
-function getBalanceRequest(id: number | RegExp, address: string): Object {
+function getBalanceRequest(id: number | RegExp, address: string): RequestBodyMatcher {
   return {
     jsonrpc:'2.0',
     id,
@@ -167,7 +169,7 @@ function getBalanceResponse(id: number | RegExp, balance: string): Object {
   }
 }
 
-function getTransactionCountRequest(id: number | RegExp, address: string): Object {
+function getTransactionCountRequest(id: number | RegExp, address: string): RequestBodyMatcher {
   return {
     jsonrpc:'2.0',
     method:'eth_getTransactionCount',
@@ -184,7 +186,7 @@ function getTransactionCountResponse(id: number | RegExp, nonce: string): Object
   }
 }
 
-function getSendRawTransactionRequest(id: number | RegExp, rawTx: string): Object {
+function getSendRawTransactionRequest(id: number | RegExp, rawTx: string): RequestBodyMatcher {
   return {
     jsonrpc: '2.0',
     method: 'eth_sendRawTransaction',
@@ -201,7 +203,7 @@ function getSendRawTransactionResponse(id: number | RegExp, txHash: string): Obj
   }
 }
 
-function getTransactionReceiptRequest(id: number | RegExp, txHash: string): Object {
+function getTransactionReceiptRequest(id: number | RegExp, txHash: string): RequestBodyMatcher {
   return {
     jsonrpc: '2.0',
     id,
@@ -230,7 +232,7 @@ function getTransactionReceiptResponse(id: number | RegExp, from: string, to:str
   }
 }
 
-function getTransactionByHashRequest(id: number | RegExp, txHash: string): Object {
+function getTransactionByHashRequest(id: number | RegExp, txHash: string): RequestBodyMatcher {
   return {
     jsonrpc: '2.0',
     id,
@@ -259,7 +261,7 @@ function getTransactionByHashResponse(id: number | RegExp, txHash: string, block
   }
 }
 
-function getBlockNumberRequest(id: number | RegExp): Object {
+function getBlockNumberRequest(id: number | RegExp): RequestBodyMatcher {
   return {
     jsonrpc: '2.0',
     id,
@@ -276,7 +278,7 @@ function getBlockNumberResponse(id: number | RegExp, count: string): Object {
   }
 }
 
-function getBlockByNumberRequest(id: number | RegExp, blockNumber: string): Object {
+function getBlockByNumberRequest(id: number | RegExp, blockNumber: string): RequestBodyMatcher {
   return {
     jsonrpc: '2.0',
     id,

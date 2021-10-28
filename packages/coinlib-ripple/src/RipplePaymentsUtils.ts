@@ -31,10 +31,6 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
   readonly coinName = COIN_NAME
   readonly coinDecimals = DECIMAL_PLACES
 
-  constructor(config: BaseRippleConfig) {
-    super(config)
-  }
-
   isValidExtraId(extraId: string): boolean {
     return isValidExtraId(extraId)
   }

@@ -17,14 +17,6 @@ import {
 } from './types'
 import { PaymentsUtils } from './PaymentsUtils'
 
-export type AnyPayments<C extends object = any> = BasePayments<
-  C,
-  BaseUnsignedTransaction,
-  BaseSignedTransaction,
-  BaseBroadcastResult,
-  BaseTransactionInfo
->
-
 /**
  * An interface that provides the necessary tools for accepting and sending payments for a currency.
  */
@@ -203,3 +195,11 @@ export interface BasePayments<
    */
   broadcastTransaction<O extends object>(signedTx: SignedTransaction, options?: O): Promise<BroadcastResult>
 }
+
+export type AnyPayments<C extends object = any> = BasePayments<
+  C,
+  BaseUnsignedTransaction,
+  BaseSignedTransaction,
+  BaseBroadcastResult,
+  BaseTransactionInfo
+>

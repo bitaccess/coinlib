@@ -104,7 +104,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
   getAddressType(address: string, index: number): AddressType {
     const standartizedAddress = this.standardizeAddress(address)
-    for (let addressType of this.getSupportedAddressTypes()!) {
+    for (const addressType of this.getSupportedAddressTypes()!) {
       if (standartizedAddress === this.getAddress(index, addressType)) {
         return addressType
       }
@@ -126,7 +126,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       }
       return { ...payport, address: this.standardizeAddress(payport.address)! }
     } else if (DerivablePayport.is(payport)) {
-      let { addressType = this.addressType } = payport
+      const { addressType = this.addressType } = payport
       return { address: this.getAddress(payport.index, addressType as AddressType) }
     } else {
       throw new Error('Invalid payport')
@@ -182,9 +182,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const utxos = await this.getAddressUtxos(address)
 
     if (typeof payport === 'number') {
-      utxos.forEach((u: UtxoInfo) => u.signer = payport)
+      utxos.forEach((u: UtxoInfo) => { u.signer = payport })
     } else if (DerivablePayport.is(payport)) {
-      utxos.forEach((u: UtxoInfo) => u.signer = payport.index)
+      utxos.forEach((u: UtxoInfo) => { u.signer = payport.index })
     }
 
     return utxos
@@ -342,7 +342,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
           + `of desired output total (${tbc.desiredOutputTotal} sat)`
       )
     }
-    let feeSatAdjustment = newFeeSat - tbc.feeSat
+    const feeSatAdjustment = newFeeSat - tbc.feeSat
     if (!tbc.recipientPaysFee && !tbc.isSweep) {
       this.applyFeeAdjustment(tbc, feeSatAdjustment, description)
       return
@@ -360,7 +360,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const feeBefore = tbc.feeSat
     tbc.feeSat += feeSatAdjustment
     this.logger.log(`${this.coinSymbol} buildPaymentTx - Adjusted fee from ${feeBefore} sat to ${tbc.feeSat} sat for ${description}`)
-    return
   }
 
   /* Select inputs, calculate appropriate fee, set fee, adjust output amounts if necessary */
@@ -426,7 +425,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const idealSolutionMinSat = tbc.desiredOutputTotal + (tbc.recipientPaysFee ? 0 : idealSolutionFeeSat)
     const idealSolutionMaxSat = idealSolutionMinSat + this.dustThreshold
     let selectedTotal = 0
-    for (let utxo of utxosSelected) {
+    for (const utxo of utxosSelected) {
       selectedTotal += utxo.satoshis
     }
     return selectedTotal >= idealSolutionMinSat && selectedTotal <= idealSolutionMaxSat
@@ -601,6 +600,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         return true
       }
       this.logger.log(`${this.coinSymbol} buildPaymentTx - Ignoring dust utxo (${minUtxoSatoshis} sat or lower) ${utxo.txid}:${utxo.vout}`)
+      return false
     })
   }
 
@@ -653,7 +653,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       tbc.externalOutputTotal += satoshis
       tbc.desiredOutputTotal += satoshis
     }
-    for (let address of tbc.changeAddress) {
+    for (const address of tbc.changeAddress) {
       if (!this.isValidAddress(address)) {
         throw new Error (`Invalid ${this.coinSymbol} change address ${address} provided`)
       }
@@ -841,7 +841,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         changeAddress = [options.changeAddress]
       }
     } else {
-      let { address } = await this.resolvePayport(from)
+      const { address } = await this.resolvePayport(from)
       changeAddress = [address]
     }
     const paymentTx = await this.buildPaymentTx({
@@ -937,11 +937,11 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
     const unusedUtxos = []
     if (options.availableUtxos) {
-      for (let u of options.availableUtxos) {
+      for (const u of options.availableUtxos) {
         unusedUtxos.push(u)
       }
     } else {
-      for(let f of from) {
+      for(const f of from) {
         unusedUtxos.push(...(await this.getUtxos(f)))
       }
     }
@@ -955,7 +955,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         changeAddress = [options.changeAddress]
       }
     } else {
-      let { address } = await this.resolvePayport(from[0])
+      const { address } = await this.resolvePayport(from[0])
       changeAddress = [address]
     }
 

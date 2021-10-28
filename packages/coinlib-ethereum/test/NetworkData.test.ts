@@ -1,7 +1,5 @@
 import { NetworkData } from '../src/NetworkData'
 
-const nock = require('nock')
-
 import {
   getEstimateGasMocks,
   getGasPriceMocks,
@@ -11,6 +9,8 @@ import {
 } from './fixtures/mocks'
 import { FeeLevel } from '@bitaccess/coinlib-common'
 import { TestLogger } from '../../../common/testUtils'
+import nock from 'nock'
+import Web3 from 'web3'
 
 const logger = new TestLogger('ethereum-payments.NetworkData')
 
@@ -25,7 +25,6 @@ describe('NetworkData', () => {
   const nockP = nock(PARITY_URL)
   const nockI = nock(INFURA_URL)
 
-  const Web3 = require('web3')
   const web3 = new Web3(INFURA_URL)
 
   const from = web3.eth.accounts.create().address.toLowerCase()
@@ -86,13 +85,13 @@ describe('NetworkData', () => {
     let transactionCountMocks = getTransactionCountMocks(id++, from, '')
     nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
-    let gasPriceMock = getGasPriceMocks(id++, '')
+    const gasPriceMock = getGasPriceMocks(id++, '')
     nockI.post(/.*/, gasPriceMock.req).reply(200, gasPriceMock.res)
 
     transactionCountMocks = getTransactionCountMocks(id++, from, '')
     nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
-    let estimateGasPriceMock = getEstimateGasMocks(id++, from, to, '')
+    const estimateGasPriceMock = getEstimateGasMocks(id++, from, to, '')
     nockI.post(/.*/, estimateGasPriceMock.req).reply(200, estimateGasPriceMock.res)
 
     const parityMock = getNextNonceMocks(1, from, '')
@@ -117,13 +116,13 @@ describe('NetworkData', () => {
     let transactionCountMocks = getTransactionCountMocks(id++, from, '')
     nockI.post(/.*/, transactionCountMocks.req).reply(400)
 
-    let gasPriceMock = getGasPriceMocks(id++, '')
+    const gasPriceMock = getGasPriceMocks(id++, '')
     nockI.post(/.*/, gasPriceMock.req).reply(200, gasPriceMock.res)
 
     transactionCountMocks = getTransactionCountMocks(id++, from, '')
     nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
 
-    let estimateGasPriceMock = getEstimateGasMocks(id++, from, to, '')
+    const estimateGasPriceMock = getEstimateGasMocks(id++, from, to, '')
     nockI.post(/.*/, estimateGasPriceMock.req).reply(200, estimateGasPriceMock.res)
 
     const parityMock = getNextNonceMocks(1, from, '0x1b')

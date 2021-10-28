@@ -10,7 +10,7 @@ import { Numeric, isUndefined } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
 import { EventEmitter } from 'events'
 
-import { padLeft, omitHidden } from './utils';
+import { padLeft } from './utils'
 import { StellarRawTransaction, StellarCollectionPage } from './types'
 import { assertValidAddress } from './helpers'
 import { StellarConnected } from './StellarConnected'
@@ -27,10 +27,10 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
   }
 
   async subscribeAddresses(addresses: string[]) {
-    for (let address of addresses) {
+    for (const address of addresses) {
       assertValidAddress(address)
     }
-    for (let address of addresses) {
+    for (const address of addresses) {
       try {
         const cancel = this.getApi().transactions().cursor('now').forAccount(address).stream({
           onmessage: (value) => {
@@ -50,11 +50,16 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
   }
 
   onBalanceActivity(callbackFn: BalanceActivityCallback) {
-    this.txEmitter.on('tx', async ({ address, tx }) => {
-      const activity = await this.txToBalanceActivity(address, tx)
-      if (activity) {
-        callbackFn(activity)
-      }
+    this.txEmitter.on('tx', ({ address, tx }) => {
+      this.txToBalanceActivity(address, tx)
+        .then((activity) => {
+          if (activity) {
+            return callbackFn(activity)
+          }
+        })
+        .catch((e) => this.logger.error(
+          `Error in Stellar ${this.networkType} onBalanceActivity handling of new activity`, e
+        ))
     })
   }
 
@@ -103,7 +108,7 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
       }
       const transactions = transactionPage.records
       this.logger.debug(`retrieved stellar txs for ${address}`, JSON.stringify(transactions.map(({ id }) => id)))
-      for (let tx of transactions) {
+      for (const tx of transactions) {
         if ((lastTx && tx.id === lastTx.id) || !(from.lt(tx.ledger_attr) && to.gt(tx.ledger_attr))) {
           continue
         }

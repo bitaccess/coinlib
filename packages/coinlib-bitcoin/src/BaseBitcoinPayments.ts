@@ -123,8 +123,8 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
   async buildPsbt(paymentTx: BitcoinishPaymentTx, fromIndex?: number): Promise<bitcoin.Psbt> {
     const { inputs, outputs } = paymentTx
 
-    let psbt = new bitcoin.Psbt(this.psbtOptions)
-    for (let input of inputs) {
+    const psbt = new bitcoin.Psbt(this.psbtOptions)
+    for (const input of inputs) {
       const signer = input.signer ?? fromIndex
       if (typeof signer === 'undefined') {
         throw new Error('Signer index for utxo is not provided')
@@ -137,7 +137,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
         addressType,
       ))
     }
-    for (let output of outputs) {
+    for (const output of outputs) {
       psbt.addOutput({
         address: output.address,
         value: this.toBaseDenominationNumber(output.value)
@@ -205,7 +205,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
       throw new Error('Invalid tx: Missing data.change')
     }
 
-    //// Check inputs
+    // Check inputs
 
     if (inputUtxos.length !== data.inputs.length) {
       throw new Error(
@@ -228,7 +228,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
       inputTotal = inputTotal.plus(data.inputs[i].value)
     }
 
-    //// Check outputs
+    // Check outputs
 
     if (externalOutputs.length !== data.externalOutputs.length) {
       throw new Error(
@@ -275,7 +275,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
       }
     }
 
-    //// Check totals
+    // Check totals
 
 
     if (data.inputTotal && !inputTotal.eq(data.inputTotal)) {

@@ -47,12 +47,12 @@ const tokenDistributor = {
 
 const target = { address: '0x62b72782415394f1518da5ec4de6c4c49b7bf854'} // payport 1
 
-let TOKEN_CONFIG = {
+const TOKEN_CONFIG = {
   network: NetworkType.Testnet,
   fullNode: `${LOCAL_NODE}:${LOCAL_PORT}`,
   parityNode: 'none',
   gasStation: 'none',
-  hdKey: tokenIssuer.xkeys.xprv,//hdAccount.root.KEYS.xprv,
+  hdKey: tokenIssuer.xkeys.xprv,// hdAccount.root.KEYS.xprv,
   logger,
   abi: CONTRACT_JSON,
   tokenAddress: '',
@@ -62,7 +62,7 @@ let TOKEN_CONFIG = {
 
 let hd: HdErc20Payments
 let ethereumHD: HdEthereumPayments
-let HD_CONFIG = {
+const HD_CONFIG = {
   network: NetworkType.Testnet,
   fullNode: `${LOCAL_NODE}:${LOCAL_PORT}`,
   parityNode: 'none',
@@ -135,7 +135,7 @@ describe('end to end tests', () => {
       expect(confirmedSourceBalance).toEqual('6500000000')
     })
 
-    let depositAddresses: Array<string> = []
+    const depositAddresses: Array<string> = []
     let masterAddress: string
 
     test('Deriving and Deploying DepositAddress payments', async () => {
@@ -212,10 +212,10 @@ describe('end to end tests', () => {
 
       // make some txs just to confirm previous
       while(txInfo.status !== 'confirmed') {
-        let uCD = await ethereumHD.createServiceTransaction(undefined, { data: CONTRACT_BYTECODE, gas: CONTRACT_GAS })
-        let sCD = await ethereumHD.signTransaction(uCD)
-        let dC = await ethereumHD.broadcastTransaction(sCD)
-        let cInfo = await ethereumHD.getTransactionInfo(dC.id)
+        const uCD = await ethereumHD.createServiceTransaction(undefined, { data: CONTRACT_BYTECODE, gas: CONTRACT_GAS })
+        const sCD = await ethereumHD.signTransaction(uCD)
+        const dC = await ethereumHD.broadcastTransaction(sCD)
+        const cInfo = await ethereumHD.getTransactionInfo(dC.id)
         txInfo = await hd.getTransactionInfo(broadcastedTx.id)
       }
 

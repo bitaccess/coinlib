@@ -1,5 +1,4 @@
 /// <reference types='node'/>
-/// <reference types='stellar-base'/>
 
 declare module 'stellar-hd-wallet' {
   import { Keypair } from 'stellar-base'

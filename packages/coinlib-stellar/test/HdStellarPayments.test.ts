@@ -43,7 +43,7 @@ function commonTests(payments: HdStellarPayments) {
 describe('HdStellarPayments', () => {
   describe('static', () => {
     it('generateMnemonic should return valid mnemonic', async () => {
-      let mnemonic = HdStellarPayments.generateMnemonic()
+      const mnemonic = HdStellarPayments.generateMnemonic()
       expect(bip39.validateMnemonic(mnemonic)).toBe(true)
     })
     it('should throw on invalid seed', () => {
@@ -59,11 +59,11 @@ describe('HdStellarPayments', () => {
     })
   })
   describe('mnemonic', () => {
-    let rp = new HdStellarPayments({ seed: MNEMONIC })
+    const rp = new HdStellarPayments({ seed: MNEMONIC })
     commonTests(rp)
   })
   describe('seed', () => {
-    let rp = new HdStellarPayments({ seed: SEED })
+    const rp = new HdStellarPayments({ seed: SEED })
     commonTests(rp)
   })
 })

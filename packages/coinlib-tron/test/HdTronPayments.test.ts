@@ -196,7 +196,7 @@ describe('HdTronPayments', () => {
 
   describe('static', () => {
     it('generateNewKeys should return xprv and xpub', async () => {
-      let keys = HdTronPayments.generateNewKeys()
+      const keys = HdTronPayments.generateNewKeys()
       expect(keys.xpub).toMatch(/^xpub\w{107}/)
       expect(keys.xprv).toMatch(/^xprv\w{107}/)
     })
@@ -343,8 +343,8 @@ describe('HdTronPayments', () => {
         while (!testsComplete && (!tx || !END_TRANSACTION_STATES.includes(tx.status) || tx.confirmations === 0)) {
           try {
             tx = await tp.getTransactionInfo(txId)
-          } catch (e) {
-            if (e.message.includes('Transaction not found')) {
+          } catch (e: any) {
+            if (e?.message?.includes('Transaction not found')) {
               logger.log('tx not found yet', txId, e.message)
             } else {
               throw e
@@ -405,8 +405,8 @@ describe('HdTronPayments', () => {
           const tx = await pollUntilEnded(signedTx)
           expect(tx.amount).toEqual(signedTx.amount)
           expect(tx.fee).toEqual(signedTx.fee)
-        } catch (e) {
-          if ((e.message || (e as string)).includes('Validate TransferContract error, balance is not sufficient')) {
+        } catch (e: any) {
+          if ((e?.message || (e as string)).includes('Validate TransferContract error, balance is not sufficient')) {
             logger.log('Ran consecutive tests too soon, previous sweep not complete. Wait a minute and retry')
           }
           throw e

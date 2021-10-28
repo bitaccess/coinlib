@@ -78,9 +78,11 @@ export class HdDogePayments extends SinglesigDogePayments<HdDogePaymentsConfig> 
       hdKey: this.xpub,
     }
   }
+
   getAccountId(index: number): string {
     return this.xpub
   }
+
   getAccountIds(index?: number): string[] {
     return [this.xpub]
   }

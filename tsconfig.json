@@ -1,10 +1,6 @@
 {
   "extends": "./tsconfig.build.json",
   "compilerOptions": {
-    "strict": true,
-    "paths": {
-      "@faast/ts-common": ["node_modules/@faast/ts-common"],
-      "@bitaccess/coinlib-*": ["../coinlib-*/src", "node_modules/@bitaccess/coinlib-*"]
-    }
+    "strict": true
   }
 }

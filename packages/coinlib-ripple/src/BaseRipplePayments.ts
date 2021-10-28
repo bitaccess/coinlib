@@ -423,7 +423,7 @@ export abstract class BaseRipplePayments<Config extends BaseRipplePaymentsConfig
     const fromTo = await this.resolveFromTo(from, to)
     const feeOption = await this.resolveFeeOption(options)
     const payportBalance = await this.resolvePayportSpendableBalance(fromTo.fromPayport, options)
-    let amountBn = payportBalance.minus(feeOption.feeMain)
+    const amountBn = payportBalance.minus(feeOption.feeMain)
     if (amountBn.lt(0)) {
       const fromPayport = { address: fromTo.fromAddress, extraId: fromTo.fromExtraId }
       throw new Error(

@@ -9,8 +9,22 @@ import {
   FeeOption,
   FeeRateType,
 } from '@bitaccess/coinlib-common'
+import nock from 'nock'
 
-const nock = require('nock')
+import {
+  getGasStationResponse,
+  getNextNonceMocks,
+  getBalanceMocks,
+  getTransactionCountMocks,
+  getSendRawTransactionMocks,
+  getTransactionReceiptMocks,
+  getTransactionByHashMocks,
+  getBlockByNumberMocks,
+  getBlockNumberMocks,
+  getEstimateGasMocks,
+  getGasPriceMocks,
+} from './fixtures/mocks'
+
 const GAS_STATION_URL = 'https://gasstation.test.url'
 const PARITY_URL = 'https://parity.test.url'
 const INFURA_URL = 'https://infura.test.url'
@@ -30,20 +44,6 @@ const CONFIG = {
 }
 
 const INSTANCE_KEYS = deriveSignatory(hdAccount.rootChild[0].xkeys.xprv, 0)
-
-import {
-  getGasStationResponse,
-  getNextNonceMocks,
-  getBalanceMocks,
-  getTransactionCountMocks,
-  getSendRawTransactionMocks,
-  getTransactionReceiptMocks,
-  getTransactionByHashMocks,
-  getBlockByNumberMocks,
-  getBlockNumberMocks,
-  getEstimateGasMocks,
-  getGasPriceMocks,
-} from './fixtures/mocks'
 
 const FROM_ADDRESS = deriveSignatory(INSTANCE_KEYS.xkeys.xprv, 1).address
 const TO_ADDRESS   = hdAccount.rootChild[1].address

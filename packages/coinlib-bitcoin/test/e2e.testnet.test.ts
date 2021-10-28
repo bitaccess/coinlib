@@ -156,7 +156,7 @@ describeAll('e2e testnet', () => {
     }
     while (!testsComplete && (!tx || !endState.includes(tx.status))) {
       try {
-        tx = await payments.getTransactionInfo(txId, undefined, { changeAddress })
+        tx = await payments.getTransactionInfo(txId, { changeAddress })
       } catch (e) {
         if (e.message.includes('not found')) {
           logger.log('tx not found yet', txId, e.message)
@@ -242,13 +242,13 @@ describeAll('e2e testnet', () => {
 
     expect(unsignedTx.data.rawHash).toEqual(unsignedHash)
 
-    for (let utxo of forcedUtxos) {
+    for (const utxo of forcedUtxos) {
       expect(unsignedTx.inputUtxos!.indexOf(utxo) >= 0)
     }
     expect(unsignedTx.fromAddress).toEqual('batch')
 
     expect(unsignedTx.data.changeOutputs!.length > 1)
-    for (let cO of unsignedTx.data.changeOutputs!) {
+    for (const cO of unsignedTx.data.changeOutputs!) {
       expect(changeAddresses.indexOf(cO.address) >= 0)
     }
 
@@ -267,13 +267,13 @@ describeAll('e2e testnet', () => {
 
     expect(signedTx.data).toBeDefined()
     expect(signedTx.data.changeOutputs!.length > 1)
-    for (let cO of signedTx.data.changeOutputs!) {
+    for (const cO of signedTx.data.changeOutputs!) {
       expect(changeAddresses.indexOf(cO.address) >= 0)
     }
 
     expect(signedTx.data.hex).toEqual(signedHex)
 
-    const tx = await hotWalletPayments.getTransactionInfo(mitxId, undefined, { changeAddress: changeAddresses } )
+    const tx = await hotWalletPayments.getTransactionInfo(mitxId, { changeAddress: changeAddresses })
     const expectedUtxos = [...forcedUtxos, ...availableUtxos]
       .map((u) => pick(u, ['txid', 'vout', 'value', 'address', 'satoshis']))
     const actualUtxos = tx.inputUtxos!
@@ -288,14 +288,14 @@ describeAll('e2e testnet', () => {
   }, 5 * 60 * 1000)
 
   for (let i = 0; i < addressTypesToTest.length; i++) {
-    let addressType = addressTypesToTest[i]
+    const addressType = addressTypesToTest[i]
     const { xpub, addresses, sweepTxSize } = fixtures[addressType]
 
     describe(addressType, () => {
       const paymentsConfig: HdBitcoinPaymentsConfig = {
         hdKey: secretXprv,
         network: NetworkType.Testnet,
-        addressType: addressType as SinglesigAddressType,
+        addressType: addressType ,
         logger,
         minChange: '0.01',
         targetUtxoPoolSize: 5,
@@ -335,7 +335,7 @@ describeAll('e2e testnet', () => {
         expect(payments.xpub).toEqual(xpub)
       })
 
-      for (let iStr in addresses) {
+      for (const iStr in addresses) {
         const i = Number.parseInt(iStr)
         it(`get correct address for index ${i}`, async () => {
           expect(await payments.getPayport(i)).toEqual({ address: (addresses as any)[i] })
@@ -583,7 +583,7 @@ describeAll('e2e testnet', () => {
         })
         logger.log('blockActivities', addressType, blockActivities)
         expect(blockActivities.length).toBe(6)
-        for (let activity of blockActivities) {
+        for (const activity of blockActivities) {
           expect(addressesToWatch).toContain(activity.address)
           expect(activity.confirmationNumber).toBe(blockNumber)
         }

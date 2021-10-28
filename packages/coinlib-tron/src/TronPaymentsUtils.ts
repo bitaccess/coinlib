@@ -93,8 +93,8 @@ export class TronPaymentsUtils implements PaymentsUtils {
   getPayportValidationMessage(payport: Payport): string | undefined {
     try {
       payport = assertType(Payport, payport, 'payport')
-    } catch (e) {
-      return e.message
+    } catch (e: any) {
+      return e?.message
     }
     return this._getPayportValidationMessage(payport)
   }

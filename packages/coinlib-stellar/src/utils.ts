@@ -1,7 +1,7 @@
 import * as Stellar from 'stellar-sdk'
 import { NetworkType, Payport, isMatchingError } from '@bitaccess/coinlib-common'
 import promiseRetry from 'promise-retry'
-import { Logger, isString, isObject, isNil } from '@faast/ts-common'
+import { Logger, isString, isObject, isNil, isUndefined } from '@faast/ts-common'
 
 import { BaseStellarConfig, StellarRawTransaction, StellarLedger, StellarTransaction, StellarServerAPI } from './types'
 import { DEFAULT_TESTNET_SERVER, DEFAULT_MAINNET_SERVER } from './constants'
@@ -18,11 +18,11 @@ export function omitHidden(o: object): object {
 }
 
 export function isStellarLedger(x: unknown): x is StellarLedger {
-  return isObject(x) && x.hasOwnProperty('successful_transaction_count')
+  return isObject(x) && !isUndefined((x as any)?.successful_transaction_count)
 }
 
 export function isStellarTransaction(x: unknown): x is StellarTransaction {
-  return isObject(x) && x.hasOwnProperty('source_account')
+  return isObject(x) && !isUndefined((x as any)?.source_account)
 }
 
 export function isStellarTransactionRecord(x: unknown): x is Stellar.ServerApi.TransactionRecord {

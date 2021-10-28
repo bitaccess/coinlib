@@ -1,17 +1,14 @@
 const base = require('@faast/ts-config/library/jest.config.js')
-const { pathsToModuleNameMapper } = require('ts-jest/utils')
-const { compilerOptions } = require('./tsconfig')
 
 module.exports = Object.assign({}, base, {
   'testRunner': 'jest-circus/runner',
-  "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
+  'moduleFileExtensions': [
+    'js',
+    'json',
+    'ts'
+  ],
   'transformIgnorePatterns': [
     '/node_modules/',
-    `/dist/`,
-  ],
-  moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>/' })
+    '/dist/',
+  ]
 })

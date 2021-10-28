@@ -122,7 +122,7 @@ describe('CoinPayments', () => {
         expect(publicConfig.logger).toBeUndefined()
         expect(publicConfig.network).toBeUndefined()
         expect(publicConfig.seed).toBeUndefined()
-        for (let assetSymbol of SUPPORTED_NETWORK_SYMBOLS) {
+        for (const assetSymbol of SUPPORTED_NETWORK_SYMBOLS) {
           const assetConfig: any = publicConfig[assetSymbol]
           expect(assetConfig.seed).toBeUndefined()
           if (assetConfig.hdKey) {

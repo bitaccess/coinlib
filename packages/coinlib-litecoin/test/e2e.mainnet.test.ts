@@ -295,7 +295,7 @@ describeAll('e2e mainnet', () => {
     expect(signedTx.data.unsignedTxHash).toMatch(/^[a-f0-9]+$/)
   })
 
-  for (let addressType of addressTypesToTest) {
+  for (const addressType of addressTypesToTest) {
     const { xpub, addresses, sweepTxSize } = fixtures[addressType]
 
     describe(addressType, () => {
@@ -311,7 +311,7 @@ describeAll('e2e mainnet', () => {
       it('get correct xpub', async () => {
         expect(payments.xpub).toEqual(xpub)
       })
-      for (let iStr in addresses) {
+      for (const iStr in addresses) {
         const i = Number.parseInt(iStr)
         it(`get correct address for index ${i}`, async () => {
           expect(await payments.getPayport(i)).toEqual({ address: (addresses as any)[i] })
@@ -398,7 +398,7 @@ describeAll('e2e mainnet', () => {
         const indicesToTry = [7, 8]
         const balances: { [address: string]: BalanceResult } = {}
         let indexToSend: number = -1
-        let { confirmedBalance: highestBalance } = await payments.getBalance(indicesToTry[0])
+        const { confirmedBalance: highestBalance } = await payments.getBalance(indicesToTry[0])
         for (let i = 1; i < indicesToTry.length; i++) {
           const index = indicesToTry[i]
           const address = payments.getAddress(index)

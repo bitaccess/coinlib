@@ -1,11 +1,11 @@
 import Web3 from 'web3'
-const web3 = new Web3()
 import { EthereumSignatory } from './types'
 import { pubToAddress } from 'ethereumjs-util'
 import { fromBase58, fromSeed } from 'bip32'
 import crypto from 'crypto'
 
 import { ec as EC } from 'elliptic'
+const web3 = new Web3()
 const ec = new EC('secp256k1')
 
 class EthereumBIP44 {
@@ -34,7 +34,7 @@ class EthereumBIP44 {
 
   getAddress(index?: number): string {
     const derived = this.deriveByIndex(index)
-    let address = pubToAddress(derived.publicKey, true)
+    const address = pubToAddress(derived.publicKey, true)
 
     return web3.utils.toChecksumAddress(`0x${address.toString('hex')}`).toLowerCase()
   }

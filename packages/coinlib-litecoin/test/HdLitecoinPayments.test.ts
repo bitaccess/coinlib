@@ -26,7 +26,7 @@ describe('HdLitecoinPayments', () => {
     })
   })
 
-  for (let k in accountsByAddressType) {
+  for (const k in accountsByAddressType) {
     const addressType = k as SinglesigAddressType
     const accountFixture = accountsByAddressType[addressType]
 
@@ -98,7 +98,7 @@ function runHardcodedPublicKeyTests(
   it('getXpub', async () => {
     expect(payments.xpub).toEqual(xpub)
   })
-  for (let iString of Object.keys(accountFixture.addresses)) {
+  for (const iString of Object.keys(accountFixture.addresses)) {
     const i = Number.parseInt(iString)
     it(`getPayport for index ${i}`, async () => {
       const actual = await payments.getPayport(i)

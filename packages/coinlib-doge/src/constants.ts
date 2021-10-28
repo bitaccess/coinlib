@@ -7,8 +7,8 @@ export const DECIMAL_PLACES = 8
 export const COIN_SYMBOL = 'DOGE'
 export const COIN_NAME = 'Dogecoin'
 
-//// Most nodes require 1 DOGE minimum fee and dust threshold
-//// https://github.com/dogecoin/dogecoin/issues/1650
+// Most nodes require 1 DOGE minimum fee and dust threshold
+// https://github.com/dogecoin/dogecoin/issues/1650
 
 /**
  * The minimum value a transaction output must be in order to not get rejected by the network.

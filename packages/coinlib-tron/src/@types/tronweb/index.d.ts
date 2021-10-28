@@ -168,6 +168,7 @@ declare module 'tronweb' {
       fromHex(address: string): string
       fromPrivateKey(privateKey: string): string
     }
+
     static sha3(value: string, add0x: boolean): string
     static toHex(value: string): string
     static toUtf8(value: string): string
@@ -187,6 +188,7 @@ declare module 'tronweb' {
       fromHex(address: string): string
       fromPrivateKey(privateKey: string): string
     }
+
     sha3(value: string, add0x: boolean): string
     toHex(value: string): string
     toUtf8(value: string): string

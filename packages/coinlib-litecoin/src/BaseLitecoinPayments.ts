@@ -130,15 +130,15 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
     const { inputs, outputs } = paymentTx
     const inputPaymentScript = this.getPaymentScript(fromIndex)
 
-    let psbt = new bitcoin.Psbt(this.psbtOptions)
-    for (let input of inputs) {
+    const psbt = new bitcoin.Psbt(this.psbtOptions)
+    for (const input of inputs) {
       psbt.addInput(await this.getPsbtInputData(
         input,
         inputPaymentScript,
         this.addressType,
       ))
     }
-    for (let output of outputs) {
+    for (const output of outputs) {
       psbt.addOutput({
         address: output.address,
         value: this.toBaseDenominationNumber(output.value)

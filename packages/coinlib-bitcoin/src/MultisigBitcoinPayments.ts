@@ -121,7 +121,7 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
       }
       const accountIds = []
       const publicKeys = []
-      for (let signer of this.signers) {
+      for (const signer of this.signers) {
         // accountIds and publicKeys are parallel arrays with lengths equal to number of signers in the multisig address
         accountIds.push(signer.getAccountId(signerIndex))
         publicKeys.push(publicKeyToString(signer.getKeyPair(signerIndex).publicKey))
@@ -269,7 +269,7 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
     const baseTxMultisigData = baseTx.multisigData!
     let updatedMultisigData = baseTxMultisigData
 
-    let combinedPsbt = this.deserializeSignedTxPsbt(baseTx)
+    const combinedPsbt = this.deserializeSignedTxPsbt(baseTx)
     for (let i = 1; i < txs.length; i++) {
       if (isMultisigFullySigned(updatedMultisigData)) {
         this.logger.debug('Already received enough signatures, not combining')

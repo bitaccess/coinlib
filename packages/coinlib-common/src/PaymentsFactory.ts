@@ -69,22 +69,21 @@ export abstract class PaymentsFactory<
     if (!this.connectionManager) {
       return this.createConnection(config, instantiator)
     }
-    const { getConnection, getConnectionUrl, setConnection, connections } = this.connectionManager
-    const url = getConnectionUrl(config)
+    const url = this.connectionManager.getConnectionUrl(config)
     if (!url) {
       return this.createConnection(config, instantiator)
     }
     const urlKey = String(url)
-    const existingConnection = connections[urlKey]
+    const existingConnection = this.connectionManager.connections[urlKey]
     if (existingConnection) {
       // connection is cached, pass it to instantiated object
       config = { ...config } // avoid mutating external objects
-      setConnection(config, existingConnection)
+      this.connectionManager.setConnection(config, existingConnection)
       return this.createConnection(config, instantiator)
     } else {
       // connection isnt cached yet, get it and add it to cache
       const connected = await this.createConnection(config, instantiator)
-      connections[urlKey] = getConnection(connected)
+      this.connectionManager.connections[urlKey] = this.connectionManager.getConnection(connected)
       return connected
     }
   }

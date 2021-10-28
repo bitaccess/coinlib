@@ -2,9 +2,9 @@ import {
   toMainDenominationString, toBaseDenominationString, isValidAddress, BitcoinCashAddressFormat,
   estimateBitcoinCashTxSize, bitcoinish,
 } from '../src'
+import { NETWORK_TYPE, ADDRESS_CASH, ADDRESS_BITPAY, ADDRESS_LEGACY } from './fixtures'
 
 const { Legacy } = bitcoinish.AddressType
-import { NETWORK_TYPE, ADDRESS_CASH, ADDRESS_BITPAY, ADDRESS_LEGACY } from './fixtures'
 
 describe('helpers', () => {
 

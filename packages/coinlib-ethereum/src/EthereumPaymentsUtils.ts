@@ -316,7 +316,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
     if (isConfirmed) {
       status = TransactionStatus.Confirmed
       // No trust to types description of web3
-      if (txInfo.hasOwnProperty('status') && (txInfo.status === false || txInfo.status.toString() === 'false')) {
+      if (txInfo && (txInfo?.status === false || txInfo.status.toString() === 'false')) {
         status = TransactionStatus.Failed
       }
     }
