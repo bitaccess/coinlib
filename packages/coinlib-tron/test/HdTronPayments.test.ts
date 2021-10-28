@@ -282,7 +282,7 @@ describe('HdTronPayments', () => {
           tp.createSweepTransaction(0, 3, { feeRate: '0.1', feeRateType: FeeRateType.Main }),
         ).rejects.toThrow('tron-payments custom fees are unsupported')
       })
-      it('create sweep transaction to an index', async () => {
+      it.skip('create sweep transaction to an index', async () => {
         const tx = await tp.createSweepTransaction(0, 3)
         expect(tx).toBeDefined()
         expect(tx.amount).toEqual('2.1')
@@ -292,7 +292,7 @@ describe('HdTronPayments', () => {
         expect(tx.toIndex).toEqual(3)
         await waitForExpiration(tx)
       })
-      it('create sweep transaction to an internal address', async () => {
+      it.skip('create sweep transaction to an internal address', async () => {
         const tx = await tp.createSweepTransaction(0, { address: address3 })
         expect(tx).toBeDefined()
         expect(tx.amount).toEqual('2.1')
