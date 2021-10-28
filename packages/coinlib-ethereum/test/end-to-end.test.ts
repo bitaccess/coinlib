@@ -14,7 +14,7 @@ import { deriveSignatory } from '../src/bip44'
 
 const LOCAL_NODE = 'http://localhost'
 const LOCAL_NODE_WS = 'ws://localhost'
-const LOCAL_PORT = 8545
+const LOCAL_PORT = 8546
 
 const logger = new TestLogger('ethereum-payments')
 
