@@ -78,41 +78,15 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
     paymentScript: bitcoin.payments.Payment,
     addressType: AddressType = AddressType.Legacy,
   ): Promise<PsbtInputData> {
-    const utx = await this.getApi().getTx(utxo.txid)
+    const txHex = utxo.txHex ?? (await this.getApi().getTx(utxo.txid)).hex
+    if (!txHex) {
+      throw new Error(`Cannot get raw hex of tx for utxo ${utxo.txid}:${utxo.vout}`)
+    }
     const result: PsbtInputData = {
       hash: utxo.txid,
       index: utxo.vout,
       sequence: BITCOIN_SEQUENCE_RBF,
-    }
-    if ((/p2wpkh|p2wsh/).test(addressType)) {
-      // for segwit inputs, you only need the output script and value as an object.
-      const rawUtxo = utx.vout[utxo.vout]
-      const { hex: scriptPubKey, value: rawValue } = rawUtxo
-      if (!scriptPubKey) {
-        throw new Error(`Cannot get scriptPubKey for utxo ${utxo.txid}:${utxo.vout}`)
-      }
-      const utxoValue = this.toBaseDenominationNumber(utxo.value)
-      if (String(utxoValue) !== rawValue) {
-        throw new Error(`Utxo ${utxo.txid}:${utxo.vout} has mismatched value - ${utxoValue} sat expected but network reports ${rawValue} sat`)
-      }
-      result.witnessUtxo = {
-        script: Buffer.from(scriptPubKey, 'hex'),
-        value: utxoValue,
-      }
-    } else {
-      // for non segwit inputs, you must pass the full transaction buffer
-      if (!utx.hex) {
-        throw new Error(`Cannot get raw hex of tx for utxo ${utxo.txid}:${utxo.vout}`)
-      }
-      result.nonWitnessUtxo = Buffer.from(utx.hex, 'hex')
-    }
-    if (addressType.startsWith('p2sh-p2wsh')) {
-      result.witnessScript = paymentScript.redeem!.redeem!.output
-      result.redeemScript = paymentScript.redeem!.output
-    } else if (addressType.startsWith('p2sh')) {
-      result.redeemScript = paymentScript.redeem!.output
-    } else if (addressType.startsWith('p2wsh')) {
-      result.witnessScript = paymentScript.redeem!.output
+      nonWitnessUtxo: Buffer.from(txHex, 'hex')
     }
     return result
   }
@@ -124,16 +98,24 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
     }
   }
 
-  async buildPsbt(paymentTx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<bitcoin.Psbt> {
+  async buildPsbt(
+    paymentTx: bitcoinish.BitcoinishPaymentTx,
+    fromIndex?: number,
+  ): Promise<bitcoin.Psbt> {
     const { inputs, outputs } = paymentTx
-    const inputPaymentScript = this.getPaymentScript(fromIndex)
     const psbt = new bitcoin.Psbt(this.psbtOptions)
     const hashType = bitcoin.Transaction.SIGHASH_ALL | bitcoin.Transaction.SIGHASH_BITCOINCASHBIP143
+
     for (const input of inputs) {
+      const signer = input.signer ?? fromIndex
+      if (typeof signer === 'undefined') {
+        throw new Error('Signer index for utxo is not provided')
+      }
       psbt.addInput({
         ...await this.getPsbtInputData(
           input,
-          inputPaymentScript,
+          this.getPaymentScript(signer),
+          AddressType.Legacy,
         ),
         sighashType: hashType
       })
@@ -147,7 +129,10 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
     return psbt
   }
 
-  async serializePaymentTx(tx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<string> {
+  async serializePaymentTx(
+    tx: bitcoinish.BitcoinishPaymentTx,
+    fromIndex?: number,
+  ): Promise<string> {
     return (await this.buildPsbt(tx, fromIndex)).toHex()
   }
 

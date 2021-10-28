@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel } from '@bitaccess/coinlib-common'
+import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel, UtxoInfo } from '@bitaccess/coinlib-common'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { toBigNumber } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
@@ -14,6 +14,7 @@ import {
 import { txInfo_beae1 } from './fixtures/transactions'
 import { hdAccount } from './fixtures/accounts'
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
+import { omit } from 'lodash'
 
 const EXTERNAL_ADDRESS = 'bitcoincash:qqq50km70cjgpla3tnkt8nxgdt09wp0m7y9ctca8f6'
 
@@ -91,13 +92,13 @@ describeAll('e2e mainnet', () => {
   const address3 = 'bitcoincash:qzya7xe4kc3ukll3mtk5lx49q3z3hnammgxvnedkzt'
   const xpub =
     'xpub6DPwXAhSxJbqowWSvozSDrQmHYLAZucdAnxmdGV2YdHHfaS9Kj4ZCET6eMGBwhFX2hYwqcHBeYdjsNiQ4o9KULqbX8mjnNbmC31LesCBF9R'
-  const address0utxos = [
+  const address0utxos: UtxoInfo[] = [
     {
       'txid': 'e7ce2764359de9a624e538a26ef874ff3155dc1d7ec2088df1d26e259ea14ee7',
       'vout': 0,
       'value': '0.03',
       'satoshis': 3000000,
-      'height': 613152,
+      'height': '613152',
       'confirmations': 8753,
       'txHex': '0100000001950708260ee1b332b1b2aa1687e99ac50d57b98000952e148e87d2b8a03de5dd000000006b4830450221009360e33ad04cdad31d2fa6190fea734db4a5710e1ef1201a21dd5225bf022c5b02204e4193aa847530187ce2085f0599cdeab7de607c96b6bb819c66a31028aa07e2412102bde4216a684b8bc73c8a6666398fb321b921407f0f3cdbf19f1abb01fcd1b983ffffffff02c0c62d00000000001976a914080edbe8eb5d0f3e188bbba18c7653be15e9739788ac97915000000000001976a9147fe0e88cb9f3a6248be40f291ae2a395d16703b388ac00000000',
       'scriptPubKeyHex': '76a914080edbe8eb5d0f3e188bbba18c7653be15e9739788ac',
@@ -180,6 +181,7 @@ describeAll('e2e mainnet', () => {
     expect(tx.fromIndex).toEqual(0)
     expect(tx.toIndex).toEqual(3)
     expect(tx.inputUtxos).toBeTruthy()
+    expect(tx.data.rawHash).toEqual('46d4e8b57ec456ffdc5409767536d93f6b0218c060736e2db13b7d8f48e469fb')
   })
   it('create sweep transaction to an internal address', async () => {
     const tx = await payments.createSweepTransaction(0, { address: address3 }, { feeRate, feeRateType })
@@ -271,6 +273,33 @@ describeAll('e2e mainnet', () => {
     const tx = await payments.createSweepTransaction(0, 3, { feeRate, feeRateType })
     expect(tx).toBeDefined()
     tx.data.rawHex = undefined
+    const signedTx = await payments.signTransaction(tx)
+    expect(signedTx).toBeDefined()
+    expect(signedTx.status).toBe(TransactionStatus.Signed)
+    expect(signedTx.data.hex).toMatch(/^[a-f0-9]+$/)
+    expect(signedTx.data.partial).toBe(false)
+    expect(signedTx.data.unsignedTxHash).toMatch(/^[a-f0-9]+$/)
+  })
+
+  it('can build and sign sweep transaction without utxo txHex but with lookup helper', async () => {
+    const tx = await payments.createSweepTransaction(0, 3, {
+      feeRate,
+      feeRateType,
+      availableUtxos: address0utxos.map((utxo) => omit(utxo, ['txHex'])),
+      lookupTxDataByHash: async (txHashes: string[]) => {
+        const { txid, txHex } = address0utxos[0]
+        expect(txHashes).toEqual([txid])
+        return { [txid]: txHex! }
+      },
+    })
+    expect(tx).toBeDefined()
+    expect(toBigNumber(tx.amount).plus(tx.fee).toString()).toEqual(address0balance)
+    expect(tx.fromAddress).toEqual(address0)
+    expect(tx.toAddress).toEqual(address3)
+    expect(tx.fromIndex).toEqual(0)
+    expect(tx.toIndex).toEqual(3)
+    expect(tx.inputUtxos).toBeTruthy()
+    expect(tx.data.rawHash).toEqual('46d4e8b57ec456ffdc5409767536d93f6b0218c060736e2db13b7d8f48e469fb')
     const signedTx = await payments.signTransaction(tx)
     expect(signedTx).toBeDefined()
     expect(signedTx.status).toBe(TransactionStatus.Signed)

@@ -152,6 +152,10 @@ export type WeightedChangeOutput = t.TypeOf<typeof WeightedChangeOutput>
 export type FilterChangeAddresses = (addresses: string[]) => Promise<string[]>
 export const FilterChangeAddresses = functionT<FilterChangeAddresses>('FilterChangeAddresses')
 
+/** Callback should return any known tx data hex strings (useful for caching) */
+export type LookupTxDataByHash = (txHashes: string[]) => Promise<{ [hash: string]: string }>
+export const LookupTxDataByHash = functionT<LookupTxDataByHash>('LookupTxDataByHash')
+
 export const CreateTransactionOptions = extendCodec(
   FeeOption,
   {},
@@ -165,6 +169,7 @@ export const CreateTransactionOptions = extendCodec(
     recipientPaysFee: t.boolean, // Deduct fee from outputs (only utxo coins supported for now)
     maxFeePercent: Numeric, // Maximum fee as percent of output total
     changeAddress: t.union([t.string, t.array(t.string)]), // Change address
+    lookupTxDataByHash: LookupTxDataByHash, // Callback to retrieve cached raw tx data for input hashes for psbt building
   },
   'CreateTransactionOptions',
 )
