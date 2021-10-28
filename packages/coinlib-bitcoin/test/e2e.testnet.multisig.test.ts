@@ -17,6 +17,7 @@ import path from 'path'
 import fs from 'fs'
 import { DERIVATION_PATH, ADDRESSES, M, EXTERNAL_ADDRESS } from './fixtures/multisigTestnet'
 import { deriveHDNode, deriveKeyPair, xprvToXpub } from '../src/bip44'
+import BigNumber from 'bignumber.js'
 
 const SECRET_KEY_FILE = 'test/keys/testnet.key'
 
@@ -184,12 +185,22 @@ describeAll('e2e multisig testnet', () => {
       })
 
       it('can create sweep', async () => {
-        const tx = await payments.createSweepTransaction(0, EXTERNAL_ADDRESS, {
+        // Safe to use multi-input test indices here because we aren't broadcasting
+        // Address 0 has so many utxos that sweeping it made this test take too long
+        const b = {
+          1: await payments.getBalance(1),
+          2: await payments.getBalance(2),
+        }
+        const fromIndex = new BigNumber(b[1].spendableBalance).gt(b[2].spendableBalance)
+          ? 1
+          : 2
+        const tx = await payments.createSweepTransaction(fromIndex, EXTERNAL_ADDRESS, {
           useUnconfirmedUtxos: true,
           feeRate: '10',
           feeRateType: FeeRateType.BasePerWeight,
         })
         expect(tx.multisigData).toBeDefined()
+        expect(new BigNumber(tx.amount).plus(tx.fee).toFixed()).toBe(b[fromIndex].spendableBalance)
       }, 30 * 1000)
 
       function assertMultisigData(
