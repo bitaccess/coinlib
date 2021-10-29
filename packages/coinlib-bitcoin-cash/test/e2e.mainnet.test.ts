@@ -286,7 +286,7 @@ describeAll('e2e mainnet', () => {
       feeRate,
       feeRateType,
       availableUtxos: address0utxos.map((utxo) => omit(utxo, ['txHex'])),
-      lookupTxDataByHash: async (txHashes: string[]) => {
+      lookupTxDataByHashes: async (txHashes: string[]) => {
         const { txid, txHex } = address0utxos[0]
         expect(txHashes).toEqual([txid])
         return { [txid]: txHex! }
