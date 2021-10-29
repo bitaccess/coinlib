@@ -21,7 +21,7 @@ import {
   PaymentsError,
   PaymentsErrorCode,
   DEFAULT_MAX_FEE_PERCENT,
-  LookupTxDataByHash,
+  LookupTxDataByHashes,
 } from '@bitaccess/coinlib-common'
 import { isUndefined, isType, Numeric, toBigNumber, assertType, isNumber } from '@faast/ts-common'
 import * as t from 'io-ts'
@@ -802,11 +802,11 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   private async callSerializePaymentTx(paymentTx: BitcoinishPaymentTx, options: {
-    lookupTxDataByHash?: LookupTxDataByHash,
+    lookupTxDataByHashes?: LookupTxDataByHashes,
     fromIndex?: number,
   }) {
     const inputHashes = paymentTx.inputs.map(({ txid }) => txid)
-    const txHashToDataHex = await options?.lookupTxDataByHash?.(inputHashes)
+    const txHashToDataHex = await options?.lookupTxDataByHashes?.(inputHashes)
     return this.serializePaymentTx({
       ...paymentTx,
       inputs: paymentTx.inputs.map(({ txid, txHex, ...rest }) => ({
@@ -872,7 +872,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       maxFeePercent,
     })
     const unsignedTxHex = await this.callSerializePaymentTx(paymentTx, {
-      lookupTxDataByHash: options.lookupTxDataByHash,
+      lookupTxDataByHashes: options.lookupTxDataByHashes,
       fromIndex: from,
     })
     paymentTx.rawHex = unsignedTxHex
@@ -1001,7 +1001,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     })
 
     const unsignedTxHex = await this.callSerializePaymentTx(paymentTx, {
-      lookupTxDataByHash: options.lookupTxDataByHash,
+      lookupTxDataByHashes: options.lookupTxDataByHashes,
     })
     paymentTx.rawHex = unsignedTxHex
     paymentTx.rawHash = sha256FromHex(unsignedTxHex)

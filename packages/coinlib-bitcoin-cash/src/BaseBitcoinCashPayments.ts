@@ -75,8 +75,6 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
 
   async getPsbtInputData(
     utxo: UtxoInfo,
-    paymentScript: bitcoin.payments.Payment,
-    addressType: AddressType = AddressType.Legacy,
   ): Promise<PsbtInputData> {
     const txHex = utxo.txHex ?? (await this.getApi().getTx(utxo.txid)).hex
     if (!txHex) {
@@ -114,8 +112,6 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
       psbt.addInput({
         ...await this.getPsbtInputData(
           input,
-          this.getPaymentScript(signer),
-          AddressType.Legacy,
         ),
         sighashType: hashType
       })
