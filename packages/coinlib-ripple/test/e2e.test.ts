@@ -30,7 +30,7 @@ const UNACTIVATED_ADDRESS = deriveSignatory(hdAccount.XPUB, 12439585).address
 
 jest.setTimeout(60 * 1000)
 
-describe('e2e', () => {
+describe.skip('e2e', () => {
   let testsComplete: boolean = false
   let rp: AccountRipplePayments
   let bm: RippleBalanceMonitor

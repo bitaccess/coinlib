@@ -204,6 +204,8 @@ export type BitcoinishBlock = BlockInfoBitcoin
 
 export type UtxoInfoWithSats = UtxoInfo & { satoshis: number }
 
+export type TxHashToDataHex = { [hash: string]: string }
+
 export type BitcoinishTxBuildContext = {
   /** Utxos not already used by pending transactions */
   readonly unusedUtxos: UtxoInfoWithSats[],

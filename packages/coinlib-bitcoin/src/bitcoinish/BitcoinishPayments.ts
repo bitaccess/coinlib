@@ -1,4 +1,3 @@
-import { NormalizedTxBitcoin } from 'blockbook-client';
 import {
   BasePayments,
   UtxoInfo,
@@ -22,9 +21,9 @@ import {
   PaymentsError,
   PaymentsErrorCode,
   DEFAULT_MAX_FEE_PERCENT,
+  LookupTxDataByHashes,
 } from '@bitaccess/coinlib-common'
 import { isUndefined, isType, Numeric, toBigNumber, assertType, isNumber } from '@faast/ts-common'
-import { get } from 'lodash'
 import * as t from 'io-ts'
 
 import {
@@ -40,6 +39,7 @@ import {
   BitcoinishBuildPaymentTxParams,
   UtxoInfoWithSats,
   AddressType,
+  TxHashToDataHex,
 } from './types'
 import { sumUtxoValue, shuffleUtxos, isConfirmedUtxo, sha256FromHex, sumField } from './utils'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
@@ -801,6 +801,22 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     return looseChange
   }
 
+  private async callSerializePaymentTx(paymentTx: BitcoinishPaymentTx, options: {
+    lookupTxDataByHashes?: LookupTxDataByHashes,
+    fromIndex?: number,
+  }) {
+    const inputHashes = paymentTx.inputs.map(({ txid }) => txid)
+    const txHashToDataHex = await options?.lookupTxDataByHashes?.(inputHashes)
+    return this.serializePaymentTx({
+      ...paymentTx,
+      inputs: paymentTx.inputs.map(({ txid, txHex, ...rest }) => ({
+        ...rest,
+        txid,
+        txHex: txHex ?? txHashToDataHex?.[txid]
+      }))
+    }, options.fromIndex)
+  }
+
   async createTransaction(
     from: number,
     to: ResolveablePayport,
@@ -855,7 +871,10 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       recipientPaysFee: options.recipientPaysFee ?? false,
       maxFeePercent,
     })
-    const unsignedTxHex = await this.serializePaymentTx(paymentTx, from)
+    const unsignedTxHex = await this.callSerializePaymentTx(paymentTx, {
+      lookupTxDataByHashes: options.lookupTxDataByHashes,
+      fromIndex: from,
+    })
     paymentTx.rawHex = unsignedTxHex
     paymentTx.rawHash = sha256FromHex(unsignedTxHex)
     this.logger.debug('createMultiOutputTransaction data', paymentTx)
@@ -981,7 +1000,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       maxFeePercent,
     })
 
-    const unsignedTxHex = await this.serializePaymentTx(paymentTx)
+    const unsignedTxHex = await this.callSerializePaymentTx(paymentTx, {
+      lookupTxDataByHashes: options.lookupTxDataByHashes,
+    })
     paymentTx.rawHex = unsignedTxHex
     paymentTx.rawHash = sha256FromHex(unsignedTxHex)
     this.logger.debug('createMultiInputTransaction data', paymentTx)

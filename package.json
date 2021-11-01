@@ -35,12 +35,12 @@
     "prebuild": "npm run lint && lerna run --parallel prebuild",
     "build": "bin/buildall.sh",
     "pretest": "npm run lint",
-    "test": "lerna run --no-bail --ignore @bitaccess/coinlib --ignore @bitaccess/coinlib-ripple --parallel test",
+    "test": "jest --projects packages/*",
     "preversion": "echo 'Use lerna version instead' && exit 1",
     "release": "npm run bs && lerna publish from-git",
     "link": "lerna link convert && link-parent-bin",
     "postinstall": "link-parent-bin",
-    "clean-node-modules": "lerna exec -- rm -rf node_modules && rm -rf node_modules",
+    "clean-node-modules": "rm -rf node_modules packages/*/node_modules",
     "cleaninstall": "npm run clean-node-modules && npm install"
   },
   "devDependencies": {

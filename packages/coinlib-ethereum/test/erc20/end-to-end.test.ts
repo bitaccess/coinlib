@@ -13,7 +13,7 @@ import { HdEthereumPayments, HdErc20Payments, HdErc20PaymentsConfig, EthereumPay
 import { CONTRACT_JSON, CONTRACT_GAS, CONTRACT_BYTECODE } from './fixtures/abi'
 
 const LOCAL_NODE = 'http://localhost'
-const LOCAL_PORT = 8545
+const LOCAL_PORT = 8547
 
 const logger = new TestLogger('HdErc20PaymentsTest')
 
