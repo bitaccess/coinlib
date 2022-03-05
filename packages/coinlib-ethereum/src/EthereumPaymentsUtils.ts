@@ -12,24 +12,27 @@ import {
   BlockInfo,
   BigNumber,
 } from '@bitaccess/coinlib-common'
-import {
-  Logger,
-  DelegateLogger,
-  assertType,
-  isNull,
-  Numeric,
-  isNumber
-} from '@faast/ts-common'
-import type { TransactionReceipt, Transaction } from 'web3-core'
-import Contract from 'web3-eth-contract'
-import InputDataDecoder from 'ethereum-input-data-decoder'
+import { Logger, DelegateLogger, assertType, isNull, Numeric, isUndefined, isNumber } from '@faast/ts-common'
+import BigNumber from 'bignumber.js'
+import { Transaction, TransactionReceipt } from 'web3-core'
 
 import { deriveAddress } from './erc20/deriveAddress'
 import * as SIGNATURE from './erc20/constants'
 import {
-  PACKAGE_NAME, ETH_DECIMAL_PLACES, ETH_NAME, ETH_SYMBOL, DEFAULT_ADDRESS_FORMAT, MIN_SWEEPABLE_WEI, MIN_CONFIRMATIONS, TOKEN_METHODS_ABI, TOKEN_WALLET_ABI_LEGACY, TOKEN_WALLET_ABI,
+  PACKAGE_NAME,
+  ETH_DECIMAL_PLACES,
+  ETH_NAME,
+  ETH_SYMBOL,
+  DEFAULT_ADDRESS_FORMAT,
+  MIN_SWEEPABLE_WEI,
+  MIN_CONFIRMATIONS,
 } from './constants'
-import { EthereumAddressFormat, EthereumAddressFormatT, EthereumPaymentsUtilsConfig, EthereumTransactionInfo } from './types'
+import {
+  EthereumAddressFormat,
+  EthereumAddressFormatT,
+  EthereumPaymentsUtilsConfig,
+  EthereumTransactionInfo,
+} from './types'
 import { isValidXkey } from './bip44'
 import { NetworkData } from './NetworkData'
 import { retryIfDisconnected } from './utils'
@@ -47,7 +50,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   server: string | null
   web3: Web3
   eth: Web3['eth']
-  gasStation: NetworkData
+  networkData: NetworkData
 
   constructor(config: EthereumPaymentsUtilsConfig) {
     this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
@@ -115,7 +118,20 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
     }
 
     this.eth = this.web3.eth
-    this.gasStation = new NetworkData(this.eth, config.gasStation, config.parityNode, this.logger)
+
+    this.networkData = new NetworkData({
+      web3: {
+        eth: this.eth,
+        gasStationUrl: config.gasStation,
+      },
+      parity: {
+        parityUrl: config.parityNode,
+      },
+      logger: this.logger,
+      blockBook: {
+        nodes: this.server,
+      },
+    })
 
     const unitConverters = createUnitConverters(this.coinDecimals)
     this.toMainDenominationBigNumber = unitConverters.toMainDenominationBigNumber
@@ -146,8 +162,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   isValidAddress(address: string, options: { format?: string } = {}): boolean {
     const { format } = options
     if (format === EthereumAddressFormat.Lowercase) {
-      return this.web3.utils.isAddress(address) &&
-        address === address.toLowerCase()
+      return this.web3.utils.isAddress(address) && address === address.toLowerCase()
     } else if (format === EthereumAddressFormat.Checksum) {
       return this.web3.utils.checkAddressChecksum(address)
     }
@@ -221,7 +236,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   private _getPayportValidationMessage(payport: Payport): string | undefined {
     try {
       const { address } = payport
-      if (!(this.isValidAddress(address))) {
+      if (!this.isValidAddress(address)) {
         return 'Invalid payport address'
       }
     } catch (e) {
@@ -231,7 +246,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   }
 
   async getFeeRateRecommendation(level: AutoFeeLevels): Promise<FeeRate> {
-    const gasPrice = await this.gasStation.getGasPrice(level)
+    const gasPrice = await this.networkData.getGasPrice(level)
     return {
       feeRate: gasPrice,
       feeRateType: FeeRateType.BasePerWeight,
@@ -290,7 +305,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   }
 
   async getAddressNextSequenceNumber(address: string) {
-    return this.gasStation.getNonce(address)
+    return this.networkData.getNonce(address)
   }
 
   async getAddressUtxos() {
@@ -517,8 +532,8 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
     const currentBlockNumber = await this.getCurrentBlockNumber()
     let txInfo: TransactionReceipt | null = await this._retryDced(() => this.eth.getTransactionReceipt(txid))
 
-    tx.from = tx.from ? tx.from.toLowerCase() : '';
-    tx.to = tx.to ? tx.to.toLowerCase() : '';
+    tx.from = tx.from ? tx.from.toLowerCase() : ''
+    tx.to = tx.to ? tx.to.toLowerCase() : ''
 
     // NOTE: for the sake of consistent schema return
     if (!txInfo) {
@@ -534,7 +549,6 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
         blockHash: '',
         logs: [],
         logsBloom: '',
-        effectiveGasPrice:0
       }
 
       return {
@@ -545,7 +559,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
         toExtraId: null,
         fromIndex: null,
         toIndex: null,
-        fee: this.toMainDenomination((new BigNumber(tx.gasPrice)).multipliedBy(tx.gas)),
+        fee: this.toMainDenomination(new BigNumber(tx.gasPrice).multipliedBy(tx.gas)),
         sequenceNumber: tx.nonce,
         weight: tx.gas,
         isExecuted: false,
@@ -558,7 +572,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
         data: {
           ...tx,
           ...txInfo,
-          currentBlock: currentBlockNumber
+          currentBlock: currentBlockNumber,
         },
       }
     }
@@ -595,7 +609,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
       toExtraId: null,
       fromIndex: null,
       toIndex: null,
-      fee: this.toMainDenomination((new BigNumber(tx.gasPrice)).multipliedBy(txInfo.gasUsed)),
+      fee: this.toMainDenomination(new BigNumber(tx.gasPrice).multipliedBy(txInfo.gasUsed)),
       sequenceNumber: tx.nonce,
       weight: txInfo.gasUsed,
       // XXX if tx was confirmed but not accepted by network isExecuted must be false
@@ -609,7 +623,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
       data: {
         ...tx,
         ...txInfo,
-        currentBlock: currentBlockNumber
+        currentBlock: currentBlockNumber,
       },
     }
   }
@@ -621,7 +635,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
       height: raw.number,
       previousId: raw.parentHash,
       time: new Date(isNumber(raw.timestamp) ? raw.timestamp * 1000 : raw.timestamp),
-      raw: raw
+      raw: raw,
     }
   }
 }

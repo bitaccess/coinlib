@@ -207,7 +207,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
   async getNextSequenceNumber(payport: ResolveablePayport): Promise<string> {
     const resolvedPayport = await this.resolvePayport(payport)
-    const sequenceNumber = await this.gasStation.getNonce(resolvedPayport.address)
+    const sequenceNumber = await this.networkData.getNonce(resolvedPayport.address)
 
     return sequenceNumber
   }
