@@ -9,11 +9,6 @@ A nodejs library providing a unified API for sending and receiving crypto paymen
 npm install
 ```
 
-2. Install dependencies for packages and link them together (done by [lerna](https://lerna.js))
-```bash
-npm run bs
-```
-
 3. Execute tests (done by [Jest](https://jestjs.io/))
 ```bash
 npm run test
