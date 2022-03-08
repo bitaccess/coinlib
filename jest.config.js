@@ -10,5 +10,9 @@ module.exports = Object.assign({}, base, {
   'transformIgnorePatterns': [
     '/node_modules/',
     '/dist/',
-  ]
+  ],
+  'moduleNameMapper': {
+    '^#/(.*)': '<rootDir>/src/$1',
+    '^@bitaccess/coinlib-([a-z-]+)': '<rootDir>/../coinlib-$1/src'
+  },
 })
