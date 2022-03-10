@@ -13,6 +13,7 @@ module.exports = Object.assign({}, base, {
   ],
   'moduleNameMapper': {
     '^#/(.*)': '<rootDir>/src/$1',
-    '^@bitaccess/coinlib-([a-z-]+)': '<rootDir>/../coinlib-$1/src'
+    '^@bitaccess/coinlib-([a-z-]+)(\.ts)?$': '<rootDir>/../coinlib-$1/src',
+    '^@bitaccess/coinlib-([a-z-]+)/test/utils': '<rootDir>/../coinlib-$1/test/utils',
   },
 })
