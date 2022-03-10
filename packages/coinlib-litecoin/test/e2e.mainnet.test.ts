@@ -396,20 +396,19 @@ describeAll('e2e mainnet', () => {
 
       it('end to end send', async () => {
         const indicesToTry = [7, 8]
-        const balances: { [address: string]: BalanceResult } = {}
-        let indexToSend: number = -1
-        const { confirmedBalance: highestBalance } = await payments.getBalance(indicesToTry[0])
+        const transferAmount: string = '0.0005'
+        let indexToSend: number = indicesToTry[0]
+        let { spendableBalance: highestBalance } = await payments.getBalance(indexToSend)
         for (let i = 1; i < indicesToTry.length; i++) {
           const index = indicesToTry[i]
-          const address = payments.getAddress(index)
           const balanceResult = await payments.getBalance(index)
-          balances[address] = balanceResult
-          if (toBigNumber(balanceResult.confirmedBalance).gt(highestBalance)) {
+          if (toBigNumber(balanceResult.spendableBalance).gt(highestBalance)) {
             indexToSend = index
+            highestBalance = balanceResult.spendableBalance;
             break
           }
         }
-        if (indexToSend < 0) {
+        if (toBigNumber(highestBalance).lt(transferAmount)) {
           const allAddresses = await Promise.all(indicesToTry.map(async i => (await payments.getPayport(i)).address))
           throw new Error(`Cannot end to end test sweeping due to lack of funds. Send LTC to any of the following addresses and try again. ${JSON.stringify(allAddresses)}`)
         }
@@ -417,7 +416,7 @@ describeAll('e2e mainnet', () => {
         const unsignedTx = await payments.createTransaction(
           indexToSend,
           recipientIndex,
-          '0.0005',
+          transferAmount,
           {
             useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
             maxFeePercent: 100,
