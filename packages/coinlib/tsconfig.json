@@ -2,7 +2,15 @@
   "extends": "./../../tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "outDir": "dist/lib"
+    "outDir": "dist/lib",
+    "typeRoots": [
+      "./node_modules/@types",
+      "../../node_modules/@types",
+      "../coinlib-tron/src/@types",
+      "../coinlib-stellar/src/@types",
+      "../coinlib-ethereum/src/@types",
+      "../coinlib-litecoin/src/@types",
+    ]
   },
   "exclude": ["node_modules", "dist"]
 }
