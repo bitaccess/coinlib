@@ -64,19 +64,37 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
   abstract isValidAddress<O extends { format?: string }>(address: string, options?: O): boolean
   abstract standardizeAddress<O extends { format?: string }>(address: string, options?: O): string | null
 
-  async getFeeRateRecommendation(feeLevel: AutoFeeLevels, options: GetFeeRecommendationOptions = {}): Promise<FeeRate> {
-    if (options.source === 'blockcypher') {
-      return getBlockcypherFeeRecommendation(
-        feeLevel, this.coinSymbol, this.networkType, this.blockcypherToken, this.logger,
-      )
-    }
-    if (options.source && options.source !== 'blockbook') {
-      throw new Error(`Unsupported fee recommendation source: ${options.source}`)
-    }
-    // use blockbook by default
+  async getBlockcypherFeeRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
+    return getBlockcypherFeeRecommendation(
+      feeLevel, this.coinSymbol, this.networkType, this.blockcypherToken, this.logger,
+    )
+  }
+
+  async getBlockbookFeeRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
     return getBlockbookFeeRecommendation(
       this.feeLevelBlockTargets[feeLevel], this.coinSymbol, this.networkType, this.api, this.logger,
     )
+  }
+
+  async getFeeRateRecommendation(feeLevel: AutoFeeLevels, options: GetFeeRecommendationOptions = {}): Promise<FeeRate> {
+    if (options.source === 'blockcypher') {
+      return this.getBlockcypherFeeRecommendation(feeLevel)
+    }
+    if (options.source === 'blockbook') {
+      return this.getBlockbookFeeRecommendation(feeLevel)
+    }
+    if (options.source) {
+      throw new Error(`Unsupported fee recommendation source: ${options.source}`)
+    }
+    // If no source is explicitly requested, try both
+    try {
+      // use blockbook by default
+      return this.getBlockbookFeeRecommendation(feeLevel)
+    } catch (e) {
+      this.logger.warn(e.toString())
+      // fall back to blockcypher
+      return this.getBlockcypherFeeRecommendation(feeLevel)
+    }
   }
 
 
