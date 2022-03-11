@@ -397,22 +397,24 @@ describeAll('e2e mainnet', () => {
       it('end to end send', async () => {
         const indicesToTry = [7, 8]
         const transferAmount: string = '0.0005'
+
+        // let the richer to be the sender
+        const balancePromises = indicesToTry.map((index)=>{
+          return payments.getBalance(index)
+        });
+        const [balance1, balance2] = await Promise.all(balancePromises);
+        let highestBalance = balance1.spendableBalance
         let indexToSend: number = indicesToTry[0]
-        let { spendableBalance: highestBalance } = await payments.getBalance(indexToSend)
-        for (let i = 1; i < indicesToTry.length; i++) {
-          const index = indicesToTry[i]
-          const balanceResult = await payments.getBalance(index)
-          if (toBigNumber(balanceResult.spendableBalance).gt(highestBalance)) {
-            indexToSend = index
-            highestBalance = balanceResult.spendableBalance;
-            break
-          }
+        let recipientIndex = indicesToTry[1]
+        if(toBigNumber(balance1.spendableBalance).lt(balance2.spendableBalance)){
+          indexToSend = indicesToTry[1]
+          recipientIndex = indicesToTry[0]
+          highestBalance = balance2.spendableBalance
         }
         if (toBigNumber(highestBalance).lt(transferAmount)) {
           const allAddresses = await Promise.all(indicesToTry.map(async i => (await payments.getPayport(i)).address))
           throw new Error(`Cannot end to end test sweeping due to lack of funds. Send LTC to any of the following addresses and try again. ${JSON.stringify(allAddresses)}`)
         }
-        const recipientIndex = indexToSend === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
         const unsignedTx = await payments.createTransaction(
           indexToSend,
           recipientIndex,
