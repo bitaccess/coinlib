@@ -1,5 +1,4 @@
-import { FeeRateType, AutoFeeLevels } from './../../coinlib-common/src/types';
-import { FeeLevel } from '@bitaccess/coinlib-common'
+import { FeeLevel, FeeRateType, AutoFeeLevels } from '@bitaccess/coinlib-common'
 import { BitcoinPaymentsUtils } from '../src'
 import { PRIVATE_KEY, ADDRESS_SEGWIT_P2SH } from './fixtures'
 
