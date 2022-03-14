@@ -264,7 +264,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       if (confirmations > minConfirmations) {
         isConfirmed = true
         txBlock = await this._retryDced(() => this.eth.getBlock(tx.blockNumber!))
-        confirmationTimestamp = new Date(txBlock.timestamp)
+        confirmationTimestamp = new Date(Number(txBlock.timestamp) * 1000)
       }
     }
 
