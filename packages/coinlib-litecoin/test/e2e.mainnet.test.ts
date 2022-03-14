@@ -396,28 +396,29 @@ describeAll('e2e mainnet', () => {
 
       it('end to end send', async () => {
         const indicesToTry = [7, 8]
-        const balances: { [address: string]: BalanceResult } = {}
-        let indexToSend: number = -1
-        const { confirmedBalance: highestBalance } = await payments.getBalance(indicesToTry[0])
-        for (let i = 1; i < indicesToTry.length; i++) {
-          const index = indicesToTry[i]
-          const address = payments.getAddress(index)
-          const balanceResult = await payments.getBalance(index)
-          balances[address] = balanceResult
-          if (toBigNumber(balanceResult.confirmedBalance).gt(highestBalance)) {
-            indexToSend = index
-            break
-          }
+        const transferAmount: string = '0.0005'
+
+        // let the richer to be the sender
+        const balancePromises = indicesToTry.map((index)=>{
+          return payments.getBalance(index)
+        });
+        const [balance1, balance2] = await Promise.all(balancePromises);
+        let highestBalance = balance1.spendableBalance
+        let indexToSend: number = indicesToTry[0]
+        let recipientIndex = indicesToTry[1]
+        if(toBigNumber(balance1.spendableBalance).lt(balance2.spendableBalance)){
+          indexToSend = indicesToTry[1]
+          recipientIndex = indicesToTry[0]
+          highestBalance = balance2.spendableBalance
         }
-        if (indexToSend < 0) {
+        if (toBigNumber(highestBalance).lt(transferAmount)) {
           const allAddresses = await Promise.all(indicesToTry.map(async i => (await payments.getPayport(i)).address))
           throw new Error(`Cannot end to end test sweeping due to lack of funds. Send LTC to any of the following addresses and try again. ${JSON.stringify(allAddresses)}`)
         }
-        const recipientIndex = indexToSend === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
         const unsignedTx = await payments.createTransaction(
           indexToSend,
           recipientIndex,
-          '0.0005',
+          transferAmount,
           {
             useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
             maxFeePercent: 100,

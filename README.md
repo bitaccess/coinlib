@@ -4,6 +4,13 @@ A nodejs library providing a unified API for sending and receiving crypto paymen
 
 ## Setting Up
 
+
+0. Install required compiler tools
+```bash
+brew install autoconf automake libtool
+
+```
+
 1. Install root dependencies:
 ```bash
 npm install
