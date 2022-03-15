@@ -49,18 +49,29 @@ const tokenDistributor = {
 
 const target = { address: '0x62b72782415394f1518da5ec4de6c4c49b7bf854'} // payport 1
 
-const TOKEN_UTILS_CONFIG = {
+const BASE_CONFIG = {
   network: NetworkType.Testnet,
   fullNode: `${LOCAL_NODE}:${LOCAL_PORT}`,
   parityNode: 'none',
   gasStation: 'none',
   logger,
+}
+
+const ETHER_CONFIG = {
+  ...BASE_CONFIG,
+  hdKey: tokenIssuer.xkeys.xprv,// hdAccount.root.KEYS.xprv,
+}
+
+const TOKEN_UTILS_CONFIG = {
+  ...BASE_CONFIG,
   abi: CONTRACT_JSON,
   tokenAddress: '',
+  name: 'BA_TEST_TOKEN',
+  symbol: 'BTT',
   decimals: 7,
 }
 
-const TOKEN_CONFIG = {
+const TOKEN_ISSUER_CONFIG = {
   ...TOKEN_UTILS_CONFIG,
   hdKey: tokenIssuer.xkeys.xprv,// hdAccount.root.KEYS.xprv,
   depositKeyIndex: 0,
@@ -68,17 +79,11 @@ const TOKEN_CONFIG = {
 
 let hd: HdErc20Payments
 let ethereumHD: HdEthereumPayments
-const HD_CONFIG = {
-  network: NetworkType.Testnet,
-  fullNode: `${LOCAL_NODE}:${LOCAL_PORT}`,
-  parityNode: 'none',
-  gasStation: 'none',
+const TOKEN_HD_CONFIG = {
+  ...TOKEN_UTILS_CONFIG,
   hdKey: hdAccount.root.KEYS.xprv,
-  logger,
-  tokenAddress: '',
-  masterAddress: '',
-  decimals: 7,
   depositKeyIndex: 0,
+  masterAddress: '',
 }
 
 const PROXY_SWEEP_AMOUNT = '163331000'
@@ -104,7 +109,7 @@ describe('end to end tests', () => {
     ethNode = server.server(ganacheConfig)
     ethNode.listen(LOCAL_PORT)
 
-    ethereumHD = new HdEthereumPayments(TOKEN_CONFIG)
+    ethereumHD = new HdEthereumPayments(ETHER_CONFIG)
   })
 
   afterAll(() => {
@@ -112,7 +117,7 @@ describe('end to end tests', () => {
   })
 
   describe('HD payments', () => {
-    let tokenAddress: string
+
     test('deploy erc20 contract and send funds from distribution account to hd', async () => {
 
       // deploy erc20 contract
@@ -122,19 +127,19 @@ describe('end to end tests', () => {
       const deployedContract = await ethereumHD.broadcastTransaction(signedContractDeploy)
       const contractInfo = await ethereumHD.getTransactionInfo(deployedContract.id)
       const data: any = contractInfo.data
-      tokenAddress = data.contractAddress
+      const tokenAddress = data.contractAddress
 
-      const tokenHD = factory.newPayments({
-        ...TOKEN_CONFIG,
-        tokenAddress,
-      } as HdErc20PaymentsConfig)
+      TOKEN_UTILS_CONFIG.tokenAddress = tokenAddress
+      TOKEN_ISSUER_CONFIG.tokenAddress = tokenAddress
+      TOKEN_HD_CONFIG.tokenAddress = tokenAddress
 
-      const unsignedTx = await tokenHD.createTransaction(0, { address: source.address }, '6500000000')
-      const signedTx = await tokenHD.signTransaction(unsignedTx)
-      const broadcastedTx = await tokenHD.broadcastTransaction(signedTx)
+      const tokenIssuer = factory.newPayments(TOKEN_ISSUER_CONFIG as HdErc20PaymentsConfig)
 
-      HD_CONFIG.tokenAddress = tokenAddress
-      hd = factory.newPayments(HD_CONFIG as HdErc20PaymentsConfig)
+      const unsignedTx = await tokenIssuer.createTransaction(0, { address: source.address }, '6500000000')
+      const signedTx = await tokenIssuer.signTransaction(unsignedTx)
+      const broadcastedTx = await tokenIssuer.broadcastTransaction(signedTx)
+
+      hd = factory.newPayments(TOKEN_HD_CONFIG as HdErc20PaymentsConfig)
 
       const { confirmedBalance: confirmedDistributorBalance } = await hd.getBalance(tokenDistributor.address)
       // leftovers after tx
@@ -161,8 +166,8 @@ describe('end to end tests', () => {
       const data: any = txInfo.data
       expect(data.from).toEqual(address.toLowerCase())
       masterAddress = data.contractAddress
-      HD_CONFIG.masterAddress = masterAddress
-      hd = factory.newPayments(HD_CONFIG as HdErc20PaymentsConfig)
+      TOKEN_HD_CONFIG.masterAddress = masterAddress
+      hd = factory.newPayments(TOKEN_HD_CONFIG as HdErc20PaymentsConfig)
 
       const { confirmedBalance } = await hd.getBalance(data.contractAddress)
       expect(confirmedBalance).toEqual('0')
@@ -177,7 +182,7 @@ describe('end to end tests', () => {
       }
 
       const erc20HW = await hd.getPayport(0)
-      const owner = await hd.getPayport(HD_CONFIG.depositKeyIndex)
+      const owner = await hd.getPayport(TOKEN_HD_CONFIG.depositKeyIndex)
 
       expect(erc20HW.address).toEqual(owner.address)
     })
@@ -271,10 +276,7 @@ describe('end to end tests', () => {
     })
 
     test('erc20 utils getTxInfo returns expected values', async () => {
-      const utils = factory.newUtils({
-        ...TOKEN_UTILS_CONFIG,
-        tokenAddress,
-      })
+      const utils = factory.newUtils(TOKEN_UTILS_CONFIG)
       // Expect utils to return the same result as payments
       const paymentsInfo = await hd.getTransactionInfo(sweepTxInfo.id)
       const utilsInfo = await utils.getTransactionInfo(sweepTxInfo.id)
@@ -283,6 +285,12 @@ describe('end to end tests', () => {
       expect(utilsInfo.fromAddress).toBe(depositAddresses[0])
       expect(utilsInfo.toAddress).toBe(target.address)
       expect(utilsInfo.amount).toBe(PROXY_SWEEP_AMOUNT)
+    })
+
+    test('erc20 utils getBalance returns expected value', async () => {
+      const utils = factory.newUtils(TOKEN_UTILS_CONFIG)
+      const { confirmedBalance } = await utils.getAddressBalance(depositAddresses[1])
+      expect(confirmedBalance).toBe('6336669000')
     })
   })
 })

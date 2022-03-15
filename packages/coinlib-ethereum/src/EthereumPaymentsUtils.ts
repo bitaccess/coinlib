@@ -53,10 +53,35 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   constructor(config: EthereumPaymentsUtilsConfig) {
     this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
     this.networkType = config.network || NetworkType.Mainnet
+
+    if (config.tokenAddress) {
+      // ERC20 case
+      if (!config.name) {
+        throw new Error(`Expected config.name to be provided for tokenAddress ${this.tokenAddress}`)
+      }
+      if (!config.symbol) {
+        throw new Error(`Expected config.symbol to be provided for tokenAddress ${this.tokenAddress}`)
+      }
+      if (!config.decimals) {
+        throw new Error(`Expected config.decimals to be provided for tokenAddress ${this.tokenAddress}`)
+      }
+    } else {
+      // ether case
+      if (config.name && config.name !== ETH_NAME) {
+        throw new Error(`Unexpected config.name ${config.name} provided without config.tokenAddress`)
+      }
+      if (config.symbol && config.symbol !== ETH_SYMBOL) {
+        throw new Error(`Unexpected config.symbol ${config.symbol} provided without config.tokenAddress`)
+      }
+      if (config.decimals && config.decimals !== ETH_DECIMAL_PLACES) {
+        throw new Error(`Unexpected config.decimals ${config.decimals} provided without config.tokenAddress`)
+      }
+    }
+
+    this.tokenAddress = config.tokenAddress?.toLowerCase()
     this.coinName = config.name ?? ETH_NAME
     this.coinSymbol = config.symbol ?? ETH_SYMBOL
     this.coinDecimals = config.decimals ?? ETH_DECIMAL_PLACES
-    this.tokenAddress = config.tokenAddress?.toLowerCase()
     this.server = config.fullNode || null
 
     let provider: any
