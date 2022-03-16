@@ -106,6 +106,18 @@ describe('end to end tests', () => {
     ethNode.listen(LOCAL_PORT)
 
     ethereumHD = new HdEthereumPayments(ETHER_CONFIG)
+
+    // deploy erc20 contract BA_TEST_TOKEN
+    const unsignedContractDeploy = await ethereumHD.createServiceTransaction(undefined, { data: CONTRACT_BYTECODE, gas: CONTRACT_GAS })
+    const signedContractDeploy = await ethereumHD.signTransaction(unsignedContractDeploy)
+    const deployedContract = await ethereumHD.broadcastTransaction(signedContractDeploy)
+    const contractInfo = await ethereumHD.getTransactionInfo(deployedContract.id)
+    const data: any = contractInfo.data
+    const tokenAddress = data.contractAddress
+
+    TOKEN_UTILS_CONFIG.tokenAddress = tokenAddress
+    TOKEN_ISSUER_CONFIG.tokenAddress = tokenAddress
+    TOKEN_HD_CONFIG.tokenAddress = tokenAddress
   })
 
   afterAll(() => {
@@ -114,21 +126,8 @@ describe('end to end tests', () => {
 
   describe('HD payments', () => {
 
-    test('deploy erc20 contract and send funds from distribution account to hd', async () => {
-
-      // deploy erc20 contract
+    test('send funds from distribution account to hd', async () => {
       // default to 0 (depositKeyIndex) is source.address
-      const unsignedContractDeploy = await ethereumHD.createServiceTransaction(undefined, { data: CONTRACT_BYTECODE, gas: CONTRACT_GAS })
-      const signedContractDeploy = await ethereumHD.signTransaction(unsignedContractDeploy)
-      const deployedContract = await ethereumHD.broadcastTransaction(signedContractDeploy)
-      const contractInfo = await ethereumHD.getTransactionInfo(deployedContract.id)
-      const data: any = contractInfo.data
-      const tokenAddress = data.contractAddress
-
-      TOKEN_UTILS_CONFIG.tokenAddress = tokenAddress
-      TOKEN_ISSUER_CONFIG.tokenAddress = tokenAddress
-      TOKEN_HD_CONFIG.tokenAddress = tokenAddress
-
       const tokenIssuer = factory.newPayments(TOKEN_ISSUER_CONFIG as HdErc20PaymentsConfig)
 
       const unsignedTx = await tokenIssuer.createTransaction(0, { address: source.address }, '6500000000')
