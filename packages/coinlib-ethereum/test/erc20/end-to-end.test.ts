@@ -1,3 +1,5 @@
+import { BaseTransactionInfo } from './../../../coinlib-common/src/types';
+import { EthereumPaymentsUtils } from '@bitaccess/coinlib-ethereum';
 import BigNumber from 'bignumber.js'
 import server from 'ganache-core'
 import {
@@ -6,7 +8,7 @@ import {
   NetworkType,
 } from '@bitaccess/coinlib-common'
 
-import { TestLogger } from '../../../../common/testUtils'
+import { expectEqualOmit, TestLogger } from '../../../../common/testUtils'
 
 import { hdAccount } from '../fixtures/accounts'
 import { HdEthereumPayments, HdErc20Payments, HdErc20PaymentsConfig, EthereumPaymentsFactory } from '../../src'
@@ -47,33 +49,44 @@ const tokenDistributor = {
 
 const target = { address: '0x62b72782415394f1518da5ec4de6c4c49b7bf854'} // payport 1
 
-const TOKEN_CONFIG = {
+const BASE_CONFIG = {
   network: NetworkType.Testnet,
   fullNode: `${LOCAL_NODE}:${LOCAL_PORT}`,
   parityNode: 'none',
   gasStation: 'none',
-  hdKey: tokenIssuer.xkeys.xprv,// hdAccount.root.KEYS.xprv,
   logger,
+}
+
+const ETHER_CONFIG = {
+  ...BASE_CONFIG,
+  hdKey: tokenIssuer.xkeys.xprv,// hdAccount.root.KEYS.xprv,
+}
+
+const TOKEN_UTILS_CONFIG = {
+  ...BASE_CONFIG,
   abi: CONTRACT_JSON,
   tokenAddress: '',
+  name: 'BA_TEST_TOKEN',
+  symbol: 'BTT',
   decimals: 7,
+}
+
+const TOKEN_ISSUER_CONFIG = {
+  ...TOKEN_UTILS_CONFIG,
+  hdKey: tokenIssuer.xkeys.xprv,// hdAccount.root.KEYS.xprv,
   depositKeyIndex: 0,
 }
 
 let hd: HdErc20Payments
 let ethereumHD: HdEthereumPayments
-const HD_CONFIG = {
-  network: NetworkType.Testnet,
-  fullNode: `${LOCAL_NODE}:${LOCAL_PORT}`,
-  parityNode: 'none',
-  gasStation: 'none',
+const TOKEN_HD_CONFIG = {
+  ...TOKEN_UTILS_CONFIG,
   hdKey: hdAccount.root.KEYS.xprv,
-  logger,
-  tokenAddress: '',
-  masterAddress: '',
-  decimals: 7,
   depositKeyIndex: 0,
+  masterAddress: '',
 }
+
+const PROXY_SWEEP_AMOUNT = '163331000'
 
 jest.setTimeout(100000)
 describe('end to end tests', () => {
@@ -96,7 +109,7 @@ describe('end to end tests', () => {
     ethNode = server.server(ganacheConfig)
     ethNode.listen(LOCAL_PORT)
 
-    ethereumHD = new HdEthereumPayments(TOKEN_CONFIG)
+    ethereumHD = new HdEthereumPayments(ETHER_CONFIG)
   })
 
   afterAll(() => {
@@ -104,6 +117,7 @@ describe('end to end tests', () => {
   })
 
   describe('HD payments', () => {
+
     test('deploy erc20 contract and send funds from distribution account to hd', async () => {
 
       // deploy erc20 contract
@@ -113,19 +127,19 @@ describe('end to end tests', () => {
       const deployedContract = await ethereumHD.broadcastTransaction(signedContractDeploy)
       const contractInfo = await ethereumHD.getTransactionInfo(deployedContract.id)
       const data: any = contractInfo.data
-      const contractAddress = data.contractAddress
+      const tokenAddress = data.contractAddress
 
-      const tokenHD = factory.newPayments({
-        ...TOKEN_CONFIG,
-        tokenAddress: contractAddress,
-      } as HdErc20PaymentsConfig)
+      TOKEN_UTILS_CONFIG.tokenAddress = tokenAddress
+      TOKEN_ISSUER_CONFIG.tokenAddress = tokenAddress
+      TOKEN_HD_CONFIG.tokenAddress = tokenAddress
 
-      const unsignedTx = await tokenHD.createTransaction(0, { address: source.address }, '6500000000')
-      const signedTx = await tokenHD.signTransaction(unsignedTx)
-      const broadcastedTx = await tokenHD.broadcastTransaction(signedTx)
+      const tokenIssuer = factory.newPayments(TOKEN_ISSUER_CONFIG as HdErc20PaymentsConfig)
 
-      HD_CONFIG.tokenAddress = contractAddress
-      hd = factory.newPayments(HD_CONFIG as HdErc20PaymentsConfig)
+      const unsignedTx = await tokenIssuer.createTransaction(0, { address: source.address }, '6500000000')
+      const signedTx = await tokenIssuer.signTransaction(unsignedTx)
+      const broadcastedTx = await tokenIssuer.broadcastTransaction(signedTx)
+
+      hd = factory.newPayments(TOKEN_HD_CONFIG as HdErc20PaymentsConfig)
 
       const { confirmedBalance: confirmedDistributorBalance } = await hd.getBalance(tokenDistributor.address)
       // leftovers after tx
@@ -152,8 +166,8 @@ describe('end to end tests', () => {
       const data: any = txInfo.data
       expect(data.from).toEqual(address.toLowerCase())
       masterAddress = data.contractAddress
-      HD_CONFIG.masterAddress = masterAddress
-      hd = factory.newPayments(HD_CONFIG as HdErc20PaymentsConfig)
+      TOKEN_HD_CONFIG.masterAddress = masterAddress
+      hd = factory.newPayments(TOKEN_HD_CONFIG as HdErc20PaymentsConfig)
 
       const { confirmedBalance } = await hd.getBalance(data.contractAddress)
       expect(confirmedBalance).toEqual('0')
@@ -168,7 +182,7 @@ describe('end to end tests', () => {
       }
 
       const erc20HW = await hd.getPayport(0)
-      const owner = await hd.getPayport(HD_CONFIG.depositKeyIndex)
+      const owner = await hd.getPayport(TOKEN_HD_CONFIG.depositKeyIndex)
 
       expect(erc20HW.address).toEqual(owner.address)
     })
@@ -179,7 +193,7 @@ describe('end to end tests', () => {
       const preBalanceSource = await hd.getBalance(source.address)
       const preConfig = hd.getFullConfig()
 
-      const unsignedTx = await hd.createTransaction(0, { address: destination }, '163331000')
+      const unsignedTx = await hd.createTransaction(0, { address: destination }, PROXY_SWEEP_AMOUNT)
       const signedTx = await hd.signTransaction(unsignedTx)
 
       const broadcastedTx = await hd.broadcastTransaction(signedTx)
@@ -188,17 +202,19 @@ describe('end to end tests', () => {
       const { confirmedBalance: balanceSource } = await hd.getBalance(source.address)
       const { confirmedBalance: balanceTarget } = await hd.getBalance(destination)
 
-      expect(balanceTarget).toEqual('163331000')
+      expect(balanceTarget).toEqual(PROXY_SWEEP_AMOUNT)
       expect(balanceSource).toEqual('6336669000')
       expect(preConfig).toEqual(hd.getFullConfig())
-      expect(txInfo.amount).toEqual('163331000')
+      expect(txInfo.amount).toEqual(PROXY_SWEEP_AMOUNT)
     })
+
+    let sweepTxInfo: BaseTransactionInfo
 
     test('sweep transaction to contract address', async () => {
       const destination = target.address
 
       const { confirmedBalance: balanceSourcePre } = await hd.getBalance(depositAddresses[0])
-      expect(balanceSourcePre).toEqual('163331000')
+      expect(balanceSourcePre).toEqual(PROXY_SWEEP_AMOUNT)
       const { confirmedBalance: balanceTargetPre } = await hd.getBalance(target)
       expect(balanceTargetPre).toEqual('0')
 
@@ -206,6 +222,10 @@ describe('end to end tests', () => {
       const signedTx = await hd.signTransaction(unsignedTx)
       const broadcastedTx = await hd.broadcastTransaction(signedTx)
       let txInfo = await hd.getTransactionInfo(broadcastedTx.id)
+      sweepTxInfo = txInfo
+      expect(txInfo.fromAddress).toBe(depositAddresses[0])
+      expect(txInfo.toAddress).toBe(destination)
+      expect(txInfo.amount).toBe(PROXY_SWEEP_AMOUNT)
 
       expect((txInfo.toAddress || '')).toBe(destination.toLowerCase())
       expect((txInfo.fromAddress || '')).toBe(depositAddresses[0].toLowerCase())
@@ -223,7 +243,7 @@ describe('end to end tests', () => {
       const { confirmedBalance: balanceTarget } = await hd.getBalance(destination)
 
       expect(balanceSource).toEqual('0')
-      expect(balanceTarget).toEqual('163331000')
+      expect(balanceTarget).toEqual(PROXY_SWEEP_AMOUNT)
     })
 
     test('sweep from hot wallet', async () => {
@@ -234,6 +254,8 @@ describe('end to end tests', () => {
 
       const broadcastedTx = await hd.broadcastTransaction(signedTx)
       const txInfo = await hd.getTransactionInfo(broadcastedTx.id)
+      expect(txInfo.toAddress).toBe(destination)
+      expect(txInfo.amount).toBe(unsignedTx.amount)
 
       const { confirmedBalance: balanceSource } = await hd.getBalance(0)
       const { confirmedBalance: balanceTarget } = await hd.getBalance(destination)
@@ -251,6 +273,24 @@ describe('end to end tests', () => {
         sweepable: false,
         requiresActivation: false,
       })
+    })
+
+    test('erc20 utils getTxInfo returns expected values', async () => {
+      const utils = factory.newUtils(TOKEN_UTILS_CONFIG)
+      // Expect utils to return the same result as payments
+      const paymentsInfo = await hd.getTransactionInfo(sweepTxInfo.id)
+      const utilsInfo = await utils.getTransactionInfo(sweepTxInfo.id)
+      expectEqualOmit(utilsInfo, paymentsInfo, ['confirmations', 'currentBlockNumber', 'data.currentBlock'])
+      // Expect utils to return info for the erc20 transfer, not the base 0-value eth fields
+      expect(utilsInfo.fromAddress).toBe(depositAddresses[0])
+      expect(utilsInfo.toAddress).toBe(target.address)
+      expect(utilsInfo.amount).toBe(PROXY_SWEEP_AMOUNT)
+    })
+
+    test('erc20 utils getBalance returns expected value', async () => {
+      const utils = factory.newUtils(TOKEN_UTILS_CONFIG)
+      const { confirmedBalance } = await utils.getAddressBalance(depositAddresses[1])
+      expect(confirmedBalance).toBe('6336669000')
     })
   })
 })
