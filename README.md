@@ -81,11 +81,10 @@ See [@bitaccess/coinlib README](./packages/coinlib/README.md) for usage.
 ### Steps to publish
 
 1. Run tests `npm run test`
-2. Boostrap packages `npm run bs`
-3. Create version commit and publish to npm `lerna publish (patch|minor|major)`
+2. Create version commit and publish to npm `lerna publish (patch|minor|major)`
 
 or
 
-3. Create a new version commit `lerna version (patch|minor|major)`
-4. Publish to npm `lerna publish from-git`
+2. Create a new version commit `lerna version (patch|minor|major)`
+3. Publish to npm `lerna publish from-git`
 
