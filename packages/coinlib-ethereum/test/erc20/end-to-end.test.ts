@@ -1,10 +1,6 @@
-import { BaseTransactionInfo } from './../../../coinlib-common/src/types';
-import { EthereumPaymentsUtils } from '@bitaccess/coinlib-ethereum';
-import BigNumber from 'bignumber.js'
 import server from 'ganache-core'
 import {
-  FeeRateType,
-  FeeLevel,
+  BaseTransactionInfo,
   NetworkType,
 } from '@bitaccess/coinlib-common'
 
