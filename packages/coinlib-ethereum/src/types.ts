@@ -73,6 +73,7 @@ export const EthereumPaymentsUtilsConfig = extendCodec(
     decimals: t.number,
     providerOptions: t.any,
     web3: t.any,
+    tokenAddress: t.string,
   },
   'EthereumPaymentsUtilsConfig',
 )

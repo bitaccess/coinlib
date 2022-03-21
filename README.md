@@ -4,14 +4,16 @@ A nodejs library providing a unified API for sending and receiving crypto paymen
 
 ## Setting Up
 
+
+0. Install required compiler tools
+```bash
+brew install autoconf automake libtool
+
+```
+
 1. Install root dependencies:
 ```bash
 npm install
-```
-
-2. Install dependencies for packages and link them together (done by [lerna](https://lerna.js))
-```bash
-npm run bs
 ```
 
 3. Execute tests (done by [Jest](https://jestjs.io/))
@@ -79,11 +81,10 @@ See [@bitaccess/coinlib README](./packages/coinlib/README.md) for usage.
 ### Steps to publish
 
 1. Run tests `npm run test`
-2. Boostrap packages `npm run bs`
-3. Create version commit and publish to npm `lerna publish (patch|minor|major)`
+2. Create version commit and publish to npm `lerna publish (patch|minor|major)`
 
 or
 
-3. Create a new version commit `lerna version (patch|minor|major)`
-4. Publish to npm `lerna publish from-git`
+2. Create a new version commit `lerna version (patch|minor|major)`
+3. Publish to npm `lerna publish from-git`
 

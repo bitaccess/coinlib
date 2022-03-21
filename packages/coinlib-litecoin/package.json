@@ -1,6 +1,6 @@
 {
   "name": "@bitaccess/coinlib-litecoin",
-  "version": "5.2.0",
+  "version": "5.2.1",
   "description": "Library to assist in processing litecoin payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",

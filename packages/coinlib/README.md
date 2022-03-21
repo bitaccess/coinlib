@@ -5,7 +5,7 @@ Library to assist in processing cryptocurrency payments.
 ## Getting Started
 
 ```bash
-npm i @coinlib/coinlib
+npm i @bitaccess/coinlib
 ```
 
 ```typescript
@@ -19,7 +19,7 @@ const coinPayments = new CoinPayments({
 To begin processing payments, select your asset
 
 ```typescript
-const xrpPayments = coinPayments.forAsset('XRP')
+const xrpPayments = coinPayments.forNetwork('XRP')
 await xrpPayments.init()
 ```
 

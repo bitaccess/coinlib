@@ -1,3 +1,4 @@
+import { FeeLevel, FeeRateType, AutoFeeLevels } from '@bitaccess/coinlib-common'
 import { BitcoinPaymentsUtils } from '../src'
 import { PRIVATE_KEY, ADDRESS_SEGWIT_P2SH } from './fixtures'
 
@@ -66,5 +67,18 @@ describe('BitcoinPaymentUtils', () => {
       expect(block.time).toEqual(new Date(1611012483000))
       expect(block.raw).toBeDefined()
     })
+  })
+
+  describe('getFeeRateRecommendation', () => {
+    const levels: AutoFeeLevels[] = [FeeLevel.High, FeeLevel.Medium, FeeLevel.Low]
+    for (const level of levels) {
+      for (const source of [undefined, 'blockbook', 'blockcypher']) {
+        it(`can retrieve ${level} fee level recommendation with ${source} source`, async () => {
+          const { feeRate, feeRateType } = await pu.getFeeRateRecommendation(level, { source })
+          expect(Number.parseFloat(feeRate)).toBeGreaterThan(0)
+          expect(feeRateType).toBe(FeeRateType.BasePerWeight)
+        })
+      }
+    }
   })
 })
