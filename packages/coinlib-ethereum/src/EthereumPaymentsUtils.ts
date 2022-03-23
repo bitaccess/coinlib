@@ -133,6 +133,12 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     })
   }
 
+  protected newContract(...args: ConstructorParameters<typeof Contract>) {
+    const contract = new Contract(...args)
+    contract.setProvider(this.eth.currentProvider)
+    return contract
+  }
+
   async init() {}
   async destroy() {}
 
