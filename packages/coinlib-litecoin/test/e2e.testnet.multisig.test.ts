@@ -309,6 +309,7 @@ describeAll('e2e multisig testnet', () => {
             feeRate: '5',
             feeRateType: FeeRateType.BasePerWeight,
             changeAddress,
+            useAllUtxos:true
           }
         )
 
@@ -321,8 +322,7 @@ describeAll('e2e multisig testnet', () => {
         }
         const signedTx = await payments.combinePartiallySignedTransactions(partiallySignedTxs)
         expect(signedTx.status).toBe(TransactionStatus.Signed)
-
-        logger.log(`Sending ${signedTx.amount} from ${[0]} to ${[0]} in tx ${signedTx.id}`)
+        logger.log(`Sending ${signedTx.amount} from ${fromIndicies} to ${address0} in tx ${signedTx.id}`)
         expect(await payments.broadcastTransaction(signedTx)).toEqual({
           id: signedTx.id,
         })

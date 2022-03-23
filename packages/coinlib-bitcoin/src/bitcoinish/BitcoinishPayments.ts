@@ -660,7 +660,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
     const unfilteredUtxoTotal = sumUtxoValue(params.unusedUtxos, params.useUnconfirmedUtxos)
     // TODO: createSweepTransaction could just pass this in directly
-    tbc.isSweep = tbc.useAllUtxos && tbc.desiredOutputTotal >= unfilteredUtxoTotal.toNumber()
+    tbc.isSweep = tbc.useAllUtxos && tbc.desiredOutputTotal >= this.toBaseDenominationNumber(unfilteredUtxoTotal)
 
     this.selectInputUtxos(tbc)
     tbc.inputUtxos = tbc.inputUtxos.sort((a, b) => `${a.txid}${a.vout}` > `${b.txid}${b.vout}` && 1 || -1)
@@ -998,6 +998,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       recipientPaysFee: options.recipientPaysFee ?? false,
       maxFeePercent,
     })
+    
     const unsignedTxHex = await this.callSerializePaymentTx(paymentTx, {
       lookupTxDataByHashes: options.lookupTxDataByHashes,
     })

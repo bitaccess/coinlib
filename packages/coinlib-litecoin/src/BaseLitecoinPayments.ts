@@ -1,10 +1,7 @@
 import * as bitcoin from 'bitcoinjs-lib'
 import {
-  FeeRate,
-  AutoFeeLevels,
   UtxoInfo,
   TransactionStatus,
-  BaseMultisigData,
   MultisigData,
 } from '@bitaccess/coinlib-common'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
