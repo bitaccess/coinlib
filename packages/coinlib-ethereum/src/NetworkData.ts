@@ -1,10 +1,9 @@
 import * as request from 'request-promise-native'
 import { BigNumber } from 'bignumber.js'
-import Web3 from 'web3'
 import { Logger, DelegateLogger } from '@faast/ts-common'
 import { TransactionConfig } from 'web3-core'
 import { AutoFeeLevels } from '@bitaccess/coinlib-common'
-import { BlockbookEthereum, GetAddressDetailsOptions, NormalizedTxEthereum } from 'blockbook-client'
+import { GetAddressDetailsOptions, NormalizedTxEthereum } from 'blockbook-client'
 
 import {
   DEFAULT_GAS_PRICE_IN_WEI,
@@ -14,59 +13,68 @@ import {
   GAS_ESTIMATE_MULTIPLIER,
   ETHEREUM_TRANSFER_COST,
 } from './constants'
-import { EthereumBlock, EthTxType } from './types'
-import { resolveServer, retryIfDisconnected } from './utils'
-
-type Eth = Web3['eth']
-
-type NetworkDataConfig = {
-  web3: { eth: Eth; gasStationUrl?: string }
-  blockBook: { nodes: string[] | string | null; requestTimeoutMs?: number; api?: BlockbookEthereum }
-  parity?: { parityUrl?: string }
-  logger?: Logger | null
-}
+import { EthereumBlock, EthereumTransactionInfo, EthTxType, NetworkDataConfig } from './types'
+import { retryIfDisconnected } from './utils'
+import { EthereumBlockbook } from './EthereumBlockBook'
+import { EthereumWeb3 } from './EthereumWeb3'
 
 export class NetworkData {
   private gasStationUrl: string | undefined
   private parityUrl: string | undefined
-  private eth: Eth
   private logger: Logger
-  private blockBookApi: BlockbookEthereum
+  private blockBookService: EthereumBlockbook
+  private web3Service: EthereumWeb3
 
   constructor(config: NetworkDataConfig) {
-    this.eth = config.web3.eth
-    this.gasStationUrl = config.web3.gasStationUrl ?? GAS_STATION_URL
+    this.gasStationUrl = config.gasStationUrl ?? GAS_STATION_URL
     this.logger = new DelegateLogger(config.logger, 'NetworkData')
-    const { api } = resolveServer(
-      {
-        api: config.blockBook.api,
-        server: config.blockBook.nodes,
-        requestTimeoutMs: config.blockBook.requestTimeoutMs,
-      },
-      this.logger,
-    )
-    this.blockBookApi = api
-    this.parityUrl = config.parity?.parityUrl
+
+    this.blockBookService = new EthereumBlockbook({
+      ...config.blockBookConfig,
+      server: config.blockBookConfig.nodes,
+      logger: this.logger,
+    })
+
+    this.web3Service = new EthereumWeb3({
+      ...config.web3Config,
+      logger: this.logger,
+    })
+
+    this.parityUrl = config.parityUrl
   }
 
   async connectBlockBook(): Promise<void> {
-    await this.blockBookApi.connect()
+    await this.blockBookService.init()
   }
 
   async disConnectBlockBook(): Promise<void> {
-    await this.blockBookApi.disconnect()
+    await this.blockBookService.destroy()
   }
 
-  async getBlock(blockId: string | number, page?: number): Promise<EthereumBlock> {
-    return this._retryDced(() => this.blockBookApi.getBlock(blockId, { page }))
+  async getBlock(blockId: string | number): Promise<EthereumBlock | any> {
+    const blockBookBlock = await this.blockBookService.getBlock(blockId)
+
+    if (blockBookBlock) {
+      return blockBookBlock
+    }
+
+    return this.web3Service.getBlock(blockId)
   }
 
   async getAddressDetails(address: string, options?: GetAddressDetailsOptions) {
-    return this._retryDced(() => this.blockBookApi.getAddressDetails(address, options))
+    const blockBookAddressDetails = await this.blockBookService.getAddressDetails(address, options)
+
+    return blockBookAddressDetails
   }
 
-  async getTransaction(txId: string): Promise<NormalizedTxEthereum> {
-    return this._retryDced(() => this.blockBookApi.getTx(txId))
+  async getTransaction(txId: string): Promise<NormalizedTxEthereum | any> {
+    const blockBookTx = await this.blockBookService.getTransaction(txId)
+
+    if (blockBookTx) {
+      return blockBookTx
+    }
+
+    return this.web3Service.getTransaction(txId)
   }
 
   async getNetworkData(
@@ -92,7 +100,7 @@ export class NetworkData {
   }
 
   async getNonce(address: string): Promise<string> {
-    const web3Nonce = (await this.getWeb3Nonce(address)) || '0'
+    const web3Nonce = (await this.web3Service.getWeb3Nonce(address)) || '0'
     const parityNonce = (await this.getParityNonce(address)) || '0'
 
     const nonce = BigNumber.maximum(web3Nonce, parityNonce)
@@ -103,42 +111,40 @@ export class NetworkData {
     let gasPrice = await this.getGasStationGasPrice(speed)
     if (gasPrice) return gasPrice
 
-    gasPrice = await this.getWeb3GasPrice()
+    gasPrice = await this.web3Service.getWeb3GasPrice()
     if (gasPrice) return gasPrice
 
     return DEFAULT_GAS_PRICE_IN_WEI
   }
 
   async estimateGas(txObject: TransactionConfig, txType: EthTxType): Promise<number> {
-    try {
-      // estimateGas mutates txObject so must pass in a clone
-      let gas = await this._retryDced(() => this.eth.estimateGas({ ...txObject }))
-      if (gas > 21000) {
-        // No need for multiplier for regular ethereum transfers
-        gas = gas * GAS_ESTIMATE_MULTIPLIER
-      }
-
-      const maxGas = MAXIMUM_GAS[txType]
-      if (gas > maxGas) {
-        gas = maxGas
-      }
-
-      const result = Math.ceil(gas)
-      this.logger.debug(`Estimated gas limit of ${result} for ${txType}`)
-      return result
-    } catch (e) {
-      this.logger.warn(`Failed to estimate gas for ${txType} -- ${e}`)
-      return MAXIMUM_GAS[txType]
-    }
+    return this.web3Service.estimateGas(txObject, txType)
   }
 
-  private async getWeb3Nonce(address: string): Promise<string> {
-    try {
-      const nonce = await this._retryDced(() => this.eth.getTransactionCount(address, 'pending'))
-      return new BigNumber(nonce).toString()
-    } catch (e) {
-      return ''
+  async getTransactionInfoERC20(txId: string): Promise<EthereumTransactionInfo> {
+    return this.web3Service.getTransactionInfoERC20(txId)
+  }
+
+  async getTransactionInfo(txId: string, tokenAddress?: string): Promise<EthereumTransactionInfo> {
+    return this.web3Service.getTransactionInfo(txId, tokenAddress)
+  }
+
+  async getCurrentBlockNumber() {
+    const currentBlockNumber = await this.blockBookService.getCurrentBlockNumber()
+
+    if (currentBlockNumber) {
+      return currentBlockNumber
     }
+
+    return this.web3Service.getCurrentBlockNumber()
+  }
+
+  async getAddressBalance(address: string) {
+    return this.web3Service.getAddressBalance(address)
+  }
+
+  async getAddressBalanceERC20(address: string, tokenAddress: string) {
+    return this.web3Service.getAddressBalanceERC20(address, tokenAddress)
   }
 
   private async getParityNonce(address: string): Promise<string> {
@@ -196,17 +202,6 @@ export class NetworkData {
       .multipliedBy(1e9)
       .dp(0, BigNumber.ROUND_DOWN)
       .toFixed()
-  }
-
-  private async getWeb3GasPrice(): Promise<string> {
-    try {
-      const wei = new BigNumber(await this._retryDced(() => this.eth.getGasPrice()))
-      this.logger.log(`Retrieved gas price of ${wei.div(1e9)} Gwei from web3`)
-      return wei.dp(0, BigNumber.ROUND_DOWN).toFixed()
-    } catch (e) {
-      this.logger.warn('Failed to retrieve gas price from web3 - ', e.toString())
-      return ''
-    }
   }
 
   async _retryDced<T>(fn: () => Promise<T>): Promise<T> {
