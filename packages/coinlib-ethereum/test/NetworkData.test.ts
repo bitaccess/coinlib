@@ -1,4 +1,5 @@
 import { NetworkData } from '../src/NetworkData'
+import { NetworkDataConfig } from '../src/types'
 import {
   getEstimateGasMocks,
   getGasPriceMocks,
@@ -19,7 +20,7 @@ describe('NetworkData', () => {
   const GAS_STATION_URL = 'https://gasstation.test.url'
   const PARITY_URL = 'https://parity.test.url'
   const INFURA_URL = 'https://infura.test.url'
-  const BLOCKBOOK_NODES = ['<YOUR_BLOCKBOOK_NODE_HERE>']
+  const BLOCKBOOK_NODES = ['https://eth1.trezor.io']
 
   const nockG = nock(GAS_STATION_URL)
   const nockP = nock(PARITY_URL)
@@ -30,14 +31,14 @@ describe('NetworkData', () => {
   const from = web3.eth.accounts.create().address.toLowerCase()
   const to = web3.eth.accounts.create().address.toLowerCase()
 
-  const networkDataConfig = {
-    web3: {
-      eth: web3.eth,
-      gasStationUrl: GAS_STATION_URL,
+  const networkDataConfig: NetworkDataConfig = {
+    web3Config: {
+      web3,
     },
-    parity: { parityUrl: PARITY_URL },
-    blockBook: { nodes: BLOCKBOOK_NODES },
+    parityUrl: PARITY_URL,
+    blockBookConfig: { nodes: BLOCKBOOK_NODES },
     logger,
+    gasStationUrl: GAS_STATION_URL,
   }
 
   const networkData = new NetworkData(networkDataConfig)
@@ -140,24 +141,9 @@ describe('NetworkData', () => {
     })
   })
 
-  it.skip('should get a block details', async () => {
-    const block = await networkData.getBlock(12046698)
+  it('should get the latest block', async () => {
+    const currentBlock = await networkData.getCurrentBlockNumber()
 
-    expect(block.txCount).toBe(block.txs?.length)
-    expect(block).toBeDefined()
-  })
-
-  it.skip('should get an  address details', async () => {
-    const address = '0x176366cfd97885245faea72f8cb6951e52655adf'
-    const addressDetails = await networkData.getAddressDetails(address)
-
-    expect(addressDetails).toBeDefined()
-  })
-
-  it.skip('should get a transaction', async () => {
-    const txId = '0xe003f982a9f16235c0f30e31c0c85bc0fcab280fcc9e7ddd993faa043d0c1758'
-    const tx = await networkData.getTransaction(txId)
-
-    expect(tx).toBeDefined()
+    expect(currentBlock).toBeDefined()
   })
 })
