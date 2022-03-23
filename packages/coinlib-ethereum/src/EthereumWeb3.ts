@@ -89,7 +89,7 @@ export class EthereumWeb3 extends UnitConvertersUtil {
       height: raw.number,
       previousId: raw.parentHash,
       time: new Date(isNumber(raw.timestamp) ? raw.timestamp * 1000 : raw.timestamp),
-      raw: raw,
+      raw,
     }
   }
 
@@ -111,8 +111,8 @@ export class EthereumWeb3 extends UnitConvertersUtil {
     const currentBlockNumber = await this.getCurrentBlockNumber()
     let txInfo: TransactionReceipt | null = await this._retryDced(() => this.eth.getTransactionReceipt(txid))
 
-    tx.from = tx.from ? tx.from.toLowerCase() : ''
-    tx.to = tx.to ? tx.to.toLowerCase() : ''
+    tx.from = tx.from?.toLowerCase() ?? ''
+    tx.to = tx.to?.toLowerCase() ?? ''
 
     // NOTE: for the sake of consistent schema return
     if (!txInfo) {
