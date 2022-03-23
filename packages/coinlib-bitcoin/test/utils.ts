@@ -1,11 +1,10 @@
 import { PACKAGE_NAME } from '../src/constants'
-import { UtxoInfo, ResolveablePayport } from '@bitaccess/coinlib-common'
+import { UtxoInfo, BaseConfig } from '@bitaccess/coinlib-common'
 import { TestLogger } from '../../../common/testUtils'
 import { BitcoinishTxOutput } from '../src/bitcoinish/types'
 import { BitcoinishPayments } from '../src/bitcoinish/BitcoinishPayments'
 import { toBaseDenominationNumber } from '../src'
 import { omit } from 'lodash'
-import BigNumber from 'bignumber.js'
 import { toBigNumber } from '@faast/ts-common'
 
 
@@ -63,7 +62,7 @@ export function assertBitcoinishTxInfoEquality(actual: any, expected: any): void
 
 
 export async function getFromTo(
-  payments: BitcoinishPayments<any>,
+  payments: BitcoinishPayments<BaseConfig>,
   asset: string,
   index1: number, 
   index2: number,
