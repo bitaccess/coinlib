@@ -49,6 +49,13 @@ const MultisigAddressTypeT = t.keyof({
 export type MultisigAddressType = t.TypeOf<typeof MultisigAddressTypeT>
 export const MultisigAddressType = MultisigAddressTypeT as t.Type<MultisigAddressType>
 
+export const BitcoinishTxOutput = t.type({
+  address: t.string,
+  value: t.string,
+}, 'BitcoinishTxOutput')
+export type BitcoinishTxOutput = t.TypeOf<typeof BitcoinishTxOutput>
+
+
 export const LitecoinBaseConfig = extendCodec(
   BaseConfig,
   {},
@@ -121,6 +128,19 @@ export const SinglesigLitecoinPaymentsConfig = t.union([
 ], 'SinglesigLitecoinPaymentsConfig')
 export type SinglesigLitecoinPaymentsConfig = t.TypeOf<typeof SinglesigLitecoinPaymentsConfig>
 
+export const MultisigLitecoinPaymentsConfig = extendCodec(
+  BaseLitecoinPaymentsConfig,
+  {
+    m: t.number,
+    signers: t.array(SinglesigLitecoinPaymentsConfig),
+  },
+  {
+    addressType: MultisigAddressType,
+  },
+  'MultisigLitecoinPaymentsConfig',
+)
+export type MultisigLitecoinPaymentsConfig = t.TypeOf<typeof MultisigLitecoinPaymentsConfig>
+
 export const LitecoinPaymentsConfig = t.union([
   HdLitecoinPaymentsConfig,
   KeyPairLitecoinPaymentsConfig,
@@ -150,6 +170,7 @@ export const LitecoinSignedTransactionData = requiredOptionalCodec(
     partial: t.boolean,
     // sha256 hash of the unsignedHex data for facilitating multisig tx combining
     unsignedTxHash: t.string,
+    changeOutputs: t.array(BitcoinishTxOutput),
   },
   'LitecoinSignedTransactionData',
 )

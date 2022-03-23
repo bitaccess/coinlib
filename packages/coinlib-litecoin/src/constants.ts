@@ -1,6 +1,6 @@
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { FeeLevel, NetworkType } from '@bitaccess/coinlib-common'
-import { AddressType, SinglesigAddressType, LitecoinAddressFormat } from './types'
+import { AddressType, SinglesigAddressType, MultisigAddressType, LitecoinAddressFormat } from './types'
 
 export const PACKAGE_NAME = 'litecoin-payments'
 export const DECIMAL_PLACES = 8
@@ -32,6 +32,7 @@ export const LITECOIN_SEQUENCE_RBF = 0xFFFFFFFD
 export const DEFAULT_MIN_TX_FEE = 10
 
 export const DEFAULT_SINGLESIG_ADDRESS_TYPE: SinglesigAddressType = AddressType.SegwitNative
+export const DEFAULT_MULTISIG_ADDRESS_TYPE: MultisigAddressType = AddressType.MultisigSegwitNative
 
 export const DEFAULT_DERIVATION_PATHS = {
   [AddressType.Legacy]: "m/44'/2'/0'",
@@ -73,7 +74,7 @@ export const NETWORKS = {
 export const DEFAULT_MAINNET_SERVER = process.env.LITECOIN_SERVER_URL
   ? process.env.LITECOIN_SERVER_URL.split(',')
   : ['https://ltc1.trezor.io', 'https://ltc2.trezor.io']
-export const DEFAULT_TESTNET_SERVER = '' // will default to mainnet due to not testing LTC testnet
+export const DEFAULT_TESTNET_SERVER =   process.env.LITECOIN_TESTNET_SERVER_URL || '' // will default to mainnet due to not testing LTC testnet
 
 export const DEFAULT_FEE_LEVEL = FeeLevel.Medium
 

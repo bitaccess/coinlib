@@ -1,4 +1,4 @@
-import { createUnitConverters, NetworkType } from '@bitaccess/coinlib-common'
+import { BaseMultisigData, createUnitConverters, MultisigData, NetworkType } from '@bitaccess/coinlib-common'
 import * as bitcoin from 'bitcoinjs-lib'
 import { assertType } from '@faast/ts-common'
 
@@ -171,4 +171,11 @@ export function privateKeyToAddress(
 ) {
   const keyPair = privateKeyToKeyPair(privateKey, NETWORKS[networkType])
   return publicKeyToAddress(keyPair.publicKey, networkType, addressType, format)
+}
+
+export function isMultisigFullySigned(multisigData: MultisigData): boolean {
+  if (BaseMultisigData.is(multisigData)) {
+    return multisigData.signedAccountIds.length >= multisigData.m
+  }
+  return Object.values(multisigData).every(isMultisigFullySigned)
 }

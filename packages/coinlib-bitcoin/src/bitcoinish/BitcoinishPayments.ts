@@ -953,7 +953,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   ): Promise<BitcoinishUnsignedTransaction> {
     assertType(t.array(PayportOutput), to)
     this.logger.debug('createMultiInputTransaction', from, to, options)
-
     const unusedUtxos = []
     if (options.availableUtxos) {
       for (const u of options.availableUtxos) {
@@ -965,7 +964,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       }
     }
     this.logger.debug('createMultiInputTransaction unusedUtxos', unusedUtxos)
-
+    
     let changeAddress: string[]
     if (options.changeAddress) {
       if(Array.isArray(options.changeAddress)) {
@@ -999,7 +998,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       recipientPaysFee: options.recipientPaysFee ?? false,
       maxFeePercent,
     })
-
     const unsignedTxHex = await this.callSerializePaymentTx(paymentTx, {
       lookupTxDataByHashes: options.lookupTxDataByHashes,
     })
