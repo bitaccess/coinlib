@@ -25,8 +25,11 @@ import {
   KeyPairsConfigParam,
   CreateTransactionOptions,
   NetworkTypeT,
+  createUnitConverters,
 } from '@bitaccess/coinlib-common'
 import { BlockbookEthereum, BlockInfoEthereum } from 'blockbook-client'
+import Web3 from 'web3'
+
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
 
 export enum EthereumAddressFormat {
@@ -247,18 +250,50 @@ export type EthereumBlockbookConfigServer = t.TypeOf<typeof EthereumBlockbookCon
 
 export const EthereumBlockbookConnectedConfig = requiredOptionalCodec(
   {
-    network: NetworkTypeT,
-    packageName: t.string,
     server: EthereumBlockbookConfigServer,
+    logger: Logger,
   },
   {
-    logger: nullable(Logger),
     api: instanceofCodec(BlockbookEthereum),
     requestTimeoutMs: t.number,
   },
   'EthereumBlockbookConnectedConfig',
 )
 export type EthereumBlockbookConnectedConfig = t.TypeOf<typeof EthereumBlockbookConnectedConfig>
+
+export const EthereumWeb3Config = requiredOptionalCodec(
+  { web3: instanceofCodec(Web3) },
+  { decimals: t.number, fullNode: t.string, providerOptions: t.any, tokenAddress: t.string, logger: Logger },
+  'Web3Config',
+)
+
+export type EthereumWeb3Config = t.TypeOf<typeof EthereumWeb3Config>
+
+export const BlockBookConfig = requiredOptionalCodec(
+  {
+    nodes: EthereumBlockbookConfigServer,
+  },
+  {
+    requestTimeoutMs: t.number,
+    api: instanceofCodec(BlockbookEthereum),
+  },
+  'BlockBookConfig',
+)
+
+export const NetworkDataConfig = requiredOptionalCodec(
+  {
+    web3Config: EthereumWeb3Config,
+    blockBookConfig: BlockBookConfig,
+  },
+  {
+    parityUrl: t.string,
+    logger: Logger,
+    gasStationUrl: t.string,
+  },
+  'NetworkDataConfig',
+)
+
+export type NetworkDataConfig = t.TypeOf<typeof NetworkDataConfig>
 
 export type EthereumBalanceMonitorConfig = EthereumBlockbookConnectedConfig &
   EthereumPaymentsUtilsConfig & {
@@ -267,3 +302,5 @@ export type EthereumBalanceMonitorConfig = EthereumBlockbookConnectedConfig &
 
 export const EthereumBlock = BlockInfoEthereum
 export type EthereumBlock = BlockInfoEthereum
+
+export type UnitConverters = ReturnType<typeof createUnitConverters>

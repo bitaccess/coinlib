@@ -31,7 +31,7 @@ export function retryIfDisconnected<T>(
 }
 
 export function resolveServer(
-  { server, requestTimeoutMs, api }: Pick<EthereumBlockbookConnectedConfig, 'server' | 'api' | 'requestTimeoutMs'>,
+  { server, requestTimeoutMs, api }: EthereumBlockbookConnectedConfig,
   logger: Logger,
 ): {
   api: BlockbookEthereum
@@ -81,5 +81,17 @@ export function resolveServer(
       requestTimeoutMs,
     }),
     server: null,
+  }
+}
+
+export const handleException = async <T>(fn: () => Promise<T>, logger: Logger, logPrefix?: string) => {
+  try {
+    const result = await fn()
+
+    return result
+  } catch (error) {
+    logger.log(`${logPrefix ?? ''} An error occured`, error.toString())
+
+    return null
   }
 }
