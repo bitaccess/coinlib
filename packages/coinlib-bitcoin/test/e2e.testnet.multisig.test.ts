@@ -303,7 +303,7 @@ describeAll('e2e multisig testnet', () => {
           fromIndicies,
           [{
             payport: { address: address0 },
-            amount: '0.01',
+            amount: '0.0001',
           }],
           {
             useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
@@ -323,7 +323,7 @@ describeAll('e2e multisig testnet', () => {
         const signedTx = await payments.combinePartiallySignedTransactions(partiallySignedTxs)
         expect(signedTx.status).toBe(TransactionStatus.Signed)
 
-        logger.log(`Sending ${signedTx.amount} from ${[0]} to ${[0]} in tx ${signedTx.id}`)
+        logger.log(`Sending ${signedTx.amount} from ${changeAddress} to ${address0} in tx ${signedTx.id}`)
         expect(await payments.broadcastTransaction(signedTx)).toEqual({
           id: signedTx.id,
         })
