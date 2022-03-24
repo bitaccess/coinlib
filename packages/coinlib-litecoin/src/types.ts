@@ -144,6 +144,7 @@ export type MultisigLitecoinPaymentsConfig = t.TypeOf<typeof MultisigLitecoinPay
 export const LitecoinPaymentsConfig = t.union([
   HdLitecoinPaymentsConfig,
   KeyPairLitecoinPaymentsConfig,
+  MultisigLitecoinPaymentsConfig,
 ], 'LitecoinPaymentsConfig')
 export type LitecoinPaymentsConfig = t.TypeOf<typeof LitecoinPaymentsConfig>
 
