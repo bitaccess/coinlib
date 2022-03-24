@@ -8,8 +8,6 @@ import {
   LitecoinTransactionInfo,
   LitecoinSignedTransaction,
   publicKeyToString,
-  SinglesigLitecoinPayments,
-  NETWORKS,
 } from '../src'
 import { delay, END_TRANSACTION_STATES, expectEqualWhenTruthy, logger } from './utils'
 import { NetworkType, TransactionStatus, FeeRateType, MultiInputMultisigData } from '@bitaccess/coinlib-common'
@@ -41,8 +39,8 @@ if (fs.existsSync(secretKeyFilePath)) {
 // Comment out elements to disable tests for an address type
 const addressTypesToTest: MultisigAddressType[] = [
   AddressType.MultisigLegacy,
-  // AddressType.MultisigSegwitP2SH,
-  // AddressType.MultisigSegwitNative,
+  AddressType.MultisigSegwitP2SH,
+  AddressType.MultisigSegwitNative,
 ]
 
 const describeAll = !rootSecretKey ? describe.skip : describe
@@ -260,9 +258,11 @@ describeAll('e2e multisig testnet', () => {
 
 
       it('end to end send', async () => {
-        const { fromIndex, fromBalance, toIndex } = await getFromTo(payments, "Litecoin testnet multisig wallet", 0, 1)
+        const { fromIndex, toIndex } = await getFromTo(payments, "Litecoin testnet multisig wallet", 0, 1)
         const fromAddress = payments.getAddress(fromIndex)
-        const unsignedTx = await payments.createTransaction(fromIndex, payments.getAddress(toIndex), '0.0001', {
+        const toAddress = payments.getAddress(toIndex)
+        const sendAmount = '0.0001'
+        const unsignedTx = await payments.createTransaction(fromIndex, toAddress, sendAmount, {
           useUnconfirmedUtxos: true,
           feeRate: '10',
           feeRateType: FeeRateType.BasePerWeight,
@@ -302,14 +302,14 @@ describeAll('e2e multisig testnet', () => {
           fromIndicies,
           [{
             payport: { address: address0 },
-            amount: '0.01',
+            amount: '0.001',
           }],
           {
             useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
             feeRate: '5',
             feeRateType: FeeRateType.BasePerWeight,
             changeAddress,
-            useAllUtxos:true
+            useAllUtxos:true   // force all addresses to contribute
           }
         )
 
@@ -335,5 +335,3 @@ describeAll('e2e multisig testnet', () => {
     })
   }
 })
-
-// npx jest -t "e2e multisig testnet"

@@ -4,6 +4,8 @@ import {
   KeyPairLitecoinPayments,
   HdLitecoinPaymentsConfig,
   KeyPairLitecoinPaymentsConfig,
+  MultisigLitecoinPayments,
+  MultisigLitecoinPaymentsConfig,
   LitecoinPaymentsUtils,
   DEFAULT_MAINNET_SERVER,
   LitecoinPaymentsUtilsConfig,
@@ -28,6 +30,15 @@ const KEYPAIR_CONFIG: KeyPairLitecoinPaymentsConfig = {
   logger,
   server: SERVER,
   keyPairs: [PRIVATE_KEY],
+}
+const MULTISIG_CONFIG: MultisigLitecoinPaymentsConfig = {
+  m: 2,
+  logger,
+  server: SERVER,
+  signers: [
+    HD_CONFIG,
+    KEYPAIR_CONFIG,
+  ],
 }
 const UTILS_CONFIG: LitecoinPaymentsUtilsConfig = {
   logger,
@@ -63,6 +74,10 @@ describe('LitecoinPaymentsFactory', () => {
       }
       expect(factory.newPayments(config)).toBeInstanceOf(KeyPairLitecoinPayments)
     })
+    it('should instantiate MultisigLitecoinPayments', () => {
+      const multiSigPayment = factory.newPayments(MULTISIG_CONFIG)
+      expect(multiSigPayment).toBeInstanceOf(MultisigLitecoinPayments)
+    })
     it('should fail to instantiate unrecognized config', () => {
       expect(() => factory.newPayments({} as any)).toThrow()
     })
@@ -92,10 +107,12 @@ describe('LitecoinPaymentsFactory', () => {
     it('should instantiate all with same blockbook API instance', async () => {
       const payments1 = await factory.initPayments(HD_CONFIG)
       const payments2 = await factory.initPayments(KEYPAIR_CONFIG)
+      const payments3 = await factory.initPayments(MULTISIG_CONFIG)
       const utils = await factory.initUtils(UTILS_CONFIG)
       const bm = await factory.initBalanceMonitor(BM_CONFIG)
       expect(payments1.api).toBeInstanceOf(bitcoinish.BlockbookServerAPI)
       expect(payments1.api).toBe(payments2.api)
+      expect(payments1.api).toBe(payments3.api)
       expect(payments2.api).toBe(utils.api)
       expect(utils.api).toBe(bm.api)
       expect(bm.api.wsConnected).toBe(true)
