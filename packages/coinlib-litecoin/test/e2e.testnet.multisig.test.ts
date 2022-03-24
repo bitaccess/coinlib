@@ -50,7 +50,7 @@ describeAll('e2e multisig testnet', () => {
   afterAll(() => {
     testsComplete = true
   })
-
+  const BROADCAST_TEST_TIMEOUT = 5 * 60 * 1000
   const HD_SIGNERS = 2
   const KEYPAIR_SIGNERS = 2
   const ADDRESSES_NEEDED_PER_SIGNER = 3
@@ -109,7 +109,6 @@ describeAll('e2e multisig testnet', () => {
   ]
 
   for (const addressType of addressTypesToTest) {
-
     describe(addressType, () => {
       // Configure a multisig setup with a mix of public and private keys to make
       // sure transactions can be created with either. Won't actually be signing
@@ -184,8 +183,13 @@ describeAll('e2e multisig testnet', () => {
           // Safe to use multi-input test indices here because we aren't broadcasting
           // Address 0 has so many utxos that sweeping it made this test take too long
           // Address 2 never broadcast so it is likely transfer from 2 to 1
-          const { fromIndex, fromBalance, toIndex } = await getFromTo(payments, "Litecoin testnet multisig wallet", 1, 2)
-            const tx = await payments.createSweepTransaction(fromIndex, toIndex, {
+          const { fromIndex, fromBalance, toIndex } = await getFromTo(
+            payments,
+            'Litecoin testnet multisig wallet',
+            1,
+            2,
+          )
+          const tx = await payments.createSweepTransaction(fromIndex, toIndex, {
             useUnconfirmedUtxos: true,
             feeRate: '10',
             feeRateType: FeeRateType.BasePerWeight,
@@ -207,7 +211,7 @@ describeAll('e2e multisig testnet', () => {
         const multisigData = multiInputMultisigData[address]
         expect(multisigData.m).toBe(M)
         expect(multisigData.accountIds.length).toBe(signerPayments.length)
-        expect(multisigData.signedAccountIds).toEqual(expectedSignatures.map((i) => multisigData.accountIds[i]))
+        expect(multisigData.signedAccountIds).toEqual(expectedSignatures.map(i => multisigData.accountIds[i]))
         for (let i = 0; i < signerPayments.length; i++) {
           const signerPayment = signerPayments[i]
           const accountId = multisigData.accountIds[i]
@@ -224,7 +228,7 @@ describeAll('e2e multisig testnet', () => {
         let tx: LitecoinTransactionInfo | undefined
         let changeAddress
         if (signedTx.data.changeOutputs) {
-          changeAddress = signedTx.data.changeOutputs.map((ca) => ca.address)
+          changeAddress = signedTx.data.changeOutputs.map(ca => ca.address)
         }
         while (!testsComplete && (!tx || !endState.includes(tx.status))) {
           try {
@@ -256,82 +260,134 @@ describeAll('e2e multisig testnet', () => {
         return tx
       }
 
-
-      it('end to end send', async () => {
-        const { fromIndex, toIndex } = await getFromTo(payments, "Litecoin testnet multisig wallet", 0, 1)
-        const fromAddress = payments.getAddress(fromIndex)
-        const toAddress = payments.getAddress(toIndex)
-        const sendAmount = '0.0001'
-        const unsignedTx = await payments.createTransaction(fromIndex, toAddress, sendAmount, {
-          useUnconfirmedUtxos: true,
-          feeRate: '10',
-          feeRateType: FeeRateType.BasePerWeight,
-          maxFeePercent: 75,
-        })
-        assertMultisigData(unsignedTx.multisigData, fromAddress, fromIndex, [])
-        const partiallySignedTxs = await Promise.all(signerPayments.map((signer) => signer.signTransaction(unsignedTx)))
-        for (let i = 0; i < partiallySignedTxs.length; i++) {
-          const partiallySignedTx = partiallySignedTxs[i]
-          expect(partiallySignedTx.data.partial).toBe(true)
-          expect(partiallySignedTx.data.hex).toMatch(/^[a-f0-9]+$/)
-          expect(partiallySignedTx.data.unsignedTxHash).toBe(unsignedTx.data.rawHash)
-          assertMultisigData(partiallySignedTx.multisigData, fromAddress, fromIndex, [i])
-        }
-        const signedTx = await payments.combinePartiallySignedTransactions(partiallySignedTxs)
-        expect(signedTx.status).toBe(TransactionStatus.Signed)
-        assertMultisigData(signedTx.multisigData, fromAddress, fromIndex, [0,1])
-        expect(signedTx.data.partial).toBe(false)
-        expect(signedTx.data.hex).toMatch(/^[a-f0-9]+$/)
-        expect(signedTx.data.unsignedTxHash).toBe(unsignedTx.data.rawHash)
-        logger.log(`Sending ${signedTx.amount} to ${payments.getAddress(toIndex)} in tx ${signedTx.id}`)
-        expect(await payments.broadcastTransaction(signedTx)).toEqual({
-          id: signedTx.id,
-        })
-        const tx = await pollUntilFound(signedTx)
-        expect(tx.amount).toEqual(signedTx.amount)
-        expect(tx.fee).toEqual(signedTx.fee)
-      }, 5 * 60 * 1000)
-
-
-      it('end to end multi-input send', async () => {
-        const fromIndicies = [1, 2] // Use indices separate from other tests to avoid interference
-        const changeAddress = fromIndicies.map((i) => payments.getAddress(i))
-        const address0 = payments.getAddress(0)
-
-        const unsignedTx = await payments.createMultiInputTransaction(
-          fromIndicies,
-          [{
-            payport: { address: address0 },
-            amount: '0.001',
-          }],
-          {
-            useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
-            feeRate: '5',
+      it(
+        'end to end send',
+        async () => {
+          const { fromIndex, toIndex } = await getFromTo(payments, 'Litecoin testnet multisig wallet', 0, 1)
+          const fromAddress = payments.getAddress(fromIndex)
+          const toAddress = payments.getAddress(toIndex)
+          const sendAmount = '0.0001'
+          const unsignedTx = await payments.createTransaction(fromIndex, toAddress, sendAmount, {
+            useUnconfirmedUtxos: true,
+            feeRate: '10',
             feeRateType: FeeRateType.BasePerWeight,
-            changeAddress,
-            useAllUtxos:true   // force all addresses to contribute
+            maxFeePercent: 75,
+          })
+          assertMultisigData(unsignedTx.multisigData, fromAddress, fromIndex, [])
+          const partiallySignedTxs = await Promise.all(signerPayments.map(signer => signer.signTransaction(unsignedTx)))
+          for (let i = 0; i < partiallySignedTxs.length; i++) {
+            const partiallySignedTx = partiallySignedTxs[i]
+            expect(partiallySignedTx.data.partial).toBe(true)
+            expect(partiallySignedTx.data.hex).toMatch(/^[a-f0-9]+$/)
+            expect(partiallySignedTx.data.unsignedTxHash).toBe(unsignedTx.data.rawHash)
+            assertMultisigData(partiallySignedTx.multisigData, fromAddress, fromIndex, [i])
           }
-        )
+          const signedTx = await payments.combinePartiallySignedTransactions(partiallySignedTxs)
+          expect(signedTx.status).toBe(TransactionStatus.Signed)
+          assertMultisigData(signedTx.multisigData, fromAddress, fromIndex, [0, 1])
+          expect(signedTx.data.partial).toBe(false)
+          expect(signedTx.data.hex).toMatch(/^[a-f0-9]+$/)
+          expect(signedTx.data.unsignedTxHash).toBe(unsignedTx.data.rawHash)
+          logger.log(`Sending ${signedTx.amount} to ${payments.getAddress(toIndex)} in tx ${signedTx.id}`)
+          expect(await payments.broadcastTransaction(signedTx)).toEqual({
+            id: signedTx.id,
+          })
+          const tx = await pollUntilFound(signedTx)
+          expect(tx.amount).toEqual(signedTx.amount)
+          expect(tx.fee).toEqual(signedTx.fee)
+        },
+        BROADCAST_TEST_TIMEOUT,
+      )
 
-        const partiallySignedTxs = await Promise.all(signerPayments.map((signer) => signer.signTransaction(unsignedTx)))
-        for (let i = 0; i < partiallySignedTxs.length; i++) {
-          const partiallySignedTx = partiallySignedTxs[i]
-          expect(partiallySignedTx.data.partial).toBe(true)
-          expect(partiallySignedTx.data.hex).toMatch(/^[a-f0-9]+$/)
-          expect(partiallySignedTx.data.unsignedTxHash).toBe(unsignedTx.data.rawHash)
-        }
-        const signedTx = await payments.combinePartiallySignedTransactions(partiallySignedTxs)
-        expect(signedTx.status).toBe(TransactionStatus.Signed)
-        logger.log(`Sending ${signedTx.amount} from ${fromIndicies} to ${address0} in tx ${signedTx.id}`)
-        expect(await payments.broadcastTransaction(signedTx)).toEqual({
-          id: signedTx.id,
-        })
-        const tx = await pollUntilFound(signedTx)
-        expect(tx.amount).toEqual(signedTx.amount)
-        expect(tx.fee).toEqual(signedTx.fee)
-      }, 5 * 60 * 1000)
+      it(
+        'can sign trasaction with signTransaction',
+        async () => {
+          // build multisig payment with all keys
+          const paymentsConfig: MultisigLitecoinPaymentsConfig = {
+            ...commonConfig,
+            addressType: addressType,
+            logger,
+            signers: [
+              signerPayments[0].getFullConfig(),
+              signerPayments[1].getFullConfig(),
+              signerPayments[2].getFullConfig(),
+              signerPayments[3].getFullConfig(),
+            ],
+          }
+          const paymentsWithAllKeys = new MultisigLitecoinPayments(paymentsConfig)
 
+          const { fromIndex, fromBalance, toIndex, toBalance } = await getFromTo(
+            paymentsWithAllKeys,
+            'Litecoin testnet multisig wallet',
+            1,
+            2,
+          )
+          const fromAddress = paymentsWithAllKeys.getAddress(fromIndex)
+          const toAddress = paymentsWithAllKeys.getAddress(toIndex)
+          const sendAmount = '0.5' // combine small utxos
+          const unsignedTx = await paymentsWithAllKeys.createTransaction(fromIndex, toAddress, sendAmount, {
+            useUnconfirmedUtxos: true,
+            feeRate: '10',
+            feeRateType: FeeRateType.BasePerWeight,
+            maxFeePercent: 75,
+          })
+          const signedTx = await paymentsWithAllKeys.signTransaction(unsignedTx)
 
+          expect(signedTx.status).toBe(TransactionStatus.Signed)
+          logger.log(`Sending ${signedTx.amount} from ${fromAddress} to ${toAddress} in tx ${signedTx.id}`)
+          expect(await paymentsWithAllKeys.broadcastTransaction(signedTx)).toEqual({
+            id: signedTx.id,
+          })
+          const tx = await pollUntilFound(signedTx)
+          expect(tx.amount).toEqual(signedTx.amount)
+          expect(tx.fee).toEqual(signedTx.fee)
+        },
+        BROADCAST_TEST_TIMEOUT,
+      )
+
+      it(
+        'end to end multi-input send',
+        async () => {
+          const fromIndicies = [1, 2] // Use indices separate from other tests to avoid interference
+          const changeAddress = fromIndicies.map(i => payments.getAddress(i))
+          const address0 = payments.getAddress(0)
+
+          const unsignedTx = await payments.createMultiInputTransaction(
+            fromIndicies,
+            [
+              {
+                payport: { address: address0 },
+                amount: '0.001',
+              },
+            ],
+            {
+              useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
+              feeRate: '5',
+              feeRateType: FeeRateType.BasePerWeight,
+              changeAddress,
+              useAllUtxos: true, // force all addresses to contribute
+            },
+          )
+
+          const partiallySignedTxs = await Promise.all(signerPayments.map(signer => signer.signTransaction(unsignedTx)))
+          for (let i = 0; i < partiallySignedTxs.length; i++) {
+            const partiallySignedTx = partiallySignedTxs[i]
+            expect(partiallySignedTx.data.partial).toBe(true)
+            expect(partiallySignedTx.data.hex).toMatch(/^[a-f0-9]+$/)
+            expect(partiallySignedTx.data.unsignedTxHash).toBe(unsignedTx.data.rawHash)
+          }
+          const signedTx = await payments.combinePartiallySignedTransactions(partiallySignedTxs)
+          expect(signedTx.status).toBe(TransactionStatus.Signed)
+          logger.log(`Sending ${signedTx.amount} from ${fromIndicies} to ${address0} in tx ${signedTx.id}`)
+          expect(await payments.broadcastTransaction(signedTx)).toEqual({
+            id: signedTx.id,
+          })
+          const tx = await pollUntilFound(signedTx)
+          expect(tx.amount).toEqual(signedTx.amount)
+          expect(tx.fee).toEqual(signedTx.fee)
+        },
+        BROADCAST_TEST_TIMEOUT,
+      )
     })
   }
 })
