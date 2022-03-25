@@ -365,7 +365,7 @@ describeAll('e2e multisig testnet', () => {
               feeRate: '5',
               feeRateType: FeeRateType.BasePerWeight,
               changeAddress,
-              useAllUtxos: true, // force all addresses to contribute
+              // useAllUtxos: true, // force all addresses to contribute, but it will be slow
             },
           )
 

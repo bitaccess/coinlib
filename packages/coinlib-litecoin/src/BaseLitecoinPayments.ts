@@ -321,6 +321,7 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
         hex: txHex,
         partial: false,
         unsignedTxHash,
+        changeOutputs: tx.data?.changeOutputs
       },
     }
   }
