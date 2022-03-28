@@ -12,7 +12,8 @@ import {
   BlockbookConfigServer,
   MultisigAddressType,
   SinglesigAddressType,
-  BitcoinishTxOutput
+  BitcoinishTxOutput,
+  BitcoinishUnsignedTransaction,
 } from './bitcoinish'
 import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
 
@@ -121,7 +122,7 @@ export const BitcoinUnsignedTransactionData = BitcoinishPaymentTx
 export type BitcoinUnsignedTransactionData = t.TypeOf<typeof BitcoinUnsignedTransactionData>
 
 export const BitcoinUnsignedTransaction = extendCodec(
-  BaseUnsignedTransaction,
+  BitcoinishUnsignedTransaction,
   {
     amount: t.string,
     fee: t.string,

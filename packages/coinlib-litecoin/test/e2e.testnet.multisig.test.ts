@@ -119,7 +119,7 @@ describeAll('e2e multisig testnet', () => {
       const commonConfig = {
         m: M,
         network: NETWORK_TYPE,
-        targetUtxoPoolSize: 5,
+        targetUtxoPoolSize: 3,
         minChange: '0.01',
       }
 
