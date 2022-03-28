@@ -44,6 +44,7 @@ import {
 import { sumUtxoValue, shuffleUtxos, isConfirmedUtxo, sha256FromHex, sumField } from './utils'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
 import BigNumber from 'bignumber.js'
+import * as bitcoin from 'bitcoinjs-lib'
 
 export abstract class BitcoinishPayments<Config extends BaseConfig> extends BitcoinishPaymentsUtils
   implements BasePayments<
@@ -327,6 +328,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       }
       externalOutput.satoshis += amountChangePerOutput
     }
+    console.log("amount to add ", tbc.externalOutputTotal, totalAdjustment)
     tbc.externalOutputTotal += totalAdjustment
     this.logger.log(
       `${this.coinSymbol} buildPaymentTx - Adjusted external output total from ${totalBefore} sat to ${tbc.externalOutputTotal} sat for ${description}`
@@ -334,6 +336,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   private adjustTxFee(tbc: BitcoinishTxBuildContext, newFeeSat: number, description: string): void {
+    console.log('begining of adjustTxFee', tbc.externalOutputTotal)
+
     // Apply a hard limit on the maximum fee to avoid overpaying
     if (newFeeSat > Math.ceil(tbc.desiredOutputTotal * (tbc.maxFeePercent / 100))) {
       throw new PaymentsError(
@@ -365,7 +369,10 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   /* Select inputs, calculate appropriate fee, set fee, adjust output amounts if necessary */
   private selectInputUtxos(tbc: BitcoinishTxBuildContext): void {
     if (tbc.useAllUtxos) { // Sweeping or consolidation case
+      console.log("tbc.externalOutputTotal",tbc.externalOutputTotal)
       this.selectInputUtxosForAll(tbc)
+      console.log("tbc.externalOutputTotal",tbc.externalOutputTotal)
+
     } else { // Sending amount case
       this.selectInputUtxosPartial(tbc)
     }
@@ -398,7 +405,10 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       // Some dust inputs were filtered
       this.adjustOutputAmounts(tbc, tbc.inputTotal, 'dust inputs filtering')
     }
+    console.log("beginning of selectInputUtxosForAll",tbc.externalOutputTotal)
+
     const feeSat = this.estimateTxFee(tbc.desiredFeeRate, tbc.inputUtxos.length, 0, tbc.externalOutputAddresses)
+    console.log("feeSat",feeSat, tbc.externalOutputTotal)
     this.adjustTxFee(tbc, feeSat, 'sweep fee')
   }
 
@@ -658,6 +668,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         throw new Error (`Invalid ${this.coinSymbol} change address ${address} provided`)
       }
     }
+
     const unfilteredUtxoTotal = sumUtxoValue(params.unusedUtxos, params.useUnconfirmedUtxos)
     // TODO: createSweepTransaction could just pass this in directly
     tbc.isSweep = tbc.useAllUtxos && tbc.desiredOutputTotal >= this.toBaseDenominationNumber(unfilteredUtxoTotal)
@@ -677,6 +688,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     )
 
     this.validateBuildContext(tbc)
+
 
     const externalOutputsResult = this.convertOutputsToExternalFormat(tbc.externalOutputs)
     const changeOutputsResult = this.convertOutputsToExternalFormat(tbc.changeOutputs)
@@ -871,10 +883,12 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       recipientPaysFee: options.recipientPaysFee ?? false,
       maxFeePercent,
     })
+
     const unsignedTxHex = await this.callSerializePaymentTx(paymentTx, {
       lookupTxDataByHashes: options.lookupTxDataByHashes,
       fromIndex: from,
     })
+
     paymentTx.rawHex = unsignedTxHex
     paymentTx.rawHash = sha256FromHex(unsignedTxHex)
     this.logger.debug('createMultiOutputTransaction data', paymentTx)
@@ -887,6 +901,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       resultToAddress = onlyOutput.address
       resultToIndex = isNumber(to[0].payport) ? to[0].payport : null
     }
+
 
     return {
       status: TransactionStatus.Unsigned,
@@ -1067,4 +1082,152 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       }
     })
   }
+
+  private validatePsbtOutput(output: BitcoinishTxOutput, psbtOutput: bitcoin.PsbtTxOutput, i: number) {
+    if (output.address !== psbtOutput.address) {
+      throw new Error(`Invalid tx: psbt output ${i} address (${psbtOutput.address}) doesn't match expected address ${output.address}`)
+    }
+    const value = this.toMainDenomination(psbtOutput.value)
+    if (output.value !== value) {
+      throw new Error(`Invalid tx: psbt output ${i} value (${value}) doesn't match expected value (${output.value})`)
+    }
+  }
+
+  private validatePsbtInput(input: UtxoInfo, psbtInput: bitcoin.PsbtTxInput, i: number) {
+    // bitcoinjs psbt input hash buffer is reversed
+    const hash = Buffer.from(psbtInput.hash).reverse().toString('hex')
+    if (input.txid !== hash) {
+      throw new Error(`Invalid tx: psbt input ${i} hash (${hash}) doesn't match expected txid (${input.txid})`)
+    }
+    if (input.vout !== psbtInput.index) {
+      throw new Error(
+        `Invalid tx: psbt input ${i} index (${psbtInput.index}) doesn't match expected vout (${input.vout})`
+      )
+    }
+  }
+
+  /**
+   * Assert that a psbt is equivalent to the provided unsigned tx. Used to check a psbt actually
+   * reflects the expected transaction before signing.
+   */
+  validatePsbt(tx: BitcoinishUnsignedTransaction, psbt: bitcoin.Psbt) {
+    const { data, externalOutputs, inputUtxos } = tx
+    const psbtOutputs = psbt.txOutputs
+    const psbtInputs = psbt.txInputs
+
+    if (!inputUtxos) {
+      throw new Error('Invalid tx: Missing inputUtxos')
+    }
+    if (!data.inputs) {
+      throw new Error('Invalid tx: Missing data.inputs')
+    }
+    if (!externalOutputs) {
+      throw new Error('Invalid tx: Missing externalOutputs')
+    }
+    if (!data.externalOutputs) {
+      throw new Error('Invalid tx: Missing data.externalOutputs')
+    }
+    if (!data.changeOutputs) {
+      throw new Error('Invalid tx: Missing data.changeOutputs')
+    }
+    if (!data.externalOutputTotal) {
+      throw new Error('Invalid tx: Missing data.externalOutputTotal')
+    }
+    if (!data.change) {
+      throw new Error('Invalid tx: Missing data.change')
+    }
+
+    // Check inputs
+
+    if (inputUtxos.length !== data.inputs.length) {
+      throw new Error(
+        `Invalid tx: inputUtxos length (${psbtInputs.length}) doesn't match data.inputs length (${data.inputs.length})`
+      )
+    }
+    if (psbtInputs.length !== data.inputs.length) {
+      throw new Error(
+        `Invalid tx: psbt inputs length (${psbtInputs.length}) doesn't match data.inputs length (${data.inputs.length})`
+      )
+    }
+
+    let inputTotal = new BigNumber(0)
+
+    // Safe to assume inputs are consistently ordered
+    for (let i = 0; i < psbtInputs.length; i++) {
+      const psbtInput = psbtInputs[i]
+      this.validatePsbtInput(inputUtxos[i], psbtInput, i)
+      this.validatePsbtInput(data.inputs[i], psbtInput, i)
+      inputTotal = inputTotal.plus(data.inputs[i].value)
+    }
+
+    // Check outputs
+
+    if (externalOutputs.length !== data.externalOutputs.length) {
+      throw new Error(
+        `Invalid tx: externalOutputs length (${externalOutputs.length}) doesn't match data.externalOutputs length (${data.externalOutputs.length})`
+      )
+    }
+    const expectedOutputCount = data.externalOutputs.length + data.changeOutputs.length
+    if (psbtOutputs.length !== expectedOutputCount) {
+      throw new Error(
+        `Invalid tx: psbt outputs length (${psbtOutputs.length}) doesn't match external + change output length (${expectedOutputCount})`
+      )
+    }
+
+    if (externalOutputs.length === 1 && externalOutputs[0].address !== tx.toAddress) {
+      throw new Error(`Invalid tx: toAddress (${tx.toAddress}) doesn't match external output 0 address (${externalOutputs[0].address})`)
+    } else if (externalOutputs.length > 1 && tx.toAddress !== 'batch') {
+      throw new Error(`Invalid tx: toAddress (${tx.toAddress}) should be "batch" for multi output transaction`)
+    }
+
+    let externalOutputTotal = new BigNumber(0) // main denom
+    let changeOutputTotal = new BigNumber(0) // main denom
+
+    // Safe to assume outputs are consistently ordered with external followed by change
+    for (let i = 0; i < psbtOutputs.length; i++) {
+      const psbtOutput = psbtOutputs[i]
+      if (i < externalOutputs.length) {
+        this.validatePsbtOutput(externalOutputs[i], psbtOutput, i)
+        this.validatePsbtOutput(data.externalOutputs[i], psbtOutput, i)
+        externalOutputTotal = externalOutputTotal.plus(data.externalOutputs[i].value)
+      } else {
+        const changeOutputIndex = i - externalOutputs.length
+        const changeOutput = data.changeOutputs[changeOutputIndex]
+        this.validatePsbtOutput(changeOutput, psbtOutput, i)
+
+        // If we stop reusing addresses in the future this will need to be changed
+        if ((tx.fromAddress !== 'batch') && (changeOutput.address !== tx.fromAddress)) {
+          throw new Error(`Invalid tx: change output ${i} address (${changeOutput.address}) doesn't match fromAddress (${tx.fromAddress})`)
+        }
+
+        if (data.changeAddress !== null && data.changeAddress !== changeOutput.address) {
+          throw new Error(`Invalid tx: change output ${i} address (${changeOutput.address}) doesn't match data.changeAddress (${data.changeAddress})`)
+        }
+        changeOutputTotal = changeOutputTotal.plus(changeOutput.value)
+      }
+    }
+
+    // Check totals
+
+
+    if (data.inputTotal && !inputTotal.eq(data.inputTotal)) {
+      throw new Error(`Invalid tx: data.externalOutputTotal (${data.externalOutputTotal}) doesn't match expected external output total (${externalOutputTotal})`)
+    }
+    if (data.externalOutputTotal && !externalOutputTotal.eq(data.externalOutputTotal)) {
+      throw new Error(`Invalid tx: data.externalOutputTotal (${data.externalOutputTotal}) doesn't match expected external output total (${externalOutputTotal})`)
+    }
+    if (!changeOutputTotal.eq(data.change)) {
+      throw new Error(`Invalid tx: data.change (${data.externalOutputTotal}) doesn't match expected change output total (${externalOutputTotal})`)
+    }
+    if (!externalOutputTotal.eq(tx.amount)) {
+      throw new Error(`Invalid tx: amount (${tx.amount}) doesn't match expected external output total (${externalOutputTotal})`)
+    }
+    const expectedFee = inputTotal.minus(externalOutputTotal).minus(changeOutputTotal)
+    if (!expectedFee.eq(tx.fee)) {
+      throw new Error(`Invalid tx: fee (${tx.fee}) doesn't match expected fee (${expectedFee})`)
+    }
+
+  }
+
+
 }

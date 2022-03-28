@@ -40,8 +40,8 @@ if (fs.existsSync(secretKeyFilePath)) {
 // Comment out elements to disable tests for an address type
 const addressTypesToTest: MultisigAddressType[] = [
   AddressType.MultisigLegacy,
-  AddressType.MultisigSegwitP2SH,
-  AddressType.MultisigSegwitNative,
+  // AddressType.MultisigSegwitP2SH,
+  // AddressType.MultisigSegwitNative,
 ]
 
 const describeAll = !rootSecretKey ? describe.skip : describe
@@ -184,7 +184,7 @@ describeAll('e2e multisig testnet', () => {
         expect(balanceResult.requiresActivation).toBe(false)
       })
 
-      it('can create sweep', async () => {
+      it.only('can create sweep', async () => {
         // Safe to use multi-input test indices here because we aren't broadcasting
         // Address 0 has so many utxos that sweeping it made this test take too long
         const b = {
@@ -200,6 +200,8 @@ describeAll('e2e multisig testnet', () => {
           feeRateType: FeeRateType.BasePerWeight,
         })
         expect(tx.multisigData).toBeDefined()
+        console.log(`from ${payments.getAddress(fromIndex)} to ${EXTERNAL_ADDRESS}`)
+        console.log(`tx.amount ${tx.amount} + ${tx.fee} = ${b[fromIndex].spendableBalance}`)
         expect(new BigNumber(tx.amount).plus(tx.fee).toFixed()).toBe(b[fromIndex].spendableBalance)
       }, 30 * 1000)
 
