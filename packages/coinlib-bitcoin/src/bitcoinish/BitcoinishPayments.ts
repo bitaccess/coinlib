@@ -328,7 +328,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       }
       externalOutput.satoshis += amountChangePerOutput
     }
-    console.log("amount to add ", tbc.externalOutputTotal, totalAdjustment)
     tbc.externalOutputTotal += totalAdjustment
     this.logger.log(
       `${this.coinSymbol} buildPaymentTx - Adjusted external output total from ${totalBefore} sat to ${tbc.externalOutputTotal} sat for ${description}`
@@ -336,7 +335,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   private adjustTxFee(tbc: BitcoinishTxBuildContext, newFeeSat: number, description: string): void {
-    console.log('begining of adjustTxFee', tbc.externalOutputTotal)
 
     // Apply a hard limit on the maximum fee to avoid overpaying
     if (newFeeSat > Math.ceil(tbc.desiredOutputTotal * (tbc.maxFeePercent / 100))) {
@@ -369,9 +367,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   /* Select inputs, calculate appropriate fee, set fee, adjust output amounts if necessary */
   private selectInputUtxos(tbc: BitcoinishTxBuildContext): void {
     if (tbc.useAllUtxos) { // Sweeping or consolidation case
-      console.log("tbc.externalOutputTotal",tbc.externalOutputTotal)
       this.selectInputUtxosForAll(tbc)
-      console.log("tbc.externalOutputTotal",tbc.externalOutputTotal)
 
     } else { // Sending amount case
       this.selectInputUtxosPartial(tbc)
@@ -405,10 +401,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       // Some dust inputs were filtered
       this.adjustOutputAmounts(tbc, tbc.inputTotal, 'dust inputs filtering')
     }
-    console.log("beginning of selectInputUtxosForAll",tbc.externalOutputTotal)
 
     const feeSat = this.estimateTxFee(tbc.desiredFeeRate, tbc.inputUtxos.length, 0, tbc.externalOutputAddresses)
-    console.log("feeSat",feeSat, tbc.externalOutputTotal)
     this.adjustTxFee(tbc, feeSat, 'sweep fee')
   }
 
