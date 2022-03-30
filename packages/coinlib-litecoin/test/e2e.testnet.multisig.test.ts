@@ -191,8 +191,9 @@ describeAll('e2e multisig testnet', () => {
           )
           const tx = await payments.createSweepTransaction(fromIndex, toIndex, {
             useUnconfirmedUtxos: true,
-            feeRate: '10',
+            feeRate: '1',
             feeRateType: FeeRateType.BasePerWeight,
+            maxFeePercent: 100,
           })
           expect(tx.multisigData).toBeDefined()
           expect(new BigNumber(tx.amount).plus(tx.fee).toFixed()).toBe(fromBalance.toString())

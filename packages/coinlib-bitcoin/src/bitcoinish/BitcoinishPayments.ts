@@ -47,13 +47,14 @@ import BigNumber from 'bignumber.js'
 import * as bitcoin from 'bitcoinjs-lib'
 
 export abstract class BitcoinishPayments<Config extends BaseConfig> extends BitcoinishPaymentsUtils
-  implements BasePayments<
-    Config,
-    BitcoinishUnsignedTransaction,
-    BitcoinishSignedTransaction,
-    BitcoinishBroadcastResult,
-    BitcoinishTransactionInfo
-  > {
+  implements
+    BasePayments<
+      Config,
+      BitcoinishUnsignedTransaction,
+      BitcoinishSignedTransaction,
+      BitcoinishBroadcastResult,
+      BitcoinishTransactionInfo
+    > {
   minTxFee?: FeeRate
   dustThreshold: number // base denom
   defaultFeeLevel: AutoFeeLevels
@@ -134,9 +135,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
   }
 
-  async resolveFeeOption(
-    feeOption: FeeOption,
-  ): Promise<ResolvedFeeOption> {
+  async resolveFeeOption(feeOption: FeeOption): Promise<ResolvedFeeOption> {
     let targetLevel: FeeLevel
     let target: FeeRate
     let feeBase = ''
@@ -183,9 +182,13 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const utxos = await this.getAddressUtxos(address)
 
     if (typeof payport === 'number') {
-      utxos.forEach((u: UtxoInfo) => { u.signer = payport })
+      utxos.forEach((u: UtxoInfo) => {
+        u.signer = payport
+      })
     } else if (DerivablePayport.is(payport)) {
-      utxos.forEach((u: UtxoInfo) => { u.signer = payport.index })
+      utxos.forEach((u: UtxoInfo) => {
+        u.signer = payport.index
+      })
     }
 
     return utxos
@@ -215,7 +218,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   /** buildPaymentTx uses satoshi number for convenient math, but we want strings externally */
-  private convertOutputsToExternalFormat(outputs: Array<{ address: string, satoshis: number }>): BitcoinishTxOutput[] {
+  private convertOutputsToExternalFormat(outputs: Array<{ address: string; satoshis: number }>): BitcoinishTxOutput[] {
     return outputs.map(({ address, satoshis }) => ({ address, value: this.toMainDenominationString(satoshis) }))
   }
 
@@ -223,11 +226,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
    * Estimate the size of a tx in vbytes. Override this if the coin supports segwit, multisig, or any
    * non P2PKH style transaction. Default implementation assumes P2PKH.
    */
-  estimateTxSize(
-    inputCount: number,
-    changeOutputCount: number,
-    externalOutputAddresses: string[],
-  ): number {
+  estimateTxSize(inputCount: number, changeOutputCount: number, externalOutputAddresses: string[]): number {
     return 10 + 148 * inputCount + 34 * (changeOutputCount + externalOutputAddresses.length)
   }
 
@@ -240,9 +239,10 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   ): number {
     if (feeRateType === FeeRateType.BasePerWeight) {
       const estimatedTxSize = this.estimateTxSize(inputCount, changeOutputCount, externalOutputAddresses)
-      this.logger.debug(`${this.coinSymbol} buildPaymentTx - `
-        + `Estimated tx size of ${estimatedTxSize} vbytes for a tx with ${inputCount} inputs, `
-        + `${externalOutputAddresses.length} external outputs, and ${changeOutputCount} change outputs`
+      this.logger.debug(
+        `${this.coinSymbol} buildPaymentTx - ` +
+          `Estimated tx size of ${estimatedTxSize} vbytes for a tx with ${inputCount} inputs, ` +
+          `${externalOutputAddresses.length} external outputs, and ${changeOutputCount} change outputs`,
       )
       return Number.parseFloat(feeRate) * estimatedTxSize
     } else if (feeRateType === FeeRateType.Main) {
@@ -273,9 +273,10 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       feeSat = this.networkMinRelayFee
     }
     const result = Math.ceil(feeSat)
-    this.logger.debug(`${this.coinSymbol} buildPaymentTx - `
-      + `Estimated fee of ${result} sat for target rate ${targetRate.feeRate} ${targetRate.feeRateType} for a tx with `
-      + `${inputCount} inputs, ${externalOutputAddresses.length} external outputs, and ${changeOutputCount} change outputs`
+    this.logger.debug(
+      `${this.coinSymbol} buildPaymentTx - ` +
+        `Estimated fee of ${result} sat for target rate ${targetRate.feeRate} ${targetRate.feeRateType} for a tx with ` +
+        `${inputCount} inputs, ${externalOutputAddresses.length} external outputs, and ${changeOutputCount} change outputs`,
     )
     return result
   }
@@ -287,9 +288,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
    */
   private determineTargetChangeOutputCount(unusedUtxoCount: number, inputUtxoCount: number) {
     const remainingUtxoCount = unusedUtxoCount - inputUtxoCount
-    const additionalUtxosNeeded = remainingUtxoCount < this.targetUtxoPoolSize
-      ? this.targetUtxoPoolSize - remainingUtxoCount
-      : 1
+    const additionalUtxosNeeded =
+      remainingUtxoCount < this.targetUtxoPoolSize ? this.targetUtxoPoolSize - remainingUtxoCount : 1
     // Only create at most (1 + input count) change outputs to amortize fee burden
     return Math.min(additionalUtxosNeeded, inputUtxoCount + 1)
   }
@@ -310,15 +310,16 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const amountChangePerOutput = Math.floor(totalAdjustment / outputCount)
     totalAdjustment = amountChangePerOutput * outputCount
     this.logger.log(
-      `${this.coinSymbol} buildPaymentTx - Adjusting external output total (${tbc.externalOutputTotal} sat) by ${totalAdjustment} sat `
-      + `across ${outputCount} outputs (${amountChangePerOutput} sat each) for ${description}`
+      `${this.coinSymbol} buildPaymentTx - Adjusting external output total (${tbc.externalOutputTotal} sat) by ${totalAdjustment} sat ` +
+        `across ${outputCount} outputs (${amountChangePerOutput} sat each) for ${description}`,
     )
     for (let i = 0; i < outputCount; i++) {
       const externalOutput = tbc.externalOutputs[i]
       // Explicitly check value before subtracting for an accurate error message
       if (externalOutput.satoshis + amountChangePerOutput <= this.dustThreshold) {
-        const errorMessage = `${this.coinSymbol} buildPaymentTx - output ${i} for ${externalOutput.satoshis} sat `
-          + `after ${description} of ${amountChangePerOutput} sat is too small to send`
+        const errorMessage =
+          `${this.coinSymbol} buildPaymentTx - output ${i} for ${externalOutput.satoshis} sat ` +
+          `after ${description} of ${amountChangePerOutput} sat is too small to send`
 
         if (externalOutput.satoshis + amountChangePerOutput <= 0) {
           throw newError(errorMessage)
@@ -330,18 +331,17 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
     tbc.externalOutputTotal += totalAdjustment
     this.logger.log(
-      `${this.coinSymbol} buildPaymentTx - Adjusted external output total from ${totalBefore} sat to ${tbc.externalOutputTotal} sat for ${description}`
+      `${this.coinSymbol} buildPaymentTx - Adjusted external output total from ${totalBefore} sat to ${tbc.externalOutputTotal} sat for ${description}`,
     )
   }
 
   private adjustTxFee(tbc: BitcoinishTxBuildContext, newFeeSat: number, description: string): void {
-
     // Apply a hard limit on the maximum fee to avoid overpaying
     if (newFeeSat > Math.ceil(tbc.desiredOutputTotal * (tbc.maxFeePercent / 100))) {
       throw new PaymentsError(
         PaymentsErrorCode.TxFeeTooHigh,
-        `${description} (${newFeeSat} sat) exceeds maximum fee percent (${tbc.maxFeePercent}%) `
-          + `of desired output total (${tbc.desiredOutputTotal} sat)`
+        `${description} (${newFeeSat} sat) exceeds maximum fee percent (${tbc.maxFeePercent}%) ` +
+          `of desired output total (${tbc.desiredOutputTotal} sat)`,
       )
     }
     const feeSatAdjustment = newFeeSat - tbc.feeSat
@@ -353,7 +353,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       tbc,
       tbc.externalOutputTotal - feeSatAdjustment,
       description,
-      (m) => new PaymentsError(PaymentsErrorCode.TxFeeTooHigh, m),
+      m => new PaymentsError(PaymentsErrorCode.TxFeeTooHigh, m),
     )
     this.applyFeeAdjustment(tbc, feeSatAdjustment, description)
   }
@@ -361,15 +361,18 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   private applyFeeAdjustment(tbc: BitcoinishTxBuildContext, feeSatAdjustment: number, description: string): void {
     const feeBefore = tbc.feeSat
     tbc.feeSat += feeSatAdjustment
-    this.logger.log(`${this.coinSymbol} buildPaymentTx - Adjusted fee from ${feeBefore} sat to ${tbc.feeSat} sat for ${description}`)
+    this.logger.log(
+      `${this.coinSymbol} buildPaymentTx - Adjusted fee from ${feeBefore} sat to ${tbc.feeSat} sat for ${description}`,
+    )
   }
 
   /* Select inputs, calculate appropriate fee, set fee, adjust output amounts if necessary */
   private selectInputUtxos(tbc: BitcoinishTxBuildContext): void {
-    if (tbc.useAllUtxos) { // Sweeping or consolidation case
+    if (tbc.useAllUtxos) {
+      // Sweeping or consolidation case
       this.selectInputUtxosForAll(tbc)
-
-    } else { // Sending amount case
+    } else {
+      // Sending amount case
       this.selectInputUtxosPartial(tbc)
     }
 
@@ -378,7 +381,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       throw new PaymentsError(
         PaymentsErrorCode.TxInsufficientBalance,
         `${this.coinSymbol} buildPaymentTx - You do not have enough UTXOs (${tbc.inputTotal} sat) ` +
-        `to send ${tbc.externalOutputTotal} sat with ${tbc.feeSat} sat fee`
+          `to send ${tbc.externalOutputTotal} sat with ${tbc.feeSat} sat fee`,
       )
     }
   }
@@ -390,7 +393,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
 
     for (const utxo of tbc.selectableUtxos) {
-      if (tbc.inputUtxos.map((u) => `${u.txid}${u.vout}`).includes(`${utxo.txid}${utxo.vout}`)) {
+      if (tbc.inputUtxos.map(u => `${u.txid}${u.vout}`).includes(`${utxo.txid}${utxo.vout}`)) {
         continue
       }
       tbc.inputTotal += utxo.satoshis
@@ -415,12 +418,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   private estimateIdealUtxoSelectionFee(tbc: BitcoinishTxBuildContext, inputCount: number) {
-    return this.estimateTxFee(
-      tbc.desiredFeeRate,
-      inputCount,
-      0,
-      tbc.externalOutputAddresses
-    )
+    return this.estimateTxFee(tbc.desiredFeeRate, inputCount, 0, tbc.externalOutputAddresses)
   }
 
   /** Ideal utxo selection is one which creates no change outputs */
@@ -449,10 +447,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
 
     // Check if we have enough forced inputs to cover fee when change outputs are added
-    const targetChangeOutputCount = this.determineTargetChangeOutputCount(
-      tbc.nonDustUtxoCount,
-      tbc.inputUtxos.length,
-    )
+    const targetChangeOutputCount = this.determineTargetChangeOutputCount(tbc.nonDustUtxoCount, tbc.inputUtxos.length)
     const feeSat = this.estimateTxFee(
       tbc.desiredFeeRate,
       tbc.inputUtxos.length,
@@ -469,19 +464,18 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     this.selectFromAvailableUtxos(tbc)
   }
 
-  private selectFromAvailableUtxos(
-    tbc: BitcoinishTxBuildContext,
-  ) {
+  private selectFromAvailableUtxos(tbc: BitcoinishTxBuildContext) {
     // Ideal solution consists of a single additional input that covers outputs without creating change
     for (const utxo of tbc.selectableUtxos) {
       if (this.isIdealUtxoSelection(tbc, [...tbc.inputUtxos, utxo])) {
         tbc.inputUtxos.push(utxo)
         tbc.inputTotal += utxo.satoshis
         const idealSolutionFeeSat = this.estimateIdealUtxoSelectionFee(tbc, tbc.inputUtxos.length)
-        this.logger.log(`${this.coinSymbol} buildPaymentTx - `
-          + `Found ideal ${this.coinSymbol} input utxo solution to send ${tbc.desiredOutputTotal} sat `
-          + `${tbc.recipientPaysFee ? 'less' : 'plus'} fee of ${idealSolutionFeeSat} sat `
-          + `using single utxo ${utxo.txid}:${utxo.vout}`
+        this.logger.log(
+          `${this.coinSymbol} buildPaymentTx - ` +
+            `Found ideal ${this.coinSymbol} input utxo solution to send ${tbc.desiredOutputTotal} sat ` +
+            `${tbc.recipientPaysFee ? 'less' : 'plus'} fee of ${idealSolutionFeeSat} sat ` +
+            `using single utxo ${utxo.txid}:${utxo.vout}`,
         )
         this.adjustTxFee(tbc, idealSolutionFeeSat, 'ideal solution fee')
         return
@@ -494,10 +488,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       tbc.inputUtxos.push(utxo)
       tbc.inputTotal += utxo.satoshis
 
-      const targetChangeOutputCount = this.determineTargetChangeOutputCount(
-        tbc.nonDustUtxoCount,
-        tbc.inputUtxos.length,
-      )
+      const targetChangeOutputCount = this.determineTargetChangeOutputCount(tbc.nonDustUtxoCount, tbc.inputUtxos.length)
       feeSat = this.estimateTxFee(
         tbc.desiredFeeRate,
         tbc.inputUtxos.length,
@@ -516,16 +507,15 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   private allocateChangeOutputs(tbc: BitcoinishTxBuildContext): void {
     tbc.totalChange = tbc.inputTotal - tbc.externalOutputTotal - tbc.feeSat
     if (tbc.totalChange < 0) {
-      throw new Error(`${this.coinSymbol} buildPaymentTx - totalChange is negative when building tx, this shouldnt happen!`)
+      throw new Error(
+        `${this.coinSymbol} buildPaymentTx - totalChange is negative when building tx, this shouldnt happen!`,
+      )
     }
     if (tbc.totalChange === 0) {
       this.logger.debug(`${this.coinSymbol} buildPaymentTx - no change to allocate`)
       return
     }
-    const targetChangeOutputCount = this.determineTargetChangeOutputCount(
-      tbc.nonDustUtxoCount,
-      tbc.inputUtxos.length,
-    )
+    const targetChangeOutputCount = this.determineTargetChangeOutputCount(tbc.nonDustUtxoCount, tbc.inputUtxos.length)
     // Sort ascending by weight so we can drop small change outputs first and reduce total weight to avoid loose change
     const changeOutputWeights = this.createWeightedChangeOutputs(targetChangeOutputCount, tbc.changeAddress)
 
@@ -541,7 +531,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         tbc,
         changeOutputCount,
         totalChangeAllocated,
-        looseChange
+        looseChange,
       )
     }
 
@@ -554,7 +544,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       // Enough loose change to reallocate amongst all change outputs
       looseChange = this.reallocateLooseChange(tbc, changeOutputCount, looseChange)
     } else if (changeOutputCount === 0 && looseChange > this.dustThreshold) {
-      this.logger.log(`${this.coinSymbol} buildPaymentTx - allocating all loose change towards single ${looseChange} sat change output`)
+      this.logger.log(
+        `${this.coinSymbol} buildPaymentTx - allocating all loose change towards single ${looseChange} sat change output`,
+      )
       tbc.changeOutputs.push({ address: tbc.changeAddress[0], satoshis: looseChange })
 
       changeOutputCount += 1
@@ -565,7 +557,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     if (looseChange > 0) {
       if (looseChange > this.dustThreshold) {
         throw new Error(
-          `${this.coinSymbol} buildPaymentTx - Ended up with loose change (${looseChange} sat) exceeding dust threshold, this should never happen!`
+          `${this.coinSymbol} buildPaymentTx - Ended up with loose change (${looseChange} sat) exceeding dust threshold, this should never happen!`,
         )
       }
       // Don't adjust external output amounts here like other fee adjustments because loose change has already been
@@ -579,31 +571,40 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   private validateBuildContext(tbc: BitcoinishTxBuildContext) {
     const inputSum = sumField(tbc.inputUtxos, 'satoshis')
     if (!inputSum.eq(tbc.inputTotal)) {
-      throw new Error(`${this.coinSymbol} buildPaymentTx - invalid context: input utxo sum ${inputSum} doesn't equal inputTotal ${tbc.inputTotal}`)
+      throw new Error(
+        `${this.coinSymbol} buildPaymentTx - invalid context: input utxo sum ${inputSum} doesn't equal inputTotal ${tbc.inputTotal}`,
+      )
     }
     const externalOutputSum = sumField(tbc.externalOutputs, 'satoshis')
     if (!externalOutputSum.eq(tbc.externalOutputTotal)) {
-      throw new Error(`${this.coinSymbol} buildPaymentTx - invalid context: external output sum ${externalOutputSum} doesn't equal externalOutputTotal ${tbc.externalOutputTotal}`)
+      throw new Error(
+        `${this.coinSymbol} buildPaymentTx - invalid context: external output sum ${externalOutputSum} doesn't equal externalOutputTotal ${tbc.externalOutputTotal}`,
+      )
     }
     const changeOutputSum = sumField(tbc.changeOutputs, 'satoshis')
     if (!changeOutputSum.eq(tbc.totalChange)) {
-      throw new Error(`${this.coinSymbol} buildPaymentTx - invalid context: change output sum ${changeOutputSum} doesn't equal totalChange ${tbc.totalChange}`)
+      throw new Error(
+        `${this.coinSymbol} buildPaymentTx - invalid context: change output sum ${changeOutputSum} doesn't equal totalChange ${tbc.totalChange}`,
+      )
     }
     const actualFee = inputSum.minus(externalOutputSum).minus(changeOutputSum)
     if (!actualFee.eq(tbc.feeSat)) {
-      throw new Error(`${this.coinSymbol} buildPaymentTx - invalid context: inputs minus outputs sum ${actualFee} doesn't equal feeSat ${tbc.feeSat}`)
+      throw new Error(
+        `${this.coinSymbol} buildPaymentTx - invalid context: inputs minus outputs sum ${actualFee} doesn't equal feeSat ${tbc.feeSat}`,
+      )
     }
   }
 
   private omitDustUtxos(utxos: UtxoInfo[], feeRate: FeeRate, maxFeePercent: number): UtxoInfoWithSats[] {
-    const utxoSpendCost = this.estimateTxFee(feeRate, 1, 0, [])
-      - this.estimateTxFee(feeRate, 0, 0, [])
+    const utxoSpendCost = this.estimateTxFee(feeRate, 1, 0, []) - this.estimateTxFee(feeRate, 0, 0, [])
     const minUtxoSatoshis = Math.ceil((100 * utxoSpendCost) / maxFeePercent)
-    return this.prepareUtxos(utxos).filter((utxo) => {
+    return this.prepareUtxos(utxos).filter(utxo => {
       if (utxo.satoshis > minUtxoSatoshis) {
         return true
       }
-      this.logger.log(`${this.coinSymbol} buildPaymentTx - Ignoring dust utxo (${minUtxoSatoshis} sat or lower) ${utxo.txid}:${utxo.vout}`)
+      this.logger.log(
+        `${this.coinSymbol} buildPaymentTx - Ignoring dust utxo (${minUtxoSatoshis} sat or lower) ${utxo.txid}:${utxo.vout}`,
+      )
       return false
     })
   }
@@ -634,8 +635,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       enforcedUtxos: this.prepareUtxos(params.enforcedUtxos),
       nonDustUtxoCount: nonDustUtxos.length,
       selectableUtxos: nonDustUtxos
-        .filter((utxo) => (params.useUnconfirmedUtxos || isConfirmedUtxo(utxo)))
-        .filter((utxo) => !params.enforcedUtxos.find((u) => u.txid === utxo.txid && u.vout === utxo.vout ))
+        .filter(utxo => params.useUnconfirmedUtxos || isConfirmedUtxo(utxo))
+        .filter(utxo => !params.enforcedUtxos.find(u => u.txid === utxo.txid && u.vout === utxo.vout)),
     }
 
     for (let i = 0; i < tbc.desiredOutputs.length; i++) {
@@ -647,10 +648,14 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       const address = this.standardizeAddress(unvalidatedAddress)!
       const satoshis = this.toBaseDenominationNumber(value)
       if (isNaN(satoshis) || satoshis <= 0) {
-        throw new Error(`Invalid ${this.coinSymbol} value (${value}) provided for output ${i} (${address}) - not a positive, non-zero number`)
+        throw new Error(
+          `Invalid ${this.coinSymbol} value (${value}) provided for output ${i} (${address}) - not a positive, non-zero number`,
+        )
       }
       if (satoshis <= this.dustThreshold) {
-        throw new Error(`Invalid ${this.coinSymbol} value (${value}) provided for output ${i} (${address}) - below dust threshold (${this.dustThreshold} sat)`)
+        throw new Error(
+          `Invalid ${this.coinSymbol} value (${value}) provided for output ${i} (${address}) - below dust threshold (${this.dustThreshold} sat)`,
+        )
       }
       tbc.externalOutputs.push({ address, satoshis })
       tbc.externalOutputAddresses.push(address)
@@ -659,7 +664,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
     for (const address of tbc.changeAddress) {
       if (!this.isValidAddress(address)) {
-        throw new Error (`Invalid ${this.coinSymbol} change address ${address} provided`)
+        throw new Error(`Invalid ${this.coinSymbol} change address ${address} provided`)
       }
     }
 
@@ -668,7 +673,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     tbc.isSweep = tbc.useAllUtxos && tbc.desiredOutputTotal >= this.toBaseDenominationNumber(unfilteredUtxoTotal)
 
     this.selectInputUtxos(tbc)
-    tbc.inputUtxos = tbc.inputUtxos.sort((a, b) => `${a.txid}${a.vout}` > `${b.txid}${b.vout}` && 1 || -1)
+    tbc.inputUtxos = tbc.inputUtxos.sort((a, b) => (`${a.txid}${a.vout}` > `${b.txid}${b.vout}` && 1) || -1)
 
     this.logger.debug(`${this.coinSymbol} buildPaymentTx - context after utxo input selection`, tbc)
 
@@ -682,7 +687,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     )
 
     this.validateBuildContext(tbc)
-
 
     const externalOutputsResult = this.convertOutputsToExternalFormat(tbc.externalOutputs)
     const changeOutputsResult = this.convertOutputsToExternalFormat(tbc.changeOutputs)
@@ -715,7 +719,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     for (let i = 0; i < changeOutputCount; i++) {
       result.push({
         address: changeAddress[i % changeAddress.length],
-        weight: 2 ** i
+        weight: 2 ** i,
       })
     }
     return result.sort((a, b) => a.weight - b.weight)
@@ -723,7 +727,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
   private allocateChangeUsingWeights(
     tbc: BitcoinishTxBuildContext,
-    changeOutputWeights: BitcoinishWeightedChangeOutput[]
+    changeOutputWeights: BitcoinishWeightedChangeOutput[],
   ): number {
     let totalChangeWeight = sumField(changeOutputWeights, 'weight').toNumber()
     let totalChangeAllocated = 0 // Total sat of all change outputs we actually include (omitting dust)
@@ -733,9 +737,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       const changeSat = Math.floor(tbc.totalChange * (weight / totalChangeWeight))
       if (changeSat <= this.dustThreshold || changeSat < this.minChangeSat) {
         this.logger.debug(
-          `${this.coinSymbol} buildPaymentTx - desired change output ${i} with weight `
-          + `${weight}/${totalChangeWeight} is below dust threshold or minChange, `
-          + `reducing total weight to ${totalChangeWeight - weight}`
+          `${this.coinSymbol} buildPaymentTx - desired change output ${i} with weight ` +
+            `${weight}/${totalChangeWeight} is below dust threshold or minChange, ` +
+            `reducing total weight to ${totalChangeWeight - weight}`,
         )
         totalChangeWeight -= weight
       } else {
@@ -744,10 +748,12 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       }
     }
 
-    this.logger.debug(
-      `${this.coinSymbol} buildPaymentTx`,
-      { changeOutputWeights, totalChangeWeight, totalChangeAllocated, changeOutputs: tbc.changeOutputs },
-    )
+    this.logger.debug(`${this.coinSymbol} buildPaymentTx`, {
+      changeOutputWeights,
+      totalChangeWeight,
+      totalChangeAllocated,
+      changeOutputs: tbc.changeOutputs,
+    })
 
     return totalChangeAllocated
   }
@@ -756,7 +762,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     tbc: BitcoinishTxBuildContext,
     changeOutputCount: number,
     totalChangeAllocated: number,
-    looseChange: number
+    looseChange: number,
   ): number {
     const recalculatedFee = this.estimateTxFee(
       tbc.desiredFeeRate,
@@ -775,9 +781,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     tbc.totalChange = tbc.inputTotal - tbc.externalOutputTotal - tbc.feeSat
     looseChange = tbc.totalChange - totalChangeAllocated
     this.logger.log(
-      `${this.coinSymbol} buildPaymentTx - Adjusted looseChange from `
-      + `${looseChangeBefore} sat to ${looseChange} sat after `
-      + 'applying dropped change outputs recalculated fee'
+      `${this.coinSymbol} buildPaymentTx - Adjusted looseChange from ` +
+        `${looseChangeBefore} sat to ${looseChange} sat after ` +
+        'applying dropped change outputs recalculated fee',
     )
 
     return looseChange
@@ -787,8 +793,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const extraSatPerChangeOutput = Math.floor(looseChange / changeOutputCount)
     if (extraSatPerChangeOutput > 0) {
       this.logger.log(
-        `${this.coinSymbol} buildPaymentTx - allocating ${extraSatPerChangeOutput * changeOutputCount} sat loose change `
-        + `across ${changeOutputCount} change outputs (${extraSatPerChangeOutput} sat each)`
+        `${this.coinSymbol} buildPaymentTx - allocating ${extraSatPerChangeOutput *
+          changeOutputCount} sat loose change ` +
+          `across ${changeOutputCount} change outputs (${extraSatPerChangeOutput} sat each)`,
       )
       for (let i = 0; i < changeOutputCount; i++) {
         tbc.changeOutputs[i].satoshis += extraSatPerChangeOutput
@@ -797,8 +804,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
 
     if (looseChange > 0) {
-      this.logger.log(`${this.coinSymbol} buildPaymentTx - allocating `
-        + `${looseChange} sat loose change to first change output`)
+      this.logger.log(
+        `${this.coinSymbol} buildPaymentTx - allocating ` + `${looseChange} sat loose change to first change output`,
+      )
       // A few satoshis are leftover due to rounding, give it to the first change output
       tbc.changeOutputs[0].satoshis += looseChange
       looseChange = 0
@@ -807,20 +815,26 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     return looseChange
   }
 
-  private async callSerializePaymentTx(paymentTx: BitcoinishPaymentTx, options: {
-    lookupTxDataByHashes?: LookupTxDataByHashes,
-    fromIndex?: number,
-  }) {
+  private async callSerializePaymentTx(
+    paymentTx: BitcoinishPaymentTx,
+    options: {
+      lookupTxDataByHashes?: LookupTxDataByHashes
+      fromIndex?: number
+    },
+  ) {
     const inputHashes = paymentTx.inputs.map(({ txid }) => txid)
     const txHashToDataHex = await options?.lookupTxDataByHashes?.(inputHashes)
-    return this.serializePaymentTx({
-      ...paymentTx,
-      inputs: paymentTx.inputs.map(({ txid, txHex, ...rest }) => ({
-        ...rest,
-        txid,
-        txHex: txHex ?? txHashToDataHex?.[txid]
-      }))
-    }, options.fromIndex)
+    return this.serializePaymentTx(
+      {
+        ...paymentTx,
+        inputs: paymentTx.inputs.map(({ txid, txHex, ...rest }) => ({
+          ...rest,
+          txid,
+          txHex: txHex ?? txHashToDataHex?.[txid],
+        })),
+      },
+      options.fromIndex,
+    )
   }
 
   async createTransaction(
@@ -840,24 +854,27 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     assertType(t.array(PayportOutput), to)
     this.logger.debug('createMultiOutputTransaction', from, to, options)
 
-    const unusedUtxos = options.availableUtxos || await this.getUtxos(from)
+    const unusedUtxos = options.availableUtxos || (await this.getUtxos(from))
     this.logger.debug('createMultiOutputTransaction unusedUtxos', unusedUtxos)
 
     const { address: fromAddress } = await this.resolvePayport(from)
 
-    const desiredOutputs = await Promise.all(to.map(async ({ payport, amount }) => ({
-      address: (await this.resolvePayport(payport)).address,
-      value: String(amount),
-    })))
+    const desiredOutputs = await Promise.all(
+      to.map(async ({ payport, amount }) => ({
+        address: (await this.resolvePayport(payport)).address,
+        value: String(amount),
+      })),
+    )
 
     const maxFeePercent = new BigNumber(options.maxFeePercent ?? DEFAULT_MAX_FEE_PERCENT).toNumber()
     const { targetFeeLevel, targetFeeRate, targetFeeRateType } = await this.resolveFeeOption(options)
-    this.logger.debug('createMultiOutputTransaction resolvedFeeOption '
-      + `${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`)
+    this.logger.debug(
+      'createMultiOutputTransaction resolvedFeeOption ' + `${targetFeeLevel} ${targetFeeRate} ${targetFeeRateType}`,
+    )
 
     let changeAddress = [fromAddress]
     if (options.changeAddress) {
-      if(Array.isArray(options.changeAddress)) {
+      if (Array.isArray(options.changeAddress)) {
         changeAddress = options.changeAddress
       } else {
         changeAddress = [options.changeAddress]
@@ -896,7 +913,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       resultToIndex = isNumber(to[0].payport) ? to[0].payport : null
     }
 
-
     return {
       status: TransactionStatus.Unsigned,
       id: null,
@@ -919,10 +935,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
   }
 
-  async createServiceTransaction(
-    from: number,
-    options: CreateTransactionOptions = {},
-  ): Promise<null> {
+  async createServiceTransaction(from: number, options: CreateTransactionOptions = {}): Promise<null> {
     return null
   }
 
@@ -933,9 +946,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   ): Promise<BitcoinishUnsignedTransaction> {
     this.logger.debug('createSweepTransaction', from, to, options)
 
-    const availableUtxos = isUndefined(options.availableUtxos)
-      ? await this.getUtxos(from)
-      : options.availableUtxos
+    const availableUtxos = isUndefined(options.availableUtxos) ? await this.getUtxos(from) : options.availableUtxos
     const forcedUtxos = isUndefined(options.forcedUtxos) ? [] : options.forcedUtxos
 
     if (availableUtxos.length === 0 && forcedUtxos.length === 0) {
@@ -968,15 +979,15 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         unusedUtxos.push(u)
       }
     } else {
-      for(const f of from) {
+      for (const f of from) {
         unusedUtxos.push(...(await this.getUtxos(f)))
       }
     }
     this.logger.debug('createMultiInputTransaction unusedUtxos', unusedUtxos)
-    
+
     let changeAddress: string[]
     if (options.changeAddress) {
-      if(Array.isArray(options.changeAddress)) {
+      if (Array.isArray(options.changeAddress)) {
         changeAddress = options.changeAddress
       } else {
         changeAddress = [options.changeAddress]
@@ -986,15 +997,18 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       changeAddress = [address]
     }
 
-    const desiredOutputs = await Promise.all(to.map(async ({ payport, amount }) => ({
-      address: (await this.resolvePayport(payport)).address,
-      value: String(amount),
-    })))
+    const desiredOutputs = await Promise.all(
+      to.map(async ({ payport, amount }) => ({
+        address: (await this.resolvePayport(payport)).address,
+        value: String(amount),
+      })),
+    )
 
     const maxFeePercent = new BigNumber(options.maxFeePercent ?? DEFAULT_MAX_FEE_PERCENT).toNumber()
     const { targetFeeLevel, targetFeeRate, targetFeeRateType } = await this.resolveFeeOption(options)
-    this.logger.debug(`createMultiInputTransaction resolvedFeeOption ${targetFeeLevel} `
-      + `${targetFeeRate} ${targetFeeRateType}`)
+    this.logger.debug(
+      `createMultiInputTransaction resolvedFeeOption ${targetFeeLevel} ` + `${targetFeeRate} ${targetFeeRateType}`,
+    )
 
     const paymentTx = await this.buildPaymentTx({
       unusedUtxos,
@@ -1007,7 +1021,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       recipientPaysFee: options.recipientPaysFee ?? false,
       maxFeePercent,
     })
-    
+
     const unsignedTxHex = await this.callSerializePaymentTx(paymentTx, {
       lookupTxDataByHashes: options.lookupTxDataByHashes,
     })
@@ -1053,7 +1067,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       if (tx.id !== txId) {
         this.logger.warn(`Broadcasted ${this.coinSymbol} txid ${txId} doesn't match original txid ${tx.id}`)
       }
-    } catch(e) {
+    } catch (e) {
       const message = e.message || ''
       if (message.startsWith('-27')) {
         txId = tx.id
@@ -1067,19 +1081,21 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   private prepareUtxos(utxos: UtxoInfo[]): Array<UtxoInfo & { satoshis: number }> {
-    return utxos.map((utxo) => {
+    return utxos.map(utxo => {
       return {
         ...utxo,
         satoshis: isUndefined(utxo.satoshis)
           ? this.toBaseDenominationNumber(utxo.value)
-          : toBigNumber(utxo.satoshis).toNumber()
+          : toBigNumber(utxo.satoshis).toNumber(),
       }
     })
   }
 
   private validatePsbtOutput(output: BitcoinishTxOutput, psbtOutput: bitcoin.PsbtTxOutput, i: number) {
     if (output.address !== psbtOutput.address) {
-      throw new Error(`Invalid tx: psbt output ${i} address (${psbtOutput.address}) doesn't match expected address ${output.address}`)
+      throw new Error(
+        `Invalid tx: psbt output ${i} address (${psbtOutput.address}) doesn't match expected address ${output.address}`,
+      )
     }
     const value = this.toMainDenomination(psbtOutput.value)
     if (output.value !== value) {
@@ -1089,13 +1105,15 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
   private validatePsbtInput(input: UtxoInfo, psbtInput: bitcoin.PsbtTxInput, i: number) {
     // bitcoinjs psbt input hash buffer is reversed
-    const hash = Buffer.from(psbtInput.hash).reverse().toString('hex')
+    const hash = Buffer.from(psbtInput.hash)
+      .reverse()
+      .toString('hex')
     if (input.txid !== hash) {
       throw new Error(`Invalid tx: psbt input ${i} hash (${hash}) doesn't match expected txid (${input.txid})`)
     }
     if (input.vout !== psbtInput.index) {
       throw new Error(
-        `Invalid tx: psbt input ${i} index (${psbtInput.index}) doesn't match expected vout (${input.vout})`
+        `Invalid tx: psbt input ${i} index (${psbtInput.index}) doesn't match expected vout (${input.vout})`,
       )
     }
   }
@@ -1135,12 +1153,12 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
     if (inputUtxos.length !== data.inputs.length) {
       throw new Error(
-        `Invalid tx: inputUtxos length (${psbtInputs.length}) doesn't match data.inputs length (${data.inputs.length})`
+        `Invalid tx: inputUtxos length (${psbtInputs.length}) doesn't match data.inputs length (${data.inputs.length})`,
       )
     }
     if (psbtInputs.length !== data.inputs.length) {
       throw new Error(
-        `Invalid tx: psbt inputs length (${psbtInputs.length}) doesn't match data.inputs length (${data.inputs.length})`
+        `Invalid tx: psbt inputs length (${psbtInputs.length}) doesn't match data.inputs length (${data.inputs.length})`,
       )
     }
 
@@ -1158,18 +1176,20 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
     if (externalOutputs.length !== data.externalOutputs.length) {
       throw new Error(
-        `Invalid tx: externalOutputs length (${externalOutputs.length}) doesn't match data.externalOutputs length (${data.externalOutputs.length})`
+        `Invalid tx: externalOutputs length (${externalOutputs.length}) doesn't match data.externalOutputs length (${data.externalOutputs.length})`,
       )
     }
     const expectedOutputCount = data.externalOutputs.length + data.changeOutputs.length
     if (psbtOutputs.length !== expectedOutputCount) {
       throw new Error(
-        `Invalid tx: psbt outputs length (${psbtOutputs.length}) doesn't match external + change output length (${expectedOutputCount})`
+        `Invalid tx: psbt outputs length (${psbtOutputs.length}) doesn't match external + change output length (${expectedOutputCount})`,
       )
     }
 
     if (externalOutputs.length === 1 && externalOutputs[0].address !== tx.toAddress) {
-      throw new Error(`Invalid tx: toAddress (${tx.toAddress}) doesn't match external output 0 address (${externalOutputs[0].address})`)
+      throw new Error(
+        `Invalid tx: toAddress (${tx.toAddress}) doesn't match external output 0 address (${externalOutputs[0].address})`,
+      )
     } else if (externalOutputs.length > 1 && tx.toAddress !== 'batch') {
       throw new Error(`Invalid tx: toAddress (${tx.toAddress}) should be "batch" for multi output transaction`)
     }
@@ -1190,12 +1210,16 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         this.validatePsbtOutput(changeOutput, psbtOutput, i)
 
         // If we stop reusing addresses in the future this will need to be changed
-        if ((tx.fromAddress !== 'batch') && (changeOutput.address !== tx.fromAddress)) {
-          throw new Error(`Invalid tx: change output ${i} address (${changeOutput.address}) doesn't match fromAddress (${tx.fromAddress})`)
+        if (tx.fromAddress !== 'batch' && changeOutput.address !== tx.fromAddress) {
+          throw new Error(
+            `Invalid tx: change output ${i} address (${changeOutput.address}) doesn't match fromAddress (${tx.fromAddress})`,
+          )
         }
 
         if (data.changeAddress !== null && data.changeAddress !== changeOutput.address) {
-          throw new Error(`Invalid tx: change output ${i} address (${changeOutput.address}) doesn't match data.changeAddress (${data.changeAddress})`)
+          throw new Error(
+            `Invalid tx: change output ${i} address (${changeOutput.address}) doesn't match data.changeAddress (${data.changeAddress})`,
+          )
         }
         changeOutputTotal = changeOutputTotal.plus(changeOutput.value)
       }
@@ -1203,25 +1227,29 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
     // Check totals
 
-
     if (data.inputTotal && !inputTotal.eq(data.inputTotal)) {
-      throw new Error(`Invalid tx: data.externalOutputTotal (${data.externalOutputTotal}) doesn't match expected external output total (${externalOutputTotal})`)
+      throw new Error(
+        `Invalid tx: data.externalOutputTotal (${data.externalOutputTotal}) doesn't match expected external output total (${externalOutputTotal})`,
+      )
     }
     if (data.externalOutputTotal && !externalOutputTotal.eq(data.externalOutputTotal)) {
-      throw new Error(`Invalid tx: data.externalOutputTotal (${data.externalOutputTotal}) doesn't match expected external output total (${externalOutputTotal})`)
+      throw new Error(
+        `Invalid tx: data.externalOutputTotal (${data.externalOutputTotal}) doesn't match expected external output total (${externalOutputTotal})`,
+      )
     }
     if (!changeOutputTotal.eq(data.change)) {
-      throw new Error(`Invalid tx: data.change (${data.externalOutputTotal}) doesn't match expected change output total (${externalOutputTotal})`)
+      throw new Error(
+        `Invalid tx: data.change (${data.externalOutputTotal}) doesn't match expected change output total (${externalOutputTotal})`,
+      )
     }
     if (!externalOutputTotal.eq(tx.amount)) {
-      throw new Error(`Invalid tx: amount (${tx.amount}) doesn't match expected external output total (${externalOutputTotal})`)
+      throw new Error(
+        `Invalid tx: amount (${tx.amount}) doesn't match expected external output total (${externalOutputTotal})`,
+      )
     }
     const expectedFee = inputTotal.minus(externalOutputTotal).minus(changeOutputTotal)
     if (!expectedFee.eq(tx.fee)) {
       throw new Error(`Invalid tx: fee (${tx.fee}) doesn't match expected fee (${expectedFee})`)
     }
-
   }
-
-
 }
