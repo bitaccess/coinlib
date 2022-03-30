@@ -8,27 +8,16 @@ import {
   AddressType,
 } from './types'
 
-import { cloneDeep, omit } from 'lodash'
+import { omit } from 'lodash'
 import { HdLitecoinPayments } from './HdLitecoinPayments'
 import { KeyPairLitecoinPayments } from './KeyPairLitecoinPayments'
 import * as bitcoin from 'bitcoinjs-lib'
-import {
-  CreateTransactionOptions,
-  ResolveablePayport,
-  BaseMultisigData,
-  PayportOutput,
-  MultisigData,
-  UtxoInfo,
-  AddressMultisigData,
-} from '@bitaccess/coinlib-common'
-import {
-  createMultisigData,
-  preCombinePartiallySignedTransactions,
-} from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
+import { CreateTransactionOptions, ResolveablePayport, PayportOutput } from '@bitaccess/coinlib-common'
+import { createMultisigData, preCombinePartiallySignedTransactions } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
 
-import { publicKeyToString, getMultisigPaymentScript, isMultisigFullySigned } from './helpers'
+import { getMultisigPaymentScript } from './helpers'
 
-import { isNumber, Numeric } from '@faast/ts-common'
+import { Numeric } from '@faast/ts-common'
 import { DEFAULT_MULTISIG_ADDRESS_TYPE } from './constants'
 
 export class MultisigLitecoinPayments extends BaseLitecoinPayments<MultisigLitecoinPaymentsConfig> {
@@ -165,7 +154,7 @@ export class MultisigLitecoinPayments extends BaseLitecoinPayments<MultisigLitec
    * the transaction is validated and finalized.
    */
   async combinePartiallySignedTransactions(txs: LitecoinSignedTransaction[]): Promise<LitecoinSignedTransaction> {
-    const {baseTx, combinedPsbt, updatedMultisigData} =  preCombinePartiallySignedTransactions(txs)
+    const { baseTx, combinedPsbt, updatedMultisigData } = preCombinePartiallySignedTransactions(txs)
     return this.updateSignedMultisigTx(baseTx, combinedPsbt, updatedMultisigData)
   }
 

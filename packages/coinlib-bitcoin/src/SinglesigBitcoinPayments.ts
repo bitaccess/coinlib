@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash';
+import { cloneDeep } from 'lodash'
 import * as bitcoin from 'bitcoinjs-lib'
 
 import {
@@ -9,15 +9,15 @@ import {
   SinglesigAddressType,
   AddressType,
 } from './types'
-import { BitcoinishPaymentTx, BitcoinishTxOutput } from './bitcoinish/types'
+import { BitcoinishPaymentTx } from './bitcoinish/types'
 import { publicKeyToString, getSinglesigPaymentScript } from './helpers'
 import { BaseBitcoinPayments } from './BaseBitcoinPayments'
 import { DEFAULT_SINGLESIG_ADDRESS_TYPE } from './constants'
-import { UtxoInfo, BaseMultisigData, MultiInputMultisigData } from '@bitaccess/coinlib-common'
+import { BaseMultisigData, MultiInputMultisigData } from '@bitaccess/coinlib-common'
 
-export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPaymentsConfig>
-  extends BaseBitcoinPayments<Config> {
-
+export abstract class SinglesigBitcoinPayments<
+  Config extends SinglesigBitcoinPaymentsConfig
+> extends BaseBitcoinPayments<Config> {
   addressType: SinglesigAddressType
 
   constructor(config: SinglesigBitcoinPaymentsConfig) {
@@ -31,7 +31,7 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
     return getSinglesigPaymentScript(
       this.bitcoinjsNetwork,
       addressType || this.addressType,
-      this.getKeyPair(index).publicKey
+      this.getKeyPair(index).publicKey,
     )
   }
 
@@ -44,7 +44,7 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
     if (tx.fromIndex === null) throw new Error('Cannot sign legacy multisig transaction without fromIndex')
 
     const accountId = this.getAccountId(tx.fromIndex)
-    const accountIdIndex = multisigData.accountIds.findIndex((x) => x === accountId)
+    const accountIdIndex = multisigData.accountIds.findIndex(x => x === accountId)
     if (accountIdIndex === -1) {
       throw new Error('Not a signer for provided multisig tx')
     }
@@ -56,8 +56,8 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
     const signerPublicKey = multisigData.publicKeys[accountIdIndex]
     if (signerPublicKey !== publicKeyString) {
       throw new Error(
-        `Mismatched publicKey for keyPair ${accountId}/${tx.fromIndex} - `
-        + `multisigData has ${signerPublicKey} but keyPair has ${publicKeyString}`
+        `Mismatched publicKey for keyPair ${accountId}/${tx.fromIndex} - ` +
+          `multisigData has ${signerPublicKey} but keyPair has ${publicKeyString}`,
       )
     }
     this.validatePsbt(tx, psbt)
@@ -77,7 +77,6 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
     psbt: bitcoin.Psbt,
     multisigData: MultiInputMultisigData,
   ): BitcoinSignedTransaction {
-
     const updatedMultisigTx = cloneDeep(multisigData)
 
     let inputsSigned = 0
@@ -86,7 +85,7 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
       const addressMultisigData = multisigData[address]
       const { signerIndex, accountIds, signedAccountIds, publicKeys, inputIndices } = addressMultisigData
       const accountId = this.getAccountId(signerIndex)
-      const accountIdIndex = accountIds.findIndex((x) => x === accountId)
+      const accountIdIndex = accountIds.findIndex(x => x === accountId)
 
       if (accountIdIndex === -1) {
         // Not a signer for address
@@ -104,8 +103,8 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
       const signerPublicKey = publicKeys[accountIdIndex]
       if (signerPublicKey !== publicKeyString) {
         throw new Error(
-          `Mismatched publicKey for keyPair ${accountId}/${tx.fromIndex} - `
-          + `multisigData has ${signerPublicKey} but keyPair has ${publicKeyString}`
+          `Mismatched publicKey for keyPair ${accountId}/${tx.fromIndex} - ` +
+            `multisigData has ${signerPublicKey} but keyPair has ${publicKeyString}`,
         )
       }
 
@@ -122,9 +121,7 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
     return this.updateSignedMultisigTx(tx, psbt, updatedMultisigTx)
   }
 
-  signMultisigTransaction(
-    tx: BitcoinUnsignedTransaction,
-  ): BitcoinSignedTransaction {
+  signMultisigTransaction(tx: BitcoinUnsignedTransaction): BitcoinSignedTransaction {
     const { multisigData, data } = tx
     const { rawHex } = data
 
@@ -157,7 +154,7 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
     }
     this.validatePsbt(tx, psbt)
 
-    for(let i = 0; i < tx.data.inputs.length; i++) {
+    for (let i = 0; i < tx.data.inputs.length; i++) {
       if (typeof tx.data.inputs[i].signer === 'undefined') {
         throw new Error('Uxto needs to have signer provided')
       }
@@ -169,10 +166,6 @@ export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPa
   }
 
   getSupportedAddressTypes(): AddressType[] {
-    return [
-      AddressType.Legacy,
-      AddressType.SegwitNative,
-      AddressType.SegwitP2SH,
-    ]
+    return [AddressType.Legacy, AddressType.SegwitNative, AddressType.SegwitP2SH]
   }
 }

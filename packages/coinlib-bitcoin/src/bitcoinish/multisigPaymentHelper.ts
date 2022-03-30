@@ -1,18 +1,9 @@
-import {
-  NetworkType,
-  UtxoInfo,
-  BaseConfig,
-  AddressMultisigData,
-  BaseMultisigData,
-  MultisigData,
-  FeeRateType,
-  FeeLevel,
-} from '@bitaccess/coinlib-common'
-import { BitcoinishPaymentsConfig, BitcoinishSignedTransaction, BitcoinishUnsignedTransaction } from './types'
-import { isNumber, Numeric } from '@faast/ts-common'
-import { publicKeyToString, getMultisigPaymentScript } from './helpers'
+import { UtxoInfo, BaseConfig, AddressMultisigData, BaseMultisigData, MultisigData } from '@bitaccess/coinlib-common'
+import { BitcoinishSignedTransaction } from './types'
+import { isNumber } from '@faast/ts-common'
+import { publicKeyToString } from './helpers'
 import * as bitcoin from 'bitcoinjs-lib'
-import { cloneDeep, omit } from 'lodash'
+import { cloneDeep } from 'lodash'
 
 import { BitcoinishPayments } from './BitcoinishPayments'
 
@@ -135,7 +126,7 @@ function isMultisigFullySigned(multisigData: MultisigData): boolean {
 export function preCombinePartiallySignedTransactions(
   txs: (BitcoinishSignedTransaction & { data: { unsignedTxHash?: string; partial?: boolean } })[],
   psbtOptions?: PsbtOptsOptional,
-){
+) {
   if (txs.length < 2) {
     throw new Error(`Cannot combine ${txs.length} transactions, need at least 2`)
   }

@@ -19,13 +19,7 @@ import {
   estimateBitcoinTxSize,
   isMultisigFullySigned,
 } from './helpers'
-import {
-  BitcoinishPayments,
-  BitcoinishPaymentTx,
-  BitcoinishTxOutput,
-  countOccurences,
-  getBlockcypherFeeRecommendation,
-} from './bitcoinish'
+import { BitcoinishPayments, BitcoinishPaymentTx, countOccurences } from './bitcoinish'
 
 export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConfig> extends BitcoinishPayments<Config> {
   readonly maximumFeeRate?: number
