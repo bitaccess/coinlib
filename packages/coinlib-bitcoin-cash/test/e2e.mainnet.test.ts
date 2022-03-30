@@ -4,7 +4,7 @@ import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel, U
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { toBigNumber } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
-import { assertBitcoinishTxInfoEquality } from '@bitaccess/coinlib-bitcoin/test/utils'
+import { assertBitcoinishTxInfoEquality, getFromTo } from '@bitaccess/coinlib-bitcoin/test/utils'
 
 import {
   HdBitcoinCashPayments, BitcoinCashTransactionInfo, HdBitcoinCashPaymentsConfig,
@@ -425,27 +425,17 @@ describeAll('e2e mainnet', () => {
 
     it('end to end send', async () => {
       const indicesToTry = [7, 8]
-      const balances: { [address: string]: BalanceResult } = {}
-      let indexToSend: number = -1
-      const { confirmedBalance: highestBalance } = await payments.getBalance(indicesToTry[0])
-      for (let i = 1; i < indicesToTry.length; i++) {
-        const index = indicesToTry[i]
-        const address = payments.getAddress(index)
-        const balanceResult = await payments.getBalance(index)
-        balances[address] = balanceResult
-        if (toBigNumber(balanceResult.confirmedBalance).gt(highestBalance)) {
-          indexToSend = index
-          break
-        }
-      }
-      if (indexToSend < 0) {
-        const allAddresses = await Promise.all(indicesToTry.map(async i => (await payments.getPayport(i)).address))
-        throw new Error(`Cannot end to end test sweeping due to lack of funds. Send BCH to any of the following addresses and try again. ${JSON.stringify(allAddresses)}`)
-      }
-      const recipientIndex = indexToSend === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
+      const { fromIndex, toIndex } = await getFromTo(
+        payments,
+        'Bitcoin-cash testnet end to end send in e2e.mainnet.test',
+        indicesToTry[0],
+        indicesToTry[1],
+        0.001
+      )
+
       const unsignedTx = await payments.createTransaction(
-        indexToSend,
-        recipientIndex,
+        fromIndex,
+        toIndex,
         '0.0001',
         {
           useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
@@ -454,7 +444,7 @@ describeAll('e2e mainnet', () => {
         },
       )
       const signedTx = await payments.signTransaction(unsignedTx)
-      logger.log(`Sending ${signedTx.amount} from ${indexToSend} to ${recipientIndex} in tx ${signedTx.id}`)
+      logger.log(`Sending ${signedTx.amount} from ${fromIndex} to ${toIndex} in tx ${signedTx.id}`)
       expect(await payments.broadcastTransaction(signedTx)).toEqual({
         id: signedTx.id,
       })
