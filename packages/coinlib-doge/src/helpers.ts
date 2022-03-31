@@ -1,6 +1,8 @@
 import { createUnitConverters, NetworkType } from '@bitaccess/coinlib-common'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
-import * as bitcoin from 'bitcoinjs-lib-bigint'
+// import * as bitcoin from 'bitcoinjs-lib-bigint'
+import * as bitcoin from 'bitcoinjs-lib'
+
 
 import { DECIMAL_PLACES, NETWORKS } from './constants'
 

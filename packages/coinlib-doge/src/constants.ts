@@ -1,6 +1,6 @@
 import { FeeLevel, NetworkType } from '@bitaccess/coinlib-common'
 import { BitcoinjsNetwork, bitcoinish } from '@bitaccess/coinlib-bitcoin'
-import { AddressType, SinglesigAddressType } from './types'
+import { AddressType, SinglesigAddressType, MultisigAddressType } from './types'
 
 export const PACKAGE_NAME = 'doge-payments'
 export const DECIMAL_PLACES = 8
@@ -35,6 +35,7 @@ export const BITCOIN_SEQUENCE_RBF = 0xFFFFFFFD
 export const DEFAULT_MIN_TX_FEE = 1000000 // 10 DOGE per kb
 
 export const SINGLESIG_ADDRESS_TYPE: SinglesigAddressType = AddressType.Legacy
+export const DEFAULT_MULTISIG_ADDRESS_TYPE: MultisigAddressType = AddressType.MultisigSegwitNative
 
 export const DEFAULT_DERIVATION_PATH = "m/44'/3'/0'"
 
@@ -71,7 +72,7 @@ export const NETWORKS: { [networkType in NetworkType]: BitcoinjsNetwork } = {
 export const DEFAULT_MAINNET_SERVER = process.env.DOGECOIN_SERVER_URL
   ? process.env.DOGECOIN_SERVER_URL.split(',')
   : ['https://doge1.trezor.io', 'https://doge2.trezor.io']
-export const DEFAULT_TESTNET_SERVER = ''
+export const DEFAULT_TESTNET_SERVER = process.env.DOGE_TESTNET_SERVER_URL || ''
 
 export const DEFAULT_FEE_LEVEL = FeeLevel.High
 

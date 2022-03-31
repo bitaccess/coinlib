@@ -116,7 +116,7 @@ function combineMultisigData(m1: MultisigData, m2: MultisigData) {
   }
 }
 
-function isMultisigFullySigned(multisigData: MultisigData): boolean {
+export function isMultisigFullySigned(multisigData: MultisigData): boolean {
   if (BaseMultisigData.is(multisigData)) {
     return multisigData.signedAccountIds.length >= multisigData.m
   }

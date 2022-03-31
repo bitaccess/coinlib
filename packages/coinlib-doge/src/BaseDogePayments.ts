@@ -1,7 +1,6 @@
-import * as bitcoin from 'bitcoinjs-lib-bigint'
-import {
-  FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus,
-} from '@bitaccess/coinlib-common'
+// import * as bitcoin from 'bitcoinjs-lib-bigint'
+import * as bitcoin from 'bitcoinjs-lib'
+import { FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus, MultisigData } from '@bitaccess/coinlib-common'
 import { AddressType, bitcoinish } from '@bitaccess/coinlib-bitcoin'
 
 import { toBitcoinishConfig } from './utils'
@@ -12,14 +11,15 @@ import {
   DogeSignedTransaction,
   PsbtInputData,
 } from './types'
-import {
-  BITCOIN_SEQUENCE_RBF, DEFAULT_FEE_LEVEL_BLOCK_TARGETS, SINGLESIG_ADDRESS_TYPE,
-} from './constants'
+import { BITCOIN_SEQUENCE_RBF, DEFAULT_FEE_LEVEL_BLOCK_TARGETS, SINGLESIG_ADDRESS_TYPE } from './constants'
 import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateDogeTxSize } from './helpers'
+import { isMultisigFullySigned } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
+import BigNumber from 'bignumber.js'
 
 // tslint:disable-next-line:max-line-length
-export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> extends bitcoinish.BitcoinishPayments<Config> {
-
+export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> extends bitcoinish.BitcoinishPayments<
+  Config
+> {
   readonly maximumFeeRate?: number
   readonly addressType: AddressType
 
@@ -79,7 +79,7 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
       index: utxo.vout,
       sequence: BITCOIN_SEQUENCE_RBF,
     }
-    if ((/p2wpkh|p2wsh/).test(addressType)) {
+    if (/p2wpkh|p2wsh/.test(addressType)) {
       // for segwit inputs, you only need the output script and value as an object.
       const rawUtxo = utx.vout[utxo.vout]
       const { hex: scriptPubKey, value: rawValue } = rawUtxo
@@ -88,11 +88,13 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
       }
       const utxoValue = this.toBaseDenominationString(utxo.value)
       if (utxoValue !== rawValue) {
-        throw new Error(`Utxo ${utxo.txid}:${utxo.vout} has mismatched value - ${utxoValue} sat expected but network reports ${rawValue} sat`)
+        throw new Error(
+          `Utxo ${utxo.txid}:${utxo.vout} has mismatched value - ${utxoValue} sat expected but network reports ${rawValue} sat`,
+        )
       }
       result.witnessUtxo = {
         script: Buffer.from(scriptPubKey, 'hex'),
-        value: BigInt(utxoValue),
+        value: utxoValue,
       }
     } else {
       // for non segwit inputs, you must pass the full transaction buffer
@@ -119,21 +121,25 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
     }
   }
 
-  async buildPsbt(paymentTx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<bitcoin.Psbt> {
+  async buildPsbt(paymentTx: bitcoinish.BitcoinishPaymentTx, fromIndex?: number): Promise<bitcoin.Psbt> {
     const { inputs, outputs } = paymentTx
-    const inputPaymentScript = this.getPaymentScript(fromIndex)
+
     const psbt = new bitcoin.Psbt(this.psbtOptions)
     for (const input of inputs) {
+      const signer = input.signer ?? fromIndex
+      if (typeof signer === 'undefined') {
+        throw new Error('Signer index for utxo is not provided')
+      }
       psbt.addInput(await this.getPsbtInputData(
         input,
-        inputPaymentScript,
-        ),
-      )
+        this.getPaymentScript(signer),
+        this.addressType,
+      ))
     }
     for (const output of outputs) {
       psbt.addOutput({
         address: output.address,
-        value: this.toBaseDenominationNumber(output.value)
+        value: this.toBaseDenominationNumber(output.value),
       })
     }
     return psbt
@@ -164,6 +170,7 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
         hex: txHex,
         partial: false,
         unsignedTxHash,
+        changeOutputs: tx.data?.changeOutputs
       },
     }
   }
@@ -171,4 +178,33 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
   getSupportedAddressTypes(): AddressType[] {
     return [AddressType.Legacy]
   }
+
+  updateSignedMultisigTx(
+    tx: DogeSignedTransaction | DogeUnsignedTransaction,
+    psbt: bitcoin.Psbt,
+    updatedMultisigData: MultisigData,
+  ): DogeSignedTransaction {
+    if (isMultisigFullySigned(updatedMultisigData)) {
+      const finalizedTx =  this.validateAndFinalizeSignedTx(tx, psbt)
+      return {
+        ...finalizedTx,
+        multisigData: updatedMultisigData,
+      }
+    }
+    const combinedHex = psbt.toHex()
+    const unsignedTxHash = DogeSignedTransactionData.is(tx.data) ? tx.data.unsignedTxHash : tx.data.rawHash
+    return {
+      ...tx,
+      id: '',
+      status: TransactionStatus.Signed,
+      multisigData: updatedMultisigData,
+      data: {
+        hex: combinedHex,
+        partial: true,
+        unsignedTxHash,
+        changeOutputs: tx.data?.changeOutputs,
+      }
+    }
+  }
+
 }

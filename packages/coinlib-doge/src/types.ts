@@ -4,9 +4,11 @@ import {
   BaseTransactionInfo, BaseBroadcastResult, KeyPairsConfigParam,
 } from '@bitaccess/coinlib-common'
 import { extendCodec, enumCodec, requiredOptionalCodec, instanceofCodec } from '@faast/ts-common'
-import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib-bigint'
+// import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib-bigint'
+import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { PsbtInput, TransactionInput } from 'bip174-bigint/src/lib/interfaces'
+import {BitcoinishUnsignedTransaction, BitcoinishSignedTransaction} from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
 
 export type BitcoinjsKeyPair = BitcoinjsSigner & {
   privateKey?: Buffer
@@ -17,6 +19,11 @@ export interface PsbtInputData extends PsbtInput, TransactionInput {}
 
 export enum AddressType {
   Legacy = 'p2pkh',
+  SegwitP2SH = 'p2sh-p2wpkh',
+  SegwitNative = 'p2wpkh',
+  MultisigLegacy = 'p2sh-p2ms',
+  MultisigSegwitP2SH = 'p2sh-p2wsh-p2ms',
+  MultisigSegwitNative = 'p2wsh-p2ms'
 }
 export const AddressTypeT = enumCodec<AddressType>(AddressType, 'AddressType')
 
@@ -27,6 +34,21 @@ const SinglesigAddressTypeT = t.keyof({
 }, 'SinglesigAddressType')
 export type SinglesigAddressType = t.TypeOf<typeof SinglesigAddressTypeT>
 export const SinglesigAddressType = SinglesigAddressTypeT as t.Type<SinglesigAddressType>
+
+
+const MultisigAddressTypeT = t.keyof({
+  [AddressType.MultisigLegacy]: null,
+  [AddressType.MultisigSegwitP2SH]: null,
+  [AddressType.MultisigSegwitNative]: null,
+}, 'MultisigAddressType')
+export type MultisigAddressType = t.TypeOf<typeof MultisigAddressTypeT>
+export const MultisigAddressType = MultisigAddressTypeT as t.Type<MultisigAddressType>
+
+export const BitcoinishTxOutput = t.type({
+  address: t.string,
+  value: t.string,
+}, 'BitcoinishTxOutput')
+export type BitcoinishTxOutput = t.TypeOf<typeof BitcoinishTxOutput>
 
 export const DogeBaseConfig = extendCodec(
   BaseConfig,
@@ -99,17 +121,34 @@ export const SinglesigDogePaymentsConfig = t.union([
 ], 'SinglesigDogePaymentsConfig')
 export type SinglesigDogePaymentsConfig = t.TypeOf<typeof SinglesigDogePaymentsConfig>
 
+
+export const MultisigDogePaymentsConfig = extendCodec(
+  BaseDogePaymentsConfig,
+  {
+    m: t.number,
+    signers: t.array(SinglesigDogePaymentsConfig),
+  },
+  {
+    addressType: MultisigAddressType,
+  },
+  'MultisigDogePaymentsConfig',
+)
+export type MultisigDogePaymentsConfig = t.TypeOf<typeof MultisigDogePaymentsConfig>
+
 export const DogePaymentsConfig = t.union([
   HdDogePaymentsConfig,
   KeyPairDogePaymentsConfig,
+  MultisigDogePaymentsConfig,
 ], 'DogePaymentsConfig')
 export type DogePaymentsConfig = t.TypeOf<typeof DogePaymentsConfig>
+
+
 
 export const DogeUnsignedTransactionData = bitcoinish.BitcoinishPaymentTx
 export type DogeUnsignedTransactionData = t.TypeOf<typeof DogeUnsignedTransactionData>
 
 export const DogeUnsignedTransaction = extendCodec(
-  BaseUnsignedTransaction,
+  BitcoinishUnsignedTransaction,
   {
     amount: t.string,
     fee: t.string,
@@ -128,13 +167,14 @@ export const DogeSignedTransactionData = requiredOptionalCodec(
     partial: t.boolean,
     // sha256 hash of the unsignedHex data for facilitating multisig tx combining
     unsignedTxHash: t.string,
+    changeOutputs: t.array(BitcoinishTxOutput),
   },
   'DogeSignedTransactionData',
 )
 export type DogeSignedTransactionData = t.TypeOf<typeof DogeSignedTransactionData>
 
 export const DogeSignedTransaction = extendCodec(
-  BaseSignedTransaction,
+  BitcoinishSignedTransaction,
   {
     data: DogeSignedTransactionData,
   },
