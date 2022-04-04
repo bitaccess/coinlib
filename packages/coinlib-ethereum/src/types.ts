@@ -69,7 +69,8 @@ export const EthereumPaymentsUtilsConfig = extendCodec(
   {
     fullNode: OptionalString,
     parityNode: OptionalString,
-    blockbookNode: OptionalString,
+    blockbookNode: t.string,
+    blockbookApi: instanceofCodec(BlockbookEthereum),
     gasStation: OptionalString,
     symbol: OptionalString,
     name: OptionalString,
@@ -304,3 +305,8 @@ export const EthereumBlock = BlockInfoEthereum
 export type EthereumBlock = BlockInfoEthereum
 
 export type UnitConverters = ReturnType<typeof createUnitConverters>
+
+export interface EthereumNodesConnection {
+  web3: Web3
+  blockbookApi: BlockbookEthereum
+}
