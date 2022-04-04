@@ -1,25 +1,29 @@
 import Web3 from 'web3'
 import { PaymentsConnectionManager } from '@bitaccess/coinlib-common'
 
-import { EthereumPaymentsUtilsConfig } from './types';
+import { EthereumNodesConnection, EthereumPaymentsUtilsConfig } from './types'
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
 
-export class EthereumConnectionManager implements PaymentsConnectionManager<
-  Web3,
-  EthereumPaymentsUtilsConfig
-> {
-
+export class EthereumConnectionManager
+  implements PaymentsConnectionManager<EthereumNodesConnection, EthereumPaymentsUtilsConfig> {
   connections = {}
 
   getConnection(connected: EthereumPaymentsUtils) {
-    return connected.web3
+    return { web3: connected.web3, blockbookApi: connected.blockBookApi }
   }
 
   getConnectionUrl(config: EthereumPaymentsUtilsConfig) {
-    return config.fullNode || null
+    const { fullNode, blockbookNode } = config
+
+    if (fullNode && blockbookNode) {
+      return `${fullNode}-${blockbookNode}`
+    }
+
+    return config.fullNode ?? config.blockbookNode ?? null
   }
 
-  setConnection(config: EthereumPaymentsUtilsConfig, web3: Web3) {
-    config.web3 = web3
+  setConnection(config: EthereumPaymentsUtilsConfig, ethereumConnection: EthereumNodesConnection) {
+    config.web3 = ethereumConnection.web3
+    config.blockbookApi = ethereumConnection.blockbookApi
   }
 }
