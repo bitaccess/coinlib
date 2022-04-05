@@ -33,6 +33,7 @@ export class NetworkData {
       ...config.blockBookConfig,
       server: config.blockBookConfig.nodes,
       logger: this.logger,
+      decimals: config.web3Config.decimals,
     })
 
     this.web3Service = new EthereumWeb3({
@@ -121,11 +122,17 @@ export class NetworkData {
     return this.web3Service.estimateGas(txObject, txType)
   }
 
-  async getTransactionInfoERC20(txId: string): Promise<EthereumTransactionInfo> {
-    return this.web3Service.getTransactionInfoERC20(txId)
+  async getTransactionInfoERC20(txId: string, tokenAddress?: string): Promise<EthereumTransactionInfo> {
+    return this.web3Service.getTransactionInfoERC20(txId, tokenAddress)
   }
 
   async getTransactionInfo(txId: string, tokenAddress?: string): Promise<EthereumTransactionInfo> {
+    const txInfo = await this.blockBookService.getTransactionInfo(txId)
+
+    if (txInfo) {
+      return txInfo
+    }
+
     return this.web3Service.getTransactionInfo(txId, tokenAddress)
   }
 
