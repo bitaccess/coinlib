@@ -255,6 +255,7 @@ export const EthereumBlockbookConnectedConfig = requiredOptionalCodec(
     logger: Logger,
   },
   {
+    decimals: t.number,
     api: instanceofCodec(BlockbookEthereum),
     requestTimeoutMs: t.number,
   },
