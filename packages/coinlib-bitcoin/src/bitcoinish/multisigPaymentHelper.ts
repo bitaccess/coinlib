@@ -93,7 +93,7 @@ function combineBaseMultisigData<D extends BaseMultisigData>(m1: D, m2: D): D {
   }
 }
 
-function combineMultisigData(m1: MultisigData, m2: MultisigData) {
+export function combineMultisigData(m1: MultisigData, m2: MultisigData) {
   if (BaseMultisigData.is(m1)) {
     if (!BaseMultisigData.is(m2)) {
       throw new Error('Cannot merge legacy single input with multi input MultisigData')

@@ -1105,8 +1105,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
 
   private validatePsbtInput(input: UtxoInfo, psbtInput: bitcoin.PsbtTxInput, i: number) {
     // bitcoinjs psbt input hash buffer is reversed
-    const hash = Buffer.from(psbtInput.hash)
-      .reverse()
+    const hash = Buffer.from(Buffer.from(psbtInput.hash)
+      .reverse())
       .toString('hex')
     if (input.txid !== hash) {
       throw new Error(`Invalid tx: psbt input ${i} hash (${hash}) doesn't match expected txid (${input.txid})`)

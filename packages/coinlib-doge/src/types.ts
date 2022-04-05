@@ -4,11 +4,17 @@ import {
   BaseTransactionInfo, BaseBroadcastResult, KeyPairsConfigParam,
 } from '@bitaccess/coinlib-common'
 import { extendCodec, enumCodec, requiredOptionalCodec, instanceofCodec } from '@faast/ts-common'
-// import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib-bigint'
-import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
+import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib-bigint'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
-import { PsbtInput, TransactionInput } from 'bip174-bigint/src/lib/interfaces'
+import { PsbtInput, TransactionInput, TransactionOutput } from 'bip174-bigint/src/lib/interfaces'
 import {BitcoinishUnsignedTransaction, BitcoinishSignedTransaction} from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
+
+export interface PsbtTxInput extends TransactionInput {
+  hash: string | Buffer;
+}
+export interface PsbtTxOutput extends TransactionOutput {
+  address: string | undefined;
+}
 
 export type BitcoinjsKeyPair = BitcoinjsSigner & {
   privateKey?: Buffer
@@ -19,11 +25,8 @@ export interface PsbtInputData extends PsbtInput, TransactionInput {}
 
 export enum AddressType {
   Legacy = 'p2pkh',
-  SegwitP2SH = 'p2sh-p2wpkh',
-  SegwitNative = 'p2wpkh',
   MultisigLegacy = 'p2sh-p2ms',
-  MultisigSegwitP2SH = 'p2sh-p2wsh-p2ms',
-  MultisigSegwitNative = 'p2wsh-p2ms'
+
 }
 export const AddressTypeT = enumCodec<AddressType>(AddressType, 'AddressType')
 
@@ -38,8 +41,6 @@ export const SinglesigAddressType = SinglesigAddressTypeT as t.Type<SinglesigAdd
 
 const MultisigAddressTypeT = t.keyof({
   [AddressType.MultisigLegacy]: null,
-  [AddressType.MultisigSegwitP2SH]: null,
-  [AddressType.MultisigSegwitNative]: null,
 }, 'MultisigAddressType')
 export type MultisigAddressType = t.TypeOf<typeof MultisigAddressTypeT>
 export const MultisigAddressType = MultisigAddressTypeT as t.Type<MultisigAddressType>

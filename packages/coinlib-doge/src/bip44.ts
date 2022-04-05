@@ -25,9 +25,10 @@ export function splitDerivationPath(path: string): string[] {
  * This partially applies the derivation path starting at the already derived depth of the provided key.
  */
 export function deriveHDNode(hdKey: string, derivationPath: string, network: BitcoinjsNetwork): HDNode {
-  const rootNode = hdKey.startsWith('xprv') || hdKey.startsWith('xpub')
-    ? fromBase58(hdKey)
-    : fromBase58(hdKey, network)
+  // const rootNode = hdKey.startsWith('xprv') || hdKey.startsWith('xpub')
+  //   ? fromBase58(hdKey)
+  //   : fromBase58(hdKey, network)
+  const rootNode = fromBase58(hdKey, network)
   const parts = splitDerivationPath(derivationPath).slice(rootNode.depth)
   let node = rootNode
   if (parts.length > 0) {
