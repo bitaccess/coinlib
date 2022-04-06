@@ -32,9 +32,7 @@ describe('NetworkData', () => {
   const to = web3.eth.accounts.create().address.toLowerCase()
 
   const networkDataConfig: NetworkDataConfig = {
-    web3Config: {
-      web3,
-    },
+    web3Config: { web3 },
     parityUrl: PARITY_URL,
     blockBookConfig: { nodes: BLOCKBOOK_NODES },
     logger,
