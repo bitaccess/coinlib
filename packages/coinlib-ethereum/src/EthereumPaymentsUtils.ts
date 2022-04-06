@@ -443,7 +443,8 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
         transactionIndex: 0,
         blockHash: '',
         logs: [],
-        logsBloom: ''
+        logsBloom: '',
+        effectiveGasPrice:0
       }
 
       return {
@@ -533,7 +534,8 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
         transactionIndex: 0,
         blockHash: '',
         logs: [],
-        logsBloom: ''
+        logsBloom: '',
+        effectiveGasPrice:0
       }
 
       return {
