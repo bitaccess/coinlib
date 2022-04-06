@@ -1,4 +1,4 @@
-import { TransactionStatus } from '@bitaccess/coinlib-common'
+import { BlockInfo, TransactionStatus } from '@bitaccess/coinlib-common'
 import { Logger } from '@faast/ts-common'
 import { BlockbookEthereum, GetAddressDetailsOptions, NormalizedTxEthereum } from 'blockbook-client'
 import { MIN_CONFIRMATIONS } from './constants'
@@ -27,9 +27,25 @@ export class EthereumBlockbook extends UnitConvertersUtil {
     await this.api.disconnect()
   }
 
-  async getBlock(blockId: string | number, page?: number) {
-    return this._handleException(() => {
-      return this._retryDced(() => this.api.getBlock(blockId, { page }))
+  async getBlock(id?: string | number): Promise<BlockInfo | null> {
+    return this._handleException(async () => {
+      const blockId = id ?? (await this.getCurrentBlockNumber())
+
+      if (!blockId) {
+        return null
+      }
+
+      const raw = await this._retryDced(() => this.api.getBlock(blockId))
+
+      const blockInfo: BlockInfo = {
+        height: raw.height,
+        id: raw.hash,
+        previousId: raw.previousBlockHash,
+        time: new Date(Number(raw.time) * 1000),
+        raw,
+      }
+
+      return blockInfo
     })
   }
 
