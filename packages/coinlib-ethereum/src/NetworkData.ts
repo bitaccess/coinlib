@@ -68,16 +68,6 @@ export class NetworkData {
     return blockBookAddressDetails
   }
 
-  async getTransaction(txId: string): Promise<NormalizedTxEthereum | any> {
-    const blockBookTx = await this.blockBookService.getTransaction(txId)
-
-    if (blockBookTx) {
-      return blockBookTx
-    }
-
-    return this.web3Service.getTransaction(txId)
-  }
-
   async getNetworkData(
     txType: EthTxType,
     speed: AutoFeeLevels,
