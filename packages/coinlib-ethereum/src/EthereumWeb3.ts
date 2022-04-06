@@ -207,7 +207,7 @@ export class EthereumWeb3 extends UnitConvertersUtil {
     }
   }
 
-  async getTransactionInfoERC20(txid: string): Promise<EthereumTransactionInfo> {
+  async getTransactionInfoERC20(txid: string, tokenAddress = this.tokenAddress): Promise<EthereumTransactionInfo> {
     const minConfirmations = MIN_CONFIRMATIONS
     const tx: Transaction | null = await this._retryDced(() => this.eth.getTransaction(txid))
 
@@ -252,8 +252,8 @@ export class EthereumWeb3 extends UnitConvertersUtil {
     let amount = ''
 
     if (tx.input.startsWith(SIGNATURE.ERC20_TRANSFER)) {
-      if ((tx.to || '').toLowerCase() !== this.tokenAddress!.toLowerCase()) {
-        throw new Error(`Transaction ${txid} was sent to different contract: ${tx.to}, Expected: ${this.tokenAddress}`)
+      if ((tx.to || '').toLowerCase() !== tokenAddress!.toLowerCase()) {
+        throw new Error(`Transaction ${txid} was sent to different contract: ${tx.to}, Expected: ${tokenAddress}`)
       }
 
       const tokenDecoder = new InputDataDecoder(TOKEN_METHODS_ABI)
