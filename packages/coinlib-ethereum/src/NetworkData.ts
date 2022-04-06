@@ -2,7 +2,7 @@ import * as request from 'request-promise-native'
 import { BigNumber } from 'bignumber.js'
 import { Logger, DelegateLogger } from '@faast/ts-common'
 import { TransactionConfig } from 'web3-core'
-import { AutoFeeLevels } from '@bitaccess/coinlib-common'
+import { AutoFeeLevels, BlockInfo } from '@bitaccess/coinlib-common'
 import { GetAddressDetailsOptions, NormalizedTxEthereum } from 'blockbook-client'
 
 import {
@@ -52,7 +52,7 @@ export class NetworkData {
     await this.blockBookService.destroy()
   }
 
-  async getBlock(blockId: string | number): Promise<EthereumBlock | any> {
+  async getBlock(blockId: string | number): Promise<BlockInfo> {
     const blockBookBlock = await this.blockBookService.getBlock(blockId)
 
     if (blockBookBlock) {
@@ -63,9 +63,7 @@ export class NetworkData {
   }
 
   async getAddressDetails(address: string, options?: GetAddressDetailsOptions) {
-    const blockBookAddressDetails = await this.blockBookService.getAddressDetails(address, options)
-
-    return blockBookAddressDetails
+    return this.blockBookService.getAddressDetails(address, options)
   }
 
   async getNetworkData(
