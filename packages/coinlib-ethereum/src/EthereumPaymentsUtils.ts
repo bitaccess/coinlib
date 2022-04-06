@@ -1,4 +1,3 @@
-import Web3 from 'web3'
 import {
   PaymentsUtils,
   Payport,
@@ -11,6 +10,8 @@ import {
   BlockInfo,
 } from '@bitaccess/coinlib-common'
 import { Logger, DelegateLogger, assertType, isNull, Numeric, isNumber } from '@faast/ts-common'
+import { BlockbookEthereum } from 'blockbook-client'
+import Web3 from 'web3'
 import Contract from 'web3-eth-contract'
 
 import {
@@ -45,6 +46,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
   web3: Web3
   eth: Web3['eth']
   networkData: NetworkData
+  blockBookApi: BlockbookEthereum
 
   constructor(config: EthereumPaymentsUtilsConfig) {
     super({ coinDecimals: config.decimals })
@@ -113,6 +115,19 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       }
     }
 
+    if (config.blockbookApi) {
+      this.blockBookApi = config.blockbookApi
+    } else if (config.blockbookNode) {
+      const blockBookApi = new BlockbookEthereum({
+        nodes: [config.blockbookNode],
+        logger: this.logger,
+      })
+
+      this.blockBookApi = blockBookApi
+    } else {
+      throw new Error(`Blockbook node is missing from config`)
+    }
+
     this.eth = this.web3.eth
 
     this.networkData = new NetworkData({
@@ -127,6 +142,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       logger: this.logger,
       blockBookConfig: {
         nodes: this.server,
+        api: this.blockBookApi,
       },
       gasStationUrl: config.gasStation,
     })
