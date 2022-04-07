@@ -3,6 +3,7 @@ import { SinglesigAddressType, BitcoinjsKeyPair } from './types'
 import { BitcoinjsNetwork } from '@bitaccess/coinlib-bitcoin'
 import { publicKeyToAddress } from './helpers'
 import { SINGLESIG_ADDRESS_TYPE } from './constants'
+import  b58 from 'bs58check'
 
 export { HDNode }
 
@@ -19,6 +20,34 @@ export function splitDerivationPath(path: string): string[] {
   return parts
 }
 
+function bufferFromUInt32(x: number) {
+  const b = Buffer.alloc(4)
+  b.writeUInt32BE(x, 0)
+  return b
+}
+
+/**
+ * Utility for converting xpub/xprv prefixed hd keys to the network specific prefix (ie Ltub/Ltpv)
+ */
+ export function convertXPrefixHdKeys(
+  hdKey: string,
+  network: BitcoinjsNetwork,
+): string {
+  let newMagicNumber
+  if (hdKey.startsWith('xpub')) {
+    newMagicNumber = network.bip32.public
+  } else if (hdKey.startsWith('xprv')) {
+    newMagicNumber = network.bip32.private
+  } else {
+    // Not recognized so probably already has network prefix
+    return hdKey
+  }
+  let data = b58.decode(hdKey)
+  data = data.slice(4)
+  data = Buffer.concat([bufferFromUInt32(newMagicNumber), data])
+  return b58.encode(data)
+}
+
 /**
  * Derive the base HDNode required for deriveKeyPair, deriveAddress, and derivePrivateKey functions
  *
@@ -28,6 +57,9 @@ export function deriveHDNode(hdKey: string, derivationPath: string, network: Bit
   // const rootNode = hdKey.startsWith('xprv') || hdKey.startsWith('xpub')
   //   ? fromBase58(hdKey)
   //   : fromBase58(hdKey, network)
+  if (network) {
+    hdKey = convertXPrefixHdKeys(hdKey, network)
+  }
   const rootNode = fromBase58(hdKey, network)
   const parts = splitDerivationPath(derivationPath).slice(rootNode.depth)
   let node = rootNode
@@ -41,9 +73,7 @@ export function deriveKeyPair(baseNode: HDNode, index: number, network: Bitcoinj
   return baseNode.derive(0).derive(index)
 }
 
-export function deriveAddress(
-  baseNode: HDNode, index: number, network: BitcoinjsNetwork,
-): string {
+export function deriveAddress(baseNode: HDNode, index: number, network: BitcoinjsNetwork): string {
   const keyPair = deriveKeyPair(baseNode, index, network)
   return publicKeyToAddress(keyPair.publicKey, network, SINGLESIG_ADDRESS_TYPE)
 }
@@ -61,7 +91,7 @@ export function xprvToXpub(xprv: string, derivationPath: string, network: Bitcoi
 export function isValidXprv(xprv: string, network?: BitcoinjsNetwork): boolean {
   try {
     return !fromBase58(xprv, network).isNeutered()
-  } catch(e) {
+  } catch (e) {
     return false
   }
 }
@@ -69,7 +99,7 @@ export function isValidXprv(xprv: string, network?: BitcoinjsNetwork): boolean {
 export function isValidXpub(xpub: string, network?: BitcoinjsNetwork): boolean {
   try {
     return fromBase58(xpub, network).isNeutered()
-  } catch(e) {
+  } catch (e) {
     return false
   }
 }
@@ -78,7 +108,7 @@ export function isValidXpub(xpub: string, network?: BitcoinjsNetwork): boolean {
 export function validateHdKey(hdKey: string, network?: BitcoinjsNetwork): string | undefined {
   try {
     fromBase58(hdKey, network)
-  } catch(e) {
+  } catch (e) {
     return e.toString()
   }
 }
