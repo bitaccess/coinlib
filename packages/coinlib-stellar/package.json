@@ -48,7 +48,6 @@
     "@bitaccess/coinlib-common": "file:../coinlib-common",
     "@faast/ts-common": "^0.6.0",
     "base-x": "^3.0.6",
-    "bignumber.js": "^9.0.0",
     "bip39": "^3.0.2",
     "events": "^3.3.0",
     "io-ts": "^1.10.4",
@@ -56,6 +55,6 @@
     "node-fetch": "^2.6.7",
     "promise-retry": "^1.1.1",
     "stellar-hd-wallet": "0.0.10",
-    "stellar-sdk": "^9.0.1"
+    "stellar-sdk": "^10.0.1"
   }
 }
