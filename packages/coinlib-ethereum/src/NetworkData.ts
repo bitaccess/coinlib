@@ -56,7 +56,7 @@ export class NetworkData {
     try {
       return this.blockBookService.getBlock(blockId)
     } catch (error) {
-      this.logger.log('An error occurred', error)
+      this.logger.log('Request to blockbook getBlock failed, Falling back to web3 ', error)
 
       return this.web3Service.getBlock(blockId)
     }
@@ -118,7 +118,7 @@ export class NetworkData {
     try {
       return this.blockBookService.getTransactionInfo(txId)
     } catch (error) {
-      this.logger.log('An error occurred', error)
+      this.logger.log('Request to blockbook getTransactionInfo failed, Falling back to web3 ', error)
 
       return this.web3Service.getTransactionInfo(txId, tokenAddress)
     }
@@ -128,7 +128,7 @@ export class NetworkData {
     try {
       return this.blockBookService.getCurrentBlockNumber()
     } catch (error) {
-      this.logger.log('An error occurred', error)
+      this.logger.log('Request to blockbook getCurrentBlockNumber failed, Falling back to web3 ', error)
 
       return this.web3Service.getCurrentBlockNumber()
     }
