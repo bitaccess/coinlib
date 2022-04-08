@@ -83,15 +83,3 @@ export function resolveServer(
     server: null,
   }
 }
-
-export const handleException = async <T>(fn: () => Promise<T>, logger: Logger, logPrefix: string) => {
-  try {
-    const result = await fn()
-
-    return result
-  } catch (error) {
-    logger.log(`${logPrefix}- An error occurred`, error.toString())
-
-    return null
-  }
-}
