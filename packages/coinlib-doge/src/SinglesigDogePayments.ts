@@ -1,19 +1,28 @@
 import { cloneDeep } from 'lodash'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 
-import { BitcoinjsKeyPair, DogeSignedTransaction, SinglesigDogePaymentsConfig, DogeUnsignedTransaction } from './types'
-import { bitcoinish, AddressType } from '@bitaccess/coinlib-bitcoin'
+import { BitcoinjsKeyPair, DogeSignedTransaction, SinglesigDogePaymentsConfig, DogeUnsignedTransaction, AddressType, SinglesigAddressType } from './types'
+import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { publicKeyToString, getSinglesigPaymentScript } from './helpers'
 import { BaseDogePayments } from './BaseDogePayments'
 import { UtxoInfo, BaseMultisigData, MultiInputMultisigData } from '@bitaccess/coinlib-common'
+import { SINGLESIG_ADDRESS_TYPE } from './constants'
+
 
 export abstract class SinglesigDogePayments<Config extends SinglesigDogePaymentsConfig> extends BaseDogePayments<
   Config
 > {
+  addressType: SinglesigAddressType
   abstract getKeyPair(index: number): BitcoinjsKeyPair
 
+
+  constructor(config: SinglesigDogePaymentsConfig) {
+    super(config)
+    this.addressType = config.addressType || SINGLESIG_ADDRESS_TYPE
+  }
+
   getPaymentScript(index: number): bitcoin.payments.Payment {
-    return getSinglesigPaymentScript(this.bitcoinjsNetwork, AddressType.Legacy, this.getKeyPair(index).publicKey)
+    return getSinglesigPaymentScript(this.bitcoinjsNetwork, this.addressType, this.getKeyPair(index).publicKey)
   }
 
   /** Backwards compatible multisig transaction signing for non-multi input txs */

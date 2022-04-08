@@ -56,7 +56,7 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
 
   /** Return a string that can be passed into estimateDogeTxSize. Override to support multisig */
   getEstimateTxSizeInputKey(): string {
-    return SINGLESIG_ADDRESS_TYPE
+    return this.addressType
   }
 
   estimateTxSize(inputCount: number, changeOutputCount: number, externalOutputAddresses: string[]): number {
@@ -64,7 +64,7 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
       { [this.getEstimateTxSizeInputKey()]: inputCount },
       {
         ...bitcoinish.countOccurences(externalOutputAddresses),
-        [SINGLESIG_ADDRESS_TYPE]: changeOutputCount,
+        [this.addressType]: changeOutputCount,
       },
       this.networkType,
     )
@@ -73,7 +73,7 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
   async getPsbtInputData(
     utxo: UtxoInfo,
     paymentScript: bitcoin.payments.Payment,
-    addressType: AddressType = SINGLESIG_ADDRESS_TYPE,
+    addressType: AddressType,
   ): Promise<PsbtInputData> {
     const utx = await this.getApi().getTx(utxo.txid)
     const result: PsbtInputData = {
@@ -178,7 +178,7 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
   }
 
   getSupportedAddressTypes(): AddressType[] {
-    return [AddressType.Legacy]
+    return [this.addressType]
   }
 
   updateSignedMultisigTx(
