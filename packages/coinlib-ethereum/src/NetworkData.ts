@@ -53,13 +53,13 @@ export class NetworkData {
   }
 
   async getBlock(blockId: string | number): Promise<BlockInfo> {
-    const blockBookBlock = await this.blockBookService.getBlock(blockId)
+    try {
+      return this.blockBookService.getBlock(blockId)
+    } catch (error) {
+      this.logger.log('An error occurred', error)
 
-    if (blockBookBlock) {
-      return blockBookBlock
+      return this.web3Service.getBlock(blockId)
     }
-
-    return this.web3Service.getBlock(blockId)
   }
 
   async getAddressDetails(address: string, options?: GetAddressDetailsOptions) {
@@ -115,23 +115,23 @@ export class NetworkData {
   }
 
   async getTransactionInfo(txId: string, tokenAddress?: string): Promise<EthereumTransactionInfo> {
-    const txInfo = await this.blockBookService.getTransactionInfo(txId)
+    try {
+      return this.blockBookService.getTransactionInfo(txId)
+    } catch (error) {
+      this.logger.log('An error occurred', error)
 
-    if (txInfo) {
-      return txInfo
+      return this.web3Service.getTransactionInfo(txId, tokenAddress)
     }
-
-    return this.web3Service.getTransactionInfo(txId, tokenAddress)
   }
 
   async getCurrentBlockNumber() {
-    const currentBlockNumber = await this.blockBookService.getCurrentBlockNumber()
+    try {
+      return this.blockBookService.getCurrentBlockNumber()
+    } catch (error) {
+      this.logger.log('An error occurred', error)
 
-    if (currentBlockNumber) {
-      return currentBlockNumber
+      return this.web3Service.getCurrentBlockNumber()
     }
-
-    return this.web3Service.getCurrentBlockNumber()
   }
 
   async getAddressBalance(address: string) {
