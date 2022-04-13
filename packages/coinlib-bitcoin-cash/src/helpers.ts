@@ -4,7 +4,7 @@ import * as bitcoincash from 'bitcoinforksjs-lib'
 import bchaddrjs from 'bchaddrjs'
 
 import { BitcoinjsKeyPair, BitcoinCashAddressFormat } from './types'
-import { DECIMAL_PLACES, NETWORKS } from './constants'
+import { DECIMAL_PLACES, DEFAULT_ADDRESS_FORMAT, NETWORKS } from './constants'
 
 export { publicKeyToString, publicKeyToBuffer } from '@bitaccess/coinlib-bitcoin'
 
@@ -90,12 +90,32 @@ export function isValidPrivateKey(privateKey: string, networkType: NetworkType):
   }
 }
 
-export function getSinglesigPaymentScript(
-  networkType: NetworkType,
-  pubkey: Buffer,
-): bitcoincash.payments.Payment {
+export function getSinglesigPaymentScript(networkType: NetworkType, pubkey: Buffer): bitcoincash.payments.Payment {
   const scriptParams = { network: NETWORKS[networkType], pubkey }
   return bitcoincash.payments.p2pkh(scriptParams)
+}
+
+export function getMultisigPaymentScript(
+  networkType: NetworkType,
+  pubkeys: Buffer[],
+  m: number,
+  format: BitcoinCashAddressFormat = DEFAULT_ADDRESS_FORMAT,
+): bitcoincash.payments.Payment {
+  const network = NETWORKS[networkType]
+  const scriptParams = {
+    network,
+    redeem: bitcoincash.payments.p2ms({
+      pubkeys: pubkeys.sort(),
+      m,
+      network,
+    }),
+  }
+  // convert legacy address to cashaddr
+  const script = bitcoincash.payments.p2sh(scriptParams)
+  if (script.address) {
+    script.address = standardizeAddress(script.address, networkType, format) || undefined
+  }
+  return script
 }
 
 export function publicKeyToAddress(
@@ -134,9 +154,7 @@ export function estimateBitcoinCashTxSize(
   outputCounts: { [k: string]: number },
   networkType: NetworkType,
 ) {
-  return bitcoinish.estimateTxSize(
-    inputCounts,
-    outputCounts,
-    (address: string) => bitcoincash.address.toOutputScript(address, NETWORKS[networkType]),
+  return bitcoinish.estimateTxSize(inputCounts, outputCounts, (address: string) =>
+    bitcoincash.address.toOutputScript(address, NETWORKS[networkType]),
   )
 }

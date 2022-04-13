@@ -147,4 +147,8 @@ export abstract class SinglesigDogePayments<Config extends SinglesigDogePayments
 
     return this.validateAndFinalizeSignedTx(tx, psbt)
   }
+
+  getSupportedAddressTypes(): AddressType[] {
+    return [AddressType.Legacy]
+  }
 }

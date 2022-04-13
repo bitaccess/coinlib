@@ -6,6 +6,7 @@ import {
   LitecoinSignedTransaction,
   SinglesigLitecoinPaymentsConfig,
   SinglesigAddressType,
+  AddressType
 } from './types'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { publicKeyToString, getSinglesigPaymentScript } from './helpers'
@@ -155,5 +156,9 @@ private signMultisigTransactionMultiInput(
     psbt.signAllInputs(keyPair)
 
     return this.validateAndFinalizeSignedTx(tx, psbt)
+  }
+
+  getSupportedAddressTypes(): AddressType[] {
+    return [AddressType.Legacy, AddressType.SegwitNative, AddressType.SegwitNative]
   }
 }

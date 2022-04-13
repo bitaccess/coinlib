@@ -45,6 +45,7 @@
     "build": "bin/build.sh",
     "start": "rollup -c rollup.config.ts -w",
     "test": "jest --runInBand --bail",
+    "testMultisig": "node --inspect-brk ../../node_modules/jest/bin/jest.js --runInBand test/e2e.mainnet.multisig.test.ts",
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
     "version": "npm run build"
   },

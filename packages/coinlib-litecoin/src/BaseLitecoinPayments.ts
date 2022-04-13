@@ -181,10 +181,6 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
   }
 
 
-  getSupportedAddressTypes(): AddressType[] {
-    return [this.addressType]
-  }
-
   updateSignedMultisigTx(
     tx: LitecoinSignedTransaction | LitecoinUnsignedTransaction,
     psbt: bitcoin.Psbt,

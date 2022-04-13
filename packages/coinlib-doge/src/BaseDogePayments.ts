@@ -23,15 +23,14 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
   Config
 > {
   readonly maximumFeeRate?: number
-  readonly addressType: AddressType
 
   constructor(config: BaseDogePaymentsConfig) {
     super(toBitcoinishConfig(config))
     this.maximumFeeRate = config.maximumFeeRate
-    this.addressType = AddressType.Legacy
     this.feeLevelBlockTargets = config.feeLevelBlockTargets ?? DEFAULT_FEE_LEVEL_BLOCK_TARGETS
   }
 
+  abstract addressType: AddressType
   abstract getPaymentScript(index: number): bitcoin.payments.Payment
 
   async createServiceTransaction(): Promise<null> {
@@ -175,10 +174,6 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
         changeOutputs: tx.data?.changeOutputs
       },
     }
-  }
-
-  getSupportedAddressTypes(): AddressType[] {
-    return [this.addressType]
   }
 
   updateSignedMultisigTx(
