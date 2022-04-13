@@ -4,6 +4,8 @@ import {
   KeyPairBitcoinCashPayments,
   HdBitcoinCashPaymentsConfig,
   KeyPairBitcoinCashPaymentsConfig,
+  MultisigBitcoinCashPayments,
+  MultisigBitcoinCashPaymentsConfig,
   BitcoinCashPaymentsUtils,
   DEFAULT_MAINNET_SERVER,
   BitcoinCashPaymentsUtilsConfig,
@@ -28,6 +30,15 @@ const KEYPAIR_CONFIG: KeyPairBitcoinCashPaymentsConfig = {
   server: SERVER,
   keyPairs: [PRIVATE_KEY],
 }
+const MULTISIG_CONFIG: MultisigBitcoinCashPaymentsConfig = {
+  m: 2,
+  logger,
+  server: SERVER,
+  signers: [
+    HD_CONFIG,
+    KEYPAIR_CONFIG,
+  ],
+}
 const UTILS_CONFIG: BitcoinCashPaymentsUtilsConfig = {
   logger,
   server: SERVER,
@@ -36,6 +47,7 @@ const BM_CONFIG: BitcoinCashBalanceMonitorConfig = {
   logger,
   server: SERVER,
 }
+
 
 describe('BitcoinCashPaymentsFactory', () => {
   let factory: BitcoinCashPaymentsFactory
@@ -63,6 +75,11 @@ describe('BitcoinCashPaymentsFactory', () => {
         keyPairs: [PRIVATE_KEY],
       }
       expect(factory.newPayments(config)).toBeInstanceOf(KeyPairBitcoinCashPayments)
+    })
+    it('should instantiate MultisigBitcoinCashPayments', () => {
+      
+      const multiSigPayment = factory.newPayments(MULTISIG_CONFIG)
+      expect(multiSigPayment).toBeInstanceOf(MultisigBitcoinCashPayments)
     })
     it('should fail to instantiate unrecognized config', () => {
       expect(() => factory.newPayments({} as any)).toThrow()
@@ -93,10 +110,12 @@ describe('BitcoinCashPaymentsFactory', () => {
     it('should instantiate all with same blockbook API instance', async () => {
       const payments1 = await factory.initPayments(HD_CONFIG)
       const payments2 = await factory.initPayments(KEYPAIR_CONFIG)
+      const payments3 = await factory.initPayments(MULTISIG_CONFIG)
       const utils = await factory.initUtils(UTILS_CONFIG)
       const bm = await factory.initBalanceMonitor(BM_CONFIG)
       expect(payments1.api).toBeInstanceOf(bitcoinish.BlockbookServerAPI)
       expect(payments1.api).toBe(payments2.api)
+      expect(payments1.api).toBe(payments3.api)
       expect(payments2.api).toBe(utils.api)
       expect(utils.api).toBe(bm.api)
       expect(bm.api.wsConnected).toBe(true)

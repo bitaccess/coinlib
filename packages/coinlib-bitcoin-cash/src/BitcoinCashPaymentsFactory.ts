@@ -6,6 +6,7 @@ import {
   BitcoinCashPaymentsConfig,
   HdBitcoinCashPaymentsConfig,
   KeyPairBitcoinCashPaymentsConfig,
+  MultisigBitcoinCashPaymentsConfig,
   BitcoinCashPaymentsUtilsConfig,
   BaseBitcoinCashPaymentsConfig,
   BitcoinCashBalanceMonitorConfig,
@@ -16,6 +17,7 @@ import { BaseBitcoinCashPayments } from './BaseBitcoinCashPayments'
 import { BitcoinCashPaymentsUtils } from './BitcoinCashPaymentsUtils'
 import { HdBitcoinCashPayments } from './HdBitcoinCashPayments'
 import { KeyPairBitcoinCashPayments } from './KeyPairBitcoinCashPayments'
+import { MultisigBitcoinCashPayments } from "./MultisigBitcoinCashPayments"
 import { BitcoinCashBalanceMonitor } from './BitcoinCashBalanceMonitor'
 
 export class BitcoinCashPaymentsFactory extends PaymentsFactory<
@@ -32,6 +34,9 @@ export class BitcoinCashPaymentsFactory extends PaymentsFactory<
     }
     if (KeyPairBitcoinCashPaymentsConfig.is(config)) {
       return new KeyPairBitcoinCashPayments(config)
+    }
+    if (MultisigBitcoinCashPaymentsConfig.is(config)) {
+      return new MultisigBitcoinCashPayments(config)
     }
     throw new Error(`Cannot instantiate ${this.packageName} for unsupported config`)
   }
