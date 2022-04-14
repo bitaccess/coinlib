@@ -18,7 +18,7 @@ import {
   BitcoinishTxOutput,
   BitcoinishUnsignedTransaction,
 } from './bitcoinish'
-import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
+import { PsbtInput, TransactionInput } from 'bip174-bigint/src/lib/interfaces'
 
 export {
   AddressType,

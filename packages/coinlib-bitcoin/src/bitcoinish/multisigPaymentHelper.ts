@@ -2,7 +2,7 @@ import { UtxoInfo, BaseConfig, AddressMultisigData, BaseMultisigData, MultisigDa
 import { BitcoinishSignedTransaction } from './types'
 import { isNumber } from '@faast/ts-common'
 import { publicKeyToString } from './helpers'
-import * as bitcoin from 'bitcoinjs-lib'
+import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { cloneDeep } from 'lodash'
 
 import { BitcoinishPayments } from './BitcoinishPayments'

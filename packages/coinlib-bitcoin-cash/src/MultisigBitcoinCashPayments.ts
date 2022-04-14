@@ -13,8 +13,6 @@ import { KeyPairBitcoinCashPayments } from './KeyPairBitcoinCashPayments'
 import * as bitcoin from 'bitcoinforksjs-lib'
 import { CreateTransactionOptions, ResolveablePayport, PayportOutput } from '@bitaccess/coinlib-common'
 import {
-  // createMultisigData,
-  // preCombinePartiallySignedTransactions,
   AddressType,
 } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
 import {
@@ -160,7 +158,7 @@ export class MultisigBitcoinCashPayments extends BaseBitcoinCashPayments<Multisi
    * the transaction is validated and finalized.
    */
   async combinePartiallySignedTransactions(txs: BitcoinCashSignedTransaction[]): Promise<BitcoinCashSignedTransaction> {
-    const { baseTx, combinedPsbt, updatedMultisigData } = preCombinePartiallySignedTransactions(txs)
+    const { baseTx, combinedPsbt, updatedMultisigData } = preCombinePartiallySignedTransactions(txs, this.psbtOptions)
     return this.updateSignedMultisigTx(baseTx, combinedPsbt, updatedMultisigData)
   }
 

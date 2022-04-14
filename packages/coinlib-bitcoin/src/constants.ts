@@ -1,5 +1,5 @@
 import { FeeLevel, NetworkType } from '@bitaccess/coinlib-common'
-import { networks } from 'bitcoinjs-lib'
+import { networks } from 'bitcoinjs-lib-bigint'
 import { BitcoinjsNetwork } from './bitcoinish'
 import { AddressType, SinglesigAddressType, MultisigAddressType } from './types'
 

@@ -1,11 +1,10 @@
-import * as bitcoin from 'bitcoinjs-lib'
+import * as bitcoin from 'bitcoinjs-lib-bigint'
 import {
   UtxoInfo,
   TransactionStatus,
   MultisigData,
 } from '@bitaccess/coinlib-common'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
-import BigNumber from 'bignumber.js'
 
 import { toBitcoinishConfig } from './utils'
 import {
@@ -21,7 +20,9 @@ import {
   DEFAULT_FEE_LEVEL_BLOCK_TARGETS,
   LITECOIN_SEQUENCE_RBF,
 } from './constants'
-import { estimateLitecoinTxSize, isMultisigFullySigned, } from './helpers'
+import { estimateLitecoinTxSize } from './helpers'
+import { isMultisigFullySigned } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
+
 import { LitecoinPaymentsUtils } from './LitecoinPaymentsUtils'
 
 export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsConfig>
@@ -98,7 +99,7 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
       }
       result.witnessUtxo = {
         script: Buffer.from(scriptPubKey, 'hex'),
-        value: utxoValue,
+        value: BigInt(utxoValue),
       }
     } else {
       // for non segwit inputs, you must pass the full transaction buffer

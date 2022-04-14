@@ -16,7 +16,7 @@ import { NetworkType, TransactionStatus, FeeRateType, MultiInputMultisigData, Fe
 import { NETWORKS } from '../src/constants'
 import path from 'path'
 import fs from 'fs'
-import { DERIVATION_PATH, TESTNET_ADDRESSES as ADDRESSES, M } from './fixtures/multisigMainnet'
+import { DERIVATION_PATH, TESTNET_ADDRESSES as ADDRESSES, M } from './fixtures/multisigTestnet'
 import { deriveHDNode, deriveKeyPair, xprvToXpub } from '../src/bip44'
 import BigNumber from 'bignumber.js'
 import { getFromTo } from '@bitaccess/coinlib-bitcoin/test/utils'
@@ -44,7 +44,7 @@ const addressTypesToTest: MultisigAddressType[] = [
   AddressType.MultisigLegacy
 ]
 const describeAll = !rootSecretKey ? describe.skip : describe
-describeAll('e2e multisig mainnet', () => {
+describeAll('e2e multisig testnet', () => {
   let testsComplete = false
   afterAll(() => {
     testsComplete = true
@@ -181,7 +181,7 @@ describeAll('e2e multisig mainnet', () => {
           // Safe to use multi-input test indices here because we aren't broadcasting
           const { fromIndex, fromBalance, toIndex } = await getFromTo(
             payments,
-            'BitcoinCash mainnet multisig wallet',
+            'BitcoinCash testnet multisig wallet',
             1,
             2,
           )
@@ -260,7 +260,7 @@ describeAll('e2e multisig mainnet', () => {
       it(
         'end to end send',
         async () => {
-          const { fromIndex, toIndex } = await getFromTo(payments, 'BitcoinCash mainnet multisig wallet', 0, 1)
+          const { fromIndex, toIndex } = await getFromTo(payments, 'BitcoinCash testnet multisig wallet', 0, 1)
           const fromAddress = payments.getAddress(fromIndex)
           const toAddress = payments.getAddress(toIndex)
           const sendAmount = '0.0005'
@@ -314,7 +314,7 @@ describeAll('e2e multisig mainnet', () => {
 
           const { fromIndex, fromBalance, toIndex, toBalance } = await getFromTo(
             paymentsWithAllKeys,
-            'BitcoinCash mainnet multisig wallet',
+            'BitcoinCash testnet multisig wallet',
             1,
             2,
           )

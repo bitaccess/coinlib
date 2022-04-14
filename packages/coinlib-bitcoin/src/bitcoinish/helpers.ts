@@ -1,5 +1,5 @@
 import { AddressType, BitcoinjsKeyPair, BitcoinjsNetwork, MultisigAddressType, SinglesigAddressType } from './types'
-import * as bitcoin from 'bitcoinjs-lib'
+import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { isString } from '@faast/ts-common'
 
 export function isValidAddress(address: string, network: BitcoinjsNetwork): boolean {
@@ -108,7 +108,7 @@ export function publicKeyToAddress(
   const script = getSinglesigPaymentScript(network, addressType, pubkey)
   const { address } = script
   if (!address) {
-    throw new Error('bitcoinjs-lib address derivation returned falsy value')
+    throw new Error('bitcoinjs-lib-bigint address derivation returned falsy value')
   }
   return address
 }

@@ -13,7 +13,7 @@ import { HdDogePayments } from './HdDogePayments'
 import { KeyPairDogePayments } from './KeyPairDogePayments'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { CreateTransactionOptions, ResolveablePayport, PayportOutput } from '@bitaccess/coinlib-common'
-import { createMultisigData, combineMultisigData, isMultisigFullySigned} from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
+import { createMultisigData, preCombinePartiallySignedTransactions} from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
 
 import { getMultisigPaymentScript } from './helpers'
 
@@ -149,49 +149,12 @@ export class MultisigDogePayments extends BaseDogePayments<MultisigDogePaymentsC
     }
   }
 
-  private deserializeSignedTxPsbt(tx: DogeSignedTransaction): bitcoin.Psbt {
-    if (!tx.data.partial) {
-      throw new Error('Cannot decode psbt of a finalized tx')
-    }
-    return bitcoin.Psbt.fromHex(tx.data.hex, this.psbtOptions)
-  }
-
   /**
    * Combines two of more partially signed transactions. Once the required # of signatures is reached (`m`)
    * the transaction is validated and finalized.
    */
   async combinePartiallySignedTransactions(txs: DogeSignedTransaction[]): Promise<DogeSignedTransaction> {
-    if (txs.length < 2) {
-      throw new Error(`Cannot combine ${txs.length} transactions, need at least 2`)
-    }
-  
-    const unsignedTxHash = txs[0].data.unsignedTxHash
-    txs.forEach(({ multisigData, inputUtxos, externalOutputs, data }, i) => {
-      if (!multisigData) throw new Error(`Cannot combine signed multisig tx ${i} because multisigData is ${multisigData}`)
-      if (!inputUtxos) throw new Error(`Cannot combine signed multisig tx ${i} because inputUtxos field is missing`)
-      if (!externalOutputs)
-        throw new Error(`Cannot combine signed multisig tx ${i} because externalOutputs field is missing`)
-      if (data.unsignedTxHash !== unsignedTxHash)
-        throw new Error(
-          `Cannot combine signed multisig tx ${i} because unsignedTxHash is ${data.unsignedTxHash} when expecting ${unsignedTxHash}`,
-        )
-      if (!data.partial) throw new Error(`Cannot combine signed multisig tx ${i} because partial is ${data.partial}`)
-    })
-  
-    const baseTx = txs[0]
-    const baseTxMultisigData = baseTx.multisigData!
-    let updatedMultisigData = baseTxMultisigData
-  
-    const combinedPsbt = this.deserializeSignedTxPsbt(baseTx)
-    for (let i = 1; i < txs.length; i++) {
-      if (isMultisigFullySigned(updatedMultisigData)) {
-        break
-      }
-      const tx = txs[i]
-      const psbt = this.deserializeSignedTxPsbt(tx)
-      combinedPsbt.combine(psbt)
-      updatedMultisigData = combineMultisigData(updatedMultisigData, tx.multisigData!)
-    }
+    const { baseTx, combinedPsbt, updatedMultisigData } = preCombinePartiallySignedTransactions(txs, this.psbtOptions)
     return this.updateSignedMultisigTx(baseTx, combinedPsbt, updatedMultisigData)
   }
 

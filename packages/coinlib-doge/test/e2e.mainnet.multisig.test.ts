@@ -123,6 +123,7 @@ describeAll('e2e multisig mainnet', () => {
           feeRate: "100000", // 1 DOGE/Kb
           feeRateType: FeeRateType.BasePerWeight,
         },
+        maximumFeeRate: 1000000, // 10 DOGE/Kb
         // dustThreshold: 3e8
       }
 

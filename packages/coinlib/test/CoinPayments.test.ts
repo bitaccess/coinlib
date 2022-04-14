@@ -238,7 +238,7 @@ describe('CoinPayments', () => {
           },
           'BCH': {
             'derivationPath': "m/44'/145'/0'",
-            'hdKey': 'xpub6CrWaNQ65RQXoUARmM9YQ2L4cjjkbzuCSri8atiTU5WXo7FiXCZEU9AehJjuxB69EMZbvAAjSGqTDRTCRmsMfWY4y2yXqE1udMmhoKSNmgW',
+            'hdKey': 'tpubDDE96cDmnhMz5GMHDY8dbwfRwrqQbPQFzVJRwSmbozGRYPvRbRQKcaqUwLphUg3P2G6WXjgbyNfVubwopdibYwzN2diqWkg9DKN7ZJoYwXg',
             'network': 'testnet',
           },
           'ETH': {

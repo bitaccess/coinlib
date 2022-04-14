@@ -5,7 +5,7 @@ import { BitcoinjsKeyPair, DogeSignedTransaction, SinglesigDogePaymentsConfig, D
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { publicKeyToString, getSinglesigPaymentScript } from './helpers'
 import { BaseDogePayments } from './BaseDogePayments'
-import { UtxoInfo, BaseMultisigData, MultiInputMultisigData } from '@bitaccess/coinlib-common'
+import { BaseMultisigData, MultiInputMultisigData } from '@bitaccess/coinlib-common'
 import { SINGLESIG_ADDRESS_TYPE } from './constants'
 
 
@@ -50,7 +50,7 @@ export abstract class SinglesigDogePayments<Config extends SinglesigDogePayments
           `multisigData has ${signerPublicKey} but keyPair has ${publicKeyString}`,
       )
     }
-    this.validatePsbtBigint(tx, psbt)
+    this.validatePsbt(tx, psbt)
 
     psbt.signAllInputs(keyPair)
 
@@ -119,7 +119,7 @@ export abstract class SinglesigDogePayments<Config extends SinglesigDogePayments
     if (!rawHex) throw new Error('Cannot sign multisig tx without unsigned tx hex')
 
     const psbt = bitcoin.Psbt.fromHex(rawHex, this.psbtOptions)
-    this.validatePsbtBigint(tx, psbt)
+    this.validatePsbt(tx, psbt)
 
     if (BaseMultisigData.is(multisigData)) {
       // back compat

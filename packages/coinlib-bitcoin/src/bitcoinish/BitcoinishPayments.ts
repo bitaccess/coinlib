@@ -44,7 +44,7 @@ import {
 import { sumUtxoValue, shuffleUtxos, isConfirmedUtxo, sha256FromHex, sumField } from './utils'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
 import BigNumber from 'bignumber.js'
-import * as bitcoin from 'bitcoinjs-lib'
+import * as bitcoin from 'bitcoinjs-lib-bigint'
 
 export abstract class BitcoinishPayments<Config extends BaseConfig> extends BitcoinishPaymentsUtils
   implements
@@ -1097,7 +1097,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         `Invalid tx: psbt output ${i} address (${psbtOutput.address}) doesn't match expected address ${output.address}`,
       )
     }
-    const value = this.toMainDenomination(psbtOutput.value)
+    const value = this.toMainDenomination(psbtOutput.value.toString())
     if (output.value !== value) {
       throw new Error(`Invalid tx: psbt output ${i} value (${value}) doesn't match expected value (${output.value})`)
     }

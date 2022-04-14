@@ -7,21 +7,17 @@ import {
   MultisigAddressType,
   AddressType,
 } from './types'
-import { cloneDeep, omit } from 'lodash'
+import { omit } from 'lodash'
 import { HdBitcoinPayments } from './HdBitcoinPayments'
 import { KeyPairBitcoinPayments } from './KeyPairBitcoinPayments'
-import * as bitcoin from 'bitcoinjs-lib'
+import * as bitcoin from 'bitcoinjs-lib-bigint'
 import {
   CreateTransactionOptions,
   ResolveablePayport,
-  BaseMultisigData,
   PayportOutput,
-  MultisigData,
-  UtxoInfo,
-  AddressMultisigData,
 } from '@bitaccess/coinlib-common'
-import { publicKeyToString, getMultisigPaymentScript, isMultisigFullySigned } from './helpers'
-import { isNumber, Numeric } from '@faast/ts-common'
+import { getMultisigPaymentScript } from './helpers'
+import { Numeric } from '@faast/ts-common'
 import { DEFAULT_MULTISIG_ADDRESS_TYPE } from './constants'
 import { createMultisigData, preCombinePartiallySignedTransactions } from './bitcoinish'
 export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoinPaymentsConfig> {
@@ -99,7 +95,7 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
   getAddress(index: number, addressType?: MultisigAddressType): string {
     const { address } = this.getPaymentScript(index, addressType)
     if (!address) {
-      throw new Error('bitcoinjs-lib address derivation returned falsy value')
+      throw new Error('bitcoinjs-lib-bigint address derivation returned falsy value')
     }
     return address
   }
@@ -158,7 +154,7 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
    * the transaction is validated and finalized.
    */
   async combinePartiallySignedTransactions(txs: BitcoinSignedTransaction[]): Promise<BitcoinSignedTransaction> {
-    const {baseTx, combinedPsbt, updatedMultisigData} =  preCombinePartiallySignedTransactions(txs)
+    const {baseTx, combinedPsbt, updatedMultisigData} =  preCombinePartiallySignedTransactions(txs, this.psbtOptions)
     return this.updateSignedMultisigTx(baseTx, combinedPsbt, updatedMultisigData)
   }
 

@@ -1,4 +1,4 @@
-import * as bitcoin from 'bitcoinjs-lib'
+import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { UtxoInfo, TransactionStatus, MultisigData } from '@bitaccess/coinlib-common'
 
 import { toBitcoinishConfig } from './utils'
@@ -17,9 +17,9 @@ import {
   isValidPublicKey,
   standardizeAddress,
   estimateBitcoinTxSize,
-  isMultisigFullySigned,
 } from './helpers'
-import { BitcoinishPayments, BitcoinishPaymentTx, countOccurences } from './bitcoinish'
+
+import { BitcoinishPayments, BitcoinishPaymentTx, countOccurences, isMultisigFullySigned } from './bitcoinish'
 
 export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConfig> extends BitcoinishPayments<Config> {
   readonly maximumFeeRate?: number
@@ -89,7 +89,7 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
       const utxoValue = this.toBaseDenominationNumber(utxo.value)
       result.witnessUtxo = {
         script: Buffer.from(scriptPubKey, 'hex'),
-        value: utxoValue,
+        value: BigInt(utxoValue),
       }
     } else {
       // for non segwit inputs, you must pass the full transaction buffer

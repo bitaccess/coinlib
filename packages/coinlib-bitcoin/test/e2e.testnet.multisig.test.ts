@@ -124,6 +124,7 @@ describeAll('e2e multisig testnet', () => {
         network: NetworkType.Testnet,
         targetUtxoPoolSize: 5,
         minChange: '0.01',
+        maximumFeeRate: 5000,
       }
       const paymentsConfig: MultisigBitcoinPaymentsConfig = {
         ...commonConfig,

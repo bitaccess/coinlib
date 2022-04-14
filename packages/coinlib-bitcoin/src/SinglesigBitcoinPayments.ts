@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash'
-import * as bitcoin from 'bitcoinjs-lib'
+import * as bitcoin from 'bitcoinjs-lib-bigint'
 
 import {
   BitcoinjsKeyPair,
