@@ -79,7 +79,7 @@
     "link-parent-bin": "^2.0.0",
     "lint-staged": "^11.2.6",
     "nock": "^11.7.1",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^3.1.1",
     "prettier": "^1.14.3",
     "rimraf": "^2.6.2",
     "rollup": "^2.27.0",
