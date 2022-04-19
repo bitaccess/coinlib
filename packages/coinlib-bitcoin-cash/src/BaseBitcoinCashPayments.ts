@@ -17,7 +17,7 @@ import {
   BitcoinCashAddressFormat,
 } from './types'
 import {
-  BITCOIN_SEQUENCE_RBF, SINGLESIG_ADDRESS_TYPE,
+  BITCOIN_SEQUENCE_RBF, SINGLESIG_ADDRESS_TYPE, DEFAULT_ADDRESS_FORMAT
 } from './constants'
 import { estimateBitcoinCashTxSize } from './helpers'
 import { BitcoinCashPaymentsUtils } from './BitcoinCashPaymentsUtils'
@@ -27,13 +27,13 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
   extends bitcoinish.BitcoinishPayments<Config> {
 
   readonly maximumFeeRate?: number
-  readonly validAddressFormat?: BitcoinCashAddressFormat
+  readonly validAddressFormat: BitcoinCashAddressFormat
   readonly utils: BitcoinCashPaymentsUtils
 
   constructor(config: BaseBitcoinCashPaymentsConfig) {
     super(toBitcoinishConfig(config))
     this.maximumFeeRate = config.maximumFeeRate
-    this.validAddressFormat = config.validAddressFormat
+    this.validAddressFormat = config.validAddressFormat || DEFAULT_ADDRESS_FORMAT
     this.utils = new BitcoinCashPaymentsUtils(config)
   }
 
@@ -204,8 +204,13 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
 
 
 
-  private validatePsbtBitcoinCashOutput(output: bitcoinish.BitcoinishTxOutput, psbtOutput: {address: string, value: number}, i: number) {
-    if (output.address !== psbtOutput.address) {
+  private validatePsbtBitcoinCashOutput(output: bitcoinish.BitcoinishTxOutput, psbtOutput: bitcoinCash.PsbtTxOutput, i: number) {
+    if (!output.address || !psbtOutput.address) {
+      throw new Error(
+        `Invalid tx: psbt output ${i} psbtOutput address (${psbtOutput.address}) or output address (${output.address}) should not be empty`,
+      )
+    }
+    if (this.standardizeAddress(output.address) !== this.standardizeAddress(psbtOutput.address)) {
       throw new Error(
         `Invalid tx: psbt output ${i} address (${psbtOutput.address}) doesn't match expected address ${output.address}`,
       )
@@ -216,7 +221,7 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
     }
   }
 
-  private validatePsbtBitcoinCashInput(input: UtxoInfo, psbtInput: {hash: ArrayBuffer, index: number}, i: number) {
+  private validatePsbtBitcoinCashInput(input: UtxoInfo, psbtInput: bitcoinCash.PsbtTxInput, i: number) {
     // bitcoinjs psbt input hash buffer is reversed
     const hash = Buffer.from(Buffer.from(psbtInput.hash)
       .reverse())
@@ -280,8 +285,8 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
     // Safe to assume inputs are consistently ordered
     for (let i = 0; i < psbtInputs.length; i++) {
       const psbtInput = psbtInputs[i]
-      // this.validatePsbtBitcoinCashInput(inputUtxos[i], psbtInput, i)
-      // this.validatePsbtBitcoinCashInput(data.inputs[i], psbtInput, i)
+      this.validatePsbtBitcoinCashInput(inputUtxos[i], psbtInput, i)
+      this.validatePsbtBitcoinCashInput(data.inputs[i], psbtInput, i)
       inputTotal = inputTotal.plus(data.inputs[i].value)
     }
 
@@ -314,13 +319,13 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
     for (let i = 0; i < psbtOutputs.length; i++) {
       const psbtOutput = psbtOutputs[i]
       if (i < externalOutputs.length) {
-        // this.validatePsbtBitcoinCashOutput(externalOutputs[i], psbtOutput, i)
-        // this.validatePsbtBitcoinCashOutput(data.externalOutputs[i], psbtOutput, i)
+        this.validatePsbtBitcoinCashOutput(externalOutputs[i], psbtOutput, i)
+        this.validatePsbtBitcoinCashOutput(data.externalOutputs[i], psbtOutput, i)
         externalOutputTotal = externalOutputTotal.plus(data.externalOutputs[i].value)
       } else {
         const changeOutputIndex = i - externalOutputs.length
         const changeOutput = data.changeOutputs[changeOutputIndex]
-        // this.validatePsbtBitcoinCashOutput(changeOutput, psbtOutput, i)
+        this.validatePsbtBitcoinCashOutput(changeOutput, psbtOutput, i)
 
         // If we stop reusing addresses in the future this will need to be changed
         if (tx.fromAddress !== 'batch' && changeOutput.address !== tx.fromAddress) {

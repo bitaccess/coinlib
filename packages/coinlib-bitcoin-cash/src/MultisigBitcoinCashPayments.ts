@@ -93,6 +93,7 @@ export class MultisigBitcoinCashPayments extends BaseBitcoinCashPayments<Multisi
       this.networkType,
       this.getSignerPublicKeyBuffers(index),
       this.m,
+      this.validAddressFormat
     )
   }
 
