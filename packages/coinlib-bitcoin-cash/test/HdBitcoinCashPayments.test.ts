@@ -1,10 +1,7 @@
 import fs from 'fs'
 import path from 'path'
-import { NetworkType, FeeRateType } from '@bitaccess/coinlib-common';
-import {
-  BitcoinCashAddressFormat,
-  HdBitcoinCashPayments, HdBitcoinCashPaymentsConfig,
-} from '../src'
+import { NetworkType, FeeRateType } from '@bitaccess/coinlib-common'
+import { BitcoinCashAddressFormat, HdBitcoinCashPayments, HdBitcoinCashPaymentsConfig } from '../src'
 
 import { EXTERNAL_ADDRESS, AccountFixture, hdAccount as accountFixture, ADDRESS_LEGACY } from './fixtures'
 import { logger, makeUtxos, makeOutputs, expectUtxosEqual } from './utils'
@@ -30,7 +27,6 @@ if (fs.existsSync(secretXprvFilePath)) {
 }
 
 describe('HdBitcoinCashPayments', () => {
-
   describe('static', () => {
     it('should throw on invalid hdKey', () => {
       expect(() => new HdBitcoinCashPayments({ logger, hdKey: 'invalid' })).toThrow()

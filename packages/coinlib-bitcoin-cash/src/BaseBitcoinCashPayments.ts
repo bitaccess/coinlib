@@ -1,12 +1,8 @@
 import * as bitcoinCash from 'bitcoinforksjs-lib'
 import bchAddr from 'bchaddrjs'
 import { bitcoinish, AddressType } from '@bitaccess/coinlib-bitcoin'
-import {
-  UtxoInfo, TransactionStatus, MultisigData
-} from '@bitaccess/coinlib-common'
-import {
-  isMultisigFullySigned
-} from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
+import { UtxoInfo, TransactionStatus, MultisigData } from '@bitaccess/coinlib-common'
+import { isMultisigFullySigned } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
 import { toBitcoinishConfig } from './utils'
 import {
   BaseBitcoinCashPaymentsConfig,
@@ -16,16 +12,14 @@ import {
   PsbtInputData,
   BitcoinCashAddressFormat,
 } from './types'
-import {
-  BITCOIN_SEQUENCE_RBF, SINGLESIG_ADDRESS_TYPE, DEFAULT_ADDRESS_FORMAT
-} from './constants'
+import { BITCOIN_SEQUENCE_RBF, SINGLESIG_ADDRESS_TYPE, DEFAULT_ADDRESS_FORMAT } from './constants'
 import { estimateBitcoinCashTxSize } from './helpers'
 import { BitcoinCashPaymentsUtils } from './BitcoinCashPaymentsUtils'
 import BigNumber from 'bignumber.js'
 
-export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaymentsConfig>
-  extends bitcoinish.BitcoinishPayments<Config> {
-
+export abstract class BaseBitcoinCashPayments<
+  Config extends BaseBitcoinCashPaymentsConfig
+> extends bitcoinish.BitcoinishPayments<Config> {
   readonly maximumFeeRate?: number
   readonly validAddressFormat: BitcoinCashAddressFormat
   readonly utils: BitcoinCashPaymentsUtils
@@ -76,20 +70,17 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
     )
   }
 
-  async getPsbtInputData(
-    utxo: UtxoInfo,
-    paymentScript: bitcoinCash.payments.Payment,
-  ): Promise<PsbtInputData> {
+  async getPsbtInputData(utxo: UtxoInfo, paymentScript: bitcoinCash.payments.Payment): Promise<PsbtInputData> {
     const txHex = utxo.txHex ?? (await this.getApi().getTx(utxo.txid)).hex
     if (!txHex) {
       throw new Error(`Cannot get raw hex of tx for utxo ${utxo.txid}:${utxo.vout}`)
     }
-    
+
     const result: PsbtInputData = {
       hash: utxo.txid,
       index: utxo.vout,
       sequence: BITCOIN_SEQUENCE_RBF,
-      nonWitnessUtxo: Buffer.from(txHex, 'hex')
+      nonWitnessUtxo: Buffer.from(txHex, 'hex'),
     }
     if (this.addressType.startsWith('p2sh-p2wsh')) {
       result.witnessScript = paymentScript.redeem!.redeem!.output
@@ -109,10 +100,7 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
     }
   }
 
-  async buildPsbt(
-    paymentTx: bitcoinish.BitcoinishPaymentTx,
-    fromIndex?: number,
-  ): Promise<bitcoinCash.Psbt> {
+  async buildPsbt(paymentTx: bitcoinish.BitcoinishPaymentTx, fromIndex?: number): Promise<bitcoinCash.Psbt> {
     const { inputs, outputs } = paymentTx
     const psbt = new bitcoinCash.Psbt(this.psbtOptions)
     const hashType = bitcoinCash.Transaction.SIGHASH_ALL | bitcoinCash.Transaction.SIGHASH_BITCOINCASHBIP143
@@ -123,26 +111,20 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
         throw new Error('Signer index for utxo is not provided')
       }
       psbt.addInput({
-        ...await this.getPsbtInputData(
-          input,
-          this.getPaymentScript(signer),
-        ),
-        sighashType: hashType
+        ...(await this.getPsbtInputData(input, this.getPaymentScript(signer))),
+        sighashType: hashType,
       })
     }
     for (const output of outputs) {
       psbt.addOutput({
         address: bchAddr.toLegacyAddress(output.address),
-        value: this.toBaseDenominationNumber(output.value)
+        value: this.toBaseDenominationNumber(output.value),
       })
     }
     return psbt
   }
 
-  async serializePaymentTx(
-    tx: bitcoinish.BitcoinishPaymentTx,
-    fromIndex?: number,
-  ): Promise<string> {
+  async serializePaymentTx(tx: bitcoinish.BitcoinishPaymentTx, fromIndex?: number): Promise<string> {
     return (await this.buildPsbt(tx, fromIndex)).toHex()
   }
 
@@ -167,11 +149,10 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
         hex: txHex,
         partial: false,
         unsignedTxHash,
-        changeOutputs: tx.data?.changeOutputs
+        changeOutputs: tx.data?.changeOutputs,
       },
     }
   }
-
 
   updateSignedMultisigTx(
     tx: BitcoinCashSignedTransaction | BitcoinCashUnsignedTransaction,
@@ -179,7 +160,7 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
     updatedMultisigData: MultisigData,
   ): BitcoinCashSignedTransaction {
     if (isMultisigFullySigned(updatedMultisigData)) {
-      const finalizedTx =  this.validateAndFinalizeSignedTx(tx, psbt)
+      const finalizedTx = this.validateAndFinalizeSignedTx(tx, psbt)
       return {
         ...finalizedTx,
         multisigData: updatedMultisigData,
@@ -197,14 +178,15 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
         partial: true,
         unsignedTxHash,
         changeOutputs: tx.data?.changeOutputs,
-      }
+      },
     }
   }
 
-
-
-
-  private validatePsbtBitcoinCashOutput(output: bitcoinish.BitcoinishTxOutput, psbtOutput: bitcoinCash.PsbtTxOutput, i: number) {
+  private validatePsbtBitcoinCashOutput(
+    output: bitcoinish.BitcoinishTxOutput,
+    psbtOutput: bitcoinCash.PsbtTxOutput,
+    i: number,
+  ) {
     if (!output.address || !psbtOutput.address) {
       throw new Error(
         `Invalid tx: psbt output ${i} psbtOutput address (${psbtOutput.address}) or output address (${output.address}) should not be empty`,
@@ -223,9 +205,7 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
 
   private validatePsbtBitcoinCashInput(input: UtxoInfo, psbtInput: bitcoinCash.PsbtTxInput, i: number) {
     // bitcoinjs psbt input hash buffer is reversed
-    const hash = Buffer.from(Buffer.from(psbtInput.hash)
-      .reverse())
-      .toString('hex')
+    const hash = Buffer.from(Buffer.from(psbtInput.hash).reverse()).toString('hex')
     if (input.txid !== hash) {
       throw new Error(`Invalid tx: psbt input ${i} hash (${hash}) doesn't match expected txid (${input.txid})`)
     }
@@ -370,5 +350,4 @@ export abstract class BaseBitcoinCashPayments<Config extends BaseBitcoinCashPaym
       throw new Error(`Invalid tx: fee (${tx.fee}) doesn't match expected fee (${expectedFee})`)
     }
   }
-
 }

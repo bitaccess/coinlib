@@ -5,7 +5,6 @@ import { publicKeyToString } from './helpers'
 import * as bitcoin from 'bitcoinforksjs-lib'
 import { cloneDeep } from 'lodash'
 
-
 /*
  * functions for multi-sig
  * copied for bitcoin cash with different bitcoinjs-lib library

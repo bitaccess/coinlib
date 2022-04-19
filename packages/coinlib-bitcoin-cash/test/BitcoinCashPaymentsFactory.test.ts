@@ -34,10 +34,7 @@ const MULTISIG_CONFIG: MultisigBitcoinCashPaymentsConfig = {
   m: 2,
   logger,
   server: SERVER,
-  signers: [
-    HD_CONFIG,
-    KEYPAIR_CONFIG,
-  ],
+  signers: [HD_CONFIG, KEYPAIR_CONFIG],
 }
 const UTILS_CONFIG: BitcoinCashPaymentsUtilsConfig = {
   logger,
@@ -48,7 +45,6 @@ const BM_CONFIG: BitcoinCashBalanceMonitorConfig = {
   server: SERVER,
 }
 
-
 describe('BitcoinCashPaymentsFactory', () => {
   let factory: BitcoinCashPaymentsFactory
 
@@ -58,7 +54,7 @@ describe('BitcoinCashPaymentsFactory', () => {
 
   afterEach(async () => {
     // disconnect all connections
-    await Promise.all(Object.values(factory.connectionManager.connections).map((connection) => connection.disconnect()))
+    await Promise.all(Object.values(factory.connectionManager.connections).map(connection => connection.disconnect()))
   })
 
   describe('newPayments', () => {
@@ -77,7 +73,6 @@ describe('BitcoinCashPaymentsFactory', () => {
       expect(factory.newPayments(config)).toBeInstanceOf(KeyPairBitcoinCashPayments)
     })
     it('should instantiate MultisigBitcoinCashPayments', () => {
-      
       const multiSigPayment = factory.newPayments(MULTISIG_CONFIG)
       expect(multiSigPayment).toBeInstanceOf(MultisigBitcoinCashPayments)
     })

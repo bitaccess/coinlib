@@ -8,11 +8,17 @@ import {
   BitcoinCashTransactionInfo,
   BitcoinCashSignedTransaction,
   publicKeyToString,
-  DEFAULT_MIN_TX_FEE
+  DEFAULT_MIN_TX_FEE,
 } from '../src'
 
 import { delay, END_TRANSACTION_STATES, expectEqualWhenTruthy, logger } from './utils'
-import { NetworkType, TransactionStatus, FeeRateType, MultiInputMultisigData, FeeLevel } from '@bitaccess/coinlib-common'
+import {
+  NetworkType,
+  TransactionStatus,
+  FeeRateType,
+  MultiInputMultisigData,
+  FeeLevel,
+} from '@bitaccess/coinlib-common'
 import { NETWORKS } from '../src/constants'
 import path from 'path'
 import fs from 'fs'
@@ -40,9 +46,7 @@ if (fs.existsSync(secretKeyFilePath)) {
 }
 
 // Comment out elements to disable tests for an address type
-const addressTypesToTest: MultisigAddressType[] = [
-  AddressType.MultisigLegacy
-]
+const addressTypesToTest: MultisigAddressType[] = [AddressType.MultisigLegacy]
 const describeAll = !rootSecretKey ? describe.skip : describe
 describeAll('e2e multisig testnet', () => {
   let testsComplete = false
@@ -55,7 +59,6 @@ describeAll('e2e multisig testnet', () => {
   const ADDRESSES_NEEDED_PER_SIGNER = 3
   const NETWORK_TYPE = NetworkType.Testnet
   const NETWORK = NETWORKS[NETWORK_TYPE]
-
 
   // Derive arbitrary paths using the singlesig xprv so that all HD and keypair accounts are deterministic but unique
   const XPUBS: string[] = []
@@ -381,11 +384,6 @@ describeAll('e2e multisig testnet', () => {
         },
         BROADCAST_TEST_TIMEOUT,
       )
-
-
-
     })
   }
-
-
 })

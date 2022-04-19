@@ -7,7 +7,6 @@ import { DEFAULT_ADDRESS_FORMAT } from './constants'
 import { assertType, optional } from '@faast/ts-common'
 
 export class BitcoinCashPaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils {
-
   readonly validAddressFormat?: BitcoinCashAddressFormat
 
   constructor(config: BitcoinCashPaymentsUtilsConfig = {}) {
@@ -23,15 +22,12 @@ export class BitcoinCashPaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils
 
   standardizeAddress(address: string, options?: { format?: string }) {
     // prefer argument over configured format, default to cash address
-    const format = assertType(BitcoinCashAddressFormatT,
+    const format = assertType(
+      BitcoinCashAddressFormatT,
       options?.format ?? this.validAddressFormat ?? DEFAULT_ADDRESS_FORMAT,
       'format',
     )
-    const standardized = standardizeAddress(
-      address,
-      this.networkType,
-      format,
-    )
+    const standardized = standardizeAddress(address, this.networkType, format)
     if (standardized && address !== standardized) {
       this.logger.log(`Standardized ${this.coinSymbol} address to ${format} format: ${address} -> ${standardized}`)
     }

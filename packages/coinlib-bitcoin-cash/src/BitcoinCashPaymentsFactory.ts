@@ -17,7 +17,7 @@ import { BaseBitcoinCashPayments } from './BaseBitcoinCashPayments'
 import { BitcoinCashPaymentsUtils } from './BitcoinCashPaymentsUtils'
 import { HdBitcoinCashPayments } from './HdBitcoinCashPayments'
 import { KeyPairBitcoinCashPayments } from './KeyPairBitcoinCashPayments'
-import { MultisigBitcoinCashPayments } from "./MultisigBitcoinCashPayments"
+import { MultisigBitcoinCashPayments } from './MultisigBitcoinCashPayments'
 import { BitcoinCashBalanceMonitor } from './BitcoinCashBalanceMonitor'
 
 export class BitcoinCashPaymentsFactory extends PaymentsFactory<

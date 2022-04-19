@@ -1,5 +1,5 @@
 import * as bitcoinCash from 'bitcoinforksjs-lib'
-import { cloneDeep } from 'lodash';
+import { cloneDeep } from 'lodash'
 import { UtxoInfo, BaseMultisigData, MultiInputMultisigData } from '@bitaccess/coinlib-common'
 
 import {
@@ -22,7 +22,7 @@ export abstract class SinglesigBitcoinCashPayments<
 
   constructor(config: SinglesigBitcoinCashPaymentsConfig) {
     super(config)
-    this.addressType =  SINGLESIG_ADDRESS_TYPE
+    this.addressType = SINGLESIG_ADDRESS_TYPE
   }
 
   getPaymentScript(index: number) {
@@ -30,96 +30,92 @@ export abstract class SinglesigBitcoinCashPayments<
   }
 
   /** Backwards compatible multisig transaction signing for non-multi input txs */
-private signMultisigTransactionLegacy(
-  tx: BitcoinCashUnsignedTransaction,
-  psbt: bitcoinCash.Psbt,
-  multisigData: BaseMultisigData,
-): BitcoinCashSignedTransaction {
-  if (tx.fromIndex === null) throw new Error('Cannot sign legacy multisig transaction without fromIndex')
+  private signMultisigTransactionLegacy(
+    tx: BitcoinCashUnsignedTransaction,
+    psbt: bitcoinCash.Psbt,
+    multisigData: BaseMultisigData,
+  ): BitcoinCashSignedTransaction {
+    if (tx.fromIndex === null) throw new Error('Cannot sign legacy multisig transaction without fromIndex')
 
-  const accountId = this.getAccountId(tx.fromIndex)
-  const accountIdIndex = multisigData.accountIds.findIndex((x) => x === accountId)
-  if (accountIdIndex === -1) {
-    throw new Error('Not a signer for provided multisig tx')
-  }
-  if (multisigData.signedAccountIds.includes(accountId)) {
-    throw new Error('Already signed multisig tx')
-  }
-  const keyPair = this.getKeyPair(tx.fromIndex)
-  const publicKeyString = publicKeyToString(keyPair.publicKey)
-  const signerPublicKey = multisigData.publicKeys[accountIdIndex]
-  if (signerPublicKey !== publicKeyString) {
-    throw new Error(
-      `Mismatched publicKey for keyPair ${accountId}/${tx.fromIndex} - `
-      + `multisigData has ${signerPublicKey} but keyPair has ${publicKeyString}`
-    )
-  }
-  this.validatePsbtBitcoinCash(tx, psbt)
-
-  psbt.signAllInputs(keyPair)
-
-  const updatedMultisigTx = {
-    ...multisigData,
-    signedAccountIds: [...multisigData.signedAccountIds, accountId],
-  }
-  return this.updateSignedMultisigTx(tx, psbt, updatedMultisigTx)
-}
-
-
-/** Multi input multisig transaction signing */
-private signMultisigTransactionMultiInput(
-  tx: BitcoinCashUnsignedTransaction,
-  psbt: bitcoinCash.Psbt,
-  multisigData: MultiInputMultisigData,
-): BitcoinCashSignedTransaction {
-
-  const updatedMultisigTx = cloneDeep(multisigData)
-
-  let inputsSigned = 0
-
-  for (const address of Object.keys(multisigData)) {
-    const addressMultisigData = multisigData[address]
-    const { signerIndex, accountIds, signedAccountIds, publicKeys, inputIndices } = addressMultisigData
-    const accountId = this.getAccountId(signerIndex)
-    const accountIdIndex = accountIds.findIndex((x) => x === accountId)
-
+    const accountId = this.getAccountId(tx.fromIndex)
+    const accountIdIndex = multisigData.accountIds.findIndex(x => x === accountId)
     if (accountIdIndex === -1) {
-      // Not a signer for address
-      this.logger.debug(`Not a signer for address ${address} because ${accountId} is not in ${accountIds}`)
-      continue
+      throw new Error('Not a signer for provided multisig tx')
     }
-    if (signedAccountIds.includes(accountId)) {
-      // Already signed all inputs for this address
-      this.logger.debug(`Already signed all inputs for address ${address} using account ${accountId}`)
-      continue
+    if (multisigData.signedAccountIds.includes(accountId)) {
+      throw new Error('Already signed multisig tx')
     }
-
-    const keyPair = this.getKeyPair(signerIndex)
-    const publicKeyString = bitcoinish.publicKeyToString(keyPair.publicKey)
-    const signerPublicKey = publicKeys[accountIdIndex]
+    const keyPair = this.getKeyPair(tx.fromIndex)
+    const publicKeyString = publicKeyToString(keyPair.publicKey)
+    const signerPublicKey = multisigData.publicKeys[accountIdIndex]
     if (signerPublicKey !== publicKeyString) {
       throw new Error(
-        `Mismatched publicKey for keyPair ${accountId}/${tx.fromIndex} - `
-        + `multisigData has ${signerPublicKey} but keyPair has ${publicKeyString}`
+        `Mismatched publicKey for keyPair ${accountId}/${tx.fromIndex} - ` +
+          `multisigData has ${signerPublicKey} but keyPair has ${publicKeyString}`,
       )
     }
+    this.validatePsbtBitcoinCash(tx, psbt)
 
-    for (const inputIndex of inputIndices) {
-      psbt.signInput(inputIndex, keyPair)
-      inputsSigned++
-      this.logger.debug(`Signed tx input #${inputIndex} for address ${address}`)
+    psbt.signAllInputs(keyPair)
+
+    const updatedMultisigTx = {
+      ...multisigData,
+      signedAccountIds: [...multisigData.signedAccountIds, accountId],
     }
-    updatedMultisigTx[address].signedAccountIds.push(accountId)
+    return this.updateSignedMultisigTx(tx, psbt, updatedMultisigTx)
   }
-  if (inputsSigned === 0) {
-    throw new Error('No inputs were signed')
-  }
-  return this.updateSignedMultisigTx(tx, psbt, updatedMultisigTx)
-}
 
-  signMultisigTransaction(
+  /** Multi input multisig transaction signing */
+  private signMultisigTransactionMultiInput(
     tx: BitcoinCashUnsignedTransaction,
+    psbt: bitcoinCash.Psbt,
+    multisigData: MultiInputMultisigData,
   ): BitcoinCashSignedTransaction {
+    const updatedMultisigTx = cloneDeep(multisigData)
+
+    let inputsSigned = 0
+
+    for (const address of Object.keys(multisigData)) {
+      const addressMultisigData = multisigData[address]
+      const { signerIndex, accountIds, signedAccountIds, publicKeys, inputIndices } = addressMultisigData
+      const accountId = this.getAccountId(signerIndex)
+      const accountIdIndex = accountIds.findIndex(x => x === accountId)
+
+      if (accountIdIndex === -1) {
+        // Not a signer for address
+        this.logger.debug(`Not a signer for address ${address} because ${accountId} is not in ${accountIds}`)
+        continue
+      }
+      if (signedAccountIds.includes(accountId)) {
+        // Already signed all inputs for this address
+        this.logger.debug(`Already signed all inputs for address ${address} using account ${accountId}`)
+        continue
+      }
+
+      const keyPair = this.getKeyPair(signerIndex)
+      const publicKeyString = bitcoinish.publicKeyToString(keyPair.publicKey)
+      const signerPublicKey = publicKeys[accountIdIndex]
+      if (signerPublicKey !== publicKeyString) {
+        throw new Error(
+          `Mismatched publicKey for keyPair ${accountId}/${tx.fromIndex} - ` +
+            `multisigData has ${signerPublicKey} but keyPair has ${publicKeyString}`,
+        )
+      }
+
+      for (const inputIndex of inputIndices) {
+        psbt.signInput(inputIndex, keyPair)
+        inputsSigned++
+        this.logger.debug(`Signed tx input #${inputIndex} for address ${address}`)
+      }
+      updatedMultisigTx[address].signedAccountIds.push(accountId)
+    }
+    if (inputsSigned === 0) {
+      throw new Error('No inputs were signed')
+    }
+    return this.updateSignedMultisigTx(tx, psbt, updatedMultisigTx)
+  }
+
+  signMultisigTransaction(tx: BitcoinCashUnsignedTransaction): BitcoinCashSignedTransaction {
     const { multisigData, data } = tx
     const { rawHex } = data
 

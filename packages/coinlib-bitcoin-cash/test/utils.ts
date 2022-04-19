@@ -22,12 +22,12 @@ export function makeUtxos(confirmedValues: string[], unconfirmedValues: string[]
       vout: i,
       value: value,
       satoshis: toBaseDenominationNumber(value),
-    }))
+    })),
   ]
 }
 
 export function makeOutputs(address: string, ...values: string[]): bitcoinish.BitcoinishTxOutput[] {
-  return values.map((value) => ({
+  return values.map(value => ({
     address,
     value: String(value),
   }))
