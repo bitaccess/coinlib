@@ -275,7 +275,8 @@ describeAll('e2e multisig mainnet', () => {
           const unsignedTx = await payments.createTransaction(fromIndex, toAddress, sendAmount, {
             useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
             maxFeePercent: 300,
-            feeLevel: FeeLevel.Low,
+            feeRateType: FeeRateType.Main,
+            feeRate: "1",  // hardcode fee to 1 DOGE
           })
           assertMultisigData(unsignedTx.multisigData, fromAddress, fromIndex, [])
           const partiallySignedTxs = await Promise.all(signerPayments.map(signer => signer.signTransaction(unsignedTx)))
@@ -320,7 +321,7 @@ describeAll('e2e multisig mainnet', () => {
           }
           const paymentsWithAllKeys = new MultisigDogePayments(paymentsConfig)
 
-          const { fromIndex, fromBalance, toIndex, toBalance } = await getFromTo(
+          const { fromIndex, toIndex } = await getFromTo(
             paymentsWithAllKeys,
             'Doge mainnet multisig wallet',
             1,
@@ -332,7 +333,8 @@ describeAll('e2e multisig mainnet', () => {
           const unsignedTx = await paymentsWithAllKeys.createTransaction(fromIndex, toAddress, sendAmount, {
             useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
             maxFeePercent: 300,
-            feeLevel: FeeLevel.Low,
+            feeRateType: FeeRateType.Main,
+            feeRate: "1",  // hardcode fee to 1 DOGE
           })
           const signedTx = await paymentsWithAllKeys.signTransaction(unsignedTx)
 
@@ -367,7 +369,8 @@ describeAll('e2e multisig mainnet', () => {
               useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
               maxFeePercent: 300,
               changeAddress,
-              feeLevel: FeeLevel.Low,
+              feeRateType: FeeRateType.Main,
+              feeRate: "1",  // hardcode fee to 1 DOGE
               // useAllUtxos: true,     // too expensive if there are multiple inputs
             },
           )
