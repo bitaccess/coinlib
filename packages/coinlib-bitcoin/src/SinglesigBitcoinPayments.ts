@@ -14,6 +14,7 @@ import { publicKeyToString, getSinglesigPaymentScript } from './helpers'
 import { BaseBitcoinPayments } from './BaseBitcoinPayments'
 import { DEFAULT_SINGLESIG_ADDRESS_TYPE } from './constants'
 import { BaseMultisigData, MultiInputMultisigData } from '@bitaccess/coinlib-common'
+import { validateAndFinalizeSignedTx, updateSignedMultisigTx } from './bitcoinish'
 
 export abstract class SinglesigBitcoinPayments<
   Config extends SinglesigBitcoinPaymentsConfig
@@ -68,7 +69,7 @@ export abstract class SinglesigBitcoinPayments<
       ...multisigData,
       signedAccountIds: [...multisigData.signedAccountIds, accountId],
     }
-    return this.updateSignedMultisigTx(tx, psbt, updatedMultisigTx)
+    return updateSignedMultisigTx(tx, psbt, updatedMultisigTx)
   }
 
   /** Multi input multisig transaction signing */
@@ -118,7 +119,7 @@ export abstract class SinglesigBitcoinPayments<
     if (inputsSigned === 0) {
       throw new Error('No inputs were signed')
     }
-    return this.updateSignedMultisigTx(tx, psbt, updatedMultisigTx)
+    return updateSignedMultisigTx(tx, psbt, updatedMultisigTx)
   }
 
   signMultisigTransaction(tx: BitcoinUnsignedTransaction): BitcoinSignedTransaction {
@@ -162,7 +163,7 @@ export abstract class SinglesigBitcoinPayments<
       psbt.signInput(i, keyPair)
     }
 
-    return this.validateAndFinalizeSignedTx(tx, psbt)
+    return validateAndFinalizeSignedTx(tx, psbt)
   }
 
   getSupportedAddressTypes(): AddressType[] {

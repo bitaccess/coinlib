@@ -1,33 +1,15 @@
 import * as bitcoin from 'bitcoinjs-lib-bigint'
-import {
-  UtxoInfo,
-  TransactionStatus,
-  MultisigData,
-} from '@bitaccess/coinlib-common'
+import { UtxoInfo } from '@bitaccess/coinlib-common'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
-
 import { toBitcoinishConfig } from './utils'
-import {
-  BaseLitecoinPaymentsConfig,
-  LitecoinUnsignedTransaction,
-  LitecoinSignedTransactionData,
-  LitecoinSignedTransaction,
-  AddressType,
-  PsbtInputData,
-  LitecoinAddressFormat,
-} from './types'
-import {
-  DEFAULT_FEE_LEVEL_BLOCK_TARGETS,
-  LITECOIN_SEQUENCE_RBF,
-} from './constants'
+import { BaseLitecoinPaymentsConfig, AddressType, PsbtInputData, LitecoinAddressFormat } from './types'
+import { DEFAULT_FEE_LEVEL_BLOCK_TARGETS, LITECOIN_SEQUENCE_RBF } from './constants'
 import { estimateLitecoinTxSize } from './helpers'
-import { isMultisigFullySigned } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
-
 import { LitecoinPaymentsUtils } from './LitecoinPaymentsUtils'
 
-export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsConfig>
-  extends bitcoinish.BitcoinishPayments<Config> {
-
+export abstract class BaseLitecoinPayments<
+  Config extends BaseLitecoinPaymentsConfig
+> extends bitcoinish.BitcoinishPayments<Config> {
   readonly maximumFeeRate?: number
   readonly validAddressFormat?: LitecoinAddressFormat
   readonly utils: LitecoinPaymentsUtils
@@ -86,7 +68,7 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
       index: utxo.vout,
       sequence: LITECOIN_SEQUENCE_RBF,
     }
-    if ((/p2wpkh|p2wsh/).test(addressType)) {
+    if (/p2wpkh|p2wsh/.test(addressType)) {
       // for segwit inputs, you only need the output script and value as an object.
       const rawUtxo = utx.vout[utxo.vout]
       const { hex: scriptPubKey, value: rawValue } = rawUtxo
@@ -95,7 +77,9 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
       }
       const utxoValue = this.toBaseDenominationNumber(utxo.value)
       if (String(utxoValue) !== rawValue) {
-        throw new Error(`Utxo ${utxo.txid}:${utxo.vout} has mismatched value - ${utxoValue} sat expected but network reports ${rawValue} sat`)
+        throw new Error(
+          `Utxo ${utxo.txid}:${utxo.vout} has mismatched value - ${utxoValue} sat expected but network reports ${rawValue} sat`,
+        )
       }
       result.witnessUtxo = {
         script: Buffer.from(scriptPubKey, 'hex'),
@@ -135,16 +119,12 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
       if (typeof signer === 'undefined') {
         throw new Error('Signer index for utxo is not provided')
       }
-      psbt.addInput(await this.getPsbtInputData(
-        input,
-        this.getPaymentScript(signer),
-        this.addressType,
-      ))
+      psbt.addInput(await this.getPsbtInputData(input, this.getPaymentScript(signer), this.addressType))
     }
     for (const output of outputs) {
       psbt.addOutput({
         address: output.address,
-        value: this.toBaseDenominationNumber(output.value)
+        value: this.toBaseDenominationNumber(output.value),
       })
     }
     return psbt
@@ -152,61 +132,5 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
 
   async serializePaymentTx(tx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<string> {
     return (await this.buildPsbt(tx, fromIndex)).toHex()
-  }
-
-
-  validateAndFinalizeSignedTx(
-    tx: LitecoinSignedTransaction | LitecoinUnsignedTransaction,
-    psbt: bitcoin.Psbt,
-  ): LitecoinSignedTransaction {
-    if (!psbt.validateSignaturesOfAllInputs()) {
-      throw new Error('Failed to validate signatures of all inputs')
-    }
-    psbt.finalizeAllInputs()
-    const signedTx = psbt.extractTransaction()
-    const txId = signedTx.getId()
-    const txHex = signedTx.toHex()
-    const txData = tx.data
-    const unsignedTxHash = LitecoinSignedTransactionData.is(txData) ? txData.unsignedTxHash : txData.rawHash
-    return {
-      ...tx,
-      status: TransactionStatus.Signed,
-      id: txId,
-      data: {
-        hex: txHex,
-        partial: false,
-        unsignedTxHash,
-        changeOutputs: tx.data?.changeOutputs
-      },
-    }
-  }
-
-
-  updateSignedMultisigTx(
-    tx: LitecoinSignedTransaction | LitecoinUnsignedTransaction,
-    psbt: bitcoin.Psbt,
-    updatedMultisigData: MultisigData,
-  ): LitecoinSignedTransaction {
-    if (isMultisigFullySigned(updatedMultisigData)) {
-      const finalizedTx =  this.validateAndFinalizeSignedTx(tx, psbt)
-      return {
-        ...finalizedTx,
-        multisigData: updatedMultisigData,
-      }
-    }
-    const combinedHex = psbt.toHex()
-    const unsignedTxHash = LitecoinSignedTransactionData.is(tx.data) ? tx.data.unsignedTxHash : tx.data.rawHash
-    return {
-      ...tx,
-      id: '',
-      status: TransactionStatus.Signed,
-      multisigData: updatedMultisigData,
-      data: {
-        hex: combinedHex,
-        partial: true,
-        unsignedTxHash,
-        changeOutputs: tx.data?.changeOutputs,
-      }
-    }
   }
 }

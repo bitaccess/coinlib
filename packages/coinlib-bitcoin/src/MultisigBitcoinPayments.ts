@@ -19,7 +19,7 @@ import {
 import { getMultisigPaymentScript } from './helpers'
 import { Numeric } from '@faast/ts-common'
 import { DEFAULT_MULTISIG_ADDRESS_TYPE } from './constants'
-import { createMultisigData, preCombinePartiallySignedTransactions } from './bitcoinish'
+import { createMultisigData, preCombinePartiallySignedTransactions, updateSignedMultisigTx } from './bitcoinish'
 export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoinPaymentsConfig> {
   addressType: MultisigAddressType
   m: number
@@ -155,7 +155,7 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
    */
   async combinePartiallySignedTransactions(txs: BitcoinSignedTransaction[]): Promise<BitcoinSignedTransaction> {
     const {baseTx, combinedPsbt, updatedMultisigData} =  preCombinePartiallySignedTransactions(txs, this.psbtOptions)
-    return this.updateSignedMultisigTx(baseTx, combinedPsbt, updatedMultisigData)
+    return updateSignedMultisigTx(baseTx, combinedPsbt, updatedMultisigData)
   }
 
   async signTransaction(tx: BitcoinUnsignedTransaction): Promise<BitcoinSignedTransaction> {

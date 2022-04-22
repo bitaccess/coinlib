@@ -58,7 +58,7 @@ export abstract class SinglesigDogePayments<Config extends SinglesigDogePayments
       ...multisigData,
       signedAccountIds: [...multisigData.signedAccountIds, accountId],
     }
-    return this.updateSignedMultisigTx(tx, psbt, updatedMultisigTx)
+    return bitcoinish.updateSignedMultisigTx(tx, psbt, updatedMultisigTx)
   }
 
   /** Multi input multisig transaction signing */
@@ -108,7 +108,7 @@ export abstract class SinglesigDogePayments<Config extends SinglesigDogePayments
     if (inputsSigned === 0) {
       throw new Error('No inputs were signed')
     }
-    return this.updateSignedMultisigTx(tx, psbt, updatedMultisigTx)
+    return bitcoinish.updateSignedMultisigTx(tx, psbt, updatedMultisigTx)
   }
 
   signMultisigTransaction(tx: DogeUnsignedTransaction): DogeSignedTransaction {
@@ -145,7 +145,7 @@ export abstract class SinglesigDogePayments<Config extends SinglesigDogePayments
     const keyPair = this.getKeyPair(tx.fromIndex!)
     psbt.signAllInputs(keyPair)
 
-    return this.validateAndFinalizeSignedTx(tx, psbt)
+    return bitcoinish.validateAndFinalizeSignedTx(tx, psbt)
   }
 
   getSupportedAddressTypes(): AddressType[] {

@@ -1,7 +1,14 @@
-import { UtxoInfo, BaseConfig, AddressMultisigData, BaseMultisigData, MultisigData } from '@bitaccess/coinlib-common'
-import { BitcoinishSignedTransaction } from './types'
+import {
+  UtxoInfo,
+  BaseConfig,
+  AddressMultisigData,
+  BaseMultisigData,
+  MultisigData,
+  TransactionStatus,
+} from '@bitaccess/coinlib-common'
+import { BitcoinishSignedTransaction, BitcoinishUnsignedTransaction, BitcoinishSignedTransactionData } from './types'
 import { isNumber } from '@faast/ts-common'
-import { publicKeyToString } from './helpers'
+import { publicKeyToString, validateAndFinalizeSignedTx } from './helpers'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { cloneDeep } from 'lodash'
 
@@ -159,4 +166,32 @@ export function preCombinePartiallySignedTransactions(
     updatedMultisigData = combineMultisigData(updatedMultisigData, tx.multisigData!)
   }
   return { baseTx, combinedPsbt, updatedMultisigData }
+}
+
+export function updateSignedMultisigTx(
+  tx: BitcoinishSignedTransaction | BitcoinishUnsignedTransaction,
+  psbt: bitcoin.Psbt,
+  updatedMultisigData: MultisigData,
+): BitcoinishSignedTransaction {
+  if (isMultisigFullySigned(updatedMultisigData)) {
+    const finalizedTx = validateAndFinalizeSignedTx(tx, psbt)
+    return {
+      ...finalizedTx,
+      multisigData: updatedMultisigData,
+    }
+  }
+  const combinedHex = psbt.toHex()
+  const unsignedTxHash = BitcoinishSignedTransactionData.is(tx.data) ? tx.data.unsignedTxHash : tx.data.rawHash
+  return {
+    ...tx,
+    id: '',
+    status: TransactionStatus.Signed,
+    multisigData: updatedMultisigData,
+    data: {
+      hex: combinedHex,
+      partial: true,
+      unsignedTxHash,
+      changeOutputs: tx.data?.changeOutputs,
+    },
+  }
 }

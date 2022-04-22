@@ -13,8 +13,7 @@ import { HdLitecoinPayments } from './HdLitecoinPayments'
 import { KeyPairLitecoinPayments } from './KeyPairLitecoinPayments'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { CreateTransactionOptions, ResolveablePayport, PayportOutput } from '@bitaccess/coinlib-common'
-import { createMultisigData, preCombinePartiallySignedTransactions } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
-
+import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { getMultisigPaymentScript } from './helpers'
 
 import { Numeric } from '@faast/ts-common'
@@ -109,7 +108,7 @@ export class MultisigLitecoinPayments extends BaseLitecoinPayments<MultisigLitec
     const tx = await super.createTransaction(from, to, amount, options)
     return {
       ...tx,
-      multisigData: createMultisigData(tx.inputUtxos!, this.signers, this.m),
+      multisigData: bitcoinish.createMultisigData(tx.inputUtxos!, this.signers, this.m),
     }
   }
 
@@ -121,7 +120,7 @@ export class MultisigLitecoinPayments extends BaseLitecoinPayments<MultisigLitec
     const tx = await super.createMultiOutputTransaction(from, to, options)
     return {
       ...tx,
-      multisigData: createMultisigData(tx.inputUtxos!, this.signers, this.m),
+      multisigData: bitcoinish.createMultisigData(tx.inputUtxos!, this.signers, this.m),
     }
   }
 
@@ -133,7 +132,7 @@ export class MultisigLitecoinPayments extends BaseLitecoinPayments<MultisigLitec
     const tx = await super.createMultiInputTransaction(from, to, options)
     return {
       ...tx,
-      multisigData: createMultisigData(tx.inputUtxos!, this.signers, this.m),
+      multisigData: bitcoinish.createMultisigData(tx.inputUtxos!, this.signers, this.m),
     }
   }
 
@@ -145,7 +144,7 @@ export class MultisigLitecoinPayments extends BaseLitecoinPayments<MultisigLitec
     const tx = await super.createSweepTransaction(from, to, options)
     return {
       ...tx,
-      multisigData: createMultisigData(tx.inputUtxos!, this.signers, this.m),
+      multisigData: bitcoinish.createMultisigData(tx.inputUtxos!, this.signers, this.m),
     }
   }
 
@@ -154,8 +153,11 @@ export class MultisigLitecoinPayments extends BaseLitecoinPayments<MultisigLitec
    * the transaction is validated and finalized.
    */
   async combinePartiallySignedTransactions(txs: LitecoinSignedTransaction[]): Promise<LitecoinSignedTransaction> {
-    const { baseTx, combinedPsbt, updatedMultisigData } = preCombinePartiallySignedTransactions(txs, this.psbtOptions)
-    return this.updateSignedMultisigTx(baseTx, combinedPsbt, updatedMultisigData)
+    const { baseTx, combinedPsbt, updatedMultisigData } = bitcoinish.preCombinePartiallySignedTransactions(
+      txs,
+      this.psbtOptions,
+    )
+    return bitcoinish.updateSignedMultisigTx(baseTx, combinedPsbt, updatedMultisigData)
   }
 
   async signTransaction(tx: LitecoinUnsignedTransaction): Promise<LitecoinSignedTransaction> {

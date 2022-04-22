@@ -7,16 +7,13 @@ import {
   MultisigAddressType,
   AddressType,
 } from './types'
-
 import { omit } from 'lodash'
 import { HdDogePayments } from './HdDogePayments'
 import { KeyPairDogePayments } from './KeyPairDogePayments'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { CreateTransactionOptions, ResolveablePayport, PayportOutput } from '@bitaccess/coinlib-common'
-import { createMultisigData, preCombinePartiallySignedTransactions} from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
-
+import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { getMultisigPaymentScript } from './helpers'
-
 import { Numeric } from '@faast/ts-common'
 import { DEFAULT_MULTISIG_ADDRESS_TYPE } from './constants'
 
@@ -109,7 +106,7 @@ export class MultisigDogePayments extends BaseDogePayments<MultisigDogePaymentsC
     const tx = await super.createTransaction(from, to, amount, options)
     return {
       ...tx,
-      multisigData: createMultisigData(tx.inputUtxos!, this.signers, this.m),
+      multisigData: bitcoinish.createMultisigData(tx.inputUtxos!, this.signers, this.m),
     }
   }
 
@@ -121,7 +118,7 @@ export class MultisigDogePayments extends BaseDogePayments<MultisigDogePaymentsC
     const tx = await super.createMultiOutputTransaction(from, to, options)
     return {
       ...tx,
-      multisigData: createMultisigData(tx.inputUtxos!, this.signers, this.m),
+      multisigData: bitcoinish.createMultisigData(tx.inputUtxos!, this.signers, this.m),
     }
   }
 
@@ -133,7 +130,7 @@ export class MultisigDogePayments extends BaseDogePayments<MultisigDogePaymentsC
     const tx = await super.createMultiInputTransaction(from, to, options)
     return {
       ...tx,
-      multisigData: createMultisigData(tx.inputUtxos!, this.signers, this.m),
+      multisigData: bitcoinish.createMultisigData(tx.inputUtxos!, this.signers, this.m),
     }
   }
 
@@ -145,7 +142,7 @@ export class MultisigDogePayments extends BaseDogePayments<MultisigDogePaymentsC
     const tx = await super.createSweepTransaction(from, to, options)
     return {
       ...tx,
-      multisigData: createMultisigData(tx.inputUtxos!, this.signers, this.m),
+      multisigData: bitcoinish.createMultisigData(tx.inputUtxos!, this.signers, this.m),
     }
   }
 
@@ -154,8 +151,11 @@ export class MultisigDogePayments extends BaseDogePayments<MultisigDogePaymentsC
    * the transaction is validated and finalized.
    */
   async combinePartiallySignedTransactions(txs: DogeSignedTransaction[]): Promise<DogeSignedTransaction> {
-    const { baseTx, combinedPsbt, updatedMultisigData } = preCombinePartiallySignedTransactions(txs, this.psbtOptions)
-    return this.updateSignedMultisigTx(baseTx, combinedPsbt, updatedMultisigData)
+    const { baseTx, combinedPsbt, updatedMultisigData } = bitcoinish.preCombinePartiallySignedTransactions(
+      txs,
+      this.psbtOptions,
+    )
+    return bitcoinish.updateSignedMultisigTx(baseTx, combinedPsbt, updatedMultisigData)
   }
 
   async signTransaction(tx: DogeUnsignedTransaction): Promise<DogeSignedTransaction> {

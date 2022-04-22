@@ -1,8 +1,17 @@
-import { AddressType, BitcoinjsKeyPair, BitcoinjsNetwork, MultisigAddressType, SinglesigAddressType } from './types'
+import {
+  AddressType,
+  BitcoinjsKeyPair,
+  BitcoinjsNetwork,
+  MultisigAddressType,
+  SinglesigAddressType,
+  BitcoinishSignedTransaction,
+  BitcoinishSignedTransactionData,
+  BitcoinishUnsignedTransaction
+} from './types'
+import { TransactionStatus } from '@bitaccess/coinlib-common'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { isString } from '@faast/ts-common'
 import b58 from 'bs58check'
-
 
 export function isValidAddress(address: string, network: BitcoinjsNetwork): boolean {
   try {
@@ -67,9 +76,9 @@ export function getMultisigPaymentScript(
       pubkeys: pubkeys.sort(),
       m,
       network,
-    })
+    }),
   }
-  switch(addressType) {
+  switch (addressType) {
     case AddressType.MultisigLegacy:
       return bitcoin.payments.p2sh(scriptParams)
     case AddressType.MultisigSegwitNative:
@@ -88,7 +97,7 @@ export function getSinglesigPaymentScript(
   pubkey: Buffer,
 ): bitcoin.payments.Payment {
   const scriptParams = { network, pubkey }
-  switch(addressType) {
+  switch (addressType) {
     case AddressType.Legacy:
       return bitcoin.payments.p2pkh(scriptParams)
     case AddressType.SegwitNative:
@@ -128,8 +137,6 @@ export function privateKeyToAddress(privateKey: string, network: BitcoinjsNetwor
   return publicKeyToAddress(keyPair.publicKey, network, addressType)
 }
 
-
-
 function bufferFromUInt32(x: number) {
   const b = Buffer.alloc(4)
   b.writeUInt32BE(x, 0)
@@ -153,4 +160,30 @@ export function convertXPrefixHdKeys(hdKey: string, network: BitcoinjsNetwork): 
   data = data.slice(4)
   data = Buffer.concat([bufferFromUInt32(newMagicNumber), data])
   return b58.encode(data)
+}
+
+export function validateAndFinalizeSignedTx(
+  tx: BitcoinishSignedTransaction | BitcoinishUnsignedTransaction,
+  psbt: bitcoin.Psbt,
+): BitcoinishSignedTransaction {
+  if (!psbt.validateSignaturesOfAllInputs()) {
+    throw new Error('Failed to validate signatures of all inputs')
+  }
+  psbt.finalizeAllInputs()
+  const signedTx = psbt.extractTransaction()
+  const txId = signedTx.getId()
+  const txHex = signedTx.toHex()
+  const txData = tx.data
+  const unsignedTxHash = BitcoinishSignedTransactionData.is(txData) ? txData.unsignedTxHash : txData.rawHash
+  return {
+    ...tx,
+    status: TransactionStatus.Signed,
+    id: txId,
+    data: {
+      hex: txHex,
+      partial: false,
+      unsignedTxHash,
+      changeOutputs: tx.data?.changeOutputs,
+    },
+  }
 }
