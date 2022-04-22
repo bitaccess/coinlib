@@ -32,9 +32,7 @@ export const SinglesigAddressType = SinglesigAddressTypeT as t.Type<SinglesigAdd
 
 const MultisigAddressTypeT = t.keyof(
   {
-    [AddressType.MultisigLegacy]: null,
-    [AddressType.MultisigSegwitP2SH]: null,
-    [AddressType.MultisigSegwitNative]: null,
+    [AddressType.MultisigLegacy]: null
   },
   'MultisigAddressType',
 )

@@ -82,13 +82,8 @@ export abstract class BaseBitcoinCashPayments<
       sequence: BITCOIN_SEQUENCE_RBF,
       nonWitnessUtxo: Buffer.from(txHex, 'hex'),
     }
-    if (this.addressType.startsWith('p2sh-p2wsh')) {
-      result.witnessScript = paymentScript.redeem!.redeem!.output
+    if (this.addressType.startsWith('p2sh')) {
       result.redeemScript = paymentScript.redeem!.output
-    } else if (this.addressType.startsWith('p2sh')) {
-      result.redeemScript = paymentScript.redeem!.output
-    } else if (this.addressType.startsWith('p2wsh')) {
-      result.witnessScript = paymentScript.redeem!.output
     }
     return result
   }

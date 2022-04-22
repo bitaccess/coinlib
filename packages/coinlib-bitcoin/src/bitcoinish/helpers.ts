@@ -1,6 +1,8 @@
 import { AddressType, BitcoinjsKeyPair, BitcoinjsNetwork, MultisigAddressType, SinglesigAddressType } from './types'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { isString } from '@faast/ts-common'
+import b58 from 'bs58check'
+
 
 export function isValidAddress(address: string, network: BitcoinjsNetwork): boolean {
   try {
@@ -124,4 +126,31 @@ export function privateKeyToKeyPair(privateKey: string, network: BitcoinjsNetwor
 export function privateKeyToAddress(privateKey: string, network: BitcoinjsNetwork, addressType: SinglesigAddressType) {
   const keyPair = privateKeyToKeyPair(privateKey, network)
   return publicKeyToAddress(keyPair.publicKey, network, addressType)
+}
+
+
+
+function bufferFromUInt32(x: number) {
+  const b = Buffer.alloc(4)
+  b.writeUInt32BE(x, 0)
+  return b
+}
+
+/**
+ * Utility for converting xpub/xprv prefixed hd keys to the network specific prefix (ie Ltub/Ltpv)
+ */
+export function convertXPrefixHdKeys(hdKey: string, network: BitcoinjsNetwork): string {
+  let newMagicNumber
+  if (hdKey.startsWith('xpub')) {
+    newMagicNumber = network.bip32.public
+  } else if (hdKey.startsWith('xprv')) {
+    newMagicNumber = network.bip32.private
+  } else {
+    // Not recognized so probably already has network prefix
+    return hdKey
+  }
+  let data = b58.decode(hdKey)
+  data = data.slice(4)
+  data = Buffer.concat([bufferFromUInt32(newMagicNumber), data])
+  return b58.encode(data)
 }

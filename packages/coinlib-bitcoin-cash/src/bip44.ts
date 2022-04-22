@@ -3,9 +3,9 @@ import { BitcoinCashAddressFormat, BitcoinjsKeyPair } from './types'
 import { BitcoinjsNetwork } from '@bitaccess/coinlib-bitcoin'
 import { publicKeyToAddress } from './helpers'
 import { NetworkType } from '@bitaccess/coinlib-common'
-import b58 from 'bs58check'
+import { convertXPrefixHdKeys } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
 
-export { HDNode }
+export { HDNode, convertXPrefixHdKeys }
 
 /**
  * Split full path into array of indices
@@ -18,31 +18,6 @@ export function splitDerivationPath(path: string): string[] {
     return parts.slice(1)
   }
   return parts
-}
-
-function bufferFromUInt32(x: number) {
-  const b = Buffer.alloc(4)
-  b.writeUInt32BE(x, 0)
-  return b
-}
-
-/**
- * Utility for converting xpub/xprv prefixed hd keys to the network specific prefix (ie Ltub/Ltpv)
- */
-export function convertXPrefixHdKeys(hdKey: string, network: BitcoinjsNetwork): string {
-  let newMagicNumber
-  if (hdKey.startsWith('xpub')) {
-    newMagicNumber = network.bip32.public
-  } else if (hdKey.startsWith('xprv')) {
-    newMagicNumber = network.bip32.private
-  } else {
-    // Not recognized so probably already has network prefix
-    return hdKey
-  }
-  let data = b58.decode(hdKey)
-  data = data.slice(4)
-  data = Buffer.concat([bufferFromUInt32(newMagicNumber), data])
-  return b58.encode(data)
 }
 
 /**

@@ -58,5 +58,8 @@
     "request-promise-native": "^1.0.8",
     "web3": "^1.7.1",
     "web3-eth-contract": "^1.7.1"
+  },
+  "devDependencies": {
+    "ganache": "^7.0.4"
   }
 }

@@ -40,8 +40,8 @@ if (fs.existsSync(secretKeyFilePath)) {
 // Comment out elements to disable tests for an address type
 const addressTypesToTest: MultisigAddressType[] = [
   AddressType.MultisigLegacy,
-  // AddressType.MultisigSegwitP2SH,
-  // AddressType.MultisigSegwitNative,
+  AddressType.MultisigSegwitP2SH,
+  AddressType.MultisigSegwitNative,
 ]
 
 const describeAll = !rootSecretKey ? describe.skip : describe
