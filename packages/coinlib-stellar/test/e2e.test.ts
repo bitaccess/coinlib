@@ -239,11 +239,7 @@ describe('e2e', () => {
     const recipientIndex = 0
     const payportBalance = '1.333' // Pretend the payport has this much balance
 
-    const unsignedTx = await payments.createSweepTransaction(indexToSweep, recipientIndex, { 
-      payportBalance,
-      feeRate: '1', // reduce utxoSpendCost
-      maxFeePercent: 100, // not omit any utxos higher than utxoSpendCost
-     })
+    const unsignedTx = await payments.createSweepTransaction(indexToSweep, recipientIndex, { payportBalance })
     const signedTx = await payments.signTransaction(unsignedTx)
     logger.log(`Sweeping ${signedTx.amount} XLM from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
     const broadcastResult = await payments.broadcastTransaction(signedTx)
