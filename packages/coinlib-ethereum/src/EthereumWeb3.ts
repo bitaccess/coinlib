@@ -34,6 +34,7 @@ import {
   TOKEN_WALLET_ABI,
   MAXIMUM_GAS,
   GAS_ESTIMATE_MULTIPLIER,
+  NETWORK_DATA_PROVIDERS,
 } from './constants'
 import { EthereumTransactionInfo, EthereumWeb3Config, EthTxType } from './types'
 import { retryIfDisconnected } from './utils'
@@ -89,7 +90,10 @@ export class EthereumWeb3 extends UnitConvertersUtil {
       height: raw.number,
       previousId: raw.parentHash,
       time: new Date(isNumber(raw.timestamp) ? raw.timestamp * 1000 : raw.timestamp),
-      raw,
+      raw: {
+        ...raw,
+        dataProvider: NETWORK_DATA_PROVIDERS.INFURA,
+      },
     }
   }
 

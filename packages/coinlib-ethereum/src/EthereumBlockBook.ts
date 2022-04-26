@@ -1,11 +1,11 @@
 import { BlockInfo, TransactionStatus } from '@bitaccess/coinlib-common'
 import { Logger } from '@faast/ts-common'
 import { BlockbookEthereum, GetAddressDetailsOptions, NormalizedTxEthereum } from 'blockbook-client'
-import { MIN_CONFIRMATIONS } from './constants'
+import { MIN_CONFIRMATIONS, NETWORK_DATA_PROVIDERS } from './constants'
 
 import { EthereumBlockbookConnectedConfig, EthereumTransactionInfo } from './types'
 import { UnitConvertersUtil } from './UnitConvertersUtil'
-import { handleException, retryIfDisconnected, resolveServer } from './utils'
+import { retryIfDisconnected, resolveServer } from './utils'
 
 export class EthereumBlockbook extends UnitConvertersUtil {
   private logger: Logger
@@ -15,7 +15,6 @@ export class EthereumBlockbook extends UnitConvertersUtil {
     super({ coinDecimals: config.decimals })
     this.logger = config.logger
     const { api } = resolveServer(config, this.logger)
-
     this.api = api
   }
 
@@ -27,17 +26,33 @@ export class EthereumBlockbook extends UnitConvertersUtil {
     await this.api.disconnect()
   }
 
+  getApi() {
+    if (!this.api) {
+      throw new Error('Blockbook api is not initialized')
+    }
+
+    return this.api
+  }
+
   async getBlock(id?: string | number): Promise<BlockInfo> {
     const blockId = id ?? (await this.getCurrentBlockNumber())
 
     const raw = await this._retryDced(() => this.api.getBlock(blockId))
+
+    if (!raw.time) {
+      throw new Error(`ethereum block ${id ?? 'latest'} missing timestamp`)
+    }
 
     const blockInfo: BlockInfo = {
       height: raw.height,
       id: raw.hash,
       previousId: raw.previousBlockHash,
       time: new Date(Number(raw.time) * 1000),
-      raw,
+      raw: {
+        ...raw,
+        txs: raw.txs,
+        dataProvider: NETWORK_DATA_PROVIDERS.BLOCKBOOK,
+      },
     }
 
     return blockInfo
