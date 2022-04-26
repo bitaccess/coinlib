@@ -26,6 +26,7 @@ import {
   CreateTransactionOptions,
   NetworkTypeT,
   createUnitConverters,
+  BlockInfo,
 } from '@bitaccess/coinlib-common'
 import { BlockbookEthereum, BlockInfoEthereum } from 'blockbook-client'
 import Web3 from 'web3'
@@ -311,14 +312,9 @@ export interface EthereumNodesConnection {
   blockbookApi: BlockbookEthereum
 }
 
-export interface EthereumStandardizedTransaction {
-  from: string
-  to: string
-  nonce: number
-  txHash: string
-  blockHeight: number
-  blockHash: string
-  blockTime: Date
-  value: string
-  confirmations?: number
+export interface EthereumNetworkDataProvider {
+  getBlock(id?: string | number): Promise<BlockInfo>
+  getCurrentBlockNumber(): Promise<number>
+  getTransactionInfo(txId: string): Promise<EthereumTransactionInfo>
+  getTransactionInfoERC20?: (txId: string, tokenAddress: string) => Promise<EthereumTransactionInfo>
 }
