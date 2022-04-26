@@ -3,11 +3,11 @@ import { Logger } from '@faast/ts-common'
 import { BlockbookEthereum, GetAddressDetailsOptions, NormalizedTxEthereum } from 'blockbook-client'
 import { MIN_CONFIRMATIONS } from './constants'
 
-import { EthereumBlockbookConnectedConfig, EthereumTransactionInfo } from './types'
+import { EthereumBlockbookConnectedConfig, EthereumTransactionInfo, NetworkDataProvider } from './types'
 import { UnitConvertersUtil } from './UnitConvertersUtil'
-import { handleException, retryIfDisconnected, resolveServer } from './utils'
+import { retryIfDisconnected, resolveServer } from './utils'
 
-export class EthereumBlockbook extends UnitConvertersUtil {
+export class NetworkDataBlockbook extends UnitConvertersUtil implements NetworkDataProvider {
   private logger: Logger
   private api: BlockbookEthereum
 
