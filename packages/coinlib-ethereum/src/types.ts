@@ -26,6 +26,7 @@ import {
   CreateTransactionOptions,
   NetworkTypeT,
   createUnitConverters,
+  BlockInfo,
 } from '@bitaccess/coinlib-common'
 import { BlockbookEthereum, BlockInfoEthereum } from 'blockbook-client'
 import Web3 from 'web3'
@@ -310,4 +311,11 @@ export type UnitConverters = ReturnType<typeof createUnitConverters>
 export interface EthereumNodesConnection {
   web3: Web3
   blockbookApi: BlockbookEthereum
+}
+
+export interface EthereumNetworkDataProvider {
+  getBlock(id?: string | number): Promise<BlockInfo>
+  getCurrentBlockNumber(): Promise<number>
+  getTransactionInfo(txId: string): Promise<EthereumTransactionInfo>
+  getTransactionInfoERC20?: (txId: string, tokenAddress: string) => Promise<EthereumTransactionInfo>
 }
