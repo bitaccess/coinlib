@@ -2,8 +2,15 @@ import * as request from 'request-promise-native'
 import { BigNumber } from 'bignumber.js'
 import { Logger, DelegateLogger } from '@faast/ts-common'
 import { TransactionConfig } from 'web3-core'
-import { AutoFeeLevels, BlockInfo } from '@bitaccess/coinlib-common'
-import { GetAddressDetailsOptions, NormalizedTxEthereum } from 'blockbook-client'
+import { AutoFeeLevels, BalanceActivity, BlockInfo, NewBlockCallback } from '@bitaccess/coinlib-common'
+import {
+  BlockInfoEthereum,
+  GetAddressDetailsOptions,
+  NormalizedTxEthereum,
+  SubscribeAddressesEvent,
+} from 'blockbook-client'
+import { get } from 'lodash'
+import { BlockTransactionObject, Transaction } from 'web3-eth'
 
 import {
   DEFAULT_GAS_PRICE_IN_WEI,
@@ -12,8 +19,15 @@ import {
   MAXIMUM_GAS,
   GAS_ESTIMATE_MULTIPLIER,
   ETHEREUM_TRANSFER_COST,
+  NETWORK_DATA_PROVIDERS,
 } from './constants'
-import { EthereumBlock, EthereumTransactionInfo, EthTxType, NetworkDataConfig } from './types'
+import {
+  EthereumBlock,
+  EthereumStandardizedTransaction,
+  EthereumTransactionInfo,
+  EthTxType,
+  NetworkDataConfig,
+} from './types'
 import { retryIfDisconnected } from './utils'
 import { EthereumBlockbook } from './EthereumBlockBook'
 import { EthereumWeb3 } from './EthereumWeb3'
@@ -52,13 +66,116 @@ export class NetworkData {
     await this.blockBookService.destroy()
   }
 
+  standardizeBlockBookTransaction(tx: NormalizedTxEthereum, blockInfoTime?: Date): EthereumStandardizedTransaction {
+    if (tx.vin.length !== 1 || tx.vout.length !== 1) {
+      throw new Error('transaction has less or more than one input or output')
+    }
+
+    const inputAddresses = tx.vin[0].addresses
+    const outputAddresses = tx.vout[0].addresses
+
+    if (!inputAddresses || !outputAddresses) {
+      throw new Error('transaction is missing from or to address')
+    }
+
+    const blockTime = blockInfoTime ? new Date(blockInfoTime) : new Date(tx.blockTime * 1000)
+
+    const standardizedTransaction: EthereumStandardizedTransaction = {
+      blockHash: tx.blockHash!,
+      blockHeight: tx.blockHeight,
+      blockTime,
+      from: inputAddresses[0],
+      nonce: tx.ethereumSpecific?.nonce!,
+      to: outputAddresses[0],
+      txHash: tx.txid,
+      value: tx.value,
+      confirmations: tx.confirmations,
+    }
+
+    return standardizedTransaction
+  }
+
+  standardizeBlockInfoRaw(blockInfo: BlockInfo) {
+    if (!blockInfo.raw) {
+      return
+    }
+
+    const dataProvider = get(blockInfo.raw, 'dataProvider')
+
+    if (dataProvider === NETWORK_DATA_PROVIDERS.BLOCKBOOK) {
+      const blockRaw = blockInfo.raw as BlockInfoEthereum
+      const blockTime = new Date(blockInfo.time)
+
+      const standardizedTransactions = (blockRaw.txs ?? []).map((tx: NormalizedTxEthereum) =>
+        this.standardizeBlockBookTransaction(tx, blockTime),
+      )
+
+      return {
+        ...blockRaw,
+        transactions: standardizedTransactions,
+      }
+    }
+
+    if (dataProvider === NETWORK_DATA_PROVIDERS.INFURA) {
+      const blockRaw = blockInfo.raw as BlockTransactionObject
+
+      const standardizedTransactions = blockRaw.transactions.map(tx => {
+        const standardizedTransaction: EthereumStandardizedTransaction = {
+          from: tx.from,
+          to: tx.to!,
+          blockHash: tx.blockHash!,
+          blockHeight: tx.blockNumber!,
+          blockTime: new Date(blockInfo.time),
+          nonce: tx.nonce,
+          txHash: tx.hash,
+          value: tx.value,
+        }
+
+        return standardizedTransaction
+      })
+
+      return {
+        ...blockRaw,
+        transactions: standardizedTransactions,
+      }
+    }
+
+    return blockInfo.raw
+  }
+
+  async subscribeAddresses(
+    addresses: string[],
+    txToBalanceActivityCallback: (
+      address: string,
+      standardizedTx: EthereumStandardizedTransaction,
+      rawTx: NormalizedTxEthereum,
+    ) => Promise<void>,
+  ) {
+    this.blockBookService.getApi().subscribeAddresses(addresses, async ({ address, tx }) => {
+      const standardizedTx = this.standardizeBlockBookTransaction(tx as NormalizedTxEthereum)
+
+      await txToBalanceActivityCallback(address, standardizedTx, tx as NormalizedTxEthereum)
+    })
+  }
+
+  async subscribeNewBlock(callbackFn: NewBlockCallback) {
+    await this.blockBookService.getApi().subscribeNewBlock(callbackFn)
+  }
+
   async getBlock(blockId: string | number): Promise<BlockInfo> {
+    let blockInfo: BlockInfo | undefined
+
     try {
-      return this.blockBookService.getBlock(blockId)
+      blockInfo = await this.blockBookService.getBlock(blockId)
     } catch (error) {
       this.logger.log('Request to blockbook getBlock failed, Falling back to web3 ', error)
 
-      return this.web3Service.getBlock(blockId)
+      blockInfo = await this.web3Service.getBlock(blockId)
+    }
+
+    return {
+      ...blockInfo,
+      raw: this.standardizeBlockInfoRaw(blockInfo),
     }
   }
 
