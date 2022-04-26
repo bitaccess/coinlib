@@ -22,6 +22,7 @@ import {
   PaymentsErrorCode,
   DEFAULT_MAX_FEE_PERCENT,
   LookupTxDataByHashes,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
 import { isUndefined, isType, Numeric, toBigNumber, assertType, isNumber } from '@faast/ts-common'
 import * as t from 'io-ts'
@@ -43,7 +44,6 @@ import {
 } from './types'
 import { sumUtxoValue, shuffleUtxos, isConfirmedUtxo, sha256FromHex, sumField } from './utils'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
-import BigNumber from 'bignumber.js'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 
 export abstract class BitcoinishPayments<Config extends BaseConfig> extends BitcoinishPaymentsUtils

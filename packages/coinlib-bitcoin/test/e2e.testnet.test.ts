@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import {
-  BalanceResult, TransactionStatus, NetworkType, FeeRateType, BalanceActivity, UtxoInfo,
+  BalanceResult, TransactionStatus, NetworkType, FeeRateType, BalanceActivity, UtxoInfo, BigNumber,
 } from '@bitaccess/coinlib-common'
 
 import {
@@ -15,7 +15,6 @@ import { toBigNumber } from '@faast/ts-common'
 import fixtures from './fixtures/singlesigTestnet'
 import { forcedUtxos, availableUtxos, unsignedHash, signedHex, mitxId } from './fixtures/multiInput'
 import { HdBitcoinPaymentsConfig } from '../src/types'
-import BigNumber from 'bignumber.js'
 import { omit, pick } from 'lodash'
 
 const SECRET_XPRV_FILE = 'test/keys/testnet.key'

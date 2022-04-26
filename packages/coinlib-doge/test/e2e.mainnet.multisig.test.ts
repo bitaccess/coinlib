@@ -8,18 +8,15 @@ import {
   DogeTransactionInfo,
   DogeSignedTransaction,
   publicKeyToString,
-  DEFAULT_MIN_TX_FEE
 } from '../src'
 import { delay, END_TRANSACTION_STATES, expectEqualWhenTruthy, logger } from './utils'
-import { NetworkType, TransactionStatus, FeeRateType, MultiInputMultisigData, FeeLevel } from '@bitaccess/coinlib-common'
+import { NetworkType, TransactionStatus, FeeRateType, MultiInputMultisigData, BigNumber, } from '@bitaccess/coinlib-common'
 import { NETWORKS } from '../src/constants'
 import path from 'path'
 import fs from 'fs'
 import { DERIVATION_PATH, MAINNET_ADDRESSES as ADDRESSES, M } from './fixtures/multisigMainnet'
 import { deriveHDNode, deriveKeyPair, xprvToXpub } from '../src/bip44'
-import BigNumber from 'bignumber.js'
 import { getFromTo } from '@bitaccess/coinlib-bitcoin/test/utils'
-import { add } from 'lodash'
 
 // Load secret key
 const SECRET_KEY_FILE = 'test/keys/mainnet.key'

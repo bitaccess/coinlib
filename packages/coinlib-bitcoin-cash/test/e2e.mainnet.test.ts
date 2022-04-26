@@ -7,10 +7,10 @@ import {
   NetworkType,
   FeeLevel,
   UtxoInfo,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { toBigNumber } from '@faast/ts-common'
-import BigNumber from 'bignumber.js'
 import { assertBitcoinishTxInfoEquality, getFromTo } from '@bitaccess/coinlib-bitcoin/test/utils'
 
 import {

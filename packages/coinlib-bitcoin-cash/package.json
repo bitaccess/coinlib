@@ -55,7 +55,6 @@
     "@faast/ts-common": "^0.6.0",
     "@types/bchaddrjs": "^0.4.0",
     "bchaddrjs": "^0.4.9",
-    "bignumber.js": "^9.0.2",
     "bip174": "^1.0.1",
     "bip32": "^2.0.5",
     "bitcoinforksjs-lib": "github:bitaccess/bitcoinjs-lib#cash520",

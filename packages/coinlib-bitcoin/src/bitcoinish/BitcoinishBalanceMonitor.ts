@@ -10,15 +10,16 @@ import {
   NewBlockCallback,
   FilterBlockAddressesCallback,
   BlockInfo,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
 import { EventEmitter } from 'events'
 import {
   AddressDetailsBitcoinTxs,
   NormalizedTxBitcoin,
   NormalizedTxBitcoinVin,
+  NormalizedTxBitcoinVinWithCoinbase,
   NormalizedTxBitcoinVout,
 } from 'blockbook-client'
-import BigNumber from 'bignumber.js'
 import { isUndefined, Numeric } from '@faast/ts-common'
 
 import { BitcoinishBalanceMonitorConfig, BitcoinishBlock } from './types'
@@ -75,7 +76,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
   private accumulateAddressTx(
     addressTransactions: { [address: string]: Set<NormalizedTxBitcoin> },
     tx: NormalizedTxBitcoin,
-    inout: NormalizedTxBitcoinVin | NormalizedTxBitcoinVout,
+    inout: NormalizedTxBitcoinVin | NormalizedTxBitcoinVinWithCoinbase | NormalizedTxBitcoinVout,
   ) {
     if (!(inout.isAddress && inout.addresses?.length)) {
       return
@@ -204,7 +205,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
     return { from: from.toString(), to: to.toString() }
   }
 
-  private extractStandardAddress(v: NormalizedTxBitcoinVout | NormalizedTxBitcoinVin): string | null {
+  private extractStandardAddress(v: NormalizedTxBitcoinVout | NormalizedTxBitcoinVinWithCoinbase | NormalizedTxBitcoinVin): string | null {
     const address = v.isAddress && v.addresses?.[0]
     return address ? this.utils.standardizeAddress(address) : null
   }
@@ -223,6 +224,10 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
     const utxosCreated: UtxoInfo[] = []
 
     for (const input of tx.vin) {
+      // sometimes input.value can be undefined for coinbase block
+      if (!input.value) {
+        input.value = '0'
+      }
       if (this.extractStandardAddress(input) === standardizedAddress) {
         netSatoshis = netSatoshis.minus(input.value)
         const inputTxid = input.txid

@@ -1,8 +1,7 @@
 import fs from 'fs'
 import path from 'path'
-import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel, UtxoInfo } from '@bitaccess/coinlib-common'
+import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel, UtxoInfo, BigNumber, } from '@bitaccess/coinlib-common'
 import { toBigNumber } from '@faast/ts-common'
-import BigNumber from 'bignumber.js'
 
 import {
   HdBitcoinPayments, BitcoinTransactionInfo, HdBitcoinPaymentsConfig,

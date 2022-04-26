@@ -7,7 +7,8 @@ import {
   FeeRateType,
   BalanceResult,
   TransactionStatus,
-  BlockInfo
+  BlockInfo,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
 import { Logger, DelegateLogger, isNil, assertType, Numeric, isUndefined } from '@faast/ts-common'
 import TronWeb, { Transaction as TronTransaction } from 'tronweb'
@@ -36,7 +37,6 @@ import {
 } from './constants'
 import { BaseTronPaymentsConfig, TronTransactionInfo } from './types'
 import { retryIfDisconnected, toError } from './utils'
-import BigNumber from 'bignumber.js'
 import { pick } from 'lodash'
 
 export class TronPaymentsUtils implements PaymentsUtils {

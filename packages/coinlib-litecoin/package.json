@@ -53,7 +53,6 @@
     "@bitaccess/coinlib-common": "file:../coinlib-common",
     "@faast/ts-common": "^0.6.0",
     "@types/lodash": "^4.14.150",
-    "bignumber.js": "^9.0.0",
     "bip174-bigint": "github:bitaccess/bip174#bigint",
     "bip32": "^2.0.5",
     "bitcoinjs-lib-bigint": "github:bitaccess/bitcoinjs-lib#bigint-5-2-0",

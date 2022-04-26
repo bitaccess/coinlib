@@ -1,7 +1,7 @@
 import * as bitcoinCash from 'bitcoinforksjs-lib'
 import bchAddr from 'bchaddrjs'
 import { bitcoinish, AddressType } from '@bitaccess/coinlib-bitcoin'
-import { UtxoInfo, TransactionStatus, MultisigData } from '@bitaccess/coinlib-common'
+import { UtxoInfo, TransactionStatus, MultisigData, BigNumber, } from '@bitaccess/coinlib-common'
 import { isMultisigFullySigned } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
 import { toBitcoinishConfig } from './utils'
 import {
@@ -15,7 +15,6 @@ import {
 import { BITCOIN_SEQUENCE_RBF, SINGLESIG_ADDRESS_TYPE, DEFAULT_ADDRESS_FORMAT } from './constants'
 import { estimateBitcoinCashTxSize } from './helpers'
 import { BitcoinCashPaymentsUtils } from './BitcoinCashPaymentsUtils'
-import BigNumber from 'bignumber.js'
 
 export abstract class BaseBitcoinCashPayments<
   Config extends BaseBitcoinCashPaymentsConfig

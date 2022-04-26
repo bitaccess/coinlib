@@ -1,11 +1,10 @@
-import { NetworkType, BlockInfo }  from '@bitaccess/coinlib-common'
+import { NetworkType, BlockInfo, BigNumber, }  from '@bitaccess/coinlib-common'
 import { Logger, assertType, DelegateLogger } from '@faast/ts-common'
 import * as Stellar from 'stellar-sdk'
 
-import { BaseStellarConfig, StellarRawLedger, StellarRawTransaction, StellarLedger } from './types'
+import { BaseStellarConfig, StellarRawTransaction, StellarLedger } from './types'
 import { DEFAULT_NETWORK, PACKAGE_NAME } from './constants'
 import { resolveStellarServer, retryIfDisconnected, isStellarLedger } from './utils'
-import BigNumber from 'bignumber.js';
 import { toMainDenominationBigNumber } from './helpers';
 
 export abstract class StellarConnected {
