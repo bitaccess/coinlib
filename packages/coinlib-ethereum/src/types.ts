@@ -297,10 +297,9 @@ export const NetworkDataConfig = requiredOptionalCodec(
 
 export type NetworkDataConfig = t.TypeOf<typeof NetworkDataConfig>
 
-export type EthereumBalanceMonitorConfig = EthereumBlockbookConnectedConfig &
-  EthereumPaymentsUtilsConfig & {
-    utils: EthereumPaymentsUtils
-  }
+export type EthereumBalanceMonitorConfig = EthereumPaymentsUtilsConfig & {
+  utils: EthereumPaymentsUtils
+}
 
 export const EthereumBlock = BlockInfoEthereum
 export type EthereumBlock = BlockInfoEthereum
@@ -310,4 +309,16 @@ export type UnitConverters = ReturnType<typeof createUnitConverters>
 export interface EthereumNodesConnection {
   web3: Web3
   blockbookApi: BlockbookEthereum
+}
+
+export interface EthereumStandardizedTransaction {
+  from: string
+  to: string
+  nonce: number
+  txHash: string
+  blockHeight: number
+  blockHash: string
+  blockTime: Date
+  value: string
+  confirmations?: number
 }
