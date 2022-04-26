@@ -29,28 +29,28 @@ import {
   NetworkDataConfig,
 } from './types'
 import { retryIfDisconnected } from './utils'
-import { EthereumBlockbook } from './EthereumBlockBook'
-import { EthereumWeb3 } from './EthereumWeb3'
+import { NetworkDataBlockbook } from './NetworkDataBlockbook'
+import { NetworkDataWeb3 } from './NetworkDataWeb3'
 
 export class NetworkData {
   private gasStationUrl: string | undefined
   private parityUrl: string | undefined
   private logger: Logger
-  private blockBookService: EthereumBlockbook
-  private web3Service: EthereumWeb3
+  private blockBookService: NetworkDataBlockbook
+  private web3Service: NetworkDataWeb3
 
   constructor(config: NetworkDataConfig) {
     this.gasStationUrl = config.gasStationUrl ?? GAS_STATION_URL
     this.logger = new DelegateLogger(config.logger, 'NetworkData')
 
-    this.blockBookService = new EthereumBlockbook({
+    this.blockBookService = new NetworkDataBlockbook({
       ...config.blockBookConfig,
       server: config.blockBookConfig.nodes,
       logger: this.logger,
       decimals: config.web3Config.decimals,
     })
 
-    this.web3Service = new EthereumWeb3({
+    this.web3Service = new NetworkDataWeb3({
       ...config.web3Config,
       logger: this.logger,
     })

@@ -36,11 +36,11 @@ import {
   GAS_ESTIMATE_MULTIPLIER,
   NETWORK_DATA_PROVIDERS,
 } from './constants'
-import { EthereumTransactionInfo, EthereumWeb3Config, EthTxType } from './types'
+import { EthereumTransactionInfo, EthereumWeb3Config, EthTxType, NetworkDataProvider } from './types'
 import { retryIfDisconnected } from './utils'
 import { UnitConvertersUtil } from './UnitConvertersUtil'
 
-export class EthereumWeb3 extends UnitConvertersUtil {
+export class NetworkDataWeb3 extends UnitConvertersUtil implements NetworkDataProvider {
   web3: Web3
   eth: Web3['eth']
   logger: Logger
