@@ -14,10 +14,8 @@ import { isUndefined, Numeric } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
 import { EventEmitter } from 'events'
 import { get } from 'lodash'
-import { BlockTransactionObject, Transaction } from 'web3-eth'
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
-import { NetworkData } from './NetworkData'
-import { EthereumBalanceMonitorConfig, EthereumBlock, EthereumStandardizedTransaction } from './types'
+import { EthereumBalanceMonitorConfig, EthereumStandardizedTransaction } from './types'
 
 export class EthereumBalanceMonitor implements BalanceMonitor {
   readonly coinName: string
@@ -39,7 +37,7 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
   async destroy(): Promise<void> {
     this.events.removeAllListeners('tx')
 
-    await this.utils.networkData.disConnectBlockBook()
+    await this.utils.networkData.disconnectBlockBook()
   }
 
   async subscribeAddresses(addresses: string[]): Promise<void> {
