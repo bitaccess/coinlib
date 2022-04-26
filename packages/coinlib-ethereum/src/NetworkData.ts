@@ -48,7 +48,7 @@ export class NetworkData {
     await this.blockBookService.init()
   }
 
-  async disConnectBlockBook(): Promise<void> {
+  async disconnectBlockBook(): Promise<void> {
     await this.blockBookService.destroy()
   }
 
@@ -66,7 +66,7 @@ export class NetworkData {
     return this.blockBookService.getAddressDetails(address, options)
   }
 
-  async getNetworkData(
+  async getGasAndNonceForNewTx(
     txType: EthTxType,
     speed: AutoFeeLevels,
     from: string,
