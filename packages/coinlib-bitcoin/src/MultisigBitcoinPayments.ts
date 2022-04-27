@@ -11,11 +11,7 @@ import { omit } from 'lodash'
 import { HdBitcoinPayments } from './HdBitcoinPayments'
 import { KeyPairBitcoinPayments } from './KeyPairBitcoinPayments'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
-import {
-  CreateTransactionOptions,
-  ResolveablePayport,
-  PayportOutput,
-} from '@bitaccess/coinlib-common'
+import { CreateTransactionOptions, ResolveablePayport, PayportOutput } from '@bitaccess/coinlib-common'
 import { getMultisigPaymentScript } from './helpers'
 import { Numeric } from '@faast/ts-common'
 import { DEFAULT_MULTISIG_ADDRESS_TYPE } from './constants'
@@ -154,7 +150,7 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
    * the transaction is validated and finalized.
    */
   async combinePartiallySignedTransactions(txs: BitcoinSignedTransaction[]): Promise<BitcoinSignedTransaction> {
-    const {baseTx, combinedPsbt, updatedMultisigData} =  preCombinePartiallySignedTransactions(txs, this.psbtOptions)
+    const { baseTx, combinedPsbt, updatedMultisigData } = preCombinePartiallySignedTransactions(txs, this.psbtOptions)
     return updateSignedMultisigTx(baseTx, combinedPsbt, updatedMultisigData)
   }
 

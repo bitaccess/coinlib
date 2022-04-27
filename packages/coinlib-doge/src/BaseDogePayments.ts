@@ -14,7 +14,6 @@ import { BITCOIN_SEQUENCE_RBF, DEFAULT_FEE_LEVEL_BLOCK_TARGETS } from './constan
 import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateDogeTxSize } from './helpers'
 import { isMultisigFullySigned } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
 
-
 // tslint:disable-next-line:max-line-length
 export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> extends bitcoinish.BitcoinishPayments<
   Config
@@ -128,11 +127,7 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
       if (typeof signer === 'undefined') {
         throw new Error('Signer index for utxo is not provided')
       }
-      psbt.addInput(await this.getPsbtInputData(
-        input,
-        this.getPaymentScript(signer),
-        this.addressType,
-      ))
+      psbt.addInput(await this.getPsbtInputData(input, this.getPaymentScript(signer), this.addressType))
     }
     for (const output of outputs) {
       psbt.addOutput({
@@ -146,5 +141,4 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
   async serializePaymentTx(tx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<string> {
     return (await this.buildPsbt(tx, fromIndex)).toHex()
   }
-
 }

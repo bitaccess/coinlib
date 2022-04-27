@@ -22,7 +22,7 @@ export const DEFAULT_DUST_THRESHOLD = 546
 export const DEFAULT_NETWORK_MIN_RELAY_FEE = 1000
 
 /** Sequence to use for each input such that RBF is opted into */
-export const LITECOIN_SEQUENCE_RBF = 0xFFFFFFFD
+export const LITECOIN_SEQUENCE_RBF = 0xfffffffd
 
 /**
  * The minimum fee this library should ever use for a transaction (overrides recommended levels).
@@ -47,11 +47,11 @@ export const NETWORK_MAINNET = {
   bech32: 'ltc',
   bip32: {
     public: 0x0488b21e,
-    private: 0x0488ade4
+    private: 0x0488ade4,
   },
   pubKeyHash: 0x30,
   scriptHash: 0x32,
-  wif: 0xb0
+  wif: 0xb0,
 }
 
 export const NETWORK_TESTNET = {
@@ -59,11 +59,11 @@ export const NETWORK_TESTNET = {
   bech32: 'tltc',
   bip32: {
     public: 0x043587cf,
-    private: 0x04358394
+    private: 0x04358394,
   },
   pubKeyHash: 0x6f,
   scriptHash: 0x3a,
-  wif: 0xef
+  wif: 0xef,
 }
 
 export const NETWORKS = {
@@ -74,7 +74,7 @@ export const NETWORKS = {
 export const DEFAULT_MAINNET_SERVER = process.env.LITECOIN_SERVER_URL
   ? process.env.LITECOIN_SERVER_URL.split(',')
   : ['https://ltc1.trezor.io', 'https://ltc2.trezor.io']
-export const DEFAULT_TESTNET_SERVER =   process.env.LITECOIN_TESTNET_SERVER_URL || '' // will default to mainnet due to not testing LTC testnet
+export const DEFAULT_TESTNET_SERVER = process.env.LITECOIN_TESTNET_SERVER_URL || '' // will default to mainnet due to not testing LTC testnet
 
 export const DEFAULT_FEE_LEVEL = FeeLevel.Medium
 

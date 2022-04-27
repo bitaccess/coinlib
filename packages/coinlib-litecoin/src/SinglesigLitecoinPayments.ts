@@ -24,7 +24,11 @@ export abstract class SinglesigLitecoinPayments<
   abstract getKeyPair(index: number): LitecoinjsKeyPair
 
   getPaymentScript(index: number): bitcoin.payments.Payment {
-    return bitcoinish.getSinglesigPaymentScript(this.bitcoinjsNetwork, this.addressType, this.getKeyPair(index).publicKey)
+    return bitcoinish.getSinglesigPaymentScript(
+      this.bitcoinjsNetwork,
+      this.addressType,
+      this.getKeyPair(index).publicKey,
+    )
   }
 
   signMultisigTransaction(tx: LitecoinUnsignedTransaction): LitecoinSignedTransaction {

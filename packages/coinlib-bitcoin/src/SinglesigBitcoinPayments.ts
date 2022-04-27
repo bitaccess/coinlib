@@ -6,18 +6,14 @@ import {
   SinglesigAddressType,
   AddressType,
 } from './types'
-import {  getSinglesigPaymentScript } from './helpers'
+import { getSinglesigPaymentScript } from './helpers'
 import { BaseBitcoinPayments } from './BaseBitcoinPayments'
 import { DEFAULT_SINGLESIG_ADDRESS_TYPE } from './constants'
-import { 
-  SinglesigBitcoinishPayments, 
-  signMultisigTransaction,
-  signTransaction,
-} from './bitcoinish'
+import { SinglesigBitcoinishPayments, signMultisigTransaction, signTransaction } from './bitcoinish'
 
-export abstract class SinglesigBitcoinPayments<
-  Config extends SinglesigBitcoinPaymentsConfig
-> extends BaseBitcoinPayments<Config> implements SinglesigBitcoinishPayments {
+export abstract class SinglesigBitcoinPayments<Config extends SinglesigBitcoinPaymentsConfig>
+  extends BaseBitcoinPayments<Config>
+  implements SinglesigBitcoinishPayments {
   addressType: SinglesigAddressType
 
   constructor(config: SinglesigBitcoinPaymentsConfig) {

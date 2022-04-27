@@ -1,9 +1,9 @@
 import { BIP32Interface as HDNode, fromBase58 } from 'bip32'
 import { BitcoinjsNetwork } from '@bitaccess/coinlib-bitcoin'
-import { SinglesigAddressType, LitecoinjsKeyPair, LitecoinAddressFormat } from './types';
+import { SinglesigAddressType, LitecoinjsKeyPair, LitecoinAddressFormat } from './types'
 import { publicKeyToAddress } from './helpers'
-import { NetworkType } from '@bitaccess/coinlib-common';
-import { NETWORKS } from './constants';
+import { NetworkType } from '@bitaccess/coinlib-common'
+import { NETWORKS } from './constants'
 import { convertXPrefixHdKeys } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
 
 export { HDNode, convertXPrefixHdKeys }
@@ -65,7 +65,7 @@ export function xprvToXpub(xprv: string, derivationPath: string, networkType: Ne
 export function isValidXprv(xprv: string, network?: BitcoinjsNetwork): boolean {
   try {
     return !fromBase58(xprv, network).isNeutered()
-  } catch(e) {
+  } catch (e) {
     return false
   }
 }
@@ -73,7 +73,7 @@ export function isValidXprv(xprv: string, network?: BitcoinjsNetwork): boolean {
 export function isValidXpub(xpub: string, network?: BitcoinjsNetwork): boolean {
   try {
     return fromBase58(xpub, network).isNeutered()
-  } catch(e) {
+  } catch (e) {
     return false
   }
 }
@@ -82,7 +82,7 @@ export function isValidXpub(xpub: string, network?: BitcoinjsNetwork): boolean {
 export function validateHdKey(hdKey: string, network?: BitcoinjsNetwork): string | undefined {
   try {
     fromBase58(hdKey, network)
-  } catch(e) {
+  } catch (e) {
     return e.toString()
   }
 }

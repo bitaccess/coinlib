@@ -23,7 +23,7 @@ export const DEFAULT_DUST_THRESHOLD = 546
 export const DEFAULT_NETWORK_MIN_RELAY_FEE = 1000
 
 /** Sequence to use for each input such that RBF is opted into */
-export const BITCOIN_SEQUENCE_RBF = 0xFFFFFFFD
+export const BITCOIN_SEQUENCE_RBF = 0xfffffffd
 
 /**
  * The minimum fee this library should ever use for a transaction (overrides recommended levels).

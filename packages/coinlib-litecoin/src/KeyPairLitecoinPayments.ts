@@ -4,12 +4,7 @@ import { PUBLIC_CONFIG_OMIT_FIELDS } from '@bitaccess/coinlib-bitcoin'
 
 import { SinglesigLitecoinPayments } from './SinglesigLitecoinPayments'
 import { KeyPairLitecoinPaymentsConfig, LitecoinjsKeyPair } from './types'
-import {
-  privateKeyToKeyPair,
-  publicKeyToAddress,
-  publicKeyToKeyPair,
-  publicKeyToString,
-} from './helpers'
+import { privateKeyToKeyPair, publicKeyToAddress, publicKeyToKeyPair, publicKeyToString } from './helpers'
 import { DEFAULT_ADDRESS_FORMAT } from './constants'
 
 export class KeyPairLitecoinPayments extends SinglesigLitecoinPayments<KeyPairLitecoinPaymentsConfig> {
@@ -35,7 +30,9 @@ export class KeyPairLitecoinPayments extends SinglesigLitecoinPayments<KeyPairLi
         publicKey = privateKeyToKeyPair(value, this.bitcoinjsNetwork).publicKey
         privateKey = value
       } else {
-        throw new Error(`KeyPairBitcoinPaymentsConfig.keyPairs[${i}] is not a valid ${this.networkType} private or public key`)
+        throw new Error(
+          `KeyPairBitcoinPaymentsConfig.keyPairs[${i}] is not a valid ${this.networkType} private or public key`,
+        )
       }
 
       const address = publicKeyToAddress(

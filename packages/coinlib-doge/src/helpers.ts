@@ -2,7 +2,6 @@ import { createUnitConverters, NetworkType } from '@bitaccess/coinlib-common'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 
-
 import { DECIMAL_PLACES, NETWORKS } from './constants'
 
 const {
@@ -70,9 +69,7 @@ export function estimateDogeTxSize(
   outputCounts: { [k: string]: number },
   networkType: NetworkType,
 ) {
-  return bitcoinish.estimateTxSize(
-    inputCounts,
-    outputCounts,
-    (address: string) => bitcoin.address.toOutputScript(address, NETWORKS[networkType]),
+  return bitcoinish.estimateTxSize(inputCounts, outputCounts, (address: string) =>
+    bitcoin.address.toOutputScript(address, NETWORKS[networkType]),
   )
 }

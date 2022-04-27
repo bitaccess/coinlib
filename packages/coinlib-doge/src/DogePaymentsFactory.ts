@@ -35,7 +35,7 @@ export class DogePaymentsFactory extends PaymentsFactory<
     if (KeyPairDogePaymentsConfig.is(config)) {
       return new KeyPairDogePayments(config)
     }
-    if (MultisigDogePaymentsConfig.is(config)){
+    if (MultisigDogePaymentsConfig.is(config)) {
       return new MultisigDogePayments(config)
     }
     throw new Error(`Cannot instantiate ${this.packageName} for unsupported config`)

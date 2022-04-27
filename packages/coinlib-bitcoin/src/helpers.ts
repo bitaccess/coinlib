@@ -58,9 +58,7 @@ export function estimateBitcoinTxSize(
   outputCounts: { [k: string]: number },
   networkType: NetworkType,
 ) {
-  return bitcoinish.estimateTxSize(
-    inputCounts,
-    outputCounts,
-    (address: string) => bitcoin.address.toOutputScript(address, NETWORKS[networkType]),
+  return bitcoinish.estimateTxSize(inputCounts, outputCounts, (address: string) =>
+    bitcoin.address.toOutputScript(address, NETWORKS[networkType]),
   )
 }

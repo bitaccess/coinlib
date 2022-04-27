@@ -1,22 +1,11 @@
-import {
-  UtxoInfo,
-  BaseConfig,
-  AddressMultisigData,
-  BaseMultisigData,
-  MultisigData,
-  TransactionStatus,
-  MultiInputMultisigData,
-} from '@bitaccess/coinlib-common'
+import { BaseConfig, BaseMultisigData, MultiInputMultisigData } from '@bitaccess/coinlib-common'
 import {
   BitcoinishSignedTransaction,
   BitcoinishUnsignedTransaction,
-  BitcoinishSignedTransactionData,
   BitcoinjsKeyPair,
-  BitcoinishPaymentsConfig,
   BitcoinjsNetwork,
   BitcoinishPaymentTx,
 } from './types'
-import { isNumber } from '@faast/ts-common'
 import { publicKeyToString, validateAndFinalizeSignedTx, updateSignedMultisigTx } from './helpers'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { cloneDeep } from 'lodash'
