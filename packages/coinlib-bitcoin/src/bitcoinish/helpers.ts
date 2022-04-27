@@ -8,7 +8,7 @@ import {
   BitcoinishSignedTransactionData,
   BitcoinishUnsignedTransaction
 } from './types'
-import { TransactionStatus } from '@bitaccess/coinlib-common'
+import { TransactionStatus, BaseMultisigData, MultisigData } from '@bitaccess/coinlib-common'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { isString } from '@faast/ts-common'
 import b58 from 'bs58check'
@@ -182,6 +182,42 @@ export function validateAndFinalizeSignedTx(
     data: {
       hex: txHex,
       partial: false,
+      unsignedTxHash,
+      changeOutputs: tx.data?.changeOutputs,
+    },
+  }
+}
+
+
+export function isMultisigFullySigned(multisigData: MultisigData): boolean {
+  if (BaseMultisigData.is(multisigData)) {
+    return multisigData.signedAccountIds.length >= multisigData.m
+  }
+  return Object.values(multisigData).every(isMultisigFullySigned)
+}
+
+export function updateSignedMultisigTx(
+  tx: BitcoinishSignedTransaction | BitcoinishUnsignedTransaction,
+  psbt: bitcoin.Psbt,
+  updatedMultisigData: MultisigData,
+): BitcoinishSignedTransaction {
+  if (isMultisigFullySigned(updatedMultisigData)) {
+    const finalizedTx = validateAndFinalizeSignedTx(tx, psbt)
+    return {
+      ...finalizedTx,
+      multisigData: updatedMultisigData,
+    }
+  }
+  const combinedHex = psbt.toHex()
+  const unsignedTxHash = BitcoinishSignedTransactionData.is(tx.data) ? tx.data.unsignedTxHash : tx.data.rawHash
+  return {
+    ...tx,
+    id: '',
+    status: TransactionStatus.Signed,
+    multisigData: updatedMultisigData,
+    data: {
+      hex: combinedHex,
+      partial: true,
       unsignedTxHash,
       changeOutputs: tx.data?.changeOutputs,
     },

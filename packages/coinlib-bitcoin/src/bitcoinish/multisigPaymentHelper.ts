@@ -8,7 +8,7 @@ import {
 } from '@bitaccess/coinlib-common'
 import { BitcoinishSignedTransaction, BitcoinishUnsignedTransaction, BitcoinishSignedTransactionData } from './types'
 import { isNumber } from '@faast/ts-common'
-import { publicKeyToString, validateAndFinalizeSignedTx } from './helpers'
+import { publicKeyToString, validateAndFinalizeSignedTx, isMultisigFullySigned } from './helpers'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { cloneDeep } from 'lodash'
 
@@ -123,12 +123,6 @@ export function combineMultisigData(m1: MultisigData, m2: MultisigData) {
   }
 }
 
-export function isMultisigFullySigned(multisigData: MultisigData): boolean {
-  if (BaseMultisigData.is(multisigData)) {
-    return multisigData.signedAccountIds.length >= multisigData.m
-  }
-  return Object.values(multisigData).every(isMultisigFullySigned)
-}
 
 export function preCombinePartiallySignedTransactions(
   txs: (BitcoinishSignedTransaction & { data: { unsignedTxHash?: string; partial?: boolean } })[],
@@ -168,30 +162,3 @@ export function preCombinePartiallySignedTransactions(
   return { baseTx, combinedPsbt, updatedMultisigData }
 }
 
-export function updateSignedMultisigTx(
-  tx: BitcoinishSignedTransaction | BitcoinishUnsignedTransaction,
-  psbt: bitcoin.Psbt,
-  updatedMultisigData: MultisigData,
-): BitcoinishSignedTransaction {
-  if (isMultisigFullySigned(updatedMultisigData)) {
-    const finalizedTx = validateAndFinalizeSignedTx(tx, psbt)
-    return {
-      ...finalizedTx,
-      multisigData: updatedMultisigData,
-    }
-  }
-  const combinedHex = psbt.toHex()
-  const unsignedTxHash = BitcoinishSignedTransactionData.is(tx.data) ? tx.data.unsignedTxHash : tx.data.rawHash
-  return {
-    ...tx,
-    id: '',
-    status: TransactionStatus.Signed,
-    multisigData: updatedMultisigData,
-    data: {
-      hex: combinedHex,
-      partial: true,
-      unsignedTxHash,
-      changeOutputs: tx.data?.changeOutputs,
-    },
-  }
-}
