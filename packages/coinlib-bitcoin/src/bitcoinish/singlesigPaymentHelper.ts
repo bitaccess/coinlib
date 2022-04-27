@@ -36,7 +36,7 @@ export interface SinglesigBitcoinishPayments extends BitcoinishPayments<BaseConf
 }
 
 /** Backwards compatible multisig transaction signing for non-multi input txs */
-export function signMultisigTransactionLegacy(
+function signMultisigTransactionLegacy(
   tx: BitcoinishUnsignedTransaction,
   psbt: bitcoin.Psbt,
   multisigData: BaseMultisigData,
@@ -72,7 +72,7 @@ export function signMultisigTransactionLegacy(
   return updateSignedMultisigTx(tx, psbt, updatedMultisigTx)
 }
 
-export function signMultisigTransactionMultiInput(
+function signMultisigTransactionMultiInput(
   tx: BitcoinishUnsignedTransaction,
   psbt: bitcoin.Psbt,
   multisigData: MultiInputMultisigData,
