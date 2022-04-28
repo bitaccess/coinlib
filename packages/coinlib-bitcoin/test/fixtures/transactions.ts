@@ -35,7 +35,6 @@ export const txInfo_beae1: BitcoinTransactionInfo = {
         ],
         'isAddress': true,
         'value': '20045195',
-        'coinbase': undefined
       }
     ],
     'vout': [

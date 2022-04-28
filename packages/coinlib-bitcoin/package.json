@@ -53,7 +53,7 @@
     "bip174-bigint": "github:bitaccess/bip174#bigint",
     "bip32": "^2.0.5",
     "bitcoinjs-lib-bigint": "github:bitaccess/bitcoinjs-lib#bigint-5-2-0",
-    "blockbook-client": "^0.7.3",
+    "blockbook-client": "^0.7.4",
     "bs58": "^4.0.1",
     "io-ts": "^1.10.4",
     "lodash": "^4.17.15",
