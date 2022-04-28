@@ -316,5 +316,5 @@ export interface EthereumNetworkDataProvider {
   getBlock(id?: string | number): Promise<BlockInfo>
   getCurrentBlockNumber(): Promise<number>
   getTransactionInfo(txId: string): Promise<EthereumTransactionInfo>
-  getTransactionInfoERC20?: (txId: string, tokenAddress: string) => Promise<EthereumTransactionInfo>
+  getTransactionInfoERC20(txId: string, tokenAddress?: string): Promise<EthereumTransactionInfo>
 }
