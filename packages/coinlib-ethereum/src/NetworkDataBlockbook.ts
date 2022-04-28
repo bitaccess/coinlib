@@ -183,7 +183,6 @@ export class NetworkDataBlockbook extends UnitConvertersUtil implements Ethereum
         throw new Error(`tx tokenTransfer does not contain token=${tokenAddress}`)
       }
 
-      // USDT token has decimal place of 6, unlike other tokens that are 18 decimals;
       tokenDecimals = transferredToken.decimals
       erc20TokenAddress = transferredToken.token
       tokenSymbol = transferredToken.symbol
@@ -229,6 +228,8 @@ export class NetworkDataBlockbook extends UnitConvertersUtil implements Ethereum
       console.log({ toAddress, txData })
 
       toAddress = txData.inputs[0]
+      // USDT token has decimal place of 6, unlike other tokens that are 18 decimals;
+      // so we have to use a custom unitConverter, the default one uses that 18 decimals
       const useCustomUnitConverter = tokenDecimals !== ETH_DECIMAL_PLACES
       const customUnitConverter = this.getCustomUnitConverter(tokenDecimals)
 
