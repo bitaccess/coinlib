@@ -228,7 +228,13 @@ export class NetworkData {
   }
 
   async getTransactionInfoERC20(txId: string, tokenAddress?: string): Promise<EthereumTransactionInfo> {
-    return this.web3Service.getTransactionInfoERC20(txId, tokenAddress)
+    try {
+      return this.blockBookService.getTransactionInfoERC20(txId, tokenAddress)
+    } catch (error) {
+      this.logger.log('Request to blockbook getTransactionInfoERC20 failed, Falling back to web3 ', error)
+
+      return this.web3Service.getTransactionInfoERC20(txId, tokenAddress)
+    }
   }
 
   async getTransactionInfo(txId: string, tokenAddress?: string): Promise<EthereumTransactionInfo> {
