@@ -210,7 +210,6 @@ export class NetworkDataBlockbook extends UnitConvertersUtil implements Ethereum
         )
       }
       const txData = tokenDecoder.decodeData(txInput)
-      console.log({ toAddress, txData })
 
       toAddress = txData.inputs[0]
       // USDT token has decimal place of 6, unlike other tokens that are 18 decimals;
