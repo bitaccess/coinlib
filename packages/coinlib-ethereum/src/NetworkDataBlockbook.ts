@@ -292,6 +292,8 @@ export class NetworkDataBlockbook extends UnitConvertersUtil implements Ethereum
       toAddress = web3.utils.toChecksumAddress(txData.inputs[1]).toLowerCase()
 
       amount = this.getErc20TransferLogAmount(txSpecific, tokenDecimals)
+    } else {
+      throw new Error('tx is neither ERC20 token transfer nor sweep')
     }
 
     const result: EthereumTransactionInfo = {
