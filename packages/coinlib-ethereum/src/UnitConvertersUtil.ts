@@ -30,4 +30,8 @@ export class UnitConvertersUtil {
     this.toMainDenominationEth = ethUnitConverters.toMainDenominationString
     this.toBaseDenominationEth = ethUnitConverters.toBaseDenominationString
   }
+
+  getCustomUnitConverter(decimals: number) {
+    return createUnitConverters(decimals)
+  }
 }
