@@ -54,8 +54,10 @@
     "bitcoinjs-lib-bigint": "github:bitaccess/bitcoinjs-lib#bigint-5-2-0",
     "blockbook-client": "^0.7.4",
     "bs58": "^4.0.1",
+    "i": "^0.3.7",
     "io-ts": "^1.10.4",
     "lodash": "^4.17.15",
+    "npm": "^8.8.0",
     "promise-retry": "^1.1.1",
     "request-promise-native": "^1.0.8"
   }

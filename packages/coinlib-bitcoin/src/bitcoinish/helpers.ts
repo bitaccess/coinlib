@@ -8,7 +8,7 @@ import {
   BitcoinishSignedTransactionData,
   BitcoinishUnsignedTransaction
 } from './types'
-import { TransactionStatus, BaseMultisigData, MultisigData } from '@bitaccess/coinlib-common'
+import { TransactionStatus, BaseMultisigData, MultisigData, ecpair } from '@bitaccess/coinlib-common'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { isString } from '@faast/ts-common'
 import b58 from 'bs58check'
@@ -36,7 +36,7 @@ export function standardizeAddress(address: string, network: BitcoinjsNetwork): 
 
 export function isValidPublicKey(publicKey: string | Buffer, network: BitcoinjsNetwork): boolean {
   try {
-    bitcoin.ECPair.fromPublicKey(publicKeyToBuffer(publicKey), { network })
+    ecpair.fromPublicKey(publicKeyToBuffer(publicKey), { network })
     return true
   } catch (e) {
     return false
@@ -125,11 +125,11 @@ export function publicKeyToAddress(
 }
 
 export function publicKeyToKeyPair(publicKey: string | Buffer, network: BitcoinjsNetwork): BitcoinjsKeyPair {
-  return bitcoin.ECPair.fromPublicKey(publicKeyToBuffer(publicKey), { network })
+  return ecpair.fromPublicKey(publicKeyToBuffer(publicKey), { network })
 }
 
 export function privateKeyToKeyPair(privateKey: string, network: BitcoinjsNetwork): BitcoinjsKeyPair {
-  return bitcoin.ECPair.fromWIF(privateKey, network)
+  return ecpair.fromWIF(privateKey, network)
 }
 
 export function privateKeyToAddress(privateKey: string, network: BitcoinjsNetwork, addressType: SinglesigAddressType) {
