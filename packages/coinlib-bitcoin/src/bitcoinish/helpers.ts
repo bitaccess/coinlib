@@ -162,11 +162,16 @@ export function convertXPrefixHdKeys(hdKey: string, network: BitcoinjsNetwork): 
   return b58.encode(data)
 }
 
+function keypairValidator(publicKey: Buffer, hash: Buffer, signature: Buffer): boolean{
+  const keypair = ecpair.fromPublicKey(publicKey)
+  return keypair.verify(hash, signature)
+}
+
 export function validateAndFinalizeSignedTx(
   tx: BitcoinishSignedTransaction | BitcoinishUnsignedTransaction,
   psbt: bitcoin.Psbt,
 ): BitcoinishSignedTransaction {
-  if (!psbt.validateSignaturesOfAllInputs()) {
+  if (!psbt.validateSignaturesOfAllInputs(keypairValidator)) {
     throw new Error('Failed to validate signatures of all inputs')
   }
   psbt.finalizeAllInputs()
