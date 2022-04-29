@@ -177,9 +177,9 @@ function runHardcodedPublicKeyTests(
   })
   it('get a balance using an address', async () => {
     expect(await payments.getBalance({ address: addresses[0] })).toEqual({
-      confirmedBalance: '1400',
+      confirmedBalance: '993.02',
       unconfirmedBalance: '0',
-      spendableBalance: '1400',
+      spendableBalance: '993.02',
       sweepable: true,
       requiresActivation: false,
     })
