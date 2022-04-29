@@ -9,13 +9,13 @@ import {
   isValidXpub,
 } from '../src/bip44'
 import { AddressType } from '../src'
-import { fromBase58 } from 'bip32'
+import { bip32 } from '@bitaccess/coinlib-common'
 import {
   DERIVED_XPRV, DERIVATION_PATH, ROOT_XPRV, NETWORK, PARTIALLY_DERIVED_XPRV, ADDRESS_LEGACY,
   ADDRESS_SEGWIT_P2SH, ADDRESS_SEGWIT_NATIVE, PRIVATE_KEY, DERIVED_XPUB,
 } from './fixtures'
 
-export const BASE_NODE = fromBase58(DERIVED_XPRV)
+export const BASE_NODE = bip32.fromBase58(DERIVED_XPRV)
 
 describe('bip44', () => {
   describe('splitDerivationPath', () => {

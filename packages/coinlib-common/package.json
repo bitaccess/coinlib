@@ -45,6 +45,8 @@
   "dependencies": {
     "@faast/ts-common": "^0.6.0",
     "bignumber.js": "^9.0.2",
-    "io-ts": "^1.10.4"
+    "bip32": "^3.0.1",
+    "io-ts": "^1.10.4",
+    "tiny-secp256k1": "^2.2.1"
   }
 }

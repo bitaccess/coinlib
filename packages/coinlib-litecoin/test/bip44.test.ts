@@ -10,13 +10,13 @@ import {
   convertXPrefixHdKeys
 } from '../src/bip44'
 import { AddressType, LitecoinAddressFormat, NETWORK_TESTNET } from '../src'
-import { fromBase58 } from 'bip32'
+import { bip32 } from '@bitaccess/coinlib-common'
 import {
   DERIVED_XPRV, DERIVATION_PATH, ROOT_XPRV, NETWORK, PARTIALLY_DERIVED_XPRV, ADDRESS_LEGACY,
   ADDRESS_SEGWIT_P2SH, ADDRESS_SEGWIT_NATIVE, PRIVATE_KEY, DERIVED_XPUB, NETWORK_TYPE
 } from './fixtures'
 
-export const BASE_NODE = fromBase58(DERIVED_XPRV, NETWORK)
+export const BASE_NODE = bip32.fromBase58(DERIVED_XPRV, NETWORK)
 
 const format = LitecoinAddressFormat.Modern
 

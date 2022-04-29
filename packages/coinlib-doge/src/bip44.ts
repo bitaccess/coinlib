@@ -1,6 +1,6 @@
-import { BIP32Interface as HDNode, fromBase58 } from 'bip32'
 import { SinglesigAddressType, BitcoinjsKeyPair } from './types'
 import { BitcoinjsNetwork } from '@bitaccess/coinlib-bitcoin'
+import { bip32, HDNode } from '@bitaccess/coinlib-common'
 import { publicKeyToAddress } from './helpers'
 import { SINGLESIG_ADDRESS_TYPE } from './constants'
 import { convertXPrefixHdKeys } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
@@ -29,7 +29,7 @@ export function deriveHDNode(hdKey: string, derivationPath: string, network: Bit
   if (network) {
     hdKey = convertXPrefixHdKeys(hdKey, network)
   }
-  const rootNode = fromBase58(hdKey, network)
+  const rootNode = bip32.fromBase58(hdKey, network)
   const parts = splitDerivationPath(derivationPath).slice(rootNode.depth)
   let node = rootNode
   if (parts.length > 0) {
@@ -59,7 +59,7 @@ export function xprvToXpub(xprv: string, derivationPath: string, network: Bitcoi
 
 export function isValidXprv(xprv: string, network?: BitcoinjsNetwork): boolean {
   try {
-    return !fromBase58(xprv, network).isNeutered()
+    return !(bip32.fromBase58(xprv, network).isNeutered())
   } catch (e) {
     return false
   }
@@ -67,7 +67,7 @@ export function isValidXprv(xprv: string, network?: BitcoinjsNetwork): boolean {
 
 export function isValidXpub(xpub: string, network?: BitcoinjsNetwork): boolean {
   try {
-    return fromBase58(xpub, network).isNeutered()
+    return bip32.fromBase58(xpub, network).isNeutered()
   } catch (e) {
     return false
   }
@@ -76,7 +76,7 @@ export function isValidXpub(xpub: string, network?: BitcoinjsNetwork): boolean {
 /** Return string error if invalid, undefined otherwise */
 export function validateHdKey(hdKey: string, network?: BitcoinjsNetwork): string | undefined {
   try {
-    fromBase58(hdKey, network)
+    bip32.fromBase58(hdKey, network)
   } catch (e) {
     return e.toString()
   }

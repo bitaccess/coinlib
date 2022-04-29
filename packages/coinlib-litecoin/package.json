@@ -54,7 +54,6 @@
     "@faast/ts-common": "^0.6.0",
     "@types/lodash": "^4.14.150",
     "bip174-bigint": "github:bitaccess/bip174#bigint",
-    "bip32": "^2.0.5",
     "bitcoinjs-lib-bigint": "github:bitaccess/bitcoinjs-lib#bigint-5-2-0",
     "bs58": "^4.0.1",
     "bs58check": "^2.1.2",

@@ -1,7 +1,7 @@
 import Web3 from 'web3'
 import { EthereumSignatory } from './types'
 import { pubToAddress } from 'ethereumjs-util'
-import { fromBase58, fromSeed } from 'bip32'
+import { bip32 } from "@bitaccess/coinlib-common"
 import crypto from 'crypto'
 
 import { ec as EC } from 'elliptic'
@@ -11,7 +11,7 @@ const ec = new EC('secp256k1')
 class EthereumBIP44 {
   static fromExtKey(xkey: string) {
     if (['xprv', 'xpub'].includes(xkey.substring(0, 4))) {
-        return new EthereumBIP44(fromBase58(xkey))
+        return new EthereumBIP44(bip32.fromBase58(xkey))
     }
 
     throw new Error('Not extended key')
@@ -75,7 +75,7 @@ class EthereumBIP44 {
 export function deriveSignatory(xkey?: string, index?: number): EthereumSignatory {
   const wallet = xkey ?
     EthereumBIP44.fromExtKey(xkey) :
-    EthereumBIP44.fromExtKey(fromSeed(crypto.randomBytes(32)).toBase58())
+    EthereumBIP44.fromExtKey(bip32.fromSeed(crypto.randomBytes(32)).toBase58())
 
   return {
     address: wallet.getAddress(index),

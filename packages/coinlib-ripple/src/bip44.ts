@@ -1,7 +1,7 @@
 // Many parts of this code are snippets from tronWeb:
 // https://github.com/tronprotocol/tron-web/blob/master/src/index.js
 
-import { BIP32Interface as HDNode, fromBase58, fromSeed } from 'bip32'
+import { bip32, HDNode } from '@bitaccess/coinlib-common'
 import baseX from 'base-x'
 import { padLeft } from './utils'
 import crypto from 'crypto'
@@ -14,7 +14,7 @@ export const derivationPath = "m/44'/144'/0'"
 const derivationPathParts = derivationPath.split('/').slice(1)
 
 export function deriveSignatory(hdKey: string, index: number): RippleSignatory {
-  const key = fromBase58(hdKey)
+  const key = bip32.fromBase58(hdKey)
   const derived = deriveBasePath(key)
     .derive(0)
     .derive(index)
@@ -31,13 +31,13 @@ export function deriveSignatory(hdKey: string, index: number): RippleSignatory {
 }
 
 export function xprvToXpub(xprv: string | HDNode): string {
-  const key = typeof xprv === 'string' ? fromBase58(xprv) : xprv
+  const key = typeof xprv === 'string' ? bip32.fromBase58(xprv) : xprv
   const derivedPubKey = deriveBasePath(key)
   return derivedPubKey.neutered().toBase58()
 }
 
 export function generateNewKeys(): { xpub: string; xprv: string } {
-  const key = fromSeed(crypto.randomBytes(32))
+  const key = bip32.fromSeed(crypto.randomBytes(32))
   const xprv = key.toBase58()
   const xpub = xprvToXpub(xprv)
   return {
