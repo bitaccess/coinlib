@@ -12,6 +12,7 @@ import {
 import { isUndefined, Numeric } from '@faast/ts-common'
 
 import BigNumber from 'bignumber.js'
+import { AddressDetailsEthereumTxs, NormalizedTxEthereum } from 'blockbook-client'
 import { EventEmitter } from 'events'
 import { get } from 'lodash'
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
@@ -30,6 +31,7 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
     this.utils = config.utils
     this.networkType = config.network || NetworkType.Mainnet
   }
+
   async init(): Promise<void> {
     await this.utils.networkData.connectBlockBook()
   }
@@ -61,7 +63,6 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
     })
   }
 
-  // WIP
   async retrieveBalanceActivities(
     address: string,
     callbackFn: BalanceActivityCallback,
@@ -76,13 +77,57 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
     ).toNumber()
 
     let page = 1
+    const limit = 10
+    let transactionPage: AddressDetailsEthereumTxs | undefined
+    let transactions: NormalizedTxEthereum[] | undefined
+    let lastTx: NormalizedTxEthereum | undefined
 
-    const addressDetails = await this.utils.networkData.getAddressDetails(address, { page, from, to })
+    while (
+      isUndefined(transactionPage) ||
+      transactionPage.page < transactionPage.totalPages ||
+      transactionPage.totalPages === -1
+    ) {
+      transactionPage = await this.utils.networkData.getAddressDetails(address, {
+        page,
+        pageSize: limit,
+        from,
+        to: to < Infinity ? to : undefined,
+        details: 'txs',
+      })
 
-    return {
-      from: 'from',
-      to: 'to',
+      if (transactionPage.page !== page) {
+        break
+      }
+      transactions = transactionPage.transactions
+      this.utils.logger.debug(`retrieved ${transactions?.length} txs for ${address} on page = ${page}`)
+
+      if (!transactions || transactions.length === 0) {
+        break
+      }
+
+      for (const tx of transactions) {
+        if (lastTx && tx.txid === lastTx.txid) {
+          this.utils.logger.debug('ignoring duplicate tx', tx)
+          continue
+        }
+        if (tx.blockHeight > 0 && (from > tx.blockHeight || to < tx.blockHeight)) {
+          this.utils.logger.debug('ignoring out of range balance activity tx', tx)
+          continue
+        }
+        const standardizedTx = this.utils.networkData.standardizeBlockBookTransaction(tx)
+
+        const activity = await this.txToBalanceActivity(address, standardizedTx)
+
+        if (activity) {
+          await callbackFn(activity, tx)
+        }
+      }
+
+      lastTx = transactions[transactions.length - 1]
+      page++
     }
+
+    return { from: from.toString(), to: to.toString() }
   }
 
   async retrieveBlockBalanceActivities(
@@ -121,9 +166,10 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
     return blockDetails
   }
 
-  async txToBalanceActivity(address: string, tx: EthereumStandardizedTransaction): Promise<BalanceActivity> {
-    const isSender = address === tx.from
-    const isRecipient = address === tx.to
+  async txToBalanceActivity(address: string, tx: EthereumStandardizedTransaction): Promise<BalanceActivity | null> {
+
+    const isSender = address.toLowerCase() === tx.from.toLowerCase()
+    const isRecipient = address.toLowerCase() === tx.to.toLocaleLowerCase()
 
     let type: BalanceActivity['type'] | undefined
 
