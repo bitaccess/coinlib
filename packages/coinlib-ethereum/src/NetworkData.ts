@@ -85,7 +85,7 @@ export class NetworkData {
       blockHeight: tx.blockHeight,
       blockTime,
       from: inputAddresses[0],
-      nonce: tx.ethereumSpecific?.nonce!,
+      nonce: tx.ethereumSpecific.nonce,
       to: outputAddresses[0],
       txHash: tx.txid,
       value: tx.value,
@@ -151,7 +151,9 @@ export class NetworkData {
       rawTx: NormalizedTxEthereum,
     ) => Promise<void>,
   ) {
-    this.blockBookService.getApi().subscribeAddresses(addresses, async ({ address, tx }) => {
+    const api = this.blockBookService.getApi()
+
+    await api.subscribeAddresses(addresses, async ({ address, tx }) => {
       const standardizedTx = this.standardizeBlockBookTransaction(tx as NormalizedTxEthereum)
 
       await txToBalanceActivityCallback(address, standardizedTx, tx as NormalizedTxEthereum)
