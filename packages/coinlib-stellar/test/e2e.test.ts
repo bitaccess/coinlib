@@ -248,9 +248,10 @@ describe('e2e', () => {
     sweepTxPromise = pollSignedTx(broadcastResult.id, signedTx)
     const tx = await sweepTxPromise
     const amount = new BigNumber(tx.amount)
-    const fee = new BigNumber(tx.fee)
+    const fee = new BigNumber(unsignedTx.fee)
     const sendTotal = amount.plus(fee)
     expect(sendTotal.toString()).toEqual(payportBalance)
+    expect(parseFloat(tx.fee)).toBeLessThanOrEqual(parseFloat(unsignedTx.fee))
   }, 300 * 1000)
 
   it('end to end send', async () => {
