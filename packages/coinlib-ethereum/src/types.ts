@@ -312,9 +312,23 @@ export interface EthereumNodesConnection {
   blockbookApi: BlockbookEthereum
 }
 
+export interface EthereumStandardizedTransaction {
+  from: string
+  to: string
+  nonce: number
+  txHash: string
+  blockHeight: number
+  blockHash: string
+  blockTime: Date
+  value: string
+  confirmations: number
+  gasUsed: number
+  gasPrice: string
+  raw: object
+}
 export interface EthereumNetworkDataProvider {
   getBlock(id?: string | number): Promise<BlockInfo>
   getCurrentBlockNumber(): Promise<number>
-  getTransactionInfo(txId: string): Promise<EthereumTransactionInfo>
+
   getTransactionInfoERC20(txId: string, tokenAddress?: string): Promise<EthereumTransactionInfo>
 }

@@ -84,60 +84,6 @@ export class NetworkDataBlockbook extends UnitConvertersUtil implements Ethereum
     return this._retryDced(() => this.api.getAddressDetails(address, options))
   }
 
-  async getTransactionInfo(txId: string): Promise<EthereumTransactionInfo> {
-    const tx = await this.getTransaction(txId)
-
-    const fromAddress = tx.vin[0].addresses[0].toLowerCase()
-    const outputAddresses = tx.vout[0].addresses
-    const toAddress = outputAddresses ? outputAddresses[0].toLowerCase() : null
-
-    const currentBlockNumber = await this.getCurrentBlockNumber()
-
-    if (!currentBlockNumber) {
-      throw new Error('Failed to getCurrentBlockNumber')
-    }
-
-    let status: TransactionStatus = TransactionStatus.Pending
-    let isExecuted = false
-
-    // XXX it is suggested to keep 12 confirmations
-    // https://ethereum.stackexchange.com/questions/319/what-number-of-confirmations-is-considered-secure-in-ethereum
-    const isConfirmed = tx.confirmations > Math.max(MIN_CONFIRMATIONS, 12)
-
-    if (isConfirmed) {
-      status = TransactionStatus.Confirmed
-      isExecuted = true
-    }
-
-    const result: EthereumTransactionInfo = {
-      id: tx.txid,
-      amount: this.toMainDenomination(tx.value),
-      fromAddress,
-      toAddress,
-      fromExtraId: null,
-      toExtraId: null,
-      fromIndex: null,
-      toIndex: null,
-      fee: this.toMainDenomination(tx.fees),
-      sequenceNumber: tx.ethereumSpecific.nonce,
-      weight: tx.ethereumSpecific.gasUsed,
-      isExecuted,
-      isConfirmed,
-      confirmations: tx.confirmations,
-      confirmationId: tx.blockHash ?? null,
-      confirmationTimestamp: new Date(Number(tx.blockTime) * 1000),
-      confirmationNumber: tx.blockHeight,
-      status,
-      currentBlockNumber,
-      data: {
-        ...tx,
-        currentBlock: currentBlockNumber,
-      },
-    }
-
-    return result
-  }
-
   private getErc20TransferLogAmount(txSpecific: SpecificTxEthereum, tokenDecimals: number): string {
     const txReceiptLogs = txSpecific.receipt.logs
     const transferLog = txReceiptLogs.find(log => log.topics[0] === SIGNATURE.LOG_TOPIC0_ERC20_SWEEP)
