@@ -22,6 +22,7 @@ import {
   DEFAULT_ADDRESS_FORMAT,
   MIN_SWEEPABLE_WEI,
   TOKEN_METHODS_ABI,
+  MIN_CONFIRMATIONS,
 } from './constants'
 import {
   EthereumAddressFormat,
@@ -33,6 +34,7 @@ import { isValidXkey } from './bip44'
 import { NetworkData } from './NetworkData'
 import { retryIfDisconnected } from './utils'
 import { UnitConvertersUtil } from './UnitConvertersUtil'
+import BigNumber from 'bignumber.js'
 
 export class EthereumPaymentsUtils extends UnitConvertersUtil implements PaymentsUtils {
   readonly networkType: NetworkType
@@ -288,7 +290,50 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
   }
 
   async getTransactionInfo(txid: string): Promise<EthereumTransactionInfo> {
-    return this.networkData.getTransactionInfo(txid, this.tokenAddress)
+    const tx = await this.networkData.getTransaction(txid)
+
+    let status: TransactionStatus = TransactionStatus.Pending
+    let isExecuted = false
+
+    // XXX it is suggested to keep 12 confirmations
+    // https://ethereum.stackexchange.com/questions/319/what-number-of-confirmations-is-considered-secure-in-ethereum
+    const isConfirmed = tx.confirmations > Math.max(MIN_CONFIRMATIONS, 12)
+
+    if (isConfirmed) {
+      status = TransactionStatus.Confirmed
+      isExecuted = true
+    }
+
+    const currentBlockNumber = await this.getCurrentBlockNumber()
+
+    const fee = this.toMainDenomination(new BigNumber(tx.gasPrice).multipliedBy(tx.gasUsed))
+
+    const result: EthereumTransactionInfo = {
+      id: tx.txHash,
+      amount: this.toMainDenomination(tx.value),
+      fromAddress: tx.from,
+      toAddress: tx.to,
+      fromExtraId: null,
+      toExtraId: null,
+      fromIndex: null,
+      toIndex: null,
+      fee,
+      sequenceNumber: tx.nonce,
+      weight: tx.gasUsed,
+      isExecuted,
+      isConfirmed,
+      confirmations: tx.confirmations,
+      confirmationId: tx.blockHash ?? null,
+      confirmationTimestamp: new Date(Number(tx.blockTime) * 1000),
+      confirmationNumber: tx.blockHeight,
+      status,
+      currentBlockNumber,
+      data: {
+        ...tx.raw,
+      },
+    }
+
+    return result
   }
 
   async getBlock(id?: string | number): Promise<BlockInfo> {

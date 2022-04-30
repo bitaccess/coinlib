@@ -4,6 +4,7 @@ import { Logger, DelegateLogger } from '@faast/ts-common'
 import { TransactionConfig } from 'web3-core'
 import { AutoFeeLevels, BlockInfo } from '@bitaccess/coinlib-common'
 import { GetAddressDetailsOptions, NormalizedTxEthereum } from 'blockbook-client'
+import { Transaction } from 'web3-eth'
 
 import {
   DEFAULT_GAS_PRICE_IN_WEI,
@@ -12,8 +13,15 @@ import {
   MAXIMUM_GAS,
   GAS_ESTIMATE_MULTIPLIER,
   ETHEREUM_TRANSFER_COST,
+  NETWORK_DATA_PROVIDERS,
 } from './constants'
-import { EthereumBlock, EthereumTransactionInfo, EthTxType, NetworkDataConfig } from './types'
+import {
+  EthereumBlock,
+  EthereumStandardizedTransaction,
+  EthereumTransactionInfo,
+  EthTxType,
+  NetworkDataConfig,
+} from './types'
 import { retryIfDisconnected } from './utils'
 import { NetworkDataBlockbook } from './NetworkDataBlockbook'
 import { NetworkDataWeb3 } from './NetworkDataWeb3'
@@ -64,6 +72,77 @@ export class NetworkData {
 
   async getAddressDetails(address: string, options?: GetAddressDetailsOptions) {
     return this.blockBookService.getAddressDetails(address, options)
+  }
+
+  standardizeBlockBookTransaction(tx: NormalizedTxEthereum, blockInfoTime?: Date): EthereumStandardizedTransaction {
+    if (tx.vin.length !== 1 || tx.vout.length !== 1) {
+      throw new Error('transaction has less or more than one input or output')
+    }
+
+    const inputAddresses = tx.vin[0].addresses
+    const outputAddresses = tx.vout[0].addresses
+
+    if (!inputAddresses || !outputAddresses) {
+      throw new Error('transaction is missing from or to address')
+    }
+
+    const blockTime = blockInfoTime ? new Date(blockInfoTime) : new Date(tx.blockTime * 1000)
+
+    const standardizedTransaction: EthereumStandardizedTransaction = {
+      blockHash: tx.blockHash!,
+      blockHeight: tx.blockHeight,
+      blockTime,
+      from: inputAddresses[0],
+      nonce: tx.ethereumSpecific.nonce,
+      to: outputAddresses[0],
+      txHash: tx.txid,
+      value: tx.value,
+      confirmations: tx.confirmations,
+      gasUsed: tx.ethereumSpecific.gasUsed,
+      gasPrice: tx.ethereumSpecific.gasPrice,
+      raw: {
+        ...tx,
+        provider: NETWORK_DATA_PROVIDERS.BLOCKBOOK,
+      },
+    }
+
+    return standardizedTransaction
+  }
+
+  standardizeInfuraTransaction(
+    tx: Transaction,
+    {
+      blockTime,
+      currentBlockNumber,
+      gasUsed,
+    }: {
+      blockTime: Date
+      currentBlockNumber: number
+      gasUsed: number
+    },
+  ): EthereumStandardizedTransaction {
+    const standardizedTransaction: EthereumStandardizedTransaction = {
+      from: tx.from,
+      to: tx.to!,
+      blockHash: tx.blockHash!,
+      blockHeight: tx.blockNumber!,
+      blockTime,
+      nonce: tx.nonce,
+      txHash: tx.hash,
+      value: tx.value,
+      gasUsed,
+      gasPrice: tx.gasPrice,
+      confirmations: currentBlockNumber - tx.blockNumber!,
+      raw: {
+        ...tx,
+        blockTime,
+        currentBlockNumber,
+        gasUsed,
+        provider: NETWORK_DATA_PROVIDERS.INFURA,
+      },
+    }
+
+    return standardizedTransaction
   }
 
   async getGasAndNonceForNewTx(
@@ -120,13 +199,24 @@ export class NetworkData {
     }
   }
 
-  async getTransactionInfo(txId: string, tokenAddress?: string): Promise<EthereumTransactionInfo> {
+  async getTransaction(txId: string): Promise<EthereumStandardizedTransaction> {
     try {
-      return this.blockBookService.getTransactionInfo(txId)
+      const blockbookTx = await this.blockBookService.getTransaction(txId)
+
+      return this.standardizeBlockBookTransaction(blockbookTx)
     } catch (error) {
       this.logger.log('Request to blockbook getTransactionInfo failed, Falling back to web3 ', error)
 
-      return this.web3Service.getTransactionInfo(txId, tokenAddress)
+      const web3Tx = await this.web3Service.getTransaction(txId)
+      const block = await this.web3Service.getBlock(web3Tx.blockHash!)
+      const currentBlockNumber = await this.web3Service.getCurrentBlockNumber()
+      const txReceipt = await this.web3Service.getTransactionReceipt(txId)
+
+      return this.standardizeInfuraTransaction(web3Tx, {
+        blockTime: block.time,
+        currentBlockNumber,
+        gasUsed: txReceipt.gasUsed,
+      })
     }
   }
 
