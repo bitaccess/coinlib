@@ -63,3 +63,8 @@ export const PUBLIC_CONFIG_OMIT_FIELDS = [
 ]
 
 export const DEFAULT_ADDRESS_FORMAT = EthereumAddressFormat.Lowercase
+
+export const NETWORK_DATA_PROVIDERS = {
+  BLOCKBOOK: 'blockbook',
+  INFURA: 'infura',
+}
