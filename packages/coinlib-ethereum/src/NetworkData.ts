@@ -3,8 +3,8 @@ import { BigNumber } from 'bignumber.js'
 import { Logger, DelegateLogger } from '@faast/ts-common'
 import { TransactionConfig } from 'web3-core'
 import { AutoFeeLevels, BlockInfo } from '@bitaccess/coinlib-common'
-import { GetAddressDetailsOptions, NormalizedTxEthereum } from 'blockbook-client'
-import { Transaction } from 'web3-eth'
+import { GetAddressDetailsOptions, NormalizedTxEthereum, SpecificTxEthereum } from 'blockbook-client'
+import { Transaction, TransactionReceipt } from 'web3-eth'
 
 import {
   DEFAULT_GAS_PRICE_IN_WEI,
@@ -17,6 +17,7 @@ import {
 } from './constants'
 import {
   EthereumBlock,
+  EthereumStandardizedERC20Transaction,
   EthereumStandardizedTransaction,
   EthereumTransactionInfo,
   EthTxType,
@@ -145,6 +146,77 @@ export class NetworkData {
     return standardizedTransaction
   }
 
+  standardizeBlockbookERC20Transaction({
+    tx,
+    txSpecific,
+    tokenSymbol,
+    tokenDecimals,
+    tokenName,
+  }: {
+    tx: NormalizedTxEthereum
+    txSpecific: SpecificTxEthereum
+    tokenSymbol: string
+    tokenDecimals: string
+    tokenName: string
+  }): EthereumStandardizedERC20Transaction {
+    const standardizedTx = this.standardizeBlockBookTransaction(tx)
+
+    const result: EthereumStandardizedERC20Transaction = {
+      ...standardizedTx,
+      raw: {
+        ...standardizedTx.raw,
+        ...txSpecific,
+      },
+      txInput: txSpecific.tx.input,
+      tokenSymbol,
+      tokenDecimals,
+      tokenName,
+      receipt: {
+        ...txSpecific.receipt,
+      },
+    }
+
+    return result
+  }
+
+  standardizeInfuraERC20Transaction(
+    {
+      tx,
+      txReceipt,
+    }: {
+      tx: Transaction
+      txReceipt: TransactionReceipt
+    },
+    {
+      blockTime,
+      currentBlockNumber,
+      tokenDecimals,
+      tokenName,
+      tokenSymbol,
+    }: { blockTime: Date; currentBlockNumber: number; tokenDecimals: string; tokenName: string; tokenSymbol: string },
+  ): EthereumStandardizedERC20Transaction {
+    const standardizedTx = this.standardizeInfuraTransaction(tx, {
+      gasUsed: txReceipt.gasUsed,
+      currentBlockNumber,
+      blockTime,
+    })
+
+    const result: EthereumStandardizedERC20Transaction = {
+      ...standardizedTx,
+      txInput: tx.input,
+      tokenSymbol,
+      tokenDecimals,
+      tokenName,
+      receipt: {
+        gasUsed: txReceipt.gasUsed.toString(),
+        logs: txReceipt.logs,
+        status: txReceipt.status,
+      },
+    }
+
+    return result
+  }
+
   async getGasAndNonceForNewTx(
     txType: EthTxType,
     speed: AutoFeeLevels,
@@ -189,13 +261,23 @@ export class NetworkData {
     return this.web3Service.estimateGas(txObject, txType)
   }
 
-  async getTransactionInfoERC20(txId: string, tokenAddress?: string): Promise<EthereumTransactionInfo> {
+  async getERC20Transaction(txId: string, tokenAddress: string): Promise<EthereumStandardizedERC20Transaction> {
     try {
-      return this.blockBookService.getTransactionInfoERC20(txId, tokenAddress)
-    } catch (error) {
-      this.logger.log('Request to blockbook getTransactionInfoERC20 failed, Falling back to web3 ', error)
+      const blockbookERC20Tx = await this.blockBookService.getERC20Transaction(txId, tokenAddress)
 
-      return this.web3Service.getTransactionInfoERC20(txId, tokenAddress)
+      return this.standardizeBlockbookERC20Transaction(blockbookERC20Tx)
+    } catch (error) {
+      const web3ERC20Tx = await this.web3Service.getERC20Transaction(txId, tokenAddress)
+
+      const block = await this.web3Service.getBlock(web3ERC20Tx.tx.blockHash!)
+      const currentBlockNumber = await this.web3Service.getCurrentBlockNumber()
+      const tokenDetails = await this.web3Service.getTokenInfo(tokenAddress)
+
+      return this.standardizeInfuraERC20Transaction(web3ERC20Tx, {
+        blockTime: block.time,
+        currentBlockNumber,
+        ...tokenDetails,
+      })
     }
   }
 
