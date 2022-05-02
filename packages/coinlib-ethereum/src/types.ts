@@ -28,8 +28,9 @@ import {
   createUnitConverters,
   BlockInfo,
 } from '@bitaccess/coinlib-common'
-import { BlockbookEthereum, BlockInfoEthereum } from 'blockbook-client'
+import { BlockbookEthereum, BlockInfoEthereum, NormalizedTxEthereum, SpecificTxEthereum } from 'blockbook-client'
 import Web3 from 'web3'
+import { Transaction, TransactionReceipt } from 'web3-eth'
 
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
 
@@ -342,5 +343,27 @@ export interface EthereumNetworkDataProvider {
   getBlock(id?: string | number): Promise<BlockInfo>
   getCurrentBlockNumber(): Promise<number>
 
-  // getTransactionInfoERC20(txId: string, tokenAddress?: string): Promise<EthereumTransactionInfo>
+  getAddressBalance(address: string): Promise<string>
+  getAddressBalanceERC20(address: string, tokenAddress: string): Promise<string>
+
+  getERC20Transaction<
+    T extends {
+      tx: NormalizedTxEthereum
+      txReceipt: SpecificTxEthereum
+      tokenSymbol: string
+      tokenDecimals: string
+      tokenName: string
+    }
+  >(
+    txId: string,
+    tokenAddress: string,
+  ): Promise<T>
+
+  getERC20Transaction<T extends { tx: Transaction; txReceipt: TransactionReceipt }>(
+    txId: string,
+    tokenAddress: string,
+  ): Promise<T>
+
+  getTransaction<T extends Transaction>(txId: string): Promise<T>
+  getTransaction<T extends NormalizedTxEthereum>(txId: string): Promise<T>
 }
