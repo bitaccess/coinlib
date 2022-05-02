@@ -313,11 +313,23 @@ export class NetworkData {
   }
 
   async getAddressBalance(address: string) {
-    return this.web3Service.getAddressBalance(address)
+    try {
+      return this.blockBookService.getAddressBalance(address)
+    } catch (error) {
+      this.logger.log('Request to blockbook getAddressBalance failed, Falling back to web3 ', error)
+
+      return this.web3Service.getAddressBalance(address)
+    }
   }
 
   async getAddressBalanceERC20(address: string, tokenAddress: string) {
-    return this.web3Service.getAddressBalanceERC20(address, tokenAddress)
+    try {
+      return this.blockBookService.getAddressBalanceERC20(address, tokenAddress)
+    } catch (error) {
+      this.logger.log('Request to blockbook getAddressBalanceERC20 failed, Falling back to web3 ', error)
+
+      return this.web3Service.getAddressBalanceERC20(address, tokenAddress)
+    }
   }
 
   private async getParityNonce(address: string): Promise<string> {

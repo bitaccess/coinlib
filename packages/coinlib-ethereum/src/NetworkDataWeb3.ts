@@ -1,49 +1,21 @@
-import {
-  PaymentsUtils,
-  Payport,
-  createUnitConverters,
-  AutoFeeLevels,
-  FeeRate,
-  FeeRateType,
-  NetworkType,
-  BalanceResult,
-  TransactionStatus,
-  BlockInfo,
-} from '@bitaccess/coinlib-common'
-import { Logger, DelegateLogger, assertType, isNull, Numeric, isUndefined, isNumber } from '@faast/ts-common'
+import { BlockInfo } from '@bitaccess/coinlib-common'
+import { Logger, DelegateLogger, isNull, isNumber } from '@faast/ts-common'
 import BigNumber from 'bignumber.js'
 import Web3 from 'web3'
 import { TransactionConfig } from 'web3-core'
 import Contract from 'web3-eth-contract'
 
-import {
-  PACKAGE_NAME,
-  ETH_DECIMAL_PLACES,
-  ETH_NAME,
-  ETH_SYMBOL,
-  DEFAULT_ADDRESS_FORMAT,
-  MIN_SWEEPABLE_WEI,
-  MIN_CONFIRMATIONS,
-  TOKEN_METHODS_ABI,
-  FULL_ERC20_TOKEN_METHODS_ABI,
-  TOKEN_WALLET_ABI_LEGACY,
-  TOKEN_WALLET_ABI,
-  MAXIMUM_GAS,
-  GAS_ESTIMATE_MULTIPLIER,
-} from './constants'
-import { EthereumTransactionInfo, EthereumWeb3Config, EthTxType, EthereumNetworkDataProvider } from './types'
+import { TOKEN_METHODS_ABI, FULL_ERC20_TOKEN_METHODS_ABI, MAXIMUM_GAS, GAS_ESTIMATE_MULTIPLIER } from './constants'
+import { EthereumWeb3Config, EthTxType, EthereumNetworkDataProvider } from './types'
 import { retryIfDisconnected } from './utils'
-import { UnitConvertersUtil } from './UnitConvertersUtil'
 
-export class NetworkDataWeb3 extends UnitConvertersUtil implements EthereumNetworkDataProvider {
+export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
   web3: Web3
   eth: Web3['eth']
   logger: Logger
   server: string | null
 
   constructor(config: EthereumWeb3Config) {
-    super({ coinDecimals: config.decimals })
-
     this.logger = new DelegateLogger(config.logger, 'EthereumWeb3')
     this.server = config.fullNode || null
 
@@ -110,37 +82,15 @@ export class NetworkDataWeb3 extends UnitConvertersUtil implements EthereumNetwo
     return { tx, txReceipt }
   }
 
-  isAddressBalanceSweepable(balanceEth: Numeric): boolean {
-    return this.toBaseDenominationBigNumberEth(balanceEth).gt(MIN_SWEEPABLE_WEI)
-  }
-
   async getAddressBalance(address: string) {
-    const balance = await this._retryDced(() => this.eth.getBalance(address))
-    const confirmedBalance = this.toMainDenomination(balance).toString()
-    const sweepable = this.isAddressBalanceSweepable(confirmedBalance)
-
-    return {
-      confirmedBalance,
-      unconfirmedBalance: '0',
-      spendableBalance: confirmedBalance,
-      sweepable,
-      requiresActivation: false,
-    }
+    return this._retryDced(() => this.eth.getBalance(address))
   }
 
-  async getAddressBalanceERC20(address: string, tokenAddress: string): Promise<BalanceResult> {
+  async getAddressBalanceERC20(address: string, tokenAddress: string) {
     const contract = this.newContract(TOKEN_METHODS_ABI, tokenAddress)
-    const balance = await contract.methods.balanceOf(address).call({})
+    const balance: string = await contract.methods.balanceOf(address).call({})
 
-    const sweepable = this.toMainDenominationBigNumber(balance).gt(0)
-
-    return {
-      confirmedBalance: this.toMainDenomination(balance),
-      unconfirmedBalance: '0',
-      spendableBalance: this.toMainDenomination(balance),
-      sweepable,
-      requiresActivation: false,
-    }
+    return balance
   }
 
   async estimateGas(txObject: TransactionConfig, txType: EthTxType): Promise<number> {

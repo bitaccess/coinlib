@@ -3,13 +3,15 @@ import { Logger } from '@faast/ts-common'
 import { BlockbookEthereum, GetAddressDetailsOptions, NormalizedTxEthereum } from 'blockbook-client'
 
 import { EthereumBlockbookConnectedConfig, EthereumNetworkDataProvider } from './types'
+import { UnitConvertersUtil } from './UnitConvertersUtil'
 import { retryIfDisconnected, resolveServer } from './utils'
 
-export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
+export class NetworkDataBlockbook extends UnitConvertersUtil implements EthereumNetworkDataProvider {
   private logger: Logger
   private api: BlockbookEthereum
 
   constructor(config: EthereumBlockbookConnectedConfig) {
+    super({ coinDecimals: config.decimals })
     this.logger = config.logger
     const { api } = resolveServer(config, this.logger)
 
@@ -79,6 +81,26 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
       tokenDecimals: transferredToken.decimals.toString(),
       tokenName: transferredToken.name,
     }
+  }
+
+  async getAddressBalance(address: string) {
+    const { balance } = await this.getAddressDetails(address)
+
+    return balance
+  }
+
+  async getAddressBalanceERC20(address: string, tokenAddress: string) {
+    const addressDetails = await this.getAddressDetails(address, { details: 'tokenBalances' })
+
+    const token = (addressDetails.tokens ?? []).find(
+      token => token.contract.toLowerCase() === tokenAddress.toLowerCase(),
+    )
+
+    if (!token) {
+      throw new Error(`Failed to find tokenAddress=${tokenAddress} in tokens list`)
+    }
+
+    return token.balance!
   }
 
   async _retryDced<T>(fn: () => Promise<T>, additionalRetryableErrors?: string[]): Promise<T> {
