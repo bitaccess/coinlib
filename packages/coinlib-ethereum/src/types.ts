@@ -266,7 +266,7 @@ export type EthereumBlockbookConnectedConfig = t.TypeOf<typeof EthereumBlockbook
 
 export const EthereumWeb3Config = requiredOptionalCodec(
   { web3: instanceofCodec(Web3) },
-  { decimals: t.number, fullNode: t.string, providerOptions: t.any, tokenAddress: t.string, logger: Logger },
+  { decimals: t.number, fullNode: t.string, providerOptions: t.any, logger: Logger },
   'Web3Config',
 )
 
@@ -326,9 +326,21 @@ export interface EthereumStandardizedTransaction {
   gasPrice: string
   raw: object
 }
+
+export interface EthereumStandardizedERC20Transaction extends EthereumStandardizedTransaction {
+  tokenSymbol: string
+  tokenName: string
+  tokenDecimals: string
+  txInput: string
+  receipt: {
+    gasUsed: string
+    status: string | boolean
+    logs: any[]
+  }
+}
 export interface EthereumNetworkDataProvider {
   getBlock(id?: string | number): Promise<BlockInfo>
   getCurrentBlockNumber(): Promise<number>
 
-  getTransactionInfoERC20(txId: string, tokenAddress?: string): Promise<EthereumTransactionInfo>
+  // getTransactionInfoERC20(txId: string, tokenAddress?: string): Promise<EthereumTransactionInfo>
 }
