@@ -11,7 +11,9 @@ import {
   BigNumber,
 } from '@bitaccess/coinlib-common'
 import { Logger, DelegateLogger, assertType, isNull, Numeric, isNumber } from '@faast/ts-common'
-import { BlockbookEthereum } from 'blockbook-client'
+import BigNumber from 'bignumber.js'
+import { BlockbookEthereum, SpecificTxEthereum } from 'blockbook-client'
+import InputDataDecoder from 'ethereum-input-data-decoder'
 import Web3 from 'web3'
 import Contract from 'web3-eth-contract'
 
@@ -23,19 +25,24 @@ import {
   DEFAULT_ADDRESS_FORMAT,
   MIN_SWEEPABLE_WEI,
   TOKEN_METHODS_ABI,
+  TOKEN_WALLET_ABI,
+  TOKEN_WALLET_ABI_LEGACY,
+  FULL_ERC20_TOKEN_METHODS_ABI,
   MIN_CONFIRMATIONS,
 } from './constants'
 import {
   EthereumAddressFormat,
   EthereumAddressFormatT,
   EthereumPaymentsUtilsConfig,
+  EthereumStandardizedERC20Transaction,
   EthereumTransactionInfo,
 } from './types'
 import { isValidXkey } from './bip44'
 import { NetworkData } from './NetworkData'
 import { retryIfDisconnected } from './utils'
 import { UnitConvertersUtil } from './UnitConvertersUtil'
-import BigNumber from 'bignumber.js'
+import * as SIGNATURE from './erc20/constants'
+import { deriveAddress } from './erc20/deriveAddress'
 
 export class EthereumPaymentsUtils extends UnitConvertersUtil implements PaymentsUtils {
   readonly networkType: NetworkType
@@ -139,7 +146,6 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
         fullNode: config.fullNode,
         decimals: config.decimals,
         providerOptions: config.providerOptions,
-        tokenAddress: config.tokenAddress,
       },
       parityUrl: config.parityNode,
       logger: this.logger,
@@ -286,8 +292,161 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     return []
   }
 
-  async getTransactionInfoERC20(txid: string): Promise<EthereumTransactionInfo> {
-    return this.networkData.getTransactionInfoERC20(txid)
+  private getErc20TransferLogAmount(
+    receipt: EthereumStandardizedERC20Transaction['receipt'],
+    tokenDecimals: number,
+    txHash: string,
+  ): string {
+    const txReceiptLogs = receipt.logs
+    const transferLog = txReceiptLogs.find(log => log.topics[0] === SIGNATURE.LOG_TOPIC0_ERC20_SWEEP)
+    if (!transferLog) {
+      this.logger.warn(`Transaction ${txHash} was an ERC20 sweep but cannot find log for Transfer event`)
+      return '0'
+    }
+
+    const unitConverter = this.getCustomUnitConverter(tokenDecimals)
+
+    return unitConverter.toMainDenominationString(transferLog.data)
+  }
+
+  async getTransactionInfoERC20(txId: string, tokenAddress = this.tokenAddress): Promise<EthereumTransactionInfo> {
+    if (!tokenAddress) {
+      throw new Error('tokenAddress is undefined')
+    }
+
+    const erc20Tx = await this.networkData.getERC20Transaction(txId, tokenAddress)
+
+    let fromAddress = erc20Tx.from
+    let toAddress = erc20Tx.to
+    const tokenDecimals = new BigNumber(erc20Tx.tokenDecimals).toNumber()
+    const { txHash } = erc20Tx
+
+    let status: TransactionStatus = TransactionStatus.Pending
+    let isExecuted = false
+
+    // XXX it is suggested to keep 12 confirmations
+    // https://ethereum.stackexchange.com/questions/319/what-number-of-confirmations-is-considered-secure-in-ethereum
+    const isConfirmed = erc20Tx.confirmations > Math.max(MIN_CONFIRMATIONS, 12)
+
+    if (isConfirmed) {
+      status = TransactionStatus.Confirmed
+      isExecuted = true
+    }
+
+    const tokenDecoder = new InputDataDecoder(FULL_ERC20_TOKEN_METHODS_ABI)
+    const txInput = erc20Tx.txInput
+    let amount = ''
+
+    const isERC20Transfer = txInput.startsWith(SIGNATURE.ERC20_TRANSFER)
+    const isERC20SweepContractDeploy = txInput.startsWith(SIGNATURE.ERC20_SWEEP_CONTRACT_DEPLOY)
+    const isERC20SweepContractDeployLegacy = txInput.startsWith(SIGNATURE.ERC20_SWEEP_CONTRACT_DEPLOY_LEGACY)
+    const isERC20Proxy = txInput.startsWith(SIGNATURE.ERC20_PROXY)
+    const isERC20Sweep = txInput.startsWith(SIGNATURE.ERC20_SWEEP)
+    const isERC20SweepLegacy = txInput.startsWith(SIGNATURE.ERC20_SWEEP_LEGACY)
+
+    if (isERC20Transfer) {
+      if (toAddress.toLowerCase() !== tokenAddress.toLowerCase()) {
+        throw new Error(`Transaction ${txId} was sent to different contract: ${toAddress}, Expected: ${tokenAddress}`)
+      }
+      const txData = tokenDecoder.decodeData(txInput)
+
+      toAddress = txData.inputs[0]
+
+      // USDT token has decimal place of 6, unlike other tokens that are 18 decimals;
+      // so we have to use a custom unitConverter, the default one uses that 18 decimals
+      const customUnitConverter = this.getCustomUnitConverter(tokenDecimals)
+
+      const inputAmount = txData.inputs[1].toString()
+
+      amount = customUnitConverter.toMainDenominationString(inputAmount)
+
+      const actualAmount = this.getErc20TransferLogAmount(erc20Tx.receipt, tokenDecimals, txHash)
+
+      if (isExecuted && amount !== actualAmount) {
+        this.logger.warn(
+          `Transaction ${txHash} tried to transfer ${amount} but only ${actualAmount} was actually transferred`,
+        )
+      }
+    } else if (isERC20SweepContractDeploy || isERC20SweepContractDeployLegacy || isERC20Proxy) {
+      amount = '0'
+    } else if (isERC20Sweep) {
+      const tokenDecoder = new InputDataDecoder(TOKEN_WALLET_ABI)
+      const txData = tokenDecoder.decodeData(txInput)
+
+      if (txData.inputs.length !== 4) {
+        throw new Error(`Transaction ${txHash} has not recognized number of inputs ${txData.inputs.length}`)
+      }
+      // For ERC20 sweeps:
+      // tx.from is the contract address
+      // inputs[0] is salt
+      // inputs[1] is the ERC20 contract address (this.tokenAddress)
+      // inputs[2] is the recipient of the funds (toAddress)
+      // inputs[3] is the amount
+      const sweepContractAddress = toAddress
+      if (!sweepContractAddress) {
+        throw new Error(`Transaction ${txHash} should have a to address destination`)
+      }
+
+      const addr = deriveAddress(sweepContractAddress, `0x${txData.inputs[0].toString('hex')}`, true)
+
+      fromAddress = this.web3.utils.toChecksumAddress(addr).toLowerCase()
+      toAddress = this.web3.utils.toChecksumAddress(txData.inputs[2]).toLowerCase()
+      amount = this.getErc20TransferLogAmount(erc20Tx.receipt, tokenDecimals, txHash)
+    } else if (isERC20SweepLegacy) {
+      const tokenDecoder = new InputDataDecoder(TOKEN_WALLET_ABI_LEGACY)
+      const txData = tokenDecoder.decodeData(txInput)
+
+      if (txData.inputs.length !== 2) {
+        throw new Error(`Transaction ${txHash} has not recognized number of inputs ${txData.inputs.length}`)
+      }
+      // For ERC20 legacy sweeps:
+      // tx.to is the sweep contract address and source of funds (fromAddress)
+      // tx.from is the contract owner address
+      // inputs[0] is the ERC20 contract address (this.tokenAddress)
+      // inputs[1] is the recipient of the funds (toAddress)
+      const sweepContractAddress = toAddress
+      if (!sweepContractAddress) {
+        throw new Error(`Transaction ${txHash} should have a to address destination`)
+      }
+
+      fromAddress = this.web3.utils.toChecksumAddress(sweepContractAddress).toLowerCase()
+      toAddress = this.web3.utils.toChecksumAddress(txData.inputs[1]).toLowerCase()
+
+      amount = this.getErc20TransferLogAmount(erc20Tx.receipt, tokenDecimals, txHash)
+    } else {
+      throw new Error('tx is neither ERC20 token transfer nor sweep')
+    }
+
+    const fee = this.toMainDenomination(new BigNumber(erc20Tx.gasPrice).multipliedBy(erc20Tx.gasUsed))
+
+    const currentBlockNumber = await this.getCurrentBlockNumber()
+
+    const result: EthereumTransactionInfo = {
+      id: txHash,
+      amount,
+      fromAddress,
+      toAddress,
+      fromExtraId: null,
+      toExtraId: null,
+      fromIndex: null,
+      toIndex: null,
+      fee,
+      sequenceNumber: erc20Tx.nonce,
+      weight: erc20Tx.gasUsed,
+      isExecuted,
+      isConfirmed,
+      confirmations: erc20Tx.confirmations,
+      confirmationId: erc20Tx.blockHash,
+      confirmationTimestamp: erc20Tx.blockTime,
+      confirmationNumber: erc20Tx.blockHeight,
+      status,
+      currentBlockNumber,
+      data: {
+        ...erc20Tx,
+      },
+    }
+
+    return result
   }
 
   async getTransactionInfo(txid: string): Promise<EthereumTransactionInfo> {
