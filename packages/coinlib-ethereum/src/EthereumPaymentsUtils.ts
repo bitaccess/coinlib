@@ -268,20 +268,44 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     return this.networkData.getCurrentBlockNumber()
   }
 
+  formatAddress(address: string) {
+    if (address.startsWith('0x')) {
+      return address
+    }
+
+    return `0x${address}`
+  }
+
   isAddressBalanceSweepable(balanceEth: Numeric): boolean {
     return this.toBaseDenominationBigNumberEth(balanceEth).gt(MIN_SWEEPABLE_WEI)
   }
 
   async getAddressBalanceERC20(address: string, tokenAddress: string): Promise<BalanceResult> {
-    return this.networkData.getAddressBalanceERC20(address, tokenAddress)
+    const balance = await this.networkData.getAddressBalanceERC20(address, tokenAddress)
+
+    const sweepable = this.toMainDenominationBigNumber(balance).gt(0)
+
+    return {
+      confirmedBalance: this.toMainDenomination(balance),
+      unconfirmedBalance: '0',
+      spendableBalance: this.toMainDenomination(balance),
+      sweepable,
+      requiresActivation: false,
+    }
   }
 
   async getAddressBalance(address: string): Promise<BalanceResult> {
-    if (this.tokenAddress) {
-      return this.getAddressBalanceERC20(address, this.tokenAddress)
-    }
+    const balance = await this.networkData.getAddressBalance(address)
+    const confirmedBalance = this.toMainDenomination(balance).toString()
+    const sweepable = this.isAddressBalanceSweepable(confirmedBalance)
 
-    return this.networkData.getAddressBalance(address)
+    return {
+      confirmedBalance,
+      unconfirmedBalance: '0',
+      spendableBalance: confirmedBalance,
+      sweepable,
+      requiresActivation: false,
+    }
   }
 
   async getAddressNextSequenceNumber(address: string) {
@@ -424,8 +448,8 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     const result: EthereumTransactionInfo = {
       id: txHash,
       amount,
-      fromAddress,
-      toAddress,
+      fromAddress: this.formatAddress(fromAddress),
+      toAddress: this.formatAddress(toAddress),
       fromExtraId: null,
       toExtraId: null,
       fromIndex: null,
@@ -471,8 +495,8 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     const result: EthereumTransactionInfo = {
       id: tx.txHash,
       amount: this.toMainDenomination(tx.value),
-      fromAddress: tx.from,
-      toAddress: tx.to,
+      fromAddress: this.formatAddress(tx.from),
+      toAddress: this.formatAddress(tx.to),
       fromExtraId: null,
       toExtraId: null,
       fromIndex: null,
