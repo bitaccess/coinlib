@@ -1,7 +1,11 @@
-import { NormalizedTxEthereum, SpecificTxEthereum } from 'blockbook-client'
+import { BlockInfo } from '@bitaccess/coinlib-common'
+import { BlockInfoEthereum, NormalizedTxEthereum, SpecificTxEthereum } from 'blockbook-client'
+import { get } from 'lodash'
 import { Transaction, TransactionReceipt } from 'web3-eth'
+import { BlockTransactionObject } from 'web3-eth'
 
 import { NETWORK_DATA_PROVIDERS } from './constants'
+import { NetworkDataWeb3 } from './NetworkDataWeb3'
 
 import { EthereumStandardizedERC20Transaction, EthereumStandardizedTransaction } from './types'
 
@@ -146,5 +150,51 @@ export class NetworkDataStandardizationUtils {
     }
 
     return result
+  }
+
+  async standardizeBlockInfoRaw(blockInfo: BlockInfo, web3Service: NetworkDataWeb3) {
+    if (!blockInfo.raw) {
+      return
+    }
+
+    const dataProvider: string = get(blockInfo.raw, 'dataProvider')
+
+    if (dataProvider === NETWORK_DATA_PROVIDERS.BLOCKBOOK) {
+      const blockRaw = blockInfo.raw as BlockInfoEthereum
+      const blockTime = new Date(blockInfo.time)
+
+      const standardizedTransactions = (blockRaw.txs ?? []).map((tx: NormalizedTxEthereum) =>
+        this.standardizeBlockBookTransaction(tx, blockTime),
+      )
+
+      return {
+        ...blockRaw,
+        transactions: standardizedTransactions,
+      }
+    }
+
+    if (dataProvider === NETWORK_DATA_PROVIDERS.INFURA) {
+      const blockRaw = blockInfo.raw as BlockTransactionObject
+      const currentBlockNumber = await web3Service.getCurrentBlockNumber()
+
+      const standardizedTransactionsPromise = blockRaw.transactions.map(async tx => {
+        const txReceipt = await web3Service.getTransactionReceipt(tx.hash)
+
+        return this.standardizeInfuraTransaction(tx, {
+          blockTime: blockInfo.time,
+          gasUsed: txReceipt.gasUsed,
+          currentBlockNumber,
+        })
+      })
+
+      const standardizedTransactions = await Promise.all(standardizedTransactionsPromise)
+
+      return {
+        ...blockRaw,
+        transactions: standardizedTransactions,
+      }
+    }
+
+    return blockInfo.raw
   }
 }
