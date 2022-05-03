@@ -1,5 +1,5 @@
 import { BIP32Interface as HDNode, fromBase58 } from 'bip32'
-import { SinglesigAddressType, BitcoinjsKeyPair } from './types'
+import { BitcoinjsKeyPair } from './types'
 import { BitcoinjsNetwork } from '@bitaccess/coinlib-bitcoin'
 import { publicKeyToAddress } from './helpers'
 import { SINGLESIG_ADDRESS_TYPE } from './constants'

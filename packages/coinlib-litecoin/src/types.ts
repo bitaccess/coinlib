@@ -1,19 +1,15 @@
 import * as t from 'io-ts'
 import {
   BaseConfig,
-  BaseUnsignedTransaction,
-  BaseSignedTransaction,
   FeeRate,
   BaseTransactionInfo,
   BaseBroadcastResult,
-  UtxoInfo,
   KeyPairsConfigParam,
 } from '@bitaccess/coinlib-common'
 import { extendCodec, enumCodec, requiredOptionalCodec, instanceofCodec } from '@faast/ts-common'
 import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib-bigint'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { PsbtInput, TransactionInput } from 'bip174-bigint/src/lib/interfaces'
-import { BitcoinishUnsignedTransaction, BitcoinishSignedTransaction } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
 
 export enum LitecoinAddressFormat {
   Deprecated = 'deprecated',
@@ -166,7 +162,7 @@ export const LitecoinUnsignedTransactionData = bitcoinish.BitcoinishPaymentTx
 export type LitecoinUnsignedTransactionData = t.TypeOf<typeof LitecoinUnsignedTransactionData>
 
 export const LitecoinUnsignedTransaction = extendCodec(
-  BitcoinishUnsignedTransaction,
+  bitcoinish.BitcoinishUnsignedTransaction,
   {
     amount: t.string,
     fee: t.string,
@@ -192,7 +188,7 @@ export const LitecoinSignedTransactionData = requiredOptionalCodec(
 export type LitecoinSignedTransactionData = t.TypeOf<typeof LitecoinSignedTransactionData>
 
 export const LitecoinSignedTransaction = extendCodec(
-  BitcoinishSignedTransaction,
+  bitcoinish.BitcoinishSignedTransaction,
   {
     data: LitecoinSignedTransactionData,
   },
