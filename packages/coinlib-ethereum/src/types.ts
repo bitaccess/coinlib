@@ -346,24 +346,7 @@ export interface EthereumNetworkDataProvider {
   getAddressBalance(address: string): Promise<string>
   getAddressBalanceERC20(address: string, tokenAddress: string): Promise<string>
 
-  getERC20Transaction<
-    T extends {
-      tx: NormalizedTxEthereum
-      txReceipt: SpecificTxEthereum
-      tokenSymbol: string
-      tokenDecimals: string
-      tokenName: string
-    }
-  >(
-    txId: string,
-    tokenAddress: string,
-  ): Promise<T>
+  getERC20Transaction(txId: string, tokenAddress: string): Promise<EthereumStandardizedERC20Transaction>
 
-  getERC20Transaction<T extends { tx: Transaction; txReceipt: TransactionReceipt }>(
-    txId: string,
-    tokenAddress: string,
-  ): Promise<T>
-
-  getTransaction<T extends Transaction>(txId: string): Promise<T>
-  getTransaction<T extends NormalizedTxEthereum>(txId: string): Promise<T>
+  getTransaction(txId: string): Promise<EthereumStandardizedTransaction>
 }

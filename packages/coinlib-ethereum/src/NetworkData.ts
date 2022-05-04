@@ -15,9 +15,8 @@ import {
 import { retryIfDisconnected } from './utils'
 import { NetworkDataBlockbook } from './NetworkDataBlockbook'
 import { NetworkDataWeb3 } from './NetworkDataWeb3'
-import { NetworkDataStandardizationUtils } from './NetworkDataStandardizationUtils'
 
-export class NetworkData extends NetworkDataStandardizationUtils {
+export class NetworkData {
   private gasStationUrl: string | undefined
   private parityUrl: string | undefined
   private logger: Logger
@@ -25,7 +24,6 @@ export class NetworkData extends NetworkDataStandardizationUtils {
   private web3Service: NetworkDataWeb3
 
   constructor(config: NetworkDataConfig) {
-    super()
     this.gasStationUrl = config.gasStationUrl ?? GAS_STATION_URL
     this.logger = new DelegateLogger(config.logger, 'NetworkData')
 
@@ -217,42 +215,21 @@ export class NetworkData extends NetworkDataStandardizationUtils {
 
   async getERC20Transaction(txId: string, tokenAddress: string): Promise<EthereumStandardizedERC20Transaction> {
     try {
-      const blockbookERC20Tx = await this.blockBookService.getERC20Transaction(txId, tokenAddress)
-
-      return this.standardizeBlockbookERC20Transaction(blockbookERC20Tx)
+      return this.blockBookService.getERC20Transaction(txId, tokenAddress)
     } catch (error) {
-      const web3ERC20Tx = await this.web3Service.getERC20Transaction(txId, tokenAddress)
+      this.logger.log('Request to blockbook getERC20Transaction failed, Falling back to web3 ', error)
 
-      const block = await this.web3Service.getBlock(web3ERC20Tx.tx.blockHash!)
-      const currentBlockNumber = await this.web3Service.getCurrentBlockNumber()
-      const tokenDetails = await this.web3Service.getTokenInfo(tokenAddress)
-
-      return this.standardizeInfuraERC20Transaction(web3ERC20Tx, {
-        blockTime: block.time,
-        currentBlockNumber,
-        ...tokenDetails,
-      })
+      return this.web3Service.getERC20Transaction(txId, tokenAddress)
     }
   }
 
   async getTransaction(txId: string): Promise<EthereumStandardizedTransaction> {
     try {
-      const blockbookTx = await this.blockBookService.getTransaction(txId)
-
-      return this.standardizeBlockBookTransaction(blockbookTx)
+      return this.blockBookService.getTransaction(txId)
     } catch (error) {
-      this.logger.log('Request to blockbook getTransactionInfo failed, Falling back to web3 ', error)
+      this.logger.log('Request to blockbook getTransaction failed, Falling back to web3 ', error)
 
-      const web3Tx = await this.web3Service.getTransaction(txId)
-      const block = await this.web3Service.getBlock(web3Tx.blockHash!)
-      const currentBlockNumber = await this.web3Service.getCurrentBlockNumber()
-      const txReceipt = await this.web3Service.getTransactionReceipt(txId)
-
-      return this.standardizeInfuraTransaction(web3Tx, {
-        blockTime: block.time,
-        currentBlockNumber,
-        gasUsed: txReceipt.gasUsed,
-      })
+      return this.web3Service.getTransaction(txId)
     }
   }
 
