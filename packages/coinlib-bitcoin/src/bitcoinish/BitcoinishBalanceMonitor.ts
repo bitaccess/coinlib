@@ -5,8 +5,6 @@ import {
   BalanceMonitor,
   GetBalanceActivityOptions,
   RetrieveBalanceActivitiesResult,
-  NetworkType,
-  createUnitConverters,
   NewBlockCallback,
   FilterBlockAddressesCallback,
   BlockInfo,
@@ -17,7 +15,6 @@ import {
   AddressDetailsBitcoinTxs,
   NormalizedTxBitcoin,
   NormalizedTxBitcoinVin,
-  NormalizedTxBitcoinVinWithCoinbase,
   NormalizedTxBitcoinVout,
 } from 'blockbook-client'
 import { isUndefined, Numeric } from '@faast/ts-common'
@@ -76,7 +73,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
   private accumulateAddressTx(
     addressTransactions: { [address: string]: Set<NormalizedTxBitcoin> },
     tx: NormalizedTxBitcoin,
-    inout: NormalizedTxBitcoinVin | NormalizedTxBitcoinVinWithCoinbase | NormalizedTxBitcoinVout,
+    inout: NormalizedTxBitcoinVin | NormalizedTxBitcoinVout,
   ) {
     if (!(inout.isAddress && inout.addresses?.length)) {
       return
@@ -205,7 +202,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
     return { from: from.toString(), to: to.toString() }
   }
 
-  private extractStandardAddress(v: NormalizedTxBitcoinVout | NormalizedTxBitcoinVinWithCoinbase | NormalizedTxBitcoinVin): string | null {
+  private extractStandardAddress(v: NormalizedTxBitcoinVout | NormalizedTxBitcoinVin): string | null {
     const address = v.isAddress && v.addresses?.[0]
     return address ? this.utils.standardizeAddress(address) : null
   }
