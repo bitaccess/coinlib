@@ -4,9 +4,22 @@ import BigNumber from 'bignumber.js'
 import Web3 from 'web3'
 import { TransactionConfig } from 'web3-core'
 import Contract from 'web3-eth-contract'
+import { Transaction, TransactionReceipt } from 'web3-eth'
 
-import { TOKEN_METHODS_ABI, FULL_ERC20_TOKEN_METHODS_ABI, MAXIMUM_GAS, GAS_ESTIMATE_MULTIPLIER } from './constants'
-import { EthereumWeb3Config, EthTxType, EthereumNetworkDataProvider } from './types'
+import {
+  TOKEN_METHODS_ABI,
+  FULL_ERC20_TOKEN_METHODS_ABI,
+  MAXIMUM_GAS,
+  GAS_ESTIMATE_MULTIPLIER,
+  NETWORK_DATA_PROVIDERS,
+} from './constants'
+import {
+  EthereumWeb3Config,
+  EthTxType,
+  EthereumNetworkDataProvider,
+  EthereumStandardizedTransaction,
+  EthereumStandardizedERC20Transaction,
+} from './types'
 import { retryIfDisconnected } from './utils'
 
 export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
@@ -76,10 +89,22 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
   }
 
   async getERC20Transaction(txId: string, tokenAddress: string) {
-    const tx = await this.getTransaction(txId)
+    const tx = await this._retryDced(() => this.eth.getTransaction(txId))
+
     const txReceipt = await this.getTransactionReceipt(txId)
 
-    return { tx, txReceipt }
+    const block = await this.getBlock(tx.blockHash!)
+    const currentBlockNumber = await this.getCurrentBlockNumber()
+    const tokenDetails = await this.getTokenInfo(tokenAddress)
+
+    return this.standardizeInfuraERC20Transaction(
+      { tx, txReceipt },
+      {
+        blockTime: block.time,
+        currentBlockNumber,
+        ...tokenDetails,
+      },
+    )
   }
 
   async getAddressBalance(address: string) {
@@ -137,7 +162,91 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
   }
 
   async getTransaction(txId: string) {
-    return this._retryDced(() => this.eth.getTransaction(txId))
+    const tx = await this._retryDced(() => this.eth.getTransaction(txId))
+
+    const block = await this.getBlock(tx.blockHash!)
+    const currentBlockNumber = await this.getCurrentBlockNumber()
+    const txReceipt = await this.getTransactionReceipt(txId)
+
+    return this.standardizeInfuraTransaction(tx, {
+      blockTime: block.time,
+      currentBlockNumber,
+      gasUsed: txReceipt.gasUsed,
+    })
+  }
+
+  standardizeInfuraTransaction(
+    tx: Transaction,
+    {
+      blockTime,
+      currentBlockNumber,
+      gasUsed,
+    }: {
+      blockTime: Date
+      currentBlockNumber: number
+      gasUsed: number
+    },
+  ): EthereumStandardizedTransaction {
+    const standardizedTransaction: EthereumStandardizedTransaction = {
+      from: tx.from,
+      to: tx.to!,
+      blockHash: tx.blockHash!,
+      blockHeight: tx.blockNumber!,
+      blockTime,
+      nonce: tx.nonce,
+      txHash: tx.hash,
+      value: tx.value,
+      gasUsed,
+      gasPrice: tx.gasPrice,
+      confirmations: currentBlockNumber - tx.blockNumber!,
+      raw: {
+        ...tx,
+        blockTime,
+        currentBlockNumber,
+        gasUsed,
+        provider: NETWORK_DATA_PROVIDERS.INFURA,
+      },
+    }
+
+    return standardizedTransaction
+  }
+
+  standardizeInfuraERC20Transaction(
+    {
+      tx,
+      txReceipt,
+    }: {
+      tx: Transaction
+      txReceipt: TransactionReceipt
+    },
+    {
+      blockTime,
+      currentBlockNumber,
+      tokenDecimals,
+      tokenName,
+      tokenSymbol,
+    }: { blockTime: Date; currentBlockNumber: number; tokenDecimals: string; tokenName: string; tokenSymbol: string },
+  ): EthereumStandardizedERC20Transaction {
+    const standardizedTx = this.standardizeInfuraTransaction(tx, {
+      gasUsed: txReceipt.gasUsed,
+      currentBlockNumber,
+      blockTime,
+    })
+
+    const result: EthereumStandardizedERC20Transaction = {
+      ...standardizedTx,
+      txInput: tx.input,
+      tokenSymbol,
+      tokenDecimals,
+      tokenName,
+      receipt: {
+        gasUsed: txReceipt.gasUsed.toString(),
+        logs: txReceipt.logs,
+        status: txReceipt.status,
+      },
+    }
+
+    return result
   }
 
   async _retryDced<T>(fn: () => Promise<T>): Promise<T> {

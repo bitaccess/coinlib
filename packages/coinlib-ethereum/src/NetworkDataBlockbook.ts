@@ -1,8 +1,14 @@
-import { BlockInfo, TransactionStatus } from '@bitaccess/coinlib-common'
+import { BlockInfo } from '@bitaccess/coinlib-common'
 import { Logger } from '@faast/ts-common'
-import { BlockbookEthereum, GetAddressDetailsOptions, NormalizedTxEthereum } from 'blockbook-client'
+import { BlockbookEthereum, GetAddressDetailsOptions, NormalizedTxEthereum, SpecificTxEthereum } from 'blockbook-client'
+import { NETWORK_DATA_PROVIDERS } from './constants'
 
-import { EthereumBlockbookConnectedConfig, EthereumNetworkDataProvider } from './types'
+import {
+  EthereumBlockbookConnectedConfig,
+  EthereumNetworkDataProvider,
+  EthereumStandardizedERC20Transaction,
+  EthereumStandardizedTransaction,
+} from './types'
 import { retryIfDisconnected, resolveServer } from './utils'
 
 export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
@@ -46,8 +52,10 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
     return bestBlock.height
   }
 
-  async getTransaction(txId: string): Promise<NormalizedTxEthereum> {
-    return this._retryDced(() => this.api.getTx(txId))
+  async getTransaction(txId: string) {
+    const tx = await this._retryDced(() => this.api.getTx(txId))
+
+    return this.standardizeTransaction(tx)
   }
 
   async getAddressDetails(address: string, options?: GetAddressDetailsOptions) {
@@ -55,7 +63,7 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
   }
 
   async getERC20Transaction(txId: string, tokenAddress: string) {
-    const tx = await this.getTransaction(txId)
+    const tx = await this._retryDced(() => this.api.getTx(txId))
     const txSpecific = await this._retryDced(() => this.api.getTxSpecific(txId))
 
     const tokenTransfers: NormalizedTxEthereum['tokenTransfers'] = tx.tokenTransfers ?? []
@@ -72,13 +80,13 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
       throw new Error(`tx tokenTransfer does not contain token=${tokenAddress}`)
     }
 
-    return {
+    return this.standardizeERC20Transaction({
       tx,
       txSpecific,
       tokenSymbol: transferredToken.symbol,
       tokenDecimals: transferredToken.decimals.toString(),
       tokenName: transferredToken.name,
-    }
+    })
   }
 
   async getAddressBalance(address: string) {
@@ -99,6 +107,74 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
     }
 
     return token.balance!
+  }
+
+  standardizeTransaction(tx: NormalizedTxEthereum, blockInfoTime?: Date): EthereumStandardizedTransaction {
+    if (tx.vin.length !== 1 || tx.vout.length !== 1) {
+      throw new Error('transaction has less or more than one input or output')
+    }
+
+    const inputAddresses = tx.vin[0].addresses
+    const outputAddresses = tx.vout[0].addresses
+
+    if (!inputAddresses || !outputAddresses) {
+      throw new Error('transaction is missing from or to address')
+    }
+
+    const blockTime = blockInfoTime ? new Date(blockInfoTime) : new Date(tx.blockTime * 1000)
+
+    const standardizedTransaction: EthereumStandardizedTransaction = {
+      blockHash: tx.blockHash!,
+      blockHeight: tx.blockHeight,
+      blockTime,
+      from: inputAddresses[0],
+      nonce: tx.ethereumSpecific.nonce,
+      to: outputAddresses[0],
+      txHash: tx.txid,
+      value: tx.value,
+      confirmations: tx.confirmations,
+      gasUsed: tx.ethereumSpecific.gasUsed,
+      gasPrice: tx.ethereumSpecific.gasPrice,
+      raw: {
+        ...tx,
+        provider: NETWORK_DATA_PROVIDERS.BLOCKBOOK,
+      },
+    }
+
+    return standardizedTransaction
+  }
+
+  standardizeERC20Transaction({
+    tx,
+    txSpecific,
+    tokenSymbol,
+    tokenDecimals,
+    tokenName,
+  }: {
+    tx: NormalizedTxEthereum
+    txSpecific: SpecificTxEthereum
+    tokenSymbol: string
+    tokenDecimals: string
+    tokenName: string
+  }): EthereumStandardizedERC20Transaction {
+    const standardizedTx = this.standardizeTransaction(tx)
+
+    const result: EthereumStandardizedERC20Transaction = {
+      ...standardizedTx,
+      raw: {
+        ...standardizedTx.raw,
+        ...txSpecific,
+      },
+      txInput: txSpecific.tx.input,
+      tokenSymbol,
+      tokenDecimals,
+      tokenName,
+      receipt: {
+        ...txSpecific.receipt,
+      },
+    }
+
+    return result
   }
 
   async _retryDced<T>(fn: () => Promise<T>, additionalRetryableErrors?: string[]): Promise<T> {
