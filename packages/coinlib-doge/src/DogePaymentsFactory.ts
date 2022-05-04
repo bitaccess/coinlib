@@ -6,6 +6,7 @@ import {
   DogePaymentsConfig,
   HdDogePaymentsConfig,
   KeyPairDogePaymentsConfig,
+  MultisigDogePaymentsConfig,
   DogePaymentsUtilsConfig,
   BaseDogePaymentsConfig,
   DogeBalanceMonitorConfig,
@@ -16,6 +17,7 @@ import { BaseDogePayments } from './BaseDogePayments'
 import { DogePaymentsUtils } from './DogePaymentsUtils'
 import { HdDogePayments } from './HdDogePayments'
 import { KeyPairDogePayments } from './KeyPairDogePayments'
+import { MultisigDogePayments } from './MultisigDogePayments'
 import { DogeBalanceMonitor } from './DogeBalanceMonitor'
 
 export class DogePaymentsFactory extends PaymentsFactory<
@@ -32,6 +34,9 @@ export class DogePaymentsFactory extends PaymentsFactory<
     }
     if (KeyPairDogePaymentsConfig.is(config)) {
       return new KeyPairDogePayments(config)
+    }
+    if (MultisigDogePaymentsConfig.is(config)) {
+      return new MultisigDogePayments(config)
     }
     throw new Error(`Cannot instantiate ${this.packageName} for unsupported config`)
   }

@@ -1,13 +1,16 @@
 import {
-  toMainDenominationString, toBaseDenominationString, isValidAddress, BitcoinCashAddressFormat,
-  estimateBitcoinCashTxSize, bitcoinish,
+  toMainDenominationString,
+  toBaseDenominationString,
+  isValidAddress,
+  BitcoinCashAddressFormat,
+  estimateBitcoinCashTxSize,
+  bitcoinish,
 } from '../src'
 import { NETWORK_TYPE, ADDRESS_CASH, ADDRESS_BITPAY, ADDRESS_LEGACY } from './fixtures'
 
 const { Legacy } = bitcoinish.AddressType
 
 describe('helpers', () => {
-
   describe('toMainDenomination', () => {
     test('from string', () => {
       expect(toMainDenominationString('123456789')).toBe('1.23456789')
@@ -90,12 +93,10 @@ describe('helpers', () => {
 
   describe('estimateBitcoinTxSize', () => {
     it(`returns correct estimate for ${Legacy} sweep`, () => {
-      expect(estimateBitcoinCashTxSize({ [Legacy]: 1 }, { [Legacy]: 1 }, NETWORK_TYPE))
-        .toBe(192)
+      expect(estimateBitcoinCashTxSize({ [Legacy]: 1 }, { [Legacy]: 1 }, NETWORK_TYPE)).toBe(192)
     })
     it(`returns correct estimate for ${Legacy} 2 to 2`, () => {
-      expect(estimateBitcoinCashTxSize({ [Legacy]: 2 }, { [Legacy]: 2 }, NETWORK_TYPE))
-        .toBe(374)
+      expect(estimateBitcoinCashTxSize({ [Legacy]: 2 }, { [Legacy]: 2 }, NETWORK_TYPE)).toBe(374)
     })
   })
 })

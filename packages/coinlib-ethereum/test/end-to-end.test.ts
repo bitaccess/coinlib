@@ -1,9 +1,7 @@
-import BigNumber from 'bignumber.js'
-import server from 'ganache-core'
+import server from 'ganache'
 import {
-  FeeRateType,
-  FeeLevel,
   NetworkType,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
 
 import { TestLogger } from '../../../common/testUtils'
@@ -50,6 +48,7 @@ describe('end to end tests', () => {
         secretKey: target.keys.prv
       },
     ],
+    chainId: 3
   }
 
 

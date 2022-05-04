@@ -1,5 +1,5 @@
 import { BaseMultisigData, createUnitConverters, MultisigData, NetworkType } from '@bitaccess/coinlib-common'
-import * as bitcoin from 'bitcoinjs-lib'
+import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { DECIMAL_PLACES, NETWORKS } from './constants'
 import * as bitcoinish from './bitcoinish'
 import { BitcoinjsNetwork } from './types'
@@ -58,16 +58,7 @@ export function estimateBitcoinTxSize(
   outputCounts: { [k: string]: number },
   networkType: NetworkType,
 ) {
-  return bitcoinish.estimateTxSize(
-    inputCounts,
-    outputCounts,
-    (address: string) => bitcoin.address.toOutputScript(address, NETWORKS[networkType]),
+  return bitcoinish.estimateTxSize(inputCounts, outputCounts, (address: string) =>
+    bitcoin.address.toOutputScript(address, NETWORKS[networkType]),
   )
-}
-
-export function isMultisigFullySigned(multisigData: MultisigData): boolean {
-  if (BaseMultisigData.is(multisigData)) {
-    return multisigData.signedAccountIds.length >= multisigData.m
-  }
-  return Object.values(multisigData).every(isMultisigFullySigned)
 }

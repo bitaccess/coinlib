@@ -3,9 +3,9 @@ import {
   BalanceActivity,
   NetworkType,
   GetBalanceActivityOptions,
-  FeeRateType
+  FeeRateType,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
-import BigNumber from 'bignumber.js'
 import { omit, sortBy } from 'lodash'
 
 import { hdAccount } from './fixtures/accounts'

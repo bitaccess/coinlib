@@ -1,9 +1,8 @@
-import { NetworkType, UtxoInfo, AutoFeeLevels, FeeRate, FeeRateType, FeeLevel } from '@bitaccess/coinlib-common'
+import { NetworkType, UtxoInfo, AutoFeeLevels, FeeRate, FeeRateType, BigNumber, } from '@bitaccess/coinlib-common'
 import { BlockbookBitcoin } from 'blockbook-client'
 import { isString, Logger, isMatchingError, toBigNumber, isNumber, assertType } from '@faast/ts-common'
 import request from 'request-promise-native'
 import promiseRetry from 'promise-retry'
-import BigNumber from 'bignumber.js'
 import crypto from 'crypto'
 import bs58 from 'bs58'
 

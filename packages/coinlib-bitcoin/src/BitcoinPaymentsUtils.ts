@@ -4,7 +4,6 @@ import { BitcoinPaymentsUtilsConfig } from './types'
 import { isValidAddress, isValidPrivateKey, standardizeAddress, isValidPublicKey } from './helpers'
 
 export class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
-
   constructor(config: BitcoinPaymentsUtilsConfig = {}) {
     super(toBitcoinishConfig(config))
   }
@@ -24,5 +23,4 @@ export class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
   isValidPrivateKey(privateKey: string) {
     return isValidPrivateKey(privateKey, this.networkType)
   }
-
 }

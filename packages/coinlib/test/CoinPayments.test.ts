@@ -226,7 +226,8 @@ describe('CoinPayments', () => {
           },
           'DOGE': {
             'derivationPath': "m/44'/3'/0'",
-            'hdKey': 'xpub6BkpqKsQa8pnP9fz2E6KtQF7GBFLknp1Q4Rao9muRT8sUxjnuD8szR9zrEmi9DcRGcSSgaDacMoNz4j5zr8VJNaSfrCsEtUgjYJKzMcUzPP',
+            // 'hdKey': 'xpub6BkpqKsQa8pnP9fz2E6KtQF7GBFLknp1Q4Rao9muRT8sUxjnuD8szR9zrEmi9DcRGcSSgaDacMoNz4j5zr8VJNaSfrCsEtUgjYJKzMcUzPP',
+            'hdKey': 'tpubDC8TMZh6HQnEewrqUR5R6KaUbJLzkBK4wh1t9hq3mMtmEFQVyRyy8rpq6GrVfiZf4WyMJ9jT9TdRgFDhPhyjBp2jjSxAvR8vKVtjkNDLUWg',
             'network': 'testnet',
           },
           'LTC': {
@@ -237,7 +238,7 @@ describe('CoinPayments', () => {
           },
           'BCH': {
             'derivationPath': "m/44'/145'/0'",
-            'hdKey': 'xpub6CrWaNQ65RQXoUARmM9YQ2L4cjjkbzuCSri8atiTU5WXo7FiXCZEU9AehJjuxB69EMZbvAAjSGqTDRTCRmsMfWY4y2yXqE1udMmhoKSNmgW',
+            'hdKey': 'tpubDDE96cDmnhMz5GMHDY8dbwfRwrqQbPQFzVJRwSmbozGRYPvRbRQKcaqUwLphUg3P2G6WXjgbyNfVubwopdibYwzN2diqWkg9DKN7ZJoYwXg',
             'network': 'testnet',
           },
           'ETH': {

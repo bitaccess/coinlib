@@ -11,7 +11,7 @@ import {
   HDNode,
   deriveHDNode,
   deriveKeyPair,
-  convertXPrefixHdKeys
+  convertXPrefixHdKeys,
 } from './bip44'
 import { HdLitecoinPaymentsConfig } from './types'
 import { SinglesigLitecoinPayments } from './SinglesigLitecoinPayments'
@@ -36,21 +36,21 @@ export class HdLitecoinPayments extends SinglesigLitecoinPayments<HdLitecoinPaym
       this.xprv = config.hdKey
     } else {
       const providedPrefix = config.hdKey.slice(0, 4)
-      const validPrefixes = Array.from(new Set([
-        bitcoinish.bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.public),
-        bitcoinish.bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.private),
-        'xprv',
-        'xpub'
-      ]).keys())
+      const validPrefixes = Array.from(
+        new Set([
+          bitcoinish.bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.public),
+          bitcoinish.bip32MagicNumberToPrefix(this.bitcoinjsNetwork.bip32.private),
+          'xprv',
+          'xpub',
+        ]).keys(),
+      )
       let reason = ''
       if (!validPrefixes.includes(providedPrefix)) {
         reason = ` with prefix ${providedPrefix} but expected ${validPrefixes.join('|')}`
       } else {
         reason = ` (${validateHdKey(config.hdKey, this.bitcoinjsNetwork)})`
       }
-      throw new Error(
-        `Invalid ${this.networkType} hdKey provided to litecoin payments config${reason}`
-      )
+      throw new Error(`Invalid ${this.networkType} hdKey provided to litecoin payments config${reason}`)
     }
     this.hdNode = deriveHDNode(config.hdKey, this.derivationPath, this.networkType)
   }

@@ -3,12 +3,7 @@ import { isUndefined, isString } from '@faast/ts-common'
 
 import { SinglesigBitcoinPayments } from './SinglesigBitcoinPayments'
 import { KeyPairBitcoinPaymentsConfig, BitcoinjsKeyPair, SinglesigAddressType } from './types'
-import {
-  privateKeyToKeyPair,
-  publicKeyToAddress,
-  publicKeyToKeyPair,
-  publicKeyToString,
-} from './helpers'
+import { privateKeyToKeyPair, publicKeyToAddress, publicKeyToKeyPair, publicKeyToString } from './helpers'
 import { PUBLIC_CONFIG_OMIT_FIELDS } from './constants'
 
 export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitcoinPaymentsConfig> {
@@ -34,7 +29,9 @@ export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitc
         publicKey = privateKeyToKeyPair(value, this.bitcoinjsNetwork).publicKey
         privateKey = value
       } else {
-        throw new Error(`KeyPairBitcoinPaymentsConfig.keyPairs[${i}] is not a valid ${this.networkType} private or public key`)
+        throw new Error(
+          `KeyPairBitcoinPaymentsConfig.keyPairs[${i}] is not a valid ${this.networkType} private or public key`,
+        )
       }
 
       const address = publicKeyToAddress(publicKey, this.bitcoinjsNetwork, this.addressType)

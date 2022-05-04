@@ -1,8 +1,11 @@
-import { BlockbookServerAPI } from './bitcoinish/types';
+import { BlockbookServerAPI } from './bitcoinish/types'
 import * as t from 'io-ts'
 import {
-  BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, FeeRate,
-  BaseTransactionInfo, BaseBroadcastResult, KeyPairsConfigParam,
+  BaseConfig,
+  BaseSignedTransaction,
+  FeeRate,
+  BaseBroadcastResult,
+  KeyPairsConfigParam,
 } from '@bitaccess/coinlib-common'
 import { extendCodec, requiredOptionalCodec, instanceofCodec } from '@faast/ts-common'
 import { BlockInfoBitcoin } from 'blockbook-client'
@@ -12,9 +15,10 @@ import {
   BlockbookConfigServer,
   MultisigAddressType,
   SinglesigAddressType,
-  BitcoinishTxOutput
+  BitcoinishTxOutput,
+  BitcoinishUnsignedTransaction,
 } from './bitcoinish'
-import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
+import { PsbtInput, TransactionInput } from 'bip174-bigint/src/lib/interfaces'
 
 export {
   AddressType,
@@ -91,10 +95,10 @@ export const KeyPairBitcoinPaymentsConfig = extendCodec(
 )
 export type KeyPairBitcoinPaymentsConfig = t.TypeOf<typeof KeyPairBitcoinPaymentsConfig>
 
-export const SinglesigBitcoinPaymentsConfig = t.union([
-  HdBitcoinPaymentsConfig,
-  KeyPairBitcoinPaymentsConfig,
-], 'SinglesigBitcoinPaymentsConfig')
+export const SinglesigBitcoinPaymentsConfig = t.union(
+  [HdBitcoinPaymentsConfig, KeyPairBitcoinPaymentsConfig],
+  'SinglesigBitcoinPaymentsConfig',
+)
 export type SinglesigBitcoinPaymentsConfig = t.TypeOf<typeof SinglesigBitcoinPaymentsConfig>
 
 export const MultisigBitcoinPaymentsConfig = extendCodec(
@@ -110,18 +114,17 @@ export const MultisigBitcoinPaymentsConfig = extendCodec(
 )
 export type MultisigBitcoinPaymentsConfig = t.TypeOf<typeof MultisigBitcoinPaymentsConfig>
 
-export const BitcoinPaymentsConfig = t.union([
-  HdBitcoinPaymentsConfig,
-  KeyPairBitcoinPaymentsConfig,
-  MultisigBitcoinPaymentsConfig,
-], 'BitcoinPaymentsConfig')
+export const BitcoinPaymentsConfig = t.union(
+  [HdBitcoinPaymentsConfig, KeyPairBitcoinPaymentsConfig, MultisigBitcoinPaymentsConfig],
+  'BitcoinPaymentsConfig',
+)
 export type BitcoinPaymentsConfig = t.TypeOf<typeof BitcoinPaymentsConfig>
 
 export const BitcoinUnsignedTransactionData = BitcoinishPaymentTx
 export type BitcoinUnsignedTransactionData = t.TypeOf<typeof BitcoinUnsignedTransactionData>
 
 export const BitcoinUnsignedTransaction = extendCodec(
-  BaseUnsignedTransaction,
+  BitcoinishUnsignedTransaction,
   {
     amount: t.string,
     fee: t.string,

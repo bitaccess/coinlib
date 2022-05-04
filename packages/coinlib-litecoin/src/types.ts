@@ -1,12 +1,15 @@
 import * as t from 'io-ts'
 import {
-  BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, FeeRate,
-  BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, KeyPairsConfigParam,
+  BaseConfig,
+  FeeRate,
+  BaseTransactionInfo,
+  BaseBroadcastResult,
+  KeyPairsConfigParam,
 } from '@bitaccess/coinlib-common'
 import { extendCodec, enumCodec, requiredOptionalCodec, instanceofCodec } from '@faast/ts-common'
-import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
+import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib-bigint'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
-import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
+import { PsbtInput, TransactionInput } from 'bip174-bigint/src/lib/interfaces'
 
 export enum LitecoinAddressFormat {
   Deprecated = 'deprecated',
@@ -27,27 +30,42 @@ export enum AddressType {
   SegwitNative = 'p2wpkh',
   MultisigLegacy = 'p2sh-p2ms',
   MultisigSegwitP2SH = 'p2sh-p2wsh-p2ms',
-  MultisigSegwitNative = 'p2wsh-p2ms'
+  MultisigSegwitNative = 'p2wsh-p2ms',
 }
 export const AddressTypeT = enumCodec<AddressType>(AddressType, 'AddressType')
 
 // For unclear reasons tsc throws TS4023 when this type is used in an external module.
 // Re-exporting the codec cast to the inferred type helps fix this.
-const SinglesigAddressTypeT = t.keyof({
-  [AddressType.Legacy]: null,
-  [AddressType.SegwitP2SH]: null,
-  [AddressType.SegwitNative]: null,
-}, 'SinglesigAddressType')
+const SinglesigAddressTypeT = t.keyof(
+  {
+    [AddressType.Legacy]: null,
+    [AddressType.SegwitP2SH]: null,
+    [AddressType.SegwitNative]: null,
+  },
+  'SinglesigAddressType',
+)
 export type SinglesigAddressType = t.TypeOf<typeof SinglesigAddressTypeT>
 export const SinglesigAddressType = SinglesigAddressTypeT as t.Type<SinglesigAddressType>
 
-const MultisigAddressTypeT = t.keyof({
-  [AddressType.MultisigLegacy]: null,
-  [AddressType.MultisigSegwitP2SH]: null,
-  [AddressType.MultisigSegwitNative]: null,
-}, 'MultisigAddressType')
+const MultisigAddressTypeT = t.keyof(
+  {
+    [AddressType.MultisigLegacy]: null,
+    [AddressType.MultisigSegwitP2SH]: null,
+    [AddressType.MultisigSegwitNative]: null,
+  },
+  'MultisigAddressType',
+)
 export type MultisigAddressType = t.TypeOf<typeof MultisigAddressTypeT>
 export const MultisigAddressType = MultisigAddressTypeT as t.Type<MultisigAddressType>
+
+export const BitcoinishTxOutput = t.type(
+  {
+    address: t.string,
+    value: t.string,
+  },
+  'BitcoinishTxOutput',
+)
+export type BitcoinishTxOutput = t.TypeOf<typeof BitcoinishTxOutput>
 
 export const LitecoinBaseConfig = extendCodec(
   BaseConfig,
@@ -115,23 +133,36 @@ export const KeyPairLitecoinPaymentsConfig = extendCodec(
 )
 export type KeyPairLitecoinPaymentsConfig = t.TypeOf<typeof KeyPairLitecoinPaymentsConfig>
 
-export const SinglesigLitecoinPaymentsConfig = t.union([
-  HdLitecoinPaymentsConfig,
-  KeyPairLitecoinPaymentsConfig,
-], 'SinglesigLitecoinPaymentsConfig')
+export const SinglesigLitecoinPaymentsConfig = t.union(
+  [HdLitecoinPaymentsConfig, KeyPairLitecoinPaymentsConfig],
+  'SinglesigLitecoinPaymentsConfig',
+)
 export type SinglesigLitecoinPaymentsConfig = t.TypeOf<typeof SinglesigLitecoinPaymentsConfig>
 
-export const LitecoinPaymentsConfig = t.union([
-  HdLitecoinPaymentsConfig,
-  KeyPairLitecoinPaymentsConfig,
-], 'LitecoinPaymentsConfig')
+export const MultisigLitecoinPaymentsConfig = extendCodec(
+  BaseLitecoinPaymentsConfig,
+  {
+    m: t.number,
+    signers: t.array(SinglesigLitecoinPaymentsConfig),
+  },
+  {
+    addressType: MultisigAddressType,
+  },
+  'MultisigLitecoinPaymentsConfig',
+)
+export type MultisigLitecoinPaymentsConfig = t.TypeOf<typeof MultisigLitecoinPaymentsConfig>
+
+export const LitecoinPaymentsConfig = t.union(
+  [HdLitecoinPaymentsConfig, KeyPairLitecoinPaymentsConfig, MultisigLitecoinPaymentsConfig],
+  'LitecoinPaymentsConfig',
+)
 export type LitecoinPaymentsConfig = t.TypeOf<typeof LitecoinPaymentsConfig>
 
 export const LitecoinUnsignedTransactionData = bitcoinish.BitcoinishPaymentTx
 export type LitecoinUnsignedTransactionData = t.TypeOf<typeof LitecoinUnsignedTransactionData>
 
 export const LitecoinUnsignedTransaction = extendCodec(
-  BaseUnsignedTransaction,
+  bitcoinish.BitcoinishUnsignedTransaction,
   {
     amount: t.string,
     fee: t.string,
@@ -150,13 +181,14 @@ export const LitecoinSignedTransactionData = requiredOptionalCodec(
     partial: t.boolean,
     // sha256 hash of the unsignedHex data for facilitating multisig tx combining
     unsignedTxHash: t.string,
+    changeOutputs: t.array(BitcoinishTxOutput),
   },
   'LitecoinSignedTransactionData',
 )
 export type LitecoinSignedTransactionData = t.TypeOf<typeof LitecoinSignedTransactionData>
 
 export const LitecoinSignedTransaction = extendCodec(
-  BaseSignedTransaction,
+  bitcoinish.BitcoinishSignedTransaction,
   {
     data: LitecoinSignedTransactionData,
   },

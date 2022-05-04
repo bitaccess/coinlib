@@ -37,7 +37,6 @@ describe('BitcoinCashPaymentUtils', () => {
   })
 
   describe('validAddressFormat = undefined', () => {
-
     describe('isValidAddress', () => {
       it('should return true for cash address', async () => {
         expect(pu.isValidAddress(ADDRESS_CASH)).toBe(true)

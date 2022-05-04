@@ -1,13 +1,9 @@
-import { createUnitConverters, NetworkType } from '@bitaccess/coinlib-common'
-import * as bitcoin from 'bitcoinjs-lib'
+import { BaseMultisigData, createUnitConverters, MultisigData, NetworkType } from '@bitaccess/coinlib-common'
+import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { assertType } from '@faast/ts-common'
 
 import { LitecoinAddressFormat, LitecoinAddressFormatT, SinglesigAddressType } from './types'
-import {
-  bitcoinish,
-  NETWORKS as BITCOIN_NETWORKS,
-  BitcoinjsNetwork,
-} from '@bitaccess/coinlib-bitcoin'
+import { bitcoinish, NETWORKS as BITCOIN_NETWORKS, BitcoinjsNetwork } from '@bitaccess/coinlib-bitcoin'
 import { DECIMAL_PLACES, DEFAULT_ADDRESS_FORMAT, NETWORKS } from './constants'
 
 const {
@@ -108,9 +104,8 @@ export function standardizeAddress(
     return address
   }
 
-  const fromFormat = format === LitecoinAddressFormat.Modern
-    ? LitecoinAddressFormat.Deprecated
-    : LitecoinAddressFormat.Modern
+  const fromFormat =
+    format === LitecoinAddressFormat.Modern ? LitecoinAddressFormat.Deprecated : LitecoinAddressFormat.Modern
   try {
     // Convert between p2sh legacy `3` prefix and modern `M` prefix
     const decoded = bitcoin.address.fromBase58Check(address)
@@ -138,10 +133,8 @@ export function estimateLitecoinTxSize(
   outputCounts: { [k: string]: number },
   networkType: NetworkType,
 ) {
-  return bitcoinish.estimateTxSize(
-    inputCounts,
-    outputCounts,
-    (address: string) => bitcoin.address.toOutputScript(
+  return bitcoinish.estimateTxSize(inputCounts, outputCounts, (address: string) =>
+    bitcoin.address.toOutputScript(
       // Modern format needed so address matches the bitcoinjs network
       standardizeAddress(address, networkType, LitecoinAddressFormat.Modern) || '',
       NETWORKS[networkType],

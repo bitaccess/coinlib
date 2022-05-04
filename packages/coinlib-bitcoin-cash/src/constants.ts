@@ -23,7 +23,7 @@ export const DEFAULT_DUST_THRESHOLD = 546
 export const DEFAULT_NETWORK_MIN_RELAY_FEE = 1000
 
 /** Sequence to use for each input such that RBF is opted into */
-export const BITCOIN_SEQUENCE_RBF = 0xFFFFFFFD
+export const BITCOIN_SEQUENCE_RBF = 0xfffffffd
 
 /**
  * The minimum fee this library should ever use for a transaction (overrides recommended levels).
@@ -33,6 +33,7 @@ export const BITCOIN_SEQUENCE_RBF = 0xFFFFFFFD
 export const DEFAULT_MIN_TX_FEE = 1
 
 export const SINGLESIG_ADDRESS_TYPE = AddressType.Legacy
+export const DEFAULT_MULTISIG_ADDRESS_TYPE = AddressType.MultisigLegacy
 
 export const DEFAULT_DERIVATION_PATH = "m/44'/145'/0'"
 
@@ -49,7 +50,7 @@ export const NETWORKS: { [networkType in NetworkType]: BitcoinjsNetwork } = {
 export const DEFAULT_MAINNET_SERVER = process.env.BITCOIN_CASH_SERVER_URL
   ? process.env.BITCOIN_CASH_SERVER_URL.split(',')
   : ['https://bch1.trezor.io', 'https://bch2.trezor.io']
-export const DEFAULT_TESTNET_SERVER = ''
+export const DEFAULT_TESTNET_SERVER = process.env.BITCOIN_CASH_TESTNET_SERVER_URL || ''
 
 export const DEFAULT_FEE_LEVEL = FeeLevel.Low
 

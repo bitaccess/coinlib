@@ -10,6 +10,7 @@ import {
   BalanceResult,
   TransactionStatus,
   BlockInfo,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
 import {
   Logger,
@@ -17,10 +18,8 @@ import {
   assertType,
   isNull,
   Numeric,
-  isUndefined,
   isNumber
 } from '@faast/ts-common'
-import BigNumber from 'bignumber.js'
 import type { TransactionReceipt, Transaction } from 'web3-core'
 import Contract from 'web3-eth-contract'
 import InputDataDecoder from 'ethereum-input-data-decoder'
@@ -443,7 +442,8 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
         transactionIndex: 0,
         blockHash: '',
         logs: [],
-        logsBloom: ''
+        logsBloom: '',
+        effectiveGasPrice:0
       }
 
       return {
@@ -533,7 +533,8 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
         transactionIndex: 0,
         blockHash: '',
         logs: [],
-        logsBloom: ''
+        logsBloom: '',
+        effectiveGasPrice:0
       }
 
       return {

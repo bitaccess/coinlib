@@ -4,12 +4,7 @@ import { PUBLIC_CONFIG_OMIT_FIELDS } from '@bitaccess/coinlib-bitcoin'
 
 import { SinglesigDogePayments } from './SinglesigDogePayments'
 import { KeyPairDogePaymentsConfig, BitcoinjsKeyPair } from './types'
-import {
-  privateKeyToKeyPair,
-  publicKeyToAddress,
-  publicKeyToKeyPair,
-  publicKeyToString,
-} from './helpers'
+import { privateKeyToKeyPair, publicKeyToAddress, publicKeyToKeyPair, publicKeyToString } from './helpers'
 import { SINGLESIG_ADDRESS_TYPE } from './constants'
 
 export class KeyPairDogePayments extends SinglesigDogePayments<KeyPairDogePaymentsConfig> {
@@ -35,7 +30,9 @@ export class KeyPairDogePayments extends SinglesigDogePayments<KeyPairDogePaymen
         publicKey = privateKeyToKeyPair(value, this.bitcoinjsNetwork).publicKey
         privateKey = value
       } else {
-        throw new Error(`KeyPairDogePaymentsConfig.keyPairs[${i}] is not a valid ${this.networkType} private or public key`)
+        throw new Error(
+          `KeyPairDogePaymentsConfig.keyPairs[${i}] is not a valid ${this.networkType} private or public key`,
+        )
       }
 
       const address = publicKeyToAddress(publicKey, this.bitcoinjsNetwork, SINGLESIG_ADDRESS_TYPE)

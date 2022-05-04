@@ -41,8 +41,9 @@ export function toBitcoinishConfig<T extends BitcoinCashBaseConfig>(config: T): 
     ...configWithDefaults,
     packageName: PACKAGE_NAME,
     bitcoinjsNetwork: network === NetworkType.Testnet ? NETWORK_TESTNET : NETWORK_MAINNET,
-    server: config?.api?.nodes ?? server ?? (network === NetworkType.Testnet
-      ? DEFAULT_TESTNET_SERVER
-      : DEFAULT_MAINNET_SERVER)
+    server:
+      config?.api?.nodes ??
+      server ??
+      (network === NetworkType.Testnet ? DEFAULT_TESTNET_SERVER : DEFAULT_MAINNET_SERVER),
   }
 }

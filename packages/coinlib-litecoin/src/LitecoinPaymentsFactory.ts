@@ -6,6 +6,7 @@ import {
   LitecoinPaymentsConfig,
   HdLitecoinPaymentsConfig,
   KeyPairLitecoinPaymentsConfig,
+  MultisigLitecoinPaymentsConfig,
   LitecoinPaymentsUtilsConfig,
   BaseLitecoinPaymentsConfig,
   LitecoinBalanceMonitorConfig,
@@ -16,6 +17,7 @@ import { BaseLitecoinPayments } from './BaseLitecoinPayments'
 import { LitecoinPaymentsUtils } from './LitecoinPaymentsUtils'
 import { HdLitecoinPayments } from './HdLitecoinPayments'
 import { KeyPairLitecoinPayments } from './KeyPairLitecoinPayments'
+import { MultisigLitecoinPayments } from './MultisigLitecoinPayments'
 import { LitecoinBalanceMonitor } from './LitecoinBalanceMonitor'
 
 export class LitecoinPaymentsFactory extends PaymentsFactory<
@@ -32,6 +34,9 @@ export class LitecoinPaymentsFactory extends PaymentsFactory<
     }
     if (KeyPairLitecoinPaymentsConfig.is(config)) {
       return new KeyPairLitecoinPayments(config)
+    }
+    if (MultisigLitecoinPaymentsConfig.is(config)) {
+      return new MultisigLitecoinPayments(config)
     }
     throw new Error(`Cannot instantiate ${this.packageName} for unsupported config`)
   }

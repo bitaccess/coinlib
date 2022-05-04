@@ -3,8 +3,9 @@ import { BitcoinCashAddressFormat, BitcoinjsKeyPair } from './types'
 import { BitcoinjsNetwork } from '@bitaccess/coinlib-bitcoin'
 import { publicKeyToAddress } from './helpers'
 import { NetworkType } from '@bitaccess/coinlib-common'
+import { convertXPrefixHdKeys } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
 
-export { HDNode }
+export { HDNode, convertXPrefixHdKeys }
 
 /**
  * Split full path into array of indices
@@ -25,9 +26,10 @@ export function splitDerivationPath(path: string): string[] {
  * This partially applies the derivation path starting at the already derived depth of the provided key.
  */
 export function deriveHDNode(hdKey: string, derivationPath: string, network: BitcoinjsNetwork): HDNode {
-  const rootNode = hdKey.startsWith('xprv') || hdKey.startsWith('xpub')
-    ? fromBase58(hdKey)
-    : fromBase58(hdKey, network)
+  if (network) {
+    hdKey = convertXPrefixHdKeys(hdKey, network)
+  }
+  const rootNode = fromBase58(hdKey, network)
   const parts = splitDerivationPath(derivationPath).slice(rootNode.depth)
   let node = rootNode
   if (parts.length > 0) {
@@ -41,7 +43,10 @@ export function deriveKeyPair(baseNode: HDNode, index: number): BitcoinjsKeyPair
 }
 
 export function deriveAddress(
-  baseNode: HDNode, index: number, networkType: NetworkType, format: BitcoinCashAddressFormat,
+  baseNode: HDNode,
+  index: number,
+  networkType: NetworkType,
+  format: BitcoinCashAddressFormat,
 ): string {
   const keyPair = deriveKeyPair(baseNode, index)
   return publicKeyToAddress(keyPair.publicKey, networkType, format)
@@ -60,7 +65,7 @@ export function xprvToXpub(xprv: string, derivationPath: string, network: Bitcoi
 export function isValidXprv(xprv: string, network?: BitcoinjsNetwork): boolean {
   try {
     return !fromBase58(xprv, network).isNeutered()
-  } catch(e) {
+  } catch (e) {
     return false
   }
 }
@@ -68,7 +73,7 @@ export function isValidXprv(xprv: string, network?: BitcoinjsNetwork): boolean {
 export function isValidXpub(xpub: string, network?: BitcoinjsNetwork): boolean {
   try {
     return fromBase58(xpub, network).isNeutered()
-  } catch(e) {
+  } catch (e) {
     return false
   }
 }
@@ -77,7 +82,7 @@ export function isValidXpub(xpub: string, network?: BitcoinjsNetwork): boolean {
 export function validateHdKey(hdKey: string, network?: BitcoinjsNetwork): string | undefined {
   try {
     fromBase58(hdKey, network)
-  } catch(e) {
+  } catch (e) {
     return e.toString()
   }
 }

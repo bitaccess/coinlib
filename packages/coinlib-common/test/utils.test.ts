@@ -1,6 +1,5 @@
 import { createUnitConverters } from '../src/utils'
-import BigNumber from 'bignumber.js'
-
+import { BigNumber } from '../src/SharedDependencies'
 const MAIN_STRING = '1234567.1234567'
 const MAIN_NUMBER = 1234567.1234567
 const MAIN_BIGNUMBER = new BigNumber(MAIN_STRING)
