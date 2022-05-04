@@ -4,7 +4,7 @@ import BigNumber from 'bignumber.js'
 import Web3 from 'web3'
 import { TransactionConfig } from 'web3-core'
 import Contract from 'web3-eth-contract'
-import { Transaction, TransactionReceipt } from 'web3-eth'
+import { BlockTransactionObject, Transaction, TransactionReceipt } from 'web3-eth'
 
 import {
   TOKEN_METHODS_ABI,
@@ -77,18 +77,9 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
   }
 
   async getBlock(id?: string | number): Promise<BlockInfo> {
-    const raw = await this._retryDced(() => this.eth.getBlock(id ?? 'latest', true))
+    const block = await this._retryDced(() => this.eth.getBlock(id ?? 'latest', true))
 
-    return {
-      id: raw.hash,
-      height: raw.number,
-      previousId: raw.parentHash,
-      time: new Date(isNumber(raw.timestamp) ? raw.timestamp * 1000 : raw.timestamp),
-      raw: {
-        ...raw,
-        dataProvider: NETWORK_DATA_PROVIDERS.INFURA,
-      },
-    }
+    return this.standardizeBlock(block)
   }
 
   async getERC20Transaction(txId: string, tokenAddress: string) {
@@ -100,7 +91,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     const currentBlockNumber = await this.getCurrentBlockNumber()
     const tokenDetails = await this.getTokenInfo(tokenAddress)
 
-    return this.standardizeInfuraERC20Transaction(
+    return this.standardizeERC20Transaction(
       { tx, txReceipt },
       {
         blockTime: block.time,
@@ -171,14 +162,45 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     const currentBlockNumber = await this.getCurrentBlockNumber()
     const txReceipt = await this.getTransactionReceipt(txId)
 
-    return this.standardizeInfuraTransaction(tx, {
+    return this.standardizeTransaction(tx, {
       blockTime: block.time,
       currentBlockNumber,
       gasUsed: txReceipt.gasUsed,
     })
   }
 
-  standardizeInfuraTransaction(
+  async standardizeBlock(block: BlockTransactionObject) {
+    const blockTime = new Date(isNumber(block.timestamp) ? block.timestamp * 1000 : block.timestamp)
+    const currentBlockNumber = await this.getCurrentBlockNumber()
+
+    const standardizedTransactionsPromise = block.transactions.map(async tx => {
+      const txReceipt = await this.getTransactionReceipt(tx.hash)
+
+      return this.standardizeTransaction(tx, {
+        blockTime: blockInfo.time,
+        gasUsed: txReceipt.gasUsed,
+        currentBlockNumber,
+      })
+    })
+
+    const standardizedTransactions = await Promise.all(standardizedTransactionsPromise)
+
+    const blockInfo: BlockInfo = {
+      id: block.hash,
+      height: block.number,
+      previousId: block.parentHash,
+      time: blockTime,
+      raw: {
+        ...block,
+        transactions: standardizedTransactions,
+        dataProvider: NETWORK_DATA_PROVIDERS.INFURA,
+      },
+    }
+
+    return blockInfo
+  }
+
+  standardizeTransaction(
     tx: Transaction,
     {
       blockTime,
@@ -207,14 +229,14 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
         blockTime,
         currentBlockNumber,
         gasUsed,
-        provider: NETWORK_DATA_PROVIDERS.INFURA,
+        dataProvider: NETWORK_DATA_PROVIDERS.INFURA,
       },
     }
 
     return standardizedTransaction
   }
 
-  standardizeInfuraERC20Transaction(
+  standardizeERC20Transaction(
     {
       tx,
       txReceipt,
@@ -230,7 +252,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       tokenSymbol,
     }: { blockTime: Date; currentBlockNumber: number; tokenDecimals: string; tokenName: string; tokenSymbol: string },
   ): EthereumStandardizedERC20Transaction {
-    const standardizedTx = this.standardizeInfuraTransaction(tx, {
+    const standardizedTx = this.standardizeTransaction(tx, {
       gasUsed: txReceipt.gasUsed,
       currentBlockNumber,
       blockTime,

@@ -1,6 +1,12 @@
 import { BlockInfo } from '@bitaccess/coinlib-common'
 import { Logger } from '@faast/ts-common'
-import { BlockbookEthereum, GetAddressDetailsOptions, NormalizedTxEthereum, SpecificTxEthereum } from 'blockbook-client'
+import {
+  BlockbookEthereum,
+  BlockInfoEthereum,
+  GetAddressDetailsOptions,
+  NormalizedTxEthereum,
+  SpecificTxEthereum,
+} from 'blockbook-client'
 import { NETWORK_DATA_PROVIDERS } from './constants'
 
 import {
@@ -40,20 +46,30 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
   async getBlock(id?: string | number): Promise<BlockInfo> {
     const blockId = id ?? (await this.getCurrentBlockNumber())
 
-    const raw = await this._retryDced(() => this.api.getBlock(blockId))
+    const block = await this._retryDced(() => this.api.getBlock(blockId))
+
+    return this.standardizeBlock(block)
+  }
+
+  standardizeBlock(block: BlockInfoEthereum) {
+    const blockTime = new Date(Number(block.time) * 1000)
+
+    const standardizedTransactions = (block.txs ?? []).map((tx: NormalizedTxEthereum) =>
+      this.standardizeTransaction(tx, blockTime),
+    )
 
     if (!raw.time) {
       throw new Error(`ethereum block ${id ?? 'latest'} missing timestamp`)
     }
 
     const blockInfo: BlockInfo = {
-      height: raw.height,
-      id: raw.hash,
-      previousId: raw.previousBlockHash,
-      time: new Date(Number(raw.time) * 1000),
+      height: block.height,
+      id: block.hash,
+      previousId: block.previousBlockHash,
+      time: blockTime,
       raw: {
-        ...raw,
-        txs: raw.txs,
+        ...block,
+        transactions: standardizedTransactions,
         dataProvider: NETWORK_DATA_PROVIDERS.BLOCKBOOK,
       },
     }
@@ -152,7 +168,7 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
       gasPrice: tx.ethereumSpecific.gasPrice,
       raw: {
         ...tx,
-        provider: NETWORK_DATA_PROVIDERS.BLOCKBOOK,
+        dataProvider: NETWORK_DATA_PROVIDERS.BLOCKBOOK,
       },
     }
 
