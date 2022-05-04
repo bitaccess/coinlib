@@ -2,7 +2,6 @@ import * as bitcoinCash from 'bitcoinforksjs-lib'
 import bchAddr from 'bchaddrjs'
 import { bitcoinish, AddressType } from '@bitaccess/coinlib-bitcoin'
 import { UtxoInfo, TransactionStatus, MultisigData, BigNumber, } from '@bitaccess/coinlib-common'
-import { isMultisigFullySigned } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
 import { toBitcoinishConfig } from './utils'
 import {
   BaseBitcoinCashPaymentsConfig,
@@ -153,7 +152,7 @@ export abstract class BaseBitcoinCashPayments<
     psbt: bitcoinCash.Psbt,
     updatedMultisigData: MultisigData,
   ): BitcoinCashSignedTransaction {
-    if (isMultisigFullySigned(updatedMultisigData)) {
+    if (bitcoinish.isMultisigFullySigned(updatedMultisigData)) {
       const finalizedTx = this.validateAndFinalizeSignedTx(tx, psbt)
       return {
         ...finalizedTx,

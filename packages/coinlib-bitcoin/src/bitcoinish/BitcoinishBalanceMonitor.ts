@@ -5,8 +5,6 @@ import {
   BalanceMonitor,
   GetBalanceActivityOptions,
   RetrieveBalanceActivitiesResult,
-  NetworkType,
-  createUnitConverters,
   NewBlockCallback,
   FilterBlockAddressesCallback,
   BlockInfo,
@@ -17,7 +15,6 @@ import {
   AddressDetailsBitcoinTxs,
   NormalizedTxBitcoin,
   NormalizedTxBitcoinVin,
-  NormalizedTxBitcoinVinWithCoinbase,
   NormalizedTxBitcoinVout,
 } from 'blockbook-client'
 import { isUndefined, Numeric } from '@faast/ts-common'
@@ -76,7 +73,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
   private accumulateAddressTx(
     addressTransactions: { [address: string]: Set<NormalizedTxBitcoin> },
     tx: NormalizedTxBitcoin,
-    inout: NormalizedTxBitcoinVin | NormalizedTxBitcoinVinWithCoinbase | NormalizedTxBitcoinVout,
+    inout: NormalizedTxBitcoinVin | NormalizedTxBitcoinVout,
   ) {
     if (!(inout.isAddress && inout.addresses?.length)) {
       return
@@ -205,7 +202,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
     return { from: from.toString(), to: to.toString() }
   }
 
-  private extractStandardAddress(v: NormalizedTxBitcoinVout | NormalizedTxBitcoinVinWithCoinbase | NormalizedTxBitcoinVin): string | null {
+  private extractStandardAddress(v: NormalizedTxBitcoinVout | NormalizedTxBitcoinVin): string | null {
     const address = v.isAddress && v.addresses?.[0]
     return address ? this.utils.standardizeAddress(address) : null
   }
@@ -225,11 +222,9 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
 
     for (const input of tx.vin) {
       // sometimes input.value can be undefined for coinbase block
-      if (!input.value) {
-        input.value = '0'
-      }
+      const inputValue = input.value ?? '0'
       if (this.extractStandardAddress(input) === standardizedAddress) {
-        netSatoshis = netSatoshis.minus(input.value)
+        netSatoshis = netSatoshis.minus(inputValue)
         const inputTxid = input.txid
         if (!inputTxid) {
           this.logger.log(`Tx ${tx.txid} input ${input.n} has no txid or vout`, input)
@@ -241,8 +236,8 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
         utxosSpent.push({
           txid: inputTxid,
           vout, // vout might be missing when 0
-          satoshis: new BigNumber(input.value).toNumber(),
-          value: this.utils.toMainDenominationString(input.value),
+          satoshis: new BigNumber(inputValue).toNumber(),
+          value: this.utils.toMainDenominationString(inputValue),
           confirmations: inputTxInfo.confirmations,
           height: inputTxInfo.blockHeight > 0 ? String(inputTxInfo.blockHeight) : undefined,
           coinbase: !input.isAddress && input.value === '0',

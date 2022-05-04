@@ -1,8 +1,6 @@
 import * as t from 'io-ts'
 import {
   BaseConfig,
-  BaseUnsignedTransaction,
-  BaseSignedTransaction,
   FeeRate,
   BaseTransactionInfo,
   BaseBroadcastResult,
@@ -12,7 +10,6 @@ import { extendCodec, enumCodec, requiredOptionalCodec, instanceofCodec } from '
 import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib-bigint'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { PsbtInput, TransactionInput, TransactionOutput } from 'bip174-bigint/src/lib/interfaces'
-import { BitcoinishUnsignedTransaction, BitcoinishSignedTransaction } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
 
 export interface PsbtTxInput extends TransactionInput {
   hash: string | Buffer
@@ -157,7 +154,7 @@ export const DogeUnsignedTransactionData = bitcoinish.BitcoinishPaymentTx
 export type DogeUnsignedTransactionData = t.TypeOf<typeof DogeUnsignedTransactionData>
 
 export const DogeUnsignedTransaction = extendCodec(
-  BitcoinishUnsignedTransaction,
+  bitcoinish.BitcoinishUnsignedTransaction,
   {
     amount: t.string,
     fee: t.string,
@@ -183,7 +180,7 @@ export const DogeSignedTransactionData = requiredOptionalCodec(
 export type DogeSignedTransactionData = t.TypeOf<typeof DogeSignedTransactionData>
 
 export const DogeSignedTransaction = extendCodec(
-  BitcoinishSignedTransaction,
+  bitcoinish.BitcoinishSignedTransaction,
   {
     data: DogeSignedTransactionData,
   },

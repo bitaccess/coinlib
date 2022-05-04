@@ -1,18 +1,14 @@
 import * as bitcoin from 'bitcoinjs-lib-bigint'
-import { UtxoInfo, TransactionStatus, MultisigData } from '@bitaccess/coinlib-common'
+import { UtxoInfo } from '@bitaccess/coinlib-common'
 import { AddressType, bitcoinish } from '@bitaccess/coinlib-bitcoin'
 
 import { toBitcoinishConfig } from './utils'
 import {
   BaseDogePaymentsConfig,
-  DogeUnsignedTransaction,
-  DogeSignedTransactionData,
-  DogeSignedTransaction,
   PsbtInputData,
 } from './types'
 import { BITCOIN_SEQUENCE_RBF, DEFAULT_FEE_LEVEL_BLOCK_TARGETS } from './constants'
 import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateDogeTxSize } from './helpers'
-import { isMultisigFullySigned } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
 
 // tslint:disable-next-line:max-line-length
 export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> extends bitcoinish.BitcoinishPayments<

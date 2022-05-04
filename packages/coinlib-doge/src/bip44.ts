@@ -1,4 +1,4 @@
-import { SinglesigAddressType, BitcoinjsKeyPair } from './types'
+import { BitcoinjsKeyPair } from './types'
 import { BitcoinjsNetwork } from '@bitaccess/coinlib-bitcoin'
 import { bip32, HDNode } from '@bitaccess/coinlib-common'
 import { publicKeyToAddress } from './helpers'
