@@ -333,11 +333,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     return unitConverter.toMainDenominationString(transferLog.data)
   }
 
-  async getTransactionInfoERC20(txId: string, tokenAddress = this.tokenAddress): Promise<EthereumTransactionInfo> {
-    if (!tokenAddress) {
-      throw new Error('tokenAddress is undefined')
-    }
-
+  private async getTransactionInfoERC20(txId: string, tokenAddress: string): Promise<EthereumTransactionInfo> {
     const erc20Tx = await this.networkData.getERC20Transaction(txId, tokenAddress)
 
     let fromAddress = erc20Tx.from
@@ -474,6 +470,9 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
   }
 
   async getTransactionInfo(txid: string): Promise<EthereumTransactionInfo> {
+    if (this.tokenAddress) {
+      return this.getTransactionInfoERC20(txid, this.tokenAddress)
+    }
     const tx = await this.networkData.getTransaction(txid)
 
     let status: TransactionStatus = TransactionStatus.Pending
