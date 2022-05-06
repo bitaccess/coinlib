@@ -438,3 +438,5 @@ export const GetFeeRecommendationOptions = t.partial({
   source: t.string, // ie blockbook, blockcypher, ethgasstation, etc
 }, 'GetFeeRecommendationOptions')
 export type GetFeeRecommendationOptions = t.TypeOf<typeof GetFeeRecommendationOptions>
+
+export type FunctionPropertyNames<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T]

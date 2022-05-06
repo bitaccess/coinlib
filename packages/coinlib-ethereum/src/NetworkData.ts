@@ -1,12 +1,13 @@
-import * as request from 'request-promise-native'
-import { BigNumber } from 'bignumber.js'
+import { AutoFeeLevels, BlockInfo, FunctionPropertyNames } from '@bitaccess/coinlib-common'
 import { Logger, DelegateLogger } from '@faast/ts-common'
-import { TransactionConfig } from 'web3-core'
-import { AutoFeeLevels, BlockInfo } from '@bitaccess/coinlib-common'
+import { BigNumber } from 'bignumber.js'
 import { GetAddressDetailsOptions } from 'blockbook-client'
+import * as request from 'request-promise-native'
+import { TransactionConfig } from 'web3-core'
 
 import { DEFAULT_GAS_PRICE_IN_WEI, GAS_STATION_URL, GAS_STATION_FEE_SPEED } from './constants'
 import {
+  EthereumNetworkDataProvider,
   EthereumStandardizedERC20Transaction,
   EthereumStandardizedTransaction,
   EthTxType,
@@ -50,14 +51,23 @@ export class NetworkData {
     await this.blockBookService.destroy()
   }
 
-  async getBlock(blockId: string | number): Promise<BlockInfo> {
+  callBlockbookWithWeb3Fallback<K extends FunctionPropertyNames<EthereumNetworkDataProvider>>(
+    methodName: K,
+    ...args: Parameters<EthereumNetworkDataProvider[K]>
+  ): ReturnType<EthereumNetworkDataProvider[K]> {
+    // Typescript compiler doesn't support spreading arguments that have a generic type, so the method
+    // must be cast to a plain Function before invocation to avoid error ts(2556)
     try {
-      return this.blockBookService.getBlock(blockId)
+      return (this.blockBookService[methodName] as Function)(...args)
     } catch (error) {
-      this.logger.log('Request to blockbook getBlock failed, Falling back to web3 ', error)
+      this.logger.log(`Call to blockbook ${methodName} failed, Falling back to web3`, error)
 
-      return this.web3Service.getBlock(blockId)
+      return (this.web3Service[methodName] as Function)(...args)
     }
+  }
+
+  async getBlock(blockId: string | number): Promise<BlockInfo> {
+    return this.callBlockbookWithWeb3Fallback('getBlock', blockId)
   }
 
   async getAddressDetails(address: string, options?: GetAddressDetailsOptions) {
@@ -109,53 +119,23 @@ export class NetworkData {
   }
 
   async getERC20Transaction(txId: string, tokenAddress: string): Promise<EthereumStandardizedERC20Transaction> {
-    try {
-      return this.blockBookService.getERC20Transaction(txId, tokenAddress)
-    } catch (error) {
-      this.logger.log('Request to blockbook getERC20Transaction failed, Falling back to web3 ', error)
-
-      return this.web3Service.getERC20Transaction(txId, tokenAddress)
-    }
+    return this.callBlockbookWithWeb3Fallback('getERC20Transaction', txId, tokenAddress)
   }
 
   async getTransaction(txId: string): Promise<EthereumStandardizedTransaction> {
-    try {
-      return this.blockBookService.getTransaction(txId)
-    } catch (error) {
-      this.logger.log('Request to blockbook getTransaction failed, Falling back to web3 ', error)
-
-      return this.web3Service.getTransaction(txId)
-    }
+    return this.callBlockbookWithWeb3Fallback('getTransaction', txId)
   }
 
   async getCurrentBlockNumber() {
-    try {
-      return this.blockBookService.getCurrentBlockNumber()
-    } catch (error) {
-      this.logger.log('Request to blockbook getCurrentBlockNumber failed, Falling back to web3 ', error)
-
-      return this.web3Service.getCurrentBlockNumber()
-    }
+    return this.callBlockbookWithWeb3Fallback('getCurrentBlockNumber')
   }
 
   async getAddressBalance(address: string) {
-    try {
-      return this.blockBookService.getAddressBalance(address)
-    } catch (error) {
-      this.logger.log('Request to blockbook getAddressBalance failed, Falling back to web3 ', error)
-
-      return this.web3Service.getAddressBalance(address)
-    }
+    return this.callBlockbookWithWeb3Fallback('getAddressBalance', address)
   }
 
   async getAddressBalanceERC20(address: string, tokenAddress: string) {
-    try {
-      return this.blockBookService.getAddressBalanceERC20(address, tokenAddress)
-    } catch (error) {
-      this.logger.log('Request to blockbook getAddressBalanceERC20 failed, Falling back to web3 ', error)
-
-      return this.web3Service.getAddressBalanceERC20(address, tokenAddress)
-    }
+    return this.callBlockbookWithWeb3Fallback('getAddressBalanceERC20', address, tokenAddress)
   }
 
   private async getParityNonce(address: string): Promise<string> {
