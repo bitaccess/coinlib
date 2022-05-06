@@ -501,7 +501,8 @@ describe('HdEthereumPayments', () => {
             value: '123450000000000000',
             gasPrice: '2000000000000',
             input: '0x57cb2fc4',
-            currentBlock: 4
+            currentBlock: 4,
+            effectiveGasPrice: 0,
           }
         })
       })

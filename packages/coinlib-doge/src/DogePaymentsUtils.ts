@@ -6,7 +6,6 @@ import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress
 import { DEFAULT_FEE_LEVEL_BLOCK_TARGETS } from './constants'
 
 export class DogePaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils {
-
   constructor(config: DogePaymentsUtilsConfig = {}) {
     super(toBitcoinishConfig(config))
     this.feeLevelBlockTargets = config.feeLevelBlockTargets ?? DEFAULT_FEE_LEVEL_BLOCK_TARGETS
@@ -27,5 +26,4 @@ export class DogePaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils {
   isValidPrivateKey(privateKey: string) {
     return isValidPrivateKey(privateKey, this.networkType)
   }
-
 }

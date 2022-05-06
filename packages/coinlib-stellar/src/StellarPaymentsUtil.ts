@@ -7,9 +7,9 @@ import {
   PaymentsUtils,
   Payport,
   TransactionStatus,
-  BlockInfo,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
-import { isNil, assertType, Numeric, isMatchingError, isUndefined } from '@faast/ts-common'
+import { isNil, assertType, Numeric, isMatchingError } from '@faast/ts-common'
 import * as Stellar from 'stellar-sdk'
 
 import {
@@ -20,7 +20,6 @@ import {
 } from './helpers'
 import { StellarConnected } from './StellarConnected'
 import { COIN_NAME, COIN_SYMBOL, DECIMAL_PLACES, MIN_BALANCE, NOT_FOUND_ERRORS } from './constants'
-import BigNumber from 'bignumber.js'
 import { StellarTransactionInfo } from './types'
 
 export class StellarPaymentsUtils extends StellarConnected implements PaymentsUtils {

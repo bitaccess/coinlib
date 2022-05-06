@@ -4,33 +4,41 @@ import {
   DogeSignedTransaction,
   SinglesigDogePaymentsConfig,
   DogeUnsignedTransaction,
+  AddressType,
+  SinglesigAddressType,
 } from './types'
-import { bitcoinish, AddressType } from '@bitaccess/coinlib-bitcoin'
-import { getSinglesigPaymentScript } from './helpers'
+import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { BaseDogePayments } from './BaseDogePayments'
+import { SINGLESIG_ADDRESS_TYPE } from './constants'
 
-export abstract class SinglesigDogePayments<Config extends SinglesigDogePaymentsConfig>
-  extends BaseDogePayments<Config> {
-
+export abstract class SinglesigDogePayments<Config extends SinglesigDogePaymentsConfig> extends BaseDogePayments<
+  Config
+> {
+  addressType: SinglesigAddressType
   abstract getKeyPair(index: number): BitcoinjsKeyPair
 
+  constructor(config: SinglesigDogePaymentsConfig) {
+    super(config)
+    this.addressType = config.addressType || SINGLESIG_ADDRESS_TYPE
+  }
+
   getPaymentScript(index: number): bitcoin.payments.Payment {
-    return getSinglesigPaymentScript(this.bitcoinjsNetwork, AddressType.Legacy, this.getKeyPair(index).publicKey)
+    return bitcoinish.getSinglesigPaymentScript(
+      this.bitcoinjsNetwork,
+      this.addressType,
+      this.getKeyPair(index).publicKey,
+    )
+  }
+
+  signMultisigTransaction(tx: DogeUnsignedTransaction): DogeSignedTransaction {
+    return bitcoinish.signMultisigTransaction(tx, this)
   }
 
   async signTransaction(tx: DogeUnsignedTransaction): Promise<DogeSignedTransaction> {
-    const paymentTx = tx.data as bitcoinish.BitcoinishPaymentTx
-    const { rawHex } = paymentTx
-    let psbt: bitcoin.Psbt
-    if (rawHex) {
-      psbt = bitcoin.Psbt.fromHex(rawHex, this.psbtOptions)
-    } else {
-      psbt = await this.buildPsbt(paymentTx, tx.fromIndex!)
-    }
+    return bitcoinish.signTransaction(tx, this)
+  }
 
-    const keyPair = this.getKeyPair(tx.fromIndex!)
-    psbt.signAllInputs(keyPair)
-
-    return this.validateAndFinalizeSignedTx(tx, psbt)
+  getSupportedAddressTypes(): AddressType[] {
+    return [AddressType.Legacy]
   }
 }

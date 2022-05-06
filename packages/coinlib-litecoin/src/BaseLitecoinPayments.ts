@@ -1,33 +1,15 @@
-import * as bitcoin from 'bitcoinjs-lib'
-import {
-  FeeRate,
-  AutoFeeLevels,
-  UtxoInfo,
-  TransactionStatus,
-  BaseMultisigData,
-} from '@bitaccess/coinlib-common'
+import * as bitcoin from 'bitcoinjs-lib-bigint'
+import { UtxoInfo } from '@bitaccess/coinlib-common'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
-
 import { toBitcoinishConfig } from './utils'
-import {
-  BaseLitecoinPaymentsConfig,
-  LitecoinUnsignedTransaction,
-  LitecoinSignedTransactionData,
-  LitecoinSignedTransaction,
-  AddressType,
-  PsbtInputData,
-  LitecoinAddressFormat,
-} from './types'
-import {
-  DEFAULT_FEE_LEVEL_BLOCK_TARGETS,
-  LITECOIN_SEQUENCE_RBF,
-} from './constants'
+import { BaseLitecoinPaymentsConfig, AddressType, PsbtInputData, LitecoinAddressFormat } from './types'
+import { DEFAULT_FEE_LEVEL_BLOCK_TARGETS, LITECOIN_SEQUENCE_RBF } from './constants'
 import { estimateLitecoinTxSize } from './helpers'
 import { LitecoinPaymentsUtils } from './LitecoinPaymentsUtils'
 
-export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsConfig>
-  extends bitcoinish.BitcoinishPayments<Config> {
-
+export abstract class BaseLitecoinPayments<
+  Config extends BaseLitecoinPaymentsConfig
+> extends bitcoinish.BitcoinishPayments<Config> {
   readonly maximumFeeRate?: number
   readonly validAddressFormat?: LitecoinAddressFormat
   readonly utils: LitecoinPaymentsUtils
@@ -86,7 +68,7 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
       index: utxo.vout,
       sequence: LITECOIN_SEQUENCE_RBF,
     }
-    if ((/p2wpkh|p2wsh/).test(addressType)) {
+    if (/p2wpkh|p2wsh/.test(addressType)) {
       // for segwit inputs, you only need the output script and value as an object.
       const rawUtxo = utx.vout[utxo.vout]
       const { hex: scriptPubKey, value: rawValue } = rawUtxo
@@ -95,11 +77,13 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
       }
       const utxoValue = this.toBaseDenominationNumber(utxo.value)
       if (String(utxoValue) !== rawValue) {
-        throw new Error(`Utxo ${utxo.txid}:${utxo.vout} has mismatched value - ${utxoValue} sat expected but network reports ${rawValue} sat`)
+        throw new Error(
+          `Utxo ${utxo.txid}:${utxo.vout} has mismatched value - ${utxoValue} sat expected but network reports ${rawValue} sat`,
+        )
       }
       result.witnessUtxo = {
         script: Buffer.from(scriptPubKey, 'hex'),
-        value: utxoValue,
+        value: BigInt(utxoValue),
       }
     } else {
       // for non segwit inputs, you must pass the full transaction buffer
@@ -126,22 +110,21 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
     }
   }
 
-  async buildPsbt(paymentTx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<bitcoin.Psbt> {
+  async buildPsbt(paymentTx: bitcoinish.BitcoinishPaymentTx, fromIndex?: number): Promise<bitcoin.Psbt> {
     const { inputs, outputs } = paymentTx
-    const inputPaymentScript = this.getPaymentScript(fromIndex)
 
     const psbt = new bitcoin.Psbt(this.psbtOptions)
     for (const input of inputs) {
-      psbt.addInput(await this.getPsbtInputData(
-        input,
-        inputPaymentScript,
-        this.addressType,
-      ))
+      const signer = input.signer ?? fromIndex
+      if (typeof signer === 'undefined') {
+        throw new Error('Signer index for utxo is not provided')
+      }
+      psbt.addInput(await this.getPsbtInputData(input, this.getPaymentScript(signer), this.addressType))
     }
     for (const output of outputs) {
       psbt.addOutput({
         address: output.address,
-        value: this.toBaseDenominationNumber(output.value)
+        value: this.toBaseDenominationNumber(output.value),
       })
     }
     return psbt
@@ -149,35 +132,5 @@ export abstract class BaseLitecoinPayments<Config extends BaseLitecoinPaymentsCo
 
   async serializePaymentTx(tx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<string> {
     return (await this.buildPsbt(tx, fromIndex)).toHex()
-  }
-
-  validateAndFinalizeSignedTx(
-    tx: LitecoinSignedTransaction | LitecoinUnsignedTransaction,
-    psbt: bitcoin.Psbt,
-  ): LitecoinSignedTransaction {
-    if (!psbt.validateSignaturesOfAllInputs()) {
-      throw new Error('Failed to validate signatures of all inputs')
-    }
-    psbt.finalizeAllInputs()
-    const signedTx = psbt.extractTransaction()
-    const txId = signedTx.getId()
-    const txHex = signedTx.toHex()
-    const txData = tx.data
-    const unsignedTxHash = LitecoinSignedTransactionData.is(txData) ? txData.unsignedTxHash : txData.rawHash
-    return {
-      ...tx,
-      status: TransactionStatus.Signed,
-      id: txId,
-      data: {
-        hex: txHex,
-        partial: false,
-        unsignedTxHash,
-      },
-    }
-  }
-
-
-  getSupportedAddressTypes(): AddressType[] {
-    return [this.addressType]
   }
 }

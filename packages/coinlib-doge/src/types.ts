@@ -1,12 +1,22 @@
 import * as t from 'io-ts'
 import {
-  BaseConfig, BaseUnsignedTransaction, BaseSignedTransaction, FeeRate,
-  BaseTransactionInfo, BaseBroadcastResult, KeyPairsConfigParam,
+  BaseConfig,
+  FeeRate,
+  BaseTransactionInfo,
+  BaseBroadcastResult,
+  KeyPairsConfigParam,
 } from '@bitaccess/coinlib-common'
 import { extendCodec, enumCodec, requiredOptionalCodec, instanceofCodec } from '@faast/ts-common'
 import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib-bigint'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
-import { PsbtInput, TransactionInput } from 'bip174-bigint/src/lib/interfaces'
+import { PsbtInput, TransactionInput, TransactionOutput } from 'bip174-bigint/src/lib/interfaces'
+
+export interface PsbtTxInput extends TransactionInput {
+  hash: string | Buffer
+}
+export interface PsbtTxOutput extends TransactionOutput {
+  address: string | undefined
+}
 
 export type BitcoinjsKeyPair = BitcoinjsSigner & {
   privateKey?: Buffer
@@ -17,16 +27,38 @@ export interface PsbtInputData extends PsbtInput, TransactionInput {}
 
 export enum AddressType {
   Legacy = 'p2pkh',
+  MultisigLegacy = 'p2sh-p2ms',
 }
 export const AddressTypeT = enumCodec<AddressType>(AddressType, 'AddressType')
 
 // For unclear reasons tsc throws TS4023 when this type is used in an external module.
 // Re-exporting the codec cast to the inferred type helps fix this.
-const SinglesigAddressTypeT = t.keyof({
-  [AddressType.Legacy]: null,
-}, 'SinglesigAddressType')
+const SinglesigAddressTypeT = t.keyof(
+  {
+    [AddressType.Legacy]: null,
+  },
+  'SinglesigAddressType',
+)
 export type SinglesigAddressType = t.TypeOf<typeof SinglesigAddressTypeT>
 export const SinglesigAddressType = SinglesigAddressTypeT as t.Type<SinglesigAddressType>
+
+const MultisigAddressTypeT = t.keyof(
+  {
+    [AddressType.MultisigLegacy]: null,
+  },
+  'MultisigAddressType',
+)
+export type MultisigAddressType = t.TypeOf<typeof MultisigAddressTypeT>
+export const MultisigAddressType = MultisigAddressTypeT as t.Type<MultisigAddressType>
+
+export const BitcoinishTxOutput = t.type(
+  {
+    address: t.string,
+    value: t.string,
+  },
+  'BitcoinishTxOutput',
+)
+export type BitcoinishTxOutput = t.TypeOf<typeof BitcoinishTxOutput>
 
 export const DogeBaseConfig = extendCodec(
   BaseConfig,
@@ -93,23 +125,36 @@ export const KeyPairDogePaymentsConfig = extendCodec(
 )
 export type KeyPairDogePaymentsConfig = t.TypeOf<typeof KeyPairDogePaymentsConfig>
 
-export const SinglesigDogePaymentsConfig = t.union([
-  HdDogePaymentsConfig,
-  KeyPairDogePaymentsConfig,
-], 'SinglesigDogePaymentsConfig')
+export const SinglesigDogePaymentsConfig = t.union(
+  [HdDogePaymentsConfig, KeyPairDogePaymentsConfig],
+  'SinglesigDogePaymentsConfig',
+)
 export type SinglesigDogePaymentsConfig = t.TypeOf<typeof SinglesigDogePaymentsConfig>
 
-export const DogePaymentsConfig = t.union([
-  HdDogePaymentsConfig,
-  KeyPairDogePaymentsConfig,
-], 'DogePaymentsConfig')
+export const MultisigDogePaymentsConfig = extendCodec(
+  BaseDogePaymentsConfig,
+  {
+    m: t.number,
+    signers: t.array(SinglesigDogePaymentsConfig),
+  },
+  {
+    addressType: MultisigAddressType,
+  },
+  'MultisigDogePaymentsConfig',
+)
+export type MultisigDogePaymentsConfig = t.TypeOf<typeof MultisigDogePaymentsConfig>
+
+export const DogePaymentsConfig = t.union(
+  [HdDogePaymentsConfig, KeyPairDogePaymentsConfig, MultisigDogePaymentsConfig],
+  'DogePaymentsConfig',
+)
 export type DogePaymentsConfig = t.TypeOf<typeof DogePaymentsConfig>
 
 export const DogeUnsignedTransactionData = bitcoinish.BitcoinishPaymentTx
 export type DogeUnsignedTransactionData = t.TypeOf<typeof DogeUnsignedTransactionData>
 
 export const DogeUnsignedTransaction = extendCodec(
-  BaseUnsignedTransaction,
+  bitcoinish.BitcoinishUnsignedTransaction,
   {
     amount: t.string,
     fee: t.string,
@@ -128,13 +173,14 @@ export const DogeSignedTransactionData = requiredOptionalCodec(
     partial: t.boolean,
     // sha256 hash of the unsignedHex data for facilitating multisig tx combining
     unsignedTxHash: t.string,
+    changeOutputs: t.array(BitcoinishTxOutput),
   },
   'DogeSignedTransactionData',
 )
 export type DogeSignedTransactionData = t.TypeOf<typeof DogeSignedTransactionData>
 
 export const DogeSignedTransaction = extendCodec(
-  BaseSignedTransaction,
+  bitcoinish.BitcoinishSignedTransaction,
   {
     data: DogeSignedTransactionData,
   },

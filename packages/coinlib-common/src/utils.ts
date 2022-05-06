@@ -1,4 +1,4 @@
-import BigNumber from 'bignumber.js'
+import { BigNumber } from './SharedDependencies'
 import { Numeric } from '@faast/ts-common'
 
 export function isMatchingError(e: Error, partialMessages: string[]) {

@@ -4,7 +4,7 @@ import {
   BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, NetworkTypeT, FeeLevel,
 } from '@bitaccess/coinlib-common'
 import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger, Numeric, enumCodec } from '@faast/ts-common'
-import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib'
+import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib-bigint'
 import { BlockbookBitcoin, BlockInfoBitcoin, NormalizedTxBitcoin, NormalizedTxBitcoinVin, NormalizedTxBitcoinVout } from 'blockbook-client'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
 
@@ -184,12 +184,27 @@ export const BitcoinishUnsignedTransaction = extendCodec(
 )
 export type BitcoinishUnsignedTransaction = t.TypeOf<typeof BitcoinishUnsignedTransaction>
 
-export const BitcoinishSignedTransaction = extendCodec(BaseSignedTransaction, {
-  data: t.type({
+export const BitcoinishSignedTransactionData = requiredOptionalCodec(
+  {
     hex: t.string,
-  }),
+  },
+  {
+    // true if `hex` is a partially signed transaction, false if it's finalized
+    partial: t.boolean,
+    // sha256 hash of the unsignedHex data for facilitating multisig tx combining
+    unsignedTxHash: t.string,
+    changeOutputs: t.array(BitcoinishTxOutput),
+  },
+  'BitcoinishSignedTransactionData',
+)
+export type BitcoinishSignedTransactionData = t.TypeOf<typeof BitcoinishSignedTransactionData>
+
+export const BitcoinishSignedTransaction = extendCodec(BaseSignedTransaction, {
+  data: BitcoinishSignedTransactionData,
 }, {}, 'BitcoinishSignedTransaction')
 export type BitcoinishSignedTransaction = t.TypeOf<typeof BitcoinishSignedTransaction>
+
+
 
 export const BitcoinishTransactionInfo = extendCodec(BaseTransactionInfo, {
   data: NormalizedTxBitcoin,

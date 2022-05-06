@@ -1,19 +1,19 @@
-import * as bitcoin from 'bitcoinjs-lib'
+import * as bitcoin from 'bitcoinjs-lib-bigint'
 import {
   LitecoinjsKeyPair,
   LitecoinUnsignedTransaction,
   LitecoinSignedTransaction,
   SinglesigLitecoinPaymentsConfig,
   SinglesigAddressType,
+  AddressType,
 } from './types'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
-import { publicKeyToString, getSinglesigPaymentScript } from './helpers'
 import { BaseLitecoinPayments } from './BaseLitecoinPayments'
 import { DEFAULT_SINGLESIG_ADDRESS_TYPE } from './constants'
 
-export abstract class SinglesigLitecoinPayments<Config extends SinglesigLitecoinPaymentsConfig>
-  extends BaseLitecoinPayments<Config> {
-
+export abstract class SinglesigLitecoinPayments<
+  Config extends SinglesigLitecoinPaymentsConfig
+> extends BaseLitecoinPayments<Config> {
   addressType: SinglesigAddressType
 
   constructor(config: SinglesigLitecoinPaymentsConfig) {
@@ -24,24 +24,22 @@ export abstract class SinglesigLitecoinPayments<Config extends SinglesigLitecoin
   abstract getKeyPair(index: number): LitecoinjsKeyPair
 
   getPaymentScript(index: number): bitcoin.payments.Payment {
-    return getSinglesigPaymentScript(this.bitcoinjsNetwork, this.addressType, this.getKeyPair(index).publicKey)
+    return bitcoinish.getSinglesigPaymentScript(
+      this.bitcoinjsNetwork,
+      this.addressType,
+      this.getKeyPair(index).publicKey,
+    )
   }
 
-
+  signMultisigTransaction(tx: LitecoinUnsignedTransaction): LitecoinSignedTransaction {
+    return bitcoinish.signMultisigTransaction(tx, this)
+  }
 
   async signTransaction(tx: LitecoinUnsignedTransaction): Promise<LitecoinSignedTransaction> {
-    const paymentTx = tx.data as bitcoinish.BitcoinishPaymentTx
-    const { rawHex } = paymentTx
-    let psbt: bitcoin.Psbt
-    if (rawHex) {
-      psbt = bitcoin.Psbt.fromHex(rawHex, this.psbtOptions)
-    } else {
-      psbt = await this.buildPsbt(paymentTx, tx.fromIndex!)
-    }
+    return bitcoinish.signTransaction(tx, this)
+  }
 
-    const keyPair = this.getKeyPair(tx.fromIndex!)
-    psbt.signAllInputs(keyPair)
-
-    return this.validateAndFinalizeSignedTx(tx, psbt)
+  getSupportedAddressTypes(): AddressType[] {
+    return [AddressType.Legacy, AddressType.SegwitNative, AddressType.SegwitNative]
   }
 }

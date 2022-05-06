@@ -1,7 +1,5 @@
 import { omit } from 'lodash'
-import {
-  assertType,
-} from '@faast/ts-common'
+import { assertType } from '@faast/ts-common'
 import {
   isValidXprv as isValidXprvHelper,
   isValidXpub as isValidXpubHelper,
@@ -44,23 +42,17 @@ export class HdBitcoinPayments extends SinglesigBitcoinPayments<HdBitcoinPayment
       } else {
         reason = ` (${validateHdKey(config.hdKey, this.bitcoinjsNetwork)})`
       }
-      throw new Error(
-        `Invalid ${this.networkType} hdKey provided to bitcoin payments config${reason}`
-      )
+      throw new Error(`Invalid ${this.networkType} hdKey provided to bitcoin payments config${reason}`)
     }
     this.hdNode = deriveHDNode(config.hdKey, this.derivationPath, this.bitcoinjsNetwork)
   }
 
   isValidXprv(xprv: string) {
-    return xprv.startsWith('xprv')
-      ? isValidXprvHelper(xprv)
-      : isValidXprvHelper(xprv, this.bitcoinjsNetwork)
+    return xprv.startsWith('xprv') ? isValidXprvHelper(xprv) : isValidXprvHelper(xprv, this.bitcoinjsNetwork)
   }
 
   isValidXpub(xpub: string) {
-    return xpub.startsWith('xpub')
-      ? isValidXpubHelper(xpub)
-      : isValidXpubHelper(xpub, this.bitcoinjsNetwork)
+    return xpub.startsWith('xpub') ? isValidXpubHelper(xpub) : isValidXpubHelper(xpub, this.bitcoinjsNetwork)
   }
 
   getFullConfig(): HdBitcoinPaymentsConfig {

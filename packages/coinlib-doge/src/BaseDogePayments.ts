@@ -1,35 +1,28 @@
 import * as bitcoin from 'bitcoinjs-lib-bigint'
-import {
-  FeeRate, AutoFeeLevels, UtxoInfo, TransactionStatus,
-} from '@bitaccess/coinlib-common'
+import { UtxoInfo } from '@bitaccess/coinlib-common'
 import { AddressType, bitcoinish } from '@bitaccess/coinlib-bitcoin'
 
 import { toBitcoinishConfig } from './utils'
 import {
   BaseDogePaymentsConfig,
-  DogeUnsignedTransaction,
-  DogeSignedTransactionData,
-  DogeSignedTransaction,
   PsbtInputData,
 } from './types'
-import {
-  BITCOIN_SEQUENCE_RBF, DEFAULT_FEE_LEVEL_BLOCK_TARGETS, SINGLESIG_ADDRESS_TYPE,
-} from './constants'
+import { BITCOIN_SEQUENCE_RBF, DEFAULT_FEE_LEVEL_BLOCK_TARGETS } from './constants'
 import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateDogeTxSize } from './helpers'
 
 // tslint:disable-next-line:max-line-length
-export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> extends bitcoinish.BitcoinishPayments<Config> {
-
+export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> extends bitcoinish.BitcoinishPayments<
+  Config
+> {
   readonly maximumFeeRate?: number
-  readonly addressType: AddressType
 
   constructor(config: BaseDogePaymentsConfig) {
     super(toBitcoinishConfig(config))
     this.maximumFeeRate = config.maximumFeeRate
-    this.addressType = AddressType.Legacy
     this.feeLevelBlockTargets = config.feeLevelBlockTargets ?? DEFAULT_FEE_LEVEL_BLOCK_TARGETS
   }
 
+  abstract addressType: AddressType
   abstract getPaymentScript(index: number): bitcoin.payments.Payment
 
   async createServiceTransaction(): Promise<null> {
@@ -54,7 +47,7 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
 
   /** Return a string that can be passed into estimateDogeTxSize. Override to support multisig */
   getEstimateTxSizeInputKey(): string {
-    return SINGLESIG_ADDRESS_TYPE
+    return this.addressType
   }
 
   estimateTxSize(inputCount: number, changeOutputCount: number, externalOutputAddresses: string[]): number {
@@ -62,7 +55,7 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
       { [this.getEstimateTxSizeInputKey()]: inputCount },
       {
         ...bitcoinish.countOccurences(externalOutputAddresses),
-        [SINGLESIG_ADDRESS_TYPE]: changeOutputCount,
+        [this.addressType]: changeOutputCount,
       },
       this.networkType,
     )
@@ -71,7 +64,7 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
   async getPsbtInputData(
     utxo: UtxoInfo,
     paymentScript: bitcoin.payments.Payment,
-    addressType: AddressType = SINGLESIG_ADDRESS_TYPE,
+    addressType: AddressType,
   ): Promise<PsbtInputData> {
     const utx = await this.getApi().getTx(utxo.txid)
     const result: PsbtInputData = {
@@ -79,7 +72,7 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
       index: utxo.vout,
       sequence: BITCOIN_SEQUENCE_RBF,
     }
-    if ((/p2wpkh|p2wsh/).test(addressType)) {
+    if (/p2wpkh|p2wsh/.test(addressType)) {
       // for segwit inputs, you only need the output script and value as an object.
       const rawUtxo = utx.vout[utxo.vout]
       const { hex: scriptPubKey, value: rawValue } = rawUtxo
@@ -88,7 +81,9 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
       }
       const utxoValue = this.toBaseDenominationString(utxo.value)
       if (utxoValue !== rawValue) {
-        throw new Error(`Utxo ${utxo.txid}:${utxo.vout} has mismatched value - ${utxoValue} sat expected but network reports ${rawValue} sat`)
+        throw new Error(
+          `Utxo ${utxo.txid}:${utxo.vout} has mismatched value - ${utxoValue} sat expected but network reports ${rawValue} sat`,
+        )
       }
       result.witnessUtxo = {
         script: Buffer.from(scriptPubKey, 'hex'),
@@ -119,21 +114,21 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
     }
   }
 
-  async buildPsbt(paymentTx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<bitcoin.Psbt> {
+  async buildPsbt(paymentTx: bitcoinish.BitcoinishPaymentTx, fromIndex?: number): Promise<bitcoin.Psbt> {
     const { inputs, outputs } = paymentTx
-    const inputPaymentScript = this.getPaymentScript(fromIndex)
+
     const psbt = new bitcoin.Psbt(this.psbtOptions)
     for (const input of inputs) {
-      psbt.addInput(await this.getPsbtInputData(
-        input,
-        inputPaymentScript,
-        ),
-      )
+      const signer = input.signer ?? fromIndex
+      if (typeof signer === 'undefined') {
+        throw new Error('Signer index for utxo is not provided')
+      }
+      psbt.addInput(await this.getPsbtInputData(input, this.getPaymentScript(signer), this.addressType))
     }
     for (const output of outputs) {
       psbt.addOutput({
         address: output.address,
-        value: this.toBaseDenominationNumber(output.value)
+        value: this.toBaseDenominationNumber(output.value),
       })
     }
     return psbt
@@ -141,34 +136,5 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
 
   async serializePaymentTx(tx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<string> {
     return (await this.buildPsbt(tx, fromIndex)).toHex()
-  }
-
-  validateAndFinalizeSignedTx(
-    tx: DogeSignedTransaction | DogeUnsignedTransaction,
-    psbt: bitcoin.Psbt,
-  ): DogeSignedTransaction {
-    if (!psbt.validateSignaturesOfAllInputs()) {
-      throw new Error('Failed to validate signatures of all inputs')
-    }
-    psbt.finalizeAllInputs()
-    const signedTx = psbt.extractTransaction()
-    const txId = signedTx.getId()
-    const txHex = signedTx.toHex()
-    const txData = tx.data
-    const unsignedTxHash = DogeSignedTransactionData.is(txData) ? txData.unsignedTxHash : txData.rawHash
-    return {
-      ...tx,
-      status: TransactionStatus.Signed,
-      id: txId,
-      data: {
-        hex: txHex,
-        partial: false,
-        unsignedTxHash,
-      },
-    }
-  }
-
-  getSupportedAddressTypes(): AddressType[] {
-    return [AddressType.Legacy]
   }
 }

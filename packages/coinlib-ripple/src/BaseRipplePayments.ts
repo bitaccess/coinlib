@@ -15,12 +15,12 @@ import {
   isMatchingError,
   FeeOptionCustom,
   PayportOutput,
-  CreateTransactionOptions
+  CreateTransactionOptions,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
 import { assertType, isNil, Numeric, isUndefined } from '@faast/ts-common'
-import BigNumber from 'bignumber.js'
-import { FormattedPaymentTransaction, Prepare } from 'ripple-lib/dist/npm/transaction/types'
-import { Adjustment, Amount } from 'ripple-lib/dist/npm/common/types/objects'
+import { Prepare } from 'ripple-lib/dist/npm/transaction/types'
+import { Adjustment } from 'ripple-lib/dist/npm/common/types/objects'
 import { omit } from 'lodash'
 
 import {

@@ -248,6 +248,7 @@ export const TransactionCommon = requiredOptionalCodec(
     outputUtxos: t.array(UtxoInfo),
     externalOutputs: t.array(TransactionOutput),
     weight: t.number, // weight of this transaction for fee purposes (ie vbytes, gas limit)
+    chainId: t.string,
   },
   'TransactionCommon',
 )

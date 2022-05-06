@@ -4,9 +4,9 @@ import {
   NetworkType,
   GetBalanceActivityOptions,
   FeeLevel,
-  FeeRateType
+  FeeRateType,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
-import BigNumber from 'bignumber.js'
 import { sortBy } from 'lodash'
 import StellarHD from 'stellar-hd-wallet'
 import crypto from 'crypto'

@@ -5,6 +5,7 @@ import {
   BalanceMonitor,
   RetrieveBalanceActivitiesResult,
   isMatchingError,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
 import { FormattedPaymentTransaction, FormattedTransactionType } from 'ripple-lib/dist/npm/transaction/types'
 import { TransactionsOptions } from 'ripple-lib/dist/npm/ledger/transactions'
@@ -14,7 +15,6 @@ import { padLeft } from './utils'
 import { RippleBalanceMonitorConfig } from './types'
 import { assertValidAddress } from './helpers'
 import { RippleConnected } from './RippleConnected'
-import BigNumber from 'bignumber.js'
 import { NOT_FOUND_ERRORS } from './constants'
 
 export class RippleBalanceMonitor extends RippleConnected implements BalanceMonitor {

@@ -5,9 +5,9 @@ import {
   BalanceMonitor,
   RetrieveBalanceActivitiesResult,
   isMatchingError,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
 import { Numeric, isUndefined } from '@faast/ts-common'
-import BigNumber from 'bignumber.js'
 import { EventEmitter } from 'events'
 
 import { padLeft } from './utils'

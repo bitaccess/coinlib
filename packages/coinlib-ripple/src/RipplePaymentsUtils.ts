@@ -6,7 +6,8 @@ import {
   FeeRate,
   FeeRateType,
   TransactionStatus,
-  BlockInfo
+  BlockInfo,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
 import { isNil, assertType, Numeric, isMatchingError, isUndefined, isString } from '@faast/ts-common'
 
@@ -18,10 +19,9 @@ import {
   isValidAddress,
   isValidExtraId,
 } from './helpers'
-import { BaseRippleConfig, RippleTransactionInfo } from './types'
+import { RippleTransactionInfo } from './types'
 import { RippleConnected } from './RippleConnected'
 import { DECIMAL_PLACES, COIN_NAME, COIN_SYMBOL, FEE_LEVEL_CUSHIONS, NOT_FOUND_ERRORS, MIN_BALANCE } from './constants'
-import BigNumber from 'bignumber.js'
 import { FormattedPaymentTransaction } from 'ripple-lib'
 import { Amount } from 'ripple-lib/dist/npm/common/types/objects'
 

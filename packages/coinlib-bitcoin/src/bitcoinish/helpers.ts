@@ -1,6 +1,17 @@
-import { AddressType, BitcoinjsKeyPair, BitcoinjsNetwork, MultisigAddressType, SinglesigAddressType } from './types'
-import * as bitcoin from 'bitcoinjs-lib'
+import {
+  AddressType,
+  BitcoinjsKeyPair,
+  BitcoinjsNetwork,
+  MultisigAddressType,
+  SinglesigAddressType,
+  BitcoinishSignedTransaction,
+  BitcoinishSignedTransactionData,
+  BitcoinishUnsignedTransaction
+} from './types'
+import { TransactionStatus, BaseMultisigData, MultisigData } from '@bitaccess/coinlib-common'
+import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { isString } from '@faast/ts-common'
+import b58 from 'bs58check'
 
 export function isValidAddress(address: string, network: BitcoinjsNetwork): boolean {
   try {
@@ -65,9 +76,9 @@ export function getMultisigPaymentScript(
       pubkeys: pubkeys.sort(),
       m,
       network,
-    })
+    }),
   }
-  switch(addressType) {
+  switch (addressType) {
     case AddressType.MultisigLegacy:
       return bitcoin.payments.p2sh(scriptParams)
     case AddressType.MultisigSegwitNative:
@@ -86,7 +97,7 @@ export function getSinglesigPaymentScript(
   pubkey: Buffer,
 ): bitcoin.payments.Payment {
   const scriptParams = { network, pubkey }
-  switch(addressType) {
+  switch (addressType) {
     case AddressType.Legacy:
       return bitcoin.payments.p2pkh(scriptParams)
     case AddressType.SegwitNative:
@@ -108,7 +119,7 @@ export function publicKeyToAddress(
   const script = getSinglesigPaymentScript(network, addressType, pubkey)
   const { address } = script
   if (!address) {
-    throw new Error('bitcoinjs-lib address derivation returned falsy value')
+    throw new Error('bitcoinjs-lib-bigint address derivation returned falsy value')
   }
   return address
 }
@@ -124,4 +135,91 @@ export function privateKeyToKeyPair(privateKey: string, network: BitcoinjsNetwor
 export function privateKeyToAddress(privateKey: string, network: BitcoinjsNetwork, addressType: SinglesigAddressType) {
   const keyPair = privateKeyToKeyPair(privateKey, network)
   return publicKeyToAddress(keyPair.publicKey, network, addressType)
+}
+
+function bufferFromUInt32(x: number) {
+  const b = Buffer.alloc(4)
+  b.writeUInt32BE(x, 0)
+  return b
+}
+
+/**
+ * Utility for converting xpub/xprv prefixed hd keys to the network specific prefix (ie Ltub/Ltpv)
+ */
+export function convertXPrefixHdKeys(hdKey: string, network: BitcoinjsNetwork): string {
+  let newMagicNumber
+  if (hdKey.startsWith('xpub')) {
+    newMagicNumber = network.bip32.public
+  } else if (hdKey.startsWith('xprv')) {
+    newMagicNumber = network.bip32.private
+  } else {
+    // Not recognized so probably already has network prefix
+    return hdKey
+  }
+  let data = b58.decode(hdKey)
+  data = data.slice(4)
+  data = Buffer.concat([bufferFromUInt32(newMagicNumber), data])
+  return b58.encode(data)
+}
+
+export function validateAndFinalizeSignedTx(
+  tx: BitcoinishSignedTransaction | BitcoinishUnsignedTransaction,
+  psbt: bitcoin.Psbt,
+): BitcoinishSignedTransaction {
+  if (!psbt.validateSignaturesOfAllInputs()) {
+    throw new Error('Failed to validate signatures of all inputs')
+  }
+  psbt.finalizeAllInputs()
+  const signedTx = psbt.extractTransaction()
+  const txId = signedTx.getId()
+  const txHex = signedTx.toHex()
+  const txData = tx.data
+  const unsignedTxHash = BitcoinishSignedTransactionData.is(txData) ? txData.unsignedTxHash : txData.rawHash
+  return {
+    ...tx,
+    status: TransactionStatus.Signed,
+    id: txId,
+    data: {
+      hex: txHex,
+      partial: false,
+      unsignedTxHash,
+      changeOutputs: tx.data?.changeOutputs,
+    },
+  }
+}
+
+
+export function isMultisigFullySigned(multisigData: MultisigData): boolean {
+  if (BaseMultisigData.is(multisigData)) {
+    return multisigData.signedAccountIds.length >= multisigData.m
+  }
+  return Object.values(multisigData).every(isMultisigFullySigned)
+}
+
+export function updateSignedMultisigTx(
+  tx: BitcoinishSignedTransaction | BitcoinishUnsignedTransaction,
+  psbt: bitcoin.Psbt,
+  updatedMultisigData: MultisigData,
+): BitcoinishSignedTransaction {
+  if (isMultisigFullySigned(updatedMultisigData)) {
+    const finalizedTx = validateAndFinalizeSignedTx(tx, psbt)
+    return {
+      ...finalizedTx,
+      multisigData: updatedMultisigData,
+    }
+  }
+  const combinedHex = psbt.toHex()
+  const unsignedTxHash = BitcoinishSignedTransactionData.is(tx.data) ? tx.data.unsignedTxHash : tx.data.rawHash
+  return {
+    ...tx,
+    id: '',
+    status: TransactionStatus.Signed,
+    multisigData: updatedMultisigData,
+    data: {
+      hex: combinedHex,
+      partial: true,
+      unsignedTxHash,
+      changeOutputs: tx.data?.changeOutputs,
+    },
+  }
 }

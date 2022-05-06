@@ -1,4 +1,4 @@
-import server from 'ganache-core'
+import server from 'ganache'
 import {
   BaseTransactionInfo,
   NetworkType,
@@ -100,15 +100,20 @@ describe('end to end tests', () => {
         },
       ], gasLimit: '0x9849ef',// 9980399
       callGasLimit: '0x9849ef',// 9980399
+      chainId: 3    // for ropsten, the new ganache need to verify v value in txn's signature; v = 35(or 36) + 2 * chainId
     }
 
     ethNode = server.server(ganacheConfig)
     ethNode.listen(LOCAL_PORT)
 
-    ethereumHD = new HdEthereumPayments(ETHER_CONFIG)
+  const provider = ethNode.provider;
+  const accounts = await provider.request({ method: "eth_accounts", params:[] });
 
+    ethereumHD = new HdEthereumPayments(ETHER_CONFIG)
     // deploy erc20 contract BA_TEST_TOKEN
     const unsignedContractDeploy = await ethereumHD.createServiceTransaction(undefined, { data: CONTRACT_BYTECODE, gas: CONTRACT_GAS })
+    unsignedContractDeploy.chainId = "1337"
+    unsignedContractDeploy.id = '1337'
     const signedContractDeploy = await ethereumHD.signTransaction(unsignedContractDeploy)
     const deployedContract = await ethereumHD.broadcastTransaction(signedContractDeploy)
     const contractInfo = await ethereumHD.getTransactionInfo(deployedContract.id)

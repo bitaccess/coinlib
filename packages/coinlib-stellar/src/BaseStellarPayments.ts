@@ -16,9 +16,9 @@ import {
   PayportOutput,
   CreateTransactionOptions,
   FeeOptionCustom,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
-import { assertType, isNil, Numeric, isString, toBigNumber, isObject } from '@faast/ts-common'
-import BigNumber from 'bignumber.js'
+import { assertType, isNil, Numeric, isString, toBigNumber } from '@faast/ts-common'
 import { omit } from 'lodash'
 import * as Stellar from 'stellar-sdk'
 
