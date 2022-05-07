@@ -229,6 +229,10 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     }
   }
 
+  isAddressEqual(address1: string, address2: string) {
+    return address1.toLowerCase() === address2.toLowerCase()
+  }
+
   privateKeyToAddress(prv: string): string {
     let key: string
     if (prv.substring(0, 2) === '0x') {
