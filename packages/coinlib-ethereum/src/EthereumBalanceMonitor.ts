@@ -15,6 +15,7 @@ import BigNumber from 'bignumber.js'
 import { AddressDetailsEthereumTxs, NormalizedTxEthereum } from 'blockbook-client'
 import { EventEmitter } from 'events'
 import { get } from 'lodash'
+import { BALANCE_ACTIVITY_EVENT } from './constants'
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
 import { EthereumBalanceMonitorConfig, EthereumStandardizedTransaction } from './types'
 
@@ -42,21 +43,56 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
     await this.utils.networkData.disconnectBlockBook()
   }
 
+  async getTxWithMemoization(txId: string, cache: { [txid: string]: NormalizedTxEthereum }) {
+    const memoizedTx = cache[txId]
+
+    if (memoizedTx) {
+      return memoizedTx
+    }
+
+    const rawTx = await this.utils.networkData.getTxRaw(txId)
+
+    cache[txId] = rawTx
+
+    return rawTx
+  }
+
+  private async handleBalanceActivityCallback(
+    balanceActivity: BalanceActivity | BalanceActivity[],
+    callbackFn: BalanceActivityCallback,
+    rawTx?: object,
+  ) {
+    if (Array.isArray(balanceActivity)) {
+      for (const activity of balanceActivity) {
+        await callbackFn(activity, rawTx)
+      }
+    } else {
+      await callbackFn(balanceActivity, rawTx)
+    }
+  }
+
   async subscribeAddresses(addresses: string[]): Promise<void> {
     const validAddresses = addresses.filter(address => this.utils.isValidAddress(address))
 
-    await this.utils.networkData.subscribeAddresses(validAddresses, async (address, standardizedTx, rawTx) => {
+    await this.utils.networkData.subscribeAddresses(validAddresses, async (address, rawTx) => {
       this.events.emit('tx', { address, tx: rawTx })
 
-      const activity = await this.txToBalanceActivity(address, standardizedTx)
+      const activity = await this.txToBalanceActivity(address, rawTx)
+
       if (activity) {
-        this.events.emit('activity', { activity, tx: rawTx })
+        if (Array.isArray(activity)) {
+          for (const a of activity) {
+            this.events.emit(BALANCE_ACTIVITY_EVENT, { activity: a, tx: rawTx })
+          }
+        } else {
+          this.events.emit(BALANCE_ACTIVITY_EVENT, { activity, tx: rawTx })
+        }
       }
     })
   }
 
   onBalanceActivity(callbackFn: BalanceActivityCallback) {
-    this.events.on('activity', ({ activity, tx }) => {
+    this.events.on(BALANCE_ACTIVITY_EVENT, ({ activity, tx }) => {
       callbackFn(activity, tx)?.catch(e =>
         this.utils.logger.error(`Error in ${this.coinSymbol} ${this.networkType} onBalanceActivity callback`, e),
       )
@@ -114,12 +150,11 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
           this.utils.logger.debug('ignoring out of range balance activity tx', tx)
           continue
         }
-        const standardizedTx = this.utils.networkData.standardizeBlockBookTransaction(tx)
 
-        const activity = await this.txToBalanceActivity(address, standardizedTx)
+        const activity = await this.txToBalanceActivity(address, tx)
 
         if (activity) {
-          await callbackFn(activity, tx)
+          await this.handleBalanceActivityCallback(activity, callbackFn, tx)
         }
       }
 
@@ -153,12 +188,21 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
       page: 1,
     })
 
+    /**
+     * The standardized tx may or may not contain the token transfers depending on which data source
+     * was used to fetch the NetworkData, so we need to do a hard lookup from the blockbook api for each tx, then also memoize
+     */
+    const hardTxQueries: { [txid: string]: NormalizedTxEthereum } = {}
+
     for (const relevantAddress of relevantAddresses) {
       const relevantAddressTransactions = addressTransactions[relevantAddress]
-      for (const tx of relevantAddressTransactions) {
-        const activity = await this.txToBalanceActivity(relevantAddress, tx)
+      for (const { txHash } of relevantAddressTransactions) {
+        const rawTx = await this.getTxWithMemoization(txHash, hardTxQueries)
+
+        const activity = await this.txToBalanceActivity(relevantAddress, rawTx)
+
         if (activity) {
-          await callbackFn(activity)
+          await this.handleBalanceActivityCallback(activity, callbackFn)
         }
       }
     }
@@ -166,12 +210,28 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
     return blockDetails
   }
 
-  async txToBalanceActivity(address: string, tx: EthereumStandardizedTransaction): Promise<BalanceActivity | null> {
+  getFromAndToAddressFromTx(tx: NormalizedTxEthereum) {
+    const inputAddresses = tx.vin[0].addresses
+    const outputAddresses = tx.vout[0].addresses
 
-    const isSender = address.toLowerCase() === tx.from.toLowerCase()
-    const isRecipient = address.toLowerCase() === tx.to.toLocaleLowerCase()
+    if (!inputAddresses || !outputAddresses) {
+      throw new Error('transaction is missing from or to address')
+    }
 
+    const fromAddress = inputAddresses[0]
+    const toAddress = outputAddresses[0]
+
+    return { fromAddress, toAddress }
+  }
+
+  getActivityType(
+    activityAddress: string,
+    { txFromAddress, txToAddress, txHash }: { txFromAddress: string; txToAddress: string; txHash: string },
+  ) {
     let type: BalanceActivity['type'] | undefined
+
+    const isSender = this.utils.isAddressEqual(activityAddress, txFromAddress)
+    const isRecipient = this.utils.isAddressEqual(activityAddress, txToAddress)
 
     if (isSender) {
       type = 'out'
@@ -180,8 +240,18 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
     }
 
     if (!type) {
-      throw new Error(`Unable to resolve balanceActivity type, address = ${address}, txHash=${tx.txHash}`)
+      throw new Error(`Unable to resolve balanceActivity type, address = ${activityAddress}, txHash=${txHash}`)
     }
+
+    return type
+  }
+
+  getBalanceActivityForNonTokenTransfer(address: string, tx: NormalizedTxEthereum): BalanceActivity {
+    const { fromAddress, toAddress } = this.getFromAndToAddressFromTx(tx)
+
+    const type = this.getActivityType(address, { txFromAddress: fromAddress, txToAddress: toAddress, txHash: tx.txid })
+
+    const timestamp = new Date(tx.blockTime * 1000)
 
     const balanceActivity: BalanceActivity = {
       type,
@@ -189,16 +259,69 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
       networkSymbol: this.coinSymbol,
       assetSymbol: this.coinSymbol,
       address,
-      externalId: tx.txHash,
-      activitySequence: tx.nonce.toString(),
+      externalId: tx.txid,
+      activitySequence: String(tx.ethereumSpecific.nonce),
       confirmationId: tx.blockHash ?? '',
       confirmationNumber: tx.blockHeight,
-      timestamp: tx.blockTime,
+      timestamp,
       amount: this.utils.toMainDenomination(tx.value),
       extraId: null,
+      confirmations: tx.confirmations,
     }
 
     return balanceActivity
+  }
+
+  async txToBalanceActivity(
+    address: string,
+    tx: NormalizedTxEthereum,
+  ): Promise<BalanceActivity | BalanceActivity[] | null> {
+    if (!tx.tokenTransfers || tx.tokenTransfers.length === 0) {
+      return this.getBalanceActivityForNonTokenTransfer(address, tx)
+    }
+
+    const nonce = String(tx.ethereumSpecific.nonce)
+    const txHash = tx.txid
+
+    const timestamp = new Date(tx.blockTime * 1000)
+
+    const balanceActivities = tx.tokenTransfers
+      .filter(tokenTransfer => {
+        // we only care about token transfers where our known address is the sender or recipient
+        const isSender = this.utils.isAddressEqual(tokenTransfer.from, address)
+        const isRecipient = this.utils.isAddressEqual(tokenTransfer.to, address)
+
+        return isSender || isRecipient
+      })
+      .map(tokenTransfer => {
+        const type = this.getActivityType(address, {
+          txFromAddress: tokenTransfer.from,
+          txToAddress: tokenTransfer.to,
+          txHash,
+        })
+
+        const unitConverter = this.utils.getCustomUnitConverter(tokenTransfer.decimals)
+
+        const balanceActivity: BalanceActivity = {
+          type,
+          networkType: this.networkType,
+          networkSymbol: this.coinSymbol,
+          assetSymbol: tokenTransfer.symbol,
+          address,
+          externalId: txHash,
+          activitySequence: nonce,
+          confirmationId: tx.blockHash ?? '',
+          confirmationNumber: tx.blockHeight,
+          timestamp,
+          amount: unitConverter.toMainDenominationString(tokenTransfer.value),
+          extraId: null,
+          confirmations: tx.confirmations,
+        }
+
+        return balanceActivity
+      })
+
+    return balanceActivities
   }
 
   async subscribeNewBlock(callbackFn: NewBlockCallback): Promise<void> {
