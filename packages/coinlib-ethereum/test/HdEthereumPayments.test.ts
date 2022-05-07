@@ -41,6 +41,7 @@ const CONFIG = {
   fullNode: INFURA_URL,
   hdKey: hdAccount.rootChild[0].xkeys.xprv,
   logger,
+  blockbookNode: 'https://eth1.trezor.io'
 }
 
 const INSTANCE_KEYS = deriveSignatory(hdAccount.rootChild[0].xkeys.xprv, 0)
