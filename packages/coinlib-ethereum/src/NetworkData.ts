@@ -195,6 +195,12 @@ export class NetworkData {
       .toFixed()
   }
 
+  async getTxRaw(txId: string) {
+    const blockbookApi = this.blockBookService.getApi()
+
+    return this._retryDced(() => blockbookApi.getTx(txId))
+  }
+
   async subscribeAddresses(
     addresses: string[],
     txToBalanceActivityCallback: (address: string, rawTx: NormalizedTxEthereum) => Promise<void>,
