@@ -22,3 +22,5 @@ export const ADDRESS_LEGACY = '1DbGmkAU9myqs8WkeSVYMN3z7AQWT6o5Fk'
 export const ADDRESS_SEGWIT_P2SH = '34AqiNyJqVHwvzzuoyPbE6s3dDDqKb5sr6'
 export const ADDRESS_SEGWIT_NATIVE = 'bc1q3gwdz3rhj5dyz60wtc2wdvs7qwver2q6vmy4gp'
 export const ADDRESS_SEGWIT_NATIVE_UPPER = 'BC1Q3GWDZ3RHJ5DYZ60WTC2WDVS7QWVER2Q6VMY4GP'
+
+export const ADDRESS_BECH32M = "bc1pw508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kt5nd6y"

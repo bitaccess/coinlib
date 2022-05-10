@@ -1,6 +1,6 @@
 import { FeeLevel, FeeRateType, AutoFeeLevels } from '@bitaccess/coinlib-common'
 import { BitcoinPaymentsUtils } from '../src'
-import { PRIVATE_KEY, ADDRESS_SEGWIT_P2SH } from './fixtures'
+import { PRIVATE_KEY, ADDRESS_SEGWIT_P2SH, ADDRESS_BECH32M } from './fixtures'
 
 const VALID_ADDRESS = ADDRESS_SEGWIT_P2SH
 
@@ -13,6 +13,9 @@ describe('BitcoinPaymentUtils', () => {
   describe('isValidAddress', () => {
     test('should return true for valid', async () => {
       expect(pu.isValidAddress(VALID_ADDRESS)).toBe(true)
+    })
+    test('should return true for valid bech32m address', async () => {
+      expect(pu.isValidAddress(ADDRESS_BECH32M)).toBe(true)
     })
     test('should return false for invalid', async () => {
       expect(pu.isValidAddress('fake')).toBe(false)
