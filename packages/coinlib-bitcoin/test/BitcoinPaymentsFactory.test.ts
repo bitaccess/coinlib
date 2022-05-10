@@ -9,7 +9,7 @@ import {
   DEFAULT_MAINNET_SERVER,
   BitcoinBalanceMonitorConfig,
   BitcoinPaymentsUtilsConfig,
-  bitcoinish
+  bitcoinish,
 } from '../src'
 import { PRIVATE_KEY } from './fixtures'
 
@@ -47,7 +47,7 @@ describe('BitcoinPaymentsFactory', () => {
 
   afterEach(async () => {
     // disconnect all connections
-    await Promise.all(Object.values(factory.connectionManager.connections).map((connection) => connection.disconnect()))
+    await Promise.all(Object.values(factory.connectionManager.connections).map(connection => connection.disconnect()))
   })
 
   describe('newPayments', () => {

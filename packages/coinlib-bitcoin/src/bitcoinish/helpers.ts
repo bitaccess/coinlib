@@ -6,7 +6,7 @@ import {
   SinglesigAddressType,
   BitcoinishSignedTransaction,
   BitcoinishSignedTransactionData,
-  BitcoinishUnsignedTransaction
+  BitcoinishUnsignedTransaction,
 } from './types'
 import { TransactionStatus, BaseMultisigData, MultisigData, ecpair } from '@bitaccess/coinlib-common'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
@@ -162,7 +162,7 @@ export function convertXPrefixHdKeys(hdKey: string, network: BitcoinjsNetwork): 
   return b58.encode(data)
 }
 
-function keypairValidator(publicKey: Buffer, hash: Buffer, signature: Buffer): boolean{
+function keypairValidator(publicKey: Buffer, hash: Buffer, signature: Buffer): boolean {
   const keypair = ecpair.fromPublicKey(publicKey)
   return keypair.verify(hash, signature)
 }
@@ -192,7 +192,6 @@ export function validateAndFinalizeSignedTx(
     },
   }
 }
-
 
 export function isMultisigFullySigned(multisigData: MultisigData): boolean {
   if (BaseMultisigData.is(multisigData)) {

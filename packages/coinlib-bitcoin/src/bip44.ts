@@ -1,7 +1,7 @@
 import { SinglesigAddressType, BitcoinjsKeyPair } from './types'
 import { BitcoinjsNetwork, bip32MagicNumberToPrefix } from './bitcoinish'
 import { publicKeyToAddress } from './helpers'
-import { bip32, HDNode }  from '@bitaccess/coinlib-common'
+import { bip32, HDNode } from '@bitaccess/coinlib-common'
 
 export { bip32MagicNumberToPrefix, HDNode }
 
@@ -24,7 +24,8 @@ export function splitDerivationPath(path: string): string[] {
  * This partially applies the derivation path starting at the already derived depth of the provided key.
  */
 export function deriveHDNode(hdKey: string, derivationPath: string, network: BitcoinjsNetwork): HDNode {
-  const rootNode = hdKey.startsWith('xprv') || hdKey.startsWith('xpub') ? bip32.fromBase58(hdKey) : bip32.fromBase58(hdKey, network)
+  const rootNode =
+    hdKey.startsWith('xprv') || hdKey.startsWith('xpub') ? bip32.fromBase58(hdKey) : bip32.fromBase58(hdKey, network)
   const parts = splitDerivationPath(derivationPath).slice(rootNode.depth)
   let node = rootNode
   if (parts.length > 0) {
@@ -59,7 +60,7 @@ export function xprvToXpub(xprv: string, derivationPath: string, network: Bitcoi
 
 export function isValidXprv(xprv: string, network?: BitcoinjsNetwork): boolean {
   try {
-    return !(bip32.fromBase58(xprv, network).isNeutered())
+    return !bip32.fromBase58(xprv, network).isNeutered()
   } catch (e) {
     return false
   }
