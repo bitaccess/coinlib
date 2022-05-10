@@ -1,11 +1,13 @@
 import { PACKAGE_NAME } from '../src/constants'
-import { UtxoInfo, BaseConfig } from '@bitaccess/coinlib-common'
+import { UtxoInfo, BaseConfig, ecc } from '@bitaccess/coinlib-common'
 import { TestLogger } from '../../../common/testUtils'
 import { BitcoinishTxOutput } from '../src/bitcoinish/types'
 import { BitcoinishPayments } from '../src/bitcoinish/BitcoinishPayments'
-import { toBaseDenominationNumber } from '../src'
+import { toBaseDenominationNumber, BitcoinjsNetwork } from '../src'
 import { omit } from 'lodash'
 import { toBigNumber } from '@faast/ts-common'
+import * as bitcoin from 'bitcoinjs-lib-bigint'
+
 
 
 export * from '../../../common/testUtils'
@@ -105,3 +107,27 @@ export async function getFromTo(
 
 
 }
+
+
+// Function for creating a tweaked p2tr key-spend only address
+// (This is recommended by BIP341)
+function createKeySpendOutput(publicKey: Buffer): Buffer {
+  // x-only pubkey (remove 1 byte y parity)
+  const myXOnlyPubkey = publicKey.slice(1, 33);
+  const commitHash = bitcoin.crypto.taggedHash('TapTweak', myXOnlyPubkey);
+  const tweakResult = ecc.xOnlyPointAddTweak(myXOnlyPubkey, commitHash);
+  if (tweakResult === null) throw new Error('Invalid Tweak');
+  const { xOnlyPubkey: tweaked } = tweakResult;
+  // scriptPubkey
+  return Buffer.concat([
+    // witness v1, PUSH_DATA 32 bytes
+    Buffer.from([0x51, 0x20]),
+    // x-only tweaked pubkey
+    tweaked,
+  ]);
+}
+
+export function getTaprootAddressFromPublicKey(publicKey: Buffer, network: BitcoinjsNetwork){
+  const output = createKeySpendOutput(publicKey)
+  return bitcoin.address.fromOutputScript(output, network)
+} 

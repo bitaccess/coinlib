@@ -10,4 +10,4 @@ import * as ecc from 'tiny-secp256k1';
 export { BigNumber }
 const bip32: BIP32API = BIP32Factory(ecc);
 const ecpair: ECPairAPI = ECPairFactory(ecc);
-export { bip32, HDNode, ecpair }
+export { bip32, HDNode, ecpair, ecc }
