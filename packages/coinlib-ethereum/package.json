@@ -48,7 +48,7 @@
     "@bitaccess/coinlib-common": "file:../coinlib-common",
     "@faast/ts-common": "^0.6.0",
     "bip32": "^2.0.5",
-    "blockbook-client": "^0.7.2",
+    "blockbook-client": "^0.7.5",
     "elliptic": "^6.5.4",
     "ethereum-input-data-decoder": "^0.3.5",
     "ethereumjs-tx": "^2.1.2",
