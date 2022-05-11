@@ -506,7 +506,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       isConfirmed,
       confirmations: tx.confirmations,
       confirmationId: tx.blockHash ?? null,
-      confirmationTimestamp: new Date(Number(tx.blockTime) * 1000),
+      confirmationTimestamp: tx.blockTime,
       confirmationNumber: tx.blockHeight,
       status,
       currentBlockNumber,
