@@ -14,7 +14,7 @@ import { HdBitcoinCashPayments } from './HdBitcoinCashPayments'
 import { KeyPairBitcoinCashPayments } from './KeyPairBitcoinCashPayments'
 import * as bitcoin from 'bitcoinforksjs-lib'
 import { CreateTransactionOptions, ResolveablePayport, PayportOutput } from '@bitaccess/coinlib-common'
-import { AddressType } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
+import { bitcoinish } from "@bitaccess/coinlib-bitcoin"
 import { createMultisigData, preCombinePartiallySignedTransactions } from './multisigPaymentHelper'
 
 import { getMultisigPaymentScript } from './helpers'
@@ -165,8 +165,8 @@ export class MultisigBitcoinCashPayments extends BaseBitcoinCashPayments<Multisi
     return this.combinePartiallySignedTransactions(partiallySignedTxs)
   }
 
-  getSupportedAddressTypes(): AddressType[] {
-    return [AddressType.MultisigLegacy]
+  getSupportedAddressTypes(): bitcoinish.AddressType[] {
+    return [bitcoinish.AddressType.MultisigLegacy]
   }
 }
 
