@@ -1,10 +1,10 @@
-import { BitcoinjsNetwork } from '@bitaccess/coinlib-bitcoin'
+import { BitcoinjsNetwork, bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { SinglesigAddressType, LitecoinjsKeyPair, LitecoinAddressFormat } from './types'
 import { publicKeyToAddress } from './helpers'
 import { NetworkType, HDNode, bip32 } from '@bitaccess/coinlib-common'
 import { NETWORKS } from './constants'
-import { convertXPrefixHdKeys } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
 
+const convertXPrefixHdKeys = bitcoinish.convertXPrefixHdKeys
 export { HDNode, convertXPrefixHdKeys }
 
 /**
@@ -27,7 +27,7 @@ export function splitDerivationPath(path: string): string[] {
  */
 export function deriveHDNode(hdKey: string, derivationPath: string, networkType: NetworkType): HDNode {
   const network = NETWORKS[networkType]
-  const rootNode = bip32.fromBase58(convertXPrefixHdKeys(hdKey, network), network)
+  const rootNode = bip32.fromBase58(bitcoinish.convertXPrefixHdKeys(hdKey, network), network)
   const parts = splitDerivationPath(derivationPath).slice(rootNode.depth)
   let node = rootNode
   if (parts.length > 0) {
