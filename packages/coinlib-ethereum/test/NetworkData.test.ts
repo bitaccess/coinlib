@@ -1,3 +1,4 @@
+import { DEFAULT_TESTNET_SERVER } from '../src/constants'
 import { NetworkData } from '../src/NetworkData'
 import { NetworkDataConfig } from '../src/types'
 import {
@@ -20,7 +21,7 @@ describe('NetworkData', () => {
   const GAS_STATION_URL = 'https://gasstation.test.url'
   const PARITY_URL = 'https://parity.test.url'
   const INFURA_URL = 'https://infura.test.url'
-  const BLOCKBOOK_NODES = ['https://eth1.trezor.io']
+  const BLOCKBOOK_NODES = DEFAULT_TESTNET_SERVER
 
   const nockG = nock(GAS_STATION_URL)
   const nockP = nock(PARITY_URL)
@@ -53,7 +54,7 @@ describe('NetworkData', () => {
     const parityMock = getNextNonceMocks(1, from, '0x1b')
     nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
 
-    const res = await networkData.getNetworkData('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
+    const res = await networkData.getGasAndNonceForNewTx('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
 
     expect(res).toEqual({
       pricePerGasUnit: '1000000000',
@@ -74,7 +75,7 @@ describe('NetworkData', () => {
     const parityMock = getNextNonceMocks(1, from, '0x1b')
     nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
 
-    const res = await networkData.getNetworkData('TOKEN_SWEEP', FeeLevel.Low, from, to)
+    const res = await networkData.getGasAndNonceForNewTx('TOKEN_SWEEP', FeeLevel.Low, from, to)
 
     expect(res).toEqual({
       pricePerGasUnit: '1000000000',
@@ -102,7 +103,7 @@ describe('NetworkData', () => {
     const parityMock = getNextNonceMocks(1, from, '')
     nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
 
-    const res = await networkData.getNetworkData('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
+    const res = await networkData.getGasAndNonceForNewTx('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
 
     expect(res).toEqual({
       pricePerGasUnit: '50000000000',
@@ -130,7 +131,7 @@ describe('NetworkData', () => {
     const parityMock = getNextNonceMocks(1, from, '0x1b')
     nockP.post(/.*/, parityMock.req).reply(400)
 
-    const res = await networkData.getNetworkData('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
+    const res = await networkData.getGasAndNonceForNewTx('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
 
     expect(res).toEqual({
       pricePerGasUnit: '50000000000',
