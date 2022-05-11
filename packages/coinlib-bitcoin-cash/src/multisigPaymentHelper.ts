@@ -1,5 +1,6 @@
 import { UtxoInfo, BaseConfig, AddressMultisigData, BaseMultisigData, MultisigData } from '@bitaccess/coinlib-common'
-import { BitcoinishSignedTransaction, BitcoinishPayments } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
+import { SinglesigBitcoinCashPaymentsConfig, BitcoinCashSignedTransaction } from "./types"
+import { SinglesigBitcoinCashPayments } from './SinglesigBitcoinCashPayments'
 import { isNumber } from '@faast/ts-common'
 import { publicKeyToString } from './helpers'
 import * as bitcoin from 'bitcoinforksjs-lib'
@@ -12,7 +13,7 @@ import { cloneDeep } from 'lodash'
 
 export function createMultisigData(
   inputUtxos: UtxoInfo[],
-  signers: (BitcoinishPayments<BaseConfig> & { getKeyPair(index: number): { publicKey: Buffer } })[],
+  signers: SinglesigBitcoinCashPayments<SinglesigBitcoinCashPaymentsConfig>[],
   m: number,
 ) {
   const result: { [address: string]: AddressMultisigData } = {}
@@ -54,7 +55,7 @@ interface PsbtOptsOptional {
   maximumFeeRate?: number
 }
 function deserializeSignedTxPsbt(
-  tx: BitcoinishSignedTransaction & { data: { partial?: boolean } },
+  tx: BitcoinCashSignedTransaction,
   psbtOptions?: PsbtOptsOptional,
 ): bitcoin.Psbt {
   if (!tx.data.partial) {
@@ -123,7 +124,7 @@ export function isMultisigFullySigned(multisigData: MultisigData): boolean {
 }
 
 export function preCombinePartiallySignedTransactions(
-  txs: (BitcoinishSignedTransaction & { data: { unsignedTxHash?: string; partial?: boolean } })[],
+  txs: (BitcoinCashSignedTransaction)[],
   psbtOptions?: PsbtOptsOptional,
 ) {
   if (txs.length < 2) {

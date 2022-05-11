@@ -3,7 +3,7 @@
   "compilerOptions": {
     "module": "ES6",
     "target": "ES2019",
-    "lib": ["ES2019"],
+    "lib": ["ES2019", "ES2020"],
     "strict": true,
     "useUnknownInCatchVariables": false,
     "paths": {
