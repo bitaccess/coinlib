@@ -5,14 +5,16 @@ import {
   BitcoinCashUnsignedTransaction,
   BitcoinCashSignedTransaction,
   MultisigAddressType,
+  SinglesigBitcoinCashPaymentsConfig
 } from './types'
+import { SinglesigBitcoinCashPayments } from "./SinglesigBitcoinCashPayments"
 
 import { omit } from 'lodash'
 import { HdBitcoinCashPayments } from './HdBitcoinCashPayments'
 import { KeyPairBitcoinCashPayments } from './KeyPairBitcoinCashPayments'
 import * as bitcoin from 'bitcoinforksjs-lib'
 import { CreateTransactionOptions, ResolveablePayport, PayportOutput } from '@bitaccess/coinlib-common'
-import { AddressType } from '@bitaccess/coinlib-bitcoin/src/bitcoinish'
+import { bitcoinish } from "@bitaccess/coinlib-bitcoin"
 import { createMultisigData, preCombinePartiallySignedTransactions } from './multisigPaymentHelper'
 
 import { getMultisigPaymentScript } from './helpers'
@@ -23,8 +25,8 @@ import { DEFAULT_MULTISIG_ADDRESS_TYPE } from './constants'
 export class MultisigBitcoinCashPayments extends BaseBitcoinCashPayments<MultisigBitcoinCashPaymentsConfig> {
   addressType: MultisigAddressType
   m: number
-  signers: (HdBitcoinCashPayments | KeyPairBitcoinCashPayments)[]
-  accountIdToSigner: { [accountId: string]: HdBitcoinCashPayments | KeyPairBitcoinCashPayments } = {}
+  signers: SinglesigBitcoinCashPayments<SinglesigBitcoinCashPaymentsConfig>[]
+  accountIdToSigner: { [accountId: string]: SinglesigBitcoinCashPayments<SinglesigBitcoinCashPaymentsConfig> } = {}
 
   constructor(private config: MultisigBitcoinCashPaymentsConfig) {
     super(config)
@@ -41,7 +43,7 @@ export class MultisigBitcoinCashPayments extends BaseBitcoinCashPayments<Multisi
           `MultisigBitcoinCashPayments is on network ${this.networkType} but signer config ${i} is on ${signerConfig.network}`,
         )
       }
-      const payments = HdBitcoinCashPaymentsConfig.is(signerConfig)
+      const payments: SinglesigBitcoinCashPayments<SinglesigBitcoinCashPaymentsConfig> = HdBitcoinCashPaymentsConfig.is(signerConfig)
         ? new HdBitcoinCashPayments(signerConfig)
         : new KeyPairBitcoinCashPayments(signerConfig)
 
@@ -163,8 +165,8 @@ export class MultisigBitcoinCashPayments extends BaseBitcoinCashPayments<Multisi
     return this.combinePartiallySignedTransactions(partiallySignedTxs)
   }
 
-  getSupportedAddressTypes(): AddressType[] {
-    return [AddressType.MultisigLegacy]
+  getSupportedAddressTypes(): bitcoinish.AddressType[] {
+    return [bitcoinish.AddressType.MultisigLegacy]
   }
 }
 
