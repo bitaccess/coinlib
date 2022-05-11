@@ -5,7 +5,9 @@ import {
   BitcoinCashUnsignedTransaction,
   BitcoinCashSignedTransaction,
   MultisigAddressType,
+  SinglesigBitcoinCashPaymentsConfig
 } from './types'
+import { SinglesigBitcoinCashPayments } from "./SinglesigBitcoinCashPayments"
 
 import { omit } from 'lodash'
 import { HdBitcoinCashPayments } from './HdBitcoinCashPayments'
@@ -23,8 +25,8 @@ import { DEFAULT_MULTISIG_ADDRESS_TYPE } from './constants'
 export class MultisigBitcoinCashPayments extends BaseBitcoinCashPayments<MultisigBitcoinCashPaymentsConfig> {
   addressType: MultisigAddressType
   m: number
-  signers: (HdBitcoinCashPayments | KeyPairBitcoinCashPayments)[]
-  accountIdToSigner: { [accountId: string]: HdBitcoinCashPayments | KeyPairBitcoinCashPayments } = {}
+  signers: SinglesigBitcoinCashPayments<SinglesigBitcoinCashPaymentsConfig>[]
+  accountIdToSigner: { [accountId: string]: SinglesigBitcoinCashPayments<SinglesigBitcoinCashPaymentsConfig> } = {}
 
   constructor(private config: MultisigBitcoinCashPaymentsConfig) {
     super(config)
@@ -41,7 +43,7 @@ export class MultisigBitcoinCashPayments extends BaseBitcoinCashPayments<Multisi
           `MultisigBitcoinCashPayments is on network ${this.networkType} but signer config ${i} is on ${signerConfig.network}`,
         )
       }
-      const payments = HdBitcoinCashPaymentsConfig.is(signerConfig)
+      const payments: SinglesigBitcoinCashPayments<SinglesigBitcoinCashPaymentsConfig> = HdBitcoinCashPaymentsConfig.is(signerConfig)
         ? new HdBitcoinCashPayments(signerConfig)
         : new KeyPairBitcoinCashPayments(signerConfig)
 
