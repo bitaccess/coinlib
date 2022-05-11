@@ -46,9 +46,7 @@ import { sumUtxoValue, shuffleUtxos, isConfirmedUtxo, sha256FromHex, sumField } 
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 
-export abstract class BitcoinishPayments<Config extends BaseConfig> extends BitcoinishPaymentsUtils
-  implements
-    BasePayments<
+export abstract class BitcoinishPayments<Config extends BaseConfig> extends BitcoinishPaymentsUtils implements BasePayments<
       Config,
       BitcoinishUnsignedTransaction,
       BitcoinishSignedTransaction,
