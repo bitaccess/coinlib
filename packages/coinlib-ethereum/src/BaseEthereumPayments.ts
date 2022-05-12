@@ -151,7 +151,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     feeLevel: AutoFeeLevels = DEFAULT_FEE_LEVEL,
     amountOfGas: number,
   ): Promise<EthereumResolvedFeeOption> {
-    const gasPrice = new BigNumber(await this.gasStation.getGasPrice(feeLevel))
+    const gasPrice = new BigNumber(await this.networkData.getGasPrice(feeLevel))
     const feeBase = gasPrice.multipliedBy(amountOfGas).toFixed()
 
     return {
@@ -345,7 +345,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     if (options.gas) {
       return new BigNumber(options.gas).dp(0, BigNumber.ROUND_UP).toNumber()
     }
-    return this.gasStation.estimateGas(txObject, txType)
+    return this.networkData.estimateGas(txObject, txType)
   }
 
   private async createTransactionObject(
