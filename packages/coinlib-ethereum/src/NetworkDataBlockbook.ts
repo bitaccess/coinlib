@@ -149,7 +149,7 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
     const outputAddresses = tx.vout[0].addresses
 
     if (!inputAddresses || !outputAddresses) {
-      throw new Error('transaction is missing from or to address')
+      throw new Error(`txId = ${tx.txid} is missing from or to address`)
     }
 
     const blockTime = blockInfoTime ? new Date(blockInfoTime) : new Date(tx.blockTime * 1000)

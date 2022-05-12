@@ -203,7 +203,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     const outputAddresses = tx.vout[0].addresses
 
     if (!inputAddresses || !outputAddresses) {
-      throw new Error('transaction is missing from or to address')
+      throw new Error(`txId = ${tx.txid} is missing from or to address`)
     }
 
     const fromAddress = inputAddresses[0]
