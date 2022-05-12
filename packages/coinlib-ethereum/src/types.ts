@@ -299,9 +299,10 @@ export const NetworkDataConfig = requiredOptionalCodec(
 
 export type NetworkDataConfig = t.TypeOf<typeof NetworkDataConfig>
 
-export type EthereumBalanceMonitorConfig = EthereumPaymentsUtilsConfig & {
-  utils: EthereumPaymentsUtils
-}
+export const EthereumBalanceMonitorConfig = EthereumPaymentsUtilsConfig
+export type EthereumBalanceMonitorConfig = EthereumPaymentsUtilsConfig
+
+
 
 export const EthereumBlock = BlockInfoEthereum
 export type EthereumBlock = BlockInfoEthereum

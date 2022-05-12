@@ -5,7 +5,6 @@ import {
   BalanceMonitor,
   FilterBlockAddressesCallback,
   GetBalanceActivityOptions,
-  NetworkType,
   RetrieveBalanceActivitiesResult,
   NewBlockCallback,
 } from '@bitaccess/coinlib-common'
@@ -17,30 +16,19 @@ import { EventEmitter } from 'events'
 import { get } from 'lodash'
 import { BALANCE_ACTIVITY_EVENT } from './constants'
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
-import { EthereumBalanceMonitorConfig, EthereumStandardizedTransaction } from './types'
+import { EthereumStandardizedTransaction } from './types'
 
-export class EthereumBalanceMonitor implements BalanceMonitor {
-  readonly coinName: string
-  readonly coinSymbol: string
-  readonly utils: EthereumPaymentsUtils
-  readonly networkType: NetworkType
+export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements BalanceMonitor {
   readonly events = new EventEmitter()
 
-  constructor(config: EthereumBalanceMonitorConfig) {
-    this.coinName = config.utils.coinName
-    this.coinSymbol = config.utils.coinSymbol
-    this.utils = config.utils
-    this.networkType = config.network || NetworkType.Mainnet
-  }
-
   async init(): Promise<void> {
-    await this.utils.networkData.connectBlockBook()
+    await this.networkData.connectBlockBook()
   }
 
   async destroy(): Promise<void> {
     this.events.removeAllListeners('tx')
 
-    await this.utils.networkData.disconnectBlockBook()
+    await this.networkData.disconnectBlockBook()
   }
 
   async getTxWithMemoization(txId: string, cache: { [txid: string]: NormalizedTxEthereum }) {
@@ -50,7 +38,7 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
       return memoizedTx
     }
 
-    const rawTx = await this.utils.networkData.getTxRaw(txId)
+    const rawTx = await this.networkData.getTxRaw(txId)
 
     cache[txId] = rawTx
 
@@ -72,9 +60,9 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
   }
 
   async subscribeAddresses(addresses: string[]): Promise<void> {
-    const validAddresses = addresses.filter(address => this.utils.isValidAddress(address))
+    const validAddresses = addresses.filter(address => this.isValidAddress(address))
 
-    await this.utils.networkData.subscribeAddresses(validAddresses, async (address, rawTx) => {
+    await this.networkData.subscribeAddresses(validAddresses, async (address, rawTx) => {
       this.events.emit('tx', { address, tx: rawTx })
 
       const activity = await this.txToBalanceActivity(address, rawTx)
@@ -94,7 +82,7 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
   onBalanceActivity(callbackFn: BalanceActivityCallback) {
     this.events.on(BALANCE_ACTIVITY_EVENT, ({ activity, tx }) => {
       callbackFn(activity, tx)?.catch(e =>
-        this.utils.logger.error(`Error in ${this.coinSymbol} ${this.networkType} onBalanceActivity callback`, e),
+        this.logger.error(`Error in ${this.coinSymbol} ${this.networkType} onBalanceActivity callback`, e),
       )
     })
   }
@@ -123,7 +111,7 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
       transactionPage.page < transactionPage.totalPages ||
       transactionPage.totalPages === -1
     ) {
-      transactionPage = await this.utils.networkData.getAddressDetails(address, {
+      transactionPage = await this.networkData.getAddressDetails(address, {
         page,
         pageSize: limit,
         from,
@@ -135,7 +123,7 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
         break
       }
       transactions = transactionPage.transactions
-      this.utils.logger.debug(`retrieved ${transactions?.length} txs for ${address} on page = ${page}`)
+      this.logger.debug(`retrieved ${transactions?.length} txs for ${address} on page = ${page}`)
 
       if (!transactions || transactions.length === 0) {
         break
@@ -143,11 +131,11 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
 
       for (const tx of transactions) {
         if (lastTx && tx.txid === lastTx.txid) {
-          this.utils.logger.debug('ignoring duplicate tx', tx)
+          this.logger.debug('ignoring duplicate tx', tx)
           continue
         }
         if (tx.blockHeight > 0 && (from > tx.blockHeight || to < tx.blockHeight)) {
-          this.utils.logger.debug('ignoring out of range balance activity tx', tx)
+          this.logger.debug('ignoring out of range balance activity tx', tx)
           continue
         }
 
@@ -170,7 +158,7 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
     callbackFn: BalanceActivityCallback,
     filterRelevantAddresses: FilterBlockAddressesCallback,
   ): Promise<BlockInfo> {
-    const blockDetails: BlockInfo = await this.utils.networkData.getBlock(blockId)
+    const blockDetails: BlockInfo = await this.networkData.getBlock(blockId)
 
     const transactions = get(blockDetails.raw, 'transactions', []) as EthereumStandardizedTransaction[]
     const addressTransactions: { [address: string]: Set<EthereumStandardizedTransaction> } = {}
@@ -230,8 +218,8 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
   ) {
     let type: BalanceActivity['type'] | undefined
 
-    const isSender = this.utils.isAddressEqual(activityAddress, txFromAddress)
-    const isRecipient = this.utils.isAddressEqual(activityAddress, txToAddress)
+    const isSender = this.isAddressEqual(activityAddress, txFromAddress)
+    const isRecipient = this.isAddressEqual(activityAddress, txToAddress)
 
     if (isSender) {
       type = 'out'
@@ -264,7 +252,7 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
       confirmationId: tx.blockHash ?? '',
       confirmationNumber: tx.blockHeight,
       timestamp,
-      amount: this.utils.toMainDenomination(tx.value),
+      amount: this.toMainDenomination(tx.value),
       extraId: null,
       confirmations: tx.confirmations,
     }
@@ -288,8 +276,8 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
     const balanceActivities = tx.tokenTransfers
       .filter(tokenTransfer => {
         // we only care about token transfers where our known address is the sender or recipient
-        const isSender = this.utils.isAddressEqual(tokenTransfer.from, address)
-        const isRecipient = this.utils.isAddressEqual(tokenTransfer.to, address)
+        const isSender = this.isAddressEqual(tokenTransfer.from, address)
+        const isRecipient = this.isAddressEqual(tokenTransfer.to, address)
 
         return isSender || isRecipient
       })
@@ -300,7 +288,7 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
           txHash,
         })
 
-        const unitConverter = this.utils.getCustomUnitConverter(tokenTransfer.decimals)
+        const unitConverter = this.getCustomUnitConverter(tokenTransfer.decimals)
 
         const balanceActivity: BalanceActivity = {
           type,
@@ -325,6 +313,6 @@ export class EthereumBalanceMonitor implements BalanceMonitor {
   }
 
   async subscribeNewBlock(callbackFn: NewBlockCallback): Promise<void> {
-    await this.utils.networkData.subscribeNewBlock(callbackFn)
+    await this.networkData.subscribeNewBlock(callbackFn)
   }
 }

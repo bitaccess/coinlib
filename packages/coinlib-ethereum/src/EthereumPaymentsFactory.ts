@@ -56,7 +56,7 @@ export class EthereumPaymentsFactory extends PaymentsFactory<
   hasBalanceMonitor = true
 
   newBalanceMonitor(config: EthereumBalanceMonitorConfig) {
-    return new EthereumBalanceMonitor(config)
+    return new EthereumBalanceMonitor(assertType(EthereumBalanceMonitorConfig, config, 'config'))
   }
 
   connectionManager = new EthereumConnectionManager()
