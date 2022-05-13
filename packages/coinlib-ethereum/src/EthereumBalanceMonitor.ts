@@ -17,6 +17,7 @@ import { get } from 'lodash'
 import { BALANCE_ACTIVITY_EVENT } from './constants'
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
 import { EthereumStandardizedTransaction } from './types'
+import { getBlockBookTxFromAndToAddress } from './utils'
 
 export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements BalanceMonitor {
   readonly events = new EventEmitter()
@@ -198,20 +199,6 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     return blockDetails
   }
 
-  getFromAndToAddressFromTx(tx: NormalizedTxEthereum) {
-    const inputAddresses = tx.vin[0].addresses
-    const outputAddresses = tx.vout[0].addresses
-
-    if (!inputAddresses || !outputAddresses) {
-      throw new Error(`txId = ${tx.txid} is missing from or to address`)
-    }
-
-    const fromAddress = inputAddresses[0]
-    const toAddress = outputAddresses[0]
-
-    return { fromAddress, toAddress }
-  }
-
   getActivityType(
     activityAddress: string,
     { txFromAddress, txToAddress, txHash }: { txFromAddress: string; txToAddress: string; txHash: string },
@@ -235,7 +222,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
   }
 
   getBalanceActivityForNonTokenTransfer(address: string, tx: NormalizedTxEthereum): BalanceActivity {
-    const { fromAddress, toAddress } = this.getFromAndToAddressFromTx(tx)
+    const { fromAddress, toAddress } = getBlockBookTxFromAndToAddress(tx)
 
     const type = this.getActivityType(address, { txFromAddress: fromAddress, txToAddress: toAddress, txHash: tx.txid })
 
