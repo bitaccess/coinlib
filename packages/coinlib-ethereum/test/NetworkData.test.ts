@@ -1,5 +1,6 @@
+import { DEFAULT_TESTNET_SERVER } from '../src/constants'
 import { NetworkData } from '../src/NetworkData'
-
+import { NetworkDataConfig } from '../src/types'
 import {
   getEstimateGasMocks,
   getGasPriceMocks,
@@ -20,6 +21,7 @@ describe('NetworkData', () => {
   const GAS_STATION_URL = 'https://gasstation.test.url'
   const PARITY_URL = 'https://parity.test.url'
   const INFURA_URL = 'https://infura.test.url'
+  const BLOCKBOOK_NODES = DEFAULT_TESTNET_SERVER
 
   const nockG = nock(GAS_STATION_URL)
   const nockP = nock(PARITY_URL)
@@ -30,9 +32,17 @@ describe('NetworkData', () => {
   const from = web3.eth.accounts.create().address.toLowerCase()
   const to = web3.eth.accounts.create().address.toLowerCase()
 
-  test('getNetworkData default flow', async () => {
-    const networkData = new NetworkData(web3.eth, GAS_STATION_URL, PARITY_URL, logger)
+  const networkDataConfig: NetworkDataConfig = {
+    web3Config: { web3 },
+    parityUrl: PARITY_URL,
+    blockBookConfig: { nodes: BLOCKBOOK_NODES },
+    logger,
+    gasStationUrl: GAS_STATION_URL,
+  }
 
+  const networkData = new NetworkData(networkDataConfig)
+
+  test('getNetworkData default flow', async () => {
     nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
     const transactionCountMocks = getTransactionCountMocks(id++, from, '0x1a')
@@ -44,18 +54,16 @@ describe('NetworkData', () => {
     const parityMock = getNextNonceMocks(1, from, '0x1b')
     nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
 
-    const res = await networkData.getNetworkData('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
+    const res = await networkData.getGasAndNonceForNewTx('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
 
     expect(res).toEqual({
-      'pricePerGasUnit': '1000000000',
-      'amountOfGas': 21000,
-      'nonce': '27',
+      pricePerGasUnit: '1000000000',
+      amountOfGas: 21000,
+      nonce: '27',
     })
   })
 
   test('getNetworkData gas limit multiplier', async () => {
-    const networkData = new NetworkData(web3.eth, GAS_STATION_URL, PARITY_URL, logger)
-
     nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
     const transactionCountMocks = getTransactionCountMocks(id++, from, '0x1a')
@@ -67,18 +75,16 @@ describe('NetworkData', () => {
     const parityMock = getNextNonceMocks(1, from, '0x1b')
     nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
 
-    const res = await networkData.getNetworkData('TOKEN_SWEEP', FeeLevel.Low, from, to)
+    const res = await networkData.getGasAndNonceForNewTx('TOKEN_SWEEP', FeeLevel.Low, from, to)
 
     expect(res).toEqual({
-      'pricePerGasUnit': '1000000000',
-      'amountOfGas': 48002,
-      'nonce': '27',
+      pricePerGasUnit: '1000000000',
+      amountOfGas: 48002,
+      nonce: '27',
     })
   })
 
   test('getNetworkData fallback to defaults', async () => {
-    const networkData = new NetworkData(web3.eth, GAS_STATION_URL, PARITY_URL, logger)
-
     // fail
     nockG.get('/json/ethgasAPI.json').reply(400)
 
@@ -97,21 +103,18 @@ describe('NetworkData', () => {
     const parityMock = getNextNonceMocks(1, from, '')
     nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
 
-    const res = await networkData.getNetworkData('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
+    const res = await networkData.getGasAndNonceForNewTx('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
 
     expect(res).toEqual({
-      'pricePerGasUnit': '50000000000',
-      'amountOfGas': 50000,
-      'nonce': '0',
+      pricePerGasUnit: '50000000000',
+      amountOfGas: 50000,
+      nonce: '0',
     })
   })
 
   test('getNetworkData empty responses', async () => {
-    const networkData = new NetworkData(web3.eth, GAS_STATION_URL, PARITY_URL, logger)
-
     // fail
-    nockG.get('/json/ethgasAPI.json').reply(200, {
-    })
+    nockG.get('/json/ethgasAPI.json').reply(200, {})
 
     let transactionCountMocks = getTransactionCountMocks(id++, from, '')
     nockI.post(/.*/, transactionCountMocks.req).reply(400)
@@ -128,12 +131,18 @@ describe('NetworkData', () => {
     const parityMock = getNextNonceMocks(1, from, '0x1b')
     nockP.post(/.*/, parityMock.req).reply(400)
 
-    const res = await networkData.getNetworkData('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
+    const res = await networkData.getGasAndNonceForNewTx('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
 
     expect(res).toEqual({
-      'pricePerGasUnit': '50000000000',
-      'amountOfGas': 50000,
-      'nonce': '0',
+      pricePerGasUnit: '50000000000',
+      amountOfGas: 50000,
+      nonce: '0',
     })
+  })
+
+  it('should get the latest block', async () => {
+    const currentBlock = await networkData.getCurrentBlockNumber()
+
+    expect(currentBlock).toBeDefined()
   })
 })

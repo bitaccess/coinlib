@@ -2,11 +2,14 @@ import * as t from 'io-ts'
 import {
   enumCodec,
   extendCodec,
+  instanceofCodec,
   Logger,
   nullable,
   Numeric,
   optional,
+  requiredOptionalCodec,
 } from '@faast/ts-common'
+
 import {
   BaseTransactionInfo,
   BaseUnsignedTransaction,
@@ -21,7 +24,15 @@ import {
   FeeOptionCustom,
   KeyPairsConfigParam,
   CreateTransactionOptions,
+  NetworkTypeT,
+  createUnitConverters,
+  BlockInfo,
 } from '@bitaccess/coinlib-common'
+import { BlockbookEthereum, BlockInfoEthereum, NormalizedTxEthereum, SpecificTxEthereum } from 'blockbook-client'
+import Web3 from 'web3'
+import { Transaction, TransactionReceipt } from 'web3-eth'
+
+import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
 
 export enum EthereumAddressFormat {
   Lowercase = 'lowercase',
@@ -30,8 +41,8 @@ export enum EthereumAddressFormat {
 export const EthereumAddressFormatT = enumCodec<EthereumAddressFormat>(EthereumAddressFormat, 'EthereumAddressFormat')
 
 const keys = t.type({
-    pub: t.string,
-    prv: t.string,
+  pub: t.string,
+  prv: t.string,
 })
 
 const xkeys = t.type({
@@ -60,7 +71,8 @@ export const EthereumPaymentsUtilsConfig = extendCodec(
   {
     fullNode: OptionalString,
     parityNode: OptionalString,
-    blockbookNode: OptionalString,
+    blockbookNode: t.string,
+    blockbookApi: instanceofCodec(BlockbookEthereum),
     gasStation: OptionalString,
     symbol: OptionalString,
     name: OptionalString,
@@ -69,7 +81,7 @@ export const EthereumPaymentsUtilsConfig = extendCodec(
     web3: t.any,
     tokenAddress: t.string,
   },
-  'EthereumPaymentsUtilsConfig'
+  'EthereumPaymentsUtilsConfig',
 )
 export type EthereumPaymentsUtilsConfig = t.TypeOf<typeof EthereumPaymentsUtilsConfig>
 
@@ -91,7 +103,6 @@ export const HdEthereumPaymentsConfig = extendCodec(
   'HdEthereumPaymentsConfig',
 )
 export type HdEthereumPaymentsConfig = t.TypeOf<typeof HdEthereumPaymentsConfig>
-
 
 export const KeyPairEthereumPaymentsConfig = extendCodec(
   BaseEthereumPaymentsConfig,
@@ -124,7 +135,6 @@ export const HdErc20PaymentsConfig = extendCodec(
 )
 export type HdErc20PaymentsConfig = t.TypeOf<typeof HdErc20PaymentsConfig>
 
-
 export const KeyPairErc20PaymentsConfig = extendCodec(
   BaseErc20PaymentsConfig,
   {
@@ -138,9 +148,10 @@ export type KeyPairErc20PaymentsConfig = t.TypeOf<typeof KeyPairErc20PaymentsCon
 export const Erc20PaymentsConfig = t.union([HdErc20PaymentsConfig, KeyPairErc20PaymentsConfig], 'Erc20PaymentsConfig')
 export type Erc20PaymentsConfig = t.TypeOf<typeof Erc20PaymentsConfig>
 
-export const EthereumPaymentsConfig = t.union([
-  HdEthereumPaymentsConfig, KeyPairEthereumPaymentsConfig, HdErc20PaymentsConfig, KeyPairErc20PaymentsConfig,
-], 'EthereumPaymentsConfig')
+export const EthereumPaymentsConfig = t.union(
+  [HdEthereumPaymentsConfig, KeyPairEthereumPaymentsConfig, HdErc20PaymentsConfig, KeyPairErc20PaymentsConfig],
+  'EthereumPaymentsConfig',
+)
 export type EthereumPaymentsConfig = t.TypeOf<typeof EthereumPaymentsConfig>
 
 export const EthereumTransactionOptions = extendCodec(
@@ -151,7 +162,7 @@ export const EthereumTransactionOptions = extendCodec(
     gas: Numeric,
     proxyAddress: t.string,
   },
-  'EthereumTransactionOptions'
+  'EthereumTransactionOptions',
 )
 export type EthereumTransactionOptions = t.TypeOf<typeof EthereumTransactionOptions>
 
@@ -169,26 +180,18 @@ export const EthereumSignedTransaction = extendCodec(
   BaseSignedTransaction,
   {
     data: t.type({
-      hex: t.string
+      hex: t.string,
     }),
   },
   {},
-  'EthereumSignedTransaction'
+  'EthereumSignedTransaction',
 )
 export type EthereumSignedTransaction = t.TypeOf<typeof EthereumSignedTransaction>
 
-export const EthereumTransactionInfo = extendCodec(
-  BaseTransactionInfo,
-  {},
-  {},
-  'EthereumTransactionInfo')
+export const EthereumTransactionInfo = extendCodec(BaseTransactionInfo, {}, {}, 'EthereumTransactionInfo')
 export type EthereumTransactionInfo = t.TypeOf<typeof EthereumTransactionInfo>
 
-export const EthereumBroadcastResult = extendCodec(
-  BaseBroadcastResult,
-  {},
-  'EthereumBroadcastResult',
-)
+export const EthereumBroadcastResult = extendCodec(BaseBroadcastResult, {}, 'EthereumBroadcastResult')
 export type EthereumBroadcastResult = t.TypeOf<typeof EthereumBroadcastResult>
 
 export const EthereumResolvedFeeOption = extendCodec(
@@ -196,7 +199,7 @@ export const EthereumResolvedFeeOption = extendCodec(
   {
     gasPrice: t.string,
   },
-  'EthereumResolvedFeeOption'
+  'EthereumResolvedFeeOption',
 )
 export type EthereumResolvedFeeOption = t.TypeOf<typeof EthereumResolvedFeeOption>
 
@@ -206,7 +209,7 @@ export const EthereumFeeOption = extendCodec(
   {
     isSweep: t.boolean,
   },
-  'EthereumFeeOption'
+  'EthereumFeeOption',
 )
 export type EthereumFeeOption = t.TypeOf<typeof EthereumFeeOption>
 
@@ -216,7 +219,7 @@ export const EthereumFeeOptionCustom = extendCodec(
   {
     isSweep: t.boolean,
   },
-  'EthereumFeeOption'
+  'EthereumFeeOption',
 )
 export type EthereumFeeOptionCustom = t.TypeOf<typeof EthereumFeeOptionCustom>
 
@@ -235,8 +238,116 @@ export const BaseDenominationOptions = extendCodec(
   t.object,
   {},
   {
-    rounding: BnRounding
+    rounding: BnRounding,
   },
-  'BaseDenominationOptions')
+  'BaseDenominationOptions',
+)
 
 export type BaseDenominationOptions = t.TypeOf<typeof BaseDenominationOptions>
+
+export const EthereumBlockbookConfigServer = t.union(
+  [t.string, t.array(t.string), t.null],
+  'EthereumBlockbookConfigServer',
+)
+export type EthereumBlockbookConfigServer = t.TypeOf<typeof EthereumBlockbookConfigServer>
+
+export const EthereumBlockbookConnectedConfig = requiredOptionalCodec(
+  {
+    server: EthereumBlockbookConfigServer,
+    logger: Logger,
+  },
+  {
+    decimals: t.number,
+    api: instanceofCodec(BlockbookEthereum),
+    requestTimeoutMs: t.number,
+  },
+  'EthereumBlockbookConnectedConfig',
+)
+export type EthereumBlockbookConnectedConfig = t.TypeOf<typeof EthereumBlockbookConnectedConfig>
+
+export const EthereumWeb3Config = requiredOptionalCodec(
+  { web3: instanceofCodec(Web3) },
+  { decimals: t.number, fullNode: t.string, providerOptions: t.any, logger: Logger },
+  'Web3Config',
+)
+
+export type EthereumWeb3Config = t.TypeOf<typeof EthereumWeb3Config>
+
+export const BlockBookConfig = requiredOptionalCodec(
+  {
+    nodes: EthereumBlockbookConfigServer,
+  },
+  {
+    requestTimeoutMs: t.number,
+    api: instanceofCodec(BlockbookEthereum),
+  },
+  'BlockBookConfig',
+)
+
+export const NetworkDataConfig = requiredOptionalCodec(
+  {
+    web3Config: EthereumWeb3Config,
+    blockBookConfig: BlockBookConfig,
+  },
+  {
+    parityUrl: t.string,
+    logger: Logger,
+    gasStationUrl: t.string,
+  },
+  'NetworkDataConfig',
+)
+
+export type NetworkDataConfig = t.TypeOf<typeof NetworkDataConfig>
+
+export type EthereumBalanceMonitorConfig = EthereumBlockbookConnectedConfig &
+  EthereumPaymentsUtilsConfig & {
+    utils: EthereumPaymentsUtils
+  }
+
+export const EthereumBlock = BlockInfoEthereum
+export type EthereumBlock = BlockInfoEthereum
+
+export type UnitConverters = ReturnType<typeof createUnitConverters>
+
+export interface EthereumNodesConnection {
+  web3: Web3
+  blockbookApi: BlockbookEthereum
+}
+
+export interface EthereumStandardizedTransaction {
+  from: string
+  to: string
+  nonce: number
+  txHash: string
+  blockHeight: number
+  blockHash: string
+  blockTime: Date
+  value: string
+  confirmations: number
+  gasUsed: number
+  gasPrice: string
+  raw: object
+}
+
+export interface EthereumStandardizedERC20Transaction extends EthereumStandardizedTransaction {
+  tokenSymbol: string
+  tokenName: string
+  tokenDecimals: string
+  txInput: string
+  receipt: {
+    gasUsed: string
+    status: string | boolean
+    logs: any[]
+  }
+}
+export interface EthereumNetworkDataProvider {
+  getBlock(id?: string | number): Promise<BlockInfo>
+  getCurrentBlockNumber(): Promise<number>
+
+  getAddressBalance(address: string): Promise<string>
+  getAddressBalanceERC20(address: string, tokenAddress: string): Promise<string>
+
+  getERC20Transaction(txId: string, tokenAddress: string): Promise<EthereumStandardizedERC20Transaction>
+
+  getTransaction(txId: string): Promise<EthereumStandardizedTransaction>
+}

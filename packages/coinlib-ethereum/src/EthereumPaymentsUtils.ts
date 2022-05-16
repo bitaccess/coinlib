@@ -1,8 +1,6 @@
-import Web3 from 'web3'
 import {
   PaymentsUtils,
   Payport,
-  createUnitConverters,
   AutoFeeLevels,
   FeeRate,
   FeeRateType,
@@ -10,33 +8,42 @@ import {
   BalanceResult,
   TransactionStatus,
   BlockInfo,
-  BigNumber,
 } from '@bitaccess/coinlib-common'
-import {
-  Logger,
-  DelegateLogger,
-  assertType,
-  isNull,
-  Numeric,
-  isNumber
-} from '@faast/ts-common'
-import type { TransactionReceipt, Transaction } from 'web3-core'
-import Contract from 'web3-eth-contract'
+import { Logger, DelegateLogger, assertType, isNull, Numeric, isNumber } from '@faast/ts-common'
+import BigNumber from 'bignumber.js'
+import { BlockbookEthereum } from 'blockbook-client'
 import InputDataDecoder from 'ethereum-input-data-decoder'
+import Web3 from 'web3'
+import Contract from 'web3-eth-contract'
 
-import { deriveAddress } from './erc20/deriveAddress'
-import * as SIGNATURE from './erc20/constants'
 import {
-  PACKAGE_NAME, ETH_DECIMAL_PLACES, ETH_NAME, ETH_SYMBOL, DEFAULT_ADDRESS_FORMAT, MIN_SWEEPABLE_WEI, MIN_CONFIRMATIONS, TOKEN_METHODS_ABI, TOKEN_WALLET_ABI_LEGACY, TOKEN_WALLET_ABI,
+  PACKAGE_NAME,
+  ETH_DECIMAL_PLACES,
+  ETH_NAME,
+  ETH_SYMBOL,
+  DEFAULT_ADDRESS_FORMAT,
+  MIN_SWEEPABLE_WEI,
+  TOKEN_METHODS_ABI,
+  TOKEN_WALLET_ABI,
+  TOKEN_WALLET_ABI_LEGACY,
+  FULL_ERC20_TOKEN_METHODS_ABI,
+  MIN_CONFIRMATIONS,
 } from './constants'
-import { EthereumAddressFormat, EthereumAddressFormatT, EthereumPaymentsUtilsConfig, EthereumTransactionInfo } from './types'
+import {
+  EthereumAddressFormat,
+  EthereumAddressFormatT,
+  EthereumPaymentsUtilsConfig,
+  EthereumStandardizedERC20Transaction,
+  EthereumTransactionInfo,
+} from './types'
 import { isValidXkey } from './bip44'
 import { NetworkData } from './NetworkData'
 import { retryIfDisconnected } from './utils'
+import { UnitConvertersUtil } from './UnitConvertersUtil'
+import * as SIGNATURE from './erc20/constants'
+import { deriveAddress } from './erc20/deriveAddress'
 
-type UnitConverters = ReturnType<typeof createUnitConverters>
-
-export class EthereumPaymentsUtils implements PaymentsUtils {
+export class EthereumPaymentsUtils extends UnitConvertersUtil implements PaymentsUtils {
   readonly networkType: NetworkType
   readonly coinSymbol: string
   readonly coinName: string
@@ -47,9 +54,12 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   server: string | null
   web3: Web3
   eth: Web3['eth']
-  gasStation: NetworkData
+  networkData: NetworkData
+  blockBookApi: BlockbookEthereum
 
   constructor(config: EthereumPaymentsUtilsConfig) {
+    super({ coinDecimals: config.decimals })
+
     this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
     this.networkType = config.network || NetworkType.Mainnet
 
@@ -114,40 +124,51 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
       }
     }
 
+    if (config.blockbookApi) {
+      this.blockBookApi = config.blockbookApi
+    } else if (config.blockbookNode) {
+      const blockBookApi = new BlockbookEthereum({
+        nodes: [config.blockbookNode],
+        logger: this.logger,
+      })
+
+      this.blockBookApi = blockBookApi
+    } else {
+      throw new Error(`Blockbook node is missing from config`)
+    }
+
     this.eth = this.web3.eth
-    this.gasStation = new NetworkData(this.eth, config.gasStation, config.parityNode, this.logger)
 
-    const unitConverters = createUnitConverters(this.coinDecimals)
-    this.toMainDenominationBigNumber = unitConverters.toMainDenominationBigNumber
-    this.toBaseDenominationBigNumber = unitConverters.toBaseDenominationBigNumber
-    this.toMainDenomination = unitConverters.toMainDenominationString
-    this.toBaseDenomination = unitConverters.toBaseDenominationString
+    this.networkData = new NetworkData({
+      web3Config: {
+        web3: this.web3,
+        fullNode: config.fullNode,
+        decimals: config.decimals,
+        providerOptions: config.providerOptions,
+      },
+      parityUrl: config.parityNode,
+      logger: this.logger,
+      blockBookConfig: {
+        nodes: this.server,
+        api: this.blockBookApi,
+      },
+      gasStationUrl: config.gasStation,
+    })
+  }
 
-    const ethUnitConverters = createUnitConverters(ETH_DECIMAL_PLACES)
-    this.toMainDenominationBigNumberEth = ethUnitConverters.toMainDenominationBigNumber
-    this.toBaseDenominationBigNumberEth = ethUnitConverters.toBaseDenominationBigNumber
-    this.toMainDenominationEth = ethUnitConverters.toMainDenominationString
-    this.toBaseDenominationEth = ethUnitConverters.toBaseDenominationString
+  protected newContract(...args: ConstructorParameters<typeof Contract>) {
+    const contract = new Contract(...args)
+    contract.setProvider(this.eth.currentProvider)
+    return contract
   }
 
   async init() {}
   async destroy() {}
 
-  toMainDenominationBigNumber: UnitConverters['toMainDenominationBigNumber']
-  toBaseDenominationBigNumber: UnitConverters['toMainDenominationBigNumber']
-  toMainDenomination: UnitConverters['toMainDenominationString']
-  toBaseDenomination: UnitConverters['toBaseDenominationString']
-
-  toMainDenominationBigNumberEth: UnitConverters['toMainDenominationBigNumber']
-  toBaseDenominationBigNumberEth: UnitConverters['toMainDenominationBigNumber']
-  toMainDenominationEth: UnitConverters['toMainDenominationString']
-  toBaseDenominationEth: UnitConverters['toBaseDenominationString']
-
   isValidAddress(address: string, options: { format?: string } = {}): boolean {
     const { format } = options
     if (format === EthereumAddressFormat.Lowercase) {
-      return this.web3.utils.isAddress(address) &&
-        address === address.toLowerCase()
+      return this.web3.utils.isAddress(address) && address === address.toLowerCase()
     } else if (format === EthereumAddressFormat.Checksum) {
       return this.web3.utils.checkAddressChecksum(address)
     }
@@ -221,7 +242,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   private _getPayportValidationMessage(payport: Payport): string | undefined {
     try {
       const { address } = payport
-      if (!(this.isValidAddress(address))) {
+      if (!this.isValidAddress(address)) {
         return 'Invalid payport address'
       }
     } catch (e) {
@@ -231,7 +252,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   }
 
   async getFeeRateRecommendation(level: AutoFeeLevels): Promise<FeeRate> {
-    const gasPrice = await this.gasStation.getGasPrice(level)
+    const gasPrice = await this.networkData.getGasPrice(level)
     return {
       feeRate: gasPrice,
       feeRateType: FeeRateType.BasePerWeight,
@@ -243,22 +264,23 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   }
 
   async getCurrentBlockNumber() {
-    return this._retryDced(() => this.eth.getBlockNumber())
+    return this.networkData.getCurrentBlockNumber()
+  }
+
+  formatAddress(address: string) {
+    if (address.startsWith('0x')) {
+      return address
+    }
+
+    return `0x${address}`
   }
 
   isAddressBalanceSweepable(balanceEth: Numeric): boolean {
     return this.toBaseDenominationBigNumberEth(balanceEth).gt(MIN_SWEEPABLE_WEI)
   }
 
-  protected newContract(...args: ConstructorParameters<typeof Contract>) {
-    const contract = new Contract(...args)
-    contract.setProvider(this.eth.currentProvider)
-    return contract
-  }
-
   async getAddressBalanceERC20(address: string, tokenAddress: string): Promise<BalanceResult> {
-    const contract = this.newContract(TOKEN_METHODS_ABI, this.tokenAddress)
-    const balance = await contract.methods.balanceOf(address).call({})
+    const balance = await this.networkData.getAddressBalanceERC20(address, tokenAddress)
 
     const sweepable = this.toMainDenominationBigNumber(balance).gt(0)
 
@@ -272,11 +294,7 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   }
 
   async getAddressBalance(address: string): Promise<BalanceResult> {
-    if (this.tokenAddress) {
-      return this.getAddressBalanceERC20(address, this.tokenAddress)
-    }
-
-    const balance = await this._retryDced(() => this.eth.getBalance(address))
+    const balance = await this.networkData.getAddressBalance(address)
     const confirmedBalance = this.toMainDenomination(balance).toString()
     const sweepable = this.isAddressBalanceSweepable(confirmedBalance)
 
@@ -290,94 +308,92 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
   }
 
   async getAddressNextSequenceNumber(address: string) {
-    return this.gasStation.getNonce(address)
+    return this.networkData.getNonce(address)
   }
 
   async getAddressUtxos() {
     return []
   }
 
-  private getErc20TransferLogAmount(txReceipt: TransactionReceipt): string {
-    const transferLog = txReceipt.logs.find((log) => log.topics[0] === SIGNATURE.LOG_TOPIC0_ERC20_SWEEP)
+  private getErc20TransferLogAmount(
+    receipt: EthereumStandardizedERC20Transaction['receipt'],
+    tokenDecimals: number,
+    txHash: string,
+  ): string {
+    const txReceiptLogs = receipt.logs
+    const transferLog = txReceiptLogs.find(log => log.topics[0] === SIGNATURE.LOG_TOPIC0_ERC20_SWEEP)
     if (!transferLog) {
-      this.logger.warn(`Transaction ${txReceipt.transactionHash} was an ERC20 sweep but cannot find log for Transfer event`)
+      this.logger.warn(`Transaction ${txHash} was an ERC20 sweep but cannot find log for Transfer event`)
       return '0'
     }
-    return this.toMainDenomination(transferLog.data)
+
+    const unitConverter = this.getCustomUnitConverter(tokenDecimals)
+
+    return unitConverter.toMainDenominationString(transferLog.data)
   }
 
-  async getTransactionInfoERC20(txid: string): Promise<EthereumTransactionInfo> {
-    const minConfirmations = MIN_CONFIRMATIONS
-    const tx: Transaction | null = await this._retryDced(() => this.eth.getTransaction(txid))
+  private async getTransactionInfoERC20(txId: string, tokenAddress: string): Promise<EthereumTransactionInfo> {
+    const erc20Tx = await this.networkData.getERC20Transaction(txId, tokenAddress)
 
-    if (!tx) {
-      throw new Error(`Transaction ${txid} not found`)
-    }
-
-    if (!tx.input) {
-      throw new Error(`Transaction ${txid} has no input data so it can't be an ERC20 tx`)
-    }
-
-    const currentBlockNumber = await this.getCurrentBlockNumber()
-    let txReceipt: TransactionReceipt | null = await this._retryDced(() => this.eth.getTransactionReceipt(txid))
-
-    let txBlock: any = null
-    let isConfirmed = false
-    let confirmationTimestamp: Date | null = null
-    let confirmations = 0
-    if (tx.blockNumber) {
-      confirmations = currentBlockNumber - tx.blockNumber
-      if (confirmations > minConfirmations) {
-        isConfirmed = true
-        txBlock = await this._retryDced(() => this.eth.getBlock(tx.blockNumber!))
-        confirmationTimestamp = new Date(Number(txBlock.timestamp) * 1000)
-      }
-    }
+    let fromAddress = erc20Tx.from
+    let toAddress = erc20Tx.to
+    const tokenDecimals = new BigNumber(erc20Tx.tokenDecimals).toNumber()
+    const { txHash } = erc20Tx
 
     let status: TransactionStatus = TransactionStatus.Pending
     let isExecuted = false
+
+    // XXX it is suggested to keep 12 confirmations
+    // https://ethereum.stackexchange.com/questions/319/what-number-of-confirmations-is-considered-secure-in-ethereum
+    const isConfirmed = erc20Tx.confirmations > Math.max(MIN_CONFIRMATIONS, 12)
+
     if (isConfirmed) {
       status = TransactionStatus.Confirmed
       isExecuted = true
-      // No trust to types description of web3
-      if (txReceipt && (txReceipt?.status === false || txReceipt.status.toString() === 'false')) {
-        status = TransactionStatus.Failed
-        isExecuted = false
-      }
     }
 
-    let fromAddress = tx.from.toLowerCase()
-    let toAddress = ''
+    const tokenDecoder = new InputDataDecoder(FULL_ERC20_TOKEN_METHODS_ABI)
+    const txInput = erc20Tx.txInput
     let amount = ''
 
-    if (tx.input.startsWith(SIGNATURE.ERC20_TRANSFER)) {
-      if((tx.to || '').toLowerCase() !== this.tokenAddress!.toLowerCase()) {
-        throw new Error(`Transaction ${txid} was sent to different contract: ${tx.to}, Expected: ${this.tokenAddress}`)
-      }
+    const isERC20Transfer = txInput.startsWith(SIGNATURE.ERC20_TRANSFER)
+    const isERC20SweepContractDeploy = txInput.startsWith(SIGNATURE.ERC20_SWEEP_CONTRACT_DEPLOY)
+    const isERC20SweepContractDeployLegacy = txInput.startsWith(SIGNATURE.ERC20_SWEEP_CONTRACT_DEPLOY_LEGACY)
+    const isERC20Proxy = txInput.startsWith(SIGNATURE.ERC20_PROXY)
+    const isERC20Sweep = txInput.startsWith(SIGNATURE.ERC20_SWEEP)
+    const isERC20SweepLegacy = txInput.startsWith(SIGNATURE.ERC20_SWEEP_LEGACY)
 
-      const tokenDecoder = new InputDataDecoder(TOKEN_METHODS_ABI)
-      const txData = tokenDecoder.decodeData(tx.input)
-      toAddress = this.web3.utils.toChecksumAddress(txData.inputs[0]).toLowerCase()
-      amount = this.toMainDenomination(txData.inputs[1].toString())
-      if (txReceipt) {
-        const actualAmount = this.getErc20TransferLogAmount(txReceipt)
-        if (isExecuted && amount !== actualAmount) {
-          this.logger.warn(
-            `Transcation ${txid} tried to transfer ${amount} but only ${actualAmount} was actually transferred`
-          )
-        }
+    if (isERC20Transfer) {
+      if (toAddress.toLowerCase() !== tokenAddress.toLowerCase()) {
+        throw new Error(`Transaction ${txId} was sent to different contract: ${toAddress}, Expected: ${tokenAddress}`)
       }
-    } else if (tx.input.startsWith(SIGNATURE.ERC20_SWEEP_CONTRACT_DEPLOY)
-      || tx.input.startsWith(SIGNATURE.ERC20_SWEEP_CONTRACT_DEPLOY_LEGACY)) {
+      const txData = tokenDecoder.decodeData(txInput)
+
+      toAddress = txData.inputs[0]
+
+      // USDT token has decimal place of 6, unlike other tokens that are 18 decimals;
+      // so we have to use a custom unitConverter, the default one uses that 18 decimals
+      const customUnitConverter = this.getCustomUnitConverter(tokenDecimals)
+
+      const inputAmount = txData.inputs[1].toString()
+
+      amount = customUnitConverter.toMainDenominationString(inputAmount)
+
+      const actualAmount = this.getErc20TransferLogAmount(erc20Tx.receipt, tokenDecimals, txHash)
+
+      if (isExecuted && amount !== actualAmount) {
+        this.logger.warn(
+          `Transaction ${txHash} tried to transfer ${amount} but only ${actualAmount} was actually transferred`,
+        )
+      }
+    } else if (isERC20SweepContractDeploy || isERC20SweepContractDeployLegacy || isERC20Proxy) {
       amount = '0'
-    } else if (tx.input.startsWith(SIGNATURE.ERC20_PROXY)) {
-      amount = '0'
-    } else if (tx.input.startsWith(SIGNATURE.ERC20_SWEEP)) {
+    } else if (isERC20Sweep) {
       const tokenDecoder = new InputDataDecoder(TOKEN_WALLET_ABI)
-      const txData = tokenDecoder.decodeData(tx.input)
+      const txData = tokenDecoder.decodeData(txInput)
 
       if (txData.inputs.length !== 4) {
-        throw new Error(`Transaction ${txid} has not recognized number of inputs ${txData.inputs.length}`)
+        throw new Error(`Transaction ${txHash} has not recognized number of inputs ${txData.inputs.length}`)
       }
       // For ERC20 sweeps:
       // tx.from is the contract address
@@ -385,243 +401,124 @@ export class EthereumPaymentsUtils implements PaymentsUtils {
       // inputs[1] is the ERC20 contract address (this.tokenAddress)
       // inputs[2] is the recipient of the funds (toAddress)
       // inputs[3] is the amount
-      const sweepContractAddress = tx.to
+      const sweepContractAddress = toAddress
       if (!sweepContractAddress) {
-        throw new Error(`Transaction ${txid} should have a to address destination`)
+        throw new Error(`Transaction ${txHash} should have a to address destination`)
       }
 
-      const addr = deriveAddress(
-        sweepContractAddress,
-        `0x${txData.inputs[0].toString('hex')}`,
-        true
-      )
+      const addr = deriveAddress(sweepContractAddress, `0x${txData.inputs[0].toString('hex')}`, true)
 
       fromAddress = this.web3.utils.toChecksumAddress(addr).toLowerCase()
       toAddress = this.web3.utils.toChecksumAddress(txData.inputs[2]).toLowerCase()
-      if (txReceipt) {
-        amount = this.getErc20TransferLogAmount(txReceipt)
-      } else {
-        amount = this.toMainDenomination(txData.inputs[3].toString())
-      }
-    } else if (tx.input.startsWith(SIGNATURE.ERC20_SWEEP_LEGACY)) {
+      amount = this.getErc20TransferLogAmount(erc20Tx.receipt, tokenDecimals, txHash)
+    } else if (isERC20SweepLegacy) {
       const tokenDecoder = new InputDataDecoder(TOKEN_WALLET_ABI_LEGACY)
-      const txData = tokenDecoder.decodeData(tx.input)
+      const txData = tokenDecoder.decodeData(txInput)
 
       if (txData.inputs.length !== 2) {
-        throw new Error(`Transaction ${txid} has not recognized number of inputs ${txData.inputs.length}`)
+        throw new Error(`Transaction ${txHash} has not recognized number of inputs ${txData.inputs.length}`)
       }
       // For ERC20 legacy sweeps:
       // tx.to is the sweep contract address and source of funds (fromAddress)
       // tx.from is the contract owner address
       // inputs[0] is the ERC20 contract address (this.tokenAddress)
       // inputs[1] is the recipient of the funds (toAddress)
-      const sweepContractAddress = tx.to
+      const sweepContractAddress = toAddress
       if (!sweepContractAddress) {
-        throw new Error(`Transaction ${txid} should have a to address destination`)
+        throw new Error(`Transaction ${txHash} should have a to address destination`)
       }
+
       fromAddress = this.web3.utils.toChecksumAddress(sweepContractAddress).toLowerCase()
       toAddress = this.web3.utils.toChecksumAddress(txData.inputs[1]).toLowerCase()
 
-      if (txReceipt) {
-        amount = this.getErc20TransferLogAmount(txReceipt)
-      }
+      amount = this.getErc20TransferLogAmount(erc20Tx.receipt, tokenDecimals, txHash)
     } else {
-      throw new Error(`Transaction ${txid} is not ERC20 transaction neither swap`)
+      throw new Error('tx is neither ERC20 token transfer nor sweep')
     }
 
-    // NOTE: for the sake of consistent schema return
-    if (!txReceipt) {
-      txReceipt = {
-        transactionHash: tx.hash,
-        from: tx.from || '',
-        to: toAddress,
-        status: true,
-        blockNumber: 0,
-        cumulativeGasUsed: 0,
-        gasUsed: 0,
-        transactionIndex: 0,
-        blockHash: '',
-        logs: [],
-        logsBloom: '',
-        effectiveGasPrice:0
-      }
+    const fee = this.toMainDenomination(new BigNumber(erc20Tx.gasPrice).multipliedBy(erc20Tx.gasUsed))
 
-      return {
-        id: txid,
-        amount,
-        toAddress,
-        fromAddress: tx.from,
-        toExtraId: null,
-        fromIndex: null,
-        toIndex: null,
-        fee: this.toMainDenominationEth((new BigNumber(tx.gasPrice)).multipliedBy(tx.gas)),
-        sequenceNumber: tx.nonce,
-        weight: tx.gas,
-        isExecuted: false,
-        isConfirmed: false,
-        confirmations: 0,
-        confirmationId: null,
-        confirmationTimestamp: null,
-        currentBlockNumber: currentBlockNumber,
-        status: TransactionStatus.Pending,
-        data: {
-          ...tx,
-          ...txReceipt,
-          currentBlock: currentBlockNumber
-        },
-      }
-    }
+    const currentBlockNumber = await this.getCurrentBlockNumber()
 
-    return {
-      id: txid,
+    const result: EthereumTransactionInfo = {
+      id: txHash,
       amount,
-      toAddress,
-      fromAddress,
+      fromAddress: this.formatAddress(fromAddress),
+      toAddress: this.formatAddress(toAddress),
+      fromExtraId: null,
       toExtraId: null,
       fromIndex: null,
       toIndex: null,
-      fee: this.toMainDenominationEth((new BigNumber(tx.gasPrice)).multipliedBy(txReceipt.gasUsed)),
-      sequenceNumber: tx.nonce,
-      weight: txReceipt.gasUsed,
-      // XXX if tx was confirmed but not accepted by network isExecuted must be false
+      fee,
+      sequenceNumber: erc20Tx.nonce,
+      weight: erc20Tx.gasUsed,
       isExecuted,
       isConfirmed,
-      confirmations,
-      confirmationId: tx.blockHash,
-      confirmationTimestamp,
+      confirmations: erc20Tx.confirmations,
+      confirmationId: erc20Tx.blockHash,
+      confirmationTimestamp: erc20Tx.blockTime,
+      confirmationNumber: erc20Tx.blockHeight,
       status,
-      currentBlockNumber: currentBlockNumber,
+      currentBlockNumber,
       data: {
-        ...tx,
-        ...txReceipt,
-        currentBlock: currentBlockNumber
+        ...erc20Tx,
       },
     }
+
+    return result
   }
 
   async getTransactionInfo(txid: string): Promise<EthereumTransactionInfo> {
-    // If a tokenAddress has been defined, this is an ERC20 utils so use different decoding logic
     if (this.tokenAddress) {
-      return this.getTransactionInfoERC20(txid)
+      return this.getTransactionInfoERC20(txid, this.tokenAddress)
     }
+    const tx = await this.networkData.getTransaction(txid)
+
+    let status: TransactionStatus = TransactionStatus.Pending
+    let isExecuted = false
 
     // XXX it is suggested to keep 12 confirmations
     // https://ethereum.stackexchange.com/questions/319/what-number-of-confirmations-is-considered-secure-in-ethereum
-    const minConfirmations = MIN_CONFIRMATIONS
-    const tx: Transaction | null = await this._retryDced(() => this.eth.getTransaction(txid))
+    const isConfirmed = tx.confirmations > Math.max(MIN_CONFIRMATIONS, 12)
 
-    if (!tx) {
-      throw new Error(`Transaction ${txid} not found`)
+    if (isConfirmed) {
+      status = TransactionStatus.Confirmed
+      isExecuted = true
     }
 
     const currentBlockNumber = await this.getCurrentBlockNumber()
-    let txInfo: TransactionReceipt | null = await this._retryDced(() => this.eth.getTransactionReceipt(txid))
 
-    tx.from = tx.from ? tx.from.toLowerCase() : '';
-    tx.to = tx.to ? tx.to.toLowerCase() : '';
+    const fee = this.toMainDenomination(new BigNumber(tx.gasPrice).multipliedBy(tx.gasUsed))
 
-    // NOTE: for the sake of consistent schema return
-    if (!txInfo) {
-      txInfo = {
-        transactionHash: tx.hash,
-        from: tx.from,
-        to: tx.to,
-        status: true,
-        blockNumber: 0,
-        cumulativeGasUsed: 0,
-        gasUsed: 0,
-        transactionIndex: 0,
-        blockHash: '',
-        logs: [],
-        logsBloom: '',
-        effectiveGasPrice:0
-      }
-
-      return {
-        id: txid,
-        amount: this.toMainDenomination(tx.value),
-        toAddress: tx.to ? tx.to.toLowerCase() : null,
-        fromAddress: tx.from ? tx.from.toLowerCase() : null,
-        toExtraId: null,
-        fromIndex: null,
-        toIndex: null,
-        fee: this.toMainDenomination((new BigNumber(tx.gasPrice)).multipliedBy(tx.gas)),
-        sequenceNumber: tx.nonce,
-        weight: tx.gas,
-        isExecuted: false,
-        isConfirmed: false,
-        confirmations: 0,
-        confirmationId: null,
-        confirmationTimestamp: null,
-        currentBlockNumber: currentBlockNumber,
-        status: TransactionStatus.Pending,
-        data: {
-          ...tx,
-          ...txInfo,
-          currentBlock: currentBlockNumber
-        },
-      }
-    }
-
-    let isConfirmed = false
-    let confirmationTimestamp: Date | null = null
-    let confirmations = 0
-    if (tx.blockNumber) {
-      confirmations = currentBlockNumber - tx.blockNumber
-      if (confirmations > minConfirmations) {
-        isConfirmed = true
-        const txBlock = await this._retryDced(() => this.eth.getBlock(tx.blockNumber!))
-        confirmationTimestamp = new Date(Number(txBlock.timestamp) * 1000)
-      }
-    }
-
-    let status: TransactionStatus = TransactionStatus.Pending
-    if (isConfirmed) {
-      status = TransactionStatus.Confirmed
-      // No trust to types description of web3
-      if (txInfo && (txInfo?.status === false || txInfo.status.toString() === 'false')) {
-        status = TransactionStatus.Failed
-      }
-    }
-
-    txInfo.from = tx.from
-    txInfo.to = tx.to
-
-    return {
-      id: txid,
+    const result: EthereumTransactionInfo = {
+      id: tx.txHash,
       amount: this.toMainDenomination(tx.value),
-      toAddress: tx.to ? tx.to.toLowerCase() : null,
-      fromAddress: tx.from ? tx.from.toLowerCase() : null,
+      fromAddress: this.formatAddress(tx.from),
+      toAddress: this.formatAddress(tx.to),
+      fromExtraId: null,
       toExtraId: null,
       fromIndex: null,
       toIndex: null,
-      fee: this.toMainDenomination((new BigNumber(tx.gasPrice)).multipliedBy(txInfo.gasUsed)),
+      fee,
       sequenceNumber: tx.nonce,
-      weight: txInfo.gasUsed,
-      // XXX if tx was confirmed but not accepted by network isExecuted must be false
-      isExecuted: status !== TransactionStatus.Failed,
+      weight: tx.gasUsed,
+      isExecuted,
       isConfirmed,
-      confirmations,
-      confirmationId: tx.blockHash,
-      confirmationTimestamp,
+      confirmations: tx.confirmations,
+      confirmationId: tx.blockHash ?? null,
+      confirmationTimestamp: tx.blockTime,
+      confirmationNumber: tx.blockHeight,
       status,
-      currentBlockNumber: currentBlockNumber,
+      currentBlockNumber,
       data: {
-        ...tx,
-        ...txInfo,
-        currentBlock: currentBlockNumber
+        ...tx.raw,
       },
     }
+
+    return result
   }
 
   async getBlock(id?: string | number): Promise<BlockInfo> {
-    const raw = await this.eth.getBlock(id ?? 'latest')
-    return {
-      id: raw.hash,
-      height: raw.number,
-      previousId: raw.parentHash,
-      time: new Date(isNumber(raw.timestamp) ? raw.timestamp * 1000 : raw.timestamp),
-      raw: raw
-    }
+    return this.networkData.getBlock(id ?? 'latest')
   }
 }

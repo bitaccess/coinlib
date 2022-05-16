@@ -1,46 +1,89 @@
-import * as request from 'request-promise-native'
-import { BigNumber } from 'bignumber.js'
-import Web3 from 'web3'
+import { AutoFeeLevels, BlockInfo, FunctionPropertyNames } from '@bitaccess/coinlib-common'
 import { Logger, DelegateLogger } from '@faast/ts-common'
-import type { TransactionConfig } from 'web3-core'
-import { AutoFeeLevels } from '@bitaccess/coinlib-common'
+import { BigNumber } from 'bignumber.js'
+import { GetAddressDetailsOptions } from 'blockbook-client'
+import * as request from 'request-promise-native'
+import { TransactionConfig } from 'web3-core'
 
+import { DEFAULT_GAS_PRICE_IN_WEI, GAS_STATION_URL, GAS_STATION_FEE_SPEED } from './constants'
 import {
-  DEFAULT_GAS_PRICE_IN_WEI,
-  GAS_STATION_URL,
-  GAS_STATION_FEE_SPEED,
-  MAXIMUM_GAS,
-  GAS_ESTIMATE_MULTIPLIER,
-  ETHEREUM_TRANSFER_COST,
-} from './constants'
-import { EthTxType } from './types'
+  EthereumNetworkDataProvider,
+  EthereumStandardizedERC20Transaction,
+  EthereumStandardizedTransaction,
+  EthTxType,
+  NetworkDataConfig,
+} from './types'
 import { retryIfDisconnected } from './utils'
-
-type Eth = Web3['eth']
+import { NetworkDataBlockbook } from './NetworkDataBlockbook'
+import { NetworkDataWeb3 } from './NetworkDataWeb3'
 
 export class NetworkData {
   private gasStationUrl: string | undefined
   private parityUrl: string | undefined
-  private eth: Eth
   private logger: Logger
+  private blockBookService: NetworkDataBlockbook
+  private web3Service: NetworkDataWeb3
 
-  constructor(eth: Eth, gasStationUrl: string = GAS_STATION_URL, parityUrl?: string, logger?: Logger | null) {
-    this.eth = eth
-    this.gasStationUrl = gasStationUrl
-    this.parityUrl = parityUrl
-    this.logger = new DelegateLogger(logger, 'NetworkData')
+  constructor(config: NetworkDataConfig) {
+    this.gasStationUrl = config.gasStationUrl ?? GAS_STATION_URL
+    this.logger = new DelegateLogger(config.logger, 'NetworkData')
+
+    this.blockBookService = new NetworkDataBlockbook({
+      ...config.blockBookConfig,
+      server: config.blockBookConfig.nodes,
+      logger: this.logger,
+      decimals: config.web3Config.decimals,
+    })
+
+    this.web3Service = new NetworkDataWeb3({
+      ...config.web3Config,
+      logger: this.logger,
+    })
+
+    this.parityUrl = config.parityUrl
   }
 
-  async getNetworkData(
+  async connectBlockBook(): Promise<void> {
+    await this.blockBookService.init()
+  }
+
+  async disconnectBlockBook(): Promise<void> {
+    await this.blockBookService.destroy()
+  }
+
+  callBlockbookWithWeb3Fallback<K extends FunctionPropertyNames<EthereumNetworkDataProvider>>(
+    methodName: K,
+    ...args: Parameters<EthereumNetworkDataProvider[K]>
+  ): ReturnType<EthereumNetworkDataProvider[K]> {
+    // Typescript compiler doesn't support spreading arguments that have a generic type, so the method
+    // must be cast to a plain Function before invocation to avoid error ts(2556)
+    try {
+      return (this.blockBookService[methodName] as Function)(...args)
+    } catch (error) {
+      this.logger.log(`Call to blockbook ${methodName} failed, Falling back to web3`, error)
+
+      return (this.web3Service[methodName] as Function)(...args)
+    }
+  }
+
+  async getBlock(blockId: string | number): Promise<BlockInfo> {
+    return this.callBlockbookWithWeb3Fallback('getBlock', blockId)
+  }
+
+  async getAddressDetails(address: string, options?: GetAddressDetailsOptions) {
+    return this.blockBookService.getAddressDetails(address, options)
+  }
+
+  async getGasAndNonceForNewTx(
     txType: EthTxType,
     speed: AutoFeeLevels,
     from: string,
     to: string,
     data?: string,
   ): Promise<{
-    pricePerGasUnit: string,
-    nonce: string,
-    amountOfGas: number,
+    pricePerGasUnit: string
+    nonce: string
+    amountOfGas: number
   }> {
     const pricePerGasUnit = await this.getGasPrice(speed)
     const nonce = await this.getNonce(from)
@@ -54,8 +97,8 @@ export class NetworkData {
   }
 
   async getNonce(address: string): Promise<string> {
-    const web3Nonce = await this.getWeb3Nonce(address) || '0'
-    const parityNonce = await this.getParityNonce(address) || '0'
+    const web3Nonce = (await this.web3Service.getWeb3Nonce(address)) || '0'
+    const parityNonce = (await this.getParityNonce(address)) || '0'
 
     const nonce = BigNumber.maximum(web3Nonce, parityNonce)
     return nonce.toNumber() ? nonce.toString() : '0'
@@ -65,42 +108,34 @@ export class NetworkData {
     let gasPrice = await this.getGasStationGasPrice(speed)
     if (gasPrice) return gasPrice
 
-    gasPrice = await this.getWeb3GasPrice()
+    gasPrice = await this.web3Service.getWeb3GasPrice()
     if (gasPrice) return gasPrice
 
     return DEFAULT_GAS_PRICE_IN_WEI
   }
 
   async estimateGas(txObject: TransactionConfig, txType: EthTxType): Promise<number> {
-    try {
-      // estimateGas mutates txObject so must pass in a clone
-      let gas = await this._retryDced(() => this.eth.estimateGas({ ...txObject }))
-      if (gas > 21000) {
-        // No need for multiplier for regular ethereum transfers
-        gas = gas * GAS_ESTIMATE_MULTIPLIER
-      }
-
-      const maxGas = MAXIMUM_GAS[txType]
-      if (gas > maxGas) {
-        gas = maxGas
-      }
-
-      const result = Math.ceil(gas)
-      this.logger.debug(`Estimated gas limit of ${result} for ${txType}`)
-      return result
-    } catch (e) {
-      this.logger.warn(`Failed to estimate gas for ${txType} -- ${e}`)
-      return MAXIMUM_GAS[txType]
-    }
+    return this.web3Service.estimateGas(txObject, txType)
   }
 
-  private async getWeb3Nonce(address: string): Promise<string> {
-    try {
-      const nonce = await this._retryDced(() => this.eth.getTransactionCount(address, 'pending'))
-      return (new BigNumber(nonce)).toString()
-    } catch (e) {
-      return ''
-    }
+  async getERC20Transaction(txId: string, tokenAddress: string): Promise<EthereumStandardizedERC20Transaction> {
+    return this.callBlockbookWithWeb3Fallback('getERC20Transaction', txId, tokenAddress)
+  }
+
+  async getTransaction(txId: string): Promise<EthereumStandardizedTransaction> {
+    return this.callBlockbookWithWeb3Fallback('getTransaction', txId)
+  }
+
+  async getCurrentBlockNumber() {
+    return this.callBlockbookWithWeb3Fallback('getCurrentBlockNumber')
+  }
+
+  async getAddressBalance(address: string) {
+    return this.callBlockbookWithWeb3Fallback('getAddressBalance', address)
+  }
+
+  async getAddressBalanceERC20(address: string, tokenAddress: string) {
+    return this.callBlockbookWithWeb3Fallback('getAddressBalanceERC20', address, tokenAddress)
   }
 
   private async getParityNonce(address: string): Promise<string> {
@@ -108,11 +143,11 @@ export class NetworkData {
       method: 'parity_nextNonce',
       params: [address],
       id: 1,
-      jsonrpc: '2.0'
+      jsonrpc: '2.0',
     }
     const options = {
       url: this.parityUrl || '',
-      json: data
+      json: data,
     }
 
     let body: { [key: string]: string }
@@ -127,7 +162,7 @@ export class NetworkData {
       return ''
     }
 
-    return (new BigNumber(body.result, 16)).toString()
+    return new BigNumber(body.result, 16).toString()
   }
 
   private async getGasStationGasPrice(level: AutoFeeLevels): Promise<string> {
@@ -135,7 +170,7 @@ export class NetworkData {
     const options = {
       url: hasKey ? `${this.gasStationUrl}` : `${this.gasStationUrl}/json/ethgasAPI.json`,
       json: true,
-      timeout: 5000
+      timeout: 5000,
     }
     let body: { [key: string]: number }
     try {
@@ -154,18 +189,10 @@ export class NetworkData {
 
     const gwei = new BigNumber(price10xGwei).dividedBy(10)
     this.logger.log(`Retrieved gas price of ${gwei} Gwei from ethgasstation using speed ${speed}`)
-    return gwei.multipliedBy(1e9).dp(0, BigNumber.ROUND_DOWN).toFixed()
-  }
-
-  private async getWeb3GasPrice(): Promise<string> {
-    try {
-      const wei = new BigNumber(await this._retryDced(() => this.eth.getGasPrice()))
-      this.logger.log(`Retrieved gas price of ${wei.div(1e9)} Gwei from web3`)
-      return wei.dp(0, BigNumber.ROUND_DOWN).toFixed()
-    } catch (e) {
-      this.logger.warn('Failed to retrieve gas price from web3 - ', e.toString())
-      return ''
-    }
+    return gwei
+      .multipliedBy(1e9)
+      .dp(0, BigNumber.ROUND_DOWN)
+      .toFixed()
   }
 
   async _retryDced<T>(fn: () => Promise<T>): Promise<T> {
