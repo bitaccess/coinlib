@@ -42,7 +42,6 @@ const INSTANCE_KEYS = deriveSignatory(hdAccount.rootChild[0].xkeys.xprv, 0)
 
 const FROM_ADDRESS = deriveSignatory(INSTANCE_KEYS.xkeys.xprv, 1).address.toLowerCase()
 const TO_ADDRESS = hdAccount.rootChild[1].address.toLowerCase()
-process.env.NODE_DEBUG = 'ethereum-payments'
 
 // web3 sequential id used by nock
 let id = 1
