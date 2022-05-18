@@ -167,6 +167,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       blockTime: block.time,
       currentBlockNumber,
       gasUsed: txReceipt.gasUsed,
+      contractAddress: txReceipt.contractAddress,
     })
   }
 
@@ -211,10 +212,12 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       blockTime,
       currentBlockNumber,
       gasUsed,
+      contractAddress,
     }: {
       blockTime: Date | null
       currentBlockNumber: number
       gasUsed: number
+      contractAddress?: string
     },
   ): EthereumStandardizedTransaction {
     const standardizedTransaction: EthereumStandardizedTransaction = {
@@ -229,6 +232,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       gasUsed,
       gasPrice: tx.gasPrice,
       confirmations: tx.blockNumber ? currentBlockNumber - tx.blockNumber : 0,
+      contractAddress,
       raw: {
         ...tx,
         blockTime,
@@ -261,6 +265,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       gasUsed: txReceipt.gasUsed,
       currentBlockNumber,
       blockTime,
+      contractAddress: txReceipt.contractAddress,
     })
 
     const result: EthereumStandardizedERC20Transaction = {
