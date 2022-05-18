@@ -321,7 +321,7 @@ export interface EthereumStandardizedTransaction {
   txHash: string
   blockHeight: number
   blockHash: string
-  blockTime: Date
+  blockTime: Date | null
   value: string
   confirmations: number
   gasUsed: number

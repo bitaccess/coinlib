@@ -21,6 +21,7 @@ import {
   EthereumStandardizedERC20Transaction,
 } from './types'
 import { retryIfDisconnected } from './utils'
+import { get } from 'lodash'
 
 export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
   web3: Web3
@@ -158,9 +159,9 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
   async getTransaction(txId: string) {
     const tx = await this._retryDced(() => this.eth.getTransaction(txId))
 
-    const block = await this.getBlock(tx.blockHash!)
-    const currentBlockNumber = await this.getCurrentBlockNumber()
     const txReceipt = await this.getTransactionReceipt(txId)
+    const currentBlockNumber = await this.getCurrentBlockNumber()
+    const block = await this.getBlock(tx.blockHash!)
 
     return this.standardizeTransaction(tx, {
       blockTime: block.time,
@@ -170,14 +171,18 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
   }
 
   async standardizeBlock(block: BlockTransactionObject) {
-    const blockTime = new Date(isNumber(block.timestamp) ? block.timestamp * 1000 : block.timestamp)
+    const blockTime = block.timestamp
+      ? new Date(isNumber(block.timestamp) ? block.timestamp * 1000 : block.timestamp)
+      : null
     const currentBlockNumber = await this.getCurrentBlockNumber()
 
     const standardizedTransactionsPromise = block.transactions.map(async tx => {
-      const txReceipt = await this.getTransactionReceipt(tx.hash)
+      const txHash = get(tx, 'hash', tx) as string
+
+      const txReceipt = await this.getTransactionReceipt(txHash)
 
       return this.standardizeTransaction(tx, {
-        blockTime: blockInfo.time,
+        blockTime,
         gasUsed: txReceipt.gasUsed,
         currentBlockNumber,
       })
@@ -189,7 +194,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       id: block.hash,
       height: block.number,
       previousId: block.parentHash,
-      time: blockTime,
+      time: blockTime!,
       raw: {
         ...block,
         transactions: standardizedTransactions,
@@ -207,7 +212,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       currentBlockNumber,
       gasUsed,
     }: {
-      blockTime: Date
+      blockTime: Date | null
       currentBlockNumber: number
       gasUsed: number
     },
@@ -223,7 +228,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       value: tx.value,
       gasUsed,
       gasPrice: tx.gasPrice,
-      confirmations: currentBlockNumber - tx.blockNumber!,
+      confirmations: tx.blockNumber ? currentBlockNumber - tx.blockNumber : 0,
       raw: {
         ...tx,
         blockTime,
