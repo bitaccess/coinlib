@@ -3,7 +3,6 @@ import { HdEthereumPayments } from '../src/HdEthereumPayments'
 import { hdAccount } from './fixtures/accounts'
 import { TestLogger } from '../../../common/testUtils'
 import { deriveSignatory } from '../src/bip44'
-import { DEFAULT_TESTNET_SERVER } from '../src/constants'
 
 import { NetworkType, FeeLevel, FeeOption, FeeRateType, TransactionStatus } from '@bitaccess/coinlib-common'
 import nock from 'nock'
@@ -26,6 +25,7 @@ import { EthereumSignedTransaction, EthereumUnsignedTransaction } from 'src'
 const GAS_STATION_URL = 'https://gasstation.test.url'
 const PARITY_URL = 'https://parity.test.url'
 const INFURA_URL = 'https://infura.test.url'
+const BLOCKBOOK_URL = 'https://blockbook.test.url'
 const nockG = nock(GAS_STATION_URL)
 const nockP = nock(PARITY_URL)
 const nockI = nock(INFURA_URL)
@@ -39,7 +39,7 @@ const CONFIG = {
   fullNode: INFURA_URL,
   hdKey: hdAccount.rootChild[0].xkeys.xprv,
   logger,
-  blockbookNode: DEFAULT_TESTNET_SERVER[0],
+  blockbookNode: BLOCKBOOK_URL,
 }
 
 const INSTANCE_KEYS = deriveSignatory(hdAccount.rootChild[0].xkeys.xprv, 0)
@@ -249,9 +249,9 @@ describe('HdEthereumPayments', () => {
         const res = await hdEP.getBalance({ address: FROM_ADDRESS })
 
         expect(res).toStrictEqual({
-          confirmedBalance: '0',
+          confirmedBalance: '0.00000000001',
           unconfirmedBalance: '0',
-          spendableBalance: '0',
+          spendableBalance: '0.00000000001',
           sweepable: false,
           requiresActivation: false,
         })
@@ -271,7 +271,7 @@ describe('HdEthereumPayments', () => {
     })
 
     describe('getTransactionInfo', () => {
-      test.skip('returns transaction by id (not included into block)', async () => {
+      test('returns transaction by id (not included into block)', async () => {
         const txId = '0x9fc76417374aa880d4449a1f7f31ec597f00b1f6f3dd2d66f4c9c6c445836d8b'
         const blockId = '0xef95f2f1ed3ca60b048b4bf67cde2195961e0bba6f70bcbea9a2c4e133e34b46'
         const amount = '123450000000000000'
