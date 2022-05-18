@@ -14,11 +14,9 @@ import {
   getTransactionCountMocks,
   getSendRawTransactionMocks,
   getEstimateGasMocks,
-  getGasPriceMocks,
   getTransactionApisMocks,
 } from './fixtures/mocks'
 import { EthereumSignedTransaction, EthereumUnsignedTransaction } from 'src'
-import { get } from 'lodash'
 
 const GAS_STATION_URL = 'https://gasstation.test.url'
 const PARITY_URL = 'https://parity.test.url'
@@ -389,126 +387,6 @@ describe('HdEthereumPayments', () => {
             blockTime: new Date('2015-04-17T16:21:29.000Z'),
             currentBlockNumber: 15,
             dataProvider: 'infura',
-          },
-        })
-      })
-
-      test.skip('returns transaction by id (included into block and failed)', async () => {
-        const txId = '0x9fc76417374aa880d4449a1f7f31ec597f00b1f6f3dd2d66f4c9c6c445836d8b'
-        const blockId = '0xef95f2f1ed3ca60b048b4bf67cde2195961e0bba6f70bcbea9a2c4e133e34b46'
-        const amount = '123450000000000000'
-
-        id = getTransactionApisMocks({
-          requestId: id,
-          txId,
-          blockId,
-          blockNumber: '0x3',
-          amount,
-          fromAddress: FROM_ADDRESS,
-          toAddress: TO_ADDRESS,
-          nock: nockI,
-          isConfirmed: true,
-        })
-
-        const res = await hdEP.getTransactionInfo(txId)
-
-        expect(res).toStrictEqual({
-          id: txId,
-          amount: '0.12345',
-          toAddress: TO_ADDRESS.toLowerCase(),
-          fromAddress: FROM_ADDRESS.toLowerCase(),
-          toExtraId: null,
-          fromIndex: null,
-          toIndex: null,
-          fee: '0.042',
-          sequenceNumber: 2,
-          weight: 21000,
-          isExecuted: false,
-          isConfirmed: true,
-          confirmations: 1,
-          confirmationId: blockId,
-          confirmationTimestamp: new Date('2015-04-17T16:21:29.000Z'),
-          status: 'failed',
-          currentBlockNumber: 4,
-          data: {
-            hash: txId,
-            nonce: 2,
-            blockHash: blockId,
-            blockNumber: 3,
-            contractAddress: null,
-            cumulativeGasUsed: 314159,
-            gasUsed: 21000,
-            logs: [],
-            status: false,
-            transactionHash: txId,
-            transactionIndex: 0,
-            from: FROM_ADDRESS.toLowerCase(),
-            to: TO_ADDRESS.toLowerCase(),
-            value: '123450000000000000',
-            gas: 21000,
-            gasPrice: '2000000000000',
-            input: '0x57cb2fc4',
-            currentBlock: 4,
-          },
-        })
-      })
-
-      test.skip('returns transaction by id (not included into block and pending)', async () => {
-        const txId = '0x9fc76417374aa880d4449a1f7f31ec597f00b1f6f3dd2d66f4c9c6c445836d8b'
-        const amount = '123450000000000000'
-
-        id = getTransactionApisMocks({
-          requestId: id,
-          txId,
-          blockId: null!,
-          blockNumber: null!,
-          amount,
-          fromAddress: FROM_ADDRESS,
-          toAddress: TO_ADDRESS,
-          nock: nockI,
-          isConfirmed: true,
-        })
-
-        const res = await hdEP.getTransactionInfo(txId)
-
-        expect(res).toStrictEqual({
-          id: txId,
-          amount: '0.12345',
-          toAddress: TO_ADDRESS.toLowerCase(),
-          fromAddress: FROM_ADDRESS.toLowerCase(),
-          toExtraId: null,
-          fromIndex: null,
-          toIndex: null,
-          fee: '0.042',
-          sequenceNumber: 2,
-          weight: 21000,
-          isExecuted: false,
-          isConfirmed: false,
-          confirmations: 0,
-          confirmationId: null,
-          confirmationTimestamp: null,
-          status: 'pending',
-          currentBlockNumber: 4,
-          data: {
-            hash: txId,
-            status: true,
-            nonce: 2,
-            blockHash: '',
-            blockNumber: 0,
-            cumulativeGasUsed: 0,
-            gas: 21000,
-            gasUsed: 0,
-            logs: [],
-            logsBloom: '',
-            transactionHash: txId,
-            transactionIndex: 0,
-            from: FROM_ADDRESS.toLowerCase(),
-            to: TO_ADDRESS.toLowerCase(),
-            value: '123450000000000000',
-            gasPrice: '2000000000000',
-            input: '0x57cb2fc4',
-            currentBlock: 4,
-            effectiveGasPrice: 0,
           },
         })
       })
