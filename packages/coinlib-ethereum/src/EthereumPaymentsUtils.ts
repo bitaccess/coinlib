@@ -92,6 +92,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     this.coinSymbol = config.symbol ?? ETH_SYMBOL
     this.coinDecimals = config.decimals ?? ETH_DECIMAL_PLACES
     this.server = config.fullNode || null
+    this.blockBookApi = config.blockbookApi!
 
     let provider: any
     if (config.web3) {
@@ -134,7 +135,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
 
       this.blockBookApi = blockBookApi
     } else {
-      throw new Error(`Blockbook node is missing from config`)
+      this.logger.log(`Blockbook node is missing from config`)
     }
 
     this.eth = this.web3.eth
@@ -490,7 +491,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
 
     const fee = this.toMainDenomination(new BigNumber(tx.gasPrice).multipliedBy(tx.gasUsed))
     const fromAddress = this.formatAddress(tx.from)
-    const toAddress = this.formatAddress(tx.to)
+    const toAddress = this.formatAddress(tx.to ?? tx.contractAddress)
 
     const result: EthereumTransactionInfo = {
       id: tx.txHash,
