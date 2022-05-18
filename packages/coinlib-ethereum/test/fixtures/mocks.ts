@@ -39,7 +39,7 @@ export function getTransactionReceiptMocks(
   id: number | RegExp,
   from: string,
   to: string,
-  status: string,
+  status: number,
   blockNumber: string | null,
   txHash: string,
   blockHash: string | null,
@@ -256,7 +256,7 @@ function getTransactionReceiptResponse(
   id: number | RegExp,
   from: string,
   to: string,
-  status: string,
+  status: number,
   blockNumber: string | null,
   txHash: string,
   blockHash: string | null,
@@ -268,7 +268,6 @@ function getTransactionReceiptResponse(
     result: {
       from,
       to,
-      status,
       transactionHash: txHash,
       transactionIndex: 0,
       blockHash,
@@ -277,6 +276,7 @@ function getTransactionReceiptResponse(
       cumulativeGasUsed: 314159,
       gasUsed: 21000,
       logs: [],
+      status,
     },
   }
 }
@@ -439,6 +439,7 @@ export const getTransactionApisMocks = ({
   fromAddress,
   toAddress,
   isConfirmed = true,
+  isFailedTransaction,
 }: {
   requestId: number
   nock: nock.Scope
@@ -449,8 +450,10 @@ export const getTransactionApisMocks = ({
   fromAddress: string
   toAddress: string
   isConfirmed: boolean
+  isFailedTransaction: boolean
 }) => {
   let id = requestId
+  const status = isFailedTransaction ? 0x0 : 0x1
 
   const transactionByHashMock = getTransactionByHashMocks(
     id++,
@@ -468,7 +471,7 @@ export const getTransactionApisMocks = ({
     id++,
     fromAddress,
     toAddress,
-    '0x1',
+    status,
     blockNumber,
     txId,
     blockId,
@@ -490,7 +493,7 @@ export const getTransactionApisMocks = ({
     id++,
     fromAddress,
     toAddress,
-    '0x1',
+    status,
     blockNumber,
     txId,
     blockId,

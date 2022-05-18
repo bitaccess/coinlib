@@ -53,9 +53,6 @@ describe('HdEthereumPayments', () => {
   beforeEach(() => {
     hdEP = new HdEthereumPayments(CONFIG)
   })
-  afterEach(() => {
-    nock.cleanAll()
-  })
 
   describe('BaseEthereumPayments methods', () => {
     describe('async init', () => {
@@ -285,6 +282,7 @@ describe('HdEthereumPayments', () => {
           toAddress: TO_ADDRESS,
           nock: nockI,
           isConfirmed: false,
+          isFailedTransaction: false,
         })
 
         const res = await hdEP.getTransactionInfo(txId)
@@ -345,10 +343,10 @@ describe('HdEthereumPayments', () => {
           toAddress: TO_ADDRESS,
           nock: nockI,
           isConfirmed: true,
+          isFailedTransaction: false,
         })
 
         const res = await hdEP.getTransactionInfo(txId)
-        console.log({ res })
 
         expect(res).toStrictEqual({
           id: txId,
@@ -370,6 +368,67 @@ describe('HdEthereumPayments', () => {
           confirmationNumber: Number(blockNumber),
           status: 'confirmed',
           currentBlockNumber: 15,
+          data: {
+            hash: txId,
+            nonce: 2,
+            blockHash: blockId,
+            blockNumber: 3,
+            transactionIndex: 0,
+            from: FROM_ADDRESS.toLowerCase(),
+            to: TO_ADDRESS.toLowerCase(),
+            value: '123450000000000000',
+            gas: 21000,
+            gasPrice: '2000000000000',
+            input: '0x57cb2fc4',
+            gasUsed: 21000,
+            blockTime: new Date('2015-04-17T16:21:29.000Z'),
+            currentBlockNumber: 15,
+            dataProvider: 'infura',
+          },
+        })
+      })
+
+      test('returns transaction by id (included into block and failed)', async () => {
+        const txId = '0x9fc76417374aa880d4449a1f7f31ec597f00b1f6f3dd2d66f4c9c6c445836d8b'
+        const blockId = '0xef95f2f1ed3ca60b048b4bf67cde2195961e0bba6f70bcbea9a2c4e133e34b46'
+        const amount = '123450000000000000'
+        const blockNumber = '0x3'
+
+        id = getTransactionApisMocks({
+          requestId: id,
+          txId,
+          blockId,
+          blockNumber,
+          amount,
+          fromAddress: FROM_ADDRESS,
+          toAddress: TO_ADDRESS,
+          nock: nockI,
+          isConfirmed: true,
+          isFailedTransaction: true,
+        })
+
+        const res = await hdEP.getTransactionInfo(txId)
+
+        expect(res).toStrictEqual({
+          id: txId,
+          amount: '0.12345',
+          toAddress: TO_ADDRESS.toLowerCase(),
+          fromAddress: FROM_ADDRESS.toLowerCase(),
+          toExtraId: null,
+          fromExtraId: null,
+          fromIndex: null,
+          toIndex: null,
+          fee: '0.042',
+          sequenceNumber: 2,
+          weight: 21000,
+          isExecuted: false,
+          isConfirmed: true,
+          confirmations: 12,
+          confirmationId: blockId,
+          confirmationTimestamp: new Date('2015-04-17T16:21:29.000Z'),
+          status: 'failed',
+          currentBlockNumber: 15,
+          confirmationNumber: Number(blockNumber),
           data: {
             hash: txId,
             nonce: 2,
