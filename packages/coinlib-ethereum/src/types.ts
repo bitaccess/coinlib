@@ -326,8 +326,9 @@ export interface EthereumStandardizedTransaction {
   confirmations: number
   gasUsed: number
   gasPrice: string
-  raw: object
+  raw: object,
   contractAddress?: string
+  status: boolean,
 }
 
 export interface EthereumStandardizedERC20Transaction extends EthereumStandardizedTransaction {

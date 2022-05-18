@@ -485,6 +485,10 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     if (isConfirmed) {
       status = TransactionStatus.Confirmed
       isExecuted = true
+      if (!tx.status) {
+        status = TransactionStatus.Failed
+        isExecuted = false
+      }
     }
 
     const currentBlockNumber = await this.getCurrentBlockNumber()
