@@ -71,6 +71,7 @@ export const PUBLIC_CONFIG_OMIT_FIELDS = [
   'providerOptions',
   'web3',
   'blockbookNode',
+  'blockbookApi',
 ]
 
 export const DEFAULT_ADDRESS_FORMAT = EthereumAddressFormat.Lowercase

@@ -155,6 +155,7 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
       confirmations: tx.confirmations,
       gasUsed: tx.ethereumSpecific.gasUsed,
       gasPrice: tx.ethereumSpecific.gasPrice,
+      status: Boolean(tx.ethereumSpecific.status),
       raw: {
         ...tx,
         dataProvider: NETWORK_DATA_PROVIDERS.BLOCKBOOK,

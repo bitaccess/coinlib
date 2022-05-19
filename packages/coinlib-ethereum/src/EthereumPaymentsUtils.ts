@@ -92,6 +92,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     this.coinSymbol = config.symbol ?? ETH_SYMBOL
     this.coinDecimals = config.decimals ?? ETH_DECIMAL_PLACES
     this.server = config.fullNode || null
+    this.blockBookApi = config.blockbookApi!
 
     let provider: any
     if (config.web3) {
@@ -134,7 +135,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
 
       this.blockBookApi = blockBookApi
     } else {
-      throw new Error(`Blockbook node is missing from config`)
+      this.logger.log(`Blockbook node is missing from config`)
     }
 
     this.eth = this.web3.eth
@@ -269,10 +270,10 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
 
   formatAddress(address: string) {
     if (address.startsWith('0x')) {
-      return address
+      return address.toLowerCase()
     }
 
-    return `0x${address}`
+    return `0x${address}`.toLowerCase()
   }
 
   isAddressBalanceSweepable(balanceEth: Numeric): boolean {
@@ -294,6 +295,9 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
   }
 
   async getAddressBalance(address: string): Promise<BalanceResult> {
+    if (this.tokenAddress) {
+      return this.getAddressBalanceERC20(address, this.tokenAddress)
+    }
     const balance = await this.networkData.getAddressBalance(address)
     const confirmedBalance = this.toMainDenomination(balance).toString()
     const sweepable = this.isAddressBalanceSweepable(confirmedBalance)
@@ -336,7 +340,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     const erc20Tx = await this.networkData.getERC20Transaction(txId, tokenAddress)
 
     let fromAddress = erc20Tx.from
-    let toAddress = erc20Tx.to
+    let toAddress = erc20Tx.to ?? tokenAddress
     const tokenDecimals = new BigNumber(erc20Tx.tokenDecimals).toNumber()
     const { txHash } = erc20Tx
 
@@ -479,22 +483,28 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
 
     // XXX it is suggested to keep 12 confirmations
     // https://ethereum.stackexchange.com/questions/319/what-number-of-confirmations-is-considered-secure-in-ethereum
-    const isConfirmed = tx.confirmations > Math.max(MIN_CONFIRMATIONS, 12)
+    const isConfirmed = tx.confirmations >= Math.max(MIN_CONFIRMATIONS, 12)
 
     if (isConfirmed) {
       status = TransactionStatus.Confirmed
       isExecuted = true
+      if (!tx.status) {
+        status = TransactionStatus.Failed
+        isExecuted = false
+      }
     }
 
     const currentBlockNumber = await this.getCurrentBlockNumber()
 
     const fee = this.toMainDenomination(new BigNumber(tx.gasPrice).multipliedBy(tx.gasUsed))
+    const fromAddress = this.formatAddress(tx.from)
+    const toAddress = this.formatAddress(tx.to ?? tx.contractAddress)
 
     const result: EthereumTransactionInfo = {
       id: tx.txHash,
       amount: this.toMainDenomination(tx.value),
-      fromAddress: this.formatAddress(tx.from),
-      toAddress: this.formatAddress(tx.to),
+      fromAddress,
+      toAddress,
       fromExtraId: null,
       toExtraId: null,
       fromIndex: null,
@@ -512,6 +522,9 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       currentBlockNumber,
       data: {
         ...tx.raw,
+        to: toAddress,
+        from: fromAddress,
+        contractAddress: tx.contractAddress,
       },
     }
 
