@@ -295,6 +295,9 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
   }
 
   async getAddressBalance(address: string): Promise<BalanceResult> {
+    if (this.tokenAddress) {
+      return this.getAddressBalanceERC20(address, this.tokenAddress)
+    }
     const balance = await this.networkData.getAddressBalance(address)
     const confirmedBalance = this.toMainDenomination(balance).toString()
     const sweepable = this.isAddressBalanceSweepable(confirmedBalance)
@@ -337,7 +340,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     const erc20Tx = await this.networkData.getERC20Transaction(txId, tokenAddress)
 
     let fromAddress = erc20Tx.from
-    let toAddress = erc20Tx.to
+    let toAddress = erc20Tx.to ?? tokenAddress
     const tokenDecimals = new BigNumber(erc20Tx.tokenDecimals).toNumber()
     const { txHash } = erc20Tx
 
@@ -521,6 +524,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
         ...tx.raw,
         to: toAddress,
         from: fromAddress,
+        contractAddress: tx.contractAddress,
       },
     }
 
