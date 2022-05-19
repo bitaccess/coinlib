@@ -323,6 +323,7 @@ describe('HdEthereumPayments', () => {
             blockNumber: null,
             currentBlockNumber: 3,
             dataProvider: 'infura',
+            contractAddress: null,
           },
         })
       })
@@ -384,6 +385,7 @@ describe('HdEthereumPayments', () => {
             blockTime: new Date('2015-04-17T16:21:29.000Z'),
             currentBlockNumber: 15,
             dataProvider: 'infura',
+            contractAddress: null,
           },
         })
       })
@@ -445,6 +447,7 @@ describe('HdEthereumPayments', () => {
             blockTime: new Date('2015-04-17T16:21:29.000Z'),
             currentBlockNumber: 15,
             dataProvider: 'infura',
+            contractAddress: null,
           },
         })
       })
