@@ -9,13 +9,13 @@ import {
   isValidXpub,
 } from '../src/bip44'
 import { NETWORK_MAINNET } from '../src'
-import { fromBase58 } from 'bip32'
+import { bip32 } from '@bitaccess/coinlib-common'
 import {
   DERIVED_XPRV, DERIVATION_PATH, ROOT_XPRV, NETWORK, PARTIALLY_DERIVED_XPRV,
   ADDRESS_VALID, PRIVATE_KEY, DERIVED_XPUB,
 } from './fixtures'
 
-export const BASE_NODE = fromBase58(DERIVED_XPRV, NETWORK_MAINNET)
+export const BASE_NODE = bip32.fromBase58(DERIVED_XPRV, NETWORK_MAINNET)
 
 describe('bip44', () => {
   describe('splitDerivationPath', () => {

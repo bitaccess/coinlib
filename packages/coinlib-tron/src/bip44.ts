@@ -1,7 +1,7 @@
 // Many parts of this code are snippets from tronWeb:
 // https://github.com/tronprotocol/tron-web/blob/master/src/index.js
 
-import { BIP32Interface as HDNode, fromBase58, fromSeed } from 'bip32'
+import { bip32, HDNode } from '@bitaccess/coinlib-common'
 import { keccak256 } from 'js-sha3'
 import JsSha from 'jssha'
 import { ec as EC } from 'elliptic'
@@ -24,7 +24,7 @@ export function deriveAddress(xpub: string, index: number): string {
   if (!isValidXpub(xpub)) {
     throw new Error('Invalid xpub')
   }
-  const key = fromBase58(xpub)
+  const key = bip32.fromBase58(xpub)
   const derived = deriveBasePath(key)
     .derive(0)
     .derive(index)
@@ -35,7 +35,7 @@ export function derivePrivateKey(xprv: string, index: number): string {
   if (!isValidXprv(xprv)) {
     throw new Error('Invalid xprv')
   }
-  const key = fromBase58(xprv)
+  const key = bip32.fromBase58(xprv)
   const derived = deriveBasePath(key)
     .derive(0)
     .derive(index)
@@ -43,13 +43,13 @@ export function derivePrivateKey(xprv: string, index: number): string {
 }
 
 export function xprvToXpub(xprv: string | HDNode): string {
-  const key = typeof xprv === 'string' ? fromBase58(xprv) : xprv
+  const key = typeof xprv === 'string' ? bip32.fromBase58(xprv) : xprv
   const derivedPubKey = deriveBasePath(key)
   return derivedPubKey.neutered().toBase58()
 }
 
 export function generateNewKeys(): { xpub: string; xprv: string } {
-  const key = fromSeed(crypto.randomBytes(32))
+  const key = bip32.fromSeed(crypto.randomBytes(32))
   const xprv = key.toBase58()
   const xpub = xprvToXpub(xprv)
   return {

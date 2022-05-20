@@ -6,9 +6,9 @@ import {
   SinglesigAddressType,
   BitcoinishSignedTransaction,
   BitcoinishSignedTransactionData,
-  BitcoinishUnsignedTransaction
+  BitcoinishUnsignedTransaction,
 } from './types'
-import { TransactionStatus, BaseMultisigData, MultisigData } from '@bitaccess/coinlib-common'
+import { TransactionStatus, BaseMultisigData, MultisigData, ecpair } from '@bitaccess/coinlib-common'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { isString } from '@faast/ts-common'
 import b58 from 'bs58check'
@@ -36,7 +36,7 @@ export function standardizeAddress(address: string, network: BitcoinjsNetwork): 
 
 export function isValidPublicKey(publicKey: string | Buffer, network: BitcoinjsNetwork): boolean {
   try {
-    bitcoin.ECPair.fromPublicKey(publicKeyToBuffer(publicKey), { network })
+    ecpair.fromPublicKey(publicKeyToBuffer(publicKey), { network })
     return true
   } catch (e) {
     return false
@@ -125,11 +125,11 @@ export function publicKeyToAddress(
 }
 
 export function publicKeyToKeyPair(publicKey: string | Buffer, network: BitcoinjsNetwork): BitcoinjsKeyPair {
-  return bitcoin.ECPair.fromPublicKey(publicKeyToBuffer(publicKey), { network })
+  return ecpair.fromPublicKey(publicKeyToBuffer(publicKey), { network })
 }
 
 export function privateKeyToKeyPair(privateKey: string, network: BitcoinjsNetwork): BitcoinjsKeyPair {
-  return bitcoin.ECPair.fromWIF(privateKey, network)
+  return ecpair.fromWIF(privateKey, network)
 }
 
 export function privateKeyToAddress(privateKey: string, network: BitcoinjsNetwork, addressType: SinglesigAddressType) {
@@ -162,11 +162,16 @@ export function convertXPrefixHdKeys(hdKey: string, network: BitcoinjsNetwork): 
   return b58.encode(data)
 }
 
+function keypairValidator(publicKey: Buffer, hash: Buffer, signature: Buffer): boolean {
+  const keypair = ecpair.fromPublicKey(publicKey)
+  return keypair.verify(hash, signature)
+}
+
 export function validateAndFinalizeSignedTx(
   tx: BitcoinishSignedTransaction | BitcoinishUnsignedTransaction,
   psbt: bitcoin.Psbt,
 ): BitcoinishSignedTransaction {
-  if (!psbt.validateSignaturesOfAllInputs()) {
+  if (!psbt.validateSignaturesOfAllInputs(keypairValidator)) {
     throw new Error('Failed to validate signatures of all inputs')
   }
   psbt.finalizeAllInputs()
@@ -187,7 +192,6 @@ export function validateAndFinalizeSignedTx(
     },
   }
 }
-
 
 export function isMultisigFullySigned(multisigData: MultisigData): boolean {
   if (BaseMultisigData.is(multisigData)) {

@@ -1,8 +1,6 @@
-import { NetworkType, FeeRateType } from '@bitaccess/coinlib-common';
+import { NetworkType, FeeRateType } from '@bitaccess/coinlib-common'
 
-import {
-  HdBitcoinPayments, HdBitcoinPaymentsConfig, AddressType, SinglesigAddressType,
-} from '../src'
+import { HdBitcoinPayments, HdBitcoinPaymentsConfig, AddressType, SinglesigAddressType } from '../src'
 
 import { EXTERNAL_ADDRESS, accountsByAddressType, AccountFixture } from './fixtures'
 import { logger, makeUtxos, makeOutputs, expectUtxosEqual } from './utils'
@@ -11,7 +9,6 @@ import { toBigNumber } from '@faast/ts-common'
 jest.setTimeout(30 * 1000)
 
 describe('HdBitcoinPayments', () => {
-
   describe('static', () => {
     it('should throw on invalid hdKey', () => {
       expect(() => new HdBitcoinPayments({ hdKey: 'invalid' })).toThrow()
@@ -118,7 +115,7 @@ describe('HdBitcoinPayments', () => {
         maxFeePercent: 50,
       })
       const changeOutputs = makeOutputs(changeAddress, '0.005')
-      expectUtxosEqual(paymentTx.inputs, utxos.slice(0,2))
+      expectUtxosEqual(paymentTx.inputs, utxos.slice(0, 2))
       expect(paymentTx.outputs).toEqual([...outputs, ...changeOutputs])
       expect(paymentTx.changeOutputs).toEqual(changeOutputs)
       expect(paymentTx.externalOutputs).toEqual(outputs)
@@ -142,7 +139,7 @@ describe('HdBitcoinPayments', () => {
         maxFeePercent: 50,
       })
       const changeOutputs = makeOutputs(changeAddress, '0.1', '0.2', '0.4')
-      expectUtxosEqual(paymentTx.inputs, utxos.slice(0,3))
+      expectUtxosEqual(paymentTx.inputs, utxos.slice(0, 3))
       expect(paymentTx.outputs).toEqual([...outputs, ...changeOutputs])
       expect(paymentTx.changeOutputs).toEqual(changeOutputs)
       expect(paymentTx.externalOutputs).toEqual(outputs)
@@ -192,7 +189,11 @@ describe('HdBitcoinPayments', () => {
       expect(paymentTx.externalOutputTotal).toBe('1.999999')
       expect(paymentTx.change).toBe('0')
       expect(paymentTx.changeAddress).toBe(null)
-      expect(paymentTx.fee).toBe(toBigNumber(feeMain).plus('0.000001').toString())
+      expect(paymentTx.fee).toBe(
+        toBigNumber(feeMain)
+          .plus('0.000001')
+          .toString(),
+      )
     })
     it('loose change below dust threshold gets added to first change output', async () => {
       // This test is designed to have 3 change outputs and 1 satoshi loose change that gets allocated
@@ -211,11 +212,15 @@ describe('HdBitcoinPayments', () => {
         maxFeePercent: 50,
       })
       expectUtxosEqual(paymentTx.inputs, unusedUtxos.slice(0, 2))
-      const expectedOutputAmount = toBigNumber(amount).minus(feeMain).toString()
-      const expectedExternalOutputs = [{
-        address: EXTERNAL_ADDRESS,
-        value: expectedOutputAmount,
-      }]
+      const expectedOutputAmount = toBigNumber(amount)
+        .minus(feeMain)
+        .toString()
+      const expectedExternalOutputs = [
+        {
+          address: EXTERNAL_ADDRESS,
+          value: expectedOutputAmount,
+        },
+      ]
       const expectedChangeOutputs = [
         {
           address: changeAddress,
@@ -255,18 +260,26 @@ describe('HdBitcoinPayments', () => {
         maxFeePercent: 50,
       })
       expectUtxosEqual(paymentTx.inputs, unusedUtxos)
-      const expectedOutputAmount = toBigNumber(amount).minus(feeMain).toString()
-      const expectedExternalOutputs = [{
-        address: EXTERNAL_ADDRESS,
-        value: expectedOutputAmount,
-      }]
+      const expectedOutputAmount = toBigNumber(amount)
+        .minus(feeMain)
+        .toString()
+      const expectedExternalOutputs = [
+        {
+          address: EXTERNAL_ADDRESS,
+          value: expectedOutputAmount,
+        },
+      ]
       expect(paymentTx.outputs).toEqual([...expectedExternalOutputs])
       expect(paymentTx.externalOutputs).toEqual(expectedExternalOutputs)
       expect(paymentTx.changeOutputs).toEqual([])
       expect(paymentTx.externalOutputTotal).toBe(expectedOutputAmount)
       expect(paymentTx.change).toBe('0')
       expect(paymentTx.changeAddress).toBe(null)
-      expect(paymentTx.fee).toBe(toBigNumber(feeMain).plus(1e-8).toString())
+      expect(paymentTx.fee).toBe(
+        toBigNumber(feeMain)
+          .plus(1e-8)
+          .toString(),
+      )
     })
     it('recalculated dynamic fee doesnt create loose change when recipient pays fee', async () => {
       const unusedUtxos = makeUtxos(['1', '1.00000001'])
@@ -287,11 +300,15 @@ describe('HdBitcoinPayments', () => {
         maxFeePercent: 50,
       })
       expectUtxosEqual(paymentTx.inputs, unusedUtxos.slice(0, 2))
-      const expectedOutputAmount = toBigNumber(amount).minus(paymentTx.fee).toString()
-      const expectedExternalOutputs = [{
-        address: EXTERNAL_ADDRESS,
-        value: expectedOutputAmount,
-      }]
+      const expectedOutputAmount = toBigNumber(amount)
+        .minus(paymentTx.fee)
+        .toString()
+      const expectedExternalOutputs = [
+        {
+          address: EXTERNAL_ADDRESS,
+          value: expectedOutputAmount,
+        },
+      ]
       const expectedChangeOutputs = [
         {
           address: changeAddress,
@@ -329,7 +346,6 @@ describe('HdBitcoinPayments', () => {
     const accountFixture = accountsByAddressType[addressType]
 
     describe(addressType, () => {
-
       describe('hardcoded xpub', () => {
         const config: HdBitcoinPaymentsConfig = {
           hdKey: accountFixture.xpub,
