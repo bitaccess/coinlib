@@ -51,18 +51,17 @@ export class NetworkData {
     await this.blockBookService.destroy()
   }
 
-  callBlockbookWithWeb3Fallback<K extends FunctionPropertyNames<EthereumNetworkDataProvider>>(
+  async callBlockbookWithWeb3Fallback<K extends FunctionPropertyNames<EthereumNetworkDataProvider>>(
     methodName: K,
     ...args: Parameters<EthereumNetworkDataProvider[K]>
-  ): ReturnType<EthereumNetworkDataProvider[K]> {
+  ): Promise<ReturnType<EthereumNetworkDataProvider[K]>> {
     // Typescript compiler doesn't support spreading arguments that have a generic type, so the method
     // must be cast to a plain Function before invocation to avoid error ts(2556)
     try {
-      return (this.blockBookService[methodName] as Function)(...args)
+      return await (this.blockBookService[methodName] as Function)(...args)
     } catch (error) {
       this.logger.log(`Call to blockbook ${methodName} failed, Falling back to web3`, error)
-
-      return (this.web3Service[methodName] as Function)(...args)
+      return await (this.web3Service[methodName] as Function)(...args)
     }
   }
 
