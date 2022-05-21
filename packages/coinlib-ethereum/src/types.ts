@@ -80,6 +80,7 @@ export const EthereumPaymentsUtilsConfig = extendCodec(
     providerOptions: t.any,
     web3: t.any,
     tokenAddress: t.string,
+    requestTimeoutMs: OptionalNumber,
   },
   'EthereumPaymentsUtilsConfig',
 )
@@ -293,16 +294,15 @@ export const NetworkDataConfig = requiredOptionalCodec(
     parityUrl: t.string,
     logger: Logger,
     gasStationUrl: t.string,
+    requestTimeoutMs: t.number,
   },
   'NetworkDataConfig',
 )
 
 export type NetworkDataConfig = t.TypeOf<typeof NetworkDataConfig>
 
-export type EthereumBalanceMonitorConfig = EthereumBlockbookConnectedConfig &
-  EthereumPaymentsUtilsConfig & {
-    utils: EthereumPaymentsUtils
-  }
+export const EthereumBalanceMonitorConfig = EthereumPaymentsUtilsConfig
+export type EthereumBalanceMonitorConfig = EthereumPaymentsUtilsConfig
 
 export const EthereumBlock = BlockInfoEthereum
 export type EthereumBlock = BlockInfoEthereum

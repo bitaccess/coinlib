@@ -1,6 +1,7 @@
-import { PaymentsFactory } from '@bitaccess/coinlib-common'
-import { assertType } from '@faast/ts-common'
+import { BalanceMonitor, NetworkType, PaymentsFactory } from '@bitaccess/coinlib-common'
+import { assertType, Logger } from '@faast/ts-common'
 import {
+  EthereumBalanceMonitorConfig,
   EthereumPaymentsUtilsConfig,
   EthereumPaymentsConfig,
   HdEthereumPaymentsConfig,
@@ -16,11 +17,13 @@ import { HdEthereumPayments } from './HdEthereumPayments'
 import { KeyPairEthereumPayments } from './KeyPairEthereumPayments'
 import { HdErc20Payments } from './erc20/HdErc20Payments'
 import { KeyPairErc20Payments } from './erc20/KeyPairErc20Payments'
+import { EthereumBalanceMonitor } from './EthereumBalanceMonitor'
 
 export class EthereumPaymentsFactory extends PaymentsFactory<
   EthereumPaymentsUtilsConfig,
   EthereumPaymentsUtils,
-  BaseEthereumPayments<EthereumPaymentsUtilsConfig>
+  BaseEthereumPayments<EthereumPaymentsUtilsConfig>,
+  EthereumBalanceMonitor
 > {
   readonly packageName = PACKAGE_NAME
 
@@ -48,6 +51,12 @@ export class EthereumPaymentsFactory extends PaymentsFactory<
 
   newUtils(config: EthereumPaymentsUtilsConfig) {
     return new EthereumPaymentsUtils(assertType(EthereumPaymentsUtilsConfig, config, 'config'))
+  }
+
+  hasBalanceMonitor = true
+
+  newBalanceMonitor(config: EthereumBalanceMonitorConfig) {
+    return new EthereumBalanceMonitor(assertType(EthereumBalanceMonitorConfig, config, 'config'))
   }
 
   connectionManager = new EthereumConnectionManager()

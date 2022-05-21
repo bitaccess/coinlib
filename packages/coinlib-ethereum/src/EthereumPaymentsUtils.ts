@@ -131,6 +131,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       const blockBookApi = new BlockbookEthereum({
         nodes: [config.blockbookNode],
         logger: this.logger,
+        requestTimeoutMs: config.requestTimeoutMs,
       })
 
       this.blockBookApi = blockBookApi
@@ -152,8 +153,10 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       blockBookConfig: {
         nodes: this.server,
         api: this.blockBookApi,
+        requestTimeoutMs: config.requestTimeoutMs,
       },
       gasStationUrl: config.gasStation,
+      requestTimeoutMs: config.requestTimeoutMs,
     })
   }
 
@@ -227,6 +230,10 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     } catch (e) {
       return false
     }
+  }
+
+  isAddressEqual(address1: string, address2: string) {
+    return address1.toLowerCase() === address2.toLowerCase()
   }
 
   privateKeyToAddress(prv: string): string {
