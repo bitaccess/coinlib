@@ -1,7 +1,7 @@
-import { AutoFeeLevels, BlockInfo, FunctionPropertyNames } from '@bitaccess/coinlib-common'
+import { AutoFeeLevels, BlockInfo, FunctionPropertyNames, NewBlockCallback } from '@bitaccess/coinlib-common'
 import { Logger, DelegateLogger } from '@faast/ts-common'
 import { BigNumber } from 'bignumber.js'
-import { GetAddressDetailsOptions } from 'blockbook-client'
+import { GetAddressDetailsOptions, NormalizedTxEthereum } from 'blockbook-client'
 import * as request from 'request-promise-native'
 import { TransactionConfig } from 'web3-core'
 
@@ -192,6 +192,27 @@ export class NetworkData {
       .multipliedBy(1e9)
       .dp(0, BigNumber.ROUND_DOWN)
       .toFixed()
+  }
+
+  async getTxRaw(txId: string) {
+    const blockbookApi = this.blockBookService.getApi()
+
+    return this._retryDced(() => blockbookApi.getTx(txId))
+  }
+
+  async subscribeAddresses(
+    addresses: string[],
+    callbackFn: (address: string, rawTx: NormalizedTxEthereum) => Promise<void>,
+  ) {
+    const api = this.blockBookService.getApi()
+
+    await api.subscribeAddresses(addresses, async ({ address, tx }) => {
+      await callbackFn(address, tx as NormalizedTxEthereum)
+    })
+  }
+
+  async subscribeNewBlock(callbackFn: NewBlockCallback) {
+    await this.blockBookService.getApi().subscribeNewBlock(callbackFn)
   }
 
   async _retryDced<T>(fn: () => Promise<T>): Promise<T> {

@@ -378,6 +378,7 @@ export const BalanceActivity = requiredOptionalCodec(
     utxosSpent: t.array(UtxoInfo),
     // Utxos create in this transaction applicable to the address
     utxosCreated: t.array(UtxoInfo),
+    tokenAddress: t.string,
   },
   'BalanceActivity',
 )

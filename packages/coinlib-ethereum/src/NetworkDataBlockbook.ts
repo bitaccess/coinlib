@@ -15,7 +15,7 @@ import {
   EthereumStandardizedERC20Transaction,
   EthereumStandardizedTransaction,
 } from './types'
-import { retryIfDisconnected, resolveServer } from './utils'
+import { retryIfDisconnected, resolveServer, getBlockBookTxFromAndToAddress } from './utils'
 
 export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
   private logger: Logger
@@ -24,7 +24,6 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
   constructor(config: EthereumBlockbookConnectedConfig) {
     this.logger = config.logger
     const { api } = resolveServer(config, this.logger)
-
     this.api = api
   }
 
@@ -34,6 +33,14 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
 
   async destroy(): Promise<void> {
     await this.api.disconnect()
+  }
+
+  getApi() {
+    if (!this.api) {
+      throw new Error('Blockbook api is not initialized')
+    }
+
+    return this.api
   }
 
   async getBlock(id?: string | number): Promise<BlockInfo> {
@@ -130,16 +137,7 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
   }
 
   standardizeTransaction(tx: NormalizedTxEthereum, blockInfoTime?: Date): EthereumStandardizedTransaction {
-    if (tx.vin.length !== 1 || tx.vout.length !== 1) {
-      throw new Error('transaction has less or more than one input or output')
-    }
-
-    const inputAddresses = tx.vin[0].addresses
-    const outputAddresses = tx.vout[0].addresses
-
-    if (!inputAddresses || !outputAddresses) {
-      throw new Error('transaction is missing from or to address')
-    }
+    const { fromAddress, toAddress } = getBlockBookTxFromAndToAddress(tx)
 
     const blockTime = blockInfoTime ? new Date(blockInfoTime) : new Date(tx.blockTime * 1000)
 
@@ -147,9 +145,9 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
       blockHash: tx.blockHash!,
       blockHeight: tx.blockHeight,
       blockTime,
-      from: inputAddresses[0],
+      from: fromAddress,
       nonce: tx.ethereumSpecific.nonce,
-      to: outputAddresses[0],
+      to: toAddress,
       txHash: tx.txid,
       value: tx.value,
       confirmations: tx.confirmations,

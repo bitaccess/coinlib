@@ -1,5 +1,5 @@
 import { isMatchingError, isString, Logger } from '@faast/ts-common'
-import { BlockbookEthereum } from 'blockbook-client'
+import { BlockbookEthereum, NormalizedTxEthereum } from 'blockbook-client'
 import promiseRetry from 'promise-retry'
 import { EthereumBlockbookConnectedConfig } from './types'
 
@@ -81,5 +81,31 @@ export function resolveServer(
       requestTimeoutMs,
     }),
     server: null,
+  }
+}
+
+export function getBlockBookTxFromAndToAddress(tx: NormalizedTxEthereum) {
+  if (tx.vin.length !== 1 || tx.vout.length !== 1) {
+    throw new Error('transaction has less or more than one input or output')
+  }
+
+  const inputAddresses = tx.vin[0].addresses
+  const outputAddresses = tx.vout[0].addresses
+  let toAddress = ''
+
+  if (!inputAddresses) {
+    throw new Error(`txId = ${tx.txid} is missing input address`)
+  }
+
+  // for contract deploys, the outputAddress is usually null
+  if (!outputAddresses) {
+    toAddress = '0x'
+  } else {
+    toAddress = outputAddresses[0]
+  }
+
+  return {
+    toAddress,
+    fromAddress: inputAddresses[0],
   }
 }
