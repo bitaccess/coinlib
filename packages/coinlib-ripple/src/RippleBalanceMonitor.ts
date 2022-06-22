@@ -42,12 +42,14 @@ export class RippleBalanceMonitor extends RippleConnected implements BalanceMoni
   onBalanceActivity(callbackFn: BalanceActivityCallback) {
     this.api.connection.on('transaction', (tx: FormattedTransactionType) => {
       this.txToBalanceActivity(tx.address, tx)
-        .then(activity => {
+        .then((activity) => {
           if (activity) {
             return callbackFn(activity)
           }
         })
-        .catch(e => this.logger.warn(`Error in onBalanceActivity handling ripple connection transaction event`))
+        .catch(
+          (e) => this.logger.warn(`Error in onBalanceActivity handling ripple connection transaction event`)
+        )
     })
   }
 
@@ -138,15 +140,15 @@ export class RippleBalanceMonitor extends RippleConnected implements BalanceMoni
     return tx.type === 'payment'
   }
 
-  async txToBalanceActivity(address: string, tx: FormattedTransactionType): Promise<BalanceActivity[]> {
+  async txToBalanceActivity(address: string, tx: FormattedTransactionType): Promise<BalanceActivity | null> {
     if (!tx.outcome) {
       this.logger.warn('txToBalanceActivity received tx object without outcome!', tx)
-      return []
+      return null
     }
     const txResult = tx.outcome.result
     if (!isString(txResult) || !(txResult.startsWith('tes') || txResult.startsWith('tec'))) {
       this.logger.log(`No balance activity for ripple tx ${tx.id} because status is ${txResult}`)
-      return []
+      return null
     }
     const confirmationNumber = tx.outcome.ledgerVersion
     const primarySequence = padLeft(String(tx.outcome.ledgerVersion), 12, '0')
@@ -157,7 +159,7 @@ export class RippleBalanceMonitor extends RippleConnected implements BalanceMoni
       this.logger.log(
         `Cannot determine balanceChange for address ${address} in ripple tx ${tx.id} because there's no XRP entry`,
       )
-      return []
+      return null
     }
     const amount = balanceChange.value
     const assetSymbol = balanceChange.currency
@@ -167,23 +169,21 @@ export class RippleBalanceMonitor extends RippleConnected implements BalanceMoni
       : undefined
     const tertiarySequence = type === 'out' ? '00' : '01'
     const activitySequence = `${primarySequence}.${secondarySequence}.${tertiarySequence}`
-    return [
-      {
-        type,
-        networkType: this.networkType,
-        networkSymbol: 'XRP',
-        assetSymbol,
-        address: address,
-        extraId: !isUndefined(tag) ? String(tag) : null,
+    return {
+      type,
+      networkType: this.networkType,
+      networkSymbol: 'XRP',
+      assetSymbol,
+      address: address,
+      extraId: !isUndefined(tag) ? String(tag) : null,
 
-        amount,
+      amount,
 
-        externalId: tx.id,
-        activitySequence,
-        confirmationId: ledger.ledgerHash,
-        confirmationNumber: String(confirmationNumber),
-        timestamp: new Date(ledger.closeTime),
-      },
-    ]
+      externalId: tx.id,
+      activitySequence,
+      confirmationId: ledger.ledgerHash,
+      confirmationNumber: String(confirmationNumber),
+      timestamp: new Date(ledger.closeTime),
+    }
   }
 }

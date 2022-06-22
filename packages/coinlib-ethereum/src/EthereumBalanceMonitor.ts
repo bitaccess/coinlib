@@ -46,6 +46,20 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     return rawTx
   }
 
+  private async handleBalanceActivityCallback(
+    balanceActivity: BalanceActivity | BalanceActivity[],
+    callbackFn: BalanceActivityCallback,
+    rawTx?: object,
+  ) {
+    if (Array.isArray(balanceActivity)) {
+      for (const activity of balanceActivity) {
+        await callbackFn(activity, rawTx)
+      }
+    } else {
+      await callbackFn(balanceActivity, rawTx)
+    }
+  }
+
   async subscribeAddresses(addresses: string[]): Promise<void> {
     const validAddresses = addresses.filter(address => this.isValidAddress(address))
 
@@ -126,9 +140,11 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
           continue
         }
 
-        const balanceActivities = await this.txToBalanceActivity(address, tx)
+        const activity = await this.txToBalanceActivity(address, tx)
 
-        await callbackFn(balanceActivities, tx)
+        if (activity) {
+          await this.handleBalanceActivityCallback(activity, callbackFn, tx)
+        }
       }
 
       lastTx = transactions[transactions.length - 1]
@@ -172,9 +188,11 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
       for (const { txHash } of relevantAddressTransactions) {
         const rawTx = await this.getTxWithMemoization(txHash, hardTxQueries)
 
-        const balanceActivities = await this.txToBalanceActivity(relevantAddress, rawTx)
+        const activity = await this.txToBalanceActivity(relevantAddress, rawTx)
 
-        await callbackFn(balanceActivities, rawTx)
+        if (activity) {
+          await this.handleBalanceActivityCallback(activity, callbackFn)
+        }
       }
     }
 
@@ -203,14 +221,12 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     return type
   }
 
-  getBalanceActivityForNonTokenTransfer(address: string, tx: NormalizedTxEthereum): BalanceActivity[] {
+  getBalanceActivityForNonTokenTransfer(address: string, tx: NormalizedTxEthereum): BalanceActivity {
     const { fromAddress, toAddress } = getBlockBookTxFromAndToAddress(tx)
 
     const type = this.getActivityType(address, { txFromAddress: fromAddress, txToAddress: toAddress, txHash: tx.txid })
 
     const timestamp = new Date(tx.blockTime * 1000)
-
-    const fee = new BigNumber(tx.ethereumSpecific.gasPrice).multipliedBy(tx.ethereumSpecific.gasUsed)
 
     const balanceActivity: BalanceActivity = {
       type,
@@ -228,15 +244,13 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
       confirmations: tx.confirmations,
     }
 
-    if (balanceActivity.type === 'out') {
-      const amountWithFee = new BigNumber(balanceActivity.amount).plus(fee)
-      balanceActivity.amount = this.toMainDenomination(amountWithFee.negated())
-    }
-
-    return [balanceActivity]
+    return balanceActivity
   }
 
-  async txToBalanceActivity(address: string, tx: NormalizedTxEthereum): Promise<BalanceActivity[]> {
+  async txToBalanceActivity(
+    address: string,
+    tx: NormalizedTxEthereum,
+  ): Promise<BalanceActivity | BalanceActivity[] | null> {
     if (!tx.tokenTransfers || tx.tokenTransfers.length === 0) {
       return this.getBalanceActivityForNonTokenTransfer(address, tx)
     }
@@ -246,7 +260,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
 
     const timestamp = new Date(tx.blockTime * 1000)
 
-    const balanceActivities: BalanceActivity[] = tx.tokenTransfers
+    const balanceActivities = tx.tokenTransfers
       .filter(tokenTransfer => {
         // we only care about token transfers where our known address is the sender or recipient
         const isSender = this.isAddressEqual(tokenTransfer.from, address)
@@ -278,12 +292,6 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
           extraId: null,
           confirmations: tx.confirmations,
           tokenAddress: this.formatAddress(tokenTransfer.token),
-        }
-
-        if (balanceActivity.type === 'out') {
-          balanceActivity.amount = unitConverter.toMainDenominationString(
-            new BigNumber(balanceActivity.amount).negated(),
-          )
         }
 
         return balanceActivity

@@ -207,13 +207,13 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
     return address ? this.utils.standardizeAddress(address) : null
   }
 
-  async txToBalanceActivity(address: string, tx: NormalizedTxBitcoin): Promise<BalanceActivity[]> {
+  async txToBalanceActivity(address: string, tx: NormalizedTxBitcoin): Promise<BalanceActivity | null> {
     const externalId = tx.txid
     const confirmationNumber = tx.blockHeight
     const standardizedAddress = this.utils.standardizeAddress(address)
     if (standardizedAddress === null) {
       this.logger.warn(`Cannot standardize ${this.coinName} address, likely invalid: ${address}`)
-      return []
+      return null
     }
 
     let netSatoshis = new BigNumber(0) // balance increase (positive), or decreased (negative)
@@ -263,10 +263,10 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
         `${this.coinName} transaction ${externalId} does not affect balance of ${standardizedAddress}`,
         tx,
       )
-      return []
+      return null
     }
 
-    return [{
+    return {
       type: netSatoshis.gt(0) ? 'in' : 'out',
       networkType: this.networkType,
       networkSymbol: this.coinSymbol,
@@ -284,7 +284,7 @@ export abstract class BitcoinishBalanceMonitor extends BlockbookConnected implem
       timestamp: new Date(tx.blockTime * 1000),
       utxosSpent,
       utxosCreated,
-    }]
+    }
   }
 
 }
