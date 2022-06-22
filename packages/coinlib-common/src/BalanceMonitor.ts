@@ -74,7 +74,7 @@ export interface BalanceMonitor {
    * @param address The address the balance activity should apply to
    * @param tx The raw transaction object returned by the network
    */
-  txToBalanceActivity(address: string, tx: object): Promise<BalanceActivity | BalanceActivity[] | null>
+  txToBalanceActivity(address: string, tx: object): Promise<BalanceActivity[]>
 
   /**
    * Watch for confirmed blocks

@@ -17,13 +17,12 @@ import { StellarConnected } from './StellarConnected'
 import { NOT_FOUND_ERRORS } from './constants'
 
 export class StellarBalanceMonitor extends StellarConnected implements BalanceMonitor {
-
   txEmitter = new EventEmitter()
 
   _subscribeCancellors: Function[] = []
 
   async destroy() {
-    this._subscribeCancellors.forEach((cancel) => cancel())
+    this._subscribeCancellors.forEach(cancel => cancel())
   }
 
   async subscribeAddresses(addresses: string[]) {
@@ -32,14 +31,18 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
     }
     for (const address of addresses) {
       try {
-        const cancel = this.getApi().transactions().cursor('now').forAccount(address).stream({
-          onmessage: (value) => {
-            this.txEmitter.emit('tx', { address, tx: value })
-          },
-          onerror: (e) => {
-            this.logger.error('Stellar tx stream error', e)
-          },
-        })
+        const cancel = this.getApi()
+          .transactions()
+          .cursor('now')
+          .forAccount(address)
+          .stream({
+            onmessage: value => {
+              this.txEmitter.emit('tx', { address, tx: value })
+            },
+            onerror: e => {
+              this.logger.error('Stellar tx stream error', e)
+            },
+          })
         this.logger.log('Stellar address subscribed', address)
         this._subscribeCancellors.push(cancel)
       } catch (e) {
@@ -52,14 +55,14 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
   onBalanceActivity(callbackFn: BalanceActivityCallback) {
     this.txEmitter.on('tx', ({ address, tx }) => {
       this.txToBalanceActivity(address, tx)
-        .then((activity) => {
+        .then(activity => {
           if (activity) {
             return callbackFn(activity)
           }
         })
-        .catch((e) => this.logger.error(
-          `Error in Stellar ${this.networkType} onBalanceActivity handling of new activity`, e
-        ))
+        .catch(e =>
+          this.logger.error(`Error in Stellar ${this.networkType} onBalanceActivity handling of new activity`, e),
+        )
     })
   }
 
@@ -71,10 +74,10 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
     assertValidAddress(address)
     const { from: fromOption, to: toOption } = options
     const from = new BigNumber(
-      isUndefined(fromOption) ? 0 : (Numeric.is(fromOption) ? fromOption : fromOption.confirmationNumber)
+      isUndefined(fromOption) ? 0 : Numeric.is(fromOption) ? fromOption : fromOption.confirmationNumber,
     )
     const to = new BigNumber(
-      isUndefined(toOption) ? 'Infinity' : (Numeric.is(toOption) ? toOption.toString() : toOption.confirmationNumber)
+      isUndefined(toOption) ? 'Infinity' : Numeric.is(toOption) ? toOption.toString() : toOption.confirmationNumber,
     )
 
     const limit = 10
@@ -83,21 +86,22 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
     let transactions: StellarRawTransaction[] | undefined
     while (
       isUndefined(transactionPage) ||
-      (transactionPage.records.length === limit
-        && lastTx
+      (transactionPage.records.length === limit &&
+        lastTx &&
         // This condition enables retrieving txs until we reach the desired range. No built in way to filter the query
-        && (from.lt(lastTx.ledger_attr) || to.lt(lastTx.ledger_attr)))
+        (from.lt(lastTx.ledger_attr) || to.lt(lastTx.ledger_attr)))
     ) {
       // I tried doing this with .stream, but it didn't let me order it in descending order
       try {
-        transactionPage = await this._retryDced(() => transactionPage
-          ? transactionPage.next()
-          : this.getApi()
-            .transactions()
-            .forAccount(address)
-            .limit(limit)
-            .order('desc') // important txs are retrieved newest to oldest for exit condition to work
-            .call()
+        transactionPage = await this._retryDced(() =>
+          transactionPage
+            ? transactionPage.next()
+            : this.getApi()
+                .transactions()
+                .forAccount(address)
+                .limit(limit)
+                .order('desc') // important txs are retrieved newest to oldest for exit condition to work
+                .call(),
         )
       } catch (e) {
         if (isMatchingError(e, NOT_FOUND_ERRORS)) {
@@ -122,11 +126,11 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
     return { from: from.toString(), to: to.toString() }
   }
 
-  async txToBalanceActivity(address: string, tx: StellarRawTransaction): Promise<BalanceActivity | null> {
+  async txToBalanceActivity(address: string, tx: StellarRawTransaction): Promise<BalanceActivity[]> {
     const successful = (tx as any).successful
     if (!successful) {
       this.logger.log(`No balance activity for stellar tx ${tx.id} because successful is ${successful}`)
-      return null
+      return []
     }
     const confirmationNumber = tx.ledger_attr
     const primarySequence = padLeft(String(tx.ledger_attr), 12, '0')
@@ -137,14 +141,14 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
       operation = await this._normalizeTxOperation(tx)
     } catch (e) {
       if (e.message.includes('Cannot normalize stellar tx')) {
-        return null
+        return []
       }
       throw e
     }
     const { amount, fee, fromAddress, toAddress } = operation
     if (!(fromAddress === address || toAddress === address)) {
       this.logger.log(`Stellar transaction ${tx.id} operation does not apply to ${address}`)
-      return null
+      return []
     }
     const type = toAddress === address ? 'in' : 'out'
     const extraId = toAddress === address ? tx.memo : null
@@ -153,21 +157,23 @@ export class StellarBalanceMonitor extends StellarConnected implements BalanceMo
 
     const netAmount = type === 'out' ? amount.plus(fee).times(-1) : amount
 
-    return {
-      type,
-      networkType: this.networkType,
-      networkSymbol: 'XLM',
-      assetSymbol: 'XLM',
-      address: address,
-      extraId: !isUndefined(extraId) ? extraId : null,
+    return [
+      {
+        type,
+        networkType: this.networkType,
+        networkSymbol: 'XLM',
+        assetSymbol: 'XLM',
+        address: address,
+        extraId: !isUndefined(extraId) ? extraId : null,
 
-      amount: netAmount.toString(),
+        amount: netAmount.toString(),
 
-      externalId: tx.id,
-      activitySequence,
-      confirmationId: ledger.id,
-      confirmationNumber: String(confirmationNumber),
-      timestamp: ledger.time,
-    }
+        externalId: tx.id,
+        activitySequence,
+        confirmationId: ledger.id,
+        confirmationNumber: String(confirmationNumber),
+        timestamp: ledger.time,
+      },
+    ]
   }
 }
