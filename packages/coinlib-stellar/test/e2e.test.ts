@@ -57,7 +57,7 @@ describe('e2e', () => {
     startLedgerVersion = (await payments.getBlock()).height
     monitor.onBalanceActivity(activity => {
       logger.log('onBalanceActivity', activity)
-      emittedBalanceActivities.push(activity)
+      emittedBalanceActivities.push(...activity)
     })
     await monitor.subscribeAddresses(payments.getAddressesToMonitor())
   }, 120 * 1000)
@@ -223,7 +223,7 @@ describe('e2e', () => {
     await balanceMonitor.retrieveBalanceActivities(
       address,
       activity => {
-        result.push(activity)
+        result.push(...activity)
       },
       { from: startLedgerVersion, ...options },
     )
