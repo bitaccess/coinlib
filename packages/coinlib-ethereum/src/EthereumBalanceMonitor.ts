@@ -210,6 +210,8 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
 
     const timestamp = new Date(tx.blockTime * 1000)
 
+    const fee = new BigNumber(tx.ethereumSpecific.gasPrice).multipliedBy(tx.ethereumSpecific.gasUsed)
+
     const balanceActivity: BalanceActivity = {
       type,
       networkType: this.networkType,
@@ -224,6 +226,11 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
       amount: this.toMainDenomination(tx.value),
       extraId: null,
       confirmations: tx.confirmations,
+    }
+
+    if (balanceActivity.type === 'out') {
+      const amountWithFee = new BigNumber(balanceActivity.amount).plus(fee)
+      balanceActivity.amount = this.toMainDenomination(amountWithFee.negated())
     }
 
     return [balanceActivity]
@@ -271,6 +278,12 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
           extraId: null,
           confirmations: tx.confirmations,
           tokenAddress: this.formatAddress(tokenTransfer.token),
+        }
+
+        if (balanceActivity.type === 'out') {
+          balanceActivity.amount = unitConverter.toMainDenominationString(
+            new BigNumber(balanceActivity.amount).negated(),
+          )
         }
 
         return balanceActivity
