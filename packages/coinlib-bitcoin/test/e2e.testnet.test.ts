@@ -338,7 +338,7 @@ describeAll('e2e testnet', () => {
         await balanceMonitor.subscribeAddresses(addressesToWatch)
         balanceMonitor.onBalanceActivity((ba, rawTx) => {
           logger.log('recorded balance activity', ba)
-          recordedBalanceActivities.push(ba)
+          recordedBalanceActivities.push(...ba)
         })
         startBlockHeight = (await payments.getBlock()).height
       }, 15 * 1000)
@@ -605,10 +605,12 @@ describeAll('e2e testnet', () => {
           addressesToWatch.map(a =>
             balanceMonitor.retrieveBalanceActivities(
               a,
-              (ba, rawTx) => {
-                if (ba.externalId === sweepTxInfo.id || ba.externalId === sendTxInfo.id) {
-                  // ignore irrelevant transactions (ie past tests)
-                  pastActivities.push(ba)
+              (balanceActivities, rawTx) => {
+                for(const ba of balanceActivities){
+                  if (ba.externalId === sweepTxInfo.id || ba.externalId === sendTxInfo.id) {
+                    // ignore irrelevant transactions (ie past tests)
+                    pastActivities.push(ba)
+                  }
                 }
               },
               { from: startBlockHeight },
@@ -626,7 +628,7 @@ describeAll('e2e testnet', () => {
         const blockInfo = await balanceMonitor.retrieveBlockBalanceActivities(
           blockNumber,
           activity => {
-            blockActivities.push(activity)
+            blockActivities.push(...activity)
           },
           addresses => addresses.filter(address => addressesToWatch.includes(address)),
         )

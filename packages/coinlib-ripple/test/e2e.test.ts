@@ -57,7 +57,7 @@ describe.skip('e2e', () => {
     startLedgerVersion = (await rp.api.getLedger()).ledgerVersion
     bm.onBalanceActivity(activity => {
       logger.log('activity', activity)
-      balanceActivities.push(activity)
+      balanceActivities.push(...activity)
     })
     await bm.subscribeAddresses(rp.getAddressesToMonitor())
   }, 120 * 1000)
@@ -226,7 +226,7 @@ describe.skip('e2e', () => {
     await balanceMonitor.retrieveBalanceActivities(
       address,
       activity => {
-        result.push(activity)
+        result.push(...activity)
       },
       { from: startLedgerVersion, ...options },
     )
