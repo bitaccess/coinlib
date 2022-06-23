@@ -2,7 +2,7 @@
 // https://github.com/tronprotocol/tron-web/blob/master/src/index.js
 
 import { bip32, HDNode } from '@bitaccess/coinlib-common'
-import { keccak256 } from 'js-sha3'
+import { keccak_256 as keccak256 } from 'js-sha3'
 import JsSha from 'jssha'
 import { ec as EC } from 'elliptic'
 import crypto from 'crypto'
@@ -181,7 +181,7 @@ function pubBytesToTronBytes(pubBytes: number[]): number[] {
   }
 
   const hash = keccak256(pubBytes).toString()
-  const addressHex = ADDRESS_PREFIX + hash.substring(24)
+  const addressHex = `${ADDRESS_PREFIX}${hash.substring(24)}`
 
   return hexStr2byteArray(addressHex)
 }
