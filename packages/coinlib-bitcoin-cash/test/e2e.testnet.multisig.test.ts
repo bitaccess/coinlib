@@ -182,7 +182,7 @@ describeAll('e2e multisig testnet', () => {
         async () => {
           // Safe to use multi-input test indices here because we aren't broadcasting
           const { fromIndex, fromBalance, toIndex } = await getFromTo(
-            payments,
+            payments as any,
             'BitcoinCash testnet multisig wallet',
             1,
             2,
@@ -262,7 +262,7 @@ describeAll('e2e multisig testnet', () => {
       it(
         'end to end send',
         async () => {
-          const { fromIndex, toIndex } = await getFromTo(payments, 'BitcoinCash testnet multisig wallet', 0, 1)
+          const { fromIndex, toIndex } = await getFromTo(payments as any, 'BitcoinCash testnet multisig wallet', 0, 1)
           const fromAddress = payments.getAddress(fromIndex)
           const toAddress = payments.getAddress(toIndex)
           const sendAmount = '0.0005'
@@ -314,8 +314,8 @@ describeAll('e2e multisig testnet', () => {
           }
           const paymentsWithAllKeys = new MultisigBitcoinCashPayments(paymentsConfig)
 
-          const { fromIndex, fromBalance, toIndex, toBalance } = await getFromTo(
-            paymentsWithAllKeys,
+          const { fromIndex, toIndex } = await getFromTo(
+            paymentsWithAllKeys as any,
             'BitcoinCash testnet multisig wallet',
             1,
             2,
