@@ -181,7 +181,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     return blockDetails
   }
 
-  getActivityType(
+  private getActivityType(
     activityAddress: string,
     { txFromAddress, txToAddress, txHash }: { txFromAddress: string; txToAddress: string; txHash: string },
   ) {
@@ -203,17 +203,33 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     return type
   }
 
-  getBalanceActivityForNonTokenTransfer(address: string, tx: NormalizedTxEthereum): BalanceActivity[] {
+  private getSelfBalanceActivities(baseBalanceActivity: BalanceActivity, fee: BigNumber) {
+    const inBalanceActivityEntry: BalanceActivity = {
+      ...baseBalanceActivity,
+      type: 'in',
+    }
+    const outBalanceActivityEntry: BalanceActivity = {
+      ...baseBalanceActivity,
+      type: 'out',
+      amount: this.toMainDenomination(new BigNumber(baseBalanceActivity.amount).negated()),
+    }
+
+    const feeBalanceActivityEntry: BalanceActivity = {
+      ...baseBalanceActivity,
+      type: 'fee',
+      amount: this.toMainDenomination(fee.negated()),
+    }
+
+    return [inBalanceActivityEntry, outBalanceActivityEntry, feeBalanceActivityEntry]
+  }
+
+  private getBalanceActivityForNonTokenTransfer(address: string, tx: NormalizedTxEthereum): BalanceActivity[] {
     const { fromAddress, toAddress } = getBlockBookTxFromAndToAddress(tx)
 
-    const type = this.getActivityType(address, { txFromAddress: fromAddress, txToAddress: toAddress, txHash: tx.txid })
-
     const timestamp = new Date(tx.blockTime * 1000)
-
     const fee = new BigNumber(tx.ethereumSpecific.gasPrice).multipliedBy(tx.ethereumSpecific.gasUsed)
 
-    const balanceActivity: BalanceActivity = {
-      type,
+    const baseBalanceActivity: BalanceActivity = {
       networkType: this.networkType,
       networkSymbol: this.coinSymbol,
       assetSymbol: this.coinSymbol,
@@ -226,14 +242,41 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
       amount: this.toMainDenomination(tx.value),
       extraId: null,
       confirmations: tx.confirmations,
+      type: 'fee', // this will eventually be replaced by the correct type
     }
 
-    if (balanceActivity.type === 'out') {
-      const amountWithFee = new BigNumber(balanceActivity.amount).plus(fee)
-      balanceActivity.amount = this.toMainDenomination(amountWithFee.negated())
+    // it is possible for fromAddress = toAddress, etherscan.io describes this as a "self" transaction.
+    if (this.isAddressEqual(fromAddress, toAddress)) {
+      // in this case we'll return an in, out and fee balance activity
+      return this.getSelfBalanceActivities(baseBalanceActivity, fee)
     }
 
-    return [balanceActivity]
+    const type = this.getActivityType(address, { txFromAddress: fromAddress, txToAddress: toAddress, txHash: tx.txid })
+
+    const balanceActivities: BalanceActivity[] = []
+
+    const balanceActivityEntry: BalanceActivity = {
+      ...baseBalanceActivity,
+      type,
+    }
+
+    if (balanceActivityEntry.type === 'out') {
+      // negate the amount
+      balanceActivityEntry.amount = this.toMainDenomination(new BigNumber(balanceActivityEntry.amount).negated())
+
+      // add the fee balance activity as well;
+      const feeBalanceActivityEntry: BalanceActivity = {
+        ...baseBalanceActivity,
+        type: 'fee',
+        amount: this.toMainDenomination(fee.negated()),
+      }
+
+      balanceActivities.push(feeBalanceActivityEntry)
+    }
+
+    balanceActivities.push(balanceActivityEntry)
+
+    return balanceActivities
   }
 
   async txToBalanceActivity(address: string, tx: NormalizedTxEthereum): Promise<BalanceActivity[]> {
