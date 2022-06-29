@@ -7,10 +7,10 @@ import {
   GetBalanceActivityOptions,
   RetrieveBalanceActivitiesResult,
   NewBlockCallback,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
 import { isUndefined, Numeric } from '@faast/ts-common'
 
-import BigNumber from 'bignumber.js'
 import { AddressDetailsEthereumTxs, NormalizedTxEthereum } from 'blockbook-client'
 import { EventEmitter } from 'events'
 import { get } from 'lodash'

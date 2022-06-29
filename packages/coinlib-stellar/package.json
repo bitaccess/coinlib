@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "@bitaccess/coinlib-common": "file:../coinlib-common",
+    "@bitaccess/ts-common": "^1.0.2",
     "@faast/ts-common": "^0.6.0",
     "base-x": "^3.0.6",
     "bip39": "^3.0.2",
