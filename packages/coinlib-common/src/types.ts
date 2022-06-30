@@ -9,7 +9,7 @@ import {
   functionT,
   Numeric,
   optional,
-} from '@faast/ts-common'
+} from '@bitaccess/ts-common'
 
 export type MaybePromise<T> = Promise<T> | T
 

@@ -1,4 +1,4 @@
-import { Numeric } from '@faast/ts-common'
+import { Numeric } from '@bitaccess/ts-common'
 import {
   Payport, MaybePromise, AutoFeeLevels, FeeRate, NetworkType,
   UtxoInfo, BalanceResult, BaseTransactionInfo, BlockInfo, GetFeeRecommendationOptions, GetTransactionInfoOptions
