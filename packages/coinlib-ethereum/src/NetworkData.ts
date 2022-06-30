@@ -1,6 +1,5 @@
-import { AutoFeeLevels, BlockInfo, FunctionPropertyNames, NewBlockCallback } from '@bitaccess/coinlib-common'
+import { AutoFeeLevels, BlockInfo, FunctionPropertyNames, NewBlockCallback, BigNumber } from '@bitaccess/coinlib-common'
 import { Logger, DelegateLogger } from '@faast/ts-common'
-import { BigNumber } from 'bignumber.js'
 import { GetAddressDetailsOptions, NormalizedTxEthereum } from 'blockbook-client'
 import * as request from 'request-promise-native'
 import { TransactionConfig } from 'web3-core'

@@ -8,9 +8,9 @@ import {
   BalanceResult,
   TransactionStatus,
   BlockInfo,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
 import { Logger, DelegateLogger, assertType, isNull, Numeric, isNumber } from '@faast/ts-common'
-import BigNumber from 'bignumber.js'
 import { BlockbookEthereum } from 'blockbook-client'
 import InputDataDecoder from 'ethereum-input-data-decoder'
 import Web3 from 'web3'

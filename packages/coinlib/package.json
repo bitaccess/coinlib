@@ -52,8 +52,8 @@
     "@bitaccess/coinlib-ripple": "file:../coinlib-ripple",
     "@bitaccess/coinlib-stellar": "file:../coinlib-stellar",
     "@bitaccess/coinlib-tron": "file:../coinlib-tron",
+    "@bitaccess/ts-common": "^1.0.2",
     "@faast/ts-common": "^0.6.0",
-    "bignumber.js": "^9.0.0",
     "bip39": "^3.0.2",
     "io-ts": "^1.10.4",
     "lodash": "^4.17.21"

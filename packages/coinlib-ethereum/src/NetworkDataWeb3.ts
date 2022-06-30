@@ -1,6 +1,5 @@
-import { BlockInfo } from '@bitaccess/coinlib-common'
+import { BlockInfo, BigNumber } from '@bitaccess/coinlib-common'
 import { Logger, DelegateLogger, isNull, isNumber } from '@faast/ts-common'
-import BigNumber from 'bignumber.js'
 import Web3 from 'web3'
 import { TransactionConfig } from 'web3-core'
 import Contract from 'web3-eth-contract'
