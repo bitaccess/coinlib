@@ -1,4 +1,3 @@
-import { BigNumber } from 'bignumber.js'
 import { Transaction as Tx } from 'ethereumjs-tx'
 import type { TransactionReceipt, Transaction, TransactionConfig } from 'web3-core'
 import { cloneDeep } from 'lodash'
@@ -21,6 +20,7 @@ import {
   PayportOutput,
   AutoFeeLevels,
   DEFAULT_MAX_FEE_PERCENT,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
 import { isType, isString, isMatchingError, Numeric } from '@faast/ts-common'
 import request from 'request-promise-native'

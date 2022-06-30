@@ -52,6 +52,7 @@
   "dependencies": {
     "@bitaccess/coinlib-bitcoin": "file:../coinlib-bitcoin",
     "@bitaccess/coinlib-common": "file:../coinlib-common",
+    "@bitaccess/ts-common": "^1.0.2",
     "@faast/ts-common": "^0.6.0",
     "@types/bchaddrjs": "^0.4.0",
     "bchaddrjs": "^0.4.9",

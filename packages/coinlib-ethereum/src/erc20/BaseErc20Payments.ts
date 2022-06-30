@@ -1,4 +1,3 @@
-import { BigNumber } from 'bignumber.js'
 import {
   BalanceResult,
   TransactionStatus,
@@ -6,6 +5,7 @@ import {
   Payport,
   PaymentsError,
   PaymentsErrorCode,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
 import { Numeric } from '@faast/ts-common'
 
