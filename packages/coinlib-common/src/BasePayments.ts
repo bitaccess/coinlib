@@ -1,4 +1,4 @@
-import { Numeric } from '@faast/ts-common'
+import { Numeric } from '@bitaccess/ts-common'
 import {
   BalanceResult,
   BaseUnsignedTransaction,

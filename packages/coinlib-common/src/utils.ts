@@ -1,5 +1,5 @@
 import { BigNumber } from './SharedDependencies'
-import { Numeric } from '@faast/ts-common'
+import { Numeric } from '@bitaccess/ts-common'
 
 export function isMatchingError(e: Error, partialMessages: string[]) {
   const messageLower = e.toString().toLowerCase()
