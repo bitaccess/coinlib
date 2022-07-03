@@ -211,7 +211,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     const outBalanceActivityEntry: BalanceActivity = {
       ...baseBalanceActivity,
       type: 'out',
-      amount: this.toMainDenomination(new BigNumber(baseBalanceActivity.amount).negated()),
+      amount: new BigNumber(baseBalanceActivity.amount).negated().toString(),
     }
 
     const feeBalanceActivityEntry: BalanceActivity = {
@@ -223,11 +223,14 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     return [inBalanceActivityEntry, outBalanceActivityEntry, feeBalanceActivityEntry]
   }
 
-  private getBalanceActivityForNonTokenTransfer(address: string, tx: NormalizedTxEthereum): BalanceActivity[] {
+  private getBalanceActivityForNonTokenTransfer(
+    address: string,
+    tx: NormalizedTxEthereum,
+    fee: BigNumber,
+  ): BalanceActivity[] {
     const { fromAddress, toAddress } = getBlockBookTxFromAndToAddress(tx)
 
     const timestamp = new Date(tx.blockTime * 1000)
-    const fee = new BigNumber(tx.ethereumSpecific.gasPrice).multipliedBy(tx.ethereumSpecific.gasUsed)
 
     const baseBalanceActivity: BalanceActivity = {
       networkType: this.networkType,
@@ -262,7 +265,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
 
     if (balanceActivityEntry.type === 'out') {
       // negate the amount
-      balanceActivityEntry.amount = this.toMainDenomination(new BigNumber(balanceActivityEntry.amount).negated())
+      balanceActivityEntry.amount = new BigNumber(balanceActivityEntry.amount).negated().toString()
 
       // add the fee balance activity as well;
       const feeBalanceActivityEntry: BalanceActivity = {
@@ -280,8 +283,10 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
   }
 
   async txToBalanceActivity(address: string, tx: NormalizedTxEthereum): Promise<BalanceActivity[]> {
+    const fee = new BigNumber(tx.ethereumSpecific.gasPrice).multipliedBy(tx.ethereumSpecific.gasUsed)
+
     if (!tx.tokenTransfers || tx.tokenTransfers.length === 0) {
-      return this.getBalanceActivityForNonTokenTransfer(address, tx)
+      return this.getBalanceActivityForNonTokenTransfer(address, tx, fee)
     }
 
     const nonce = String(tx.ethereumSpecific.nonce)
@@ -324,13 +329,35 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
         }
 
         if (balanceActivity.type === 'out') {
-          balanceActivity.amount = unitConverter.toMainDenominationString(
-            new BigNumber(balanceActivity.amount).negated(),
-          )
+          balanceActivity.amount = new BigNumber(balanceActivity.amount).negated().toString()
         }
 
         return balanceActivity
       })
+
+    const { fromAddress } = getBlockBookTxFromAndToAddress(tx)
+    const isTxSender = this.isAddressEqual(fromAddress, address)
+
+    if (isTxSender) {
+      // add the balance activity for the fee
+      const feeBalanceActivityEntry: BalanceActivity = {
+        networkType: this.networkType,
+        networkSymbol: this.coinSymbol,
+        assetSymbol: this.coinSymbol,
+        address,
+        externalId: tx.txid,
+        activitySequence: String(tx.ethereumSpecific.nonce),
+        confirmationId: tx.blockHash ?? '',
+        confirmationNumber: tx.blockHeight,
+        timestamp,
+        extraId: null,
+        confirmations: tx.confirmations,
+        type: 'fee',
+        amount: this.toMainDenomination(fee.negated()),
+      }
+
+      balanceActivities.push(feeBalanceActivityEntry)
+    }
 
     return balanceActivities
   }
