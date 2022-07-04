@@ -183,7 +183,7 @@ describeAll('e2e multisig testnet', () => {
           // Address 0 has so many utxos that sweeping it made this test take too long
           // Address 2 never broadcast so it is likely transfer from 2 to 1
           const { fromIndex, fromBalance, toIndex } = await getFromTo(
-            payments as any,
+            payments,
             'Litecoin testnet multisig wallet',
             1,
             2,
@@ -263,7 +263,7 @@ describeAll('e2e multisig testnet', () => {
       it(
         'end to end send',
         async () => {
-          const { fromIndex, toIndex } = await getFromTo(payments as any, 'Litecoin testnet multisig wallet', 0, 1)
+          const { fromIndex, toIndex } = await getFromTo(payments, 'Litecoin testnet multisig wallet', 0, 1)
           const fromAddress = payments.getAddress(fromIndex)
           const toAddress = payments.getAddress(toIndex)
           const sendAmount = '0.0001'
@@ -317,7 +317,7 @@ describeAll('e2e multisig testnet', () => {
           const paymentsWithAllKeys = new MultisigLitecoinPayments(paymentsConfig)
 
           const { fromIndex, toIndex } = await getFromTo(
-            paymentsWithAllKeys as any,
+            paymentsWithAllKeys,
             'Litecoin testnet multisig wallet',
             1,
             2,

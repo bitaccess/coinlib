@@ -1,5 +1,4 @@
 import { fromBase58 } from 'bip32'
-
 import {
   deriveAddress,
   derivePrivateKey,

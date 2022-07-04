@@ -434,7 +434,7 @@ describeAll('e2e mainnet', () => {
     it('end to end send', async () => {
       const indicesToTry = [7, 8]
       const { fromIndex, toIndex } = await getFromTo(
-        payments as any,
+        payments,
         'Bitcoin-cash testnet end to end send in e2e.mainnet.test',
         indicesToTry[0],
         indicesToTry[1],
