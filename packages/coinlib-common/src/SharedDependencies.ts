@@ -1,6 +1,6 @@
 /*
  *  This files includes all shared dependencies across packages
- *  Centrolized dependencies can guarante the version consistency
+ *  Centralized dependencies can guarante the version consistency
  */
 import { BIP32Interface as HDNode, BIP32Factory, BIP32API } from 'bip32'
 import { ECPairFactory, ECPairAPI } from 'ecpair'
