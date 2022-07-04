@@ -15,14 +15,12 @@ import { assertBitcoinishTxInfoEquality, getFromTo } from '@bitaccess/coinlib-bi
 
 import {
   HdBitcoinCashPayments,
-  BitcoinCashTransactionInfo,
   HdBitcoinCashPaymentsConfig,
-  BitcoinCashSignedTransaction,
 } from '../src'
 
 import { txInfo_beae1 } from './fixtures/transactions'
 import { hdAccount } from './fixtures/accounts'
-import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
+import { logger, expectEqualOmit } from './utils'
 import { omit } from 'lodash'
 
 const EXTERNAL_ADDRESS = 'bitcoincash:qqq50km70cjgpla3tnkt8nxgdt09wp0m7y9ctca8f6'
@@ -47,47 +45,6 @@ if (fs.existsSync(secretXprvFilePath)) {
 const describeAll = !secretXprv ? describe.skip : describe
 
 describeAll('e2e mainnet', () => {
-  let testsComplete = false
-
-  afterAll(() => {
-    testsComplete = true
-  })
-
-  async function pollUntilEnded(signedTx: BitcoinCashSignedTransaction) {
-    const txId = signedTx.id
-    logger.log('polling until ended', txId)
-    let tx: BitcoinCashTransactionInfo | undefined
-    while (!testsComplete && (!tx || !END_TRANSACTION_STATES.includes(tx.status) || tx.confirmations === 0)) {
-      try {
-        tx = await payments.getTransactionInfo(txId)
-      } catch (e) {
-        if (e.message.includes('Transaction not found')) {
-          logger.log('tx not found yet', txId, e.message)
-        } else {
-          throw e
-        }
-      }
-      await delay(5000)
-    }
-    if (!tx) {
-      throw new Error(`failed to poll until ended ${txId}`)
-    }
-    logger.log(tx.status, tx)
-    expect(tx.id).toBe(signedTx.id)
-    expect(tx.fromAddress).toBe(signedTx.fromAddress)
-    expectEqualWhenTruthy(tx.fromExtraId, signedTx.fromExtraId)
-    expect(tx.toAddress).toBe(signedTx.toAddress)
-    expectEqualWhenTruthy(tx.toExtraId, signedTx.toExtraId)
-    expect(tx.data).toBeDefined()
-    expect(tx.status).toBe(TransactionStatus.Confirmed)
-    expect(tx.isConfirmed).toBe(true)
-    expect(tx.isExecuted).toBe(true)
-    expect(tx.confirmationId).toMatch(/^\w+$/)
-    expect(tx.confirmationTimestamp).toBeDefined()
-    expect(tx.confirmations).toBeGreaterThan(0)
-    return tx
-  }
-
   const payments = new HdBitcoinCashPayments({
     hdKey: secretXprv,
     network: NetworkType.Mainnet,
@@ -477,7 +434,7 @@ describeAll('e2e mainnet', () => {
     it('end to end send', async () => {
       const indicesToTry = [7, 8]
       const { fromIndex, toIndex } = await getFromTo(
-        payments,
+        payments as any,
         'Bitcoin-cash testnet end to end send in e2e.mainnet.test',
         indicesToTry[0],
         indicesToTry[1],

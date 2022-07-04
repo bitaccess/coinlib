@@ -185,7 +185,7 @@ describeAll('e2e multisig mainnet', () => {
           // Address 0 has so many utxos that sweeping it made this test take too long
           // Address 2 never broadcast so it is likely transfer from 2 to 1
           const { fromIndex, fromBalance, toIndex } = await getFromTo(
-            payments,
+            payments as any,
             'Doge mainnet multisig wallet',
             1,
             2,
@@ -265,7 +265,7 @@ describeAll('e2e multisig mainnet', () => {
       it(
         'end to end send',
         async () => {
-          const { fromIndex, toIndex } = await getFromTo(payments, 'Doge mainnet multisig wallet', 0, 1)
+          const { fromIndex, toIndex } = await getFromTo(payments as any, 'Doge mainnet multisig wallet', 0, 1)
           const fromAddress = payments.getAddress(fromIndex)
           const toAddress = payments.getAddress(toIndex)
           const sendAmount = '5'
@@ -319,7 +319,7 @@ describeAll('e2e multisig mainnet', () => {
           const paymentsWithAllKeys = new MultisigDogePayments(paymentsConfig)
 
           const { fromIndex, toIndex } = await getFromTo(
-            paymentsWithAllKeys,
+            paymentsWithAllKeys as any,
             'Doge mainnet multisig wallet',
             1,
             2,
