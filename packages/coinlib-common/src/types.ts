@@ -354,7 +354,7 @@ export const BaseBroadcastResult = t.type(
 )
 export type BaseBroadcastResult = t.TypeOf<typeof BaseBroadcastResult>
 
-export const BalanceActivityType = t.union([t.literal('in'), t.literal('out')], 'BalanceActivityType')
+export const BalanceActivityType = t.union([t.literal('in'), t.literal('out'), t.literal('fee')], 'BalanceActivityType')
 export type BalanceActivityType = t.TypeOf<typeof BalanceActivityType>
 
 export const BalanceActivity = requiredOptionalCodec(
