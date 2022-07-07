@@ -138,6 +138,26 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     return { from: from.toString(), to: to.toString() }
   }
 
+  private async getAllInvolvedAddresses(
+    tx: EthereumStandardizedTransaction,
+    cache: { [txid: string]: NormalizedTxEthereum },
+  ) {
+    const fromAddress = tx.from
+    const toAddress = tx.to
+    const involvedAddresses = new Set([fromAddress, toAddress])
+
+    const rawTx = await this.getTxWithMemoization(tx.txHash, cache)
+
+    if (rawTx.tokenTransfers) {
+      for (const tokenTransfer of rawTx.tokenTransfers) {
+        involvedAddresses.add(tokenTransfer.from)
+        involvedAddresses.add(tokenTransfer.to)
+      }
+    }
+
+    return [...involvedAddresses]
+  }
+
   async retrieveBlockBalanceActivities(
     blockId: string | number,
     callbackFn: BalanceActivityCallback,
@@ -148,24 +168,25 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     const transactions = get(blockDetails.raw, 'transactions', []) as EthereumStandardizedTransaction[]
     const addressTransactions: { [address: string]: Set<EthereumStandardizedTransaction> } = {}
 
-    for (const tx of transactions) {
-      const fromAddress = tx.from
-      const toAddress = tx.to
+    /**
+     * The standardized tx may or may not contain the token transfers depending on which data source
+     * was used to fetch the NetworkData, so we need to do a hard lookup from the blockbook api for each tx, then also memoize
+     */
+    const hardTxQueries: { [txid: string]: NormalizedTxEthereum } = {}
 
-      addressTransactions[fromAddress] = (addressTransactions[fromAddress] ?? new Set()).add(tx)
-      addressTransactions[toAddress] = (addressTransactions[toAddress] ?? new Set()).add(tx)
+    for (const tx of transactions) {
+      // need to unwind all addresses involved in the tx, not just the from and to alone.
+      const involvedAddresses = await this.getAllInvolvedAddresses(tx, hardTxQueries)
+
+      for (const involvedAddress of involvedAddresses) {
+        addressTransactions[involvedAddress] = (addressTransactions[involvedAddress] ?? new Set()).add(tx)
+      }
     }
 
     const relevantAddresses = await filterRelevantAddresses(Array.from(Object.keys(addressTransactions)), {
       ...blockDetails,
       page: 1,
     })
-
-    /**
-     * The standardized tx may or may not contain the token transfers depending on which data source
-     * was used to fetch the NetworkData, so we need to do a hard lookup from the blockbook api for each tx, then also memoize
-     */
-    const hardTxQueries: { [txid: string]: NormalizedTxEthereum } = {}
 
     for (const relevantAddress of relevantAddresses) {
       const relevantAddressTransactions = addressTransactions[relevantAddress]
