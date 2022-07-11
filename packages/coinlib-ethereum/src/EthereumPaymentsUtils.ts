@@ -55,7 +55,8 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
   web3: Web3
   eth: Web3['eth']
   networkData: NetworkData
-  blockBookApi: BlockbookEthereum
+  blockBookApi?: BlockbookEthereum
+  blockBookNode: string | null
 
   constructor(config: EthereumPaymentsUtilsConfig) {
     super({ coinDecimals: config.decimals })
@@ -92,7 +93,8 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     this.coinSymbol = config.symbol ?? ETH_SYMBOL
     this.coinDecimals = config.decimals ?? ETH_DECIMAL_PLACES
     this.server = config.fullNode || null
-    this.blockBookApi = config.blockbookApi!
+    this.blockBookApi = config.blockbookApi
+    this.blockBookNode = config.blockbookNode ?? null
 
     let provider: any
     if (config.web3) {
@@ -151,7 +153,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       parityUrl: config.parityNode,
       logger: this.logger,
       blockBookConfig: {
-        nodes: this.server,
+        nodes: this.blockBookNode,
         api: this.blockBookApi,
         requestTimeoutMs: config.requestTimeoutMs,
       },

@@ -311,7 +311,7 @@ export type UnitConverters = ReturnType<typeof createUnitConverters>
 
 export interface EthereumNodesConnection {
   web3: Web3
-  blockbookApi: BlockbookEthereum
+  blockbookApi?: BlockbookEthereum
 }
 
 export interface EthereumStandardizedTransaction {
