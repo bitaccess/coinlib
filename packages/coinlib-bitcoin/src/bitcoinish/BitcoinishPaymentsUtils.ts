@@ -12,11 +12,14 @@ import {
   GetFeeRecommendationOptions,
   GetTransactionInfoOptions,
   BigNumber,
+  BitcoinishAddressType,
 } from '@bitaccess/coinlib-common'
 import { isNil, assertType, Numeric, isUndefined } from '@faast/ts-common'
 import { GetBlockOptions } from 'blockbook-client'
 
-import { DEFAULT_FEE_LEVEL_BLOCK_TARGETS } from './constants'
+import { 
+  DEFAULT_FEE_LEVEL_BLOCK_TARGETS,
+} from './constants'
 import { BlockbookConnected } from './BlockbookConnected'
 import {
   BitcoinishPaymentsUtilsConfig, BitcoinishTransactionInfo,
@@ -348,5 +351,16 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
       weight,
     }
   }
+
+  abstract determinePathForIndex(
+    accountIndex: number,
+    addressType?: BitcoinishAddressType,
+  ): string
+
+  
+  abstract deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string
+
+
+
 }
 

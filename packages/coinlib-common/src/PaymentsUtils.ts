@@ -1,7 +1,8 @@
 import { Numeric } from '@bitaccess/ts-common'
 import {
   Payport, MaybePromise, AutoFeeLevels, FeeRate, NetworkType,
-  UtxoInfo, BalanceResult, BaseTransactionInfo, BlockInfo, GetFeeRecommendationOptions, GetTransactionInfoOptions
+  UtxoInfo, BalanceResult, BaseTransactionInfo, BlockInfo, GetFeeRecommendationOptions, GetTransactionInfoOptions,
+  BitcoinishAddressType
 } from './types'
 
 export interface PaymentsUtils {
@@ -107,4 +108,12 @@ export interface PaymentsUtils {
   ): Promise<BaseTransactionInfo>
 
   getBlock(id?: string | number): Promise<BlockInfo>
+
+  determinePathForIndex(
+    accountIndex: number,
+    addressType?: BitcoinishAddressType,
+  ): string
+
+  deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string
+
 }

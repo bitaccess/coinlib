@@ -1,5 +1,11 @@
 import * as bitcoin from 'bitcoinjs-lib-bigint'
-import { UtxoInfo, TransactionStatus, MultisigData } from '@bitaccess/coinlib-common'
+import {
+  UtxoInfo,
+  TransactionStatus,
+  MultisigData,
+  BitcoinishAddressType,
+  NetworkType,
+} from '@bitaccess/coinlib-common'
 
 import { toBitcoinishConfig } from './utils'
 import {
@@ -17,6 +23,8 @@ import {
   isValidPublicKey,
   standardizeAddress,
   estimateBitcoinTxSize,
+  determinePathForIndex,
+  deriveUniPubKeyForPath,
 } from './helpers'
 
 import { BitcoinishPayments, BitcoinishPaymentTx, countOccurences, isMultisigFullySigned } from './bitcoinish'
@@ -141,5 +149,16 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
 
   async serializePaymentTx(tx: BitcoinishPaymentTx, fromIndex?: number): Promise<string> {
     return (await this.buildPsbt(tx, fromIndex)).toHex()
+  }
+
+  determinePathForIndex(accountIndex: number, addressType?: BitcoinishAddressType): string {
+    const networkType: NetworkType = this.networkType
+    const derivationPath: string = determinePathForIndex(accountIndex, addressType, networkType)
+    return derivationPath
+  }
+
+  deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
+    const uniPubKey = deriveUniPubKeyForPath(seed, derivationPath)
+    return uniPubKey
   }
 }

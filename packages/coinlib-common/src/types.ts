@@ -441,3 +441,12 @@ export const GetFeeRecommendationOptions = t.partial({
 export type GetFeeRecommendationOptions = t.TypeOf<typeof GetFeeRecommendationOptions>
 
 export type FunctionPropertyNames<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T]
+
+export enum BitcoinishAddressType {
+  Legacy = 'p2pkh',
+  SegwitP2SH = 'p2sh-p2wpkh',
+  SegwitNative = 'p2wpkh',
+  MultisigLegacy = 'p2sh-p2ms',
+  MultisigSegwitP2SH = 'p2sh-p2wsh-p2ms',
+  MultisigSegwitNative = 'p2wsh-p2ms'
+}
