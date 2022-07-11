@@ -55,8 +55,8 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
   web3: Web3
   eth: Web3['eth']
   networkData: NetworkData
-  blockBookApi: BlockbookEthereum
-  blockBookNode: string
+  blockBookApi?: BlockbookEthereum
+  blockBookNode: string | null
 
   constructor(config: EthereumPaymentsUtilsConfig) {
     super({ coinDecimals: config.decimals })
@@ -93,8 +93,8 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     this.coinSymbol = config.symbol ?? ETH_SYMBOL
     this.coinDecimals = config.decimals ?? ETH_DECIMAL_PLACES
     this.server = config.fullNode || null
-    this.blockBookApi = config.blockbookApi!
-    this.blockBookNode = config.blockbookNode!
+    this.blockBookApi = config.blockbookApi
+    this.blockBookNode = config.blockbookNode ?? null
 
     let provider: any
     if (config.web3) {
