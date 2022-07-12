@@ -21,7 +21,6 @@
     "build": "bin/buildall.sh",
     "pretest": "npm run lint",
     "test": "jest --projects packages/*",
-    "preversion": "echo 'Use lerna version instead' && exit 1",
     "release": "npm run bs && lerna publish from-git",
     "link": "lerna link convert && link-parent-bin",
     "postinstall": "link-parent-bin",
