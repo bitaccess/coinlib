@@ -5,8 +5,8 @@
   "main": "packages/coin-payments/dist/index.cjs.js",
   "module": "packages/coin-payments/dist/index.es.js",
   "browser": "packages/coin-payments/dist/index.umd.js",
-  "types": "packages/coin-payments/dist/lib/index.d.ts",
-  "esnext": "packages/coin-payments/dist/lib/index.js",
+  "types": "packages/coin-payments/dist/index.d.ts",
+  "esnext": "packages/coin-payments/dist/index.js",
   "repository": "https://github.com/bitaccess/coin-payments/tree/master/packages/coin-payments",
   "keywords": [
     "coin",
