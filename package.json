@@ -1,20 +1,8 @@
 {
-  "name": "@bitaccess/coinlib",
-  "version": "0.17.2",
-  "description": "Unified interface for sending and receiving crypto payments",
-  "main": "packages/coin-payments/dist/index.cjs.js",
-  "module": "packages/coin-payments/dist/index.es.js",
-  "browser": "packages/coin-payments/dist/index.umd.js",
-  "types": "packages/coin-payments/dist/lib/index.d.ts",
-  "esnext": "packages/coin-payments/dist/lib/index.js",
-  "repository": "https://github.com/bitaccess/coin-payments/tree/master/packages/coin-payments",
-  "keywords": [
-    "coin",
-    "payments",
-    "crypto",
-    "faast",
-    "bitaccess"
-  ],
+  "name": "@bitaccess/coinlib-monorepo",
+  "version": "0.0.1",
+  "description": "Monorepo for coinlib: unified interface for sending and receiving crypto payments",
+  "repository": "https://github.com/bitaccess/coinlib",
   "author": "Dylan Seago <dylan@bitaccess.co>",
   "license": "MIT",
   "bugs": {
@@ -22,9 +10,6 @@
   },
   "engines": {
     "node": ">=12.0.0"
-  },
-  "publishConfig": {
-    "access": "public"
   },
   "scripts": {
     "install:all": "lerna add",
