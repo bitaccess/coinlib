@@ -10,7 +10,6 @@ import * as bitcoin from 'bitcoinjs-lib-bigint'
 import {
   DECIMAL_PLACES,
   NETWORKS,
-  BITCOIN_ADDRESS_PURPOSE,
   BITCOIN_COINTYPE_MAINNET,
   BITCOIN_COINTYPE_TESTNET,
   NETWORK_MAINNET,
@@ -85,7 +84,7 @@ export function determinePathForIndex(
 ): string {
   let purpose: string = '84'
   if (addressType) {
-    purpose = BITCOIN_ADDRESS_PURPOSE[addressType]
+    purpose = bitcoinish.BITCOINISH_ADDRESS_PURPOSE[addressType]
   }
 
   let cointype = BITCOIN_COINTYPE_MAINNET

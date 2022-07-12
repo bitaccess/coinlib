@@ -85,3 +85,6 @@ export const DEFAULT_FEE_LEVEL_BLOCK_TARGETS: bitcoinish.FeeLevelBlockTargets = 
   [FeeLevel.Medium]: 4 * 24,
   [FeeLevel.Low]: 4 * 144,
 }
+
+export const LITECOIN_COINTYPE_MAINNET = '2'
+export const LITECOIN_COINTYPE_TESTNET = '1'

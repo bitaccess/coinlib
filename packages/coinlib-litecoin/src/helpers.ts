@@ -1,10 +1,16 @@
-import { BaseMultisigData, createUnitConverters, MultisigData, NetworkType } from '@bitaccess/coinlib-common'
+import { createUnitConverters, NetworkType, bip32 } from '@bitaccess/coinlib-common'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
-import { assertType } from '@faast/ts-common'
 
-import { LitecoinAddressFormat, LitecoinAddressFormatT, SinglesigAddressType } from './types'
-import { bitcoinish, NETWORKS as BITCOIN_NETWORKS, BitcoinjsNetwork } from '@bitaccess/coinlib-bitcoin'
-import { DECIMAL_PLACES, DEFAULT_ADDRESS_FORMAT, NETWORKS } from './constants'
+import { LitecoinAddressFormat, SinglesigAddressType } from './types'
+import { bitcoinish, NETWORKS as BITCOIN_NETWORKS, BitcoinjsNetwork, AddressType } from '@bitaccess/coinlib-bitcoin'
+import {
+  DECIMAL_PLACES,
+  NETWORKS,
+  LITECOIN_COINTYPE_MAINNET,
+  LITECOIN_COINTYPE_TESTNET,
+  NETWORK_MAINNET,
+  NETWORK_TESTNET,
+} from './constants'
 
 const {
   getMultisigPaymentScript,
@@ -13,6 +19,7 @@ const {
   publicKeyToString,
   publicKeyToBuffer,
   privateKeyToKeyPair,
+  BITCOINISH_ADDRESS_PURPOSE,
 } = bitcoinish
 
 export {
@@ -164,4 +171,49 @@ export function privateKeyToAddress(
 ) {
   const keyPair = privateKeyToKeyPair(privateKey, NETWORKS[networkType])
   return publicKeyToAddress(keyPair.publicKey, networkType, addressType, format)
+}
+
+export function determinePathForIndex(
+  accountIndex: number,
+  addressType?: AddressType,
+  networkType?: NetworkType,
+): string {
+  let purpose: string = '84'
+  if (addressType) {
+    purpose = BITCOINISH_ADDRESS_PURPOSE[addressType]
+  }
+
+  let cointype = LITECOIN_COINTYPE_MAINNET
+  if (networkType === NetworkType.Testnet) {
+    cointype = LITECOIN_COINTYPE_TESTNET
+  }
+
+  const derivationPath = `m/${purpose}'/${cointype}'/${accountIndex}'`
+  return derivationPath
+}
+
+export function hexSeedToBuffer(seedHex: string): Buffer {
+  const seedBuffer = Buffer.from(seedHex, 'hex')
+  return seedBuffer
+}
+
+export function deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
+  const splitPath = derivationPath.split('/')
+  if (splitPath?.length !== 4 || splitPath[0] !== 'm') {
+    throw new TypeError(`Invalid derivationPath ${derivationPath}`)
+  }
+
+  const coinType = splitPath[2]
+  let network: BitcoinjsNetwork | null = null
+  if (coinType === `${LITECOIN_COINTYPE_MAINNET}'`) {
+    network = NETWORK_MAINNET
+  } else if (coinType === `${LITECOIN_COINTYPE_TESTNET}'`) {
+    network = NETWORK_TESTNET
+  } else {
+    throw new TypeError(`Invalid derivationPath coin type ${coinType}`)
+  }
+
+  const root = bip32.fromSeed(seed, network)
+  const account = root.derivePath(derivationPath)
+  return account.neutered().toBase58()
 }

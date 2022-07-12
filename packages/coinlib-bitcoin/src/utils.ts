@@ -1,13 +1,6 @@
-import { NetworkType, FeeRateType, AutoFeeLevels, bip32 } from '@bitaccess/coinlib-common'
+import { NetworkType, FeeRateType, AutoFeeLevels } from '@bitaccess/coinlib-common'
 import { 
   BitcoinBaseConfig, 
-  MultisigBitcoinPaymentsConfig, 
-  SinglesigBitcoinPaymentsConfig, 
-  MultisigAddressType,
-  SinglesigAddressType,
-  BitcoinjsNetwork,
-  AddressType,
-  PartialBitcoinPaymentsConfig,
  } from './types'
 import { BitcoinishPaymentsConfig } from './bitcoinish'
 import {
@@ -24,9 +17,6 @@ import {
   DEFAULT_MIN_TX_FEE,
   DEFAULT_FEE_LEVEL,
   PACKAGE_NAME,
-  BITCOIN_ADDRESS_PURPOSE,
-  BITCOIN_COINTYPE_MAINNET,
-  BITCOIN_COINTYPE_TESTNET,
 } from './constants'
 
 const DEFAULT_BITCOINISH_CONFIG = {

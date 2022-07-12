@@ -1,5 +1,5 @@
 import * as bitcoin from 'bitcoinjs-lib-bigint'
-import { UtxoInfo } from '@bitaccess/coinlib-common'
+import { UtxoInfo, NetworkType } from '@bitaccess/coinlib-common'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { toBitcoinishConfig } from './utils'
 import { BaseLitecoinPaymentsConfig, AddressType, PsbtInputData, LitecoinAddressFormat } from './types'
@@ -132,5 +132,15 @@ export abstract class BaseLitecoinPayments<
 
   async serializePaymentTx(tx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<string> {
     return (await this.buildPsbt(tx, fromIndex)).toHex()
+  }
+
+  determinePathForIndex(accountIndex: number, addressType?: AddressType): string {
+    const derivationPath: string = this.utils.determinePathForIndex(accountIndex, addressType)
+    return derivationPath
+  }
+
+  deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
+    const uniPubKey = this.utils.deriveUniPubKeyForPath(seed, derivationPath)
+    return uniPubKey
   }
 }
