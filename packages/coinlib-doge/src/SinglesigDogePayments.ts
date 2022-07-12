@@ -4,10 +4,9 @@ import {
   DogeSignedTransaction,
   SinglesigDogePaymentsConfig,
   DogeUnsignedTransaction,
-  AddressType,
   SinglesigAddressType,
 } from './types'
-import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
+import { bitcoinish, AddressType } from '@bitaccess/coinlib-bitcoin'
 import { BaseDogePayments } from './BaseDogePayments'
 import { SINGLESIG_ADDRESS_TYPE } from './constants'
 

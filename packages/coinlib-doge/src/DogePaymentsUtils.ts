@@ -1,8 +1,15 @@
-import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
-
+import { bitcoinish, AddressType } from '@bitaccess/coinlib-bitcoin'
+import { NetworkType } from '@bitaccess/coinlib-common'
 import { toBitcoinishConfig } from './utils'
 import { DogePaymentsUtilsConfig } from './types'
-import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress } from './helpers'
+import {
+  isValidAddress,
+  isValidPrivateKey,
+  isValidPublicKey,
+  standardizeAddress,
+  determinePathForIndex,
+  deriveUniPubKeyForPath,
+} from './helpers'
 import { DEFAULT_FEE_LEVEL_BLOCK_TARGETS } from './constants'
 
 export class DogePaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils {
@@ -25,5 +32,16 @@ export class DogePaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils {
 
   isValidPrivateKey(privateKey: string) {
     return isValidPrivateKey(privateKey, this.networkType)
+  }
+
+  determinePathForIndex(accountIndex: number, addressType?: AddressType): string {
+    const networkType: NetworkType = this.networkType
+    const derivationPath: string = determinePathForIndex(accountIndex, addressType, networkType)
+    return derivationPath
+  }
+
+  deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
+    const uniPubKey: string = deriveUniPubKeyForPath(seed, derivationPath)
+    return uniPubKey
   }
 }

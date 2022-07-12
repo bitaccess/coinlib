@@ -1,14 +1,19 @@
 import * as bitcoin from 'bitcoinjs-lib-bigint'
-import { UtxoInfo } from '@bitaccess/coinlib-common'
+import { UtxoInfo, BitcoinishAddressType, NetworkType } from '@bitaccess/coinlib-common'
 import { AddressType, bitcoinish } from '@bitaccess/coinlib-bitcoin'
 
 import { toBitcoinishConfig } from './utils'
-import {
-  BaseDogePaymentsConfig,
-  PsbtInputData,
-} from './types'
+import { BaseDogePaymentsConfig, PsbtInputData } from './types'
 import { BITCOIN_SEQUENCE_RBF, DEFAULT_FEE_LEVEL_BLOCK_TARGETS } from './constants'
-import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateDogeTxSize } from './helpers'
+import {
+  isValidAddress,
+  isValidPrivateKey,
+  isValidPublicKey,
+  standardizeAddress,
+  estimateDogeTxSize,
+  determinePathForIndex,
+  deriveUniPubKeyForPath,
+} from './helpers'
 
 // tslint:disable-next-line:max-line-length
 export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> extends bitcoinish.BitcoinishPayments<
@@ -136,5 +141,16 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
 
   async serializePaymentTx(tx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<string> {
     return (await this.buildPsbt(tx, fromIndex)).toHex()
+  }
+
+  determinePathForIndex(accountIndex: number, addressType?: BitcoinishAddressType): string {
+    const networkType: NetworkType = this.networkType
+    const derivationPath: string = determinePathForIndex(accountIndex, addressType, networkType)
+    return derivationPath
+  }
+
+  deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
+    const uniPubKey = deriveUniPubKeyForPath(seed, derivationPath)
+    return uniPubKey
   }
 }

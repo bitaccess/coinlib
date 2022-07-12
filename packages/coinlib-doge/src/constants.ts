@@ -1,6 +1,6 @@
 import { FeeLevel, NetworkType } from '@bitaccess/coinlib-common'
-import { BitcoinjsNetwork, bitcoinish } from '@bitaccess/coinlib-bitcoin'
-import { AddressType, SinglesigAddressType, MultisigAddressType } from './types'
+import { BitcoinjsNetwork, bitcoinish, AddressType } from '@bitaccess/coinlib-bitcoin'
+import { SinglesigAddressType, MultisigAddressType } from './types'
 
 export const PACKAGE_NAME = 'doge-payments'
 export const DECIMAL_PLACES = 8
@@ -82,3 +82,7 @@ export const DEFAULT_FEE_LEVEL_BLOCK_TARGETS: bitcoinish.FeeLevelBlockTargets = 
   [FeeLevel.Medium]: 12,
   [FeeLevel.Low]: 24,
 }
+
+
+export const DOGECOIN_COINTYPE_MAINNET = '3'
+export const DOGECOIN_COINTYPE_TESTNET = '1'
