@@ -1,10 +1,18 @@
-import { createUnitConverters, NetworkType } from '@bitaccess/coinlib-common'
-import { bitcoinish, publicKeyToBuffer } from '@bitaccess/coinlib-bitcoin'
+import { createUnitConverters, NetworkType, bip32, BitcoinishAddressType } from '@bitaccess/coinlib-common'
+import { bitcoinish, publicKeyToBuffer, BitcoinjsNetwork, AddressType } from '@bitaccess/coinlib-bitcoin'
 import * as bitcoincash from 'bitcoinforksjs-lib'
 import bchaddrjs from 'bchaddrjs'
 
 import { BitcoinjsKeyPair, BitcoinCashAddressFormat } from './types'
-import { DECIMAL_PLACES, DEFAULT_ADDRESS_FORMAT, NETWORKS } from './constants'
+import {
+  DECIMAL_PLACES,
+  DEFAULT_ADDRESS_FORMAT,
+  NETWORKS,
+  BITCOINCASH_COINTYPE_MAINNET,
+  BITCOINCASH_COINTYPE_TESTNET,
+  NETWORK_MAINNET,
+  NETWORK_TESTNET,
+} from './constants'
 
 export { publicKeyToString, publicKeyToBuffer } from '@bitaccess/coinlib-bitcoin'
 
@@ -157,4 +165,58 @@ export function estimateBitcoinCashTxSize(
   return bitcoinish.estimateTxSize(inputCounts, outputCounts, (address: string) =>
     bitcoincash.address.toOutputScript(address, NETWORKS[networkType]),
   )
+}
+
+export function determinePathForIndex(
+  accountIndex: number,
+  addressType?: BitcoinishAddressType,
+  networkType?: NetworkType,
+): string {
+  if (addressType && ![AddressType.Legacy, AddressType.MultisigLegacy].includes(addressType)) {
+    throw new TypeError(`Bitcoincash does not support this type ${addressType}`)
+  }
+  let purpose: string = '44'
+  if (addressType) {
+    purpose = bitcoinish.BITCOINISH_ADDRESS_PURPOSE[addressType]
+  }
+
+  let cointype = BITCOINCASH_COINTYPE_MAINNET
+  if (networkType === NetworkType.Testnet) {
+    cointype = BITCOINCASH_COINTYPE_TESTNET
+  }
+
+  const derivationPath = `m/${purpose}'/${cointype}'/${accountIndex}'`
+  return derivationPath
+}
+
+export function hexSeedToBuffer(seedHex: string): Buffer {
+  const seedBuffer = Buffer.from(seedHex, 'hex')
+  return seedBuffer
+}
+
+export function deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
+  const splitPath = derivationPath.split('/')
+  if (splitPath?.length !== 4 || splitPath[0] !== 'm') {
+    throw new TypeError(`Invalid derivationPath ${derivationPath}`)
+  }
+
+  const bitcoincashSupportedPurposes = [`44'`, `87'`]
+  const purpose = splitPath[1]
+  if (!bitcoincashSupportedPurposes.includes(purpose)) {
+    throw new TypeError(`Purpose in derivationPath ${purpose} not supported by Bitcoincash`)
+  }
+
+  const coinType = splitPath[2]
+  let network: BitcoinjsNetwork | null = null
+  if (coinType === `${BITCOINCASH_COINTYPE_MAINNET}'`) {
+    network = NETWORK_MAINNET
+  } else if (coinType === `${BITCOINCASH_COINTYPE_TESTNET}'`) {
+    network = NETWORK_TESTNET
+  } else {
+    throw new TypeError(`Invalid derivationPath coin type ${coinType}`)
+  }
+
+  const root = bip32.fromSeed(seed, network)
+  const account = root.derivePath(derivationPath)
+  return account.neutered().toBase58()
 }

@@ -1,5 +1,5 @@
 import { createUnitConverters, NetworkType, bip32, BitcoinishAddressType } from '@bitaccess/coinlib-common'
-import { bitcoinish, NETWORKS as BITCOIN_NETWORKS, BitcoinjsNetwork, AddressType } from '@bitaccess/coinlib-bitcoin'
+import { bitcoinish, BitcoinjsNetwork, AddressType } from '@bitaccess/coinlib-bitcoin'
 
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 

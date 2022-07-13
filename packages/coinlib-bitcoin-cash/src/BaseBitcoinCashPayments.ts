@@ -1,7 +1,7 @@
 import * as bitcoinCash from 'bitcoinforksjs-lib'
 import bchAddr from 'bchaddrjs'
 import { bitcoinish, AddressType } from '@bitaccess/coinlib-bitcoin'
-import { UtxoInfo, TransactionStatus, MultisigData, BigNumber, } from '@bitaccess/coinlib-common'
+import { UtxoInfo, TransactionStatus, MultisigData, BigNumber, NetworkType } from '@bitaccess/coinlib-common'
 import { toBitcoinishConfig } from './utils'
 import {
   BaseBitcoinCashPaymentsConfig,
@@ -12,7 +12,7 @@ import {
   BitcoinCashAddressFormat,
 } from './types'
 import { BITCOIN_SEQUENCE_RBF, SINGLESIG_ADDRESS_TYPE, DEFAULT_ADDRESS_FORMAT } from './constants'
-import { estimateBitcoinCashTxSize } from './helpers'
+import { estimateBitcoinCashTxSize, determinePathForIndex, deriveUniPubKeyForPath } from './helpers'
 import { BitcoinCashPaymentsUtils } from './BitcoinCashPaymentsUtils'
 
 export abstract class BaseBitcoinCashPayments<
@@ -342,5 +342,16 @@ export abstract class BaseBitcoinCashPayments<
     if (!expectedFee.eq(tx.fee)) {
       throw new Error(`Invalid tx: fee (${tx.fee}) doesn't match expected fee (${expectedFee})`)
     }
+  }
+
+  determinePathForIndex(accountIndex: number, addressType?: AddressType): string {
+    const networkType: NetworkType = this.networkType
+    const derivationPath: string = determinePathForIndex(accountIndex, addressType, networkType)
+    return derivationPath
+  }
+
+  deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
+    const uniPubKey: string = deriveUniPubKeyForPath(seed, derivationPath)
+    return uniPubKey
   }
 }

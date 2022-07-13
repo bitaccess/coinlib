@@ -55,3 +55,6 @@ export const DEFAULT_TESTNET_SERVER = process.env.BITCOIN_CASH_TESTNET_SERVER_UR
 export const DEFAULT_FEE_LEVEL = FeeLevel.Low
 
 export const DEFAULT_ADDRESS_FORMAT = BitcoinCashAddressFormat.Cash
+
+export const BITCOINCASH_COINTYPE_MAINNET = '145'
+export const BITCOINCASH_COINTYPE_TESTNET = '1'
