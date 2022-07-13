@@ -41,3 +41,6 @@ export const FEE_LEVEL_CUSHIONS = {
   [FeeLevel.Medium]: 1.2,
   [FeeLevel.High]: 1.5,
 }
+
+export const RIPPLE_COINTYPE_MAINNET = '144'
+export const RIPPLE_COINTYPE_TESTNET = '1'

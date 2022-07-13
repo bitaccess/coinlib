@@ -1,5 +1,7 @@
 import { RipplePaymentsUtils } from '../src'
 import { hdAccount } from './fixtures/accounts'
+import { NetworkType } from '@bitaccess/coinlib-common'
+import { hexSeedToBuffer } from '../src/helpers'
 import { logger } from './utils'
 
 const { XPRV, XPUB } = hdAccount
@@ -196,4 +198,52 @@ describe('RipplePaymentsUtils', () => {
       expect(await rpu.getCurrentBlockNumber()).toBeGreaterThan(0)
     })
   })
+
+  describe('determinePathForIndex', () => {
+    const puMainnet = new RipplePaymentsUtils({ network: NetworkType.Mainnet })
+    const puTestnet = new RipplePaymentsUtils({ network: NetworkType.Testnet })
+    test('Mainnet Legancy', () => {
+      const path = puMainnet.determinePathForIndex(3)
+      expect(path).toBe(`m/44'/144'/3'`)
+    })
+    test('Testnet SegwitP2SH throw not support err', () => {
+      const functionToTrow = () => {
+        puTestnet.determinePathForIndex(4, "p2sh-p2wpkh")
+      }
+      expect(functionToTrow).toThrow(`Tripple does not support this type p2sh-p2wpkh`)
+    })
+    test('Testnet Legancy', () => {
+      const path = puTestnet.determinePathForIndex(4, 'p2pkh')
+      expect(path).toBe(`m/44'/1'/4'`)
+    })
+  })
+
+  describe('deriveUniPubKeyForPath', () => {
+    const puMainnet = new RipplePaymentsUtils({ network: NetworkType.Mainnet })
+    const seedHex =
+      '716bbb2c373406156d6fc471db0c62d957e27d97f1d07bfb0b2d22f04d07b75b32f2542e20f077251d7bc390cac8847ac6e64d94bccff1e1b2cd82802df35a78'
+    const seedBuffer = hexSeedToBuffer(seedHex)
+
+    test('Mainnet Legacy', () => {
+      const xpub = puMainnet.deriveUniPubKeyForPath(seedBuffer, `m/44'/144'/3'`)
+      const expectedXpub =
+        'xpub6CMKLAcGMKxZAzrYP5hnaVPdxurcmcJtpMecyyTzYtqoupGSXVEeSJ2xNKE62PmRbeJi9jJDufKB7N5QeUfxDFLDiXatVNnZVihNAEe8TB5'
+      expect(xpub).toBe(expectedXpub)
+    })
+
+    test('Mainnet SegwitNative throw not supported error', () => {
+      const functionToTrow = () => {
+        puMainnet.deriveUniPubKeyForPath(seedBuffer, `m/84'/144'/3'`)
+      }
+      expect(functionToTrow).toThrow(`Purpose in derivationPath 84' not supported by Tripple`)
+    })
+
+    test('Testnet Legacy', () => {
+      const xpub = puMainnet.deriveUniPubKeyForPath(seedBuffer, `m/44'/1'/4'`)
+      const expectedXpub =
+        'xpub6CMXU1WLEnhaGJjcbpzFQaYWik6mhqKsvSAALcLQto2BCo9bd6vfpWzs2AHqvaXJ8ZKhUuArz46vZR5SAeSbJT5hdLxhivQQBqbpkFNkTu5'
+      expect(xpub).toBe(expectedXpub)
+    })
+  })
+  
 })
