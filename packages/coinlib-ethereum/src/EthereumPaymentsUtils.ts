@@ -42,6 +42,7 @@ import { retryIfDisconnected } from './utils'
 import { UnitConvertersUtil } from './UnitConvertersUtil'
 import * as SIGNATURE from './erc20/constants'
 import { deriveAddress } from './erc20/deriveAddress'
+import { determinePathForIndex, deriveUniPubKeyForPath } from './helpers'
 
 export class EthereumPaymentsUtils extends UnitConvertersUtil implements PaymentsUtils {
   readonly networkType: NetworkType
@@ -540,5 +541,16 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
 
   async getBlock(id?: string | number): Promise<BlockInfo> {
     return this.networkData.getBlock(id ?? 'latest')
+  }
+
+  determinePathForIndex(accountIndex: number, addressType?: any): string {
+    const networkType: NetworkType = this.networkType
+    const derivationPath: string = determinePathForIndex(accountIndex, addressType, networkType)
+    return derivationPath
+  }
+
+  deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
+    const uniPubKey: string = deriveUniPubKeyForPath(seed, derivationPath)
+    return uniPubKey
   }
 }

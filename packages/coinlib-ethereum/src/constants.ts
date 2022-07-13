@@ -93,3 +93,6 @@ export const DEFAULT_MAINNET_SERVER = process.env.ETHEREUM_SERVER_URL
 export const DEFAULT_TESTNET_SERVER = process.env.ETHEREUM_TESTNET_SERVER_URL
   ? process.env.ETHEREUM_TESTNET_SERVER_URL.split(',')
   : ['']
+
+export const ETHEREUM_COINTYPE_MAINNET = '60'
+export const ETHEREUM_COINTYPE_TESTNET = '1'
