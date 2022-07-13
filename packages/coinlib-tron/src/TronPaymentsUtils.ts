@@ -23,6 +23,8 @@ import {
   isValidPrivateKey,
   privateKeyToAddress,
   toMainDenominationBigNumber,
+  determinePathForIndex,
+  deriveUniPubKeyForPath,
 } from './helpers'
 import {
   COIN_NAME,
@@ -40,7 +42,6 @@ import { retryIfDisconnected, toError } from './utils'
 import { pick } from 'lodash'
 
 export class TronPaymentsUtils implements PaymentsUtils {
-
   readonly coinSymbol = COIN_SYMBOL
   readonly coinName = COIN_NAME
   readonly coinDecimals = DECIMAL_PLACES
@@ -93,7 +94,7 @@ export class TronPaymentsUtils implements PaymentsUtils {
   getPayportValidationMessage(payport: Payport): string | undefined {
     try {
       payport = assertType(Payport, payport, 'payport')
-    } catch (e: any) {
+    } catch (e) {
       return e?.message
     }
     return this._getPayportValidationMessage(payport)
@@ -108,7 +109,7 @@ export class TronPaymentsUtils implements PaymentsUtils {
   }
 
   isValidPayport(payport: Payport): payport is Payport {
-    return Payport.is(payport) && !(this._getPayportValidationMessage(payport))
+    return Payport.is(payport) && !this._getPayportValidationMessage(payport)
   }
 
   toMainDenomination(amount: string | number): string {
@@ -250,9 +251,8 @@ export class TronPaymentsUtils implements PaymentsUtils {
   async getBlock(id?: string | number): Promise<BlockInfo> {
     try {
       const raw = await this._retryDced(() =>
-        isUndefined(id)
-          ? this.tronweb.trx.getCurrentBlock()
-          : this.tronweb.trx.getBlock(id))
+        isUndefined(id) ? this.tronweb.trx.getCurrentBlock() : this.tronweb.trx.getBlock(id),
+      )
       return {
         id: raw.blockID,
         height: raw.block_header.raw_data.number,
@@ -263,5 +263,16 @@ export class TronPaymentsUtils implements PaymentsUtils {
     } catch (e) {
       throw toError(e)
     }
+  }
+
+  determinePathForIndex(accountIndex: number, addressType?: any): string {
+    const networkType: NetworkType = this.networkType
+    const derivationPath: string = determinePathForIndex(accountIndex, addressType, networkType)
+    return derivationPath
+  }
+
+  deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
+    const uniPubKey: string = deriveUniPubKeyForPath(seed, derivationPath)
+    return uniPubKey
   }
 }

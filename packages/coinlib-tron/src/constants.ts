@@ -21,3 +21,6 @@ export const TX_EXPIRATION_EXTENSION_SECONDS = 59 * 60 // + 1 = 60 mins
 export const EXPIRATION_FUDGE_MS = 10 * 1000
 
 export const PUBLIC_CONFIG_OMIT_FIELDS = ['logger', 'fullNode', 'solidityNode', 'eventServer', 'hdKey', 'keyPairs']
+
+export const TRON_COINTYPE_MAINNET = '195'
+export const TRON_COINTYPE_TESTNET = '1'
