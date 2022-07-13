@@ -1,34 +1,31 @@
 import { createUnitConverters } from '@bitaccess/coinlib-common'
 import { UnitConverters } from './types'
 
-import { ETH_DECIMAL_PLACES } from './constants'
-
 export class UnitConvertersUtil {
   toMainDenominationBigNumber: UnitConverters['toMainDenominationBigNumber']
   toBaseDenominationBigNumber: UnitConverters['toMainDenominationBigNumber']
   toMainDenomination: UnitConverters['toMainDenominationString']
   toBaseDenomination: UnitConverters['toBaseDenominationString']
 
-  toMainDenominationBigNumberEth: UnitConverters['toMainDenominationBigNumber']
-  toBaseDenominationBigNumberEth: UnitConverters['toMainDenominationBigNumber']
-  toMainDenominationEth: UnitConverters['toMainDenominationString']
-  toBaseDenominationEth: UnitConverters['toBaseDenominationString']
-  coinDecimals: number
+  toMainDenominationBigNumberNative: UnitConverters['toMainDenominationBigNumber']
+  toBaseDenominationBigNumberNative: UnitConverters['toMainDenominationBigNumber']
+  toMainDenominationNative: UnitConverters['toMainDenominationString']
+  toBaseDenominationNative: UnitConverters['toBaseDenominationString']
 
-  constructor(config: { coinDecimals?: number }) {
-    this.coinDecimals = config.coinDecimals ?? ETH_DECIMAL_PLACES
+  constructor(config: { coinDecimals?: number, nativeDecimals: number }) {
+    const coinDecimals = config.coinDecimals ?? config.nativeDecimals
 
-    const unitConverters = createUnitConverters(this.coinDecimals)
+    const unitConverters = createUnitConverters(coinDecimals)
     this.toMainDenominationBigNumber = unitConverters.toMainDenominationBigNumber
     this.toBaseDenominationBigNumber = unitConverters.toBaseDenominationBigNumber
     this.toMainDenomination = unitConverters.toMainDenominationString
     this.toBaseDenomination = unitConverters.toBaseDenominationString
 
-    const ethUnitConverters = createUnitConverters(ETH_DECIMAL_PLACES)
-    this.toMainDenominationBigNumberEth = ethUnitConverters.toMainDenominationBigNumber
-    this.toBaseDenominationBigNumberEth = ethUnitConverters.toBaseDenominationBigNumber
-    this.toMainDenominationEth = ethUnitConverters.toMainDenominationString
-    this.toBaseDenominationEth = ethUnitConverters.toBaseDenominationString
+    const nativeUnitConverters = createUnitConverters(config.nativeDecimals)
+    this.toMainDenominationBigNumberNative = nativeUnitConverters.toMainDenominationBigNumber
+    this.toBaseDenominationBigNumberNative = nativeUnitConverters.toBaseDenominationBigNumber
+    this.toMainDenominationNative = nativeUnitConverters.toMainDenominationString
+    this.toBaseDenominationNative = nativeUnitConverters.toBaseDenominationString
   }
 
   getCustomUnitConverter(decimals: number) {

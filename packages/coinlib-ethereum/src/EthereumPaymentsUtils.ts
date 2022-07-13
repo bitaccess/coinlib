@@ -18,9 +18,6 @@ import Contract from 'web3-eth-contract'
 
 import {
   PACKAGE_NAME,
-  ETH_DECIMAL_PLACES,
-  ETH_NAME,
-  ETH_SYMBOL,
   DEFAULT_ADDRESS_FORMAT,
   MIN_SWEEPABLE_WEI,
   TOKEN_METHODS_ABI,
@@ -28,6 +25,9 @@ import {
   TOKEN_WALLET_ABI_LEGACY,
   FULL_ERC20_TOKEN_METHODS_ABI,
   MIN_CONFIRMATIONS,
+  DEFAULT_MAINNET_CONSTANTS,
+  DEFAULT_TESTNET_CONSTANTS,
+  DEFAULT_DECIMALS,
 } from './constants'
 import {
   EthereumAddressFormat,
@@ -35,13 +35,14 @@ import {
   EthereumPaymentsUtilsConfig,
   EthereumStandardizedERC20Transaction,
   EthereumTransactionInfo,
+  NetworkConstants,
 } from './types'
 import { isValidXkey } from './bip44'
 import { NetworkData } from './NetworkData'
 import { retryIfDisconnected } from './utils'
 import { UnitConvertersUtil } from './UnitConvertersUtil'
 import * as SIGNATURE from './erc20/constants'
-import { deriveAddress } from './erc20/deriveAddress'
+import { deriveCreate2Address } from './erc20/utils'
 
 export class EthereumPaymentsUtils extends UnitConvertersUtil implements PaymentsUtils {
   readonly networkType: NetworkType
@@ -49,20 +50,34 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
   readonly coinName: string
   readonly coinDecimals: number
   readonly tokenAddress?: string
+  readonly networkConstants: NetworkConstants
+  readonly nativeCoinSymbol: string
+  readonly nativeCoinName: string
+  readonly nativeCoinDecimals: number
 
   logger: Logger
-  server: string | null
   web3: Web3
   eth: Web3['eth']
   networkData: NetworkData
   blockBookApi?: BlockbookEthereum
-  blockBookNode: string | null
 
   constructor(config: EthereumPaymentsUtilsConfig) {
-    super({ coinDecimals: config.decimals })
+    super({
+      coinDecimals: config.decimals,
+      nativeDecimals: config.networkConstants?.nativeCoinDecimals ?? DEFAULT_DECIMALS
+    })
 
     this.logger = new DelegateLogger(config.logger, PACKAGE_NAME)
     this.networkType = config.network || NetworkType.Mainnet
+    this.networkConstants = {
+      ...(this.networkType === NetworkType.Mainnet
+        ? DEFAULT_MAINNET_CONSTANTS
+        : DEFAULT_TESTNET_CONSTANTS),
+      ...config.networkConstants,
+    }
+    this.nativeCoinName = this.networkConstants.nativeCoinName
+    this.nativeCoinSymbol = this.networkConstants.nativeCoinSymbol
+    this.nativeCoinDecimals = this.networkConstants.nativeCoinDecimals
 
     if (config.tokenAddress) {
       // ERC20 case
@@ -77,89 +92,49 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       }
     } else {
       // ether case
-      if (config.name && config.name !== ETH_NAME) {
+      if (config.name && config.name !== this.nativeCoinName) {
         throw new Error(`Unexpected config.name ${config.name} provided without config.tokenAddress`)
       }
-      if (config.symbol && config.symbol !== ETH_SYMBOL) {
+      if (config.symbol && config.symbol !== this.nativeCoinSymbol) {
         throw new Error(`Unexpected config.symbol ${config.symbol} provided without config.tokenAddress`)
       }
-      if (config.decimals && config.decimals !== ETH_DECIMAL_PLACES) {
+      if (config.decimals && config.decimals !== this.nativeCoinDecimals) {
         throw new Error(`Unexpected config.decimals ${config.decimals} provided without config.tokenAddress`)
       }
     }
 
     this.tokenAddress = config.tokenAddress?.toLowerCase()
-    this.coinName = config.name ?? ETH_NAME
-    this.coinSymbol = config.symbol ?? ETH_SYMBOL
-    this.coinDecimals = config.decimals ?? ETH_DECIMAL_PLACES
-    this.server = config.fullNode || null
-    this.blockBookApi = config.blockbookApi
-    this.blockBookNode = config.blockbookNode ?? null
+    this.coinName = config.name ?? this.nativeCoinName
+    this.coinSymbol = config.symbol ?? this.nativeCoinSymbol
+    this.coinDecimals = config.decimals ?? this.nativeCoinDecimals
 
-    let provider: any
-    if (config.web3) {
-      this.web3 = config.web3
-    } else if (isNull(this.server)) {
-      this.web3 = new Web3()
-    } else if (this.server.startsWith('http')) {
-      provider = new Web3.providers.HttpProvider(this.server, config.providerOptions)
-      this.web3 = new Web3(provider)
-    } else if (this.server.startsWith('ws')) {
-      provider = new Web3.providers.WebsocketProvider(this.server, config.providerOptions)
-      this.web3 = new Web3(provider)
-    } else {
-      throw new Error(`Invalid ethereum payments fullNode, must start with http or ws: ${this.server}`)
-    }
-
-    // Debug mode to print out all outgoing req/res
-    if (provider && process.env.NODE_DEBUG && process.env.NODE_DEBUG.includes('ethereum-payments')) {
-      const send = provider.send
-      provider.send = (payload: any, cb: Function) => {
-        this.logger.debug(`web3 provider request ${this.server}`, payload)
-        send.call(provider, payload, (error: Error, result: any) => {
-          if (error) {
-            this.logger.debug(`web3 provider response error ${this.server}`, error)
-          } else {
-            this.logger.debug(`web3 provider response result ${this.server}`, result)
-          }
-          cb(error, result)
-        })
-      }
-    }
-
-    if (config.blockbookApi) {
-      this.blockBookApi = config.blockbookApi
-    } else if (config.blockbookNode) {
-      const blockBookApi = new BlockbookEthereum({
-        nodes: [config.blockbookNode],
-        logger: this.logger,
-        requestTimeoutMs: config.requestTimeoutMs,
-      })
-
-      this.blockBookApi = blockBookApi
-    } else {
-      this.logger.log(`Blockbook node is missing from config`)
-    }
-
-    this.eth = this.web3.eth
+    const networkNameEnv = this.networkConstants.networkName.toUpperCase().replace(/[- ]/, '_')
+    const fullNode = config.fullNode
+      ?? process.env[`${networkNameEnv}_FULL_NODE`] // ie ETHEREUM_MAINNET_FULL_NODE
+    const blockbookNode = config.blockbookNode
+      ?? process.env[`${networkNameEnv}_BLOCKBOOK_NODE`]?.split(',') // ie ETHEREUM_MAINNET_BLOCKBOOK_NODE
+      ?? null
 
     this.networkData = new NetworkData({
       web3Config: {
-        web3: this.web3,
-        fullNode: config.fullNode,
-        decimals: config.decimals,
+        web3: config.web3,
+        fullNode: fullNode,
         providerOptions: config.providerOptions,
       },
       parityUrl: config.parityNode,
       logger: this.logger,
       blockBookConfig: {
-        nodes: this.blockBookNode,
-        api: this.blockBookApi,
+        nodes: blockbookNode,
+        api: config.blockbookApi,
         requestTimeoutMs: config.requestTimeoutMs,
       },
       gasStationUrl: config.gasStation,
       requestTimeoutMs: config.requestTimeoutMs,
     })
+
+    this.web3 = this.networkData.web3Service.web3
+    this.eth = this.web3.eth
+    this.blockBookApi = this.networkData.blockBookService.api ?? undefined
   }
 
   protected newContract(...args: ConstructorParameters<typeof Contract>) {
@@ -286,7 +261,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
   }
 
   isAddressBalanceSweepable(balanceEth: Numeric): boolean {
-    return this.toBaseDenominationBigNumberEth(balanceEth).gt(MIN_SWEEPABLE_WEI)
+    return this.toBaseDenominationBigNumberNative(balanceEth).gt(MIN_SWEEPABLE_WEI)
   }
 
   async getAddressBalanceERC20(address: string, tokenAddress: string): Promise<BalanceResult> {
@@ -419,7 +394,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
         throw new Error(`Transaction ${txHash} should have a to address destination`)
       }
 
-      const addr = deriveAddress(sweepContractAddress, `0x${txData.inputs[0].toString('hex')}`, true)
+      const addr = deriveCreate2Address(sweepContractAddress, `0x${txData.inputs[0].toString('hex')}`, true)
 
       fromAddress = this.web3.utils.toChecksumAddress(addr).toLowerCase()
       toAddress = this.web3.utils.toChecksumAddress(txData.inputs[2]).toLowerCase()

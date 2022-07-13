@@ -1,15 +1,11 @@
 import { FeeLevel } from '@bitaccess/coinlib-common'
-import { EthTxType, EthereumAddressFormat } from './types'
+import { EthTxType, EthereumAddressFormat, NetworkConstants, EthereumPaymentsConfigKeys } from './types'
 
 export const PACKAGE_NAME = 'ethereum-payments'
-export const ETH_SYMBOL = 'ETH'
-export const ETH_NAME = 'Ethereum'
-export const ETH_DECIMAL_PLACES = 18
 
-export const DEFAULT_FULL_NODE = process.env.ETH_FULL_NODE_URL
-export const DEFAULT_SOLIDITY_NODE = process.env.ETH_SOLIDITY_NODE_URL
-export const DEFAULT_EVENT_SERVER = process.env.ETH_EVENT_SERVER_URL
 export const DEFAULT_FEE_LEVEL = FeeLevel.Medium
+export const DEFAULT_DERIVATION_PATH = "m/44'/60'/0'/0"
+export const DEFAULT_DECIMALS = 18
 
 export const MIN_CONFIRMATIONS = 0
 export const DEFAULT_GAS_PRICE_IN_WEI = '50000000000'
@@ -61,7 +57,7 @@ export const TOKEN_METHODS_ABI = JSON.parse(
 
 export const DEPOSIT_KEY_INDEX = 0
 
-export const PUBLIC_CONFIG_OMIT_FIELDS = [
+export const PUBLIC_CONFIG_OMIT_FIELDS: EthereumPaymentsConfigKeys[] = [
   'logger',
   'fullNode',
   'parityNode',
@@ -72,6 +68,7 @@ export const PUBLIC_CONFIG_OMIT_FIELDS = [
   'web3',
   'blockbookNode',
   'blockbookApi',
+  'networkConstants',
 ]
 
 export const DEFAULT_ADDRESS_FORMAT = EthereumAddressFormat.Lowercase
@@ -86,10 +83,21 @@ export const FULL_ERC20_TOKEN_METHODS_ABI = JSON.parse(
 )
 
 export const BALANCE_ACTIVITY_EVENT = 'activity'
-export const DEFAULT_MAINNET_SERVER = process.env.ETHEREUM_SERVER_URL
-  ? process.env.ETHEREUM_SERVER_URL.split(',')
-  : ['https://eth1.trezor.io', 'https://eth2.trezor.io']
 
-export const DEFAULT_TESTNET_SERVER = process.env.ETHEREUM_TESTNET_SERVER_URL
-  ? process.env.ETHEREUM_TESTNET_SERVER_URL.split(',')
-  : ['']
+export const DEFAULT_MAINNET_CONSTANTS: NetworkConstants = {
+  networkName: 'ethereum mainnet',
+  nativeCoinName: 'ether',
+  nativeCoinSymbol: 'ETH',
+  nativeCoinDecimals: DEFAULT_DECIMALS,
+  defaultDerivationPath: DEFAULT_DERIVATION_PATH,
+  chainId: 1,
+}
+
+export const DEFAULT_TESTNET_CONSTANTS: NetworkConstants = {
+  networkName: 'ethereum ropsten',
+  nativeCoinName: 'ropsten ether',
+  nativeCoinSymbol: 'ropstenETH',
+  nativeCoinDecimals: DEFAULT_DECIMALS,
+  defaultDerivationPath: DEFAULT_DERIVATION_PATH,
+  chainId: 3,
+}

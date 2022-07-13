@@ -34,7 +34,7 @@ export function resolveServer(
   { server, requestTimeoutMs, api }: EthereumBlockbookConnectedConfig,
   logger: Logger,
 ): {
-  api: BlockbookEthereum
+  api: BlockbookEthereum | null
   server: string[] | null
 } {
   if (api) {
@@ -75,11 +75,7 @@ export function resolveServer(
 
   // null server arg -> offline mode
   return {
-    api: new BlockbookEthereum({
-      nodes: [''],
-      logger,
-      requestTimeoutMs,
-    }),
+    api: null,
     server: null,
   }
 }

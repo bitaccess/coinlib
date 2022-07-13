@@ -11,6 +11,7 @@ import {
   MAXIMUM_GAS,
   GAS_ESTIMATE_MULTIPLIER,
   NETWORK_DATA_PROVIDERS,
+  PACKAGE_NAME,
 } from './constants'
 import {
   EthereumWeb3Config,
@@ -29,7 +30,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
   server: string | null
 
   constructor(config: EthereumWeb3Config) {
-    this.logger = new DelegateLogger(config.logger, 'EthereumWeb3')
+    this.logger = new DelegateLogger(config.logger, this.constructor.name)
     this.server = config.fullNode || null
 
     let provider: any
@@ -45,6 +46,22 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       this.web3 = new Web3(provider)
     } else {
       throw new Error(`Invalid ethereum payments fullNode, must start with http or ws: ${this.server}`)
+    }
+
+    // Debug mode to print out all outgoing req/res
+    if (provider && process.env.NODE_DEBUG && process.env.NODE_DEBUG.includes(PACKAGE_NAME)) {
+      const send = provider.send
+      provider.send = (payload: any, cb: Function) => {
+        this.logger.debug(`web3 provider request ${this.server}`, payload)
+        send.call(provider, payload, (error: Error, result: any) => {
+          if (error) {
+            this.logger.debug(`web3 provider response error ${this.server}`, error)
+          } else {
+            this.logger.debug(`web3 provider response result ${this.server}`, result)
+          }
+          cb(error, result)
+        })
+      }
     }
 
     this.eth = this.web3.eth

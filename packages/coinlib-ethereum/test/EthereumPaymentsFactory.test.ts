@@ -1,4 +1,3 @@
-import { execPath } from 'process'
 import Web3 from 'web3'
 import { TestLogger } from '../../../common/testUtils'
 import {
@@ -9,10 +8,13 @@ import {
   HdEthereumPaymentsConfig,
   KeyPairEthereumPaymentsConfig,
   deriveSignatory,
+  DEFAULT_MAINNET_CONSTANTS,
+  NetworkConstants,
+  EthereumPaymentsUtilsConfig,
+  HdErc20Payments,
 } from '../src'
 
 import { hdAccount } from './fixtures/accounts'
-import { EthereumPaymentsUtilsConfig } from '../src/types';
 
 const logger = new TestLogger('EthereumPaymentsFactory')
 
@@ -34,6 +36,22 @@ const UTILS_CONFIG: EthereumPaymentsUtilsConfig = {
   logger,
 }
 
+const TOKEN_CONFIG = {
+  tokenAddress: '0x1234',
+  name: 'BA_TEST_TOKEN',
+  symbol: 'BTT',
+  decimals: 7,
+}
+
+const CUSTOM_NETWORK: NetworkConstants = {
+  networkName: 'Brilliant Baboon Blockchain',
+  nativeCoinName: 'Brilliant Baboon Booty',
+  nativeCoinSymbol: 'BBB',
+  nativeCoinDecimals: 888,
+  defaultDerivationPath: "m/44'/888'/0'/0",
+  chainId: 888,
+}
+
 describe('EthereumPaymentsFactory', () => {
   const factory = new EthereumPaymentsFactory()
 
@@ -44,8 +62,82 @@ describe('EthereumPaymentsFactory', () => {
       expect(hdP).toBeInstanceOf(HdEthereumPayments)
       expect(hdP.getPublicConfig()).toStrictEqual({
         depositKeyIndex: 0,
-        hdKey: deriveSignatory(account0.xkeys.xpub, 0).xkeys.xpub
+        hdKey: deriveSignatory(account0.xkeys.xpub, 0).xkeys.xpub,
+        derivationPath: DEFAULT_MAINNET_CONSTANTS.defaultDerivationPath,
       })
+      expect(hdP.coinDecimals).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinDecimals)
+      expect(hdP.coinName).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinName)
+      expect(hdP.coinSymbol).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinSymbol)
+      expect(hdP.nativeCoinDecimals).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinDecimals)
+      expect(hdP.nativeCoinName).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinName)
+      expect(hdP.nativeCoinSymbol).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinSymbol)
+      expect(hdP.networkConstants).toEqual(DEFAULT_MAINNET_CONSTANTS)
+    })
+
+    it('should instantiate HdEthereumPayments for custom network', () => {
+      const hdP = factory.newPayments({
+        ...HD_CONFIG,
+        networkConstants: CUSTOM_NETWORK,
+      })
+
+      expect(hdP).toBeInstanceOf(HdEthereumPayments)
+      expect(hdP.getPublicConfig()).toStrictEqual({
+        depositKeyIndex: 0,
+        hdKey: deriveSignatory(account0.xkeys.xpub, 0).xkeys.xpub,
+        derivationPath: CUSTOM_NETWORK.defaultDerivationPath,
+      })
+      expect(hdP.coinDecimals).toBe(CUSTOM_NETWORK.nativeCoinDecimals)
+      expect(hdP.coinName).toBe(CUSTOM_NETWORK.nativeCoinName)
+      expect(hdP.coinSymbol).toBe(CUSTOM_NETWORK.nativeCoinSymbol)
+      expect(hdP.nativeCoinDecimals).toBe(CUSTOM_NETWORK.nativeCoinDecimals)
+      expect(hdP.nativeCoinName).toBe(CUSTOM_NETWORK.nativeCoinName)
+      expect(hdP.nativeCoinSymbol).toBe(CUSTOM_NETWORK.nativeCoinSymbol)
+      expect(hdP.networkConstants).toEqual(CUSTOM_NETWORK)
+    })
+
+    it('should instantiate HdErc20Payments', () => {
+      const hdP = factory.newPayments({
+        ...HD_CONFIG,
+        ...TOKEN_CONFIG,
+      })
+
+      expect(hdP).toBeInstanceOf(HdErc20Payments)
+      expect(hdP.getPublicConfig()).toStrictEqual({
+        depositKeyIndex: 0,
+        hdKey: deriveSignatory(account0.xkeys.xpub, 0).xkeys.xpub,
+        derivationPath: DEFAULT_MAINNET_CONSTANTS.defaultDerivationPath,
+        ...TOKEN_CONFIG,
+      })
+      expect(hdP.coinDecimals).toBe(TOKEN_CONFIG.decimals)
+      expect(hdP.coinName).toBe(TOKEN_CONFIG.name)
+      expect(hdP.coinSymbol).toBe(TOKEN_CONFIG.symbol)
+      expect(hdP.nativeCoinDecimals).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinDecimals)
+      expect(hdP.nativeCoinName).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinName)
+      expect(hdP.nativeCoinSymbol).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinSymbol)
+      expect(hdP.networkConstants).toEqual(DEFAULT_MAINNET_CONSTANTS)
+    })
+
+    it('should instantiate HdErc20Payments for custom network', () => {
+      const hdP = factory.newPayments({
+        ...HD_CONFIG,
+        ...TOKEN_CONFIG,
+        networkConstants: CUSTOM_NETWORK,
+      })
+
+      expect(hdP).toBeInstanceOf(HdErc20Payments)
+      expect(hdP.getPublicConfig()).toStrictEqual({
+        depositKeyIndex: 0,
+        hdKey: deriveSignatory(account0.xkeys.xpub, 0).xkeys.xpub,
+        derivationPath: CUSTOM_NETWORK.defaultDerivationPath,
+        ...TOKEN_CONFIG,
+      })
+      expect(hdP.coinDecimals).toBe(TOKEN_CONFIG.decimals)
+      expect(hdP.coinName).toBe(TOKEN_CONFIG.name)
+      expect(hdP.coinSymbol).toBe(TOKEN_CONFIG.symbol)
+      expect(hdP.nativeCoinDecimals).toBe(CUSTOM_NETWORK.nativeCoinDecimals)
+      expect(hdP.nativeCoinName).toBe(CUSTOM_NETWORK.nativeCoinName)
+      expect(hdP.nativeCoinSymbol).toBe(CUSTOM_NETWORK.nativeCoinSymbol)
+      expect(hdP.networkConstants).toEqual(CUSTOM_NETWORK)
     })
 
     it('should instantiate KeyPairEthereumPayments', () => {
