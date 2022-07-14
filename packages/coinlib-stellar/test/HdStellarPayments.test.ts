@@ -2,39 +2,39 @@ import { HdStellarPayments } from '../src'
 import { hdAccount } from './fixtures/accounts'
 import * as bip39 from 'bip39'
 
-const { MNEMONIC, SEED, ADDRESSES, SECRETS } = hdAccount
+const { MNEMONIC, SEED, NEW_DERIVATION_PATH, ADDRESSES, SECRETS, NEW_ADDRESSES, NEW_SECRETS } = hdAccount
 
-function commonTests(payments: HdStellarPayments) {
+function commonTests(payments: HdStellarPayments, addresses: {[key: number]: string}, secrets: {[key: number]: string}) {
   it('should not be readonly', () => {
     expect(payments.isReadOnly()).toBe(false)
   })
   it('getHotSignatory should return correct key pair', () => {
     const hotSignatory = payments.getHotSignatory()
-    expect(hotSignatory.address).toBe(ADDRESSES[0])
-    expect(hotSignatory.secret).toEqual(SECRETS[0])
+    expect(hotSignatory.address).toBe(addresses[0])
+    expect(hotSignatory.secret).toEqual(secrets[0])
   })
   it('getDepositSignatory should return correct key pair', () => {
     const hotSignatory = payments.getDepositSignatory()
-    expect(hotSignatory.address).toBe(ADDRESSES[1])
-    expect(hotSignatory.secret).toEqual(SECRETS[1])
+    expect(hotSignatory.address).toBe(addresses[1])
+    expect(hotSignatory.secret).toEqual(secrets[1])
   })
   it('getPublicConfig should return signatories', () => {
     const publicConfig = payments.getPublicConfig()
     expect(publicConfig).toEqual({
-      hotAccount: ADDRESSES[0],
-      depositAccount: ADDRESSES[1],
+      hotAccount: addresses[0],
+      depositAccount: addresses[1],
     })
   })
   it('getAccountIds should return addresses', () => {
-    expect(payments.getAccountIds()).toEqual([ADDRESSES[0], ADDRESSES[1]])
+    expect(payments.getAccountIds()).toEqual([addresses[0], addresses[1]])
   })
   describe('getAccountId', () => {
     it('should return address 0 for index 0', () => {
-      expect(payments.getAccountId(0)).toBe(ADDRESSES[0])
+      expect(payments.getAccountId(0)).toBe(addresses[0])
     })
     for (let i = 1; i < 5; i++) {
       it(`should return address 1 for index ${i}`, () => {
-        expect(payments.getAccountId(i)).toBe(ADDRESSES[1])
+        expect(payments.getAccountId(i)).toBe(addresses[1])
       })
     }
   })
@@ -60,10 +60,18 @@ describe('HdStellarPayments', () => {
   })
   describe('mnemonic', () => {
     const rp = new HdStellarPayments({ seed: MNEMONIC })
-    commonTests(rp)
+    commonTests(rp, ADDRESSES, SECRETS)
+  })
+  describe('mnemonic with derivation path', () => {
+    const rp = new HdStellarPayments({ seed: MNEMONIC, derivationPath: NEW_DERIVATION_PATH})
+    commonTests(rp, NEW_ADDRESSES, NEW_SECRETS)
   })
   describe('seed', () => {
     const rp = new HdStellarPayments({ seed: SEED })
-    commonTests(rp)
+    commonTests(rp, ADDRESSES, SECRETS)
+  })
+  describe('seed with derivation path', () => {
+    const rp = new HdStellarPayments({ seed: SEED, derivationPath: NEW_DERIVATION_PATH })
+    commonTests(rp, NEW_ADDRESSES, NEW_SECRETS)
   })
 })
