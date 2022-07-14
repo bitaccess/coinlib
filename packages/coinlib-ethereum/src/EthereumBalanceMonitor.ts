@@ -138,6 +138,26 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     return { from: from.toString(), to: to.toString() }
   }
 
+  private async getAllInvolvedAddresses(
+    tx: EthereumStandardizedTransaction,
+    cache: { [txid: string]: NormalizedTxEthereum },
+  ) {
+    const fromAddress = tx.from
+    const toAddress = tx.to
+    const involvedAddresses = new Set([fromAddress, toAddress])
+
+    const rawTx = await this.getTxWithMemoization(tx.txHash, cache)
+
+    if (rawTx.tokenTransfers) {
+      for (const tokenTransfer of rawTx.tokenTransfers) {
+        involvedAddresses.add(tokenTransfer.from)
+        involvedAddresses.add(tokenTransfer.to)
+      }
+    }
+
+    return [...involvedAddresses]
+  }
+
   async retrieveBlockBalanceActivities(
     blockId: string | number,
     callbackFn: BalanceActivityCallback,
@@ -148,24 +168,25 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     const transactions = get(blockDetails.raw, 'transactions', []) as EthereumStandardizedTransaction[]
     const addressTransactions: { [address: string]: Set<EthereumStandardizedTransaction> } = {}
 
-    for (const tx of transactions) {
-      const fromAddress = tx.from
-      const toAddress = tx.to
+    /**
+     * The standardized tx may or may not contain the token transfers depending on which data source
+     * was used to fetch the NetworkData, so we need to do a hard lookup from the blockbook api for each tx, then also memoize
+     */
+    const hardTxQueries: { [txid: string]: NormalizedTxEthereum } = {}
 
-      addressTransactions[fromAddress] = (addressTransactions[fromAddress] ?? new Set()).add(tx)
-      addressTransactions[toAddress] = (addressTransactions[toAddress] ?? new Set()).add(tx)
+    for (const tx of transactions) {
+      // need to unwind all addresses involved in the tx, not just the from and to alone.
+      const involvedAddresses = await this.getAllInvolvedAddresses(tx, hardTxQueries)
+
+      for (const involvedAddress of involvedAddresses) {
+        addressTransactions[involvedAddress] = (addressTransactions[involvedAddress] ?? new Set()).add(tx)
+      }
     }
 
     const relevantAddresses = await filterRelevantAddresses(Array.from(Object.keys(addressTransactions)), {
       ...blockDetails,
       page: 1,
     })
-
-    /**
-     * The standardized tx may or may not contain the token transfers depending on which data source
-     * was used to fetch the NetworkData, so we need to do a hard lookup from the blockbook api for each tx, then also memoize
-     */
-    const hardTxQueries: { [txid: string]: NormalizedTxEthereum } = {}
 
     for (const relevantAddress of relevantAddresses) {
       const relevantAddressTransactions = addressTransactions[relevantAddress]
@@ -181,7 +202,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     return blockDetails
   }
 
-  getActivityType(
+  private getActivityType(
     activityAddress: string,
     { txFromAddress, txToAddress, txHash }: { txFromAddress: string; txToAddress: string; txHash: string },
   ) {
@@ -203,17 +224,36 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     return type
   }
 
-  getBalanceActivityForNonTokenTransfer(address: string, tx: NormalizedTxEthereum): BalanceActivity[] {
-    const { fromAddress, toAddress } = getBlockBookTxFromAndToAddress(tx)
+  private getSelfBalanceActivities(baseBalanceActivity: BalanceActivity, fee: BigNumber) {
+    const inBalanceActivityEntry: BalanceActivity = {
+      ...baseBalanceActivity,
+      type: 'in',
+    }
+    const outBalanceActivityEntry: BalanceActivity = {
+      ...baseBalanceActivity,
+      type: 'out',
+      amount: new BigNumber(baseBalanceActivity.amount).negated().toString(),
+    }
 
-    const type = this.getActivityType(address, { txFromAddress: fromAddress, txToAddress: toAddress, txHash: tx.txid })
+    const feeBalanceActivityEntry: BalanceActivity = {
+      ...baseBalanceActivity,
+      type: 'fee',
+      amount: this.toMainDenomination(fee.negated()),
+    }
+
+    return [inBalanceActivityEntry, outBalanceActivityEntry, feeBalanceActivityEntry]
+  }
+
+  private getBalanceActivityForNonTokenTransfer(
+    address: string,
+    tx: NormalizedTxEthereum,
+    fee: BigNumber,
+  ): BalanceActivity[] {
+    const { fromAddress, toAddress } = getBlockBookTxFromAndToAddress(tx)
 
     const timestamp = new Date(tx.blockTime * 1000)
 
-    const fee = new BigNumber(tx.ethereumSpecific.gasPrice).multipliedBy(tx.ethereumSpecific.gasUsed)
-
-    const balanceActivity: BalanceActivity = {
-      type,
+    const baseBalanceActivity: BalanceActivity = {
       networkType: this.networkType,
       networkSymbol: this.coinSymbol,
       assetSymbol: this.coinSymbol,
@@ -226,19 +266,48 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
       amount: this.toMainDenomination(tx.value),
       extraId: null,
       confirmations: tx.confirmations,
+      type: 'fee', // this will eventually be replaced by the correct type
     }
 
-    if (balanceActivity.type === 'out') {
-      const amountWithFee = new BigNumber(balanceActivity.amount).plus(fee)
-      balanceActivity.amount = this.toMainDenomination(amountWithFee.negated())
+    // it is possible for fromAddress = toAddress, etherscan.io describes this as a "self" transaction.
+    if (this.isAddressEqual(fromAddress, toAddress)) {
+      // in this case we'll return an in, out and fee balance activity
+      return this.getSelfBalanceActivities(baseBalanceActivity, fee)
     }
 
-    return [balanceActivity]
+    const type = this.getActivityType(address, { txFromAddress: fromAddress, txToAddress: toAddress, txHash: tx.txid })
+
+    const balanceActivities: BalanceActivity[] = []
+
+    const balanceActivityEntry: BalanceActivity = {
+      ...baseBalanceActivity,
+      type,
+    }
+
+    if (balanceActivityEntry.type === 'out') {
+      // negate the amount
+      balanceActivityEntry.amount = new BigNumber(balanceActivityEntry.amount).negated().toString()
+
+      // add the fee balance activity as well;
+      const feeBalanceActivityEntry: BalanceActivity = {
+        ...baseBalanceActivity,
+        type: 'fee',
+        amount: this.toMainDenomination(fee.negated()),
+      }
+
+      balanceActivities.push(feeBalanceActivityEntry)
+    }
+
+    balanceActivities.push(balanceActivityEntry)
+
+    return balanceActivities
   }
 
   async txToBalanceActivity(address: string, tx: NormalizedTxEthereum): Promise<BalanceActivity[]> {
+    const fee = new BigNumber(tx.ethereumSpecific.gasPrice).multipliedBy(tx.ethereumSpecific.gasUsed)
+
     if (!tx.tokenTransfers || tx.tokenTransfers.length === 0) {
-      return this.getBalanceActivityForNonTokenTransfer(address, tx)
+      return this.getBalanceActivityForNonTokenTransfer(address, tx, fee)
     }
 
     const nonce = String(tx.ethereumSpecific.nonce)
@@ -281,13 +350,35 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
         }
 
         if (balanceActivity.type === 'out') {
-          balanceActivity.amount = unitConverter.toMainDenominationString(
-            new BigNumber(balanceActivity.amount).negated(),
-          )
+          balanceActivity.amount = new BigNumber(balanceActivity.amount).negated().toString()
         }
 
         return balanceActivity
       })
+
+    const { fromAddress } = getBlockBookTxFromAndToAddress(tx)
+    const isTxSender = this.isAddressEqual(fromAddress, address)
+
+    if (isTxSender) {
+      // add the balance activity for the fee
+      const feeBalanceActivityEntry: BalanceActivity = {
+        networkType: this.networkType,
+        networkSymbol: this.coinSymbol,
+        assetSymbol: this.coinSymbol,
+        address,
+        externalId: tx.txid,
+        activitySequence: String(tx.ethereumSpecific.nonce),
+        confirmationId: tx.blockHash ?? '',
+        confirmationNumber: tx.blockHeight,
+        timestamp,
+        extraId: null,
+        confirmations: tx.confirmations,
+        type: 'fee',
+        amount: this.toMainDenomination(fee.negated()),
+      }
+
+      balanceActivities.push(feeBalanceActivityEntry)
+    }
 
     return balanceActivities
   }

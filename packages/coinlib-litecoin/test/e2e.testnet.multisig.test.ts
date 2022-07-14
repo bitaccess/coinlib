@@ -316,7 +316,7 @@ describeAll('e2e multisig testnet', () => {
           }
           const paymentsWithAllKeys = new MultisigLitecoinPayments(paymentsConfig)
 
-          const { fromIndex, fromBalance, toIndex, toBalance } = await getFromTo(
+          const { fromIndex, toIndex } = await getFromTo(
             paymentsWithAllKeys,
             'Litecoin testnet multisig wallet',
             1,

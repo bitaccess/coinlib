@@ -3,5 +3,15 @@
 # Builds the specified package. Designed to be run within that package dir.
 # Usage: build.sh <package_dir> [...args]
 
-REPO_ROOT="`cd $(dirname $0)/..; echo $PWD`"
-NO_DOCS=1 "$REPO_ROOT/node_modules/@faast/ts-config/library/bin/build.sh" "$@"
+NM_BIN="$1/node_modules/.bin"
+TSCONFIG="$1/tsconfig.build.json"
+ROLLUP_CONFIG="$1/rollup.config.js"
+
+echo ">> cd $1"
+cd "$1"
+
+echo ">> tsc"
+"$NM_BIN/tsc" -b "$TSCONFIG"
+
+echo ">> rollup"
+"$NM_BIN/rollup" -c "$ROLLUP_CONFIG"

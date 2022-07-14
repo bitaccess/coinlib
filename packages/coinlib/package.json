@@ -1,6 +1,6 @@
 {
   "name": "@bitaccess/coinlib",
-  "version": "6.0.1",
+  "version": "6.0.4",
   "description": "Library to assist in processing cryptocurrency payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
