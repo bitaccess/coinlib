@@ -1,4 +1,3 @@
-import { derivationPath } from './../../coinlib-ripple/src/bip44';
 import Web3 from 'web3'
 import { EthereumSignatory } from './types'
 import { pubToAddress } from 'ethereumjs-util'

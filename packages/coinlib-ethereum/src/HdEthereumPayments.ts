@@ -1,4 +1,3 @@
-import { derivationPath } from './../../coinlib-ripple/src/bip44';
 import { BaseEthereumPayments } from './BaseEthereumPayments'
 import { HdEthereumPaymentsConfig, EthereumSignatory } from './types'
 import { deriveSignatory } from './bip44'
