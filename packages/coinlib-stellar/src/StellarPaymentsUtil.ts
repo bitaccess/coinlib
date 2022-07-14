@@ -8,6 +8,7 @@ import {
   Payport,
   TransactionStatus,
   BigNumber,
+  NetworkType
 } from '@bitaccess/coinlib-common'
 import { isNil, assertType, Numeric, isMatchingError } from '@faast/ts-common'
 import * as Stellar from 'stellar-sdk'
@@ -17,6 +18,8 @@ import {
   toBaseDenominationString,
   isValidAddress,
   isValidExtraId,
+  determinePathForIndex,
+  deriveUniPubKeyForPath,
 } from './helpers'
 import { StellarConnected } from './StellarConnected'
 import { COIN_NAME, COIN_SYMBOL, DECIMAL_PLACES, MIN_BALANCE, NOT_FOUND_ERRORS } from './constants'
@@ -219,6 +222,17 @@ export class StellarPaymentsUtils extends StellarConnected implements PaymentsUt
       confirmations,
       data: tx,
     }
+  }
+
+  determinePathForIndex(accountIndex: number, addressType?: any): string {
+    const networkType: NetworkType = this.networkType
+    const derivationPath: string = determinePathForIndex(accountIndex, addressType, networkType)
+    return derivationPath
+  }
+
+  deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
+    const uniPubKey: string = deriveUniPubKeyForPath(seed, derivationPath)
+    return uniPubKey
   }
 
 }
