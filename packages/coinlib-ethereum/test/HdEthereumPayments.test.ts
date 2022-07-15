@@ -1,8 +1,8 @@
 import { BigNumber } from 'bignumber.js'
 import { HdEthereumPayments } from '../src/HdEthereumPayments'
-import { hdAccount } from './fixtures/accounts'
+import { DEFAULT_PATH_FIXTURE, hdAccount } from './fixtures/accounts'
 import { TestLogger } from '../../../common/testUtils'
-import { deriveSignatory } from '../src/bip44'
+import { EthereumBIP44 } from '../src/bip44'
 
 import { NetworkType, FeeLevel, FeeOption, FeeRateType, TransactionStatus } from '@bitaccess/coinlib-common'
 import nock from 'nock'
@@ -16,7 +16,7 @@ import {
   getEstimateGasMocks,
   getTransactionApisMocks,
 } from './fixtures/mocks'
-import { EthereumSignedTransaction, EthereumUnsignedTransaction } from 'src'
+import { EthereumSignedTransaction, EthereumUnsignedTransaction, DEFAULT_DERIVATION_PATH } from '../src'
 
 const GAS_STATION_URL = 'https://gasstation.test.url'
 const PARITY_URL = 'https://parity.test.url'
@@ -33,15 +33,15 @@ const CONFIG = {
   gasStation: GAS_STATION_URL,
   parityNode: PARITY_URL,
   fullNode: INFURA_URL,
-  hdKey: hdAccount.rootChild[0].xkeys.xprv,
+  hdKey: DEFAULT_PATH_FIXTURE.xkeys.xprv,
   logger,
   blockbookNode: BLOCKBOOK_URL,
 }
 
-const INSTANCE_KEYS = deriveSignatory(hdAccount.rootChild[0].xkeys.xprv, 0)
-
-const FROM_ADDRESS = deriveSignatory(INSTANCE_KEYS.xkeys.xprv, 1).address.toLowerCase()
-const TO_ADDRESS = hdAccount.rootChild[1].address.toLowerCase()
+const BIP44 = EthereumBIP44.fromXKey(DEFAULT_PATH_FIXTURE.xkeys.xprv)
+const INSTANCE_KEYS = BIP44.getSignatory(0)
+const FROM_ADDRESS = BIP44.getAddress(1).toLowerCase()
+const TO_ADDRESS = BIP44.getAddress(2).toLowerCase()
 
 // web3 sequential id used by nock
 let id = 1
@@ -748,7 +748,7 @@ describe('HdEthereumPayments', () => {
         expect(pubConf).toStrictEqual({
           depositKeyIndex: 0,
           network: NetworkType.Testnet,
-          derivationPath: "m/44'/60'/0'/0",
+          derivationPath: DEFAULT_DERIVATION_PATH,
           hdKey: INSTANCE_KEYS.xkeys.xpub,
         })
       })
@@ -756,7 +756,7 @@ describe('HdEthereumPayments', () => {
 
     describe('getAccountId', () => {
       test('returns xpub regardless of index', () => {
-        expect(hdEP.getAccountId(1320842)).toBe(INSTANCE_KEYS.xkeys.xpub)
+        expect(hdEP.getAccountId()).toBe(INSTANCE_KEYS.xkeys.xpub)
       })
     })
 
@@ -776,7 +776,7 @@ describe('HdEthereumPayments', () => {
 
     describe('getPrivateKey', () => {
       test('returns prv', async () => {
-        expect(await hdEP.getPrivateKey(0)).toBe(deriveSignatory(INSTANCE_KEYS.xkeys.xprv, 0).keys.prv)
+        expect(await hdEP.getPrivateKey(0)).toBe(INSTANCE_KEYS.keys.prv)
       })
     })
   })

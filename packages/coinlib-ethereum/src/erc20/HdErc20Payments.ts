@@ -3,35 +3,27 @@ import { omit } from 'lodash'
 
 import { PUBLIC_CONFIG_OMIT_FIELDS } from '../constants'
 import { BaseErc20Payments } from './BaseErc20Payments'
-import { deriveSignatory } from '../bip44'
+import { EthereumBIP44 } from '../bip44'
 import { deriveCreate2Address } from './utils'
 import { HdErc20PaymentsConfig, EthereumSignatory } from '../types'
+import { prepend0x } from '../utils'
 
 export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
   readonly xprv: string | null
   readonly xpub: string
   readonly derivationPath: string
+  private readonly bip44: EthereumBIP44
 
   constructor(config: HdErc20PaymentsConfig) {
     super(config)
     this.derivationPath = config.derivationPath ?? this.networkConstants.defaultDerivationPath
-    try {
-      this.xprv = ''
-      this.xpub = ''
-      if (this.isValidXpub(config.hdKey)) {
-        this.xpub = config.hdKey
-      } else if (this.isValidXprv(config.hdKey)) {
-        this.xprv = config.hdKey
-        this.xpub = deriveSignatory(config.hdKey, 0, this.derivationPath).xkeys.xpub
-      }
-
-    } catch (e) {
-      throw new Error(`Account must be a valid xprv or xpub: ${e.message}`)
-    }
+    this.bip44 = EthereumBIP44.fromXKey(config.hdKey, this.derivationPath)
+    this.xprv = this.bip44.getXPrivateKey()
+    this.xpub = this.bip44.getXPublicKey()
   }
 
   static generateNewKeys(derivationPath?: string): EthereumSignatory {
-    return deriveSignatory(undefined, undefined, derivationPath)
+    return EthereumBIP44.generateNewKeys(derivationPath).getSignatory(0)
   }
 
   getXpub(): string {
@@ -48,7 +40,7 @@ export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
     }
   }
 
-  getAccountId(index: number): string {
+  getAccountId(): string {
     return this.getXpub()
   }
 
@@ -57,30 +49,34 @@ export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
   }
 
   getAddressSalt(index: number): string {
-    const key = deriveSignatory(this.getXpub(), index, this.derivationPath).keys.pub
-    const salt = this.web3.utils.sha3(`0x${key}`)
+    const pubKey = this.bip44.getPublicKey(index)
+    const salt = this.web3.utils.sha3(prepend0x(pubKey))
     if (!salt) {
       throw new Error(`Cannot get address salt for index ${index}`)
     }
     return salt
   }
 
+  deriveStandardAddress(index: number) {
+    return this.standardizeAddressOrThrow(this.bip44.getAddress(index))
+  }
+
   async getPayport(index: number): Promise<Payport> {
-    const signatory = deriveSignatory(this.getXpub(), index, this.derivationPath)
     if (index === 0) {
-      return { address: signatory.address }
+      return { address: this.deriveStandardAddress(index) }
     }
 
     if (!this.masterAddress) {
       throw new Error(`Cannot derive payport ${index} - masterAddress is falsy`)
     }
-    const address = deriveCreate2Address(this.masterAddress, signatory.keys.pub)
+    const pubKey = this.bip44.getPublicKey(0)
+    const address = deriveCreate2Address(this.masterAddress, pubKey)
 
     if (!this.isValidAddress(address)) {
       // This should never happen
       throw new Error(`Cannot get address ${index} - validation failed for derived address`)
     }
-    const { address: signerAddress } = deriveSignatory(this.getXpub(), this.depositKeyIndex, this.derivationPath)
+    const signerAddress = this.deriveStandardAddress(this.depositKeyIndex)
     return { address, signerAddress }
   }
 
@@ -89,7 +85,7 @@ export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
       throw new Error(`Cannot get private key ${index} - HdEthereumPayments was created with an xpub`)
     }
 
-    return deriveSignatory(deriveSignatory(this.xprv, 0, this.derivationPath).xkeys.xprv, index, this.derivationPath).keys.prv
+    return this.bip44.getPrivateKey(0)
   }
 }
 

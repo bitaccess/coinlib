@@ -118,6 +118,15 @@ export const HdEthereumPaymentsConfig = extendCodec(
 )
 export type HdEthereumPaymentsConfig = t.TypeOf<typeof HdEthereumPaymentsConfig>
 
+export const SeedEthereumPaymentsConfig = extendCodec(
+  BaseEthereumPaymentsConfig,
+  {
+    seed: t.string,
+  },
+  'SeedEthereumPaymentsConfig',
+)
+export type SeedEthereumPaymentsConfig = t.TypeOf<typeof SeedEthereumPaymentsConfig>
+
 export const KeyPairEthereumPaymentsConfig = extendCodec(
   BaseEthereumPaymentsConfig,
   {
@@ -166,7 +175,12 @@ export const Erc20PaymentsConfig = t.union([HdErc20PaymentsConfig, KeyPairErc20P
 export type Erc20PaymentsConfig = t.TypeOf<typeof Erc20PaymentsConfig>
 
 export const EthereumPaymentsConfig = t.union(
-  [HdEthereumPaymentsConfig, KeyPairEthereumPaymentsConfig, HdErc20PaymentsConfig, KeyPairErc20PaymentsConfig],
+  [
+    HdEthereumPaymentsConfig,
+    KeyPairEthereumPaymentsConfig,
+    HdErc20PaymentsConfig,
+    KeyPairErc20PaymentsConfig,
+  ],
   'EthereumPaymentsConfig',
 )
 export type EthereumPaymentsConfig = t.TypeOf<typeof EthereumPaymentsConfig>

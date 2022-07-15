@@ -1,3 +1,4 @@
+import { BigNumber, Numeric } from '@bitaccess/ts-common'
 import { isMatchingError, isString, Logger } from '@faast/ts-common'
 import { BlockbookEthereum, NormalizedTxEthereum } from 'blockbook-client'
 import promiseRetry from 'promise-retry'
@@ -104,4 +105,24 @@ export function getBlockBookTxFromAndToAddress(tx: NormalizedTxEthereum) {
     toAddress,
     fromAddress: inputAddresses[0],
   }
+}
+
+export function prepend0x(s: string) {
+  return s.startsWith('0x') ? s : `0x${s}`
+}
+
+export function strip0x(s: string) {
+  return s.startsWith('0x') ? s.slice(2) : s
+}
+
+export function buffToHex(b: Buffer) {
+  return prepend0x(b.toString('hex'))
+}
+
+export function hexToBuff(s: string) {
+  return Buffer.from(strip0x(s), 'hex')
+}
+
+export function numericToHex(b: Numeric) {
+  return `0x${new BigNumber(b).toString(16)}`
 }

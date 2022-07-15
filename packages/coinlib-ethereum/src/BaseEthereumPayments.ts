@@ -1,3 +1,4 @@
+import { DerivablePayport } from './../../coinlib-common/src/types';
 import { Transaction as Tx } from 'ethereumjs-tx'
 import type { TransactionConfig } from 'web3-core'
 import { cloneDeep } from 'lodash'
@@ -41,6 +42,7 @@ import {
   TOKEN_PROXY_DATA,
 } from './constants'
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
+import { buffToHex, hexToBuff, numericToHex, strip0x } from './utils'
 
 export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsConfig>
   extends EthereumPaymentsUtils
@@ -67,14 +69,11 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     if (typeof payport === 'number') {
       return this.getPayport(payport)
     } else if (typeof payport === 'string') {
-      if (!this.isValidAddress(payport)) {
-        throw new Error(`Invalid Ethereum address: ${payport}`)
-      }
-      return { address: payport.toLowerCase() }
-    }
-
-    if (this.isValidPayport(payport as any)) {
-      return { ...payport, address: (payport as any).address.toLowerCase() }
+      return { address: this.standardizeAddressOrThrow(payport) }
+    } else if (DerivablePayport.is(payport)) {
+      return this.getPayport(payport.index)
+    } else if (this.isValidPayport(payport)) {
+      return { ...payport, address: this.standardizeAddressOrThrow(payport.address) }
     }
     throw new Error(`Invalid Ethereum payport: ${JSON.stringify(payport)}`)
   }
@@ -255,15 +254,15 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
 
     const extraParam = { chain: this.networkConstants.chainId }
     const tx = new Tx(unsignedRaw, extraParam)
-    const key = Buffer.from(fromPrivateKey.slice(2), 'hex')
-    tx.sign(key)
+    const privateKeyBuffer = hexToBuff(fromPrivateKey)
+    tx.sign(privateKeyBuffer)
 
     const result: EthereumSignedTransaction = {
       ...unsignedTx,
-      id: `0x${tx.hash().toString('hex')}`,
+      id: buffToHex(tx.hash()),
       status: TransactionStatus.Signed,
       data: {
-        hex: `0x${tx.serialize().toString('hex')}`
+        hex: buffToHex(tx.serialize()),
       }
     }
     this.logger.debug('signTransaction result', result)
@@ -359,7 +358,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
         txConfig.data = options.data
       } else if (options.proxyAddress) {
         txConfig.data = TOKEN_PROXY_DATA
-          .replace(/<address to proxy>/g, options.proxyAddress.replace('0x', '').toLowerCase())
+          .replace(/<address to proxy>/g, strip0x(options.proxyAddress).toLowerCase())
       } else {
         txConfig.data = TOKEN_WALLET_DATA
       }
@@ -442,10 +441,10 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       sequenceNumber: nonce.toString(),
       data: {
         ...txConfig,
-        value:    `0x${amountWei.toString(16)}`,
-        gas:      `0x${amountOfGas.toString(16)}`,
-        gasPrice: `0x${(new BigNumber(feeOption.gasPrice)).toString(16)}`,
-        nonce:    `0x${(new BigNumber(nonce)).toString(16)}`,
+        value: numericToHex(amountWei),
+        gas: numericToHex(amountOfGas),
+        gasPrice: numericToHex(feeOption.gasPrice),
+        nonce: numericToHex(nonce),
       },
     }
     this.logger.debug('createTransactionObject result', result)

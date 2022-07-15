@@ -3,7 +3,6 @@ import { omit } from 'lodash'
 
 import { BaseEthereumPayments } from './BaseEthereumPayments'
 import { KeyPairEthereumPaymentsConfig } from './types'
-import { deriveSignatory } from './bip44'
 import { PUBLIC_CONFIG_OMIT_FIELDS } from './constants'
 
 export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereumPaymentsConfig> {
@@ -11,9 +10,12 @@ export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereu
   readonly privateKeys: { [index: number]: string | null | undefined } = {}
   readonly addressIndices: { [address: string]: number | undefined } = {}
 
+  private keyPairs: KeyPairEthereumPaymentsConfig['keyPairs']
+
   constructor(config: KeyPairEthereumPaymentsConfig) {
     super(config)
 
+    this.keyPairs = config.keyPairs
     Object.entries(config.keyPairs).forEach(([key, value]) => {
       if (typeof value === 'undefined' || value === null) {
         return
@@ -23,25 +25,24 @@ export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereu
       let address: string
       let pkey: string | null = null
 
-      if (this.web3.utils.isAddress(value)) {
-        address = value.toLowerCase()
+      if (this.isValidAddress(value)) {
+        address = this.standardizeAddressOrThrow(value)
+      } else if ( this.isValidPublicKey(value)) {
+        address = this.publicKeyToAddress(value)
       } else if (this.isValidPrivateKey(value)) {
         address = this.privateKeyToAddress(value)
-      } else if (this.isValidXprv(value)) {
-        // XXX hardened
-        const signatory = deriveSignatory(value)
-        address = signatory.address
-        pkey = signatory.keys.prv
+        pkey = value
       } else {
-        throw new Error(`KeyPairEthereumPaymentsConfig.keyPairs[${i}] is not a valid private key or address`)
-      }
-
-      if(typeof this.addressIndices[address] === 'number') {
-        return
+        throw new Error(`KeyPairEthereumPaymentsConfig.keyPairs[${i}] is not a valid private key, public key, or address`)
       }
 
       this.addresses[i] = address
       this.privateKeys[i] = pkey
+
+      const existingIndex = this.addressIndices[address]
+      if (typeof existingIndex === 'number') {
+        this.logger.debug(`KeyPairEthereumPaymentsConfig.keyPairs[${i}] is a duplicate address of index ${existingIndex}`)
+      }
       this.addressIndices[address] = i
     })
   }
@@ -54,9 +55,9 @@ export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereu
   }
 
   getAccountId(index: number): string {
-    const accountId = this.addresses[index] || ''
+    const accountId = this.addresses[index]
     if (!accountId) {
-      throw new Error(`No KeyPairEthereumPayments account configured at index ${index}`)
+      throw new Error(`Cannot get account ID at ${index} - keyPair[${index}] is ${this.keyPairs[index]}`)
     }
     return accountId
   }
@@ -66,17 +67,17 @@ export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereu
   }
 
   async getPayport(index: number): Promise<Payport> {
-    const address = this.addresses[index] || ''
-    if (!this.isValidAddress(address)) {
-      throw new Error(`Cannot get address ${index} - keyPair[${index}] is undefined or invalid address`)
+    const address = this.addresses[index]
+    if (!address) {
+      throw new Error(`Cannot get payport at ${index} - keyPair[${index}] is ${this.keyPairs[index]}`)
     }
     return { address }
   }
 
   async getPrivateKey(index: number): Promise<string> {
-    const privateKey = this.privateKeys[index] || ''
-    if (!this.isValidPrivateKey(privateKey)) {
-      throw new Error(`Cannot get private key ${index} - keyPair[${index}] is undefined`)
+    const privateKey = this.privateKeys[index]
+    if (!privateKey) {
+      throw new Error(`Cannot get private key at ${index} - keyPair[${index}] is ${this.keyPairs[index]}`)
     }
     return privateKey
   }

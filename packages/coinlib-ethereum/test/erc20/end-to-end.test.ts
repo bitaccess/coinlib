@@ -3,7 +3,7 @@ import { BaseTransactionInfo, NetworkType } from '@bitaccess/coinlib-common'
 
 import { expectEqualOmit, TestLogger } from '../../../../common/testUtils'
 
-import { hdAccount } from '../fixtures/accounts'
+import { DEFAULT_PATH_FIXTURE, hdAccount } from '../fixtures/accounts'
 import {
   HdEthereumPayments,
   HdErc20Payments,
@@ -20,7 +20,7 @@ const logger = new TestLogger('HdErc20PaymentsTest')
 
 const factory = new EthereumPaymentsFactory()
 
-const source = hdAccount.child0Child[0]
+const source = DEFAULT_PATH_FIXTURE.children[0]
 
 const tokenIssuer = {
   address: '0xFDc7C2aeba72D3F4689f995698eC44bcdfa854e8',

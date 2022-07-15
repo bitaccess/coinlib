@@ -39,10 +39,11 @@ import {
 } from './types'
 import { isValidXkey } from './bip44'
 import { NetworkData } from './NetworkData'
-import { retryIfDisconnected } from './utils'
+import { buffToHex, hexToBuff, retryIfDisconnected, strip0x } from './utils'
 import { UnitConvertersUtil } from './UnitConvertersUtil'
 import * as SIGNATURE from './erc20/constants'
 import { deriveCreate2Address } from './erc20/utils'
+import * as ethJsUtil from 'ethereumjs-util'
 
 export class EthereumPaymentsUtils extends UnitConvertersUtil implements PaymentsUtils {
   readonly networkType: NetworkType
@@ -82,13 +83,13 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     if (config.tokenAddress) {
       // ERC20 case
       if (!config.name) {
-        throw new Error(`Expected config.name to be provided for tokenAddress ${this.tokenAddress}`)
+        throw new Error(`Expected config.name to be provided for tokenAddress ${config.tokenAddress}`)
       }
       if (!config.symbol) {
-        throw new Error(`Expected config.symbol to be provided for tokenAddress ${this.tokenAddress}`)
+        throw new Error(`Expected config.symbol to be provided for tokenAddress ${config.tokenAddress}`)
       }
       if (!config.decimals) {
-        throw new Error(`Expected config.decimals to be provided for tokenAddress ${this.tokenAddress}`)
+        throw new Error(`Expected config.decimals to be provided for tokenAddress ${config.tokenAddress}`)
       }
     } else {
       // ether case
@@ -103,7 +104,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       }
     }
 
-    this.tokenAddress = config.tokenAddress?.toLowerCase()
+    this.tokenAddress = config.tokenAddress ? this.standardizeAddressOrThrow(config.tokenAddress) : undefined
     this.coinName = config.name ?? this.nativeCoinName
     this.coinSymbol = config.symbol ?? this.nativeCoinSymbol
     this.coinDecimals = config.decimals ?? this.nativeCoinDecimals
@@ -157,7 +158,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
   }
 
   standardizeAddress(address: string, options?: { format?: string }): string | null {
-    if (!this.web3.utils.isAddress(address)) {
+    if (!this.isValidAddress(address, options)) {
       return null
     }
     const format = assertType(EthereumAddressFormatT, options?.format ?? DEFAULT_ADDRESS_FORMAT, 'format')
@@ -166,6 +167,14 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     } else {
       return this.web3.utils.toChecksumAddress(address)
     }
+  }
+
+  standardizeAddressOrThrow(address: string, options?: { format?: string }): string {
+    const standardized = this.standardizeAddress(address, options)
+    if (standardized === null) {
+      throw new Error(`Invalid address ${address}`)
+    }
+    return standardized
   }
 
   isValidExtraId(extraId: unknown): boolean {
@@ -203,25 +212,30 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
 
   isValidPrivateKey(prv: string): boolean {
     try {
-      return Boolean(this.web3.eth.accounts.privateKeyToAccount(prv))
+      return ethJsUtil.isValidPrivate(hexToBuff(prv))
+    } catch (e) {
+      return false
+    }
+  }
+
+  isValidPublicKey(pub: string): boolean {
+    try {
+      return ethJsUtil.isValidPublic(hexToBuff(pub), true)
     } catch (e) {
       return false
     }
   }
 
   isAddressEqual(address1: string, address2: string) {
-    return address1.toLowerCase() === address2.toLowerCase()
+    return strip0x(address1.toLowerCase()) === strip0x(address2.toLowerCase())
   }
 
   privateKeyToAddress(prv: string): string {
-    let key: string
-    if (prv.substring(0, 2) === '0x') {
-      key = prv
-    } else {
-      key = `0x${prv}`
-    }
+    return this.standardizeAddressOrThrow(buffToHex(ethJsUtil.privateToAddress(hexToBuff(prv))))
+  }
 
-    return this.web3.eth.accounts.privateKeyToAccount(key).address.toLowerCase()
+  publicKeyToAddress(pub: string): string {
+    return this.standardizeAddressOrThrow(buffToHex(ethJsUtil.publicToAddress(hexToBuff(pub), true)))
   }
 
   private _getPayportValidationMessage(payport: Payport): string | undefined {
@@ -252,13 +266,6 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     return this.networkData.getCurrentBlockNumber()
   }
 
-  formatAddress(address: string) {
-    if (address.startsWith('0x')) {
-      return address.toLowerCase()
-    }
-
-    return `0x${address}`.toLowerCase()
-  }
 
   isAddressBalanceSweepable(balanceEth: Numeric): boolean {
     return this.toBaseDenominationBigNumberNative(balanceEth).gt(MIN_SWEEPABLE_WEI)
@@ -352,7 +359,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     const isERC20SweepLegacy = txInput.startsWith(SIGNATURE.ERC20_SWEEP_LEGACY)
 
     if (isERC20Transfer) {
-      if (toAddress.toLowerCase() !== tokenAddress.toLowerCase()) {
+      if (!this.isAddressEqual(toAddress, tokenAddress)) {
         throw new Error(`Transaction ${txId} was sent to different contract: ${toAddress}, Expected: ${tokenAddress}`)
       }
       const txData = tokenDecoder.decodeData(txInput)
@@ -394,10 +401,10 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
         throw new Error(`Transaction ${txHash} should have a to address destination`)
       }
 
-      const addr = deriveCreate2Address(sweepContractAddress, `0x${txData.inputs[0].toString('hex')}`, true)
+      const create2Addr = deriveCreate2Address(sweepContractAddress, buffToHex(txData.inputs[0]), true)
 
-      fromAddress = this.web3.utils.toChecksumAddress(addr).toLowerCase()
-      toAddress = this.web3.utils.toChecksumAddress(txData.inputs[2]).toLowerCase()
+      fromAddress = create2Addr
+      toAddress = txData.inputs[2]
       amount = this.getErc20TransferLogAmount(erc20Tx.receipt, tokenDecimals, txHash)
     } else if (isERC20SweepLegacy) {
       const tokenDecoder = new InputDataDecoder(TOKEN_WALLET_ABI_LEGACY)
@@ -416,8 +423,8 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
         throw new Error(`Transaction ${txHash} should have a to address destination`)
       }
 
-      fromAddress = this.web3.utils.toChecksumAddress(sweepContractAddress).toLowerCase()
-      toAddress = this.web3.utils.toChecksumAddress(txData.inputs[1]).toLowerCase()
+      fromAddress = sweepContractAddress
+      toAddress = txData.inputs[1]
 
       amount = this.getErc20TransferLogAmount(erc20Tx.receipt, tokenDecimals, txHash)
     } else {
@@ -431,8 +438,8 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     const result: EthereumTransactionInfo = {
       id: txHash,
       amount,
-      fromAddress: this.formatAddress(fromAddress),
-      toAddress: this.formatAddress(toAddress),
+      fromAddress: this.standardizeAddressOrThrow(fromAddress),
+      toAddress: this.standardizeAddressOrThrow(toAddress),
       fromExtraId: null,
       toExtraId: null,
       fromIndex: null,
@@ -481,8 +488,8 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     const currentBlockNumber = await this.getCurrentBlockNumber()
 
     const fee = this.toMainDenomination(new BigNumber(tx.gasPrice).multipliedBy(tx.gasUsed))
-    const fromAddress = this.formatAddress(tx.from)
-    const toAddress = this.formatAddress(tx.to ?? tx.contractAddress)
+    const fromAddress = this.standardizeAddress(tx.from)
+    const toAddress = this.standardizeAddress(tx.to ?? tx.contractAddress)
 
     const result: EthereumTransactionInfo = {
       id: tx.txHash,

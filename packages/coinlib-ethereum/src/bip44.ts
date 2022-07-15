@@ -1,92 +1,96 @@
 import Web3 from 'web3'
 import { EthereumSignatory } from './types'
 import { pubToAddress } from 'ethereumjs-util'
-import { bip32 } from "@bitaccess/coinlib-common"
+import { bip32, HDNode } from "@bitaccess/coinlib-common"
 import crypto from 'crypto'
 
 import { ec as EC } from 'elliptic'
 import { DEFAULT_DERIVATION_PATH } from './constants'
+import { buffToHex } from './utils'
 const web3 = new Web3()
 const ec = new EC('secp256k1')
 
-class EthereumBIP44 {
-  static fromExtKey(xkey: string, derivationPath: string = DEFAULT_DERIVATION_PATH) {
+export class EthereumBIP44 {
+  static fromXKey(xkey: string, derivationPath: string = DEFAULT_DERIVATION_PATH) {
     if (['xprv', 'xpub'].includes(xkey.substring(0, 4))) {
         return new EthereumBIP44(bip32.fromBase58(xkey), derivationPath)
     }
 
-    throw new Error('Not extended key')
+    throw new Error('Not a valid xpub or xprv')
   }
 
-  private parts: string[]
-  key: any
-  constructor(hdKey: any, derivationPath: string) {
-    this.parts = derivationPath.split('/')
-
-    this.key = hdKey
+  static generateNewKeys(derivationPath: string = DEFAULT_DERIVATION_PATH) {
+    return new EthereumBIP44(bip32.fromSeed(crypto.randomBytes(32)), derivationPath)
   }
 
-  getAddress(index?: number): string {
+  private partialPath: string
+  private hdNode: HDNode
+  public xprv: string
+  public xpub: string
+
+  constructor(hdNode: HDNode, derivationPath: string) {
+    /** The partial path that remains to be derived on hdNode to reach derivationPath */
+    this.partialPath = derivationPath.split('/').slice(hdNode.depth).join('/')
+    if (this.partialPath) {
+      this.hdNode = hdNode.derivePath(this.partialPath)
+    } else {
+      this.hdNode = hdNode
+    }
+    this.xprv = this.getXPrivateKey()
+    this.xpub = this.getXPublicKey()
+  }
+
+  getAddress(index: number): string {
     const derived = this.deriveByIndex(index)
-    const address = pubToAddress(derived.publicKey, true)
-
-    return web3.utils.toChecksumAddress(`0x${address.toString('hex')}`).toLowerCase()
+    const address = buffToHex(pubToAddress(derived.publicKey, true))
+    return address
   }
 
-  getPrivateKey(index?: number): string {
+  getPrivateKey(index: number): string {
     const derived = this.deriveByIndex(index)
     if (!derived.privateKey) {
       return ''
     }
-    return `0x${derived.privateKey.toString('hex')}`
+    return buffToHex(derived.privateKey)
   }
 
-  getPublicKey(index?: number): string {
-    return this.deriveByIndex(index).publicKey.toString('hex')
+  getPublicKey(index: number): string {
+    return buffToHex(this.deriveByIndex(index).publicKey)
   }
 
-  getXPrivateKey(index?: number): string {
-    const key = this.deriveByIndex(index).toBase58()
-
-    return key.substring(0, 4) === 'xpub' ? '' : key
+  getXPrivateKey(): string {
+    return this.hdNode.isNeutered()
+      ? ''
+      : this.hdNode.toBase58()
   }
 
-  getXPublicKey(index?: number) {
-    return this.deriveByIndex(index).neutered().toBase58()
+  getXPublicKey() {
+    return this.hdNode.neutered().toBase58()
   }
 
-  private deriveByIndex(index?: number) {
-    if (typeof index === 'undefined') {
-      return this.key
-    }
-    const path = this.parts.slice(this.key.depth)
-    const keyPath = path.length > 0 ? path.join('/') + '/' : ''
-    return this.key.derivePath(`${keyPath}${index.toString()}`)
+  /** Derives a concrete address index */
+  private deriveByIndex(index: number) {
+    return this.hdNode.derive(index)
   }
-}
 
-// XXX if index is not provided, derived key will be hardened
-export function deriveSignatory(xkey?: string, index?: number, derivationPath: string = DEFAULT_DERIVATION_PATH): EthereumSignatory {
-  const wallet = xkey ?
-    EthereumBIP44.fromExtKey(xkey, derivationPath) :
-    EthereumBIP44.fromExtKey(bip32.fromSeed(crypto.randomBytes(32)).toBase58(), derivationPath)
-
-  return {
-    address: wallet.getAddress(index),
-    keys: {
-      prv: wallet.getPrivateKey(index) || '',
-      pub: wallet.getPublicKey(index),
-    },
-    xkeys: {
-      xprv: wallet.getXPrivateKey(index) || '',
-      xpub: wallet.getXPublicKey(index),
+  getSignatory(index: number): EthereumSignatory {
+    return {
+      address: this.getAddress(index),
+      keys: {
+        pub: this.getPublicKey(index),
+        prv: this.getPrivateKey(index),
+      },
+      xkeys: {
+        xprv: this.getXPrivateKey(),
+        xpub: this.getXPublicKey(),
+      },
     }
   }
 }
 
 export function isValidXkey(key: string): boolean {
   try {
-    EthereumBIP44.fromExtKey(key)
+    EthereumBIP44.fromXKey(key)
     return true
   } catch (e) {
     return false

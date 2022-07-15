@@ -1,17 +1,17 @@
 import Web3 from 'web3'
 import { EthereumPaymentsUtils } from '../src/EthereumPaymentsUtils'
-import { hdAccount } from './fixtures/accounts'
+import { DEFAULT_PATH_FIXTURE, hdAccount } from './fixtures/accounts'
 
 import { TestLogger } from '../../../common/testUtils'
-import { EthereumAddressFormat } from '../src/types';
+import { EthereumAddressFormat } from '../src/types'
 const web3 = new Web3()
 const logger = new TestLogger('EthereumPaymentUtilssTest')
 
 const INVALID_ADDRESS = 'totally invalid'
-const VALID_ADDRESS = hdAccount.rootChild[0].address
-const VALID_PRVKEY = hdAccount.rootChild[0].keys.prv
-const VALID_XPRVKEY = hdAccount.rootChild[0].xkeys.xprv
-const VALID_XPUBKEY = hdAccount.rootChild[0].xkeys.xpub
+const VALID_ADDRESS = DEFAULT_PATH_FIXTURE.children[0].address
+const VALID_PRVKEY = DEFAULT_PATH_FIXTURE.children[0].keys.prv
+const VALID_XPRVKEY = DEFAULT_PATH_FIXTURE.xkeys.xprv
+const VALID_XPUBKEY = DEFAULT_PATH_FIXTURE.xkeys.xpub
 
 const VALID_ADDRESS_CHECKSUM = web3.utils.toChecksumAddress(VALID_ADDRESS)
 const VALID_ADDRESS_LOWERCASE = VALID_ADDRESS.toLowerCase()

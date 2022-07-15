@@ -101,3 +101,7 @@ export const DEFAULT_TESTNET_CONSTANTS: NetworkConstants = {
   defaultDerivationPath: DEFAULT_DERIVATION_PATH,
   chainId: 3,
 }
+
+export const ETHEREUM_ADDRESS_REGEX = /0x[0-9a-fA-F]{40}/
+export const ETHEREUM_PUBKEY_REGEX = /0x[0-9][a-f]{66}/
+export const ETHEREUM_PRVKEY_REGEX = /0x[0-9][a-f]{64}/

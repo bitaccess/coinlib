@@ -19,6 +19,7 @@ import { GetBlockOptions } from 'blockbook-client'
 import { DEFAULT_FEE_LEVEL_BLOCK_TARGETS } from './constants'
 import { BlockbookConnected } from './BlockbookConnected'
 import {
+  AddressType,
   BitcoinishPaymentsUtilsConfig, BitcoinishTransactionInfo,
   BitcoinjsNetwork,
   FeeLevelBlockTargets,

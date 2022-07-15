@@ -47,7 +47,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
   }
 
   async subscribeAddresses(addresses: string[]): Promise<void> {
-    const validAddresses = addresses.filter(address => this.isValidAddress(address))
+    const validAddresses = addresses.filter(address => this.standardizeAddressOrThrow(address))
 
     await this.networkData.subscribeAddresses(validAddresses, async (address, rawTx) => {
       this.events.emit('tx', { address, tx: rawTx })
@@ -79,6 +79,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     callbackFn: BalanceActivityCallback,
     options: GetBalanceActivityOptions,
   ): Promise<RetrieveBalanceActivitiesResult> {
+    address = this.standardizeAddressOrThrow(address)
     const { from: fromOption, to: toOption } = options
     const from = new BigNumber(
       isUndefined(fromOption) ? 0 : Numeric.is(fromOption) ? fromOption : fromOption.confirmationNumber,
@@ -142,16 +143,16 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     tx: EthereumStandardizedTransaction,
     cache: { [txid: string]: NormalizedTxEthereum },
   ) {
-    const fromAddress = tx.from
-    const toAddress = tx.to
+    const fromAddress = this.standardizeAddressOrThrow(tx.from)
+    const toAddress = this.standardizeAddressOrThrow(tx.to)
     const involvedAddresses = new Set([fromAddress, toAddress])
 
     const rawTx = await this.getTxWithMemoization(tx.txHash, cache)
 
     if (rawTx.tokenTransfers) {
       for (const tokenTransfer of rawTx.tokenTransfers) {
-        involvedAddresses.add(tokenTransfer.from)
-        involvedAddresses.add(tokenTransfer.to)
+        involvedAddresses.add(this.standardizeAddressOrThrow(tokenTransfer.from))
+        involvedAddresses.add(this.standardizeAddressOrThrow(tokenTransfer.to))
       }
     }
 
@@ -188,7 +189,8 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
       page: 1,
     })
 
-    for (const relevantAddress of relevantAddresses) {
+    for (let relevantAddress of relevantAddresses) {
+      relevantAddress = this.standardizeAddressOrThrow(relevantAddress)
       const relevantAddressTransactions = addressTransactions[relevantAddress]
       for (const { txHash } of relevantAddressTransactions) {
         const rawTx = await this.getTxWithMemoization(txHash, hardTxQueries)
@@ -257,7 +259,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
       networkType: this.networkType,
       networkSymbol: this.coinSymbol,
       assetSymbol: this.coinSymbol,
-      address,
+      address: this.standardizeAddressOrThrow(address),
       externalId: tx.txid,
       activitySequence: String(tx.ethereumSpecific.nonce),
       confirmationId: tx.blockHash ?? '',
@@ -337,7 +339,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
           networkType: this.networkType,
           networkSymbol: this.coinSymbol,
           assetSymbol: tokenTransfer.symbol,
-          address,
+          address: this.standardizeAddressOrThrow(address),
           externalId: txHash,
           activitySequence: nonce,
           confirmationId: tx.blockHash ?? '',
@@ -346,7 +348,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
           amount: unitConverter.toMainDenominationString(tokenTransfer.value),
           extraId: null,
           confirmations: tx.confirmations,
-          tokenAddress: this.formatAddress(tokenTransfer.token),
+          tokenAddress: this.standardizeAddressOrThrow(tokenTransfer.token),
         }
 
         if (balanceActivity.type === 'out') {
@@ -365,7 +367,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
         networkType: this.networkType,
         networkSymbol: this.coinSymbol,
         assetSymbol: this.coinSymbol,
-        address,
+        address: this.standardizeAddressOrThrow(address),
         externalId: tx.txid,
         activitySequence: String(tx.ethereumSpecific.nonce),
         confirmationId: tx.blockHash ?? '',

@@ -7,8 +7,8 @@ import {
 import { TestLogger } from '../../../common/testUtils'
 
 import EthereumPaymentsFactory from '../src/EthereumPaymentsFactory'
-import { hdAccount } from './fixtures/accounts'
-import { deriveSignatory } from '../src/bip44'
+import { DEFAULT_PATH_FIXTURE, hdAccount } from './fixtures/accounts'
+import { EthereumBIP44 } from '../src/bip44'
 
 const LOCAL_NODE = 'http://localhost'
 const LOCAL_NODE_WS = 'ws://localhost'
@@ -25,8 +25,8 @@ const HD_CONFIG = {
   logger,
 }
 
-const source = hdAccount.child0Child[0]
-const target = deriveSignatory()
+const source = DEFAULT_PATH_FIXTURE.children[0]
+const target = EthereumBIP44.generateNewKeys().getSignatory(0)
 
 const hd = factory.newPayments(HD_CONFIG)
 

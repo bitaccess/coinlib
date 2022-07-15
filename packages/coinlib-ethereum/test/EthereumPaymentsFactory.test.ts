@@ -7,28 +7,29 @@ import {
   KeyPairEthereumPayments,
   HdEthereumPaymentsConfig,
   KeyPairEthereumPaymentsConfig,
-  deriveSignatory,
+  EthereumBIP44,
   DEFAULT_MAINNET_CONSTANTS,
   NetworkConstants,
   EthereumPaymentsUtilsConfig,
   HdErc20Payments,
 } from '../src'
 
-import { hdAccount } from './fixtures/accounts'
+import { DEFAULT_PATH_FIXTURE, hdAccount } from './fixtures/accounts'
 
 const logger = new TestLogger('EthereumPaymentsFactory')
 
-const account0 = hdAccount.rootChild[0]
+const account0 = DEFAULT_PATH_FIXTURE
+const child0 = account0.children[0]
 const FULL_NODE = 'http://localhost'
 
 const HD_CONFIG: HdEthereumPaymentsConfig = {
   fullNode: FULL_NODE,
-  hdKey: account0.xkeys.xprv,
+  hdKey: hdAccount.root.KEYS.xprv,
   logger,
 }
 const KP_CONFIG: KeyPairEthereumPaymentsConfig = {
   fullNode: FULL_NODE,
-  keyPairs: [ account0.xkeys.xprv, account0.keys.prv, account0.address.toLowerCase() ],
+  keyPairs: [child0.keys.pub, child0.keys.prv, child0.address.toLowerCase()],
   logger,
 }
 const UTILS_CONFIG: EthereumPaymentsUtilsConfig = {
@@ -62,7 +63,7 @@ describe('EthereumPaymentsFactory', () => {
       expect(hdP).toBeInstanceOf(HdEthereumPayments)
       expect(hdP.getPublicConfig()).toStrictEqual({
         depositKeyIndex: 0,
-        hdKey: deriveSignatory(account0.xkeys.xpub, 0).xkeys.xpub,
+        hdKey: account0.xkeys.xpub,
         derivationPath: DEFAULT_MAINNET_CONSTANTS.defaultDerivationPath,
       })
       expect(hdP.coinDecimals).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinDecimals)
@@ -83,7 +84,7 @@ describe('EthereumPaymentsFactory', () => {
       expect(hdP).toBeInstanceOf(HdEthereumPayments)
       expect(hdP.getPublicConfig()).toStrictEqual({
         depositKeyIndex: 0,
-        hdKey: deriveSignatory(account0.xkeys.xpub, 0).xkeys.xpub,
+        hdKey: account0.xkeys.xpub,
         derivationPath: CUSTOM_NETWORK.defaultDerivationPath,
       })
       expect(hdP.coinDecimals).toBe(CUSTOM_NETWORK.nativeCoinDecimals)
@@ -104,7 +105,7 @@ describe('EthereumPaymentsFactory', () => {
       expect(hdP).toBeInstanceOf(HdErc20Payments)
       expect(hdP.getPublicConfig()).toStrictEqual({
         depositKeyIndex: 0,
-        hdKey: deriveSignatory(account0.xkeys.xpub, 0).xkeys.xpub,
+        hdKey: account0.xkeys.xpub,
         derivationPath: DEFAULT_MAINNET_CONSTANTS.defaultDerivationPath,
         ...TOKEN_CONFIG,
       })
@@ -127,7 +128,7 @@ describe('EthereumPaymentsFactory', () => {
       expect(hdP).toBeInstanceOf(HdErc20Payments)
       expect(hdP.getPublicConfig()).toStrictEqual({
         depositKeyIndex: 0,
-        hdKey: deriveSignatory(account0.xkeys.xpub, 0).xkeys.xpub,
+        hdKey: account0.xkeys.xpub,
         derivationPath: CUSTOM_NETWORK.defaultDerivationPath,
         ...TOKEN_CONFIG,
       })
@@ -145,7 +146,7 @@ describe('EthereumPaymentsFactory', () => {
 
       expect(kP).toBeInstanceOf(KeyPairEthereumPayments)
       expect(kP.getPublicConfig()).toStrictEqual({
-        keyPairs: { 0: account0.address.toLowerCase() }
+        keyPairs: { 0: child0.address.toLowerCase() }
       })
     })
 

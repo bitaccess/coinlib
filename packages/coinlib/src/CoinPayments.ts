@@ -1,6 +1,6 @@
 import * as bip39 from 'bip39'
 import { assertType, Logger } from '@faast/ts-common'
-import { PaymentsFactory, AnyPayments, NetworkType, bip32 } from '@bitaccess/coinlib-common'
+import { PaymentsFactory, AnyPayments, NetworkType, bip32, keysOf } from '@bitaccess/coinlib-common'
 
 import {
   CoinPaymentsConfig,
@@ -8,7 +8,6 @@ import {
   paymentsConfigCodecs,
   CoinPaymentsPartialConfigs,
 } from './types'
-import { keysOf } from './utils'
 import { SUPPORTED_NETWORK_SYMBOLS, PAYMENTS_FACTORIES } from './constants'
 
 
@@ -131,7 +130,7 @@ export class CoinPayments {
         ...extraConfig,
       })
     }
-    return payments 
+    return payments
   }
 
   isNetworkSupported(networkSymbol: string): networkSymbol is SupportedCoinPaymentsSymbol {
