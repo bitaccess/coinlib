@@ -113,7 +113,6 @@ describe('HdEthereumPayments', () => {
 
       test('returns payport using input payport with index', async () => {
         expect(await hdEP.resolvePayport({ index: 1, address: FROM_ADDRESS })).toStrictEqual({
-          index: 1,
           address: FROM_ADDRESS.toLowerCase(),
         })
       })
@@ -125,7 +124,7 @@ describe('HdEthereumPayments', () => {
         } catch (e) {
           err = e.message
         }
-        expect(err).toBe('Invalid Ethereum address: 1')
+        expect(err).toBe('Invalid Ethereum Ropsten address: 1')
       })
 
       test('thorws an error for invalid object', async () => {
@@ -135,7 +134,7 @@ describe('HdEthereumPayments', () => {
         } catch (e) {
           err = e.message
         }
-        expect(err).toBe('Invalid Ethereum payport: {"address":"1"}')
+        expect(err).toBe('Invalid Ethereum Ropsten payport: {"address":"1"}')
       })
     })
 
@@ -665,7 +664,7 @@ describe('HdEthereumPayments', () => {
         const res = await hdEP.signTransaction(unsignedTx)
 
         expect(res).toStrictEqual({
-          id: '0x3137b3336975aabfcf141469727d8d805f5e6d343de7fcc93e61d8d19d5d238f',
+          id: '0xb366947a1ba5c99fbdecea49d22f491d27054db85a743914e0717aae8c5d5227',
           status: 'signed',
           fromAddress: FROM_ADDRESS.toLowerCase(),
           toAddress: to.address.toLowerCase(),
@@ -681,7 +680,7 @@ describe('HdEthereumPayments', () => {
           weight: 21000,
           data: {
             hex:
-              '0xf86c1b8545d964b80082523c948f0bb36577b19da9826fc726fec2b4943c45e0148801e33c7f8ff555728029a0a7dafa27f75d1fd50e8544a0f1f31ac4275a65855b05585fdbe2796fab967e5aa057b626e4f993d1e2152fb0fa1ca72943aacaf27d56adca2f3f195ab90d253d73',
+              '0xf86c1b8545d964b80082523c94fc61c91ec513910ce88450c150e22408c1fcf1588801e33c7f8ff555728029a088d153fa98182a2151a9b8e7074c73519b2101627c6daa3a5924f24520e2a590a05a73efd9aede6ae7f8e3168e273358c4f2574b260b09b2e781d513f4281f8654',
           },
         })
       })

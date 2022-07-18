@@ -7,14 +7,13 @@ import {
   KeyPairEthereumPayments,
   HdEthereumPaymentsConfig,
   KeyPairEthereumPaymentsConfig,
-  EthereumBIP44,
   DEFAULT_MAINNET_CONSTANTS,
   NetworkConstants,
   EthereumPaymentsUtilsConfig,
   HdErc20Payments,
 } from '../src'
 
-import { DEFAULT_PATH_FIXTURE, hdAccount } from './fixtures/accounts'
+import { DEFAULT_PATH_FIXTURE, BBB_DERIVATION_PATH, BBB_PATH_FIXTURE, hdAccount } from './fixtures/accounts'
 
 const logger = new TestLogger('EthereumPaymentsFactory')
 
@@ -29,7 +28,7 @@ const HD_CONFIG: HdEthereumPaymentsConfig = {
 }
 const KP_CONFIG: KeyPairEthereumPaymentsConfig = {
   fullNode: FULL_NODE,
-  keyPairs: [child0.keys.pub, child0.keys.prv, child0.address.toLowerCase()],
+  keyPairs: [child0.keys.pub, child0.keys.prv, child0.address],
   logger,
 }
 const UTILS_CONFIG: EthereumPaymentsUtilsConfig = {
@@ -44,12 +43,12 @@ const TOKEN_CONFIG = {
   decimals: 7,
 }
 
-const CUSTOM_NETWORK: NetworkConstants = {
+const BBB_NETWORK: NetworkConstants = {
   networkName: 'Brilliant Baboon Blockchain',
   nativeCoinName: 'Brilliant Baboon Booty',
   nativeCoinSymbol: 'BBB',
   nativeCoinDecimals: 888,
-  defaultDerivationPath: "m/44'/888'/0'/0",
+  defaultDerivationPath: BBB_DERIVATION_PATH,
   chainId: 888,
 }
 
@@ -78,22 +77,22 @@ describe('EthereumPaymentsFactory', () => {
     it('should instantiate HdEthereumPayments for custom network', () => {
       const hdP = factory.newPayments({
         ...HD_CONFIG,
-        networkConstants: CUSTOM_NETWORK,
+        networkConstants: BBB_NETWORK,
       })
 
       expect(hdP).toBeInstanceOf(HdEthereumPayments)
       expect(hdP.getPublicConfig()).toStrictEqual({
         depositKeyIndex: 0,
-        hdKey: account0.xkeys.xpub,
-        derivationPath: CUSTOM_NETWORK.defaultDerivationPath,
+        hdKey: BBB_PATH_FIXTURE.xkeys.xpub,
+        derivationPath: BBB_NETWORK.defaultDerivationPath,
       })
-      expect(hdP.coinDecimals).toBe(CUSTOM_NETWORK.nativeCoinDecimals)
-      expect(hdP.coinName).toBe(CUSTOM_NETWORK.nativeCoinName)
-      expect(hdP.coinSymbol).toBe(CUSTOM_NETWORK.nativeCoinSymbol)
-      expect(hdP.nativeCoinDecimals).toBe(CUSTOM_NETWORK.nativeCoinDecimals)
-      expect(hdP.nativeCoinName).toBe(CUSTOM_NETWORK.nativeCoinName)
-      expect(hdP.nativeCoinSymbol).toBe(CUSTOM_NETWORK.nativeCoinSymbol)
-      expect(hdP.networkConstants).toEqual(CUSTOM_NETWORK)
+      expect(hdP.coinDecimals).toBe(BBB_NETWORK.nativeCoinDecimals)
+      expect(hdP.coinName).toBe(BBB_NETWORK.nativeCoinName)
+      expect(hdP.coinSymbol).toBe(BBB_NETWORK.nativeCoinSymbol)
+      expect(hdP.nativeCoinDecimals).toBe(BBB_NETWORK.nativeCoinDecimals)
+      expect(hdP.nativeCoinName).toBe(BBB_NETWORK.nativeCoinName)
+      expect(hdP.nativeCoinSymbol).toBe(BBB_NETWORK.nativeCoinSymbol)
+      expect(hdP.networkConstants).toEqual(BBB_NETWORK)
     })
 
     it('should instantiate HdErc20Payments', () => {
@@ -122,23 +121,23 @@ describe('EthereumPaymentsFactory', () => {
       const hdP = factory.newPayments({
         ...HD_CONFIG,
         ...TOKEN_CONFIG,
-        networkConstants: CUSTOM_NETWORK,
+        networkConstants: BBB_NETWORK,
       })
 
       expect(hdP).toBeInstanceOf(HdErc20Payments)
       expect(hdP.getPublicConfig()).toStrictEqual({
         depositKeyIndex: 0,
-        hdKey: account0.xkeys.xpub,
-        derivationPath: CUSTOM_NETWORK.defaultDerivationPath,
+        hdKey: BBB_PATH_FIXTURE.xkeys.xpub,
+        derivationPath: BBB_NETWORK.defaultDerivationPath,
         ...TOKEN_CONFIG,
       })
       expect(hdP.coinDecimals).toBe(TOKEN_CONFIG.decimals)
       expect(hdP.coinName).toBe(TOKEN_CONFIG.name)
       expect(hdP.coinSymbol).toBe(TOKEN_CONFIG.symbol)
-      expect(hdP.nativeCoinDecimals).toBe(CUSTOM_NETWORK.nativeCoinDecimals)
-      expect(hdP.nativeCoinName).toBe(CUSTOM_NETWORK.nativeCoinName)
-      expect(hdP.nativeCoinSymbol).toBe(CUSTOM_NETWORK.nativeCoinSymbol)
-      expect(hdP.networkConstants).toEqual(CUSTOM_NETWORK)
+      expect(hdP.nativeCoinDecimals).toBe(BBB_NETWORK.nativeCoinDecimals)
+      expect(hdP.nativeCoinName).toBe(BBB_NETWORK.nativeCoinName)
+      expect(hdP.nativeCoinSymbol).toBe(BBB_NETWORK.nativeCoinSymbol)
+      expect(hdP.networkConstants).toEqual(BBB_NETWORK)
     })
 
     it('should instantiate KeyPairEthereumPayments', () => {
@@ -146,7 +145,11 @@ describe('EthereumPaymentsFactory', () => {
 
       expect(kP).toBeInstanceOf(KeyPairEthereumPayments)
       expect(kP.getPublicConfig()).toStrictEqual({
-        keyPairs: { 0: child0.address.toLowerCase() }
+        keyPairs: {
+          0: child0.address.toLowerCase(),
+          1: child0.address.toLowerCase(),
+          2: child0.address.toLowerCase(),
+        }
       })
     })
 

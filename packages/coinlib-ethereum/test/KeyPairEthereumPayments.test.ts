@@ -31,9 +31,9 @@ const CONFIG: KeyPairEthereumPaymentsConfig = {
 }
 
 const EXPECTED_ADDRESSES: KeyPairEthereumPayments['addresses'] = {
-  0: child1.address,
-  2: child0.address,
-  3: child0.address,
+  0: child1.address.toLowerCase(),
+  2: child0.address.toLowerCase(),
+  3: child0.address.toLowerCase(),
 }
 
 const EXPECTED_PRIVATE_KEYS: KeyPairEthereumPayments['privateKeys'] = {
@@ -42,8 +42,8 @@ const EXPECTED_PRIVATE_KEYS: KeyPairEthereumPayments['privateKeys'] = {
 
 /** These indices are based on the order provided in keyPairs list */
 const EXPECTED_ADDRESS_INDICES: KeyPairEthereumPayments['addressIndices'] = {
-  [child1.address]: 0,
-  [child0.address]: 3,
+  [child1.address.toLowerCase()]: 0,
+  [child0.address.toLowerCase()]: 3,
 }
 
 // methods from base
@@ -80,7 +80,7 @@ describe('KeyPairEthereumPayments', () => {
 
     describe('getAccountIds', () => {
       test('returns array of addresses', () => {
-        expect(kpEP.getAccountIds().sort()).toEqual(Object.values(EXPECTED_ADDRESSES).sort())
+        expect(kpEP.getAccountIds().sort()).toEqual(Object.keys(EXPECTED_ADDRESS_INDICES).sort())
       })
     })
 
@@ -103,7 +103,7 @@ describe('KeyPairEthereumPayments', () => {
     describe('can get private keys that are specified', () => {
       for (const i of keysOf(EXPECTED_PRIVATE_KEYS)) {
         test(`can getPrivateKey at ${i}`, async () => {
-          expect(await kpEP.getPrivateKey(0)).toBe(EXPECTED_PRIVATE_KEYS[i])
+          expect(await kpEP.getPrivateKey(i)).toBe(EXPECTED_PRIVATE_KEYS[i])
         })
       }
     })
@@ -118,12 +118,12 @@ describe('KeyPairEthereumPayments', () => {
           expect(() => kpEP.getAccountId(i)).toThrowError(`Cannot get account ID at ${i}`)
         })
 
-        test(`cannot getPayport at ${i}`, () => {
-          expect(() => kpEP.getPayport(i)).toThrowError(`Cannot get payport at ${i}`)
+        test(`cannot getPayport at ${i}`, async () => {
+          await expect(kpEP.getPayport(i)).rejects.toThrowError(`Cannot get payport at ${i}`)
         })
 
-        test(`cannot getPrivateKey at ${i}`, () => {
-          expect(() => kpEP.getPrivateKey(i)).toThrowError(`Cannot get private key at ${i}`)
+        test(`cannot getPrivateKey at ${i}`, async () => {
+          await expect(kpEP.getPrivateKey(i)).rejects.toThrowError(`Cannot get private key at ${i}`)
         })
       }
     })

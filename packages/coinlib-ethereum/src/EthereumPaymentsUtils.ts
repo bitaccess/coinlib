@@ -46,6 +46,7 @@ import { deriveCreate2Address } from './erc20/utils'
 import * as ethJsUtil from 'ethereumjs-util'
 
 export class EthereumPaymentsUtils extends UnitConvertersUtil implements PaymentsUtils {
+  readonly networkName: string
   readonly networkType: NetworkType
   readonly coinSymbol: string
   readonly coinName: string
@@ -76,6 +77,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
         : DEFAULT_TESTNET_CONSTANTS),
       ...config.networkConstants,
     }
+    this.networkName = this.networkConstants.networkName
     this.nativeCoinName = this.networkConstants.nativeCoinName
     this.nativeCoinSymbol = this.networkConstants.nativeCoinSymbol
     this.nativeCoinDecimals = this.networkConstants.nativeCoinDecimals
@@ -104,7 +106,6 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       }
     }
 
-    this.tokenAddress = config.tokenAddress ? this.standardizeAddressOrThrow(config.tokenAddress) : undefined
     this.coinName = config.name ?? this.nativeCoinName
     this.coinSymbol = config.symbol ?? this.nativeCoinSymbol
     this.coinDecimals = config.decimals ?? this.nativeCoinDecimals
@@ -136,6 +137,9 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     this.web3 = this.networkData.web3Service.web3
     this.eth = this.web3.eth
     this.blockBookApi = this.networkData.blockBookService.api ?? undefined
+
+    // standardize call depends on this.web3 so it must come last here
+    this.tokenAddress = config.tokenAddress ? this.standardizeAddressOrThrow(config.tokenAddress) : undefined
   }
 
   protected newContract(...args: ConstructorParameters<typeof Contract>) {
@@ -172,7 +176,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
   standardizeAddressOrThrow(address: string, options?: { format?: string }): string {
     const standardized = this.standardizeAddress(address, options)
     if (standardized === null) {
-      throw new Error(`Invalid address ${address}`)
+      throw new Error(`Invalid ${this.networkName} address: ${address}`)
     }
     return standardized
   }
@@ -242,10 +246,10 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     try {
       const { address } = payport
       if (!this.isValidAddress(address)) {
-        return 'Invalid payport address'
+        return `Invalid ${this.networkName} payport address`
       }
     } catch (e) {
-      return 'Invalid payport address'
+      return `Invalid ${this.networkName} payport address`
     }
     return undefined
   }

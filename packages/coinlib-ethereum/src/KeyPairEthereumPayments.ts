@@ -7,7 +7,7 @@ import { PUBLIC_CONFIG_OMIT_FIELDS } from './constants'
 
 export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereumPaymentsConfig> {
   readonly addresses: { [index: number]: string | undefined } = {}
-  readonly privateKeys: { [index: number]: string | null | undefined } = {}
+  readonly privateKeys: { [index: number]: string | undefined } = {}
   readonly addressIndices: { [address: string]: number | undefined } = {}
 
   private keyPairs: KeyPairEthereumPaymentsConfig['keyPairs']
@@ -23,7 +23,7 @@ export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereu
 
       const i = Number.parseInt(key)
       let address: string
-      let pkey: string | null = null
+      let pkey: string | undefined
 
       if (this.isValidAddress(value)) {
         address = this.standardizeAddressOrThrow(value)
@@ -37,7 +37,9 @@ export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereu
       }
 
       this.addresses[i] = address
-      this.privateKeys[i] = pkey
+      if (pkey) {
+        this.privateKeys[i] = pkey
+      }
 
       const existingIndex = this.addressIndices[address]
       if (typeof existingIndex === 'number') {
@@ -77,7 +79,7 @@ export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereu
   async getPrivateKey(index: number): Promise<string> {
     const privateKey = this.privateKeys[index]
     if (!privateKey) {
-      throw new Error(`Cannot get private key at ${index} - keyPair[${index}] is ${this.keyPairs[index]}`)
+      throw new Error(`Cannot get private key at ${index}`)
     }
     return privateKey
   }

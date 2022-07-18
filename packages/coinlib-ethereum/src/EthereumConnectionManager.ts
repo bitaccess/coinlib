@@ -1,4 +1,3 @@
-import Web3 from 'web3'
 import { PaymentsConnectionManager } from '@bitaccess/coinlib-common'
 
 import { EthereumNodesConnection, EthereumPaymentsUtilsConfig } from './types'

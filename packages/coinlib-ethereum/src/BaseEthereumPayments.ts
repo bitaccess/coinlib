@@ -75,7 +75,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     } else if (this.isValidPayport(payport)) {
       return { ...payport, address: this.standardizeAddressOrThrow(payport.address) }
     }
-    throw new Error(`Invalid Ethereum payport: ${JSON.stringify(payport)}`)
+    throw new Error(`Invalid ${this.networkName} payport: ${JSON.stringify(payport)}`)
   }
 
   async resolveFromTo(from: number, to: ResolveablePayport): Promise<FromTo> {

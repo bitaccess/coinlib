@@ -71,6 +71,23 @@ export const CUSTOM_PATH_FIXTURE: AccountFixture = {
   }
 }
 
+export const BBB_DERIVATION_PATH = "m/44'/888'/0'/0"
+export const BBB_PATH_FIXTURE: AccountFixture = {
+  xkeys: {
+    xpub: 'xpub6EXMcCvrckxdxrjEEbtwLAjQKPbRjnBbkRNpX1Mj1PiCRuvinjJmfiNSaE6Q4VGPGyH7oxGjAYJoqsGuyjMNKj9bmLhQwvhuqLCb4qGBdNh',
+    xprv: 'xprvA1Y1ChPxnPQLkNem8aMvy2nfmMkwLKTkPCTDicx7T4BDZ7baFBzX7v3xixXWE3zkqPjAFdxqCDt4fURCndvp6jSZC8J6e214adJYPyoKWCY',
+  },
+  children: {
+    0: {
+      address: '0x8c8320d84128f396531A79C9A3C590f07f334756',
+      keys: {
+        prv: '0xd0c066bbd459568bc2c11cd72f315e2566430788ce8b8717ee33c54f3979c57f',
+        pub: '0x034e2b2d670a3a46904474f2c5d494ea12af1e45945c169b17f23303805985b68b',
+      }
+    }
+  }
+}
+
 /**
  * The following fixtures were verified using the third party bip32 tool at https://iancoleman.io/bip39/ using the
  * root.KEYS.xprv in the "BIP32 Root Key" field and setting "Coin" to "Ethereum".
@@ -87,5 +104,6 @@ export const hdAccount = {
     undefined: DEFAULT_PATH_FIXTURE,
     [DEFAULT_DERIVATION_PATH]: DEFAULT_PATH_FIXTURE,
     [CUSTOM_DERIVATION_PATH]: CUSTOM_PATH_FIXTURE,
+    [BBB_DERIVATION_PATH]: BBB_PATH_FIXTURE,
   },
 }

@@ -85,7 +85,7 @@ export const FULL_ERC20_TOKEN_METHODS_ABI = JSON.parse(
 export const BALANCE_ACTIVITY_EVENT = 'activity'
 
 export const DEFAULT_MAINNET_CONSTANTS: NetworkConstants = {
-  networkName: 'ethereum mainnet',
+  networkName: 'Ethereum',
   nativeCoinName: 'ether',
   nativeCoinSymbol: 'ETH',
   nativeCoinDecimals: DEFAULT_DECIMALS,
@@ -94,7 +94,7 @@ export const DEFAULT_MAINNET_CONSTANTS: NetworkConstants = {
 }
 
 export const DEFAULT_TESTNET_CONSTANTS: NetworkConstants = {
-  networkName: 'ethereum ropsten',
+  networkName: 'Ethereum Ropsten',
   nativeCoinName: 'ropsten ether',
   nativeCoinSymbol: 'ropstenETH',
   nativeCoinDecimals: DEFAULT_DECIMALS,
