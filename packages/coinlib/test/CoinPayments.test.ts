@@ -138,6 +138,13 @@ describe('CoinPayments', () => {
         })
       })
     })
+    describe('getFingerprint', () => {
+      it('returns fingerprint', () => {
+        const fingerprint: string = cp.getFingerprint()
+        const expectedFingerprint: string = "dca7ab4b"
+        expect(fingerprint).toBe(expectedFingerprint)
+      })
+    })
   })
 
   describe('instance mnemonic', () => {
@@ -201,6 +208,13 @@ describe('CoinPayments', () => {
         SUPPORTED_NETWORK_SYMBOLS.forEach((s) => {
           expect(cp.isNetworkConfigured(s)).toBe(true)
         })
+      })
+    })
+    describe('getFingerprint', () => {
+      it('returns fingerprint', () => {
+        const fingerprint: string = cp.getFingerprint()
+        const expectedFingerprint: string = "d9906b5e"
+        expect(fingerprint).toBe(expectedFingerprint)
       })
     })
   })
@@ -267,6 +281,13 @@ describe('CoinPayments', () => {
         SUPPORTED_NETWORK_SYMBOLS.forEach((s) => {
           expect(cp.isNetworkConfigured(s)).toBe(true)
         })
+      })
+    })
+    describe('getFingerprint', () => {
+      it('returns fingerprint', () => {
+        const fingerprint: string = cp.getFingerprint()
+        const expectedFingerprint: string = "d9906b5e"
+        expect(fingerprint).toBe(expectedFingerprint)
       })
     })
   })

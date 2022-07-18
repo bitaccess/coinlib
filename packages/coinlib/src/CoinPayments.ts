@@ -142,6 +142,13 @@ export class CoinPayments {
     return this.isNetworkSupported(networkSymbol) && Boolean(this.payments[networkSymbol])
   }
 
+  getFingerprint(): string {
+    if (!this.seedBuffer) {
+      throw new Error("Seed missing from CoinPayments")
+    }
+    const root = bip32.fromSeed(this.seedBuffer)
+    return root.fingerprint.toString('hex')
+  }
 }
 
 export default CoinPayments
