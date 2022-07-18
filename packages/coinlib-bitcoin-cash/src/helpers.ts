@@ -1,5 +1,5 @@
-import { createUnitConverters, NetworkType, BitcoinishAddressType } from '@bitaccess/coinlib-common'
-import { bitcoinish, publicKeyToBuffer } from '@bitaccess/coinlib-bitcoin'
+import { createUnitConverters, NetworkType } from '@bitaccess/coinlib-common'
+import { bitcoinish, publicKeyToBuffer, AddressType } from '@bitaccess/coinlib-bitcoin'
 import * as bitcoincash from 'bitcoinforksjs-lib'
 import bchaddrjs from 'bchaddrjs'
 
@@ -168,7 +168,7 @@ export function isSupportedAddressType(addressType: string): boolean {
   return BITCOINCASH_SUPPORTED_ADDRESS_TYPES.map(at => at.toString()).includes(addressType)
 }
 
-export function getSupportedAddressTypes(): BitcoinishAddressType[] {
+export function getSupportedAddressTypes(): AddressType[] {
   return BITCOINCASH_SUPPORTED_ADDRESS_TYPES
 }
 

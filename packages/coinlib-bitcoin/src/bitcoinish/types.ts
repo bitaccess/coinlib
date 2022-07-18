@@ -2,7 +2,6 @@ import * as t from 'io-ts'
 import {
   BaseUnsignedTransaction, BaseSignedTransaction, FeeRate, AutoFeeLevels,
   BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, NetworkTypeT, FeeLevel,
-  BitcoinishAddressType
 } from '@bitaccess/coinlib-common'
 import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger, Numeric, enumCodec } from '@faast/ts-common'
 import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib-bigint'
@@ -21,10 +20,19 @@ export type BitcoinjsKeyPair = BitcoinjsSigner & {
   privateKey?: Buffer
   toWIF(): string
 }
+export enum BitcoinishAddressType {
+  Legacy = 'p2pkh',
+  SegwitP2SH = 'p2sh-p2wpkh',
+  SegwitNative = 'p2wpkh',
+  MultisigLegacy = 'p2sh-p2ms',
+  MultisigSegwitP2SH = 'p2sh-p2wsh-p2ms',
+  MultisigSegwitNative = 'p2wsh-p2ms'
+}
 
 export type AddressType = BitcoinishAddressType
 export const AddressType = BitcoinishAddressType
 export const AddressTypeT = enumCodec<AddressType>(AddressType, 'AddressType')
+
 
 // For unclear reasons tsc throws TS4023 when this type is used in an external module.
 // Re-exporting the codec cast to the inferred type helps fix this.

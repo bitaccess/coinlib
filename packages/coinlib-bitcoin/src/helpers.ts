@@ -1,4 +1,4 @@
-import { createUnitConverters, NetworkType, BitcoinishAddressType } from '@bitaccess/coinlib-common'
+import { createUnitConverters, NetworkType } from '@bitaccess/coinlib-common'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import {
   DECIMAL_PLACES,
@@ -70,46 +70,11 @@ export function isSupportedAddressType(addressType: string): boolean {
   return BITCOIN_SUPPORTED_ADDRESS_TYPES.map(at => at.toString()).includes(addressType)
 }
 
-export function getSupportedAddressTypes(): BitcoinishAddressType[] {
+export function getSupportedAddressTypes(): bitcoinish.AddressType[] {
   return BITCOIN_SUPPORTED_ADDRESS_TYPES
 }
-
-// export function determinePathForIndex(
-//   accountIndex: number,
-//   addressType?: BitcoinishAddressType,
-//   networkType?: NetworkType,
-// ): ((
-//   accountIndex: number,
-//   addressType?: BitcoinishAddressType,
-//   networkType?: NetworkType,
-// ) => string) {
-//   const constants = {
-//     coinName: COIN_NAME,
-//     defaultPurpose: DEFAULT_PURPOSE,
-//     coinTypes: BITCOIN_COINTYPES,
-//   }
-//   const functions = {
-//     isSupportedAddressType,
-//   }
-
-//   const determinePathForIndexFn = bitcoinish.createDeterminePathForIndexHelper(constants, functions)
-//   // const derivationPath = determinePathForIndexFn(accountIndex, addressType, networkType)
-//   return determinePathForIndexFn
-// }
-
 
 export function hexSeedToBuffer(seedHex: string): Buffer {
   const seedBuffer = Buffer.from(seedHex, 'hex')
   return seedBuffer
 }
-
-// export function deriveUniPubKeyForPath(seed: Buffer, derivationPath: string, networkType: NetworkType): string {
-//   const constants = {
-//     networks: NETWORKS,
-//     networkType: networkType,
-//   }
-//   const deriveUniPubKeyForPathFn = bitcoinish.createDeriveUniPubKeyForPathHelper(constants)
-
-//   const uniPubKey: string = deriveUniPubKeyForPathFn(seed, derivationPath)
-//   return uniPubKey
-// }

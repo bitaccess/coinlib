@@ -1,5 +1,5 @@
 import * as bitcoin from 'bitcoinjs-lib-bigint'
-import { UtxoInfo, BitcoinishAddressType, NetworkType } from '@bitaccess/coinlib-common'
+import { UtxoInfo, NetworkType } from '@bitaccess/coinlib-common'
 
 import { toBitcoinishConfig } from './utils'
 import { BaseBitcoinPaymentsConfig, AddressType, AddressTypeT, PsbtInputData } from './types'

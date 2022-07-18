@@ -1,4 +1,4 @@
-import { createUnitConverters, NetworkType, BitcoinishAddressType } from '@bitaccess/coinlib-common'
+import { createUnitConverters, NetworkType } from '@bitaccess/coinlib-common'
 import { bitcoinish, AddressType } from '@bitaccess/coinlib-bitcoin'
 
 import * as bitcoin from 'bitcoinjs-lib-bigint'
@@ -85,7 +85,7 @@ export function isSupportedAddressType(addressType: string): boolean {
   return dogeSupportedTypes.map(at => at.toString()).includes(addressType)
 }
 
-export function getSupportedAddressTypes(): BitcoinishAddressType[] {
+export function getSupportedAddressTypes(): AddressType[] {
   return DOGE_SUPPORTED_ADDRESS_TYPES
 }
 
