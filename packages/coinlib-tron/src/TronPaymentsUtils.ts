@@ -23,6 +23,8 @@ import {
   isValidPrivateKey,
   privateKeyToAddress,
   toMainDenominationBigNumber,
+  isSupportedAddressType,
+  getSupportedAddressTypes,
   determinePathForIndex,
   deriveUniPubKeyForPath,
 } from './helpers'
@@ -263,6 +265,14 @@ export class TronPaymentsUtils implements PaymentsUtils {
     } catch (e) {
       throw toError(e)
     }
+  }
+
+  isSupportedAddressType(addressType: string): boolean {
+    return isSupportedAddressType(addressType)
+  }
+
+  getSupportedAddressTypes(): string[] {
+    return getSupportedAddressTypes()
   }
 
   determinePathForIndex(accountIndex: number, addressType?: any): string {

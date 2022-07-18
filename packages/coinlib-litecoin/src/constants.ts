@@ -6,6 +6,7 @@ export const PACKAGE_NAME = 'litecoin-payments'
 export const DECIMAL_PLACES = 8
 export const COIN_SYMBOL = 'LTC'
 export const COIN_NAME = 'Litecoin'
+export const DEFAULT_PURPOSE: string = '84'
 
 /**
  * The minimum value a transaction output must be in order to not get rejected by the network.
@@ -86,5 +87,16 @@ export const DEFAULT_FEE_LEVEL_BLOCK_TARGETS: bitcoinish.FeeLevelBlockTargets = 
   [FeeLevel.Low]: 4 * 144,
 }
 
-export const LITECOIN_COINTYPE_MAINNET = '2'
-export const LITECOIN_COINTYPE_TESTNET = '1'
+export const LITECOIN_SUPPORTED_ADDRESS_TYPES = [
+  AddressType.Legacy,
+  AddressType.SegwitNative,
+  AddressType.SegwitP2SH,
+  AddressType.MultisigLegacy,
+  AddressType.MultisigSegwitNative,
+  AddressType.MultisigSegwitP2SH,
+]
+export const DEFAULT_ADDRESS_TYPE = AddressType.Legacy
+export const LITECOIN_COINTYPES = {
+  [NetworkType.Mainnet]: '2',
+  [NetworkType.Testnet]: '2',
+}

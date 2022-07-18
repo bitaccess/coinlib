@@ -1,15 +1,21 @@
-import { BitcoinishPaymentsUtils } from './bitcoinish'
+import {
+  BitcoinishPaymentsUtils,
+  createDeterminePathForIndexHelper,
+  createDeriveUniPubKeyForPathHelper,
+} from './bitcoinish'
 import { toBitcoinishConfig } from './utils'
-import { BitcoinPaymentsUtilsConfig, BitcoinjsNetwork } from './types'
+import { BitcoinPaymentsUtilsConfig, AddressType, AddressTypeT } from './types'
 import {
   isValidAddress,
   isValidPrivateKey,
   standardizeAddress,
   isValidPublicKey,
-  determinePathForIndex,
-  deriveUniPubKeyForPath,
+  isSupportedAddressType,
+  getSupportedAddressTypes,
 } from './helpers'
-import { BitcoinishAddressType, NetworkType } from '@bitaccess/coinlib-common'
+import { NetworkType } from '@bitaccess/coinlib-common'
+import { assertType } from '@bitaccess/ts-common'
+import { DEFAULT_ADDRESS_TYPE, COIN_NAME, DEFAULT_PURPOSE, BITCOIN_COINTYPES, NETWORKS } from './constants'
 
 export class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
   constructor(config: BitcoinPaymentsUtilsConfig = {}) {
@@ -32,15 +38,41 @@ export class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
     return isValidPrivateKey(privateKey, this.networkType)
   }
 
-  determinePathForIndex(accountIndex: number, addressType?: BitcoinishAddressType): string {
+  isSupportedAddressType(addressType: string): boolean {
+    return isSupportedAddressType(addressType)
+  }
+
+  getSupportedAddressTypes(): AddressType[] {
+    return getSupportedAddressTypes()
+  }
+
+  determinePathForIndex(accountIndex: number, options?: { addressType?: string }): string {
+    const addressType = options?.addressType ? assertType(AddressTypeT, options?.addressType) : DEFAULT_ADDRESS_TYPE
     const networkType: NetworkType = this.networkType
-    const derivationPath: string = determinePathForIndex(accountIndex, addressType, networkType)
+    if (!this.determinePathForIndexFn) {
+      const constants = {
+        coinName: COIN_NAME,
+        defaultPurpose: DEFAULT_PURPOSE,
+        coinTypes: BITCOIN_COINTYPES,
+      }
+      const functions = {
+        isSupportedAddressType,
+      }
+      this.determinePathForIndexFn = createDeterminePathForIndexHelper(constants, functions)
+    }
+    const derivationPath: string = this.determinePathForIndexFn(accountIndex, addressType, networkType)
     return derivationPath
   }
 
   deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
-    const uniPubKey = deriveUniPubKeyForPath(seed, derivationPath)
+    if (!this.deriveUniPubKeyForPathFn) {
+      const constants = {
+        networks: NETWORKS,
+        networkType: this.networkType,
+      }
+      this.deriveUniPubKeyForPathFn = createDeriveUniPubKeyForPathHelper(constants)
+    }
+    const uniPubKey = this.deriveUniPubKeyForPathFn(seed, derivationPath)
     return uniPubKey
   }
-
 }

@@ -64,3 +64,20 @@ export const DEFAULT_TESTNET_SERVER = process.env.BITCOIN_TESTNET_SERVER_URL
 export const DEFAULT_FEE_LEVEL = FeeLevel.Medium
 
 export const PUBLIC_CONFIG_OMIT_FIELDS = ['logger', 'server', 'api', 'hdKey', 'keyPairs', 'blockcypherToken']
+
+export const BITCOIN_SUPPORTED_ADDRESS_TYPES = [
+  AddressType.Legacy,
+  AddressType.SegwitNative,
+  AddressType.SegwitP2SH,
+  AddressType.MultisigLegacy,
+  AddressType.MultisigSegwitNative,
+  AddressType.MultisigSegwitP2SH
+]
+
+export const DEFAULT_ADDRESS_TYPE: AddressType = AddressType.Legacy
+export const DEFAULT_PURPOSE: string = '84'
+
+export const BITCOIN_COINTYPES = {
+  [NetworkType.Mainnet]: '0',
+  [NetworkType.Testnet]: '0',
+}

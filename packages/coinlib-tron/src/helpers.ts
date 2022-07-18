@@ -1,5 +1,5 @@
 import TronWeb from 'tronweb'
-import { DECIMAL_PLACES, TRON_COINTYPE_MAINNET, TRON_COINTYPE_TESTNET } from './constants'
+import { DECIMAL_PLACES, TRON_COINTYPES, TRON_SUPPORTED_ADDRESS_TYPES } from './constants'
 import { createUnitConverters, NetworkType, bip32 } from '@bitaccess/coinlib-common'
 
 const {
@@ -54,18 +54,17 @@ export function privateKeyToAddress(privateKey: string): string {
   }
 }
 
+export function isSupportedAddressType(addressType: string): boolean {
+  return TRON_SUPPORTED_ADDRESS_TYPES.map(at => at.toString()).includes(addressType)
+}
+
+export function getSupportedAddressTypes(): string[] {
+  return TRON_SUPPORTED_ADDRESS_TYPES
+}
+
 export function determinePathForIndex(accountIndex: number, addressType?: any, networkType?: NetworkType): string {
-  const LEGENCY = 'p2pkh'
-  if (addressType && addressType?.toString() !== LEGENCY) {
-    throw new TypeError(`Tron does not support this type ${addressType}`)
-  }
   const purpose: string = '44'
-
-  let cointype = TRON_COINTYPE_MAINNET
-  if (networkType === NetworkType.Testnet) {
-    cointype = TRON_COINTYPE_TESTNET
-  }
-
+  const cointype = TRON_COINTYPES[networkType ?? NetworkType.Mainnet]
   const derivationPath = `m/${purpose}'/${cointype}'/${accountIndex}'`
   return derivationPath
 }
@@ -76,16 +75,6 @@ export function hexSeedToBuffer(seedHex: string): Buffer {
 }
 
 export function deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
-  const splitPath = derivationPath.split('/')
-  if (splitPath?.length !== 4 || splitPath[0] !== 'm') {
-    throw new TypeError(`Invalid derivationPath ${derivationPath}`)
-  }
-
-  const purpose = splitPath[1]
-  if (purpose !== `44'`) {
-    throw new TypeError(`Purpose in derivationPath ${purpose} not supported by Tron`)
-  }
-
   const root = bip32.fromSeed(seed)
   const account = root.derivePath(derivationPath)
   return account.neutered().toBase58()

@@ -2,9 +2,19 @@ import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { UtxoInfo, NetworkType } from '@bitaccess/coinlib-common'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { toBitcoinishConfig } from './utils'
-import { BaseLitecoinPaymentsConfig, AddressType, PsbtInputData, LitecoinAddressFormat } from './types'
-import { DEFAULT_FEE_LEVEL_BLOCK_TARGETS, LITECOIN_SEQUENCE_RBF } from './constants'
-import { estimateLitecoinTxSize } from './helpers'
+import { BaseLitecoinPaymentsConfig, AddressType, AddressTypeT, PsbtInputData, LitecoinAddressFormat } from './types'
+import {
+  DEFAULT_FEE_LEVEL_BLOCK_TARGETS,
+  LITECOIN_SEQUENCE_RBF,
+  DEFAULT_ADDRESS_TYPE,
+  COIN_NAME,
+  DEFAULT_PURPOSE,
+  LITECOIN_COINTYPES,
+  NETWORKS,
+} from './constants'
+import { assertType } from '@bitaccess/ts-common'
+
+import { estimateLitecoinTxSize, isSupportedAddressType, getSupportedAddressTypes } from './helpers'
 import { LitecoinPaymentsUtils } from './LitecoinPaymentsUtils'
 
 export abstract class BaseLitecoinPayments<
@@ -134,13 +144,41 @@ export abstract class BaseLitecoinPayments<
     return (await this.buildPsbt(tx, fromIndex)).toHex()
   }
 
-  determinePathForIndex(accountIndex: number, addressType?: AddressType): string {
-    const derivationPath: string = this.utils.determinePathForIndex(accountIndex, addressType)
+  isSupportedAddressType(addressType: string): boolean {
+    return isSupportedAddressType(addressType)
+  }
+
+  getSupportedAddressTypes(): AddressType[] {
+    return getSupportedAddressTypes()
+  }
+
+  determinePathForIndex(accountIndex: number, options?: { addressType?: string }): string {
+    const addressType = options?.addressType ? assertType(AddressTypeT, options?.addressType) : DEFAULT_ADDRESS_TYPE
+    const networkType: NetworkType = this.networkType
+    if (!this.determinePathForIndexFn) {
+      const constants = {
+        coinName: COIN_NAME,
+        defaultPurpose: DEFAULT_PURPOSE,
+        coinTypes: LITECOIN_COINTYPES,
+      }
+      const functions = {
+        isSupportedAddressType,
+      }
+      this.determinePathForIndexFn = bitcoinish.createDeterminePathForIndexHelper(constants, functions)
+    }
+    const derivationPath: string = this.determinePathForIndexFn(accountIndex, addressType, networkType)
     return derivationPath
   }
 
   deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
-    const uniPubKey = this.utils.deriveUniPubKeyForPath(seed, derivationPath)
+    if (!this.deriveUniPubKeyForPathFn) {
+      const constants = {
+        networks: NETWORKS,
+        networkType: this.networkType,
+      }
+      this.deriveUniPubKeyForPathFn = bitcoinish.createDeriveUniPubKeyForPathHelper(constants)
+    }
+    const uniPubKey = this.deriveUniPubKeyForPathFn(seed, derivationPath)
     return uniPubKey
   }
 }

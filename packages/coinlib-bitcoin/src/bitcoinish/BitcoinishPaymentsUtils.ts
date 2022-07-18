@@ -13,6 +13,7 @@ import {
   GetTransactionInfoOptions,
   BigNumber,
   BitcoinishAddressType,
+  NetworkType,
 } from '@bitaccess/coinlib-common'
 import { isNil, assertType, Numeric, isUndefined } from '@faast/ts-common'
 import { GetBlockOptions } from 'blockbook-client'
@@ -40,6 +41,11 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
   readonly networkMinRelayFee: number // base denom
   readonly blockcypherToken?: string
   feeLevelBlockTargets: FeeLevelBlockTargets
+  protected determinePathForIndexFn:
+    | null
+    | ((accountIndex: number, addressType?: BitcoinishAddressType, networkType?: NetworkType) => string) = null
+
+  protected deriveUniPubKeyForPathFn: null | ((seed: Buffer, derivationPath: string) => string) = null
 
   constructor(config: BitcoinishPaymentsUtilsConfig) {
     super(config)
@@ -352,15 +358,13 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     }
   }
 
-  abstract determinePathForIndex(
-    accountIndex: number,
-    addressType?: BitcoinishAddressType,
-  ): string
+  abstract isSupportedAddressType(addressType: string): boolean
 
+  abstract getSupportedAddressTypes(): string[] | null
+
+  abstract determinePathForIndex<O extends { addressType?: string }>(accountIndex: number, options?: O): string
   
   abstract deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string
-
-
 
 }
 

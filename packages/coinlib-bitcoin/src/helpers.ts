@@ -1,22 +1,11 @@
-import {
-  BaseMultisigData,
-  createUnitConverters,
-  MultisigData,
-  NetworkType,
-  BitcoinishAddressType,
-  bip32,
-} from '@bitaccess/coinlib-common'
+import { createUnitConverters, NetworkType, BitcoinishAddressType } from '@bitaccess/coinlib-common'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import {
   DECIMAL_PLACES,
   NETWORKS,
-  BITCOIN_COINTYPE_MAINNET,
-  BITCOIN_COINTYPE_TESTNET,
-  NETWORK_MAINNET,
-  NETWORK_TESTNET,
+  BITCOIN_SUPPORTED_ADDRESS_TYPES,
 } from './constants'
 import * as bitcoinish from './bitcoinish'
-import { BitcoinjsNetwork } from './types'
 
 export {
   getMultisigPaymentScript,
@@ -77,47 +66,50 @@ export function estimateBitcoinTxSize(
   )
 }
 
-export function determinePathForIndex(
-  accountIndex: number,
-  addressType?: BitcoinishAddressType,
-  networkType?: NetworkType,
-): string {
-  let purpose: string = '84'
-  if (addressType) {
-    purpose = bitcoinish.BITCOINISH_ADDRESS_PURPOSE[addressType]
-  }
-
-  let cointype = BITCOIN_COINTYPE_MAINNET
-  if (networkType === NetworkType.Testnet) {
-    cointype = BITCOIN_COINTYPE_TESTNET
-  }
-
-  const derivationPath = `m/${purpose}'/${cointype}'/${accountIndex}'`
-  return derivationPath
+export function isSupportedAddressType(addressType: string): boolean {
+  return BITCOIN_SUPPORTED_ADDRESS_TYPES.map(at => at.toString()).includes(addressType)
 }
+
+export function getSupportedAddressTypes(): BitcoinishAddressType[] {
+  return BITCOIN_SUPPORTED_ADDRESS_TYPES
+}
+
+// export function determinePathForIndex(
+//   accountIndex: number,
+//   addressType?: BitcoinishAddressType,
+//   networkType?: NetworkType,
+// ): ((
+//   accountIndex: number,
+//   addressType?: BitcoinishAddressType,
+//   networkType?: NetworkType,
+// ) => string) {
+//   const constants = {
+//     coinName: COIN_NAME,
+//     defaultPurpose: DEFAULT_PURPOSE,
+//     coinTypes: BITCOIN_COINTYPES,
+//   }
+//   const functions = {
+//     isSupportedAddressType,
+//   }
+
+//   const determinePathForIndexFn = bitcoinish.createDeterminePathForIndexHelper(constants, functions)
+//   // const derivationPath = determinePathForIndexFn(accountIndex, addressType, networkType)
+//   return determinePathForIndexFn
+// }
+
 
 export function hexSeedToBuffer(seedHex: string): Buffer {
   const seedBuffer = Buffer.from(seedHex, 'hex')
   return seedBuffer
 }
 
-export function deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
-  const splitPath = derivationPath.split('/')
-  if (splitPath?.length !== 4 || splitPath[0] !== 'm') {
-    throw new TypeError(`Invalid derivationPath ${derivationPath}`)
-  }
+// export function deriveUniPubKeyForPath(seed: Buffer, derivationPath: string, networkType: NetworkType): string {
+//   const constants = {
+//     networks: NETWORKS,
+//     networkType: networkType,
+//   }
+//   const deriveUniPubKeyForPathFn = bitcoinish.createDeriveUniPubKeyForPathHelper(constants)
 
-  const coinType = splitPath[2]
-  let network: BitcoinjsNetwork | null = null
-  if (coinType === `${BITCOIN_COINTYPE_MAINNET}'`) {
-    network = NETWORK_MAINNET
-  } else if (coinType === `${BITCOIN_COINTYPE_TESTNET}'`) {
-    network = NETWORK_TESTNET
-  } else {
-    throw new TypeError(`Invalid derivationPath coin type ${coinType}`)
-  }
-
-  const root = bip32.fromSeed(seed, network)
-  const account = root.derivePath(derivationPath)
-  return account.neutered().toBase58()
-}
+//   const uniPubKey: string = deriveUniPubKeyForPathFn(seed, derivationPath)
+//   return uniPubKey
+// }

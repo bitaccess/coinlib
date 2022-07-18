@@ -6,10 +6,7 @@ import { bitcoinish, NETWORKS as BITCOIN_NETWORKS, BitcoinjsNetwork, AddressType
 import {
   DECIMAL_PLACES,
   NETWORKS,
-  LITECOIN_COINTYPE_MAINNET,
-  LITECOIN_COINTYPE_TESTNET,
-  NETWORK_MAINNET,
-  NETWORK_TESTNET,
+  LITECOIN_SUPPORTED_ADDRESS_TYPES,
 } from './constants'
 
 const {
@@ -173,23 +170,12 @@ export function privateKeyToAddress(
   return publicKeyToAddress(keyPair.publicKey, networkType, addressType, format)
 }
 
-export function determinePathForIndex(
-  accountIndex: number,
-  addressType?: AddressType,
-  networkType?: NetworkType,
-): string {
-  let purpose: string = '84'
-  if (addressType) {
-    purpose = BITCOINISH_ADDRESS_PURPOSE[addressType]
-  }
+export function isSupportedAddressType(addressType: string): boolean {
+  return LITECOIN_SUPPORTED_ADDRESS_TYPES.map(at => at.toString()).includes(addressType)
+}
 
-  let cointype = LITECOIN_COINTYPE_MAINNET
-  if (networkType === NetworkType.Testnet) {
-    cointype = LITECOIN_COINTYPE_TESTNET
-  }
-
-  const derivationPath = `m/${purpose}'/${cointype}'/${accountIndex}'`
-  return derivationPath
+export function getSupportedAddressTypes(): AddressType[] {
+  return LITECOIN_SUPPORTED_ADDRESS_TYPES
 }
 
 export function hexSeedToBuffer(seedHex: string): Buffer {
@@ -197,23 +183,3 @@ export function hexSeedToBuffer(seedHex: string): Buffer {
   return seedBuffer
 }
 
-export function deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
-  const splitPath = derivationPath.split('/')
-  if (splitPath?.length !== 4 || splitPath[0] !== 'm') {
-    throw new TypeError(`Invalid derivationPath ${derivationPath}`)
-  }
-
-  const coinType = splitPath[2]
-  let network: BitcoinjsNetwork | null = null
-  if (coinType === `${LITECOIN_COINTYPE_MAINNET}'`) {
-    network = NETWORK_MAINNET
-  } else if (coinType === `${LITECOIN_COINTYPE_TESTNET}'`) {
-    network = NETWORK_TESTNET
-  } else {
-    throw new TypeError(`Invalid derivationPath coin type ${coinType}`)
-  }
-
-  const root = bip32.fromSeed(seed, network)
-  const account = root.derivePath(derivationPath)
-  return account.neutered().toBase58()
-}

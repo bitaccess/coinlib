@@ -178,15 +178,9 @@ describe('StellarPaymentsUtils', () => {
       const path = puMainnet.determinePathForIndex(3)
       expect(path).toBe(`m/44'/148'/3'`)
     })
-    test('Testnet SegwitP2SH throw not support err', () => {
-      const functionToTrow = () => {
-        puTestnet.determinePathForIndex(4, "p2sh-p2wpkh")
-      }
-      expect(functionToTrow).toThrow(`Stellar does not support this type p2sh-p2wpkh`)
-    })
     test('Testnet Legancy', () => {
       const path = puTestnet.determinePathForIndex(4, 'p2pkh')
-      expect(path).toBe(`m/44'/1'/4'`)
+      expect(path).toBe(`m/44'/148'/4'`)
     })
   })
 
@@ -203,11 +197,11 @@ describe('StellarPaymentsUtils', () => {
       expect(xpub).toBe(expectedXpub)
     })
 
-    test('Mainnet SegwitNative throw not supported error', () => {
-      const functionToTrow = () => {
-        puMainnet.deriveUniPubKeyForPath(seedBuffer, `m/84'/148'/3'`)
-      }
-      expect(functionToTrow).toThrow(`Purpose in derivationPath 84' not supported by Stellar`)
+    test('Mainnet should support arbitrary path', () => {
+      const xpub = puMainnet.deriveUniPubKeyForPath(seedBuffer, `m/84'/148'/3'`)
+      const expectedXpub =
+        'GCQJKW6MU4SSSSBK7PGQSTMEAQPMKPF72VHSCGGG254AFXWAVP7JX6WW:GAMAH4ZTNGBDGZ3NGS5MSARXC3YD4RF6QJJFX2NNCSLBGWBPW4PM77B3'
+      expect(xpub).toBe(expectedXpub)
     })
 
     test('Testnet Legacy', () => {

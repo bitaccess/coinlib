@@ -266,20 +266,15 @@ describe('EthereumPaymentsUtils', () => {
       const path = puMainnet.determinePathForIndex(3)
       expect(path).toBe(`m/44'/60'/3'`)
     })
-    test('Testnet SegwitP2SH throw not support err', () => {
-      const functionToTrow = () => {
-        puTestnet.determinePathForIndex(4, "p2sh-p2wpkh")
-      }
-      expect(functionToTrow).toThrow(`Ethereum does not support this type p2sh-p2wpkh`)
-    })
     test('Testnet Legancy', () => {
       const path = puTestnet.determinePathForIndex(4, 'p2pkh')
-      expect(path).toBe(`m/44'/1'/4'`)
+      expect(path).toBe(`m/44'/60'/4'`)
     })
   })
 
   describe('deriveUniPubKeyForPath', () => {
     const puMainnet = new EthereumPaymentsUtils({ network: NetworkType.Mainnet })
+    const puTestnet = new EthereumPaymentsUtils({ network: NetworkType.Testnet })
     const seedHex =
       '716bbb2c373406156d6fc471db0c62d957e27d97f1d07bfb0b2d22f04d07b75b32f2542e20f077251d7bc390cac8847ac6e64d94bccff1e1b2cd82802df35a78'
     const seedBuffer = hexSeedToBuffer(seedHex)
@@ -291,15 +286,15 @@ describe('EthereumPaymentsUtils', () => {
       expect(xpub).toBe(expectedXpub)
     })
 
-    test('Mainnet SegwitNative throw not supported error', () => {
-      const functionToTrow = () => {
-        puMainnet.deriveUniPubKeyForPath(seedBuffer, `m/84'/60'/3'`)
-      }
-      expect(functionToTrow).toThrow(`Purpose in derivationPath 84' not supported by Ethereum`)
+    test('Mainnet should support arbitrary path', () => {
+      const xpub = puMainnet.deriveUniPubKeyForPath(seedBuffer, `m/84'/60'/3'/5'/1`)
+      const expectedXpub =
+        'xpub6FcUaaJhbRsvQGK14eqswuNPRPfVWYXG2apJCaEpKV3jUgBYmG3w7RbuqY8o294fVWZ5PqXRLVnkkqKkohXQXZ1XyaGKtJpTZGjz6YAgekb'
+      expect(xpub).toBe(expectedXpub)
     })
 
     test('Testnet Legacy', () => {
-      const xpub = puMainnet.deriveUniPubKeyForPath(seedBuffer, `m/44'/1'/4'`)
+      const xpub = puTestnet.deriveUniPubKeyForPath(seedBuffer, `m/44'/1'/4'`)
       const expectedXpub =
         'xpub6CMXU1WLEnhaGJjcbpzFQaYWik6mhqKsvSAALcLQto2BCo9bd6vfpWzs2AHqvaXJ8ZKhUuArz46vZR5SAeSbJT5hdLxhivQQBqbpkFNkTu5'
       expect(xpub).toBe(expectedXpub)

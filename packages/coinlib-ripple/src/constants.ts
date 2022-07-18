@@ -42,5 +42,10 @@ export const FEE_LEVEL_CUSHIONS = {
   [FeeLevel.High]: 1.5,
 }
 
-export const RIPPLE_COINTYPE_MAINNET = '144'
-export const RIPPLE_COINTYPE_TESTNET = '1'
+export const RIPPLE_COINTYPES = {
+  [NetworkType.Mainnet]: '144',
+  [NetworkType.Testnet]: '144',
+}
+
+// TODO: design address type for Ripple
+export const RIPPLE_SUPPORTED_ADDRESS_TYPES: string[] = []

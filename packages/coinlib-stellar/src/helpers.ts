@@ -1,12 +1,10 @@
-import { createUnitConverters, bip32, NetworkType } from '@bitaccess/coinlib-common'
+import { createUnitConverters, NetworkType } from '@bitaccess/coinlib-common'
 import { isNil, isString } from '@faast/ts-common'
 import * as Stellar from 'stellar-sdk'
 import StellarHDWallet from 'stellar-hd-wallet'
 import {Keypair} from "stellar-base";
 
-
-
-import { DECIMAL_PLACES, STELLAR_COINTYPE_MAINNET, STELLAR_COINTYPE_TESTNET } from './constants'
+import { DECIMAL_PLACES, STELLAR_COINTYPES, STELLAR_SUPPORTED_ADDRESS_TYPES } from './constants'
 
 const {
   toMainDenominationBigNumber,
@@ -56,18 +54,17 @@ export function assertValidExtraIdOrNil(extraId?: string | undefined | null): vo
   }
 }
 
+export function isSupportedAddressType(addressType: string): boolean {
+  return STELLAR_SUPPORTED_ADDRESS_TYPES.map(at => at.toString()).includes(addressType)
+}
+
+export function getSupportedAddressTypes(): string[] {
+  return STELLAR_SUPPORTED_ADDRESS_TYPES
+}
+
 export function determinePathForIndex(accountIndex: number, addressType?: any, networkType?: NetworkType): string {
-  const LEGENCY = 'p2pkh'
-  if (addressType && addressType?.toString() !== LEGENCY) {
-    throw new TypeError(`Stellar does not support this type ${addressType}`)
-  }
   const purpose: string = '44'
-
-  let cointype = STELLAR_COINTYPE_MAINNET
-  if (networkType === NetworkType.Testnet) {
-    cointype = STELLAR_COINTYPE_TESTNET
-  }
-
+  const cointype = STELLAR_COINTYPES[networkType ?? NetworkType.Mainnet]
   const derivationPath = `m/${purpose}'/${cointype}'/${accountIndex}'`
   return derivationPath
 }
@@ -88,22 +85,12 @@ export function removeTrailingSlash(path: string): string {
 }
 
 export function deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
+  const wallet: StellarHDWallet = StellarHDWallet.fromSeed(seed)
+
   derivationPath = removeTrailingSlash(derivationPath)
-
-  const splitPath = derivationPath.split('/')
-  if (splitPath?.length !== 4 || splitPath[0] !== 'm') {
-    throw new TypeError(`Invalid derivationPath ${derivationPath}`)
-  }
-
-  const purpose = splitPath[1]
-  if (purpose !== `44'`) {
-    throw new TypeError(`Purpose in derivationPath ${purpose} not supported by Stellar`)
-  }
-
   const hotAccountPath: string = `${derivationPath}/0'`
   const depositAccountPath: string = `${derivationPath}/1'`
 
-  const wallet: StellarHDWallet = StellarHDWallet.fromSeed(seed)
   const hotAccountPubKey: string =  deriveKeyPairForAnyPath(wallet, hotAccountPath).publicKey()
   const depositAccountPubKey: string =  deriveKeyPairForAnyPath(wallet, depositAccountPath).publicKey()
 

@@ -1,6 +1,6 @@
 import * as bitcoinCash from 'bitcoinforksjs-lib'
 import bchAddr from 'bchaddrjs'
-import { bitcoinish, AddressType } from '@bitaccess/coinlib-bitcoin'
+import { bitcoinish, AddressType, AddressTypeT } from '@bitaccess/coinlib-bitcoin'
 import { UtxoInfo, TransactionStatus, MultisigData, BigNumber, NetworkType } from '@bitaccess/coinlib-common'
 import { toBitcoinishConfig } from './utils'
 import {
@@ -11,9 +11,23 @@ import {
   PsbtInputData,
   BitcoinCashAddressFormat,
 } from './types'
-import { BITCOIN_SEQUENCE_RBF, SINGLESIG_ADDRESS_TYPE, DEFAULT_ADDRESS_FORMAT } from './constants'
-import { estimateBitcoinCashTxSize, determinePathForIndex, deriveUniPubKeyForPath } from './helpers'
+import {
+  BITCOIN_SEQUENCE_RBF,
+  SINGLESIG_ADDRESS_TYPE,
+  DEFAULT_ADDRESS_FORMAT,
+  DEFAULT_ADDRESS_TYPE,
+  COIN_NAME,
+  DEFAULT_PURPOSE,
+  BITCOINCASH_COINTYPES,
+  NETWORKS,
+} from './constants'
+import {
+  estimateBitcoinCashTxSize,
+  isSupportedAddressType,
+  getSupportedAddressTypes,
+} from './helpers'
 import { BitcoinCashPaymentsUtils } from './BitcoinCashPaymentsUtils'
+import { assertType } from '@bitaccess/ts-common'
 
 export abstract class BaseBitcoinCashPayments<
   Config extends BaseBitcoinCashPaymentsConfig
@@ -344,14 +358,41 @@ export abstract class BaseBitcoinCashPayments<
     }
   }
 
-  determinePathForIndex(accountIndex: number, addressType?: AddressType): string {
+  isSupportedAddressType(addressType: string): boolean {
+    return isSupportedAddressType(addressType)
+  }
+
+  getSupportedAddressTypes(): AddressType[] {
+    return getSupportedAddressTypes()
+  }
+
+  determinePathForIndex(accountIndex: number, options?: { addressType?: string }): string {
+    const addressType = options?.addressType ? assertType(AddressTypeT, options?.addressType) : DEFAULT_ADDRESS_TYPE
     const networkType: NetworkType = this.networkType
-    const derivationPath: string = determinePathForIndex(accountIndex, addressType, networkType)
+    if (!this.determinePathForIndexFn) {
+      const constants = {
+        coinName: COIN_NAME,
+        defaultPurpose: DEFAULT_PURPOSE,
+        coinTypes: BITCOINCASH_COINTYPES,
+      }
+      const functions = {
+        isSupportedAddressType,
+      }
+      this.determinePathForIndexFn = bitcoinish.createDeterminePathForIndexHelper(constants, functions)
+    }
+    const derivationPath: string = this.determinePathForIndexFn(accountIndex, addressType, networkType)
     return derivationPath
   }
 
   deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
-    const uniPubKey: string = deriveUniPubKeyForPath(seed, derivationPath)
+    if (!this.deriveUniPubKeyForPathFn) {
+      const constants = {
+        networks: NETWORKS,
+        networkType: this.networkType,
+      }
+      this.deriveUniPubKeyForPathFn = bitcoinish.createDeriveUniPubKeyForPathHelper(constants)
+    }
+    const uniPubKey = this.deriveUniPubKeyForPathFn(seed, derivationPath)
     return uniPubKey
   }
 }

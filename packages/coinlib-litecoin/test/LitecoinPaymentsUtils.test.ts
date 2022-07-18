@@ -121,25 +121,30 @@ describe('LitecoinPaymentsUtils', () => {
     const puMainnet = new LitecoinPaymentsUtils({ network: NetworkType.Mainnet })
     const puTestnet = new LitecoinPaymentsUtils({ network: NetworkType.Testnet })
     test('Mainnet SegwitNative', () => {
-      const path = puMainnet.determinePathForIndex(3, AddressType.SegwitNative)
+      const options = {addressType: AddressType.SegwitNative}
+      const path = puMainnet.determinePathForIndex(3, options)
       expect(path).toBe(`m/84'/2'/3'`)
     })
     test('Mainnet MultisigSegwitNative', () => {
-      const path = puMainnet.determinePathForIndex(3, AddressType.MultisigSegwitNative)
+      const options = {addressType: AddressType.MultisigSegwitNative}
+      const path = puMainnet.determinePathForIndex(3, options)
       expect(path).toBe(`m/87'/2'/3'`)
     })
     test('Testnet SegwitP2SH', () => {
-      const path = puTestnet.determinePathForIndex(4, AddressType.SegwitP2SH)
-      expect(path).toBe(`m/49'/1'/4'`)
+      const options = {addressType: AddressType.SegwitP2SH}
+      const path = puTestnet.determinePathForIndex(4, options)
+      expect(path).toBe(`m/49'/2'/4'`)
     })
     test('Testnet MultisigLegacy', () => {
-      const path = puTestnet.determinePathForIndex(4, AddressType.MultisigLegacy)
-      expect(path).toBe(`m/87'/1'/4'`)
+      const options = {addressType: AddressType.MultisigLegacy}
+      const path = puTestnet.determinePathForIndex(4, options)
+      expect(path).toBe(`m/87'/2'/4'`)
     })
   })
 
   describe('deriveUniPubKeyForPath', () => {
-    const puMainnet = new LitecoinPaymentsUtils()
+    const puMainnet = new LitecoinPaymentsUtils({ network: NetworkType.Mainnet })
+    const puTestnet = new LitecoinPaymentsUtils({ network: NetworkType.Testnet })
     const seedHex =
       '716bbb2c373406156d6fc471db0c62d957e27d97f1d07bfb0b2d22f04d07b75b32f2542e20f077251d7bc390cac8847ac6e64d94bccff1e1b2cd82802df35a78'
     const seedBuffer = hexSeedToBuffer(seedHex)
@@ -157,9 +162,15 @@ describe('LitecoinPaymentsUtils', () => {
         'xpub6BvLNPJKAmW96yMudAToxApnE6gYKvpwAjoRqB68T4ePcAUVyHBM2XDuPyg13WovZRabBUxdCmPFw3j86TibRp2t39mfymCpFok87zDV3gm'
       expect(xpub).toBe(expectedXpub)
     })
+    test('Mainnet should support arbitrary path', () => {
+      const xpub = puMainnet.deriveUniPubKeyForPath(seedBuffer, `m/84'/1'/2'/3'`)
+      const expectedXpub =
+        'xpub6EqnY4VGxRMdCuZaXLVFoz5DwV71NiYqA6QAtzhfodSxLvGjktxVQR1hfDStPsBi4foFXnNsSJXWQ2HkJbT7bSESVUDzagz22Wnef57oiT6'
+      expect(xpub).toBe(expectedXpub)
+    })
 
     test('Testnet MultisigLegacy', () => {
-      const xpub = puMainnet.deriveUniPubKeyForPath(seedBuffer, `m/87'/1'/4'`)
+      const xpub = puTestnet.deriveUniPubKeyForPath(seedBuffer, `m/87'/1'/4'`)
       const expectedXpub =
         'tpubDCHyWQfXp2aefcHocJn7CvtRJ1mmqbm2x8D1v3HJ8QF9cDoBK25327B42W5HtyvEmfVZB3f3zVHWwQp4BcWKosQSuugqCDZH7KFvmtbtSwz'
       expect(xpub).toBe(expectedXpub)

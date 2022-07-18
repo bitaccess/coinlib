@@ -109,10 +109,11 @@ export interface PaymentsUtils {
 
   getBlock(id?: string | number): Promise<BlockInfo>
 
-  determinePathForIndex(
-    accountIndex: number,
-    addressType?: BitcoinishAddressType,
-  ): string
+  isSupportedAddressType(addressType: string): boolean
+
+  getSupportedAddressTypes(): string[] | null
+
+  determinePathForIndex<O extends { addressType?: string }>(accountIndex: number, options?: O): string
 
   deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string
 

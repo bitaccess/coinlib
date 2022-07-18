@@ -21,6 +21,8 @@ import {
   isValidExtraId,
   determinePathForIndex,
   deriveUniPubKeyForPath,
+  isSupportedAddressType,
+  getSupportedAddressTypes,
 } from './helpers'
 import { RippleTransactionInfo } from './types'
 import { RippleConnected } from './RippleConnected'
@@ -227,6 +229,14 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
       time: new Date(raw.closeTime),
       raw,
     }
+  }
+
+  isSupportedAddressType(addressType: string): boolean {
+    return isSupportedAddressType(addressType)
+  }
+
+  getSupportedAddressTypes(): string[] {
+    return getSupportedAddressTypes()
   }
 
   determinePathForIndex(accountIndex: number, addressType?: any): string {
