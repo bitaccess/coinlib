@@ -21,6 +21,11 @@ npm install
 npm run test
 ```
 
+4. Dependency management
+
+* To remove dependency from leaf package, remove it from its `package.json` and run `lerna bootstrap`
+* To regenerate `package-lock.json` for package, run `npm install --package-lock-only`
+
 ## Contribution guide
 
 ### Pull Request process
