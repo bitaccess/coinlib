@@ -1,7 +1,8 @@
-import server from 'ganache'
+import server, { ServerOptions } from 'ganache'
 import {
   NetworkType,
   BigNumber,
+  strip0x,
 } from '@bitaccess/coinlib-common'
 
 import { TestLogger } from '../../../common/testUtils'
@@ -36,12 +37,11 @@ jest.setTimeout(100000)
 describe('end to end tests', () => {
   let ethNode: any
   beforeAll(async () => {
-  const ganacheConfig = {
-    ws: true,
+  const ganacheConfig: ServerOptions = {
     accounts: [
       {
-        balance: 0xde0b6b3a7640000, // 1 ETH
-        secretKey: source.keys.prv
+        balance: 1e18, // 1 ETH
+        secretKey: source.keys.prv,
       },
       {
         balance: 0x0,

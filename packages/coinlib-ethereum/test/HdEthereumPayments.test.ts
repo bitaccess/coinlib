@@ -664,7 +664,7 @@ describe('HdEthereumPayments', () => {
         const res = await hdEP.signTransaction(unsignedTx)
 
         expect(res).toStrictEqual({
-          id: '0xb366947a1ba5c99fbdecea49d22f491d27054db85a743914e0717aae8c5d5227',
+          id: '0x2bc0bc3c23a46aedafe4a94933b91e90bca122c784a5de0334d53e8b019570ea',
           status: 'signed',
           fromAddress: FROM_ADDRESS.toLowerCase(),
           toAddress: to.address.toLowerCase(),
@@ -680,7 +680,7 @@ describe('HdEthereumPayments', () => {
           weight: 21000,
           data: {
             hex:
-              '0xf86c1b8545d964b80082523c94fc61c91ec513910ce88450c150e22408c1fcf1588801e33c7f8ff555728029a088d153fa98182a2151a9b8e7074c73519b2101627c6daa3a5924f24520e2a590a05a73efd9aede6ae7f8e3168e273358c4f2574b260b09b2e781d513f4281f8654',
+              '0xf86c1b8545d964b80082523c94370d63dbf533f4c79e83d7d13b39c88b188efeeb8801e33c7f8ff555728029a0e97c97005272506f43f0bf20b43ba49816bf28cf3d3e6c2de8f66eebd0750608a0171677049edc2e89bbf623f9c33c8c8d7a5981855a1d3c76c3a234d0cfcabd81',
           },
         })
       })

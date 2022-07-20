@@ -6,7 +6,7 @@ import { omit } from 'lodash'
 import { PUBLIC_CONFIG_OMIT_FIELDS } from './constants'
 
 export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsConfig> {
-  readonly xprv: string
+  readonly xprv: string | null
   readonly xpub: string
   readonly derivationPath: string
   private readonly bip44: EthereumBIP44
@@ -58,7 +58,11 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
       throw new Error(`Cannot get private key ${index} - HdEthereumPayments was created with an xpub`)
     }
 
-    return this.bip44.getPrivateKey(index)
+    const privateKey = this.bip44.getPrivateKey(index)
+    if (!privateKey) {
+      throw new Error(`Failed to derive private key ${index}`)
+    }
+    return privateKey
   }
 }
 

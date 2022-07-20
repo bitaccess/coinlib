@@ -9,6 +9,9 @@ import {
   TransactionStatus,
   BlockInfo,
   BigNumber,
+  buffToHex,
+  hexToBuff,
+  strip0x,
 } from '@bitaccess/coinlib-common'
 import { Logger, DelegateLogger, assertType, isNull, Numeric, isNumber } from '@faast/ts-common'
 import { BlockbookEthereum } from 'blockbook-client'
@@ -37,9 +40,9 @@ import {
   EthereumTransactionInfo,
   NetworkConstants,
 } from './types'
-import { isValidXkey } from './bip44'
+import { isValidXprv, isValidXpub } from './bip44'
 import { NetworkData } from './NetworkData'
-import { buffToHex, hexToBuff, retryIfDisconnected, strip0x } from './utils'
+import { retryIfDisconnected } from './utils'
 import { UnitConvertersUtil } from './UnitConvertersUtil'
 import * as SIGNATURE from './erc20/constants'
 import { deriveCreate2Address } from './erc20/utils'
@@ -162,7 +165,9 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
   }
 
   standardizeAddress(address: string, options?: { format?: string }): string | null {
-    if (!this.isValidAddress(address, options)) {
+    // Don't pass options into isValidAddress because it'll check if it matches the format
+    // option, but we want to allow ANY valid address to be standardized by this method.
+    if (!this.isValidAddress(address)) {
       return null
     }
     const format = assertType(EthereumAddressFormatT, options?.format ?? DEFAULT_ADDRESS_FORMAT, 'format')
@@ -207,11 +212,11 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
   }
 
   isValidXprv(xprv: string): boolean {
-    return isValidXkey(xprv) && xprv.substring(0, 4) === 'xprv'
+    return isValidXprv(xprv)
   }
 
   isValidXpub(xpub: string): boolean {
-    return isValidXkey(xpub) && xpub.substring(0, 4) === 'xpub'
+    return isValidXpub(xpub)
   }
 
   isValidPrivateKey(prv: string): boolean {

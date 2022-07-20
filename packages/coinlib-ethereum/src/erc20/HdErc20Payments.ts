@@ -69,7 +69,7 @@ export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
     if (!this.masterAddress) {
       throw new Error(`Cannot derive payport ${index} - masterAddress is falsy`)
     }
-    const pubKey = this.bip44.getPublicKey(0)
+    const pubKey = this.bip44.getPublicKey(this.depositKeyIndex)
     const address = deriveCreate2Address(this.masterAddress, pubKey)
 
     if (!this.isValidAddress(address)) {
@@ -82,10 +82,14 @@ export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
 
   async getPrivateKey(index: number): Promise<string> {
     if (!this.xprv) {
-      throw new Error(`Cannot get private key ${index} - HdEthereumPayments was created with an xpub`)
+      throw new Error(`Cannot get private key ${index} - ${this.constructor.name} was created with an xpub`)
     }
 
-    return this.bip44.getPrivateKey(0)
+    const privateKey = this.bip44.getPrivateKey(this.depositKeyIndex)
+    if (!privateKey) {
+      throw new Error(`Cannot get private key ${index} - private key at depositKeyIndex ${this.depositKeyIndex} failed to derive`)
+    }
+    return privateKey
   }
 }
 

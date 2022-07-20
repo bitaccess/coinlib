@@ -1,5 +1,6 @@
-import { BigNumber } from './SharedDependencies'
+import { BigNumber, bip32, HDNode, bs58 } from './SharedDependencies'
 import { Numeric } from '@bitaccess/ts-common'
+import { Bip32Network } from './types'
 
 export function isMatchingError(e: Error, partialMessages: string[]) {
   const messageLower = e.toString().toLowerCase()
@@ -59,4 +60,24 @@ export function createUnitConverters(decimals: number) {
 
 export function keysOf<T extends { [k: string]: any } | { [k: number]: any }>(o: T): (keyof T)[] {
   return Object.keys(o) as (keyof T)[]
+}
+
+export function prepend0x(s: string) {
+  return s.startsWith('0x') ? s : `0x${s}`
+}
+
+export function strip0x(s: string) {
+  return s.startsWith('0x') ? s.slice(2) : s
+}
+
+export function buffToHex(b: Buffer) {
+  return prepend0x(b.toString('hex'))
+}
+
+export function hexToBuff(s: string) {
+  return Buffer.from(strip0x(s), 'hex')
+}
+
+export function numericToHex(b: Numeric) {
+  return `0x${new BigNumber(b).toString(16)}`
 }

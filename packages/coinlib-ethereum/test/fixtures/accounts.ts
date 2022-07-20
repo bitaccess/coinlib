@@ -17,6 +17,11 @@ export type AccountFixture = {
   }
 }
 
+/**
+ * The following fixtures were verified using the third party bip32 tool at https://iancoleman.io/bip39/ using the
+ * root.KEYS.xprv in the "BIP32 Root Key" field and setting "Coin" to "Ethereum". Also, manually importing a private
+ * key into metamask produces the same address.
+ */
 export const DEFAULT_PATH_FIXTURE: AccountFixture = {
   xkeys: {
     xprv: 'xprv9zmyKoBX1c55iUJ4nRsNTkt76uNMv1oeH1ZHXr9WuA78WrDFRZvNrA4mcqdXFuAUT9iQMcz3jTEB6M6NHLfGcznegNzmZgMPF5DkW365Lop',
@@ -88,10 +93,6 @@ export const BBB_PATH_FIXTURE: AccountFixture = {
   }
 }
 
-/**
- * The following fixtures were verified using the third party bip32 tool at https://iancoleman.io/bip39/ using the
- * root.KEYS.xprv in the "BIP32 Root Key" field and setting "Coin" to "Ethereum".
- */
 export const hdAccount = {
   root: {
     SEED: 'fFwoLowuySpBbmZymT4NzNXgDqxdeGxzQhUr4BqV2GVSBYSiM4LmEmrAgyMaCdeMFD39Tsn8i3vTK8NHRD91Efn',

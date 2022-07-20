@@ -8,8 +8,10 @@ import {
   Logger,
   functionT,
   Numeric,
-  optional,
 } from '@bitaccess/ts-common'
+import { bip32 } from './SharedDependencies'
+
+export type Bip32Network = Exclude<Parameters<typeof bip32['fromBase58']>[1], undefined>
 
 export type MaybePromise<T> = Promise<T> | T
 

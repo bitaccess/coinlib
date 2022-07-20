@@ -37,7 +37,7 @@ const UTILS_CONFIG: EthereumPaymentsUtilsConfig = {
 }
 
 const TOKEN_CONFIG = {
-  tokenAddress: '0x1234',
+  tokenAddress: '0xD081229AE8871Ee76FcFd5d146664CBbBBeEf240',
   name: 'BA_TEST_TOKEN',
   symbol: 'BTT',
   decimals: 7,
@@ -107,6 +107,7 @@ describe('EthereumPaymentsFactory', () => {
         hdKey: account0.xkeys.xpub,
         derivationPath: DEFAULT_MAINNET_CONSTANTS.defaultDerivationPath,
         ...TOKEN_CONFIG,
+        tokenAddress: TOKEN_CONFIG.tokenAddress.toLowerCase()
       })
       expect(hdP.coinDecimals).toBe(TOKEN_CONFIG.decimals)
       expect(hdP.coinName).toBe(TOKEN_CONFIG.name)
@@ -130,6 +131,7 @@ describe('EthereumPaymentsFactory', () => {
         hdKey: BBB_PATH_FIXTURE.xkeys.xpub,
         derivationPath: BBB_NETWORK.defaultDerivationPath,
         ...TOKEN_CONFIG,
+        tokenAddress: TOKEN_CONFIG.tokenAddress.toLowerCase()
       })
       expect(hdP.coinDecimals).toBe(TOKEN_CONFIG.decimals)
       expect(hdP.coinName).toBe(TOKEN_CONFIG.name)

@@ -1,76 +1,35 @@
-import Web3 from 'web3'
 import { EthereumSignatory } from './types'
 import { pubToAddress } from 'ethereumjs-util'
-import { bip32, HDNode } from "@bitaccess/coinlib-common"
-import crypto from 'crypto'
+import { generateNewSeed, HdKeyUtils, isValidHdKey, isValidXprv, isValidXpub } from "@bitaccess/coinlib-common"
 
-import { ec as EC } from 'elliptic'
 import { DEFAULT_DERIVATION_PATH } from './constants'
 import { buffToHex } from './utils'
-const web3 = new Web3()
-const ec = new EC('secp256k1')
 
-export class EthereumBIP44 {
+export { isValidHdKey, isValidXprv, isValidXpub }
+
+export class EthereumBIP44 extends HdKeyUtils {
   static fromXKey(xkey: string, derivationPath: string = DEFAULT_DERIVATION_PATH) {
-    if (['xprv', 'xpub'].includes(xkey.substring(0, 4))) {
-        return new EthereumBIP44(bip32.fromBase58(xkey), derivationPath)
-    }
+    return new EthereumBIP44(xkey, derivationPath)
+  }
 
-    throw new Error('Not a valid xpub or xprv')
+  static fromSeed(seed: string | Buffer, derivationPath: string = DEFAULT_DERIVATION_PATH) {
+    return new EthereumBIP44(seed, derivationPath)
   }
 
   static generateNewKeys(derivationPath: string = DEFAULT_DERIVATION_PATH) {
-    return new EthereumBIP44(bip32.fromSeed(crypto.randomBytes(32)), derivationPath)
+    return new EthereumBIP44(generateNewSeed(), derivationPath)
   }
 
-  private partialPath: string
-  private hdNode: HDNode
-  public xprv: string
-  public xpub: string
-
-  constructor(hdNode: HDNode, derivationPath: string) {
-    /** The partial path that remains to be derived on hdNode to reach derivationPath */
-    this.partialPath = derivationPath.split('/').slice(hdNode.depth).join('/')
-    if (this.partialPath) {
-      this.hdNode = hdNode.derivePath(this.partialPath)
-    } else {
-      this.hdNode = hdNode
-    }
-    this.xprv = this.getXPrivateKey()
-    this.xpub = this.getXPublicKey()
+  publicKeyToAddress(pubKeyBuffer: Buffer): string {
+    return buffToHex(pubToAddress(pubKeyBuffer, true))
   }
 
-  getAddress(index: number): string {
-    const derived = this.deriveByIndex(index)
-    const address = buffToHex(pubToAddress(derived.publicKey, true))
-    return address
+  publicKeyToString(pubKeyBuffer: Buffer): string {
+    return buffToHex(pubKeyBuffer)
   }
 
-  getPrivateKey(index: number): string {
-    const derived = this.deriveByIndex(index)
-    if (!derived.privateKey) {
-      return ''
-    }
-    return buffToHex(derived.privateKey)
-  }
-
-  getPublicKey(index: number): string {
-    return buffToHex(this.deriveByIndex(index).publicKey)
-  }
-
-  getXPrivateKey(): string {
-    return this.hdNode.isNeutered()
-      ? ''
-      : this.hdNode.toBase58()
-  }
-
-  getXPublicKey() {
-    return this.hdNode.neutered().toBase58()
-  }
-
-  /** Derives a concrete address index */
-  private deriveByIndex(index: number) {
-    return this.hdNode.derive(index)
+  privateKeyToString(privateKeyBuffer: Buffer): string {
+    return buffToHex(privateKeyBuffer)
   }
 
   getSignatory(index: number): EthereumSignatory {
@@ -78,21 +37,12 @@ export class EthereumBIP44 {
       address: this.getAddress(index),
       keys: {
         pub: this.getPublicKey(index),
-        prv: this.getPrivateKey(index),
+        prv: this.getPrivateKey(index) ?? '',
       },
       xkeys: {
-        xprv: this.getXPrivateKey(),
+        xprv: this.getXPrivateKey() ?? '',
         xpub: this.getXPublicKey(),
       },
     }
-  }
-}
-
-export function isValidXkey(key: string): boolean {
-  try {
-    EthereumBIP44.fromXKey(key)
-    return true
-  } catch (e) {
-    return false
   }
 }

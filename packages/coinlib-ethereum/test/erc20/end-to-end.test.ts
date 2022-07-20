@@ -1,3 +1,4 @@
+import { EthereumBIP44 } from './../../src/bip44';
 import server from 'ganache'
 import { BaseTransactionInfo, NetworkType } from '@bitaccess/coinlib-common'
 
@@ -22,33 +23,8 @@ const factory = new EthereumPaymentsFactory()
 
 const source = DEFAULT_PATH_FIXTURE.children[0]
 
-const tokenIssuer = {
-  address: '0xFDc7C2aeba72D3F4689f995698eC44bcdfa854e8',
-  keys: {
-    prv: '0xfabbf3c5bffd9c3cebe86fb82ce7618026c59ce3ba6933bae00758e6ca22434c',
-    pub: '03e1d562c90ab342dcc26b0c3edf1b197cfe39247d34790f7e37e7d45ebd0f2204',
-  },
-  xkeys: {
-    xprv:
-      'xprv9s21ZrQH143K2taFwpecdwEgNBPPg9oCqt6ArwNTZiMsMyyKP3mc3iaX9SQ2MzFiGEkg9MaWXhuDgpfeF8fjLLvJqmukSza3FWiJTjosuZt',
-    xpub:
-      'xpub661MyMwAqRbcFNej3rBd15BQvDDt5cX4D71mfKn583trEnJTvb5rbWtzzjBZvkArdXe1T8EfE3QEDnkzPP7KnPugw2AVAMXCnA4ZTJh5uXo',
-  },
-}
-
-const tokenDistributor = {
-  address: '0x01bB0FddED631A75f841e4b3C493D4dd345D5f7D',
-  keys: {
-    prv: '0xb55f2052f607b60b59e07687649a8c738b595896c199d582e7db9b15ace79d9a',
-    pub: '038bd304e7cc1aa621d63046ce009f15e1bdb8ec3b7cbc65e52917f5870ddb0208',
-  },
-  xkeys: {
-    xprv:
-      'xprvA4fxH9H85rukQz1TJmhQcDvdKLMG3fENZ3gbkX7yC9zpNaUkEuUswakGmq97Lc7JYrSSGpC7G7h6tiaEx5qwqqGFMRmqkfMzgJzRkp4PXmN',
-    xpub:
-      'xpub6HfJgep1vEU3dU5vQoEQyMsMsNBkT7xDvGcCYuXakVXoFNotnSo8VP4kd7oKgpqdELukHnSgh2SdUsfutaS1TwLZ6S6L71hjfZnEdP2n1Jv',
-  },
-}
+const tokenIssuer = EthereumBIP44.generateNewKeys().getSignatory(0)
+const tokenDistributor = EthereumBIP44.generateNewKeys().getSignatory(0)
 
 const target = { address: '0x62b72782415394f1518da5ec4de6c4c49b7bf854' } // payport 1
 
@@ -60,7 +36,7 @@ const BASE_CONFIG = {
   logger,
 }
 
-const ETHER_CONFIG = {
+const TOKEN_ISSUER_ETHER_CONFIG = {
   ...BASE_CONFIG,
   hdKey: tokenIssuer.xkeys.xprv, // hdAccount.root.KEYS.xprv,
 }
@@ -81,7 +57,7 @@ const TOKEN_ISSUER_CONFIG = {
 }
 
 let hd: HdErc20Payments
-let ethereumHD: HdEthereumPayments
+let tokenIssuerEther: HdEthereumPayments
 const TOKEN_HD_CONFIG = {
   ...TOKEN_UTILS_CONFIG,
   hdKey: hdAccount.root.KEYS.xprv,
@@ -98,11 +74,11 @@ describe('end to end tests', () => {
     const ganacheConfig = {
       accounts: [
         {
-          balance: 0xde0b6b3a764000, // 0,0625 ETH
+          balance: 0.0625e18, // 0,0625 ETH
           secretKey: tokenDistributor.keys.prv,
         },
         {
-          balance: 0xde0b6b3a764000, // 0,0625 ETH
+          balance: 0.0625e18, // 0,0625 ETH
           secretKey: source.keys.prv,
         },
       ],
@@ -117,20 +93,20 @@ describe('end to end tests', () => {
     const provider = ethNode.provider
     const accounts = await provider.request({ method: 'eth_accounts', params: [] })
 
-    ethereumHD = new HdEthereumPayments(ETHER_CONFIG)
+    tokenIssuerEther = new HdEthereumPayments(TOKEN_ISSUER_ETHER_CONFIG)
 
     // deploy erc20 contract BA_TEST_TOKEN
-    const unsignedContractDeploy = await ethereumHD.createServiceTransaction(undefined, {
+    const unsignedContractDeploy = await tokenIssuerEther.createServiceTransaction(undefined, {
       data: CONTRACT_BYTECODE,
       gas: CONTRACT_GAS,
     })
 
     unsignedContractDeploy.chainId = '1337'
     unsignedContractDeploy.id = '1337'
-    const signedContractDeploy = await ethereumHD.signTransaction(unsignedContractDeploy)
+    const signedContractDeploy = await tokenIssuerEther.signTransaction(unsignedContractDeploy)
 
-    const deployedContract = await ethereumHD.broadcastTransaction(signedContractDeploy)
-    const contractInfo: EthereumTransactionInfo = await ethereumHD.getTransactionInfo(deployedContract.id)
+    const deployedContract = await tokenIssuerEther.broadcastTransaction(signedContractDeploy)
+    const contractInfo: EthereumTransactionInfo = await tokenIssuerEther.getTransactionInfo(deployedContract.id)
     const data: any = contractInfo.data
     const tokenAddress = data.contractAddress
 
@@ -244,10 +220,10 @@ describe('end to end tests', () => {
 
       // make some txs just to confirm previous
       while (txInfo.status !== 'confirmed') {
-        const uCD = await ethereumHD.createServiceTransaction(undefined, { data: CONTRACT_BYTECODE, gas: CONTRACT_GAS })
-        const sCD = await ethereumHD.signTransaction(uCD)
-        const dC = await ethereumHD.broadcastTransaction(sCD)
-        const cInfo = await ethereumHD.getTransactionInfo(dC.id)
+        const uCD = await tokenIssuerEther.createServiceTransaction(undefined, { data: CONTRACT_BYTECODE, gas: CONTRACT_GAS })
+        const sCD = await tokenIssuerEther.signTransaction(uCD)
+        const dC = await tokenIssuerEther.broadcastTransaction(sCD)
+        const cInfo = await tokenIssuerEther.getTransactionInfo(dC.id)
         txInfo = await hd.getTransactionInfo(broadcastedTx.id)
       }
 

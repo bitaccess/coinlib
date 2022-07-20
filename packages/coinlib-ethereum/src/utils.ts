@@ -1,8 +1,10 @@
-import { BigNumber, Numeric } from '@bitaccess/ts-common'
 import { isMatchingError, isString, Logger } from '@faast/ts-common'
 import { BlockbookEthereum, NormalizedTxEthereum } from 'blockbook-client'
 import promiseRetry from 'promise-retry'
 import { EthereumBlockbookConnectedConfig } from './types'
+import { buffToHex, hexToBuff, numericToHex, strip0x, prepend0x } from '@bitaccess/coinlib-common'
+
+export { buffToHex, hexToBuff, numericToHex, strip0x, prepend0x }
 
 const RETRYABLE_ERRORS = ['request failed or timed out']
 const MAX_RETRIES = 2
@@ -105,24 +107,4 @@ export function getBlockBookTxFromAndToAddress(tx: NormalizedTxEthereum) {
     toAddress,
     fromAddress: inputAddresses[0],
   }
-}
-
-export function prepend0x(s: string) {
-  return s.startsWith('0x') ? s : `0x${s}`
-}
-
-export function strip0x(s: string) {
-  return s.startsWith('0x') ? s.slice(2) : s
-}
-
-export function buffToHex(b: Buffer) {
-  return prepend0x(b.toString('hex'))
-}
-
-export function hexToBuff(s: string) {
-  return Buffer.from(strip0x(s), 'hex')
-}
-
-export function numericToHex(b: Numeric) {
-  return `0x${new BigNumber(b).toString(16)}`
 }
