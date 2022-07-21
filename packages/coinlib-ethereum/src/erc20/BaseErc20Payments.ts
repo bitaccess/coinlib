@@ -6,6 +6,7 @@ import {
   PaymentsError,
   PaymentsErrorCode,
   BigNumber,
+  numericToHex,
 } from '@bitaccess/coinlib-common'
 import { Numeric } from '@faast/ts-common'
 
@@ -22,7 +23,6 @@ import {
   TOKEN_METHODS_ABI,
   DEPOSIT_KEY_INDEX,
 } from '../constants'
-import { numericToHex } from '../utils'
 import { BaseEthereumPayments } from '../BaseEthereumPayments'
 
 export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig> extends BaseEthereumPayments<Config> {
@@ -213,7 +213,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
 
   async getNextSequenceNumber(payport: ResolveablePayport): Promise<string> {
     const resolvedPayport = await this.resolvePayport(payport)
-    const sequenceNumber = await this.networkData.getNonce(resolvedPayport.address)
+    const sequenceNumber = await this.networkData.getNextNonce(resolvedPayport.address)
 
     return sequenceNumber
   }

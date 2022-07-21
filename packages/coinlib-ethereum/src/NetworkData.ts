@@ -18,10 +18,11 @@ import { NetworkDataWeb3 } from './NetworkDataWeb3'
 
 export class NetworkData {
   private gasStationUrl: string | undefined
-  private parityUrl: string | undefined
   private logger: Logger
   blockBookService: NetworkDataBlockbook
   web3Service: NetworkDataWeb3
+
+  blockbookEnabled = false
 
   constructor(config: NetworkDataConfig) {
     this.gasStationUrl = config.gasStationUrl ?? GAS_STATION_URL
@@ -32,13 +33,12 @@ export class NetworkData {
       server: config.blockBookConfig.nodes,
       logger: this.logger,
     })
+    this.blockbookEnabled = Boolean(this.blockBookService.api)
 
     this.web3Service = new NetworkDataWeb3({
       ...config.web3Config,
       logger: this.logger,
     })
-
-    this.parityUrl = config.parityUrl
   }
 
   async connectBlockBook(): Promise<void> {
@@ -83,7 +83,7 @@ export class NetworkData {
     amountOfGas: number
   }> {
     const pricePerGasUnit = await this.getGasPrice(speed)
-    const nonce = await this.getNonce(from)
+    const nonce = await this.getNextNonce(from)
     const amountOfGas = await this.estimateGas({ from, to, data }, txType)
 
     return {
@@ -93,19 +93,21 @@ export class NetworkData {
     }
   }
 
-  async getNonce(address: string): Promise<string> {
-    const web3Nonce = (await this.web3Service.getWeb3Nonce(address)) || '0'
-    const parityNonce = (await this.getParityNonce(address)) || '0'
+  async getNextNonce(address: string): Promise<string> {
+    const web3Nonce = await this.web3Service.getNextNonce(address)
+    const blockbookNonce = this.blockbookEnabled
+      ? await this.blockBookService.getNextNonce(address)
+      : '0'
 
-    const nonce = BigNumber.maximum(web3Nonce, parityNonce)
-    return nonce.toNumber() ? nonce.toString() : '0'
+    const nonce = BigNumber.maximum(web3Nonce, blockbookNonce)
+    return nonce.toString()
   }
 
   async getGasPrice(speed: AutoFeeLevels): Promise<string> {
     let gasPrice = await this.getGasStationGasPrice(speed)
     if (gasPrice) return gasPrice
 
-    gasPrice = await this.web3Service.getWeb3GasPrice()
+    gasPrice = await this.web3Service.getGasPrice()
     if (gasPrice) return gasPrice
 
     return DEFAULT_GAS_PRICE_IN_WEI
@@ -133,33 +135,6 @@ export class NetworkData {
 
   async getAddressBalanceERC20(address: string, tokenAddress: string) {
     return this.callBlockbookWithWeb3Fallback('getAddressBalanceERC20', address, tokenAddress)
-  }
-
-  private async getParityNonce(address: string): Promise<string> {
-    const data = {
-      method: 'parity_nextNonce',
-      params: [address],
-      id: 1,
-      jsonrpc: '2.0',
-    }
-    const options = {
-      url: this.parityUrl || '',
-      json: data,
-    }
-
-    let body: { [key: string]: string }
-    try {
-      body = await request.post(options)
-    } catch (e) {
-      this.logger.warn('Failed to retrieve nonce from parity - ', e.toString())
-      return ''
-    }
-    if (!body || !body.result) {
-      this.logger.warn('Bad result or missing fields in parity nextNonce response', body)
-      return ''
-    }
-
-    return new BigNumber(body.result, 16).toString()
   }
 
   private async getGasStationGasPrice(level: AutoFeeLevels): Promise<string> {

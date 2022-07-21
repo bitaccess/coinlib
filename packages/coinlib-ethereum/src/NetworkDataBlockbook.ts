@@ -1,4 +1,4 @@
-import { BlockInfo } from '@bitaccess/coinlib-common'
+import { BigNumber, BlockInfo } from '@bitaccess/coinlib-common'
 import { Logger } from '@faast/ts-common'
 import {
   BlockbookEthereum,
@@ -15,7 +15,7 @@ import {
   EthereumStandardizedERC20Transaction,
   EthereumStandardizedTransaction,
 } from './types'
-import { retryIfDisconnected, resolveServer, getBlockBookTxFromAndToAddress } from './utils'
+import { retryIfDisconnected, resolveServer, getBlockBookTxFromAndToAddress, deriveCreate1Address } from './utils'
 
 export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
   private logger: Logger
@@ -91,6 +91,16 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
     return this._retryDced(() => this.getApi().getAddressDetails(address, options))
   }
 
+  async getNextNonce(address: string): Promise<BigNumber> {
+    try {
+      const addressDetails = await this.getAddressDetails(address, { details: 'basic' })
+      return new BigNumber(addressDetails.nonce ?? 0)
+    } catch (e) {
+      this.logger.warn('Failed to retrieve next nonce from blockbook - ', e.toString())
+      return new BigNumber(0)
+    }
+  }
+
   async getERC20Transaction(txId: string, tokenAddress: string) {
     const tx = await this._retryDced(() => this.getApi().getTx(txId))
     const txSpecific = await this._retryDced(() => this.getApi().getTxSpecific(txId))
@@ -139,7 +149,7 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
   }
 
   standardizeTransaction(tx: NormalizedTxEthereum, blockInfoTime?: Date): EthereumStandardizedTransaction {
-    const { fromAddress, toAddress } = getBlockBookTxFromAndToAddress(tx)
+    const { fromAddress, toAddress, contractAddress } = getBlockBookTxFromAndToAddress(tx)
 
     const blockTime = blockInfoTime ? new Date(blockInfoTime) : new Date(tx.blockTime * 1000)
 
@@ -156,6 +166,7 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
       gasUsed: tx.ethereumSpecific.gasUsed,
       gasPrice: tx.ethereumSpecific.gasPrice,
       status: Boolean(tx.ethereumSpecific.status),
+      contractAddress,
       raw: {
         ...tx,
         dataProvider: NETWORK_DATA_PROVIDERS.BLOCKBOOK,

@@ -20,7 +20,7 @@ import {
   EthereumStandardizedTransaction,
   EthereumStandardizedERC20Transaction,
 } from './types'
-import { retryIfDisconnected } from './utils'
+import { deriveCreate1Address, retryIfDisconnected } from './utils'
 import { get } from 'lodash'
 
 export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
@@ -152,16 +152,17 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     }
   }
 
-  async getWeb3Nonce(address: string): Promise<string> {
+  async getNextNonce(address: string): Promise<BigNumber> {
     try {
       const nonce = await this._retryDced(() => this.eth.getTransactionCount(address, 'pending'))
-      return new BigNumber(nonce).toString()
+      return new BigNumber(nonce)
     } catch (e) {
-      return ''
+      this.logger.warn('Failed to retrieve next nonce from web3 - ', e.toString())
+      return new BigNumber(0)
     }
   }
 
-  async getWeb3GasPrice(): Promise<string> {
+  async getGasPrice(): Promise<string> {
     try {
       const wei = new BigNumber(await this._retryDced(() => this.eth.getGasPrice()))
       this.logger.log(`Retrieved gas price of ${wei.div(1e9)} Gwei from web3`)
@@ -179,12 +180,9 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     const currentBlockNumber = await this.getCurrentBlockNumber()
     const block = await this.getBlock(tx.blockHash!)
 
-    return this.standardizeTransaction(tx, {
+    return this.standardizeTransaction(tx, txReceipt, {
       blockTime: block.time,
       currentBlockNumber,
-      gasUsed: txReceipt.gasUsed,
-      contractAddress: txReceipt.contractAddress,
-      status: txReceipt.status,
     })
   }
 
@@ -199,11 +197,9 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
 
       const txReceipt = await this.getTransactionReceipt(txHash)
 
-      return this.standardizeTransaction(tx, {
+      return this.standardizeTransaction(tx, txReceipt, {
         blockTime,
-        gasUsed: txReceipt.gasUsed,
         currentBlockNumber,
-        status: txReceipt.status,
       })
     })
 
@@ -226,23 +222,25 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
 
   standardizeTransaction(
     tx: Transaction,
+    txReceipt: TransactionReceipt,
     {
       blockTime,
       currentBlockNumber,
-      gasUsed,
-      contractAddress,
-      status,
     }: {
       blockTime: Date | null
       currentBlockNumber: number
-      gasUsed: number
-      contractAddress?: string
-      status: boolean
     },
   ): EthereumStandardizedTransaction {
+    const { gasUsed, status } = txReceipt
+    let contractAddress = txReceipt.contractAddress
+    let to = tx.to ?? contractAddress
+    if (!to) {
+      to = deriveCreate1Address(tx.from, tx.nonce)
+      contractAddress = to
+    }
     const standardizedTransaction: EthereumStandardizedTransaction = {
       from: tx.from,
-      to: tx.to!,
+      to,
       blockHash: tx.blockHash!,
       blockHeight: tx.blockNumber!,
       blockTime,
@@ -282,12 +280,9 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       tokenSymbol,
     }: { blockTime: Date; currentBlockNumber: number; tokenDecimals: string; tokenName: string; tokenSymbol: string },
   ): EthereumStandardizedERC20Transaction {
-    const standardizedTx = this.standardizeTransaction(tx, {
-      gasUsed: txReceipt.gasUsed,
+    const standardizedTx = this.standardizeTransaction(tx, txReceipt, {
       currentBlockNumber,
       blockTime,
-      contractAddress: txReceipt.contractAddress,
-      status: txReceipt.status,
     })
 
     const result: EthereumStandardizedERC20Transaction = {

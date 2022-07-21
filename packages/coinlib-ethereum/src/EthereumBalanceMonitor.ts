@@ -9,6 +9,7 @@ import {
   NewBlockCallback,
   BigNumber,
 } from '@bitaccess/coinlib-common'
+import { isString } from '@bitaccess/ts-common'
 import { isUndefined, Numeric } from '@faast/ts-common'
 
 import { AddressDetailsEthereumTxs, NormalizedTxEthereum } from 'blockbook-client'
@@ -107,7 +108,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
         details: 'txs',
       })
 
-      if (transactionPage.page !== page) {
+      if (transactionPage?.page !== page) {
         break
       }
       transactions = transactionPage.transactions
@@ -143,9 +144,10 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     tx: EthereumStandardizedTransaction,
     cache: { [txid: string]: NormalizedTxEthereum },
   ) {
-    const fromAddress = this.standardizeAddressOrThrow(tx.from)
-    const toAddress = this.standardizeAddressOrThrow(tx.to)
-    const involvedAddresses = new Set([fromAddress, toAddress])
+    const involvedAddresses = new Set(
+      [tx.from, tx.to]
+        .map((a) => this.standardizeAddressOrThrow(a))
+    )
 
     const rawTx = await this.getTxWithMemoization(tx.txHash, cache)
 

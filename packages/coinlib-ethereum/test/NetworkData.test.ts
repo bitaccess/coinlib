@@ -5,7 +5,7 @@ import {
   getEstimateGasMocks,
   getGasPriceMocks,
   getGasStationResponse,
-  getNextNonceMocks,
+  getParityNextNonceMocks,
   getTransactionCountMocks,
 } from './fixtures/mocks'
 import { FeeLevel } from '@bitaccess/coinlib-common'
@@ -52,7 +52,7 @@ describe('NetworkData', () => {
     const estimateGasPriceMock = getEstimateGasMocks(id++, from, to, `0x${(21000).toString(16)}`)
     nockI.post(/.*/, estimateGasPriceMock.req).reply(200, estimateGasPriceMock.res)
 
-    const parityMock = getNextNonceMocks(1, from, '0x1b')
+    const parityMock = getParityNextNonceMocks(1, from, '0x1b')
     nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
 
     const res = await networkData.getGasAndNonceForNewTx('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
@@ -73,7 +73,7 @@ describe('NetworkData', () => {
     const estimateGasPriceMock = getEstimateGasMocks(id++, from, to, `0x${(32001).toString(16)}`)
     nockI.post(/.*/, estimateGasPriceMock.req).reply(200, estimateGasPriceMock.res)
 
-    const parityMock = getNextNonceMocks(1, from, '0x1b')
+    const parityMock = getParityNextNonceMocks(1, from, '0x1b')
     nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
 
     const res = await networkData.getGasAndNonceForNewTx('TOKEN_SWEEP', FeeLevel.Low, from, to)
@@ -101,7 +101,7 @@ describe('NetworkData', () => {
     const estimateGasPriceMock = getEstimateGasMocks(id++, from, to, '')
     nockI.post(/.*/, estimateGasPriceMock.req).reply(200, estimateGasPriceMock.res)
 
-    const parityMock = getNextNonceMocks(1, from, '')
+    const parityMock = getParityNextNonceMocks(1, from, '')
     nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
 
     const res = await networkData.getGasAndNonceForNewTx('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
@@ -129,7 +129,7 @@ describe('NetworkData', () => {
     const estimateGasPriceMock = getEstimateGasMocks(id++, from, to, '')
     nockI.post(/.*/, estimateGasPriceMock.req).reply(200, estimateGasPriceMock.res)
 
-    const parityMock = getNextNonceMocks(1, from, '0x1b')
+    const parityMock = getParityNextNonceMocks(1, from, '0x1b')
     nockP.post(/.*/, parityMock.req).reply(400)
 
     const res = await networkData.getGasAndNonceForNewTx('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)

@@ -12,6 +12,7 @@ import {
   buffToHex,
   hexToBuff,
   strip0x,
+  prepend0x,
 } from '@bitaccess/coinlib-common'
 import { Logger, DelegateLogger, assertType, isNull, Numeric, isNumber } from '@faast/ts-common'
 import { BlockbookEthereum } from 'blockbook-client'
@@ -42,10 +43,9 @@ import {
 } from './types'
 import { isValidXprv, isValidXpub } from './bip44'
 import { NetworkData } from './NetworkData'
-import { retryIfDisconnected } from './utils'
+import { retryIfDisconnected, deriveProxyCreate2Address } from './utils'
 import { UnitConvertersUtil } from './UnitConvertersUtil'
 import * as SIGNATURE from './erc20/constants'
-import { deriveCreate2Address } from './erc20/utils'
 import * as ethJsUtil from 'ethereumjs-util'
 
 export class EthereumPaymentsUtils extends UnitConvertersUtil implements PaymentsUtils {
@@ -172,7 +172,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     }
     const format = assertType(EthereumAddressFormatT, options?.format ?? DEFAULT_ADDRESS_FORMAT, 'format')
     if (format === EthereumAddressFormat.Lowercase) {
-      return address.toLowerCase()
+      return prepend0x(address.toLowerCase())
     } else {
       return this.web3.utils.toChecksumAddress(address)
     }
@@ -312,7 +312,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
   }
 
   async getAddressNextSequenceNumber(address: string) {
-    return this.networkData.getNonce(address)
+    return this.networkData.getNextNonce(address)
   }
 
   async getAddressUtxos() {
@@ -359,6 +359,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     const tokenDecoder = new InputDataDecoder(FULL_ERC20_TOKEN_METHODS_ABI)
     const txInput = erc20Tx.txInput
     let amount = ''
+    let contractAddress: string | undefined
 
     const isERC20Transfer = txInput.startsWith(SIGNATURE.ERC20_TRANSFER)
     const isERC20SweepContractDeploy = txInput.startsWith(SIGNATURE.ERC20_SWEEP_CONTRACT_DEPLOY)
@@ -392,6 +393,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       }
     } else if (isERC20SweepContractDeploy || isERC20SweepContractDeployLegacy || isERC20Proxy) {
       amount = '0'
+      contractAddress = erc20Tx.contractAddress
     } else if (isERC20Sweep) {
       const tokenDecoder = new InputDataDecoder(TOKEN_WALLET_ABI)
       const txData = tokenDecoder.decodeData(txInput)
@@ -410,9 +412,9 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
         throw new Error(`Transaction ${txHash} should have a to address destination`)
       }
 
-      const create2Addr = deriveCreate2Address(sweepContractAddress, buffToHex(txData.inputs[0]), true)
+      const proxyAddress = deriveProxyCreate2Address(sweepContractAddress, buffToHex(txData.inputs[0]))
 
-      fromAddress = create2Addr
+      fromAddress = proxyAddress
       toAddress = txData.inputs[2]
       amount = this.getErc20TransferLogAmount(erc20Tx.receipt, tokenDecimals, txHash)
     } else if (isERC20SweepLegacy) {

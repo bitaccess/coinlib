@@ -4,9 +4,8 @@ import { omit } from 'lodash'
 import { PUBLIC_CONFIG_OMIT_FIELDS } from '../constants'
 import { BaseErc20Payments } from './BaseErc20Payments'
 import { EthereumBIP44 } from '../bip44'
-import { deriveCreate2Address } from './utils'
+import { deriveProxyCreate2Address, sha3 } from '../utils'
 import { HdErc20PaymentsConfig, EthereumSignatory } from '../types'
-import { prepend0x } from '../utils'
 
 export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
   readonly xprv: string | null
@@ -50,7 +49,7 @@ export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
 
   getAddressSalt(index: number): string {
     const pubKey = this.bip44.getPublicKey(index)
-    const salt = this.web3.utils.sha3(prepend0x(pubKey))
+    const salt = sha3(pubKey)
     if (!salt) {
       throw new Error(`Cannot get address salt for index ${index}`)
     }
@@ -61,21 +60,28 @@ export class HdErc20Payments extends BaseErc20Payments<HdErc20PaymentsConfig> {
     return this.standardizeAddressOrThrow(this.bip44.getAddress(index))
   }
 
-  async getPayport(index: number): Promise<Payport> {
-    if (index === 0) {
-      return { address: this.deriveStandardAddress(index) }
-    }
+  deriveProxyAddress(index: number) {
+    const salt = this.getAddressSalt(index)
 
     if (!this.masterAddress) {
       throw new Error(`Cannot derive payport ${index} - masterAddress is falsy`)
     }
-    const pubKey = this.bip44.getPublicKey(this.depositKeyIndex)
-    const address = deriveCreate2Address(this.masterAddress, pubKey)
+
+    const address = deriveProxyCreate2Address(this.masterAddress, salt)
 
     if (!this.isValidAddress(address)) {
       // This should never happen
       throw new Error(`Cannot get address ${index} - validation failed for derived address`)
     }
+
+    return this.standardizeAddressOrThrow(address)
+  }
+
+  async getPayport(index: number): Promise<Payport> {
+    if (index === 0) {
+      return { address: this.deriveStandardAddress(index) }
+    }
+    const address = this.deriveProxyAddress(index)
     const signerAddress = this.deriveStandardAddress(this.depositKeyIndex)
     return { address, signerAddress }
   }

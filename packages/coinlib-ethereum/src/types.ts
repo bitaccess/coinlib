@@ -23,6 +23,7 @@ import {
   NetworkTypeT,
   createUnitConverters,
   BlockInfo,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
 import { BlockbookEthereum, BlockInfoEthereum } from 'blockbook-client'
 import Web3 from 'web3'
@@ -386,6 +387,8 @@ export interface EthereumStandardizedERC20Transaction extends EthereumStandardiz
 export interface EthereumNetworkDataProvider {
   getBlock(id?: string | number): Promise<BlockInfo>
   getCurrentBlockNumber(): Promise<number>
+
+  getNextNonce(address: string): Promise<BigNumber>
 
   getAddressBalance(address: string): Promise<string>
   getAddressBalanceERC20(address: string, tokenAddress: string): Promise<string>

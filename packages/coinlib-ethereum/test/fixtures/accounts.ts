@@ -2,6 +2,7 @@ import { DEFAULT_DERIVATION_PATH } from '../../src'
 
 export { DEFAULT_DERIVATION_PATH }
 export type AccountFixture = {
+  derivationPath: string,
   xkeys: {
     xprv: string,
     xpub: string
@@ -23,6 +24,7 @@ export type AccountFixture = {
  * key into metamask produces the same address.
  */
 export const DEFAULT_PATH_FIXTURE: AccountFixture = {
+  derivationPath: DEFAULT_DERIVATION_PATH,
   xkeys: {
     xprv: 'xprv9zmyKoBX1c55iUJ4nRsNTkt76uNMv1oeH1ZHXr9WuA78WrDFRZvNrA4mcqdXFuAUT9iQMcz3jTEB6M6NHLfGcznegNzmZgMPF5DkW365Lop',
     xpub: 'xpub6DmKjJiQqydNvxNXtTQNptpqewCrKUXVeEUtLEZ8TVe7PeYPy7EdPxPFU8CgndT4xhowU5QUwjMm9JwanqF12z5n67jY2fd9qQXshybcRaq',
@@ -47,6 +49,7 @@ export const DEFAULT_PATH_FIXTURE: AccountFixture = {
 
 export const CUSTOM_DERIVATION_PATH = "m/44'/666'/5'"
 export const CUSTOM_PATH_FIXTURE: AccountFixture = {
+  derivationPath: CUSTOM_DERIVATION_PATH,
   xkeys: {
     xprv: 'xprv9ykjpw1vU9pWxFLFX3sTFnPKUWCBTaF5FGorCePr9RaS1xxR7mgGmUiVqMN7mnhFouuKntTqeT592YcD3S5QYhW3mDLYZNkSJCViZRqimgU',
     xpub: 'xpub6Ck6ESYpJXNpAjQid5QTcvL42Y2fs2xvcVjT12oThm7QtmHZfJzXKH2ygdqkSTycurZpp6HUm7Ucj2CgWPZRso2vdeE2WGH2eoyu1MnpFGd',
@@ -78,6 +81,7 @@ export const CUSTOM_PATH_FIXTURE: AccountFixture = {
 
 export const BBB_DERIVATION_PATH = "m/44'/888'/0'/0"
 export const BBB_PATH_FIXTURE: AccountFixture = {
+  derivationPath: BBB_DERIVATION_PATH,
   xkeys: {
     xpub: 'xpub6EXMcCvrckxdxrjEEbtwLAjQKPbRjnBbkRNpX1Mj1PiCRuvinjJmfiNSaE6Q4VGPGyH7oxGjAYJoqsGuyjMNKj9bmLhQwvhuqLCb4qGBdNh',
     xprv: 'xprvA1Y1ChPxnPQLkNem8aMvy2nfmMkwLKTkPCTDicx7T4BDZ7baFBzX7v3xixXWE3zkqPjAFdxqCDt4fURCndvp6jSZC8J6e214adJYPyoKWCY',
