@@ -100,3 +100,9 @@ export const LITECOIN_COINTYPES = {
   [NetworkType.Mainnet]: '2',
   [NetworkType.Testnet]: '2',
 }
+
+export const LITECOIN_NETWORK_CONSTANTS = {
+  coinName: COIN_NAME,
+  defaultPurpose: DEFAULT_PURPOSE,
+  coinTypes: LITECOIN_COINTYPES,
+}

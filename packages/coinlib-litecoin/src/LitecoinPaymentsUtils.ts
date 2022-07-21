@@ -11,14 +11,7 @@ import {
 } from './helpers'
 import { NetworkType } from '@bitaccess/coinlib-common'
 import { assertType, optional } from '@bitaccess/ts-common'
-import {
-  DEFAULT_ADDRESS_FORMAT,
-  DEFAULT_ADDRESS_TYPE,
-  COIN_NAME,
-  DEFAULT_PURPOSE,
-  LITECOIN_COINTYPES,
-  NETWORKS,
-} from './constants'
+import { DEFAULT_ADDRESS_FORMAT, DEFAULT_ADDRESS_TYPE, LITECOIN_NETWORK_CONSTANTS, NETWORKS } from './constants'
 
 export class LitecoinPaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils {
   readonly validAddressFormat?: LitecoinAddressFormat
@@ -68,15 +61,10 @@ export class LitecoinPaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils {
     const addressType = options?.addressType ? assertType(AddressTypeT, options?.addressType) : DEFAULT_ADDRESS_TYPE
     const networkType: NetworkType = this.networkType
     if (!this.determinePathForIndexFn) {
-      const constants = {
-        coinName: COIN_NAME,
-        defaultPurpose: DEFAULT_PURPOSE,
-        coinTypes: LITECOIN_COINTYPES,
-      }
       const functions = {
         isSupportedAddressType,
       }
-      this.determinePathForIndexFn = bitcoinish.createDeterminePathForIndexHelper(constants, functions)
+      this.determinePathForIndexFn = bitcoinish.createDeterminePathForIndexHelper(LITECOIN_NETWORK_CONSTANTS, functions)
     }
     const derivationPath: string = this.determinePathForIndexFn(accountIndex, addressType, networkType)
     return derivationPath

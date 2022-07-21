@@ -13,19 +13,12 @@ import {
 } from './types'
 import {
   BITCOIN_SEQUENCE_RBF,
-  SINGLESIG_ADDRESS_TYPE,
   DEFAULT_ADDRESS_FORMAT,
   DEFAULT_ADDRESS_TYPE,
-  COIN_NAME,
-  DEFAULT_PURPOSE,
-  BITCOINCASH_COINTYPES,
   NETWORKS,
+  BITCOIN_CASH_NETWORK_CONSTANTS,
 } from './constants'
-import {
-  estimateBitcoinCashTxSize,
-  isSupportedAddressType,
-  getSupportedAddressTypes,
-} from './helpers'
+import { estimateBitcoinCashTxSize, isSupportedAddressType, getSupportedAddressTypes } from './helpers'
 import { BitcoinCashPaymentsUtils } from './BitcoinCashPaymentsUtils'
 import { assertType } from '@bitaccess/ts-common'
 
@@ -370,15 +363,13 @@ export abstract class BaseBitcoinCashPayments<
     const addressType = options?.addressType ? assertType(AddressTypeT, options?.addressType) : DEFAULT_ADDRESS_TYPE
     const networkType: NetworkType = this.networkType
     if (!this.determinePathForIndexFn) {
-      const constants = {
-        coinName: COIN_NAME,
-        defaultPurpose: DEFAULT_PURPOSE,
-        coinTypes: BITCOINCASH_COINTYPES,
-      }
       const functions = {
         isSupportedAddressType,
       }
-      this.determinePathForIndexFn = bitcoinish.createDeterminePathForIndexHelper(constants, functions)
+      this.determinePathForIndexFn = bitcoinish.createDeterminePathForIndexHelper(
+        BITCOIN_CASH_NETWORK_CONSTANTS,
+        functions,
+      )
     }
     const derivationPath: string = this.determinePathForIndexFn(accountIndex, addressType, networkType)
     return derivationPath

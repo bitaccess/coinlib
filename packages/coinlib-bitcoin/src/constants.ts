@@ -41,8 +41,8 @@ export const DEFAULT_DERIVATION_PATHS = {
   [AddressType.SegwitNative]: "m/84'/0'/0'",
 }
 
-export const BITCOIN_COINTYPE_MAINNET =  `0`
-export const BITCOIN_COINTYPE_TESTNET =  `1`
+export const BITCOIN_COINTYPE_MAINNET = `0`
+export const BITCOIN_COINTYPE_TESTNET = `1`
 
 export const DEFAULT_NETWORK = NetworkType.Mainnet
 
@@ -71,7 +71,7 @@ export const BITCOIN_SUPPORTED_ADDRESS_TYPES = [
   AddressType.SegwitP2SH,
   AddressType.MultisigLegacy,
   AddressType.MultisigSegwitNative,
-  AddressType.MultisigSegwitP2SH
+  AddressType.MultisigSegwitP2SH,
 ]
 
 export const DEFAULT_ADDRESS_TYPE: AddressType = AddressType.Legacy
@@ -80,4 +80,10 @@ export const DEFAULT_PURPOSE: string = '84'
 export const BITCOIN_COINTYPES = {
   [NetworkType.Mainnet]: '0',
   [NetworkType.Testnet]: '0',
+}
+
+export const BITCOIN_NETWORK_CONSTANTS = {
+  coinName: COIN_NAME,
+  defaultPurpose: DEFAULT_PURPOSE,
+  coinTypes: BITCOIN_COINTYPES,
 }

@@ -95,3 +95,8 @@ export const DOGE_COINTYPES = {
   [NetworkType.Testnet]: '3',
 }
 
+export const DOGE_NETWORK_CONSTANTS = {
+  coinName: COIN_NAME,
+  defaultPurpose: DEFAULT_PURPOSE,
+  coinTypes: DOGE_COINTYPES,
+}

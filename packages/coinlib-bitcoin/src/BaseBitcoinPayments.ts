@@ -3,14 +3,7 @@ import { UtxoInfo, NetworkType } from '@bitaccess/coinlib-common'
 
 import { toBitcoinishConfig } from './utils'
 import { BaseBitcoinPaymentsConfig, AddressType, AddressTypeT, PsbtInputData } from './types'
-import {
-  BITCOIN_SEQUENCE_RBF,
-  DEFAULT_ADDRESS_TYPE,
-  COIN_NAME,
-  DEFAULT_PURPOSE,
-  BITCOIN_COINTYPES,
-  NETWORKS,
-} from './constants'
+import { BITCOIN_SEQUENCE_RBF, DEFAULT_ADDRESS_TYPE, BITCOIN_NETWORK_CONSTANTS, NETWORKS } from './constants'
 import {
   isValidAddress,
   isValidPrivateKey,
@@ -163,15 +156,10 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     const addressType = options?.addressType ? assertType(AddressTypeT, options?.addressType) : DEFAULT_ADDRESS_TYPE
     const networkType: NetworkType = this.networkType
     if (!this.determinePathForIndexFn) {
-      const constants = {
-        coinName: COIN_NAME,
-        defaultPurpose: DEFAULT_PURPOSE,
-        coinTypes: BITCOIN_COINTYPES,
-      }
       const functions = {
         isSupportedAddressType,
       }
-      this.determinePathForIndexFn = createDeterminePathForIndexHelper(constants, functions)
+      this.determinePathForIndexFn = createDeterminePathForIndexHelper(BITCOIN_NETWORK_CONSTANTS, functions)
     }
     const derivationPath: string = this.determinePathForIndexFn(accountIndex, addressType, networkType)
     return derivationPath

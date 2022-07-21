@@ -9,9 +9,7 @@ import {
   DEFAULT_FEE_LEVEL_BLOCK_TARGETS,
   DEFAULT_ADDRESS_TYPE,
   NETWORKS,
-  COIN_NAME,
-  DEFAULT_PURPOSE,
-  DOGE_COINTYPES,
+  DOGE_NETWORK_CONSTANTS,
 } from './constants'
 import {
   isValidAddress,
@@ -163,15 +161,10 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
     const addressType = options?.addressType ? assertType(AddressTypeT, options?.addressType) : DEFAULT_ADDRESS_TYPE
     const networkType: NetworkType = this.networkType
     if (!this.determinePathForIndexFn) {
-      const constants = {
-        coinName: COIN_NAME,
-        defaultPurpose: DEFAULT_PURPOSE,
-        coinTypes: DOGE_COINTYPES,
-      }
       const functions = {
         isSupportedAddressType,
       }
-      this.determinePathForIndexFn = bitcoinish.createDeterminePathForIndexHelper(constants, functions)
+      this.determinePathForIndexFn = bitcoinish.createDeterminePathForIndexHelper(DOGE_NETWORK_CONSTANTS, functions)
     }
     const derivationPath: string = this.determinePathForIndexFn(accountIndex, addressType, networkType)
     return derivationPath

@@ -64,3 +64,9 @@ export const BITCOINCASH_COINTYPES = {
 
 export const BITCOINCASH_SUPPORTED_ADDRESS_TYPES = [AddressType.Legacy, AddressType.MultisigLegacy]
 export const DEFAULT_ADDRESS_TYPE = AddressType.Legacy
+
+export const BITCOIN_CASH_NETWORK_CONSTANTS = {
+  coinName: COIN_NAME,
+  defaultPurpose: DEFAULT_PURPOSE,
+  coinTypes: BITCOINCASH_COINTYPES,
+}
