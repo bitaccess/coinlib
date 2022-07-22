@@ -135,6 +135,13 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     let target: string
     let fromAddress: string
     if (typeof from === 'string') {
+      if (!options.legacySweep) {
+        throw new Error(
+          `Received string from param in erc20 createSweepTransaction, but legacySweep option isn't enabled.`
+            + `If you're really sure you want to sweep a legacy address, enable the option, otherwise provide `
+            + 'a from index number instead of an address to sweep a create2 proxy.'
+        )
+      }
       // deployable wallet contract
       fromAddress = this.standardizeAddressOrThrow(from)
       target = fromAddress

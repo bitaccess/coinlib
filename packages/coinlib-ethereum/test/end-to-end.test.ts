@@ -15,7 +15,7 @@ const LOCAL_NODE = 'http://localhost'
 const LOCAL_NODE_WS = 'ws://localhost'
 const LOCAL_PORT = 8546
 
-const logger = new TestLogger('ethereum-payments')
+const logger = new TestLogger(__filename)
 
 const factory = new EthereumPaymentsFactory()
 
@@ -48,7 +48,13 @@ describe('end to end tests', () => {
         secretKey: target.keys.prv
       },
     ],
-    chainId: 3
+    chainId: 3,
+    logging: {
+      logger,
+      debug: false, // Set to `true` to log EVM opcodes.
+      verbose: false, // Set to `true` to log all RPC requests and responses.
+      quiet: false, // Set to `true` to disable logging.
+    }
   }
 
 

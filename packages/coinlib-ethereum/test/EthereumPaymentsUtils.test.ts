@@ -5,7 +5,7 @@ import { DEFAULT_PATH_FIXTURE, hdAccount } from './fixtures/accounts'
 import { TestLogger } from '../../../common/testUtils'
 import { EthereumAddressFormat } from '../src/types'
 const web3 = new Web3()
-const logger = new TestLogger('EthereumPaymentUtilssTest')
+const logger = new TestLogger(__filename)
 
 const INVALID_ADDRESS = 'totally invalid'
 const VALID_ADDRESS = DEFAULT_PATH_FIXTURE.children[0].address

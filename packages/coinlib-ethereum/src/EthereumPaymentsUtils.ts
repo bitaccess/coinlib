@@ -324,7 +324,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     txHash: string,
   ): string {
     const txReceiptLogs = receipt.logs
-    const transferLog = txReceiptLogs.find(log => log.topics[0] === SIGNATURE.LOG_TOPIC0_ERC20_SWEEP)
+    const transferLog = txReceiptLogs.find(log => log.topics[0] === SIGNATURE.LOG_TOPIC_ERC20_TRANSFER)
     if (!transferLog) {
       this.logger.warn(`Transaction ${txHash} was an ERC20 sweep but cannot find log for Transfer event`)
       return '0'
@@ -335,13 +335,35 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     return unitConverter.toMainDenominationString(transferLog.data)
   }
 
+  private checkErc20TransferLogAmount(
+    receipt: EthereumStandardizedERC20Transaction['receipt'],
+    tokenDecimals: number,
+    txHash: string,
+    inputAmount: string,
+  ) {
+    const actualAmount = this.getErc20TransferLogAmount(receipt, tokenDecimals, txHash)
+
+    if (inputAmount !== actualAmount) {
+      this.logger.warn(
+        `Transaction ${txHash} tried to transfer ${inputAmount} but only ${actualAmount} was actually transferred`,
+      )
+      return actualAmount
+    }
+
+    return inputAmount
+  }
+
   private async getTransactionInfoERC20(txId: string, tokenAddress: string): Promise<EthereumTransactionInfo> {
     const erc20Tx = await this.networkData.getERC20Transaction(txId, tokenAddress)
 
     let fromAddress = erc20Tx.from
     let toAddress = erc20Tx.to ?? tokenAddress
-    const tokenDecimals = new BigNumber(erc20Tx.tokenDecimals).toNumber()
     const { txHash } = erc20Tx
+
+    // USDT token has decimal place of 6, unlike other tokens that are 18 decimals;
+    // so we have to use a custom unitConverter, the default one uses that 18 decimals
+    const tokenDecimals = new BigNumber(erc20Tx.tokenDecimals ?? this.coinDecimals).toNumber()
+    const customUnitConverter = this.getCustomUnitConverter(tokenDecimals)
 
     let status: TransactionStatus = TransactionStatus.Pending
     let isExecuted = false
@@ -357,7 +379,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
 
     const tokenDecoder = new InputDataDecoder(FULL_ERC20_TOKEN_METHODS_ABI)
     const txInput = erc20Tx.txInput
-    let amount = ''
+    let amount: string
     let contractAddress: string | undefined
 
     const isERC20Transfer = txInput.startsWith(SIGNATURE.ERC20_TRANSFER)
@@ -374,21 +396,10 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       const txData = tokenDecoder.decodeData(txInput)
 
       toAddress = txData.inputs[0]
+      amount = customUnitConverter.toMainDenominationString(txData.inputs[1].toString())
 
-      // USDT token has decimal place of 6, unlike other tokens that are 18 decimals;
-      // so we have to use a custom unitConverter, the default one uses that 18 decimals
-      const customUnitConverter = this.getCustomUnitConverter(tokenDecimals)
-
-      const inputAmount = txData.inputs[1].toString()
-
-      amount = customUnitConverter.toMainDenominationString(inputAmount)
-
-      const actualAmount = this.getErc20TransferLogAmount(erc20Tx.receipt, tokenDecimals, txHash)
-
-      if (isExecuted && amount !== actualAmount) {
-        this.logger.warn(
-          `Transaction ${txHash} tried to transfer ${amount} but only ${actualAmount} was actually transferred`,
-        )
+      if (isExecuted) {
+        this.checkErc20TransferLogAmount(erc20Tx.receipt, tokenDecimals, txHash, amount)
       }
     } else if (isERC20SweepContractDeploy || isERC20SweepContractDeployLegacy || isERC20Proxy) {
       amount = '0'
@@ -415,7 +426,11 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
 
       fromAddress = proxyAddress
       toAddress = txData.inputs[2]
-      amount = this.getErc20TransferLogAmount(erc20Tx.receipt, tokenDecimals, txHash)
+      amount = customUnitConverter.toMainDenominationString(txData.inputs[3].toString())
+
+      if (isExecuted) {
+        amount = this.checkErc20TransferLogAmount(erc20Tx.receipt, tokenDecimals, txHash, amount)
+      }
     } else if (isERC20SweepLegacy) {
       const tokenDecoder = new InputDataDecoder(TOKEN_WALLET_ABI_LEGACY)
       const txData = tokenDecoder.decodeData(txInput)
@@ -435,7 +450,6 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
 
       fromAddress = sweepContractAddress
       toAddress = txData.inputs[1]
-
       amount = this.getErc20TransferLogAmount(erc20Tx.receipt, tokenDecimals, txHash)
     } else {
       throw new Error('tx is neither ERC20 token transfer nor sweep')
@@ -467,6 +481,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
         ...erc20Tx,
       },
     }
+    this.logger.debug('getTransactionInfoERC20', txId, tokenAddress, result)
 
     return result
   }
@@ -524,6 +539,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
         contractAddress: tx.contractAddress,
       },
     }
+    this.logger.debug('getTransactionInfo', txid, result)
 
     return result
   }

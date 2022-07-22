@@ -7,7 +7,7 @@ const GAS_STATION_URL = 'https://gasstation.test.url'
 const PARITY_URL = 'https://parity.test.url'
 const INFURA_URL = 'https://infura.test.url'
 
-const logger = new TestLogger('HdEthereumPaymentsTest')
+const logger = new TestLogger(__filename)
 
 const account0 = DEFAULT_PATH_FIXTURE
 const child0 = account0.children[0]

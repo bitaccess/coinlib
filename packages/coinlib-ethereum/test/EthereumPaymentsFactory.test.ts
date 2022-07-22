@@ -15,7 +15,7 @@ import {
 
 import { DEFAULT_PATH_FIXTURE, BBB_DERIVATION_PATH, BBB_PATH_FIXTURE, hdAccount } from './fixtures/accounts'
 
-const logger = new TestLogger('EthereumPaymentsFactory')
+const logger = new TestLogger(__filename)
 
 const account0 = DEFAULT_PATH_FIXTURE
 const child0 = account0.children[0]

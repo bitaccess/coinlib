@@ -1,13 +1,12 @@
 import server from 'ganache'
-import { BaseTransactionInfo, NetworkType } from '@bitaccess/coinlib-common'
+import { BaseTransactionInfo, NetworkType, numericToHex } from '@bitaccess/coinlib-common'
 
-import { expectEqualOmit, TestLogger } from '../../../../common/testUtils'
+import { delay, expectEqualOmit, TestLogger } from '../../../../common/testUtils'
 
 import {
   hdAccount,
   CUSTOM_PATH_FIXTURE,
   DEFAULT_PATH_FIXTURE,
-  DEFAULT_DERIVATION_PATH,
   CUSTOM_DERIVATION_PATH,
 } from '../fixtures/accounts'
 import {
@@ -15,31 +14,24 @@ import {
   HdErc20Payments,
   HdErc20PaymentsConfig,
   EthereumPaymentsFactory,
-  EthereumTransactionInfo,
 } from '../../src'
-import { CONTRACT_JSON, CONTRACT_GAS, CONTRACT_BYTECODE } from './fixtures/abi'
+import { CONTRACT_GAS, CONTRACT_BYTECODE } from './fixtures/abi'
 
 const LOCAL_NODE = 'http://localhost'
 const LOCAL_PORT = 8547
 
-const logger = new TestLogger('HdErc20PaymentsTest')
+const logger = new TestLogger(__filename)
 
 const factory = new EthereumPaymentsFactory()
 
-const SOURCE_SIGNATORY = {
+const MAIN_SIGNATORY = {
   ...DEFAULT_PATH_FIXTURE.children[0],
   xkeys: hdAccount.root.KEYS,
   derivationPath: DEFAULT_PATH_FIXTURE.derivationPath,
 }
 
-const TOKEN_ISSUER_SIGNATORY = {
+const ISSUER_SIGNATORY = {
   ...CUSTOM_PATH_FIXTURE.children[0],
-  xkeys: CUSTOM_PATH_FIXTURE.xkeys,
-  derivationPath: CUSTOM_DERIVATION_PATH,
-}
-
-const TOKEN_DISTRIBUTOR_SIGNATORY = {
-  ...CUSTOM_PATH_FIXTURE.children[1],
   xkeys: CUSTOM_PATH_FIXTURE.xkeys,
   derivationPath: CUSTOM_DERIVATION_PATH,
 }
@@ -58,29 +50,30 @@ const BASE_CONFIG = {
   logger,
 }
 
-const TOKEN_ISSUER_ETHER_CONFIG = {
-  ...BASE_CONFIG,
-  hdKey: TOKEN_ISSUER_SIGNATORY.xkeys.xprv,
-  derivationPath: TOKEN_ISSUER_SIGNATORY.derivationPath,
-}
-
 const TOKEN_UTILS_CONFIG = {
   ...BASE_CONFIG,
-  abi: CONTRACT_JSON,
   tokenAddress: EXPECTED_TOKEN_ADDRESS,
   name: 'BA_TEST_TOKEN',
   symbol: 'BTT',
   decimals: 7,
 }
 
-const TOKEN_ISSUER_CONFIG = {
+const ISSUER_ETHER_CONFIG = {
+  ...BASE_CONFIG,
+  hdKey: ISSUER_SIGNATORY.xkeys.xprv,
+  derivationPath: ISSUER_SIGNATORY.derivationPath,
+}
+const ISSUER_TOKEN_CONFIG = {
   ...TOKEN_UTILS_CONFIG,
-  hdKey: TOKEN_ISSUER_SIGNATORY.xkeys.xprv,
-  derivationPath: TOKEN_ISSUER_SIGNATORY.derivationPath,
-  depositKeyIndex: 0,
+  hdKey: ISSUER_SIGNATORY.xkeys.xprv,
+  derivationPath: ISSUER_SIGNATORY.derivationPath,
 }
 
-const TOKEN_SOURCE_CONFIG = {
+const MAIN_ETHER_CONFIG = {
+  ...BASE_CONFIG,
+  hdKey: hdAccount.root.KEYS.xprv,
+}
+const MAIN_TOKEN_CONFIG = {
   ...TOKEN_UTILS_CONFIG,
   hdKey: hdAccount.root.KEYS.xprv,
   depositKeyIndex: 0,
@@ -90,40 +83,40 @@ const TOKEN_SOURCE_CONFIG = {
 const FIRST_PROXY_INDEX = 1
 
 const ISSUER_TOKEN_BALANCE_INITIAL = 70e8
-const ISSUER_TOKEN_DISTRIBUTE_SOURCE = 65e8
-const ISSUER_TOKEN_BALANCE_AFTER_DISTRIBUTION = ISSUER_TOKEN_BALANCE_INITIAL - ISSUER_TOKEN_DISTRIBUTE_SOURCE
-const SOURCE_TOKEN_BALANCE_AFTER_DISTRIBUTION = ISSUER_TOKEN_DISTRIBUTE_SOURCE
-const SOURCE_TOKEN_SEND_FIRST_PROXY = 163331000
-const SOURCE_TOKEN_BALANCE_AFTER_SEND = SOURCE_TOKEN_BALANCE_AFTER_DISTRIBUTION - SOURCE_TOKEN_SEND_FIRST_PROXY
-const PROXY_SWEEP_AMOUNT = SOURCE_TOKEN_SEND_FIRST_PROXY
+const ISSUER_TOKEN_DISTRIBUTE_MAIN = 65e8
+const ISSUER_TOKEN_BALANCE_AFTER_DISTRIBUTION = ISSUER_TOKEN_BALANCE_INITIAL - ISSUER_TOKEN_DISTRIBUTE_MAIN
+const MAIN_TOKEN_BALANCE_AFTER_DISTRIBUTION = ISSUER_TOKEN_DISTRIBUTE_MAIN
+const MAIN_TOKEN_SEND_FIRST_PROXY = 163331000
+const MAIN_TOKEN_BALANCE_AFTER_SEND = MAIN_TOKEN_BALANCE_AFTER_DISTRIBUTION - MAIN_TOKEN_SEND_FIRST_PROXY
+const PROXY_SWEEP_AMOUNT = MAIN_TOKEN_SEND_FIRST_PROXY
 
 jest.setTimeout(100000)
 describe('erc20 end to end tests', () => {
   let ethNode: any
   let issuerEtherPayments: HdEthereumPayments
-  let sourcePayments: HdErc20Payments
+  let mainTokenPayments: HdErc20Payments
 
   beforeAll(async () => {
     const ganacheConfig = {
       accounts: [
         {
           balance: 0.0625e18, // 0,0625 ETH
-          secretKey: TOKEN_ISSUER_SIGNATORY.keys.prv,
+          secretKey: MAIN_SIGNATORY.keys.prv,
         },
         {
           balance: 0.0625e18, // 0,0625 ETH
-          secretKey: SOURCE_SIGNATORY.keys.prv,
+          secretKey: ISSUER_SIGNATORY.keys.prv,
         },
       ],
-      gasLimit: '0x9849ef', // 9980399
-      callGasLimit: '0x9849ef', // 9980399
+      gasLimit: numericToHex(9980399),
+      callGasLimit: numericToHex(9980399),
       chainId: 3, // for ropsten, the new ganache need to verify v value in txn's signature; v = 35(or 36) + 2 * chainId
     }
 
     ethNode = server.server(ganacheConfig)
     ethNode.listen(LOCAL_PORT)
-    issuerEtherPayments = new HdEthereumPayments(TOKEN_ISSUER_ETHER_CONFIG)
-    sourcePayments = new HdErc20Payments(TOKEN_SOURCE_CONFIG)
+    issuerEtherPayments = new HdEthereumPayments(ISSUER_ETHER_CONFIG)
+    mainTokenPayments = new HdErc20Payments(MAIN_TOKEN_CONFIG)
   })
 
   afterAll(() => {
@@ -145,143 +138,145 @@ describe('erc20 end to end tests', () => {
 
       const deployedContract = await issuerEtherPayments.broadcastTransaction(signedContractDeploy)
       const txInfo = await issuerEtherPayments.getTransactionInfo(deployedContract.id)
-      expect(txInfo.fromAddress).toBe(TOKEN_ISSUER_SIGNATORY.address.toLowerCase())
+      expect(txInfo.fromAddress).toBe(ISSUER_SIGNATORY.address.toLowerCase())
       expect(txInfo.toAddress).toBe(EXPECTED_TOKEN_ADDRESS.toLowerCase())
     })
 
     test('deploy master contract', async () => {
-      const unsignedTx = await sourcePayments.createServiceTransaction()
-      const signedTx = await sourcePayments.signTransaction(unsignedTx)
-      const broadcastedTx = await sourcePayments.broadcastTransaction(signedTx)
-      const txInfo = await sourcePayments.getTransactionInfo(broadcastedTx.id)
+      const mainEtherPayments = new HdEthereumPayments(MAIN_ETHER_CONFIG)
+      const unsignedTx = await mainEtherPayments.createServiceTransaction()
+      const signedTx = await mainEtherPayments.signTransaction(unsignedTx)
+      const broadcastedTx = await mainEtherPayments.broadcastTransaction(signedTx)
+      const txInfo = await mainEtherPayments.getTransactionInfo(broadcastedTx.id)
 
       expect(txInfo).toBeDefined()
-      expect(txInfo.fromAddress?.toLowerCase()).toEqual(SOURCE_SIGNATORY.address.toLowerCase())
+      expect(txInfo.fromAddress?.toLowerCase()).toEqual(MAIN_SIGNATORY.address.toLowerCase())
       expect(txInfo.toAddress).toBe(EXPECTED_MASTER_ADDRESS.toLowerCase())
     })
 
-    test('send tokens from issuer to source', async () => {
-      const issuerTokenPayments = factory.newPayments(TOKEN_ISSUER_CONFIG as HdErc20PaymentsConfig)
+    test('send tokens from issuer to main', async () => {
+      const issuerTokenPayments = factory.newPayments(ISSUER_TOKEN_CONFIG as HdErc20PaymentsConfig)
 
       const { confirmedBalance: issuerBalance } = await issuerTokenPayments.getBalance(0)
       expect(issuerBalance).toBe(String(ISSUER_TOKEN_BALANCE_INITIAL))
 
-      const unsignedTx = await issuerTokenPayments.createTransaction(0, { address: SOURCE_SIGNATORY.address }, String(ISSUER_TOKEN_DISTRIBUTE_SOURCE))
+      const unsignedTx = await issuerTokenPayments.createTransaction(0, { address: MAIN_SIGNATORY.address }, String(ISSUER_TOKEN_DISTRIBUTE_MAIN))
       const signedTx = await issuerTokenPayments.signTransaction(unsignedTx)
       const broadcastedTx = await issuerTokenPayments.broadcastTransaction(signedTx)
 
       const txInfo = await issuerTokenPayments.getTransactionInfo(broadcastedTx.id)
-      expect(txInfo.amount).toBe(String(ISSUER_TOKEN_DISTRIBUTE_SOURCE))
-      expect(txInfo.fromAddress).toBe(TOKEN_ISSUER_SIGNATORY.address.toLowerCase())
-      expect(txInfo.toAddress).toBe(SOURCE_SIGNATORY.address.toLowerCase())
+      expect(txInfo.amount).toBe(String(ISSUER_TOKEN_DISTRIBUTE_MAIN))
+      expect(txInfo.fromAddress).toBe(ISSUER_SIGNATORY.address.toLowerCase())
+      expect(txInfo.toAddress).toBe(MAIN_SIGNATORY.address.toLowerCase())
 
-      const { confirmedBalance: confirmedDistributorBalance } = await sourcePayments.getBalance(TOKEN_ISSUER_SIGNATORY.address)
+      const { confirmedBalance: confirmedDistributorBalance } = await mainTokenPayments.getBalance(ISSUER_SIGNATORY.address)
       // leftovers after tx
       expect(confirmedDistributorBalance).toEqual(String(ISSUER_TOKEN_BALANCE_AFTER_DISTRIBUTION))
 
-      const { confirmedBalance: confirmedSourceBalance } = await sourcePayments.getBalance(SOURCE_SIGNATORY.address)
-      expect(confirmedSourceBalance).toEqual(String(SOURCE_TOKEN_BALANCE_AFTER_DISTRIBUTION))
+      const { confirmedBalance: confirmedSourceBalance } = await mainTokenPayments.getBalance(MAIN_SIGNATORY.address)
+      expect(confirmedSourceBalance).toEqual(String(MAIN_TOKEN_BALANCE_AFTER_DISTRIBUTION))
     })
 
     test('derive proxy addresses', async () => {
-      const { confirmedBalance } = await sourcePayments.getBalance(EXPECTED_MASTER_ADDRESS)
+      const { confirmedBalance } = await mainTokenPayments.getBalance(EXPECTED_MASTER_ADDRESS)
       expect(confirmedBalance).toEqual('0')
 
       // NOTE: i != 0 because 0 is signer's index
       // proxy contracts of the first one
       for (let i = FIRST_PROXY_INDEX; i < 10; i++) {
-        const { address: derivedAddress } = await sourcePayments.getPayport(i)
-        const { confirmedBalance: dABalance } = await sourcePayments.getBalance(derivedAddress)
+        const { address: derivedAddress } = await mainTokenPayments.getPayport(i)
+        const { confirmedBalance: dABalance } = await mainTokenPayments.getBalance(derivedAddress)
         expect(dABalance).toEqual('0')
         console.log('proxy address', i, derivedAddress)
       }
 
-      const owner = await sourcePayments.getPayport(TOKEN_SOURCE_CONFIG.depositKeyIndex)
+      const owner = await mainTokenPayments.getPayport(MAIN_TOKEN_CONFIG.depositKeyIndex)
 
-      expect(owner.address).toBe(SOURCE_SIGNATORY.address.toLowerCase())
+      expect(owner.address).toBe(MAIN_SIGNATORY.address.toLowerCase())
     })
 
-    test('normal transaction from source to proxy address', async () => {
-      const destination = (await sourcePayments.getPayport(FIRST_PROXY_INDEX)).address
+    test('normal transaction from main to proxy address', async () => {
+      const destination = (await mainTokenPayments.getPayport(FIRST_PROXY_INDEX)).address
 
-      const preBalanceSource = await sourcePayments.getBalance(SOURCE_SIGNATORY.address)
-      expect(preBalanceSource.confirmedBalance).toEqual(String(SOURCE_TOKEN_BALANCE_AFTER_DISTRIBUTION))
+      const preBalanceSource = await mainTokenPayments.getBalance(MAIN_SIGNATORY.address)
+      expect(preBalanceSource.confirmedBalance).toEqual(String(MAIN_TOKEN_BALANCE_AFTER_DISTRIBUTION))
 
-      const unsignedTx = await sourcePayments.createTransaction(0, { address: destination }, String(SOURCE_TOKEN_SEND_FIRST_PROXY))
-      const signedTx = await sourcePayments.signTransaction(unsignedTx)
+      const unsignedTx = await mainTokenPayments.createTransaction(0, { address: destination }, String(MAIN_TOKEN_SEND_FIRST_PROXY))
+      const signedTx = await mainTokenPayments.signTransaction(unsignedTx)
 
-      const broadcastedTx = await sourcePayments.broadcastTransaction(signedTx)
-      const txInfo = await sourcePayments.getTransactionInfo(broadcastedTx.id)
+      const broadcastedTx = await mainTokenPayments.broadcastTransaction(signedTx)
+      const txInfo = await mainTokenPayments.getTransactionInfo(broadcastedTx.id)
 
-      const { confirmedBalance: balanceSource } = await sourcePayments.getBalance(SOURCE_SIGNATORY.address)
-      const { confirmedBalance: balanceTarget } = await sourcePayments.getBalance(destination)
+      const { confirmedBalance: balanceSource } = await mainTokenPayments.getBalance(MAIN_SIGNATORY.address)
+      const { confirmedBalance: balanceTarget } = await mainTokenPayments.getBalance(destination)
 
-      expect(balanceTarget).toEqual(String(SOURCE_TOKEN_SEND_FIRST_PROXY))
-      expect(balanceSource).toEqual(String(SOURCE_TOKEN_BALANCE_AFTER_SEND))
-      expect(txInfo.amount).toEqual(String(SOURCE_TOKEN_SEND_FIRST_PROXY))
+      expect(balanceTarget).toEqual(String(MAIN_TOKEN_SEND_FIRST_PROXY))
+      expect(balanceSource).toEqual(String(MAIN_TOKEN_BALANCE_AFTER_SEND))
+      expect(txInfo.amount).toEqual(String(MAIN_TOKEN_SEND_FIRST_PROXY))
     })
 
     let sweepTxInfo: BaseTransactionInfo
 
     test('sweep transaction from proxy address to random address', async () => {
-      const sourceAddress = (await sourcePayments.getPayport(FIRST_PROXY_INDEX)).address
+      const proxyAddress = (await mainTokenPayments.getPayport(FIRST_PROXY_INDEX)).address
       const destination = TARGET_PAYPORT.address
 
-      const { confirmedBalance: balanceSourcePre } = await sourcePayments.getBalance(sourceAddress)
+      const { confirmedBalance: balanceSourcePre } = await mainTokenPayments.getBalance(proxyAddress)
       expect(balanceSourcePre).toEqual(String(PROXY_SWEEP_AMOUNT))
-      const { confirmedBalance: balanceTargetPre } = await sourcePayments.getBalance(TARGET_PAYPORT)
+      const { confirmedBalance: balanceTargetPre } = await mainTokenPayments.getBalance(TARGET_PAYPORT)
       expect(balanceTargetPre).toEqual('0')
 
-      const unsignedTx = await sourcePayments.createSweepTransaction(sourceAddress, { address: destination })
-      const signedTx = await sourcePayments.signTransaction(unsignedTx)
-      const broadcastedTx = await sourcePayments.broadcastTransaction(signedTx)
-      let txInfo = await sourcePayments.getTransactionInfo(broadcastedTx.id)
+      const unsignedTx = await mainTokenPayments.createSweepTransaction(FIRST_PROXY_INDEX, { address: destination })
+      const signedTx = await mainTokenPayments.signTransaction(unsignedTx)
+      const broadcastedTx = await mainTokenPayments.broadcastTransaction(signedTx)
+      let txInfo = await mainTokenPayments.getTransactionInfo(broadcastedTx.id)
       console.log(txInfo)
       sweepTxInfo = txInfo
-      expect(txInfo.fromAddress).toBe(sourceAddress)
+      expect(txInfo.fromAddress).toBe(proxyAddress)
       expect(txInfo.toAddress).toBe(destination)
       expect(txInfo.amount).toBe(String(PROXY_SWEEP_AMOUNT))
 
       expect(txInfo.toAddress || '').toBe(destination.toLowerCase())
-      expect(txInfo.fromAddress || '').toBe(sourceAddress.toLowerCase())
+      expect(txInfo.fromAddress || '').toBe(proxyAddress.toLowerCase())
 
       // make some txs just to confirm previous
       while (txInfo.status !== 'confirmed') {
+        await delay(1000)
         const uCD = await issuerEtherPayments.createServiceTransaction(undefined, { data: CONTRACT_BYTECODE, gas: CONTRACT_GAS })
         const sCD = await issuerEtherPayments.signTransaction(uCD)
         const dC = await issuerEtherPayments.broadcastTransaction(sCD)
-        const cInfo = await issuerEtherPayments.getTransactionInfo(dC.id)
-        txInfo = await sourcePayments.getTransactionInfo(broadcastedTx.id)
+        await issuerEtherPayments.getTransactionInfo(dC.id)
+        txInfo = await mainTokenPayments.getTransactionInfo(broadcastedTx.id)
       }
 
-      const { confirmedBalance: balanceSource } = await sourcePayments.getBalance(sourceAddress)
-      const { confirmedBalance: balanceTarget } = await sourcePayments.getBalance(destination)
+      const { confirmedBalance: balanceProxy } = await mainTokenPayments.getBalance(proxyAddress)
+      const { confirmedBalance: balanceTarget } = await mainTokenPayments.getBalance(destination)
 
-      expect(balanceSource).toEqual('0')
+      expect(balanceProxy).toEqual('0')
       expect(balanceTarget).toEqual(PROXY_SWEEP_AMOUNT)
     })
 
-    test('sweep from source to proxy address', async () => {
-      const destination = (await sourcePayments.getPayport(FIRST_PROXY_INDEX)).address
+    test('sweep from main to proxy address', async () => {
+      const destination = (await mainTokenPayments.getPayport(FIRST_PROXY_INDEX)).address
 
-      const unsignedTx = await sourcePayments.createSweepTransaction(0, { address: destination })
-      const signedTx = await sourcePayments.signTransaction(unsignedTx)
+      const unsignedTx = await mainTokenPayments.createSweepTransaction(0, { address: destination })
+      const signedTx = await mainTokenPayments.signTransaction(unsignedTx)
 
-      const broadcastedTx = await sourcePayments.broadcastTransaction(signedTx)
-      const txInfo = await sourcePayments.getTransactionInfo(broadcastedTx.id)
+      const broadcastedTx = await mainTokenPayments.broadcastTransaction(signedTx)
+      const txInfo = await mainTokenPayments.getTransactionInfo(broadcastedTx.id)
       expect(txInfo.toAddress).toBe(destination)
       expect(txInfo.amount).toBe(unsignedTx.amount)
 
-      const { confirmedBalance: balanceSource } = await sourcePayments.getBalance(0)
-      const { confirmedBalance: balanceTarget } = await sourcePayments.getBalance(destination)
+      const { confirmedBalance: balanceSource } = await mainTokenPayments.getBalance(0)
+      const { confirmedBalance: balanceTarget } = await mainTokenPayments.getBalance(destination)
 
       expect(balanceSource).toEqual('0')
-      expect(balanceTarget).toEqual(String(SOURCE_TOKEN_BALANCE_AFTER_SEND))
-      expect(txInfo.amount).toEqual(String(SOURCE_TOKEN_BALANCE_AFTER_SEND))
+      expect(balanceTarget).toEqual(String(MAIN_TOKEN_BALANCE_AFTER_SEND))
+      expect(txInfo.amount).toEqual(String(MAIN_TOKEN_BALANCE_AFTER_SEND))
     })
 
     test('can get balance of unused address', async () => {
-      expect(await sourcePayments.getBalance(12345678)).toEqual({
+      expect(await mainTokenPayments.getBalance(12345678)).toEqual({
         confirmedBalance: '0',
         unconfirmedBalance: '0',
         spendableBalance: '0',
@@ -293,10 +288,10 @@ describe('erc20 end to end tests', () => {
     test('utils getTxInfo returns expected values', async () => {
       const utils = factory.newUtils(TOKEN_UTILS_CONFIG)
       // Expect utils to return the same result as payments
-      const paymentsInfo = await sourcePayments.getTransactionInfo(sweepTxInfo.id)
+      const paymentsInfo = await mainTokenPayments.getTransactionInfo(sweepTxInfo.id)
       const utilsInfo = await utils.getTransactionInfo(sweepTxInfo.id)
       expectEqualOmit(utilsInfo, paymentsInfo, ['confirmations', 'currentBlockNumber', 'data.currentBlock'])
-      const firstAddress = (await sourcePayments.getPayport(FIRST_PROXY_INDEX)).address
+      const firstAddress = (await mainTokenPayments.getPayport(FIRST_PROXY_INDEX)).address
       // Expect utils to return info for the erc20 transfer, not the base 0-value eth fields
       expect(utilsInfo.fromAddress).toBe(firstAddress)
       expect(utilsInfo.toAddress).toBe(TARGET_PAYPORT.address)
@@ -305,9 +300,9 @@ describe('erc20 end to end tests', () => {
 
     test('utils getAddressBalance returns expected value', async () => {
       const utils = factory.newUtils(TOKEN_UTILS_CONFIG)
-      const firstAddress = (await sourcePayments.getPayport(FIRST_PROXY_INDEX)).address
+      const firstAddress = (await mainTokenPayments.getPayport(FIRST_PROXY_INDEX)).address
       const { confirmedBalance } = await utils.getAddressBalance(firstAddress)
-      expect(confirmedBalance).toBe(String(SOURCE_TOKEN_BALANCE_AFTER_SEND))
+      expect(confirmedBalance).toBe(String(MAIN_TOKEN_BALANCE_AFTER_SEND))
     })
   })
 })

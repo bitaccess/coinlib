@@ -26,7 +26,7 @@ const INFURA_URL = 'https://infura.test.url'
 
 const nockG = nock(GAS_STATION_URL)
 
-const logger = new TestLogger('HdEthereumPaymentsTest')
+const logger = new TestLogger(__filename)
 
 const testWeb3Provider = new TestWeb3Provider(logger)
 
