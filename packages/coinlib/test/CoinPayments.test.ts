@@ -184,6 +184,7 @@ describe('CoinPayments', () => {
           },
           'ETH': {
             'depositKeyIndex': 0,
+            "derivationPath": "m/44'/60'/0'/0",
             'hdKey': 'xpub6FUQp5E3GHcwJ8qsG198LiRcfyJFqy4txgxmzqLXiVSKFTXbn4gU9QcxDSy9NyTrc3EDXfsJVgnfrBgvQUoY3xFbazdgb3WCp2DTSfLUEJE',
             'network': 'mainnet',
           },
@@ -257,6 +258,7 @@ describe('CoinPayments', () => {
           },
           'ETH': {
             'depositKeyIndex': 0,
+            "derivationPath": "m/44'/60'/0'/0",
             'hdKey': 'xpub6FUQp5E3GHcwJ8qsG198LiRcfyJFqy4txgxmzqLXiVSKFTXbn4gU9QcxDSy9NyTrc3EDXfsJVgnfrBgvQUoY3xFbazdgb3WCp2DTSfLUEJE',
             'network': 'testnet',
           },

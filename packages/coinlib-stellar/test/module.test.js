@@ -1,1 +1,0 @@
-const { StellarPaymentsUtils } = require('../dist/index.cjs')

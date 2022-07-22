@@ -19,7 +19,7 @@ import { createMultisigData, preCombinePartiallySignedTransactions } from './mul
 
 import { getMultisigPaymentScript } from './helpers'
 
-import { Numeric } from '@faast/ts-common'
+import { Numeric } from '@bitaccess/ts-common'
 import { DEFAULT_MULTISIG_ADDRESS_TYPE } from './constants'
 
 export class MultisigBitcoinCashPayments extends BaseBitcoinCashPayments<MultisigBitcoinCashPaymentsConfig> {

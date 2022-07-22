@@ -16,7 +16,7 @@ import {
   NETWORKS,
   BITCOIN_CASH_NETWORK_CONSTANTS,
 } from './constants'
-import { assertType, optional } from '@faast/ts-common'
+import { assertType, optional } from '@bitaccess/ts-common'
 
 export class BitcoinCashPaymentsUtils extends bitcoinish.BitcoinishPaymentsUtils {
   readonly validAddressFormat?: BitcoinCashAddressFormat

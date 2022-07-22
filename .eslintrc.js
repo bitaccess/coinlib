@@ -3,6 +3,7 @@ module.exports = {
   plugins: [
     '@typescript-eslint',
     'jest',
+    'implicit-dependencies',
   ],
   ignorePatterns: ['.eslintrc.js'],
   env: {
@@ -46,12 +47,21 @@ module.exports = {
       },
     },
     {
+      files: ['packages/*/src/**/*.ts'],
+      rules: {
+        'implicit-dependencies/no-implicit': [
+          'error',
+          { peer: true, dev: false, optional: true }
+        ]
+      }
+    },
+    {
       files: ['packages/*/test/**/*.ts'],
       rules: {
         'camelcase': 'off',
         'no-unmodified-loop-condition': 'off',
       }
-    }
+    },
   ],
   rules: {
     'no-redeclare': 'off',
