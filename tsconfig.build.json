@@ -7,8 +7,9 @@
     "strict": true,
     "useUnknownInCatchVariables": false,
     "paths": {
-      "@faast/ts-common": ["node_modules/@faast/ts-common"],
-      "@bitaccess/coinlib-*": ["node_modules/@bitaccess/coinlib-*"]
+      "@faast/ts-common": ["./node_modules/@faast/ts-common"],
+      "@bitaccess/ts-common": ["./node_modules/@bitaccess/ts-common"],
+      "@bitaccess/coinlib-*": ["./node_modules/@bitaccess/coinlib-*"]
     }
   }
 }
