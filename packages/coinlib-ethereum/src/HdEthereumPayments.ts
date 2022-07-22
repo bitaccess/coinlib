@@ -8,9 +8,11 @@ import { PUBLIC_CONFIG_OMIT_FIELDS } from './constants'
 export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsConfig> {
   readonly xprv: string | null
   readonly xpub: string
+  readonly derivationPath: string
 
   constructor(config: HdEthereumPaymentsConfig) {
     super(config)
+    this.derivationPath = config.derivationPath ?? this.networkConstants.defaultDerivationPath
     try {
       this.xprv = ''
       this.xpub = ''
@@ -18,7 +20,7 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
         this.xpub = config.hdKey
       } else if (this.isValidXprv(config.hdKey)) {
         this.xprv = config.hdKey
-        this.xpub = deriveSignatory(config.hdKey, 0).xkeys.xpub
+        this.xpub = deriveSignatory(config.hdKey, 0, this.derivationPath).xkeys.xpub
       } else {
         throw new Error(config.hdKey)
       }
@@ -27,8 +29,8 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
     }
   }
 
-  static generateNewKeys(): EthereumSignatory {
-    return deriveSignatory()
+  static generateNewKeys(derivationPath?: string): EthereumSignatory {
+    return deriveSignatory(undefined, undefined, derivationPath)
   }
 
   getXpub(): string {
@@ -40,6 +42,7 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
       ...omit(this.getFullConfig(), PUBLIC_CONFIG_OMIT_FIELDS),
       depositKeyIndex: this.depositKeyIndex,
       hdKey: this.getXpub(),
+      derivationPath: this.derivationPath,
     }
   }
 
@@ -52,7 +55,7 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
   }
 
   async getPayport(index: number): Promise<Payport> {
-    const { address } = deriveSignatory(this.getXpub(), index)
+    const { address } = deriveSignatory(this.getXpub(), index, this.derivationPath)
     if (!this.isValidAddress(address)) {
       // This should never happen
       throw new Error(`Cannot get address ${index} - validation failed for derived address`)
@@ -65,7 +68,7 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
       throw new Error(`Cannot get private key ${index} - HdEthereumPayments was created with an xpub`)
     }
 
-    return deriveSignatory(deriveSignatory(this.xprv, 0).xkeys.xprv, index).keys.prv
+    return deriveSignatory(deriveSignatory(this.xprv, 0, this.derivationPath).xkeys.xprv, index, this.derivationPath).keys.prv
   }
 }
 

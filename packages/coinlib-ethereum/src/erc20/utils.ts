@@ -5,7 +5,7 @@ import { TOKEN_PROXY_DATA } from '../constants'
 import Web3 from 'web3'
 const web3 = new Web3()
 
-export function deriveAddress(creatorAddress: string, salt: string, hashed: boolean = false): string {
+export function deriveCreate2Address(creatorAddress: string, salt: string, hashed: boolean = false): string {
   const address = creatorAddress.replace(/0x/, '').toLowerCase()
   const proxy = web3.utils.sha3(TOKEN_PROXY_DATA.replace(/<address to proxy>/g, address))!
     .replace(/0x/, '').toLowerCase()

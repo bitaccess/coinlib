@@ -1,7 +1,7 @@
-import { DEFAULT_TESTNET_SERVER } from '../src/constants'
 import { NetworkData } from '../src/NetworkData'
 import { NetworkDataConfig } from '../src/types'
 import {
+  BLOCKBOOK_STATUS_MOCK,
   getEstimateGasMocks,
   getGasPriceMocks,
   getGasStationResponse,
@@ -18,14 +18,15 @@ const logger = new TestLogger('ethereum-payments.NetworkData')
 let id = 1
 
 describe('NetworkData', () => {
-  const GAS_STATION_URL = 'https://gasstation.test.url'
-  const PARITY_URL = 'https://parity.test.url'
-  const INFURA_URL = 'https://infura.test.url'
-  const BLOCKBOOK_NODES = DEFAULT_TESTNET_SERVER
+  const GAS_STATION_URL = 'https://gasstation.test.local'
+  const PARITY_URL = 'https://parity.test.local'
+  const INFURA_URL = 'https://infura.test.local'
+  const BLOCKBOOK_NODE = 'https://blockbook.test.local'
 
   const nockG = nock(GAS_STATION_URL)
   const nockP = nock(PARITY_URL)
   const nockI = nock(INFURA_URL)
+  const nockB = nock(BLOCKBOOK_NODE)
 
   const web3 = new Web3(INFURA_URL)
 
@@ -35,7 +36,7 @@ describe('NetworkData', () => {
   const networkDataConfig: NetworkDataConfig = {
     web3Config: { web3 },
     parityUrl: PARITY_URL,
-    blockBookConfig: { nodes: BLOCKBOOK_NODES },
+    blockBookConfig: { nodes: [BLOCKBOOK_NODE] },
     logger,
     gasStationUrl: GAS_STATION_URL,
   }
@@ -141,8 +142,9 @@ describe('NetworkData', () => {
   })
 
   it('should get the latest block', async () => {
+    nockB.get('/api/v2').reply(200, BLOCKBOOK_STATUS_MOCK)
     const currentBlock = await networkData.getCurrentBlockNumber()
 
-    expect(currentBlock).toBeDefined()
+    expect(currentBlock).toBe(BLOCKBOOK_STATUS_MOCK.blockbook.bestHeight)
   })
 })

@@ -1,5 +1,5 @@
 import { Transaction as Tx } from 'ethereumjs-tx'
-import type { TransactionReceipt, Transaction, TransactionConfig } from 'web3-core'
+import type { TransactionConfig } from 'web3-core'
 import { cloneDeep } from 'lodash'
 import {
   BalanceResult,
@@ -12,11 +12,9 @@ import {
   Payport,
   FromTo,
   ResolveablePayport,
-  DerivablePayport,
   PaymentsError,
   PaymentsErrorCode,
   CreateTransactionOptions as TransactionOptions,
-  NetworkType,
   PayportOutput,
   AutoFeeLevels,
   DEFAULT_MAX_FEE_PERCENT,
@@ -35,21 +33,14 @@ import {
   EthereumTransactionOptions,
   EthTxType,
 } from './types'
-import { NetworkData } from './NetworkData'
 import {
-// TODO use them
-//  DEFAULT_FULL_NODE,
-//  DEFAULT_SOLIDITY_NODE,
   DEFAULT_FEE_LEVEL,
-  MIN_CONFIRMATIONS,
   ETHEREUM_TRANSFER_COST,
   TOKEN_WALLET_DATA,
   DEPOSIT_KEY_INDEX,
   TOKEN_PROXY_DATA,
-  MIN_SWEEPABLE_WEI,
 } from './constants'
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
-import { retryIfDisconnected } from './utils'
 
 export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsConfig>
   extends EthereumPaymentsUtils
@@ -127,7 +118,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       gasPrice = new BigNumber(feeRate)
     } else {
       const feeRateBase = feeRateType === FeeRateType.Main
-        ? this.toBaseDenominationBigNumberEth(feeRate)
+        ? this.toBaseDenominationBigNumberNative(feeRate)
         : new BigNumber(feeRate)
       gasPrice = feeRateBase.dividedBy(amountOfGas)
     }
@@ -135,7 +126,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
 
     // Calculate the actual total fees after gas price is rounded
     const feeBase = gasPrice.multipliedBy(amountOfGas)
-    const feeMain = this.toMainDenominationBigNumberEth(feeBase)
+    const feeMain = this.toMainDenominationBigNumberNative(feeBase)
 
     return {
       targetFeeRate:     feeOption.feeRate,
@@ -159,7 +150,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       targetFeeLevel: feeLevel,
       targetFeeRateType: FeeRateType.BasePerWeight,
       feeBase,
-      feeMain: this.toMainDenominationEth(feeBase),
+      feeMain: this.toMainDenominationNative(feeBase),
       gasPrice: gasPrice.toFixed(),
     }
   }
@@ -262,7 +253,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
 
     const unsignedRaw: any = cloneDeep(unsignedTx.data)
 
-    const extraParam = this.networkType === NetworkType.Testnet ?  {chain :'ropsten'} : undefined
+    const extraParam = { chain: this.networkConstants.chainId }
     const tx = new Tx(unsignedRaw, extraParam)
     const key = Buffer.from(fromPrivateKey.slice(2), 'hex')
     tx.sign(key)
@@ -351,11 +342,11 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
   private async createTransactionObject(
     from: number,
     to: ResolveablePayport | undefined,
-    amountEth: string,
+    amountNative: string,
     options: EthereumTransactionOptions = {}
   ): Promise<EthereumUnsignedTransaction> {
-    const serviceFlag = (amountEth === '' && typeof to === 'undefined')
-    const sweepFlag = amountEth === 'max'
+    const serviceFlag = (amountNative === '' && typeof to === 'undefined')
+    const sweepFlag = amountNative === 'max'
     const txType = serviceFlag ? 'CONTRACT_DEPLOY' : 'ETHEREUM_TRANSFER'
 
     const fromPayport = await this.getPayport(from)
@@ -381,19 +372,19 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     const amountOfGas = await this.gasOptionOrEstimate(options, txConfig, txType)
     const feeOption = await this.resolveFeeOption(options, amountOfGas)
 
-    const { confirmedBalance: balanceEth } = await this.getBalance(fromPayport)
+    const { confirmedBalance: balanceNative } = await this.getBalance(fromPayport)
     const nonce = options.sequenceNumber || await this.getNextSequenceNumber(fromPayport.address)
 
     const { feeMain, feeBase } = feeOption
     const feeWei = new BigNumber(feeBase)
     const maxFeePercent = new BigNumber(options.maxFeePercent ?? DEFAULT_MAX_FEE_PERCENT)
-    const balanceWei = this.toBaseDenominationBigNumberEth(balanceEth)
+    const balanceWei = this.toBaseDenominationBigNumberNative(balanceNative)
     let amountWei: BigNumber = new BigNumber(0)
 
     if (balanceWei.eq(0)) {
       throw new PaymentsError(
         PaymentsErrorCode.TxInsufficientBalance,
-        `${fromPayport.address} No balance available (${balanceEth})`,
+        `${fromPayport.address} No balance available (${balanceNative})`,
       )
     }
 
@@ -402,34 +393,34 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       if (balanceWei.isLessThan(feeWei)) {
         throw new PaymentsError(
           PaymentsErrorCode.TxFeeTooHigh,
-          `${fromPayport.address} Insufficient balance (${balanceEth}) to pay sweep fee of ${feeMain}`,
+          `${fromPayport.address} Insufficient balance (${balanceNative}) to pay sweep fee of ${feeMain}`,
         )
       }
       if (feeWei.gt(maxFeePercent.times(balanceWei))) {
         throw new PaymentsError(
           PaymentsErrorCode.TxFeeTooHigh,
-          `${fromPayport.address} Sweep fee (${feeMain}) exceeds max fee percent (${maxFeePercent}%) of address balance (${balanceEth})`,
+          `${fromPayport.address} Sweep fee (${feeMain}) exceeds max fee percent (${maxFeePercent}%) of address balance (${balanceNative})`,
         )
       }
     } else if (!sweepFlag && !serviceFlag){
-      amountWei = this.toBaseDenominationBigNumberEth(amountEth)
+      amountWei = this.toBaseDenominationBigNumberNative(amountNative)
       if (amountWei.plus(feeWei).isGreaterThan(balanceWei)) {
         throw new PaymentsError(
           PaymentsErrorCode.TxInsufficientBalance,
-          `${fromPayport.address} Insufficient balance (${balanceEth}) to send ${amountEth} including fee of ${feeOption.feeMain}`,
+          `${fromPayport.address} Insufficient balance (${balanceNative}) to send ${amountNative} including fee of ${feeOption.feeMain}`,
         )
       }
       if (feeWei.gt(maxFeePercent.times(amountWei))) {
         throw new PaymentsError(
           PaymentsErrorCode.TxFeeTooHigh,
-          `${fromPayport.address} Sweep fee (${feeMain}) exceeds max fee percent (${maxFeePercent}%) of send amount (${amountEth})`,
+          `${fromPayport.address} Sweep fee (${feeMain}) exceeds max fee percent (${maxFeePercent}%) of send amount (${amountNative})`,
         )
       }
     } else {
       if (balanceWei.isLessThan(feeWei)) {
         throw new PaymentsError(
           PaymentsErrorCode.TxFeeTooHigh,
-          `${fromPayport.address} Insufficient balance (${balanceEth}) to pay contract deploy fee of ${feeOption.feeMain}`,
+          `${fromPayport.address} Insufficient balance (${balanceNative}) to pay contract deploy fee of ${feeOption.feeMain}`,
         )
       }
     }

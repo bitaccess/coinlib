@@ -78,7 +78,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     if (feeBase.isGreaterThan(ethBalance)) {
       throw new PaymentsError(
         PaymentsErrorCode.TxInsufficientBalance,
-        `Insufficient ETH balance (${this.toMainDenominationEth(ethBalance)}) to pay transaction fee of ${feeOption.feeMain}`,
+        `Insufficient ${this.nativeCoinSymbol} balance (${this.toMainDenominationNative(ethBalance)}) to pay transaction fee of ${feeOption.feeMain}`,
       )
     }
 
@@ -162,8 +162,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     if (feeBase.isGreaterThan(ethBalance)) {
       throw new PaymentsError(
         PaymentsErrorCode.TxInsufficientBalance,
-        `Insufficient ETH balance (${this.toMainDenominationEth(ethBalance)}) at owner address ${signerAddress} `
-        + `to sweep contract ${from} with fee of ${feeOption.feeMain} ETH`)
+        `Insufficient ${this.nativeCoinSymbol} balance (${this.toMainDenominationNative(ethBalance)}) at owner address ${signerAddress} `
+        + `to sweep contract ${from} with fee of ${feeOption.feeMain} ${this.nativeCoinSymbol}`)
     }
 
     const { confirmedBalance: tokenBalanceMain } = await this.getBalance({ address: fromAddress })

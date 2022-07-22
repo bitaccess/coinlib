@@ -4,7 +4,6 @@ import {
   extendCodec,
   instanceofCodec,
   Logger,
-  nullable,
   Numeric,
   optional,
   requiredOptionalCodec,
@@ -16,9 +15,6 @@ import {
   BaseSignedTransaction,
   BaseBroadcastResult,
   BaseConfig,
-  Payport,
-  FromTo,
-  ResolveablePayport,
   ResolvedFeeOption,
   FeeOption,
   FeeOptionCustom,
@@ -28,11 +24,8 @@ import {
   createUnitConverters,
   BlockInfo,
 } from '@bitaccess/coinlib-common'
-import { BlockbookEthereum, BlockInfoEthereum, NormalizedTxEthereum, SpecificTxEthereum } from 'blockbook-client'
+import { BlockbookEthereum, BlockInfoEthereum } from 'blockbook-client'
 import Web3 from 'web3'
-import { Transaction, TransactionReceipt } from 'web3-eth'
-
-import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
 
 export enum EthereumAddressFormat {
   Lowercase = 'lowercase',
@@ -65,13 +58,29 @@ export const EthereumSignatory = t.type(
 )
 export type EthereumSignatory = t.TypeOf<typeof EthereumSignatory>
 
+
+const networkConstantsCodecFields = {
+  networkName: t.string,
+  nativeCoinSymbol: t.string,
+  nativeCoinName: t.string,
+  nativeCoinDecimals: t.number,
+  defaultDerivationPath: t.string,
+  chainId: t.number,
+}
+
+export const NetworkConstants = t.type(networkConstantsCodecFields, 'NetworkConstants')
+export type NetworkConstants = t.TypeOf<typeof NetworkConstants>
+
+export const PartialNetworkConstants = t.partial(networkConstantsCodecFields, 'PartialNetworkConstants')
+export type PartialNetworkConstants = t.TypeOf<typeof PartialNetworkConstants>
+
 export const EthereumPaymentsUtilsConfig = extendCodec(
   BaseConfig,
   {},
   {
     fullNode: OptionalString,
     parityNode: OptionalString,
-    blockbookNode: t.string,
+    blockbookNode: t.union([t.string, t.array(t.string)]),
     blockbookApi: instanceofCodec(BlockbookEthereum),
     gasStation: OptionalString,
     symbol: OptionalString,
@@ -81,6 +90,7 @@ export const EthereumPaymentsUtilsConfig = extendCodec(
     web3: t.any,
     tokenAddress: t.string,
     requestTimeoutMs: OptionalNumber,
+    networkConstants: NetworkConstants,
   },
   'EthereumPaymentsUtilsConfig',
 )
@@ -100,6 +110,9 @@ export const HdEthereumPaymentsConfig = extendCodec(
   BaseEthereumPaymentsConfig,
   {
     hdKey: t.string,
+  },
+  {
+    derivationPath: t.string,
   },
   'HdEthereumPaymentsConfig',
 )
@@ -132,6 +145,9 @@ export const HdErc20PaymentsConfig = extendCodec(
   {
     hdKey: t.string,
   },
+  {
+    derivationPath: t.string,
+  },
   'HdErc20PaymentsConfig',
 )
 export type HdErc20PaymentsConfig = t.TypeOf<typeof HdErc20PaymentsConfig>
@@ -154,6 +170,12 @@ export const EthereumPaymentsConfig = t.union(
   'EthereumPaymentsConfig',
 )
 export type EthereumPaymentsConfig = t.TypeOf<typeof EthereumPaymentsConfig>
+
+export type EthereumPaymentsConfigKeys =
+  | keyof HdEthereumPaymentsConfig
+  | keyof KeyPairEthereumPaymentsConfig
+  | keyof HdErc20PaymentsConfig
+  | keyof KeyPairErc20PaymentsConfig
 
 export const EthereumTransactionOptions = extendCodec(
   CreateTransactionOptions,
@@ -258,7 +280,6 @@ export const EthereumBlockbookConnectedConfig = requiredOptionalCodec(
     logger: Logger,
   },
   {
-    decimals: t.number,
     api: instanceofCodec(BlockbookEthereum),
     requestTimeoutMs: t.number,
   },
@@ -267,8 +288,14 @@ export const EthereumBlockbookConnectedConfig = requiredOptionalCodec(
 export type EthereumBlockbookConnectedConfig = t.TypeOf<typeof EthereumBlockbookConnectedConfig>
 
 export const EthereumWeb3Config = requiredOptionalCodec(
-  { web3: instanceofCodec(Web3) },
-  { decimals: t.number, fullNode: t.string, providerOptions: t.any, logger: Logger },
+  {
+    web3: instanceofCodec(Web3)
+  },
+  {
+    fullNode: t.string,
+    providerOptions: t.any,
+    logger: Logger,
+  },
   'Web3Config',
 )
 

@@ -19,20 +19,22 @@ import { retryIfDisconnected, resolveServer, getBlockBookTxFromAndToAddress } fr
 
 export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
   private logger: Logger
-  private api: BlockbookEthereum
+  api: BlockbookEthereum | null
+  server: string[] | null
 
   constructor(config: EthereumBlockbookConnectedConfig) {
     this.logger = config.logger
-    const { api } = resolveServer(config, this.logger)
+    const { api, server } = resolveServer(config, this.logger)
     this.api = api
+    this.server = server
   }
 
   async init(): Promise<void> {
-    await this.api.connect()
+    await this.getApi().connect()
   }
 
   async destroy(): Promise<void> {
-    await this.api.disconnect()
+    await this.getApi().disconnect()
   }
 
   getApi() {
@@ -46,7 +48,7 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
   async getBlock(id?: string | number): Promise<BlockInfo> {
     const blockId = id ?? (await this.getCurrentBlockNumber())
 
-    const block = await this._retryDced(() => this.api.getBlock(blockId))
+    const block = await this._retryDced(() => this.getApi().getBlock(blockId))
 
     return this.standardizeBlock(block)
   }
@@ -74,24 +76,24 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
   }
 
   async getCurrentBlockNumber() {
-    const bestBlock = await this._retryDced(() => this.api.getBestBlock())
+    const bestBlock = await this._retryDced(() => this.getApi().getBestBlock())
 
     return bestBlock.height
   }
 
   async getTransaction(txId: string) {
-    const tx = await this._retryDced(() => this.api.getTx(txId))
+    const tx = await this._retryDced(() => this.getApi().getTx(txId))
 
     return this.standardizeTransaction(tx)
   }
 
   async getAddressDetails(address: string, options?: GetAddressDetailsOptions) {
-    return this._retryDced(() => this.api.getAddressDetails(address, options))
+    return this._retryDced(() => this.getApi().getAddressDetails(address, options))
   }
 
   async getERC20Transaction(txId: string, tokenAddress: string) {
-    const tx = await this._retryDced(() => this.api.getTx(txId))
-    const txSpecific = await this._retryDced(() => this.api.getTxSpecific(txId))
+    const tx = await this._retryDced(() => this.getApi().getTx(txId))
+    const txSpecific = await this._retryDced(() => this.getApi().getTxSpecific(txId))
 
     const tokenTransfers: NormalizedTxEthereum['tokenTransfers'] = tx.tokenTransfers ?? []
 

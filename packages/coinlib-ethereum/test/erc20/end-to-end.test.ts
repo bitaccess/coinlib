@@ -9,8 +9,6 @@ import {
   HdErc20Payments,
   HdErc20PaymentsConfig,
   EthereumPaymentsFactory,
-  DEFAULT_TESTNET_SERVER,
-  EthereumStandardizedTransaction,
   EthereumTransactionInfo,
 } from '../../src'
 import { CONTRACT_JSON, CONTRACT_GAS, CONTRACT_BYTECODE } from './fixtures/abi'

@@ -506,3 +506,31 @@ export const getTransactionApisMocks = ({
 
   return id
 }
+
+export const BLOCKBOOK_STATUS_MOCK = {
+  "blockbook": {
+    "coin": "Ethereum",
+    "host": "blockbook-host",
+    "version": "0.3.6",
+    "gitCommit": "2002bd2",
+    "buildTime": "2022-07-04T14:21:45+00:00",
+    "syncMode": true,
+    "initialSync": false,
+    "inSync": true,
+    "bestHeight": 15136912,
+    "lastBlockTime": "2022-07-13T22:22:15.828026078Z",
+    "inSyncMempool": true,
+    "lastMempoolTime": "2022-07-13T22:22:37.583643591Z",
+    "mempoolSize": 418174,
+    "decimals": 18,
+    "dbSize": 194533397963,
+    "about": "Blockbook - blockchain indexer"
+  },
+  "backend": {
+    "chain": "mainnet",
+    "blocks": 15136912,
+    "bestBlockHash": "0x6fff5cb18e42375abec0d7ab83540481699d5edaf4ca2048ae452b36c9584aca",
+    "difficulty": "11213687248219436",
+    "version": "Geth/v1.10.19-stable-23bee162/linux-amd64/go1.18.1"
+  }
+}
