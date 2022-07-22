@@ -28,6 +28,12 @@ function bufferFromUInt32(x: number) {
   return b
 }
 
+export function bip32MagicNumberToPrefix(magicNum: number): string {
+  const b = Buffer.alloc(82)
+  b.writeUInt32BE(magicNum, 0)
+  return bs58.encode(b).slice(0, 4)
+}
+
 /**
  * Utility for converting xpub/xprv prefixed hd keys to the network specific prefix (ie Ltub/Ltpv)
  */

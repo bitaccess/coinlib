@@ -1,9 +1,9 @@
 import { SinglesigAddressType, BitcoinjsKeyPair } from './types'
 import { BitcoinjsNetwork, bip32MagicNumberToPrefix } from './bitcoinish'
 import { publicKeyToAddress } from './helpers'
-import { deriveHDNode, HDNode } from '@bitaccess/coinlib-common'
+import { deriveHDNode, HDNode, validateHdKey, isValidXprv, isValidXpub } from '@bitaccess/coinlib-common'
 
-export { bip32MagicNumberToPrefix, HDNode }
+export { bip32MagicNumberToPrefix, HDNode, deriveHDNode, isValidXprv, isValidXpub, validateHdKey }
 
 export function deriveKeyPair(baseNode: HDNode, index: number, network: BitcoinjsNetwork): BitcoinjsKeyPair {
   return baseNode.derive(0).derive(index)
