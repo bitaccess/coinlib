@@ -748,6 +748,7 @@ describe('HdEthereumPayments', () => {
         expect(pubConf).toStrictEqual({
           depositKeyIndex: 0,
           network: NetworkType.Testnet,
+          derivationPath: "m/44'/60'/0'/0",
           hdKey: INSTANCE_KEYS.xkeys.xpub,
         })
       })

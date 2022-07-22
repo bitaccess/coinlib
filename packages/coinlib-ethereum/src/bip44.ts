@@ -5,13 +5,14 @@ import { bip32 } from "@bitaccess/coinlib-common"
 import crypto from 'crypto'
 
 import { ec as EC } from 'elliptic'
+import { DEFAULT_DERIVATION_PATH } from './constants'
 const web3 = new Web3()
 const ec = new EC('secp256k1')
 
 class EthereumBIP44 {
-  static fromExtKey(xkey: string) {
+  static fromExtKey(xkey: string, derivationPath: string = DEFAULT_DERIVATION_PATH) {
     if (['xprv', 'xpub'].includes(xkey.substring(0, 4))) {
-        return new EthereumBIP44(bip32.fromBase58(xkey))
+        return new EthereumBIP44(bip32.fromBase58(xkey), derivationPath)
     }
 
     throw new Error('Not extended key')
@@ -19,15 +20,8 @@ class EthereumBIP44 {
 
   private parts: string[]
   key: any
-  constructor(hdKey: any) {
-    this.parts = [
-      'm',
-      "44'", // bip 44
-      "60'",  // coin
-      "0'",  // wallet
-      '0'    // 0 - public, 1 = private
-        // index
-    ]
+  constructor(hdKey: any, derivationPath: string) {
+    this.parts = derivationPath.split('/')
 
     this.key = hdKey
   }
@@ -72,10 +66,10 @@ class EthereumBIP44 {
 }
 
 // XXX if index is not provided, derived key will be hardened
-export function deriveSignatory(xkey?: string, index?: number): EthereumSignatory {
+export function deriveSignatory(xkey?: string, index?: number, derivationPath: string = DEFAULT_DERIVATION_PATH): EthereumSignatory {
   const wallet = xkey ?
-    EthereumBIP44.fromExtKey(xkey) :
-    EthereumBIP44.fromExtKey(bip32.fromSeed(crypto.randomBytes(32)).toBase58())
+    EthereumBIP44.fromExtKey(xkey, derivationPath) :
+    EthereumBIP44.fromExtKey(bip32.fromSeed(crypto.randomBytes(32)).toBase58(), derivationPath)
 
   return {
     address: wallet.getAddress(index),

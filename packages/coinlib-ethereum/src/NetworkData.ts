@@ -20,8 +20,8 @@ export class NetworkData {
   private gasStationUrl: string | undefined
   private parityUrl: string | undefined
   private logger: Logger
-  private blockBookService: NetworkDataBlockbook
-  private web3Service: NetworkDataWeb3
+  blockBookService: NetworkDataBlockbook
+  web3Service: NetworkDataWeb3
 
   constructor(config: NetworkDataConfig) {
     this.gasStationUrl = config.gasStationUrl ?? GAS_STATION_URL
@@ -31,7 +31,6 @@ export class NetworkData {
       ...config.blockBookConfig,
       server: config.blockBookConfig.nodes,
       logger: this.logger,
-      decimals: config.web3Config.decimals,
     })
 
     this.web3Service = new NetworkDataWeb3({
