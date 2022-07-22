@@ -7,7 +7,6 @@ export const DEFAULT_FEE_LEVEL = FeeLevel.Medium
 export const DEFAULT_DERIVATION_PATH = "m/44'/60'/0'/0"
 export const DEFAULT_DECIMALS = 18
 
-export const MIN_CONFIRMATIONS = 0
 export const DEFAULT_GAS_PRICE_IN_WEI = '50000000000'
 export const GAS_STATION_URL = 'https://ethgasstation.info'
 
@@ -72,18 +71,13 @@ export const PUBLIC_CONFIG_OMIT_FIELDS: EthereumPaymentsConfigKeys[] = [
 
 export const DEFAULT_ADDRESS_FORMAT = EthereumAddressFormat.Lowercase
 
-export const NETWORK_DATA_PROVIDERS = {
-  BLOCKBOOK: 'blockbook',
-  INFURA: 'infura',
-}
-
 export const FULL_ERC20_TOKEN_METHODS_ABI = JSON.parse(
   '[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"}]',
 )
 
 export const BALANCE_ACTIVITY_EVENT = 'activity'
 
-export const DEFAULT_MAINNET_CONSTANTS: NetworkConstants = {
+export const DEFAULT_MAINNET_CONSTANTS: Required<NetworkConstants> = {
   networkName: 'Ethereum',
   nativeCoinName: 'ether',
   nativeCoinSymbol: 'ETH',
@@ -92,7 +86,7 @@ export const DEFAULT_MAINNET_CONSTANTS: NetworkConstants = {
   chainId: 1,
 }
 
-export const DEFAULT_TESTNET_CONSTANTS: NetworkConstants = {
+export const DEFAULT_TESTNET_CONSTANTS: Required<NetworkConstants> = {
   networkName: 'Ethereum Ropsten',
   nativeCoinName: 'ropsten ether',
   nativeCoinSymbol: 'ropstenETH',

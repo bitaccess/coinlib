@@ -11,7 +11,6 @@ import {
   FULL_ERC20_TOKEN_METHODS_ABI,
   MAXIMUM_GAS,
   GAS_ESTIMATE_MULTIPLIER,
-  NETWORK_DATA_PROVIDERS,
   PACKAGE_NAME,
 } from './constants'
 import {
@@ -20,6 +19,7 @@ import {
   EthereumNetworkDataProvider,
   EthereumStandardizedTransaction,
   EthereumStandardizedERC20Transaction,
+  NetworkDataProviders,
 } from './types'
 import { deriveCreate1Address, retryIfDisconnected } from './utils'
 
@@ -69,6 +69,8 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     // Set timeouts to -1 so sendRawTransaction doesn't poll or wait for confirmation
     this.eth.transactionPollingTimeout = -1
     this.eth.transactionBlockTimeout = -1
+    // Set this to 1 so that transactions are considered "confirmed" after 1, not 24 blocks
+    this.eth.transactionConfirmationBlocks = -1
   }
 
   protected newContract(...args: ConstructorParameters<typeof Contract>) {
@@ -76,6 +78,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     contract.setProvider(this.eth.currentProvider)
     contract.transactionPollingTimeout = -1
     contract.transactionBlockTimeout = -1
+    contract.transactionConfirmationBlocks = -1
     return contract
   }
 
@@ -83,7 +86,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     return this._retryDced(() => this.eth.getBlockNumber())
   }
 
-  async getTransactionReceipt(txId: string) {
+  async getTransactionReceipt(txId: string): Promise<TransactionReceipt | null> {
     return this._retryDced(() => this.eth.getTransactionReceipt(txId))
   }
 
@@ -237,7 +240,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
         ...block,
         transactions: standardizedTransactions,
         transactionHashes,
-        dataProvider: NETWORK_DATA_PROVIDERS.INFURA,
+        dataProvider: NetworkDataProviders.Web3,
       },
     }
 
@@ -246,7 +249,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
 
   standardizeTransaction(
     tx: Transaction,
-    txReceipt: TransactionReceipt,
+    txReceipt: TransactionReceipt | null,
     {
       blockTime,
       currentBlockNumber,
@@ -255,8 +258,9 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       currentBlockNumber: number
     },
   ): EthereumStandardizedTransaction {
-    const { gasUsed, status } = txReceipt
-    let contractAddress = txReceipt.contractAddress
+    const gasUsed = txReceipt?.gasUsed ?? 0
+    const status = txReceipt?.status ?? false
+    let contractAddress = txReceipt?.contractAddress ?? undefined
 
     if (!tx.from) {
       this.logger.warn(`Missing tx.from in tx ${tx.hash}`, tx, txReceipt)
@@ -283,13 +287,14 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       contractAddress,
       status,
       currentBlockNumber,
-      raw: {
-        ...tx,
-        blockTime,
-        currentBlockNumber,
-        gasUsed,
-        dataProvider: NETWORK_DATA_PROVIDERS.INFURA,
+      dataProvider: NetworkDataProviders.Web3,
+      receipt: {
+        ...(txReceipt ?? {}),
+        gasUsed: String(gasUsed),
+        status,
+        logs: txReceipt?.logs ?? [],
       },
+      raw: tx,
     }
 
     return standardizedTransaction
@@ -301,7 +306,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       txReceipt,
     }: {
       tx: Transaction
-      txReceipt: TransactionReceipt
+      txReceipt: TransactionReceipt | null
     },
     {
       blockTime,
@@ -322,11 +327,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       tokenSymbol,
       tokenDecimals,
       tokenName,
-      receipt: {
-        gasUsed: txReceipt.gasUsed.toString(),
-        logs: txReceipt.logs,
-        status: txReceipt.status,
-      },
+      receipt: standardizedTx.receipt!
     }
 
     return result

@@ -7,13 +7,13 @@ import {
   NormalizedTxEthereum,
   SpecificTxEthereum,
 } from 'blockbook-client'
-import { NETWORK_DATA_PROVIDERS } from './constants'
 
 import {
   EthereumBlockbookConnectedConfig,
   EthereumNetworkDataProvider,
   EthereumStandardizedERC20Transaction,
   EthereumStandardizedTransaction,
+  NetworkDataProviders,
 } from './types'
 import { retryIfDisconnected, resolveServer, getBlockBookTxFromAndToAddress, deriveCreate1Address } from './utils'
 
@@ -83,7 +83,7 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
         ...block,
         transactions: standardizedTransactions,
         transactionHashes,
-        dataProvider: NETWORK_DATA_PROVIDERS.BLOCKBOOK,
+        dataProvider: NetworkDataProviders.Blockbook,
       },
     }
 
@@ -98,8 +98,9 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
 
   async getTransaction(txId: string) {
     const tx = await this._retryDced(() => this.getApi().getTx(txId))
+    const txSpecific = await this._retryDced(() => this.getApi().getTxSpecific(txId))
     const currentBlockNumber = await this.getCurrentBlockNumber()
-    return this.standardizeTransaction(tx, { currentBlockNumber })
+    return this.standardizeTransaction(tx, { txSpecific, currentBlockNumber })
   }
 
   async getAddressDetails(address: string, options?: GetAddressDetailsOptions) {
@@ -164,8 +165,10 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
   standardizeTransaction(tx: NormalizedTxEthereum, {
     currentBlockNumber,
     blockInfoTime,
+    txSpecific,
   }: {
     currentBlockNumber: number,
+    txSpecific?: SpecificTxEthereum,
     blockInfoTime?: Date
   }): EthereumStandardizedTransaction {
     const { fromAddress, toAddress, contractAddress } = getBlockBookTxFromAndToAddress(tx)
@@ -187,9 +190,11 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
       status: Boolean(tx.ethereumSpecific.status),
       contractAddress,
       currentBlockNumber,
+      dataProvider: NetworkDataProviders.Web3,
+      receipt: txSpecific?.receipt,
       raw: {
         ...tx,
-        dataProvider: NETWORK_DATA_PROVIDERS.BLOCKBOOK,
+        ...txSpecific?.tx,
       },
     }
 
@@ -211,21 +216,15 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
     tokenName: string
     currentBlockNumber: number,
   }): EthereumStandardizedERC20Transaction {
-    const standardizedTx = this.standardizeTransaction(tx, { currentBlockNumber })
+    const standardizedTx = this.standardizeTransaction(tx, { txSpecific, currentBlockNumber })
 
     const result: EthereumStandardizedERC20Transaction = {
       ...standardizedTx,
-      raw: {
-        ...standardizedTx.raw,
-        ...txSpecific,
-      },
       txInput: txSpecific.tx.input,
       tokenSymbol,
       tokenDecimals,
       tokenName,
-      receipt: {
-        ...txSpecific.receipt,
-      },
+      receipt: txSpecific.receipt,
     }
 
     return result

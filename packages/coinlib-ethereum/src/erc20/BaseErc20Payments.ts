@@ -14,10 +14,8 @@ import {
   BaseErc20PaymentsConfig,
   EthereumUnsignedTransaction,
   EthereumTransactionOptions,
-  EthereumTransactionInfo,
 } from '../types'
 import {
-  MIN_CONFIRMATIONS,
   TOKEN_WALLET_ABI,
   TOKEN_WALLET_ABI_LEGACY,
   TOKEN_METHODS_ABI,

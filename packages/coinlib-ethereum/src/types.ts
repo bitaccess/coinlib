@@ -69,7 +69,7 @@ const networkConstantsCodecFields = {
   chainId: t.number,
 }
 
-export const NetworkConstants = t.type(networkConstantsCodecFields, 'NetworkConstants')
+export const NetworkConstants = t.partial(networkConstantsCodecFields, 'NetworkConstants')
 export type NetworkConstants = t.TypeOf<typeof NetworkConstants>
 
 export const PartialNetworkConstants = t.partial(networkConstantsCodecFields, 'PartialNetworkConstants')
@@ -204,11 +204,28 @@ export const EthereumTransactionOptions = extendCodec(
 )
 export type EthereumTransactionOptions = t.TypeOf<typeof EthereumTransactionOptions>
 
+export const EthereumUnsignedTxData = requiredOptionalCodec(
+  {
+    from: t.string,
+    value: t.string,
+    gas: t.string,
+    gasPrice: t.string,
+    nonce: t.string,
+  },
+  {
+    to: t.string,
+    data: t.string,
+  },
+  'EthereumUnsignedTxData'
+)
+export type EthereumUnsignedTxData = t.TypeOf<typeof EthereumUnsignedTxData>
+
 export const EthereumUnsignedTransaction = extendCodec(
   BaseUnsignedTransaction,
   {
     amount: t.string,
     fee: t.string,
+    data: EthereumUnsignedTxData,
   },
   'EthereumUnsignedTransaction',
 )
@@ -355,6 +372,17 @@ export interface EthereumNodesConnection {
   blockbookApi?: BlockbookEthereum
 }
 
+export enum NetworkDataProviders {
+  Blockbook = 'blockbook',
+  Web3 = 'web3',
+}
+
+export interface EthereumStandardizedReceipt {
+  gasUsed: string
+  status: string | boolean
+  logs: any[]
+}
+
 export interface EthereumStandardizedTransaction {
   from: string
   to: string
@@ -371,6 +399,8 @@ export interface EthereumStandardizedTransaction {
   contractAddress?: string
   status: boolean,
   currentBlockNumber: number,
+  dataProvider: NetworkDataProviders,
+  receipt?: EthereumStandardizedReceipt,
 }
 
 export interface EthereumStandardizedERC20Transaction extends EthereumStandardizedTransaction {
@@ -378,12 +408,9 @@ export interface EthereumStandardizedERC20Transaction extends EthereumStandardiz
   tokenName: string
   tokenDecimals: string
   txInput: string
-  receipt: {
-    gasUsed: string
-    status: string | boolean
-    logs: any[]
-  }
+  receipt: EthereumStandardizedReceipt
 }
+
 export interface EthereumNetworkDataProvider {
   getBlock(id?: string | number, includeTransactionObjects?: boolean): Promise<BlockInfo>
   getCurrentBlockNumber(): Promise<number>

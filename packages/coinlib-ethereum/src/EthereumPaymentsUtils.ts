@@ -28,7 +28,6 @@ import {
   TOKEN_WALLET_ABI,
   TOKEN_WALLET_ABI_LEGACY,
   FULL_ERC20_TOKEN_METHODS_ABI,
-  MIN_CONFIRMATIONS,
   DEFAULT_MAINNET_CONSTANTS,
   DEFAULT_TESTNET_CONSTANTS,
   DEFAULT_DECIMALS,
@@ -37,7 +36,8 @@ import {
   EthereumAddressFormat,
   EthereumAddressFormatT,
   EthereumPaymentsUtilsConfig,
-  EthereumStandardizedERC20Transaction,
+  EthereumStandardizedTransaction,
+  EthereumStandardizedReceipt,
   EthereumTransactionInfo,
   NetworkConstants,
 } from './types'
@@ -55,7 +55,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
   readonly coinName: string
   readonly coinDecimals: number
   readonly tokenAddress?: string
-  readonly networkConstants: NetworkConstants
+  readonly networkConstants: Required<NetworkConstants>
   readonly nativeCoinSymbol: string
   readonly nativeCoinName: string
   readonly nativeCoinDecimals: number
@@ -319,14 +319,14 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
   }
 
   private getErc20TransferLogAmount(
-    receipt: EthereumStandardizedERC20Transaction['receipt'],
+    receipt: EthereumStandardizedReceipt,
     tokenDecimals: number,
     txHash: string,
   ): string {
     const txReceiptLogs = receipt.logs
     const transferLog = txReceiptLogs.find(log => log.topics[0] === SIGNATURE.LOG_TOPIC_ERC20_TRANSFER)
     if (!transferLog) {
-      this.logger.warn(`Transaction ${txHash} was an ERC20 sweep but cannot find log for Transfer event`)
+      this.logger.warn(`Cannot find ERC20 Transfer event log for ${txHash}, defaulting to 0`)
       return '0'
     }
 
@@ -336,21 +336,39 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
   }
 
   private checkErc20TransferLogAmount(
-    receipt: EthereumStandardizedERC20Transaction['receipt'],
+    receipt: EthereumStandardizedReceipt,
     tokenDecimals: number,
     txHash: string,
     inputAmount: string,
   ) {
     const actualAmount = this.getErc20TransferLogAmount(receipt, tokenDecimals, txHash)
 
+    // Sometimes the transfer logs don't show up, so don't use the amount returned from this check
+    // See https://ethereum.stackexchange.com/a/61967
+    // If the transaction executed successfully, we can safely assume the amount in input data is
+    // the actual amount transferred
     if (inputAmount !== actualAmount) {
       this.logger.warn(
-        `Transaction ${txHash} tried to transfer ${inputAmount} but only ${actualAmount} was actually transferred`,
+        `Transaction ${txHash} tried to transfer ${inputAmount} but ${actualAmount} was logged as transferred`,
       )
-      return actualAmount
     }
+  }
 
-    return inputAmount
+  private getConfirmationStatus(tx: EthereumStandardizedTransaction) {
+    let status: TransactionStatus = TransactionStatus.Pending
+    let isExecuted = false
+
+    const isConfirmed = tx.confirmations >= 1
+
+    if (isConfirmed) {
+      status = TransactionStatus.Confirmed
+      isExecuted = true
+      if (!tx.status) {
+        status = TransactionStatus.Failed
+        isExecuted = false
+      }
+    }
+    return { status, isExecuted, isConfirmed }
   }
 
   private async getTransactionInfoERC20(txId: string, tokenAddress: string): Promise<EthereumTransactionInfo> {
@@ -364,20 +382,8 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     // so we have to use a custom unitConverter, the default one uses that 18 decimals
     const tokenDecimals = new BigNumber(erc20Tx.tokenDecimals ?? this.coinDecimals).toNumber()
     const customUnitConverter = this.getCustomUnitConverter(tokenDecimals)
+    const { status, isExecuted, isConfirmed } = this.getConfirmationStatus(erc20Tx)
 
-    let status: TransactionStatus = TransactionStatus.Pending
-    let isExecuted = false
-
-    // XXX it is suggested to keep 12 confirmations
-    // https://ethereum.stackexchange.com/questions/319/what-number-of-confirmations-is-considered-secure-in-ethereum
-    const isConfirmed = erc20Tx.confirmations > Math.max(MIN_CONFIRMATIONS, 12)
-
-    if (isConfirmed) {
-      status = TransactionStatus.Confirmed
-      isExecuted = true
-    }
-
-    const tokenDecoder = new InputDataDecoder(FULL_ERC20_TOKEN_METHODS_ABI)
     const txInput = erc20Tx.txInput
     let amount: string
     let contractAddress: string | undefined
@@ -393,7 +399,13 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       if (!this.isAddressEqual(toAddress, tokenAddress)) {
         throw new Error(`Transaction ${txId} was sent to different contract: ${toAddress}, Expected: ${tokenAddress}`)
       }
-      const txData = tokenDecoder.decodeData(txInput)
+      const inputDecoder = new InputDataDecoder(FULL_ERC20_TOKEN_METHODS_ABI)
+      const txData = inputDecoder.decodeData(txInput)
+
+      const expectedInputs = 2
+      if (txData.inputs.length !== expectedInputs) {
+        throw new Error(`ERC20 transfer transaction ${txHash} has ${txData.inputs.length} but ${expectedInputs} were expected`)
+      }
 
       toAddress = txData.inputs[0]
       amount = customUnitConverter.toMainDenominationString(txData.inputs[1].toString())
@@ -405,11 +417,12 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       amount = '0'
       contractAddress = erc20Tx.contractAddress
     } else if (isERC20Sweep) {
-      const tokenDecoder = new InputDataDecoder(TOKEN_WALLET_ABI)
-      const txData = tokenDecoder.decodeData(txInput)
+      const inputDecoder = new InputDataDecoder(TOKEN_WALLET_ABI)
+      const txData = inputDecoder.decodeData(txInput)
 
-      if (txData.inputs.length !== 4) {
-        throw new Error(`Transaction ${txHash} has not recognized number of inputs ${txData.inputs.length}`)
+      const expectedInputs = 4
+      if (txData.inputs.length !== expectedInputs) {
+        throw new Error(`ERC20 proxy sweep transaction ${txHash} has ${txData.inputs.length} but ${expectedInputs} were expected`)
       }
       // For ERC20 sweeps:
       // tx.from is the contract address
@@ -429,15 +442,17 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       amount = customUnitConverter.toMainDenominationString(txData.inputs[3].toString())
 
       if (isExecuted) {
-        amount = this.checkErc20TransferLogAmount(erc20Tx.receipt, tokenDecimals, txHash, amount)
+        this.checkErc20TransferLogAmount(erc20Tx.receipt, tokenDecimals, txHash, amount)
       }
     } else if (isERC20SweepLegacy) {
-      const tokenDecoder = new InputDataDecoder(TOKEN_WALLET_ABI_LEGACY)
-      const txData = tokenDecoder.decodeData(txInput)
+      const inputDecoder = new InputDataDecoder(TOKEN_WALLET_ABI_LEGACY)
+      const txData = inputDecoder.decodeData(txInput)
 
-      if (txData.inputs.length !== 2) {
-        throw new Error(`Transaction ${txHash} has not recognized number of inputs ${txData.inputs.length}`)
+      const expectedInputs = 2
+      if (txData.inputs.length !== expectedInputs) {
+        throw new Error(`ERC20 legacy sweep transaction ${txHash} has ${txData.inputs.length} but ${expectedInputs} were expected`)
       }
+
       // For ERC20 legacy sweeps:
       // tx.to is the sweep contract address and source of funds (fromAddress)
       // tx.from is the contract owner address
@@ -492,25 +507,10 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     }
     const tx = await this.networkData.getTransaction(txid)
 
-    let status: TransactionStatus = TransactionStatus.Pending
-    let isExecuted = false
-
-    // XXX it is suggested to keep 12 confirmations
-    // https://ethereum.stackexchange.com/questions/319/what-number-of-confirmations-is-considered-secure-in-ethereum
-    const isConfirmed = tx.confirmations >= Math.max(MIN_CONFIRMATIONS, 12)
-
-    if (isConfirmed) {
-      status = TransactionStatus.Confirmed
-      isExecuted = true
-      if (!tx.status) {
-        status = TransactionStatus.Failed
-        isExecuted = false
-      }
-    }
-
     const fee = this.toMainDenomination(new BigNumber(tx.gasPrice).multipliedBy(tx.gasUsed))
     const fromAddress = this.standardizeAddress(tx.from)
     const toAddress = this.standardizeAddress(tx.to ?? tx.contractAddress)
+    const { status, isExecuted, isConfirmed } = this.getConfirmationStatus(tx)
 
     const result: EthereumTransactionInfo = {
       id: tx.txHash,

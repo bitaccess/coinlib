@@ -1,7 +1,6 @@
-import { DerivablePayport } from './../../coinlib-common/src/types';
-import { Transaction as Tx } from 'ethereumjs-tx'
+import { Transaction as EjsTx, TxData as EjsTxData, TxOptions as EjsTxOptions } from '@ethereumjs/tx'
+import EjsCommon from '@ethereumjs/common'
 import type { TransactionConfig } from 'web3-core'
-import { cloneDeep } from 'lodash'
 import {
   BalanceResult,
   BasePayments,
@@ -20,8 +19,9 @@ import {
   AutoFeeLevels,
   DEFAULT_MAX_FEE_PERCENT,
   BigNumber,
+  DerivablePayport,
 } from '@bitaccess/coinlib-common'
-import { isType, isString, isMatchingError, Numeric } from '@faast/ts-common'
+import { isType, isMatchingError, Numeric } from '@faast/ts-common'
 import request from 'request-promise-native'
 
 import {
@@ -33,6 +33,7 @@ import {
   EthereumResolvedFeeOption,
   EthereumTransactionOptions,
   EthTxType,
+  EthereumUnsignedTxData,
 } from './types'
 import {
   DEFAULT_FEE_LEVEL,
@@ -50,12 +51,17 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     Config, EthereumUnsignedTransaction, EthereumSignedTransaction, EthereumBroadcastResult, EthereumTransactionInfo
   > {
   private config: Config
+  private ejsCommon: EjsCommon
   public depositKeyIndex: number
 
   constructor(config: Config) {
     super(config)
     this.config = config
     this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
+    const { chainId } = this.networkConstants
+    this.ejsCommon = EjsCommon.isSupportedChainId(chainId as any)
+      ? new EjsCommon({ chain: chainId })
+      : EjsCommon.custom({ name: this.networkName, chainId, networkId: chainId })
   }
 
   getFullConfig(): Config {
@@ -248,20 +254,33 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
 
   async signTransaction(unsignedTx: EthereumUnsignedTransaction): Promise<EthereumSignedTransaction> {
     const fromPrivateKey = await this.getPrivateKey(unsignedTx.fromIndex!)
-    const payport = await this.getPayport(unsignedTx.fromIndex!)
-
-    const unsignedRaw: any = cloneDeep(unsignedTx.data)
-
-    const extraParam = { chain: this.networkConstants.chainId }
-    const tx = new Tx(unsignedRaw, extraParam)
     const privateKeyBuffer = hexToBuff(fromPrivateKey)
-    tx.sign(privateKeyBuffer)
+
+    const { to, value, gas, gasPrice, nonce, data } = unsignedTx.data
+    const txData: EjsTxData = {
+      to,
+      value,
+      gasLimit: gas,
+      gasPrice,
+      nonce,
+      data,
+    }
+
+    const tx = new EjsTx(txData, { common: this.ejsCommon })
+      .sign(privateKeyBuffer)
+
+    if (!tx.verifySignature()) {
+      this.logger.log(
+        'Failed to verify signTransaction signature. unsignedTx =', unsignedTx, 'tx.toJSON =', tx.toJSON())
+      throw new Error('Failed to verify signTransaction signature')
+    }
 
     const result: EthereumSignedTransaction = {
       ...unsignedTx,
       id: buffToHex(tx.hash()),
       status: TransactionStatus.Signed,
       data: {
+        ...tx.toJSON(),
         hex: buffToHex(tx.serialize()),
       }
     }
@@ -352,7 +371,9 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     const toPayport = serviceFlag ? { address: '' } : await this.resolvePayport(to as ResolveablePayport)
     const toIndex = typeof to === 'number' ? to : null
 
-    const txConfig: TransactionConfig = { from: fromPayport.address }
+    const txConfig: Pick<EthereumUnsignedTxData, 'from' | 'to' | 'data'> = {
+      from: fromPayport.address,
+    }
     if (serviceFlag) {
       if (options.data) {
         txConfig.data = options.data
@@ -424,6 +445,14 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       }
     }
 
+    const txData: EthereumUnsignedTxData = {
+      ...txConfig,
+      value: numericToHex(amountWei),
+      gas: numericToHex(amountOfGas),
+      gasPrice: numericToHex(feeOption.gasPrice),
+      nonce: numericToHex(nonce),
+    }
+
     const result: EthereumUnsignedTransaction = {
       id: null,
       status: TransactionStatus.Unsigned,
@@ -439,13 +468,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       targetFeeRateType: feeOption.targetFeeRateType,
       weight: amountOfGas,
       sequenceNumber: nonce.toString(),
-      data: {
-        ...txConfig,
-        value: numericToHex(amountWei),
-        gas: numericToHex(amountOfGas),
-        gasPrice: numericToHex(feeOption.gasPrice),
-        nonce: numericToHex(nonce),
-      },
+      data: txData,
     }
     this.logger.debug('createTransactionObject result', result)
     return result

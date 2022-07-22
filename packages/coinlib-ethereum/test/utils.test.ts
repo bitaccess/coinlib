@@ -73,5 +73,11 @@ describe('utils', () => {
         sha3('0x03cb206fc952ce006c4afb3c4d4ce19199b850d59cfd521d36ae212d4a7a97d7a4'),
       )).toBe('0xf1e488dd5fd0927afc858211689bc3842367b00e')
     })
+
+    // From end to end tests
+    expect(deriveProxyCreate2Address(
+      '0x5B31D375304BcF4116d45CDE3093ebc7aAf696fe',
+      '0xd79f1072d281d90be78b260312370988be6951cd8f53e2bb1e91f3c8f9d75a25',
+    )).toBe('0xda65e9e8461a6e8b9f2906133a5fa8c21f24da99')
   })
 })

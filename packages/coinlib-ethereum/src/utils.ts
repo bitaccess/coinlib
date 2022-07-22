@@ -2,7 +2,7 @@ import { isMatchingError, isString, Logger } from '@faast/ts-common'
 import { BlockbookEthereum, NormalizedTxEthereum } from 'blockbook-client'
 import promiseRetry from 'promise-retry'
 import { buffToHex, hexToBuff, numericToHex, strip0x, prepend0x } from '@bitaccess/coinlib-common'
-import { rlp, keccak256 } from 'ethereumjs-util'
+import { rlp, keccak, keccakFromHexString } from 'ethereumjs-util'
 
 import { EthereumBlockbookConnectedConfig } from './types'
 import { ETHEREUM_ADDRESS_REGEX, TOKEN_PROXY_DATA, WELL_FORMED_HEX_REGEX } from './constants'
@@ -128,8 +128,9 @@ export function assertWellFormedHex(x: string): string {
 export function sha3(valueHex: string | Buffer): string {
   if (isString(valueHex)) {
     assertWellFormedHex(valueHex)
+    return buffToHex(keccakFromHexString(valueHex))
   }
-  return buffToHex(keccak256(valueHex))
+  return buffToHex(keccak(valueHex))
 }
 
 /**
