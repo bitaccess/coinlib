@@ -1,5 +1,5 @@
 import { AutoFeeLevels, BlockInfo, FunctionPropertyNames, NewBlockCallback, BigNumber } from '@bitaccess/coinlib-common'
-import { Logger, DelegateLogger } from '@faast/ts-common'
+import { Logger, DelegateLogger, Numeric } from '@bitaccess/ts-common'
 import { GetAddressDetailsOptions, NormalizedTxEthereum } from 'blockbook-client'
 import * as request from 'request-promise-native'
 import { TransactionConfig } from 'web3-core'
@@ -55,6 +55,9 @@ export class NetworkData {
   ): Promise<ReturnType<EthereumNetworkDataProvider[K]>> {
     // Typescript compiler doesn't support spreading arguments that have a generic type, so the method
     // must be cast to a plain Function before invocation to avoid error ts(2556)
+    if (!this.blockbookEnabled) {
+      return await (this.web3Service[methodName] as Function)(...args)
+    }
     try {
       return await (this.blockBookService[methodName] as Function)(...args)
     } catch (error) {
@@ -63,7 +66,7 @@ export class NetworkData {
     }
   }
 
-  async getBlock(blockId: string | number): Promise<BlockInfo> {
+  async getBlock(blockId: string | number, includeTransactionObjects: boolean = false): Promise<BlockInfo> {
     return this.callBlockbookWithWeb3Fallback('getBlock', blockId)
   }
 
@@ -84,7 +87,11 @@ export class NetworkData {
   }> {
     const pricePerGasUnit = await this.getGasPrice(speed)
     const nonce = await this.getNextNonce(from)
-    const amountOfGas = await this.estimateGas({ from, to, data }, txType)
+    const amountOfGas = await this.estimateGas({
+      from,
+      to,
+      ...(data ? { data } : {}),
+    }, txType)
 
     return {
       pricePerGasUnit,
@@ -93,13 +100,24 @@ export class NetworkData {
     }
   }
 
-  async getNextNonce(address: string): Promise<string> {
-    const web3Nonce = await this.web3Service.getNextNonce(address)
-    const blockbookNonce = this.blockbookEnabled
-      ? await this.blockBookService.getNextNonce(address)
-      : '0'
+  private async fetchNonceOrZero(service: EthereumNetworkDataProvider, address: string): Promise<Numeric> {
+    try {
+      const nonceRaw = await service.getNextNonce(address)
+      const nonceBn = new BigNumber(nonceRaw)
+      return nonceBn.isNaN() ? 0 : nonceBn
+    } catch (e) {
+      this.logger.warn(`Failed to retrieve next nonce from ${service.constructor.name} - `, e.toString())
+      return 0
+    }
+  }
 
-    const nonce = BigNumber.maximum(web3Nonce, blockbookNonce)
+  async getNextNonce(address: string): Promise<string> {
+    const web3Nonce = await this.fetchNonceOrZero(this.web3Service, address)
+    const blockbookNonce = this.blockbookEnabled
+      ? await this.fetchNonceOrZero(this.blockBookService, address)
+      : 0
+
+    const nonce = BigNumber.maximum(web3Nonce, blockbookNonce, 0)
     return nonce.toString()
   }
 

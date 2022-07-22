@@ -16,3 +16,5 @@ docs/
 node_modules/
 simple.ts
 vendor/
+logs/
+tmp/

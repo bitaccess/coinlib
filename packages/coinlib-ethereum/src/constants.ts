@@ -60,7 +60,6 @@ export const DEPOSIT_KEY_INDEX = 0
 export const PUBLIC_CONFIG_OMIT_FIELDS: EthereumPaymentsConfigKeys[] = [
   'logger',
   'fullNode',
-  'parityNode',
   'gasStation',
   'keyPairs',
   'hdKey',

@@ -1,5 +1,5 @@
-import { BigNumber, BlockInfo } from '@bitaccess/coinlib-common'
-import { Logger } from '@faast/ts-common'
+import { BlockInfo } from '@bitaccess/coinlib-common'
+import { Logger } from '@bitaccess/ts-common'
 import {
   BlockbookEthereum,
   BlockInfoEthereum,
@@ -45,29 +45,44 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
     return this.api
   }
 
-  async getBlock(id?: string | number): Promise<BlockInfo> {
-    const blockId = id ?? (await this.getCurrentBlockNumber())
+  async getBlock(id?: string | number, includeTransactionObjects: boolean = false): Promise<BlockInfo> {
+    const currentBlockNumber = await this.getCurrentBlockNumber()
+    const blockId = id ?? currentBlockNumber
 
     const block = await this._retryDced(() => this.getApi().getBlock(blockId))
 
-    return this.standardizeBlock(block)
+    return this.standardizeBlock(block, includeTransactionObjects, currentBlockNumber)
   }
 
-  standardizeBlock(block: BlockInfoEthereum) {
-    const blockTime = new Date(Number(block.time) * 1000)
+  standardizeBlock(
+    block: BlockInfoEthereum,
+    includeTransactionObjects: boolean,
+    currentBlockNumber: number,
+  ): BlockInfo {
+    const blockInfoTime = new Date(Number(block.time) * 1000)
 
-    const standardizedTransactions = (block.txs ?? []).map((tx: NormalizedTxEthereum) =>
-      this.standardizeTransaction(tx, blockTime),
-    )
+    const transactionHashes: string[] = []
+    const standardizedTransactions: EthereumStandardizedTransaction[] = []
+    for (const tx of (block.txs ?? [])) {
+      transactionHashes.push(tx.txid)
+
+      if (includeTransactionObjects) {
+        standardizedTransactions.push(this.standardizeTransaction(tx, {
+          blockInfoTime,
+          currentBlockNumber,
+        }))
+      }
+    }
 
     const blockInfo: BlockInfo = {
       height: block.height,
       id: block.hash,
       previousId: block.previousBlockHash,
-      time: blockTime,
+      time: blockInfoTime,
       raw: {
         ...block,
         transactions: standardizedTransactions,
+        transactionHashes,
         dataProvider: NETWORK_DATA_PROVIDERS.BLOCKBOOK,
       },
     }
@@ -83,22 +98,17 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
 
   async getTransaction(txId: string) {
     const tx = await this._retryDced(() => this.getApi().getTx(txId))
-
-    return this.standardizeTransaction(tx)
+    const currentBlockNumber = await this.getCurrentBlockNumber()
+    return this.standardizeTransaction(tx, { currentBlockNumber })
   }
 
   async getAddressDetails(address: string, options?: GetAddressDetailsOptions) {
     return this._retryDced(() => this.getApi().getAddressDetails(address, options))
   }
 
-  async getNextNonce(address: string): Promise<BigNumber> {
-    try {
-      const addressDetails = await this.getAddressDetails(address, { details: 'basic' })
-      return new BigNumber(addressDetails.nonce ?? 0)
-    } catch (e) {
-      this.logger.warn('Failed to retrieve next nonce from blockbook - ', e.toString())
-      return new BigNumber(0)
-    }
+  async getNextNonce(address: string): Promise<string> {
+    const addressDetails = await this.getAddressDetails(address, { details: 'basic' })
+    return addressDetails.nonce
   }
 
   async getERC20Transaction(txId: string, tokenAddress: string) {
@@ -119,12 +129,15 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
       throw new Error(`tx tokenTransfer does not contain token=${tokenAddress}`)
     }
 
+    const currentBlockNumber = await this.getCurrentBlockNumber()
+
     return this.standardizeERC20Transaction({
       tx,
       txSpecific,
       tokenSymbol: transferredToken.symbol,
       tokenDecimals: transferredToken.decimals.toString(),
       tokenName: transferredToken.name,
+      currentBlockNumber,
     })
   }
 
@@ -148,7 +161,13 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
     return token.balance!
   }
 
-  standardizeTransaction(tx: NormalizedTxEthereum, blockInfoTime?: Date): EthereumStandardizedTransaction {
+  standardizeTransaction(tx: NormalizedTxEthereum, {
+    currentBlockNumber,
+    blockInfoTime,
+  }: {
+    currentBlockNumber: number,
+    blockInfoTime?: Date
+  }): EthereumStandardizedTransaction {
     const { fromAddress, toAddress, contractAddress } = getBlockBookTxFromAndToAddress(tx)
 
     const blockTime = blockInfoTime ? new Date(blockInfoTime) : new Date(tx.blockTime * 1000)
@@ -167,6 +186,7 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
       gasPrice: tx.ethereumSpecific.gasPrice,
       status: Boolean(tx.ethereumSpecific.status),
       contractAddress,
+      currentBlockNumber,
       raw: {
         ...tx,
         dataProvider: NETWORK_DATA_PROVIDERS.BLOCKBOOK,
@@ -182,14 +202,16 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
     tokenSymbol,
     tokenDecimals,
     tokenName,
+    currentBlockNumber,
   }: {
     tx: NormalizedTxEthereum
     txSpecific: SpecificTxEthereum
     tokenSymbol: string
     tokenDecimals: string
     tokenName: string
+    currentBlockNumber: number,
   }): EthereumStandardizedERC20Transaction {
-    const standardizedTx = this.standardizeTransaction(tx)
+    const standardizedTx = this.standardizeTransaction(tx, { currentBlockNumber })
 
     const result: EthereumStandardizedERC20Transaction = {
       ...standardizedTx,

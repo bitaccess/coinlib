@@ -24,7 +24,6 @@ const KEY_PAIRS = [
 const CONFIG: KeyPairEthereumPaymentsConfig = {
   network: NetworkType.Testnet,
   gasStation: GAS_STATION_URL,
-  parityNode: PARITY_URL,
   fullNode: INFURA_URL,
   keyPairs: KEY_PAIRS,
   logger,

@@ -4,7 +4,7 @@ import { DEFAULT_PATH_FIXTURE } from './fixtures/accounts'
 import { TestLogger } from '../../../common/testUtils'
 import { EthereumBIP44 } from '../src/bip44'
 
-import { NetworkType, FeeLevel, FeeOption, FeeRateType, TransactionStatus } from '@bitaccess/coinlib-common'
+import { NetworkType, FeeLevel, FeeOption, FeeRateType, TransactionStatus, numericToHex } from '@bitaccess/coinlib-common'
 import nock from 'nock'
 
 import {
@@ -15,31 +15,28 @@ import {
   getSendRawTransactionMocks,
   getEstimateGasMocks,
   addTransactionApisMocks,
+  getTransactionReceiptMocks,
 } from './fixtures/mocks'
 import { EthereumSignedTransaction, EthereumUnsignedTransaction, DEFAULT_DERIVATION_PATH } from '../src'
 import Web3 from 'web3'
 import { TestWeb3Provider } from './fixtures/TestWeb3Provider'
 
 const GAS_STATION_URL = 'https://gasstation.test.url'
-const PARITY_URL = 'https://parity.test.url'
 const INFURA_URL = 'https://infura.test.url'
-const BLOCKBOOK_URL = 'https://blockbook.test.url'
+
 const nockG = nock(GAS_STATION_URL)
-const nockP = nock(PARITY_URL)
 
 const logger = new TestLogger('HdEthereumPaymentsTest')
 
-const testWeb3Provider = new TestWeb3Provider()
+const testWeb3Provider = new TestWeb3Provider(logger)
 
 const CONFIG = {
   network: NetworkType.Testnet,
   gasStation: GAS_STATION_URL,
-  parityNode: PARITY_URL,
   fullNode: INFURA_URL,
   web3: new Web3(testWeb3Provider),
   hdKey: DEFAULT_PATH_FIXTURE.xkeys.xprv,
   logger,
-  blockbookNode: BLOCKBOOK_URL,
 }
 
 const BIP44 = EthereumBIP44.fromXKey(DEFAULT_PATH_FIXTURE.xkeys.xprv)
@@ -255,9 +252,9 @@ describe('HdEthereumPayments', () => {
 
     describe('getNextSequenceNumber', () => {
       test('returns nonce for account', async () => {
-        testWeb3Provider.addMock(getTransactionCountMocks(FROM_ADDRESS, '0x1a'))
+        testWeb3Provider.addMock(getTransactionCountMocks(FROM_ADDRESS, numericToHex(27)))
 
-        expect(await hdEP.getNextSequenceNumber(FROM_ADDRESS)).toBe('26')
+        expect(await hdEP.getNextSequenceNumber(FROM_ADDRESS)).toBe('27')
       })
     })
 
@@ -458,7 +455,7 @@ describe('HdEthereumPayments', () => {
         // nock for gas station
         nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
-        testWeb3Provider.addMock(getTransactionCountMocks(FROM_ADDRESS, '0x1a'))
+        testWeb3Provider.addMock(getTransactionCountMocks(FROM_ADDRESS, numericToHex(27)))
 
         const res = await hdEP.createTransaction(from, to, amountEth)
 
@@ -497,13 +494,13 @@ describe('HdEthereumPayments', () => {
         const to = { address: TO_ADDRESS }
         const amountEth = '50000'
 
-        testWeb3Provider.addMock(getEstimateGasMocks(FROM_ADDRESS, TO_ADDRESS, '0xaaaa'))
+        testWeb3Provider.addMock(getEstimateGasMocks(FROM_ADDRESS, TO_ADDRESS, numericToHex(43690)))
 
         testWeb3Provider.addMock(getBalanceMocks(FROM_ADDRESS, '49999'))
 
         nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
-        testWeb3Provider.addMock(getTransactionCountMocks(FROM_ADDRESS, '0x1a'))
+        testWeb3Provider.addMock(getTransactionCountMocks(FROM_ADDRESS, numericToHex(27)))
 
         let err: string = ''
         try {
@@ -521,14 +518,14 @@ describe('HdEthereumPayments', () => {
         const to = { address: '0x6295eE1B4F6dD65047762F924Ecd367c17eaBf8f' }
         const balance = '142334532324980082'
 
-        testWeb3Provider.addMock(getEstimateGasMocks(FROM_ADDRESS, to.address, '0x52bc'))
+        testWeb3Provider.addMock(getEstimateGasMocks(FROM_ADDRESS, to.address, numericToHex(21180)))
 
         testWeb3Provider.addMock(getBalanceMocks(FROM_ADDRESS, balance))
 
         // nock for gas station
         nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
-        testWeb3Provider.addMock(getTransactionCountMocks(FROM_ADDRESS, '0x1a'))
+        testWeb3Provider.addMock(getTransactionCountMocks(FROM_ADDRESS, numericToHex(27)))
 
         const res = await hdEP.createSweepTransaction(from, to)
 
@@ -576,14 +573,14 @@ describe('HdEthereumPayments', () => {
         const from = 1
         const to = { address: TO_ADDRESS }
 
-        testWeb3Provider.addMock(getEstimateGasMocks(FROM_ADDRESS, TO_ADDRESS, '0x52bc'))
+        testWeb3Provider.addMock(getEstimateGasMocks(FROM_ADDRESS, TO_ADDRESS, numericToHex(21180)))
 
         testWeb3Provider.addMock(getBalanceMocks(FROM_ADDRESS, '999'))
 
         // nock for gas station
         nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
-        testWeb3Provider.addMock(getTransactionCountMocks(FROM_ADDRESS, '0x1a'))
+        testWeb3Provider.addMock(getTransactionCountMocks(FROM_ADDRESS, numericToHex(27)))
 
         let err: string = ''
         try {

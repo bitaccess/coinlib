@@ -126,7 +126,6 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
         fullNode: fullNode,
         providerOptions: config.providerOptions,
       },
-      parityUrl: config.parityNode,
       logger: this.logger,
       blockBookConfig: {
         nodes: blockbookNode,
@@ -444,8 +443,6 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
 
     const fee = this.toMainDenomination(new BigNumber(erc20Tx.gasPrice).multipliedBy(erc20Tx.gasUsed))
 
-    const currentBlockNumber = await this.getCurrentBlockNumber()
-
     const result: EthereumTransactionInfo = {
       id: txHash,
       amount,
@@ -465,7 +462,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       confirmationTimestamp: erc20Tx.blockTime,
       confirmationNumber: erc20Tx.blockHeight,
       status,
-      currentBlockNumber,
+      currentBlockNumber: erc20Tx.currentBlockNumber,
       data: {
         ...erc20Tx,
       },
@@ -496,8 +493,6 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       }
     }
 
-    const currentBlockNumber = await this.getCurrentBlockNumber()
-
     const fee = this.toMainDenomination(new BigNumber(tx.gasPrice).multipliedBy(tx.gasUsed))
     const fromAddress = this.standardizeAddress(tx.from)
     const toAddress = this.standardizeAddress(tx.to ?? tx.contractAddress)
@@ -521,7 +516,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       confirmationTimestamp: tx.blockTime,
       confirmationNumber: tx.blockHeight,
       status,
-      currentBlockNumber,
+      currentBlockNumber: tx.currentBlockNumber,
       data: {
         ...tx.raw,
         to: toAddress,

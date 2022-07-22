@@ -3,7 +3,8 @@ import { Logger, DelegateLogger, isNull, isNumber } from '@faast/ts-common'
 import Web3 from 'web3'
 import { TransactionConfig } from 'web3-core'
 import Contract from 'web3-eth-contract'
-import { BlockTransactionObject, Transaction, TransactionReceipt } from 'web3-eth'
+import { Block, Transaction, TransactionReceipt } from 'web3-eth'
+import * as t from 'io-ts'
 
 import {
   TOKEN_METHODS_ABI,
@@ -21,7 +22,6 @@ import {
   EthereumStandardizedERC20Transaction,
 } from './types'
 import { deriveCreate1Address, retryIfDisconnected } from './utils'
-import { get } from 'lodash'
 
 export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
   web3: Web3
@@ -65,11 +65,17 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     }
 
     this.eth = this.web3.eth
+
+    // Set timeouts to -1 so sendRawTransaction doesn't poll or wait for confirmation
+    this.eth.transactionPollingTimeout = -1
+    this.eth.transactionBlockTimeout = -1
   }
 
   protected newContract(...args: ConstructorParameters<typeof Contract>) {
     const contract = new Contract(...args)
     contract.setProvider(this.eth.currentProvider)
+    contract.transactionPollingTimeout = -1
+    contract.transactionBlockTimeout = -1
     return contract
   }
 
@@ -93,8 +99,14 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     return { tokenSymbol, tokenDecimals, tokenName }
   }
 
-  async getBlock(id?: string | number): Promise<BlockInfo> {
-    const block = await this._retryDced(() => this.eth.getBlock(id ?? 'latest', true))
+  async getBlock(id?: string | number, includeTransactionObjects: boolean = false): Promise<BlockInfo> {
+    const idParam = id ?? 'latest'
+    let block: Block
+    if (includeTransactionObjects) {
+      block = await this._retryDced(() => this.eth.getBlock(idParam, true))
+    } else {
+      block = await this._retryDced(() => this.eth.getBlock(idParam, false))
+    }
 
     return this.standardizeBlock(block)
   }
@@ -133,6 +145,11 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     try {
       // estimateGas mutates txObject so must pass in a clone
       let gas = await this._retryDced(() => this.eth.estimateGas({ ...txObject }))
+      if (!isNumber(gas) || isNaN(gas)) {
+        this.logger.warn(`Received invalid non-numeric gas estimate from web3: ${gas}`)
+        return MAXIMUM_GAS[txType]
+      }
+
       if (gas > 21000) {
         // No need for multiplier for regular ethereum transfers
         gas = gas * GAS_ESTIMATE_MULTIPLIER
@@ -152,19 +169,17 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     }
   }
 
-  async getNextNonce(address: string): Promise<BigNumber> {
-    try {
-      const nonce = await this._retryDced(() => this.eth.getTransactionCount(address, 'pending'))
-      return new BigNumber(nonce)
-    } catch (e) {
-      this.logger.warn('Failed to retrieve next nonce from web3 - ', e.toString())
-      return new BigNumber(0)
-    }
+  async getNextNonce(address: string): Promise<number> {
+    return this._retryDced(() => this.eth.getTransactionCount(address, 'pending'))
   }
 
   async getGasPrice(): Promise<string> {
     try {
       const wei = new BigNumber(await this._retryDced(() => this.eth.getGasPrice()))
+      if (wei.isNaN()) {
+        this.logger.warn('Retrieved invalid NaN gas price from web3')
+        return ''
+      }
       this.logger.log(`Retrieved gas price of ${wei.div(1e9)} Gwei from web3`)
       return wei.dp(0, BigNumber.ROUND_DOWN).toFixed()
     } catch (e) {
@@ -186,24 +201,32 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     })
   }
 
-  async standardizeBlock(block: BlockTransactionObject) {
+  async standardizeBlock(block: Block) {
     const blockTime = block.timestamp
       ? new Date(isNumber(block.timestamp) ? block.timestamp * 1000 : block.timestamp)
       : null
-    const currentBlockNumber = await this.getCurrentBlockNumber()
 
-    const standardizedTransactionsPromise = block.transactions.map(async tx => {
-      const txHash = get(tx, 'hash', tx) as string
+    let transactionHashes: string[] = []
+    let standardizedTransactions: EthereumStandardizedTransaction[] = []
+    if (t.array(t.string).is(block.transactions)) {
+      transactionHashes = block.transactions
+    } else {
+      const currentBlockNumber = await this.getCurrentBlockNumber()
+      const standardizedTransactionsPromise = block.transactions.map(async tx => {
+        const txHash = tx.hash
+        transactionHashes.push(txHash)
 
-      const txReceipt = await this.getTransactionReceipt(txHash)
+        // TODO: Use this.eth.BatchRequest here
+        const txReceipt = await this.getTransactionReceipt(txHash)
 
-      return this.standardizeTransaction(tx, txReceipt, {
-        blockTime,
-        currentBlockNumber,
+        return this.standardizeTransaction(tx, txReceipt, {
+          blockTime,
+          currentBlockNumber,
+        })
       })
-    })
 
-    const standardizedTransactions = await Promise.all(standardizedTransactionsPromise)
+      standardizedTransactions = await Promise.all(standardizedTransactionsPromise)
+    }
 
     const blockInfo: BlockInfo = {
       id: block.hash,
@@ -213,6 +236,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       raw: {
         ...block,
         transactions: standardizedTransactions,
+        transactionHashes,
         dataProvider: NETWORK_DATA_PROVIDERS.INFURA,
       },
     }
@@ -233,6 +257,12 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
   ): EthereumStandardizedTransaction {
     const { gasUsed, status } = txReceipt
     let contractAddress = txReceipt.contractAddress
+
+    if (!tx.from) {
+      this.logger.warn(`Missing tx.from in tx ${tx.hash}`, tx, txReceipt)
+      throw new Error(`Missing tx.from in tx ${tx.hash}`)
+    }
+
     let to = tx.to ?? contractAddress
     if (!to) {
       to = deriveCreate1Address(tx.from, tx.nonce)
@@ -252,6 +282,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       confirmations: tx.blockNumber ? currentBlockNumber - tx.blockNumber : 0,
       contractAddress,
       status,
+      currentBlockNumber,
       raw: {
         ...tx,
         blockTime,

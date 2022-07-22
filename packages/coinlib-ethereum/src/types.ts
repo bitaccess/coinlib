@@ -80,7 +80,6 @@ export const EthereumPaymentsUtilsConfig = extendCodec(
   {},
   {
     fullNode: OptionalString,
-    parityNode: OptionalString,
     blockbookNode: t.union([t.string, t.array(t.string)]),
     blockbookApi: instanceofCodec(BlockbookEthereum),
     gasStation: OptionalString,
@@ -333,7 +332,6 @@ export const NetworkDataConfig = requiredOptionalCodec(
     blockBookConfig: BlockBookConfig,
   },
   {
-    parityUrl: t.string,
     logger: Logger,
     gasStationUrl: t.string,
     requestTimeoutMs: t.number,
@@ -371,6 +369,7 @@ export interface EthereumStandardizedTransaction {
   raw: object,
   contractAddress?: string
   status: boolean,
+  currentBlockNumber: number,
 }
 
 export interface EthereumStandardizedERC20Transaction extends EthereumStandardizedTransaction {
@@ -385,10 +384,10 @@ export interface EthereumStandardizedERC20Transaction extends EthereumStandardiz
   }
 }
 export interface EthereumNetworkDataProvider {
-  getBlock(id?: string | number): Promise<BlockInfo>
+  getBlock(id?: string | number, includeTransactionObjects?: boolean): Promise<BlockInfo>
   getCurrentBlockNumber(): Promise<number>
 
-  getNextNonce(address: string): Promise<BigNumber>
+  getNextNonce(address: string): Promise<Numeric>
 
   getAddressBalance(address: string): Promise<string>
   getAddressBalanceERC20(address: string, tokenAddress: string): Promise<string>

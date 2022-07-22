@@ -1,41 +1,38 @@
+import { TestWeb3Provider } from './fixtures/TestWeb3Provider'
 import { NetworkData } from '../src/NetworkData'
-import { NetworkDataConfig } from '../src/types'
+import { NetworkDataConfig, TOKEN_SWEEP_COST, ETHEREUM_TRANSFER_COST } from '../src'
 import {
   BLOCKBOOK_STATUS_MOCK,
+  getBlockbookAddressBasicMock,
+  getBlockNumberMocks,
   getEstimateGasMocks,
   getGasPriceMocks,
   getGasStationResponse,
-  getParityNextNonceMocks,
   getTransactionCountMocks,
 } from './fixtures/mocks'
-import { FeeLevel } from '@bitaccess/coinlib-common'
+import { FeeLevel, numericToHex } from '@bitaccess/coinlib-common'
 import { TestLogger } from '../../../common/testUtils'
 import nock from 'nock'
 import Web3 from 'web3'
 
-const logger = new TestLogger('ethereum-payments.NetworkData')
+const logger = new TestLogger(__filename)
 
-let id = 1
+const testWeb3Provider = new TestWeb3Provider(logger)
 
 describe('NetworkData', () => {
   const GAS_STATION_URL = 'https://gasstation.test.local'
-  const PARITY_URL = 'https://parity.test.local'
-  const INFURA_URL = 'https://infura.test.local'
   const BLOCKBOOK_NODE = 'https://blockbook.test.local'
 
   const nockG = nock(GAS_STATION_URL)
-  const nockP = nock(PARITY_URL)
-  const nockI = nock(INFURA_URL)
   const nockB = nock(BLOCKBOOK_NODE)
 
-  const web3 = new Web3(INFURA_URL)
+  const web3 = new Web3(testWeb3Provider)
 
   const from = web3.eth.accounts.create().address.toLowerCase()
   const to = web3.eth.accounts.create().address.toLowerCase()
 
   const networkDataConfig: NetworkDataConfig = {
     web3Config: { web3 },
-    parityUrl: PARITY_URL,
     blockBookConfig: { nodes: [BLOCKBOOK_NODE] },
     logger,
     gasStationUrl: GAS_STATION_URL,
@@ -43,108 +40,139 @@ describe('NetworkData', () => {
 
   const networkData = new NetworkData(networkDataConfig)
 
-  test('getNetworkData default flow', async () => {
-    nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
+  describe('getGasAndNonceForNewTx', () => {
+    it('succeeds for default flow', async () => {
+      nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
-    const transactionCountMocks = getTransactionCountMocks(id++, from, '0x1a')
-    nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
+      testWeb3Provider.addMock(getTransactionCountMocks(from, numericToHex(27)))
 
-    const estimateGasPriceMock = getEstimateGasMocks(id++, from, to, `0x${(21000).toString(16)}`)
-    nockI.post(/.*/, estimateGasPriceMock.req).reply(200, estimateGasPriceMock.res)
+      testWeb3Provider.addMock(getEstimateGasMocks(from, to, numericToHex(30000)))
 
-    const parityMock = getParityNextNonceMocks(1, from, '0x1b')
-    nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
+      nockB.get(`/api/v2/address/${from}?details=basic`).reply(200, getBlockbookAddressBasicMock(from, 27))
 
-    const res = await networkData.getGasAndNonceForNewTx('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
+      const res = await networkData.getGasAndNonceForNewTx('TOKEN_TRANSFER', FeeLevel.Low, from, to)
 
-    expect(res).toEqual({
-      pricePerGasUnit: '1000000000',
-      amountOfGas: 21000,
-      nonce: '27',
+      expect(res).toEqual({
+        pricePerGasUnit: '1000000000',
+        amountOfGas: 45000,
+        nonce: '27',
+      })
+    })
+
+    it('falls back to defaults', async () => {
+      // fail
+      nockG.get('/json/ethgasAPI.json').reply(400)
+
+      testWeb3Provider.addMock(getGasPriceMocks(''))
+
+      testWeb3Provider.addMock(getTransactionCountMocks(from, ''))
+
+      testWeb3Provider.addMock(getEstimateGasMocks(from, to, ''))
+
+      nockB.get(`/api/v2/address/${from}?details=basic`).reply(400)
+
+      const res = await networkData.getGasAndNonceForNewTx('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
+
+      expect(res).toEqual({
+        pricePerGasUnit: '50000000000',
+        amountOfGas: ETHEREUM_TRANSFER_COST,
+        nonce: '0',
+      })
     })
   })
 
-  test('getNetworkData gas limit multiplier', async () => {
-    nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
+  describe('getNextNonce', () => {
+    it('uses higher nonce from blockbook', async () => {
+      testWeb3Provider.addMock(getTransactionCountMocks(from, numericToHex(27)))
 
-    const transactionCountMocks = getTransactionCountMocks(id++, from, '0x1a')
-    nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
+      nockB.get(`/api/v2/address/${from}?details=basic`).reply(200, getBlockbookAddressBasicMock(from, 28))
 
-    const estimateGasPriceMock = getEstimateGasMocks(id++, from, to, `0x${(32001).toString(16)}`)
-    nockI.post(/.*/, estimateGasPriceMock.req).reply(200, estimateGasPriceMock.res)
+      const res = await networkData.getNextNonce(from)
+      expect(res).toBe('28')
+    })
 
-    const parityMock = getParityNextNonceMocks(1, from, '0x1b')
-    nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
+    it('uses higher nonce from web3', async () => {
+      testWeb3Provider.addMock(getTransactionCountMocks(from, numericToHex(29)))
 
-    const res = await networkData.getGasAndNonceForNewTx('TOKEN_SWEEP', FeeLevel.Low, from, to)
+      nockB.get(`/api/v2/address/${from}?details=basic`).reply(200, getBlockbookAddressBasicMock(from, 28))
 
-    expect(res).toEqual({
-      pricePerGasUnit: '1000000000',
-      amountOfGas: 48002,
-      nonce: '27',
+      const res = await networkData.getNextNonce(from)
+      expect(res).toBe('29')
+    })
+
+    it('falls back to default', async () => {
+      testWeb3Provider.addMock(getTransactionCountMocks(from, ''))
+
+      nockB.get(`/api/v2/address/${from}?details=basic`).reply(400)
+
+      const res = await networkData.getNextNonce(from)
+      expect(res).toBe('0')
     })
   })
 
-  test('getNetworkData fallback to defaults', async () => {
-    // fail
-    nockG.get('/json/ethgasAPI.json').reply(400)
+  describe('estimateGas', () => {
+    it('applies multiplier', async () => {
+      testWeb3Provider.addMock(getEstimateGasMocks(from, to, numericToHex(32000)))
 
-    let transactionCountMocks = getTransactionCountMocks(id++, from, '')
-    nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
+      const res = await networkData.estimateGas({ from, to }, 'TOKEN_SWEEP')
+      expect(res).toBe(48000)
+    })
+    it('falls back to default', async () => {
+      testWeb3Provider.addMock(getEstimateGasMocks(from, to, ''))
 
-    const gasPriceMock = getGasPriceMocks(id++, '')
-    nockI.post(/.*/, gasPriceMock.req).reply(200, gasPriceMock.res)
-
-    transactionCountMocks = getTransactionCountMocks(id++, from, '')
-    nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
-
-    const estimateGasPriceMock = getEstimateGasMocks(id++, from, to, '')
-    nockI.post(/.*/, estimateGasPriceMock.req).reply(200, estimateGasPriceMock.res)
-
-    const parityMock = getParityNextNonceMocks(1, from, '')
-    nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
-
-    const res = await networkData.getGasAndNonceForNewTx('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
-
-    expect(res).toEqual({
-      pricePerGasUnit: '50000000000',
-      amountOfGas: 50000,
-      nonce: '0',
+      const res = await networkData.estimateGas({ from, to }, 'TOKEN_SWEEP')
+      expect(res).toBe(TOKEN_SWEEP_COST)
     })
   })
 
-  test('getNetworkData empty responses', async () => {
-    // fail
-    nockG.get('/json/ethgasAPI.json').reply(200, {})
+  describe('getGasPrice', () => {
+    it('uses gas station fast estimate', async () => {
+      nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
-    let transactionCountMocks = getTransactionCountMocks(id++, from, '')
-    nockI.post(/.*/, transactionCountMocks.req).reply(400)
+      const res = await networkData.getGasPrice(FeeLevel.High)
+      expect(res).toBe('8000000000')
+    })
 
-    const gasPriceMock = getGasPriceMocks(id++, '')
-    nockI.post(/.*/, gasPriceMock.req).reply(200, gasPriceMock.res)
+    it('uses gas station average estimate', async () => {
+      nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
-    transactionCountMocks = getTransactionCountMocks(id++, from, '')
-    nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
+      const res = await networkData.getGasPrice(FeeLevel.Medium)
+      expect(res).toBe('3000000000')
+    })
 
-    const estimateGasPriceMock = getEstimateGasMocks(id++, from, to, '')
-    nockI.post(/.*/, estimateGasPriceMock.req).reply(200, estimateGasPriceMock.res)
+    it('uses gas station safeLow estimate', async () => {
+      nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
-    const parityMock = getParityNextNonceMocks(1, from, '0x1b')
-    nockP.post(/.*/, parityMock.req).reply(400)
+      const res = await networkData.getGasPrice(FeeLevel.Low)
+      expect(res).toBe('1000000000')
+    })
 
-    const res = await networkData.getGasAndNonceForNewTx('ETHEREUM_TRANSFER', FeeLevel.Low, from, to)
+    it('falls back to web3 estimate', async () => {
+      // fail
+      nockG.get('/json/ethgasAPI.json').reply(200, {})
 
-    expect(res).toEqual({
-      pricePerGasUnit: '50000000000',
-      amountOfGas: 50000,
-      nonce: '0',
+      testWeb3Provider.addMock(getGasPriceMocks(numericToHex(7.7e9)))
+
+      const res = await networkData.getGasPrice(FeeLevel.Medium)
+      expect(res).toBe('7700000000')
     })
   })
 
-  it('should get the latest block', async () => {
-    nockB.get('/api/v2').reply(200, BLOCKBOOK_STATUS_MOCK)
-    const currentBlock = await networkData.getCurrentBlockNumber()
+  describe('getCurrentBlockNumber', () => {
+    it('should get from blockbook', async () => {
+      nockB.get('/api/v2').reply(200, BLOCKBOOK_STATUS_MOCK)
 
-    expect(currentBlock).toBe(BLOCKBOOK_STATUS_MOCK.blockbook.bestHeight)
+      const currentBlock = await networkData.getCurrentBlockNumber()
+      expect(currentBlock).toBe(BLOCKBOOK_STATUS_MOCK.blockbook.bestHeight)
+    })
+
+    it('should fallback to web3', async () => {
+      nockB.get('/api/v2').reply(400)
+
+      testWeb3Provider.addMock(getBlockNumberMocks(numericToHex(123), false))
+
+      const currentBlock = await networkData.getCurrentBlockNumber()
+      expect(currentBlock).toBe(123)
+    })
   })
 })

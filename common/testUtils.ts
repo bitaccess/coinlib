@@ -22,20 +22,36 @@ function formatArgs(...args: any[]): string {
     .join(' ')
 }
 
-const logDir = path.resolve(__dirname, '../logs')
+const rootDir = path.resolve(__dirname, '..')
+const logsDir = path.resolve(rootDir, 'logs')
+
+function resolveLogFile(packageOrFileName: string): string {
+  if (!packageOrFileName.includes('/')) {
+    return path.resolve(logsDir, `test.${packageOrFileName}.log`)
+  }
+  if (packageOrFileName.includes(rootDir)) {
+    let pathParts = packageOrFileName.slice(rootDir.length + 1).split('/')
+    if (pathParts[0] === 'packages' && pathParts[2] === 'test') {
+      pathParts = [pathParts[1], ...pathParts.slice(3)]
+    }
+    return path.resolve(logsDir, pathParts.join('/') + '.log')
+  }
+  throw new Error(`No idea how to handle TestLogger packageOrFileName: ${packageOrFileName}`)
+}
 
 export class TestLogger implements Logger {
 
   logFileDescriptor: number
 
-  constructor(public packageName: string) {
-    if (!fs.existsSync(logDir)) {
-      fs.mkdirSync(logDir, { recursive: true })
+  constructor(public packageOrFileName: string) {
+    const logFilePath = resolveLogFile(packageOrFileName)
+    const logFileDir = path.dirname(logFilePath)
+
+    if (!fs.existsSync(logFileDir)) {
+      fs.mkdirSync(logFileDir, { recursive: true })
     }
 
-    this.logFileDescriptor = fs.openSync(
-      path.resolve(logDir, `test.${packageName}.log`), 'w'
-    )
+    this.logFileDescriptor = fs.openSync(logFilePath, 'w')
   }
 
   doLog(level: 'ERROR' | 'WARN' | 'INFO' | 'LOG' | 'DEBUG' | 'TRACE') {

@@ -166,7 +166,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     callbackFn: BalanceActivityCallback,
     filterRelevantAddresses: FilterBlockAddressesCallback,
   ): Promise<BlockInfo> {
-    const blockDetails: BlockInfo = await this.networkData.getBlock(blockId)
+    const blockDetails: BlockInfo = await this.networkData.getBlock(blockId, true)
 
     const transactions = get(blockDetails.raw, 'transactions', []) as EthereumStandardizedTransaction[]
     const addressTransactions: { [address: string]: Set<EthereumStandardizedTransaction> } = {}

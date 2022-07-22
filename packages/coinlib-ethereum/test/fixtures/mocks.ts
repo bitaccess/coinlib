@@ -1,11 +1,8 @@
-import { JsonRpcPayload, JsonRpcResponse } from 'web3-core-helpers'
-import { TestWeb3Provider } from './TestWeb3Provider'
-import { MIN_CONFIRMATIONS } from '../../src'
+import { Transaction } from 'web3-eth'
 
-export type Mock = {
-  req: Omit<JsonRpcPayload, 'id'>
-  res: Omit<JsonRpcResponse, 'id'>
-}
+import { MIN_CONFIRMATIONS } from '../../src'
+import { TestWeb3Provider } from './TestWeb3Provider'
+import { Mock, MockReq, MockRes } from './types'
 
 export function getParityNextNonceMocks(address: string, nonce: string): Mock {
   return {
@@ -138,98 +135,86 @@ export function getGasStationResponse() {
 export function getGasPriceMocks(price: string) {
   return {
     req: {
-      jsonrpc: '2.0',
       method: 'eth_gasPrice',
       params: [],
     },
     res: {
-      jsonrpc: '2.0',
       result: price,
     },
   }
 }
 
-export function getEstimateGasMocks(from: string, to: string, result: string) {
+export function getEstimateGasMocks(from: string, to: string, result: string, data?: string) {
   return {
     req: {
-      jsonrpc: '2.0',
       method: 'eth_estimateGas',
       params: [
         {
           from: from.toLowerCase(),
           to: to.toLowerCase(),
+          ...(data ? { data } : {}),
         },
       ],
     },
     res: {
-      jsonrpc: '2.0',
       result,
     },
   }
 }
-function getParityNextNonceRequest(address: string): Mock['req'] {
+function getParityNextNonceRequest(address: string): MockReq {
   return {
-    jsonrpc: '2.0',
     method: 'parity_nextNonce',
     params: [address.toLowerCase()],
   }
 }
 
-function getParityNextNonceResponse(nonce: string): Mock['res'] {
+function getParityNextNonceResponse(nonce: string): MockRes {
   return {
-    jsonrpc: '2.0',
     result: nonce,
   }
 }
 
-function getBalanceRequest(address: string): Mock['req'] {
+function getBalanceRequest(address: string): MockReq {
   return {
-    jsonrpc: '2.0',
     method: 'eth_getBalance',
     params: [address.toLowerCase(), 'latest'],
   }
 }
 
-function getBalanceResponse(balance: string): Mock['res'] {
+function getBalanceResponse(balance: string): MockRes {
   return {
-    jsonrpc: '2.0',
     result: balance,
   }
 }
 
-function getTransactionCountRequest(address: string): Mock['req'] {
+function getTransactionCountRequest(address: string): MockReq {
   return {
-    jsonrpc: '2.0',
     method: 'eth_getTransactionCount',
     params: [address.toLowerCase(), 'pending'],
   }
 }
 
-function getTransactionCountResponse(nonce: string): Mock['res'] {
+function getTransactionCountResponse(nonce: string): MockRes<string> {
   return {
-    jsonrpc: '2.0',
     result: nonce,
   }
 }
 
-function getSendRawTransactionRequest(rawTx: string): Mock['req'] {
+function getSendRawTransactionRequest(rawTx: string): MockReq {
   return {
-    jsonrpc: '2.0',
     method: 'eth_sendRawTransaction',
     params: [rawTx],
   }
 }
 
-function getSendRawTransactionResponse(txHash: string): Mock['res'] {
+function getSendRawTransactionResponse(txHash: string): MockRes<string> {
   return {
-    jsonrpc: '2.0',
     result: txHash,
   }
 }
 
-function getTransactionReceiptRequest(txHash: string): Mock['req'] {
+function getTransactionReceiptRequest(txHash: string): MockReq {
   return {
-    jsonrpc: '2.0',
     method: 'eth_getTransactionReceipt',
     params: [txHash],
   }
@@ -243,9 +228,8 @@ function getTransactionReceiptResponse(
   txHash: string,
   blockHash: string | null,
   isConfirmed: boolean,
-): Mock['res'] {
+): MockRes {
   return {
-    jsonrpc: '2.0',
     result: {
       from,
       to,
@@ -262,9 +246,8 @@ function getTransactionReceiptResponse(
   }
 }
 
-function getTransactionByHashRequest(txHash: string): Mock['req'] {
+function getTransactionByHashRequest(txHash: string): MockReq {
   return {
-    jsonrpc: '2.0',
     method: 'eth_getTransactionByHash',
     params: [txHash],
   }
@@ -278,9 +261,8 @@ function getTransactionByHashResponse(
   to: string,
   value: string,
   isConfirmed: boolean,
-): Mock['res'] {
+): MockRes<Transaction> {
   return {
-    jsonrpc: '2.0',
     result: {
       hash: txHash,
       nonce: 2,
@@ -297,26 +279,23 @@ function getTransactionByHashResponse(
   }
 }
 
-function getBlockNumberRequest(): Mock['req'] {
+function getBlockNumberRequest(): MockReq {
   return {
-    jsonrpc: '2.0',
     method: 'eth_blockNumber',
     params: [],
   }
 }
 
-function getBlockNumberResponse(count: string, isSufficientlyConfirmed: boolean = false): Mock['res'] {
+function getBlockNumberResponse(count: string, isSufficientlyConfirmed: boolean = false): MockRes<string> {
   const result = isSufficientlyConfirmed ? getBlockNumberWithSufficientConfirmations(count) : count
 
   return {
-    jsonrpc: '2.0',
     result,
   }
 }
 
-function getBlockByNumberRequest(blockNumber: number): Mock['req'] {
+function getBlockByNumberRequest(blockNumber: number): MockReq {
   return {
-    jsonrpc: '2.0',
     method: 'eth_getBlockByNumber',
     params: [String(blockNumber), false],
   }
@@ -326,9 +305,8 @@ function getBlockByNumberResponse(
   blockNumber: number,
   blockHash: string,
   txHashes: [string],
-): Mock['res'] {
+): MockRes {
   return {
-    jsonrpc: '2.0',
     result: {
       number: blockNumber,
       hash: blockHash,
@@ -353,11 +331,10 @@ function getBlockByNumberResponse(
   }
 }
 
-function getBlockByHashRequest(blockHash: string): Mock['req'] {
+function getBlockByHashRequest(blockHash: string): MockReq {
   return {
-    jsonrpc: '2.0',
     method: 'eth_getBlockByHash',
-    params: [blockHash, true],
+    params: [blockHash, false],
   }
 }
 
@@ -366,9 +343,8 @@ function getBlockByHashResponse(
   blockHash: string,
   txHashes: string[],
   isConfirmed: boolean,
-): Mock['res'] {
+): MockRes {
   return {
-    jsonrpc: '2.0',
     result: {
       number: isConfirmed ? blockNumber : null,
       hash: blockHash,
@@ -447,20 +423,6 @@ export const addTransactionApisMocks = ({
 
   testProvider.addMock(getBlockByHashMocks(blockNumber, blockId, [txId], isConfirmed))
 
-  testProvider.addMock(getBlockNumberMocks(blockNumber, isConfirmed))
-
-  testProvider.addMock(getTransactionReceiptMocks(
-    fromAddress,
-    toAddress,
-    status,
-    blockNumber,
-    txId,
-    blockId,
-    isConfirmed,
-  ))
-
-  testProvider.addMock(getBlockNumberMocks(blockNumber, isConfirmed))
-
   return id
 }
 
@@ -489,5 +451,17 @@ export const BLOCKBOOK_STATUS_MOCK = {
     "bestBlockHash": "0x6fff5cb18e42375abec0d7ab83540481699d5edaf4ca2048ae452b36c9584aca",
     "difficulty": "11213687248219436",
     "version": "Geth/v1.10.19-stable-23bee162/linux-amd64/go1.18.1"
+  }
+}
+
+export function getBlockbookAddressBasicMock(from: string, nonce: number) {
+  return {
+    address: from,
+    balance: "0",
+    unconfirmedBalance: "0",
+    unconfirmedTxs: 0,
+    txs: nonce + 4,
+    nonTokenTxs: nonce + 2,
+    nonce: String(nonce)
   }
 }
