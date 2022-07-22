@@ -4,8 +4,7 @@
     "strict": true,
     "lib": ["es2020"],
     "paths": {
-      "@faast/ts-common": ["node_modules/@faast/ts-common"],
-      "@bitaccess/coinlib-*": ["../coinlib-*/src", "node_modules/@bitaccess/coinlib-*"]
+      "@bitaccess/coinlib-*": ["../coinlib-*/src", "./node_modules/@bitaccess/coinlib-*"]
     }
   }
 }
