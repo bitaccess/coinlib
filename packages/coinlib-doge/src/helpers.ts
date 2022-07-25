@@ -1,8 +1,13 @@
 import { createUnitConverters, NetworkType } from '@bitaccess/coinlib-common'
-import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
+import { bitcoinish, AddressType } from '@bitaccess/coinlib-bitcoin'
+
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 
-import { DECIMAL_PLACES, NETWORKS } from './constants'
+import {
+  DECIMAL_PLACES,
+  NETWORKS,
+  DOGE_SUPPORTED_ADDRESS_TYPES,
+} from './constants'
 
 const {
   getMultisigPaymentScript,
@@ -13,6 +18,7 @@ const {
   publicKeyToBuffer,
   privateKeyToKeyPair,
   privateKeyToAddress,
+  BITCOINISH_ADDRESS_PURPOSE,
 } = bitcoinish
 
 export {
@@ -73,3 +79,19 @@ export function estimateDogeTxSize(
     bitcoin.address.toOutputScript(address, NETWORKS[networkType]),
   )
 }
+
+export function isSupportedAddressType(addressType: string): boolean {
+  const dogeSupportedTypes = [AddressType.Legacy, AddressType.MultisigLegacy]
+  return dogeSupportedTypes.map(at => at.toString()).includes(addressType)
+}
+
+export function getSupportedAddressTypes(): AddressType[] {
+  return DOGE_SUPPORTED_ADDRESS_TYPES
+}
+
+export function hexSeedToBuffer(seedHex: string): Buffer {
+  const seedBuffer = Buffer.from(seedHex, 'hex')
+  return seedBuffer
+}
+
+

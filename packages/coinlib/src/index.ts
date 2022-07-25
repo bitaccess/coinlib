@@ -9,5 +9,6 @@ import * as Dogecoin from '@bitaccess/coinlib-doge'
 export { Tron, Ripple, Stellar, Ethereum, Bitcoin, Litecoin, BitcoinCash, Dogecoin }
 export * from './types'
 export * from './constants'
+export * from './utils'
 export * from './CoinPayments'
 export * from '@bitaccess/coinlib-common'

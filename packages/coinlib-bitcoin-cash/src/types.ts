@@ -9,7 +9,7 @@ import {
   UtxoInfo,
   KeyPairsConfigParam,
 } from '@bitaccess/coinlib-common'
-import { extendCodec, enumCodec, requiredOptionalCodec, instanceofCodec } from '@faast/ts-common'
+import { extendCodec, enumCodec, requiredOptionalCodec, instanceofCodec } from '@bitaccess/ts-common'
 import { bitcoinish, AddressType } from '@bitaccess/coinlib-bitcoin'
 import { PsbtInput, TransactionInput } from 'bip174/src/lib/interfaces'
 

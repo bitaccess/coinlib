@@ -1,7 +1,7 @@
 import { UtxoInfo, BaseConfig, AddressMultisigData, BaseMultisigData, MultisigData } from '@bitaccess/coinlib-common'
 import { SinglesigBitcoinCashPaymentsConfig, BitcoinCashSignedTransaction } from "./types"
 import { SinglesigBitcoinCashPayments } from './SinglesigBitcoinCashPayments'
-import { isNumber } from '@faast/ts-common'
+import { isNumber } from '@bitaccess/ts-common'
 import { publicKeyToString } from './helpers'
 import * as bitcoin from 'bitcoinforksjs-lib'
 import { cloneDeep } from 'lodash'

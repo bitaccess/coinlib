@@ -1,4 +1,4 @@
-import { FeeLevel } from '@bitaccess/coinlib-common'
+import { FeeLevel, NetworkType } from '@bitaccess/coinlib-common'
 
 export const PACKAGE_NAME = 'tron-payments'
 export const COIN_SYMBOL = 'TRX'
@@ -21,3 +21,10 @@ export const TX_EXPIRATION_EXTENSION_SECONDS = 59 * 60 // + 1 = 60 mins
 export const EXPIRATION_FUDGE_MS = 10 * 1000
 
 export const PUBLIC_CONFIG_OMIT_FIELDS = ['logger', 'fullNode', 'solidityNode', 'eventServer', 'hdKey', 'keyPairs']
+
+export const TRON_COINTYPES = {
+  [NetworkType.Mainnet]: '195',
+  [NetworkType.Testnet]: '195',
+}
+
+export const TRON_SUPPORTED_ADDRESS_TYPES: string[] = []

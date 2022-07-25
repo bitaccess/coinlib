@@ -1,4 +1,4 @@
-import { FeeLevel } from '@bitaccess/coinlib-common'
+import { FeeLevel, NetworkType } from '@bitaccess/coinlib-common'
 import { EthTxType, EthereumAddressFormat, NetworkConstants, EthereumPaymentsConfigKeys } from './types'
 
 export const PACKAGE_NAME = 'ethereum-payments'
@@ -84,6 +84,17 @@ export const FULL_ERC20_TOKEN_METHODS_ABI = JSON.parse(
 
 export const BALANCE_ACTIVITY_EVENT = 'activity'
 
+export const DEFAULT_TESTNET_SERVER = process.env.ETHEREUM_TESTNET_SERVER_URL
+  ? process.env.ETHEREUM_TESTNET_SERVER_URL.split(',')
+  : ['']
+
+export const ETHEREUM_COINTYPES = {
+  [NetworkType.Mainnet]: '60',
+  [NetworkType.Testnet]: '60',
+}
+
+// TODO: design address type for Ethereum
+export const ETHEREUM_SUPPORTED_ADDRESS_TYPES: string[] = []
 export const DEFAULT_MAINNET_CONSTANTS: NetworkConstants = {
   networkName: 'ethereum mainnet',
   nativeCoinName: 'ether',

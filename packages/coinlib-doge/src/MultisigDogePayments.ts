@@ -5,14 +5,13 @@ import {
   DogeUnsignedTransaction,
   DogeSignedTransaction,
   MultisigAddressType,
-  AddressType,
 } from './types'
 import { omit } from 'lodash'
 import { HdDogePayments } from './HdDogePayments'
 import { KeyPairDogePayments } from './KeyPairDogePayments'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { CreateTransactionOptions, ResolveablePayport, PayportOutput } from '@bitaccess/coinlib-common'
-import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
+import { bitcoinish, AddressType } from '@bitaccess/coinlib-bitcoin'
 import { getMultisigPaymentScript } from './helpers'
 import { Numeric } from '@faast/ts-common'
 import { DEFAULT_MULTISIG_ADDRESS_TYPE } from './constants'

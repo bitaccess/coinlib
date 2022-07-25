@@ -40,6 +40,6 @@ export abstract class SinglesigLitecoinPayments<
   }
 
   getSupportedAddressTypes(): AddressType[] {
-    return [AddressType.Legacy, AddressType.SegwitNative, AddressType.SegwitNative]
+    return [AddressType.Legacy, AddressType.SegwitNative, AddressType.SegwitP2SH]
   }
 }

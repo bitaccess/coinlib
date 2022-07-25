@@ -1,5 +1,13 @@
-import { createUnitConverters } from '@bitaccess/coinlib-common'
-import { DECIMAL_PLACES, XPRV_REGEX, XPUB_REGEX, ADDRESS_REGEX, EXTRA_ID_REGEX } from './constants'
+import { createUnitConverters, NetworkType, bip32 } from '@bitaccess/coinlib-common'
+import {
+  DECIMAL_PLACES,
+  XPRV_REGEX,
+  XPUB_REGEX,
+  ADDRESS_REGEX,
+  EXTRA_ID_REGEX,
+  RIPPLE_COINTYPES,
+  RIPPLE_SUPPORTED_ADDRESS_TYPES,
+} from './constants'
 import { isNil } from '@faast/ts-common'
 
 const {
@@ -52,4 +60,30 @@ export function assertValidExtraIdOrNil(extraId?: string | undefined | null): vo
   if (!isNil(extraId) && !isValidExtraId(extraId)) {
     throw new Error(`Invalid ripple extraId: ${extraId}`)
   }
+}
+
+export function isSupportedAddressType(addressType: string): boolean {
+  return RIPPLE_SUPPORTED_ADDRESS_TYPES.map(at => at.toString()).includes(addressType)
+}
+
+export function getSupportedAddressTypes(): string[] {
+  return RIPPLE_SUPPORTED_ADDRESS_TYPES
+}
+
+export function determinePathForIndex(accountIndex: number, addressType?: any, networkType?: NetworkType): string {
+  const purpose: string = '44'
+  const cointype = RIPPLE_COINTYPES[networkType ?? NetworkType.Mainnet]
+  const derivationPath = `m/${purpose}'/${cointype}'/${accountIndex}'`
+  return derivationPath
+}
+
+export function hexSeedToBuffer(seedHex: string): Buffer {
+  const seedBuffer = Buffer.from(seedHex, 'hex')
+  return seedBuffer
+}
+
+export function deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
+  const root = bip32.fromSeed(seed)
+  const account = root.derivePath(derivationPath)
+  return account.neutered().toBase58()
 }

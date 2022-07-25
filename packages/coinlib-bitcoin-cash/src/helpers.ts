@@ -1,10 +1,15 @@
 import { createUnitConverters, NetworkType } from '@bitaccess/coinlib-common'
-import { bitcoinish, publicKeyToBuffer } from '@bitaccess/coinlib-bitcoin'
+import { bitcoinish, publicKeyToBuffer, AddressType } from '@bitaccess/coinlib-bitcoin'
 import * as bitcoincash from 'bitcoinforksjs-lib'
 import bchaddrjs from 'bchaddrjs'
 
 import { BitcoinjsKeyPair, BitcoinCashAddressFormat } from './types'
-import { DECIMAL_PLACES, DEFAULT_ADDRESS_FORMAT, NETWORKS } from './constants'
+import {
+  DECIMAL_PLACES,
+  DEFAULT_ADDRESS_FORMAT,
+  NETWORKS,
+  BITCOINCASH_SUPPORTED_ADDRESS_TYPES,
+} from './constants'
 
 export { publicKeyToString, publicKeyToBuffer } from '@bitaccess/coinlib-bitcoin'
 
@@ -157,4 +162,17 @@ export function estimateBitcoinCashTxSize(
   return bitcoinish.estimateTxSize(inputCounts, outputCounts, (address: string) =>
     bitcoincash.address.toOutputScript(address, NETWORKS[networkType]),
   )
+}
+
+export function isSupportedAddressType(addressType: string): boolean {
+  return BITCOINCASH_SUPPORTED_ADDRESS_TYPES.map(at => at.toString()).includes(addressType)
+}
+
+export function getSupportedAddressTypes(): AddressType[] {
+  return BITCOINCASH_SUPPORTED_ADDRESS_TYPES
+}
+
+export function hexSeedToBuffer(seedHex: string): Buffer {
+  const seedBuffer = Buffer.from(seedHex, 'hex')
+  return seedBuffer
 }

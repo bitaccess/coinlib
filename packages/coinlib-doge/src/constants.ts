@@ -1,11 +1,12 @@
 import { FeeLevel, NetworkType } from '@bitaccess/coinlib-common'
-import { BitcoinjsNetwork, bitcoinish } from '@bitaccess/coinlib-bitcoin'
-import { AddressType, SinglesigAddressType, MultisigAddressType } from './types'
+import { BitcoinjsNetwork, bitcoinish, AddressType } from '@bitaccess/coinlib-bitcoin'
+import { SinglesigAddressType, MultisigAddressType } from './types'
 
 export const PACKAGE_NAME = 'doge-payments'
 export const DECIMAL_PLACES = 8
 export const COIN_SYMBOL = 'DOGE'
 export const COIN_NAME = 'Dogecoin'
+export const DEFAULT_PURPOSE = '44'
 
 // Most nodes require 1 DOGE minimum fee and dust threshold
 // https://github.com/dogecoin/dogecoin/issues/1650
@@ -81,4 +82,21 @@ export const DEFAULT_FEE_LEVEL_BLOCK_TARGETS: bitcoinish.FeeLevelBlockTargets = 
   [FeeLevel.High]: 3,
   [FeeLevel.Medium]: 12,
   [FeeLevel.Low]: 24,
+}
+
+
+export const DOGECOIN_COINTYPE_MAINNET = '3'
+export const DOGECOIN_COINTYPE_TESTNET = '3'
+
+export const DOGE_SUPPORTED_ADDRESS_TYPES = [AddressType.Legacy, AddressType.MultisigLegacy]
+export const DEFAULT_ADDRESS_TYPE = AddressType.Legacy
+export const DOGE_COINTYPES = {
+  [NetworkType.Mainnet]: '3',
+  [NetworkType.Testnet]: '3',
+}
+
+export const DOGE_NETWORK_CONSTANTS = {
+  coinName: COIN_NAME,
+  defaultPurpose: DEFAULT_PURPOSE,
+  coinTypes: DOGE_COINTYPES,
 }

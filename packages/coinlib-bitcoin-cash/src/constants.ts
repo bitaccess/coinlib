@@ -7,6 +7,7 @@ export const PACKAGE_NAME = 'bitcoin-cash-payments'
 export const DECIMAL_PLACES = 8
 export const COIN_SYMBOL = 'BCH'
 export const COIN_NAME = 'Bitcoin Cash'
+export const DEFAULT_PURPOSE = '44'
 
 /**
  * The minimum value a transaction output must be in order to not get rejected by the network.
@@ -55,3 +56,17 @@ export const DEFAULT_TESTNET_SERVER = process.env.BITCOIN_CASH_TESTNET_SERVER_UR
 export const DEFAULT_FEE_LEVEL = FeeLevel.Low
 
 export const DEFAULT_ADDRESS_FORMAT = BitcoinCashAddressFormat.Cash
+
+export const BITCOINCASH_COINTYPES = {
+  [NetworkType.Mainnet]: '145',
+  [NetworkType.Testnet]: '145',
+}
+
+export const BITCOINCASH_SUPPORTED_ADDRESS_TYPES = [AddressType.Legacy, AddressType.MultisigLegacy]
+export const DEFAULT_ADDRESS_TYPE = AddressType.Legacy
+
+export const BITCOIN_CASH_NETWORK_CONSTANTS = {
+  coinName: COIN_NAME,
+  defaultPurpose: DEFAULT_PURPOSE,
+  coinTypes: BITCOINCASH_COINTYPES,
+}

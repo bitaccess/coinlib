@@ -8,6 +8,7 @@ import {
   TransactionStatus,
   BlockInfo,
   BigNumber,
+  NetworkType,
 } from '@bitaccess/coinlib-common'
 import { isNil, assertType, Numeric, isMatchingError, isUndefined, isString } from '@faast/ts-common'
 
@@ -18,6 +19,10 @@ import {
   isValidXpub,
   isValidAddress,
   isValidExtraId,
+  determinePathForIndex,
+  deriveUniPubKeyForPath,
+  isSupportedAddressType,
+  getSupportedAddressTypes,
 } from './helpers'
 import { RippleTransactionInfo } from './types'
 import { RippleConnected } from './RippleConnected'
@@ -26,7 +31,6 @@ import { FormattedPaymentTransaction } from 'ripple-lib'
 import { Amount } from 'ripple-lib/dist/npm/common/types/objects'
 
 export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtils {
-
   readonly coinSymbol = COIN_SYMBOL
   readonly coinName = COIN_NAME
   readonly coinDecimals = DECIMAL_PLACES
@@ -48,7 +52,7 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
 
   private async _getPayportValidationMessage(payport: Payport): Promise<string | undefined> {
     const { address, extraId } = payport
-    if (!(this.isValidAddress(address))) {
+    if (!this.isValidAddress(address)) {
       return 'Invalid payport address'
     }
     let requireExtraId = false
@@ -62,7 +66,7 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
       if (requireExtraId) {
         return `Payport extraId is required for address ${address} with ripple requireDestinationTag setting enabled`
       }
-    } else if (!(this.isValidExtraId(extraId))) {
+    } else if (!this.isValidExtraId(extraId)) {
       return 'Invalid payport extraId'
     }
   }
@@ -106,7 +110,7 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
     const feeMain = await this._retryDced(() => this.api.getFee(FEE_LEVEL_CUSHIONS[level]))
     return {
       feeRate: feeMain,
-      feeRateType: FeeRateType.Main
+      feeRateType: FeeRateType.Main,
     }
   }
 
@@ -217,9 +221,7 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
     if (isUndefined(id)) {
       id = await this.api.getLedgerVersion()
     }
-    const raw = await this.api.getLedger(isString(id)
-      ? { ledgerHash: id }
-      : { ledgerVersion: id })
+    const raw = await this.api.getLedger(isString(id) ? { ledgerHash: id } : { ledgerVersion: id })
     return {
       id: raw.ledgerHash,
       height: raw.ledgerVersion,
@@ -227,5 +229,24 @@ export class RipplePaymentsUtils extends RippleConnected implements PaymentsUtil
       time: new Date(raw.closeTime),
       raw,
     }
+  }
+
+  isSupportedAddressType(addressType: string): boolean {
+    return isSupportedAddressType(addressType)
+  }
+
+  getSupportedAddressTypes(): string[] {
+    return getSupportedAddressTypes()
+  }
+
+  determinePathForIndex(accountIndex: number, addressType?: any): string {
+    const networkType: NetworkType = this.networkType
+    const derivationPath: string = determinePathForIndex(accountIndex, addressType, networkType)
+    return derivationPath
+  }
+
+  deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
+    const uniPubKey: string = deriveUniPubKeyForPath(seed, derivationPath)
+    return uniPubKey
   }
 }

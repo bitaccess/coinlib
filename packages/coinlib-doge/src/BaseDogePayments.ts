@@ -1,14 +1,25 @@
 import * as bitcoin from 'bitcoinjs-lib-bigint'
-import { UtxoInfo } from '@bitaccess/coinlib-common'
-import { AddressType, bitcoinish } from '@bitaccess/coinlib-bitcoin'
-
+import { UtxoInfo, NetworkType } from '@bitaccess/coinlib-common'
+import { AddressType, AddressTypeT, bitcoinish } from '@bitaccess/coinlib-bitcoin'
+import { assertType } from '@bitaccess/ts-common'
 import { toBitcoinishConfig } from './utils'
+import { BaseDogePaymentsConfig, PsbtInputData } from './types'
 import {
-  BaseDogePaymentsConfig,
-  PsbtInputData,
-} from './types'
-import { BITCOIN_SEQUENCE_RBF, DEFAULT_FEE_LEVEL_BLOCK_TARGETS } from './constants'
-import { isValidAddress, isValidPrivateKey, isValidPublicKey, standardizeAddress, estimateDogeTxSize } from './helpers'
+  BITCOIN_SEQUENCE_RBF,
+  DEFAULT_FEE_LEVEL_BLOCK_TARGETS,
+  DEFAULT_ADDRESS_TYPE,
+  NETWORKS,
+  DOGE_NETWORK_CONSTANTS,
+} from './constants'
+import {
+  isValidAddress,
+  isValidPrivateKey,
+  isValidPublicKey,
+  standardizeAddress,
+  estimateDogeTxSize,
+  isSupportedAddressType,
+  getSupportedAddressTypes,
+} from './helpers'
 
 // tslint:disable-next-line:max-line-length
 export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> extends bitcoinish.BitcoinishPayments<
@@ -136,5 +147,38 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
 
   async serializePaymentTx(tx: bitcoinish.BitcoinishPaymentTx, fromIndex: number): Promise<string> {
     return (await this.buildPsbt(tx, fromIndex)).toHex()
+  }
+
+  isSupportedAddressType(addressType: string): boolean {
+    return isSupportedAddressType(addressType)
+  }
+
+  getSupportedAddressTypes(): AddressType[] {
+    return getSupportedAddressTypes()
+  }
+
+  determinePathForIndex(accountIndex: number, options?: { addressType?: string }): string {
+    const addressType = options?.addressType ? assertType(AddressTypeT, options?.addressType) : DEFAULT_ADDRESS_TYPE
+    const networkType: NetworkType = this.networkType
+    if (!this.determinePathForIndexFn) {
+      const functions = {
+        isSupportedAddressType,
+      }
+      this.determinePathForIndexFn = bitcoinish.createDeterminePathForIndexHelper(DOGE_NETWORK_CONSTANTS, functions)
+    }
+    const derivationPath: string = this.determinePathForIndexFn(accountIndex, addressType, networkType)
+    return derivationPath
+  }
+
+  deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
+    if (!this.deriveUniPubKeyForPathFn) {
+      const constants = {
+        networks: NETWORKS,
+        networkType: this.networkType,
+      }
+      this.deriveUniPubKeyForPathFn = bitcoinish.createDeriveUniPubKeyForPathHelper(constants)
+    }
+    const uniPubKey = this.deriveUniPubKeyForPathFn(seed, derivationPath)
+    return uniPubKey
   }
 }

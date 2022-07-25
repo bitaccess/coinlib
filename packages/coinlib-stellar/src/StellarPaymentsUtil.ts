@@ -8,6 +8,7 @@ import {
   Payport,
   TransactionStatus,
   BigNumber,
+  NetworkType,
 } from '@bitaccess/coinlib-common'
 import { isNil, assertType, Numeric, isMatchingError } from '@faast/ts-common'
 import * as Stellar from 'stellar-sdk'
@@ -17,13 +18,16 @@ import {
   toBaseDenominationString,
   isValidAddress,
   isValidExtraId,
+  determinePathForIndex,
+  deriveUniPubKeyForPath,
+  isSupportedAddressType,
+  getSupportedAddressTypes,
 } from './helpers'
 import { StellarConnected } from './StellarConnected'
 import { COIN_NAME, COIN_SYMBOL, DECIMAL_PLACES, MIN_BALANCE, NOT_FOUND_ERRORS } from './constants'
 import { StellarTransactionInfo } from './types'
 
 export class StellarPaymentsUtils extends StellarConnected implements PaymentsUtils {
-
   readonly coinSymbol = COIN_SYMBOL
   readonly coinName = COIN_NAME
   readonly coinDecimals = DECIMAL_PLACES
@@ -95,7 +99,7 @@ export class StellarPaymentsUtils extends StellarConnected implements PaymentsUt
     }
     return {
       feeRate: feeBase,
-      feeRateType: FeeRateType.Base
+      feeRateType: FeeRateType.Base,
     }
   }
 
@@ -146,7 +150,7 @@ export class StellarPaymentsUtils extends StellarConnected implements PaymentsUt
         minimumBalance: String(MIN_BALANCE),
       }
     }
-    const balanceLine = accountInfo.balances.find((line) => line.asset_type === 'native')
+    const balanceLine = accountInfo.balances.find(line => line.asset_type === 'native')
     const amountMain = new BigNumber(balanceLine && balanceLine.balance ? balanceLine.balance : '0')
     const spendableBalance = amountMain.minus(MIN_BALANCE)
     return {
@@ -165,10 +169,13 @@ export class StellarPaymentsUtils extends StellarConnected implements PaymentsUt
   }
 
   async getLatestBlock(): Promise<Stellar.ServerApi.LedgerRecord> {
-    const page = await this._retryDced(() => this.getApi().ledgers()
-      .order('desc')
-      .limit(1)
-      .call())
+    const page = await this._retryDced(() =>
+      this.getApi()
+        .ledgers()
+        .order('desc')
+        .limit(1)
+        .call(),
+    )
     if (!page.records) {
       throw new Error('Failed to get stellar ledger records')
     }
@@ -178,7 +185,12 @@ export class StellarPaymentsUtils extends StellarConnected implements PaymentsUt
   async getTransactionInfo(txId: string): Promise<StellarTransactionInfo> {
     let tx: Stellar.ServerApi.TransactionRecord
     try {
-      tx = await this._retryDced(() => this.getApi().transactions().transaction(txId).call())
+      tx = await this._retryDced(() =>
+        this.getApi()
+          .transactions()
+          .transaction(txId)
+          .call(),
+      )
     } catch (e) {
       const eString = e.toString()
       if (NOT_FOUND_ERRORS.some(type => eString.includes(type))) {
@@ -221,4 +233,22 @@ export class StellarPaymentsUtils extends StellarConnected implements PaymentsUt
     }
   }
 
+  isSupportedAddressType(addressType: string): boolean {
+    return isSupportedAddressType(addressType)
+  }
+
+  getSupportedAddressTypes(): string[] {
+    return getSupportedAddressTypes()
+  }
+
+  determinePathForIndex(accountIndex: number, addressType?: any): string {
+    const networkType: NetworkType = this.networkType
+    const derivationPath: string = determinePathForIndex(accountIndex, addressType, networkType)
+    return derivationPath
+  }
+
+  deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
+    const uniPubKey: string = deriveUniPubKeyForPath(seed, derivationPath)
+    return uniPubKey
+  }
 }
