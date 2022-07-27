@@ -21,5 +21,3 @@ export const PAYMENTS_FACTORIES = {
 }
 
 export const SUPPORTED_NETWORK_SYMBOLS = keysOf(PAYMENTS_FACTORIES)
-
-export const SINGER_ID_SALT = 'bitaccess-signer-id-salt-v1'

@@ -218,10 +218,10 @@ describe('CoinPayments', () => {
         expect(fingerprint).toBe(expectedFingerprint)
       })
     })
-    describe('getSignerId', () => {
+    describe('getRawSignerId', () => {
       it('returns singerId', () => {
-        const signerId: string = cp.getSignerId()
-        const expectedSignerId: string = "b988f118f460349030d717df40da987a4f9577baefa251dfb556944bfe8e6868"
+        const signerId: string = cp.getRawSignerId()
+        const expectedSignerId: string = "3607a03e28f3990be61ed3f496e4c3f6ba5c373449c1764f0839bb54dde2c433"
         expect(signerId).toBe(expectedSignerId)
       })
     })
@@ -299,10 +299,10 @@ describe('CoinPayments', () => {
         expect(fingerprint).toBe(expectedFingerprint)
       })
     })
-    describe('getSignerId', () => {
+    describe('getRawSignerId', () => {
       it('returns singerId', () => {
-        const signerId: string = cp.getSignerId()
-        const expectedSignerId: string = "b988f118f460349030d717df40da987a4f9577baefa251dfb556944bfe8e6868"
+        const signerId: string = cp.getRawSignerId()
+        const expectedSignerId: string = "3607a03e28f3990be61ed3f496e4c3f6ba5c373449c1764f0839bb54dde2c433"
         expect(signerId).toBe(expectedSignerId)
       })
     })

@@ -10,7 +10,7 @@ import {
   CoinPaymentsPartialConfigs,
 } from './types'
 import { keysOf } from './utils'
-import { SUPPORTED_NETWORK_SYMBOLS, PAYMENTS_FACTORIES, SINGER_ID_SALT } from './constants'
+import { SUPPORTED_NETWORK_SYMBOLS, PAYMENTS_FACTORIES } from './constants'
 
 function addSeedIfNecessary(network: SupportedCoinPaymentsSymbol, seed: Buffer, config: any): any {
   const configCodec = paymentsConfigCodecs[network]
@@ -144,7 +144,7 @@ export class CoinPayments {
     return root.fingerprint.toString('hex')
   }
 
-  getSignerId(): string {
+  getRawSignerId(): string {
     if (!this.seedBuffer) {
       throw new Error('Seed missing from CoinPayments')
     }
@@ -152,7 +152,6 @@ export class CoinPayments {
     const { publicKey, chainCode } = root.derivePath("m/45'")
     const signerId = crypto
       .createHash('sha256')
-      .update(SINGER_ID_SALT)
       .update(chainCode)
       .update(publicKey)
       .digest('hex')
