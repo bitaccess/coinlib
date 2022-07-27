@@ -218,6 +218,13 @@ describe('CoinPayments', () => {
         expect(fingerprint).toBe(expectedFingerprint)
       })
     })
+    describe('getSignerId', () => {
+      it('returns singerId', () => {
+        const signerId: string = cp.getSignerId()
+        const expectedSignerId: string = "b988f118f460349030d717df40da987a4f9577baefa251dfb556944bfe8e6868"
+        expect(signerId).toBe(expectedSignerId)
+      })
+    })
   })
 
   describe('instance mnemonic testnet', () => {
@@ -290,6 +297,13 @@ describe('CoinPayments', () => {
         const fingerprint: string = cp.getFingerprint()
         const expectedFingerprint: string = "d9906b5e"
         expect(fingerprint).toBe(expectedFingerprint)
+      })
+    })
+    describe('getSignerId', () => {
+      it('returns singerId', () => {
+        const signerId: string = cp.getSignerId()
+        const expectedSignerId: string = "b988f118f460349030d717df40da987a4f9577baefa251dfb556944bfe8e6868"
+        expect(signerId).toBe(expectedSignerId)
       })
     })
   })
