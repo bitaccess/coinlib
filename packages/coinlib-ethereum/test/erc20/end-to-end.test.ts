@@ -17,7 +17,7 @@ import {
   HdErc20PaymentsConfig,
   EthereumPaymentsFactory,
 } from '../../src'
-import { CONTRACT_GAS, CONTRACT_BYTECODE } from './fixtures/abi'
+import { BTT_CONTRACT_GAS, BTT_CONTRACT_BYTECODE } from './fixtures/abi'
 
 const LOCAL_NODE = 'http://localhost'
 const LOCAL_PORT = 8547
@@ -106,16 +106,14 @@ describe('erc20 end to end tests', () => {
     const ganacheConfig: ServerOptions = {
       accounts: [
         {
-          balance: 0.0625e18, // 0,0625 ETH
+          balance: 100e18, // 100 ETH
           secretKey: MAIN_SIGNATORY.keys.prv,
         },
         {
-          balance: 625e18, // 625 ETH
+          balance: 100e18, // 100 ETH
           secretKey: ISSUER_SIGNATORY.keys.prv,
         },
       ],
-      gasLimit: numericToHex(9980399),
-      callGasLimit: numericToHex(9980399),
       logging: {
         logger,
         debug: true, // Set to `true` to log EVM opcodes.
@@ -143,11 +141,6 @@ describe('erc20 end to end tests', () => {
       let txInfo: EthereumTransactionInfo | undefined
       while (txInfo?.status !== 'confirmed') {
         await delay(1000)
-        // Create a bunch of transactions so that ganache considers our tx sufficiently confirmed
-        const uCD = await issuerEtherPayments.createServiceTransaction(undefined, { data: CONTRACT_BYTECODE, gas: CONTRACT_GAS })
-        const sCD = await issuerEtherPayments.signTransaction(uCD)
-        await issuerEtherPayments.broadcastTransaction(sCD)
-
         txInfo = await mainTokenPayments.getTransactionInfo(txId)
         logger.log('txInfo.receipt.logs', txId, (txInfo.data as any).receipt.logs)
         performAssertions(txInfo)
@@ -157,9 +150,9 @@ describe('erc20 end to end tests', () => {
 
     test('deploy token contract', async () => {
       // deploy erc20 contract BA_TEST_TOKEN
-      const unsignedContractDeploy = await issuerEtherPayments.createServiceTransaction(undefined, {
-        data: CONTRACT_BYTECODE,
-        gas: CONTRACT_GAS,
+      const unsignedContractDeploy = await issuerEtherPayments.createServiceTransaction(0, {
+        data: BTT_CONTRACT_BYTECODE,
+        gas: BTT_CONTRACT_GAS,
       })
       const signedContractDeploy = await issuerEtherPayments.signTransaction(unsignedContractDeploy)
 
@@ -327,7 +320,7 @@ describe('erc20 end to end tests', () => {
       // Expect utils to return info for the erc20 transfer, not the base 0-value eth fields
       expect(utilsInfo.fromAddress).toBe(EXPECTED_FIRST_PROXY_ADDRESS)
       expect(utilsInfo.toAddress).toBe(TARGET_PAYPORT.address)
-      expect(utilsInfo.amount).toBe(PROXY_SWEEP_AMOUNT)
+      expect(utilsInfo.amount).toBe(String(PROXY_SWEEP_AMOUNT))
     })
 
     test('utils getAddressBalance returns expected value', async () => {
