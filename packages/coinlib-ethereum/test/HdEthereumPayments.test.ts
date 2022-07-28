@@ -29,6 +29,7 @@ const nockG = nock(GAS_STATION_URL)
 const logger = new TestLogger(__filename)
 
 const testWeb3Provider = new TestWeb3Provider(logger)
+const web3Utils = new Web3().utils
 
 const CONFIG = {
   network: NetworkType.Testnet,
@@ -41,8 +42,10 @@ const CONFIG = {
 
 const BIP44 = EthereumBIP44.fromXKey(DEFAULT_PATH_FIXTURE.xkeys.xprv)
 const INSTANCE_KEYS = BIP44.getSignatory(0)
-const FROM_ADDRESS = BIP44.getAddress(1).toLowerCase()
-const TO_ADDRESS = BIP44.getAddress(2).toLowerCase()
+
+// Convert these to checksum addresses so we can validate they become lowercased in returned objects
+const FROM_ADDRESS = web3Utils.toChecksumAddress(BIP44.getAddress(1))
+const TO_ADDRESS = web3Utils.toChecksumAddress(BIP44.getAddress(2))
 
 // methods from base
 describe('HdEthereumPayments', () => {
@@ -259,7 +262,7 @@ describe('HdEthereumPayments', () => {
     })
 
     describe('getTransactionInfo', () => {
-      test('returns unconfirmed transaction by id)', async () => {
+      test('returns unconfirmed transaction by id', async () => {
         const txId = '0x9fc76417374aa880d4449a1f7f31ec597f00b1f6f3dd2d66f4c9c6c445836d8b'
         const blockId = '0xef95f2f1ed3ca60b048b4bf67cde2195961e0bba6f70bcbea9a2c4e133e34b46'
         const amount = '123450000000000000'
@@ -299,22 +302,47 @@ describe('HdEthereumPayments', () => {
           status: 'pending',
           currentBlockNumber: 3,
           data: {
-            hash: txId,
-            nonce: 2,
             blockHash: blockId,
-            transactionIndex: 0,
+            txHash: txId,
+            blockHeight: null,
+            blockTime: null,
+            confirmations: 0,
+            contractAddress: undefined,
+            currentBlockNumber: 3,
+            dataProvider: 'web3',
             from: FROM_ADDRESS,
             to: TO_ADDRESS,
-            value: '123450000000000000',
-            gas: 21000,
             gasPrice: '2000000000000',
-            input: '0x57cb2fc4',
+            value: amount,
             gasUsed: 21000,
-            blockTime: null,
-            blockNumber: null,
-            currentBlockNumber: 3,
-            dataProvider: 'infura',
-            contractAddress: null,
+            nonce: 2,
+            status: true,
+            raw: {
+              blockHash: blockId,
+              blockNumber: null,
+              from: FROM_ADDRESS,
+              gas: 21000,
+              gasPrice: '2000000000000',
+              hash: txId,
+              input: '0x57cb2fc4',
+              nonce: 2,
+              to: TO_ADDRESS,
+              transactionIndex: 0,
+              value: amount,
+            },
+            receipt: {
+              blockHash: blockId,
+              blockNumber: null,
+              contractAddress: null,
+              cumulativeGasUsed: 314159,
+              from: FROM_ADDRESS,
+              gasUsed: '21000',
+              logs: [],
+              status: true,
+              to: TO_ADDRESS,
+              transactionHash: txId,
+              transactionIndex: 0,
+            },
           },
         })
       })
@@ -353,30 +381,55 @@ describe('HdEthereumPayments', () => {
           weight: 21000,
           isExecuted: true,
           isConfirmed: true,
-          confirmations: 12,
+          confirmations: 13,
           confirmationId: blockId,
           confirmationTimestamp: new Date('2015-04-17T16:21:29.000Z'),
           confirmationNumber: Number(blockNumber),
           status: 'confirmed',
           currentBlockNumber: 15,
           data: {
-            hash: txId,
-            nonce: 2,
             blockHash: blockId,
-            blockNumber: 3,
-            transactionIndex: 0,
-            from: FROM_ADDRESS.toLowerCase(),
-            to: TO_ADDRESS.toLowerCase(),
-            value: '123450000000000000',
-            gas: 21000,
-            gasPrice: '2000000000000',
-            input: '0x57cb2fc4',
-            gasUsed: 21000,
+            txHash: txId,
+            blockHeight: 3,
             blockTime: new Date('2015-04-17T16:21:29.000Z'),
+            confirmations: 13,
+            contractAddress: undefined,
             currentBlockNumber: 15,
-            dataProvider: 'infura',
-            contractAddress: null,
-          },
+            dataProvider: 'web3',
+            from: FROM_ADDRESS,
+            to: TO_ADDRESS,
+            status: true,
+            value: amount,
+            gasPrice: '2000000000000',
+            gasUsed: 21000,
+            nonce: 2,
+            raw: {
+              blockHash: blockId,
+              blockNumber: 3,
+              from: FROM_ADDRESS,
+              gas: 21000,
+              gasPrice: '2000000000000',
+              hash: txId,
+              input: '0x57cb2fc4',
+              nonce: 2,
+              to: TO_ADDRESS,
+              transactionIndex: 0,
+              value: amount,
+            },
+            receipt: {
+              blockHash: blockId,
+              blockNumber: 3,
+              contractAddress: null,
+              cumulativeGasUsed: 314159,
+              from: FROM_ADDRESS,
+              gasUsed: '21000',
+              logs: [],
+              status: true,
+              to: TO_ADDRESS,
+              transactionHash: txId,
+              transactionIndex: 0,
+            },
+          }
         })
       })
 
@@ -414,29 +467,54 @@ describe('HdEthereumPayments', () => {
           weight: 21000,
           isExecuted: false,
           isConfirmed: true,
-          confirmations: 12,
+          confirmations: 13,
           confirmationId: blockId,
           confirmationTimestamp: new Date('2015-04-17T16:21:29.000Z'),
           status: 'failed',
           currentBlockNumber: 15,
           confirmationNumber: Number(blockNumber),
           data: {
-            hash: txId,
-            nonce: 2,
             blockHash: blockId,
-            blockNumber: 3,
-            transactionIndex: 0,
-            from: FROM_ADDRESS.toLowerCase(),
-            to: TO_ADDRESS.toLowerCase(),
-            value: '123450000000000000',
-            gas: 21000,
-            gasPrice: '2000000000000',
-            input: '0x57cb2fc4',
-            gasUsed: 21000,
+            txHash: txId,
+            blockHeight: 3,
             blockTime: new Date('2015-04-17T16:21:29.000Z'),
+            confirmations: 13,
+            contractAddress: undefined,
             currentBlockNumber: 15,
-            dataProvider: 'infura',
-            contractAddress: null,
+            dataProvider: 'web3',
+            status: false,
+            from: FROM_ADDRESS,
+            to: TO_ADDRESS,
+            value: amount,
+            gasPrice: '2000000000000',
+            gasUsed: 21000,
+            nonce: 2,
+            raw: {
+              blockHash: blockId,
+              blockNumber: 3,
+              from: FROM_ADDRESS,
+              gas: 21000,
+              gasPrice: '2000000000000',
+              hash: txId,
+              input: '0x57cb2fc4',
+              nonce: 2,
+              to: TO_ADDRESS,
+              transactionIndex: 0,
+              value: amount,
+            },
+            receipt: {
+              blockHash: blockId,
+              blockNumber: 3,
+              contractAddress: null,
+              cumulativeGasUsed: 314159,
+              from: FROM_ADDRESS,
+              gasUsed: '21000',
+              logs: [],
+              status: false,
+              to: TO_ADDRESS,
+              transactionHash: txId,
+              transactionIndex: 0,
+            },
           },
         })
       })
@@ -641,8 +719,16 @@ describe('HdEthereumPayments', () => {
           sequenceNumber: '27',
           weight: 21000,
           data: {
-            hex:
-              '0xf86c1b8545d964b80082523c94370d63dbf533f4c79e83d7d13b39c88b188efeeb8801e33c7f8ff555728029a0e97c97005272506f43f0bf20b43ba49816bf28cf3d3e6c2de8f66eebd0750608a0171677049edc2e89bbf623f9c33c8c8d7a5981855a1d3c76c3a234d0cfcabd81',
+            data: '0x',
+            gasLimit: unsignedTx.data.gas,
+            gasPrice: unsignedTx.data.gasPrice,
+            hex: '0xf86c1b8545d964b80082523c94370d63dbf533f4c79e83d7d13b39c88b188efeeb8801e33c7f8ff555728029a0e97c97005272506f43f0bf20b43ba49816bf28cf3d3e6c2de8f66eebd0750608a0171677049edc2e89bbf623f9c33c8c8d7a5981855a1d3c76c3a234d0cfcabd81',
+            nonce: unsignedTx.data.nonce,
+            r: '0xe97c97005272506f43f0bf20b43ba49816bf28cf3d3e6c2de8f66eebd0750608',
+            s: '0x171677049edc2e89bbf623f9c33c8c8d7a5981855a1d3c76c3a234d0cfcabd81',
+            to: '0x370d63dbf533f4c79e83d7d13b39c88b188efeeb',
+            v: '0x29',
+            value: unsignedTx.data.value,
           },
         })
       })

@@ -492,9 +492,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       confirmationNumber: erc20Tx.blockHeight,
       status,
       currentBlockNumber: erc20Tx.currentBlockNumber,
-      data: {
-        ...erc20Tx,
-      },
+      data: erc20Tx,
     }
     this.logger.debug('getTransactionInfoERC20', txId, tokenAddress, result)
 
@@ -532,12 +530,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       confirmationNumber: tx.blockHeight,
       status,
       currentBlockNumber: tx.currentBlockNumber,
-      data: {
-        ...tx.raw,
-        to: toAddress,
-        from: fromAddress,
-        contractAddress: tx.contractAddress,
-      },
+      data: tx,
     }
     this.logger.debug('getTransactionInfo', txid, result)
 
