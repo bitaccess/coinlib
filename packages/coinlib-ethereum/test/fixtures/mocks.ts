@@ -1,6 +1,5 @@
 import { Transaction } from 'web3-eth'
 
-import { MIN_CONFIRMATIONS } from '../../src'
 import { TestWeb3Provider } from './TestWeb3Provider'
 import { Mock, MockReq, MockRes } from './types'
 
@@ -370,7 +369,7 @@ function getBlockByHashResponse(
 }
 
 const getBlockNumberWithSufficientConfirmations = (blockNumber: string | number) => {
-  const result = Math.max(MIN_CONFIRMATIONS, 12) + Number(blockNumber)
+  const result = 12 + Number(blockNumber)
 
   return `0x${result.toString(16)}`
 }
