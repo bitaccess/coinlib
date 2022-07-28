@@ -10,9 +10,9 @@ export const DEFAULT_DECIMALS = 18
 export const DEFAULT_GAS_PRICE_IN_WEI = '50000000000'
 export const GAS_STATION_URL = 'https://ethgasstation.info'
 
-// The following are effective maximum gas amounts for various txs we send
+// The following are effective maximum gas amounts for various txs we send that we use to limit our estimateGas calls
 export const ETHEREUM_TRANSFER_COST = 50000
-export const CONTRACT_DEPLOY_COST = 300000
+export const CONTRACT_DEPLOY_COST = 500000
 export const TOKEN_SWEEP_COST = 300000
 export const TOKEN_TRANSFER_COST = 300000
 
