@@ -170,7 +170,7 @@ describe('EthereumPaymentsUtils', () => {
       } catch (e) {
         err = e.message
       }
-      expect(err).toBe('Invalid Ethereum payport address')
+      expect(err).toBe('Invalid ethereum mainnet payport address')
     })
 
     test('rejects for invalid address', async () => {
@@ -180,7 +180,7 @@ describe('EthereumPaymentsUtils', () => {
       } catch (e) {
         err = e.message
       }
-      expect(err).toBe('Invalid Ethereum payport address')
+      expect(err).toBe('Invalid ethereum mainnet payport address')
     })
 
     test('rejects for null address', async () => {
@@ -190,7 +190,7 @@ describe('EthereumPaymentsUtils', () => {
       } catch (e) {
         err = e.message
       }
-      expect(err).toBe('Invalid Ethereum payport address')
+      expect(err).toBe('Invalid ethereum mainnet payport address')
     })
 
     test('rejects for undefined address', async () => {
@@ -200,7 +200,7 @@ describe('EthereumPaymentsUtils', () => {
       } catch (e) {
         err = e.message
       }
-      expect(err).toBe('Invalid Ethereum payport address')
+      expect(err).toBe('Invalid ethereum mainnet payport address')
     })
   })
 

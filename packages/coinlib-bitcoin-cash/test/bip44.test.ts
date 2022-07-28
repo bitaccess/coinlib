@@ -1,8 +1,7 @@
-import { fromBase58 } from 'bip32'
+import { bip32 } from '@bitaccess/coinlib-common'
 import {
   deriveAddress,
   derivePrivateKey,
-  splitDerivationPath,
   deriveHDNode,
   deriveKeyPair,
   xprvToXpub,
@@ -22,14 +21,9 @@ import {
   NETWORK_TYPE,
 } from './fixtures'
 
-export const BASE_NODE = fromBase58(DERIVED_XPRV)
+export const BASE_NODE = bip32.fromBase58(DERIVED_XPRV)
 
 describe('bip44', () => {
-  describe('splitDerivationPath', () => {
-    it('returns correct value', () => {
-      expect(splitDerivationPath(DERIVATION_PATH)).toEqual(["44'", "145'", "0'"])
-    })
-  })
   describe('deriveHDNode', () => {
     it('derives root xprv correctly', () => {
       expect(deriveHDNode(ROOT_XPRV, DERIVATION_PATH, NETWORK).toBase58()).toEqual(DERIVED_XPRV)
