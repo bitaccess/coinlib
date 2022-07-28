@@ -1,6 +1,5 @@
-import * as bip39 from 'bip39'
-import { assertType, Logger } from '@faast/ts-common'
-import { PaymentsFactory, AnyPayments, NetworkType, bip32, keysOf } from '@bitaccess/coinlib-common'
+import { assertType, Logger } from '@bitaccess/ts-common'
+import { PaymentsFactory, AnyPayments, NetworkType, bip32, bip39, keysOf } from '@bitaccess/coinlib-common'
 
 import {
   CoinPaymentsConfig,
@@ -141,6 +140,13 @@ export class CoinPayments {
     return this.isNetworkSupported(networkSymbol) && Boolean(this.payments[networkSymbol])
   }
 
+  getFingerprint(): string {
+    if (!this.seedBuffer) {
+      throw new Error("Seed missing from CoinPayments")
+    }
+    const root = bip32.fromSeed(this.seedBuffer)
+    return root.fingerprint.toString('hex')
+  }
 }
 
 export default CoinPayments

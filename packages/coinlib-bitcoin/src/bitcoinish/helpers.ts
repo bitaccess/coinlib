@@ -8,7 +8,15 @@ import {
   BitcoinishSignedTransactionData,
   BitcoinishUnsignedTransaction,
 } from './types'
-import { TransactionStatus, BaseMultisigData, MultisigData, ecpair } from '@bitaccess/coinlib-common'
+import { BITCOINISH_ADDRESS_PURPOSE } from './constants'
+import {
+  TransactionStatus,
+  BaseMultisigData,
+  MultisigData,
+  ecpair,
+  NetworkType,
+  bip32,
+} from '@bitaccess/coinlib-common'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { isString } from '@faast/ts-common'
 
@@ -199,5 +207,40 @@ export function updateSignedMultisigTx(
       unsignedTxHash,
       changeOutputs: tx.data?.changeOutputs,
     },
+  }
+}
+
+export function createDeterminePathForIndexHelper(
+  constants: {
+    coinName: string
+    defaultPurpose: string
+    coinTypes: { [networkType in NetworkType]: string }
+  },
+  functions: {
+    isSupportedAddressType: (addressType: string) => boolean
+  },
+) {
+  return (accountIndex: number, addressType?: AddressType, networkType?: NetworkType): string => {
+    if (addressType && !functions.isSupportedAddressType(addressType)) {
+      throw new TypeError(`${constants.coinName} does not support this type ${addressType}`)
+    }
+
+    const purpose: string = addressType ? BITCOINISH_ADDRESS_PURPOSE[addressType] : constants.defaultPurpose
+    const cointype = constants.coinTypes[networkType ?? NetworkType.Mainnet]
+    const derivationPath = `m/${purpose}'/${cointype}'/${accountIndex}'`
+    return derivationPath
+  }
+}
+
+export function createDeriveUniPubKeyForPathHelper(constants: {
+  networks: { [networkType in NetworkType]: BitcoinjsNetwork }
+  networkType: NetworkType
+}): (seed: Buffer, derivationPath: string) => string {
+  const { networks, networkType } = constants
+  return (seed: Buffer, derivationPath: string): string => {
+    const network: BitcoinjsNetwork = networks[networkType]
+    const root = bip32.fromSeed(seed, network)
+    const account = root.derivePath(derivationPath)
+    return account.neutered().toBase58()
   }
 }

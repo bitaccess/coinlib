@@ -1,25 +1,26 @@
 import * as bitcoin from 'bitcoinjs-lib-bigint'
-import { UtxoInfo, TransactionStatus, MultisigData } from '@bitaccess/coinlib-common'
+import { UtxoInfo, NetworkType } from '@bitaccess/coinlib-common'
 
 import { toBitcoinishConfig } from './utils'
-import {
-  BaseBitcoinPaymentsConfig,
-  BitcoinUnsignedTransaction,
-  BitcoinSignedTransactionData,
-  BitcoinSignedTransaction,
-  AddressType,
-  PsbtInputData,
-} from './types'
-import { BITCOIN_SEQUENCE_RBF } from './constants'
+import { BaseBitcoinPaymentsConfig, AddressType, AddressTypeT, PsbtInputData } from './types'
+import { BITCOIN_SEQUENCE_RBF, DEFAULT_ADDRESS_TYPE, BITCOIN_NETWORK_CONSTANTS, NETWORKS } from './constants'
 import {
   isValidAddress,
   isValidPrivateKey,
   isValidPublicKey,
   standardizeAddress,
   estimateBitcoinTxSize,
+  isSupportedAddressType,
+  getSupportedAddressTypes,
 } from './helpers'
-
-import { BitcoinishPayments, BitcoinishPaymentTx, countOccurences, isMultisigFullySigned } from './bitcoinish'
+import {
+  BitcoinishPayments,
+  BitcoinishPaymentTx,
+  countOccurences,
+  createDeterminePathForIndexHelper,
+  createDeriveUniPubKeyForPathHelper,
+} from './bitcoinish'
+import { assertType } from '@bitaccess/ts-common'
 
 export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConfig> extends BitcoinishPayments<Config> {
   readonly maximumFeeRate?: number
@@ -141,5 +142,38 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
 
   async serializePaymentTx(tx: BitcoinishPaymentTx, fromIndex?: number): Promise<string> {
     return (await this.buildPsbt(tx, fromIndex)).toHex()
+  }
+
+  isSupportedAddressType(addressType: string): boolean {
+    return isSupportedAddressType(addressType)
+  }
+
+  getSupportedAddressTypes(): AddressType[] {
+    return getSupportedAddressTypes()
+  }
+
+  determinePathForIndex(accountIndex: number, options?: { addressType?: string }): string {
+    const addressType = options?.addressType ? assertType(AddressTypeT, options?.addressType) : DEFAULT_ADDRESS_TYPE
+    const networkType: NetworkType = this.networkType
+    if (!this.determinePathForIndexFn) {
+      const functions = {
+        isSupportedAddressType,
+      }
+      this.determinePathForIndexFn = createDeterminePathForIndexHelper(BITCOIN_NETWORK_CONSTANTS, functions)
+    }
+    const derivationPath: string = this.determinePathForIndexFn(accountIndex, addressType, networkType)
+    return derivationPath
+  }
+
+  deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
+    if (!this.deriveUniPubKeyForPathFn) {
+      const constants = {
+        networks: NETWORKS,
+        networkType: this.networkType,
+      }
+      this.deriveUniPubKeyForPathFn = createDeriveUniPubKeyForPathHelper(constants)
+    }
+    const uniPubKey = this.deriveUniPubKeyForPathFn(seed, derivationPath)
+    return uniPubKey
   }
 }

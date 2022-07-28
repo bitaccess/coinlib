@@ -1,5 +1,5 @@
 import { omit } from 'lodash'
-import { isUndefined, isString } from '@faast/ts-common'
+import { isUndefined, isString } from '@bitaccess/ts-common'
 import { PUBLIC_CONFIG_OMIT_FIELDS } from '@bitaccess/coinlib-bitcoin'
 
 import { SinglesigBitcoinCashPayments } from './SinglesigBitcoinCashPayments'

@@ -9,13 +9,11 @@ import nock from 'nock'
 
 import {
   getGasStationResponse,
-  getParityNextNonceMocks,
   getBalanceMocks,
   getTransactionCountMocks,
   getSendRawTransactionMocks,
   getEstimateGasMocks,
   addTransactionApisMocks,
-  getTransactionReceiptMocks,
 } from './fixtures/mocks'
 import { EthereumSignedTransaction, EthereumUnsignedTransaction, DEFAULT_DERIVATION_PATH } from '../src'
 import Web3 from 'web3'

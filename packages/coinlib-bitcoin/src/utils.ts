@@ -1,5 +1,7 @@
 import { NetworkType, FeeRateType, AutoFeeLevels } from '@bitaccess/coinlib-common'
-import { BitcoinBaseConfig } from './types'
+import { 
+  BitcoinBaseConfig, 
+ } from './types'
 import { BitcoinishPaymentsConfig } from './bitcoinish'
 import {
   DEFAULT_NETWORK,

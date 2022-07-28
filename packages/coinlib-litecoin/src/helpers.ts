@@ -1,10 +1,13 @@
-import { BaseMultisigData, createUnitConverters, MultisigData, NetworkType } from '@bitaccess/coinlib-common'
+import { createUnitConverters, NetworkType, bip32 } from '@bitaccess/coinlib-common'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
-import { assertType } from '@faast/ts-common'
 
-import { LitecoinAddressFormat, LitecoinAddressFormatT, SinglesigAddressType } from './types'
-import { bitcoinish, NETWORKS as BITCOIN_NETWORKS, BitcoinjsNetwork } from '@bitaccess/coinlib-bitcoin'
-import { DECIMAL_PLACES, DEFAULT_ADDRESS_FORMAT, NETWORKS } from './constants'
+import { LitecoinAddressFormat, SinglesigAddressType } from './types'
+import { bitcoinish, NETWORKS as BITCOIN_NETWORKS, BitcoinjsNetwork, AddressType } from '@bitaccess/coinlib-bitcoin'
+import {
+  DECIMAL_PLACES,
+  NETWORKS,
+  LITECOIN_SUPPORTED_ADDRESS_TYPES,
+} from './constants'
 
 const {
   getMultisigPaymentScript,
@@ -13,6 +16,7 @@ const {
   publicKeyToString,
   publicKeyToBuffer,
   privateKeyToKeyPair,
+  BITCOINISH_ADDRESS_PURPOSE,
 } = bitcoinish
 
 export {
@@ -165,3 +169,17 @@ export function privateKeyToAddress(
   const keyPair = privateKeyToKeyPair(privateKey, NETWORKS[networkType])
   return publicKeyToAddress(keyPair.publicKey, networkType, addressType, format)
 }
+
+export function isSupportedAddressType(addressType: string): boolean {
+  return LITECOIN_SUPPORTED_ADDRESS_TYPES.map(at => at.toString()).includes(addressType)
+}
+
+export function getSupportedAddressTypes(): AddressType[] {
+  return LITECOIN_SUPPORTED_ADDRESS_TYPES
+}
+
+export function hexSeedToBuffer(seedHex: string): Buffer {
+  const seedBuffer = Buffer.from(seedHex, 'hex')
+  return seedBuffer
+}
+

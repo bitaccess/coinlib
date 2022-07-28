@@ -2,6 +2,7 @@
 *.log
 *.password
 *.wallet
+*bitaccess-*.tgz
 .DS_Store
 .awcache
 .env*

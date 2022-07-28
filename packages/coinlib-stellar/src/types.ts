@@ -56,6 +56,9 @@ export const HdStellarPaymentsConfig = extendCodec(
   {
     seed: t.string,
   },
+  {
+    derivationPath: t.string
+  },
   'HdStellarPaymentsConfig',
 )
 export type HdStellarPaymentsConfig = t.TypeOf<typeof HdStellarPaymentsConfig>

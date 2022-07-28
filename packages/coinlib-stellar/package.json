@@ -49,12 +49,12 @@
     "@bitaccess/ts-common": "^1.0.2",
     "@faast/ts-common": "^0.6.0",
     "base-x": "^3.0.6",
-    "bip39": "^3.0.2",
     "events": "^3.3.0",
     "io-ts": "^1.10.4",
     "lodash": "^4.17.15",
     "node-fetch": "^2.6.7",
     "promise-retry": "^1.1.1",
+    "stellar-base": "^8.0.1",
     "stellar-hd-wallet": "0.0.10",
     "stellar-sdk": "^10.0.1"
   }

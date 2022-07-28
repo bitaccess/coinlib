@@ -12,6 +12,7 @@ import {
   GetFeeRecommendationOptions,
   GetTransactionInfoOptions,
   BigNumber,
+  NetworkType,
 } from '@bitaccess/coinlib-common'
 import { isNil, assertType, Numeric, isUndefined } from '@faast/ts-common'
 import { GetBlockOptions } from 'blockbook-client'
@@ -20,17 +21,18 @@ import { DEFAULT_FEE_LEVEL_BLOCK_TARGETS } from './constants'
 import { BlockbookConnected } from './BlockbookConnected'
 import {
   AddressType,
-  BitcoinishPaymentsUtilsConfig, BitcoinishTransactionInfo,
+  BitcoinishPaymentsUtilsConfig,
+  BitcoinishTransactionInfo,
   BitcoinjsNetwork,
   FeeLevelBlockTargets,
-  NormalizedTxBitcoin, NormalizedTxBitcoinVout,
+  NormalizedTxBitcoin,
+  NormalizedTxBitcoinVout,
 } from './types'
 import { getBlockbookFeeRecommendation, getBlockcypherFeeRecommendation } from './utils'
 
 type UnitConverters = ReturnType<typeof createUnitConverters>
 
 export abstract class BitcoinishPaymentsUtils extends BlockbookConnected implements PaymentsUtils {
-
   readonly coinSymbol: string
   readonly coinName: string
   readonly coinDecimals: number
@@ -38,6 +40,11 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
   readonly networkMinRelayFee: number // base denom
   readonly blockcypherToken?: string
   feeLevelBlockTargets: FeeLevelBlockTargets
+  protected determinePathForIndexFn:
+    | null
+    | ((accountIndex: number, addressType?: AddressType, networkType?: NetworkType) => string) = null
+
+  protected deriveUniPubKeyForPathFn: null | ((seed: Buffer, derivationPath: string) => string) = null
 
   constructor(config: BitcoinishPaymentsUtilsConfig) {
     super(config)
@@ -67,13 +74,21 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
 
   async getBlockcypherFeeRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
     return getBlockcypherFeeRecommendation(
-      feeLevel, this.coinSymbol, this.networkType, this.blockcypherToken, this.logger,
+      feeLevel,
+      this.coinSymbol,
+      this.networkType,
+      this.blockcypherToken,
+      this.logger,
     )
   }
 
   async getBlockbookFeeRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
     return getBlockbookFeeRecommendation(
-      this.feeLevelBlockTargets[feeLevel], this.coinSymbol, this.networkType, this.api, this.logger,
+      this.feeLevelBlockTargets[feeLevel],
+      this.coinSymbol,
+      this.networkType,
+      this.api,
+      this.logger,
     )
   }
 
@@ -97,7 +112,6 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
       return this.getBlockcypherFeeRecommendation(feeLevel)
     }
   }
-
 
   private _getPayportValidationMessage(payport: Payport): string | undefined {
     const { address, extraId } = payport
@@ -133,7 +147,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
   }
 
   isValidPayport(payport: Payport): boolean {
-    return Payport.is(payport) && !(this._getPayportValidationMessage(payport))
+    return Payport.is(payport) && !this._getPayportValidationMessage(payport)
   }
 
   toMainDenomination(amount: Numeric): string {
@@ -203,27 +217,29 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
   async getAddressUtxos(address: string): Promise<UtxoInfo[]> {
     const utxosRaw = await this._retryDced(() => this.getApi().getUtxosForAddress(address))
     const txsById: { [txid: string]: NormalizedTxBitcoin } = {}
-    const utxos: UtxoInfo[] = await Promise.all(utxosRaw.map(async (data) => {
-      const { value, height, lockTime, coinbase } = data
+    const utxos: UtxoInfo[] = await Promise.all(
+      utxosRaw.map(async data => {
+        const { value, height, lockTime, coinbase } = data
 
-      // Retrieve the raw tx data to enable returning raw hex data. Memoize in a temporary object for efficiency
-      const tx = txsById[data.txid] ?? (await this._retryDced(() => this.getApi().getTx(data.txid)))
-      txsById[data.txid] = tx
-      const output = tx.vout[data.vout]
-      const res : UtxoInfo = {
-        ...data,
-        satoshis: Number.parseInt(value),
-        value: this.toMainDenominationString(value),
-        height: isUndefined(height) || height <= 0 ? undefined : String(height),
-        lockTime: isUndefined(lockTime) ? undefined : String(lockTime),
-        coinbase: Boolean(coinbase),
-        txHex: tx.hex,
-        scriptPubKeyHex: output?.hex,
-        address: output?.addresses?.[0],
-        spent: false,
-      }
-      return res
-    }))
+        // Retrieve the raw tx data to enable returning raw hex data. Memoize in a temporary object for efficiency
+        const tx = txsById[data.txid] ?? (await this._retryDced(() => this.getApi().getTx(data.txid)))
+        txsById[data.txid] = tx
+        const output = tx.vout[data.vout]
+        const res: UtxoInfo = {
+          ...data,
+          satoshis: Number.parseInt(value),
+          value: this.toMainDenominationString(value),
+          height: isUndefined(height) || height <= 0 ? undefined : String(height),
+          lockTime: isUndefined(lockTime) ? undefined : String(lockTime),
+          coinbase: Boolean(coinbase),
+          txHex: tx.hex,
+          scriptPubKeyHex: output?.hex,
+          address: output?.addresses?.[0],
+          spent: false,
+        }
+        return res
+      }),
+    )
     return utxos
   }
 
@@ -248,10 +264,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     }
   }
 
-  async getTransactionInfo(
-    txId: string,
-    options?: GetTransactionInfoOptions
-  ): Promise<BitcoinishTransactionInfo> {
+  async getTransactionInfo(txId: string, options?: GetTransactionInfoOptions): Promise<BitcoinishTransactionInfo> {
     const tx = await this._retryDced(() => this.getApi().getTx(txId))
     const txSpecific = await this._retryDced(() => this.getApi().getTxSpecific(txId))
 
@@ -265,16 +278,18 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     const confirmationId = tx.blockHash || null
     const confirmationNumber = tx.blockHeight ? String(tx.blockHeight) : undefined
     const confirmationTimestamp = tx.blockTime ? new Date(tx.blockTime * 1000) : null
-    if (tx.confirmations >= 0x7FFFFFFF) {
+    if (tx.confirmations >= 0x7fffffff) {
       // If confirmations exceeds the max value of a signed 32 bit integer, assume we have bad data
       // Blockbook sometimes returns a confirmations count equal to `0xFFFFFFFF` when unconfirmed
       // Bitcoin won't have that many confirmations for 40,000 years
-      this.logger.log(`Blockbook returned confirmations count for tx ${txId} that's way too big to be real (${tx.confirmations}), assuming 0`)
+      this.logger.log(
+        `Blockbook returned confirmations count for tx ${txId} that's way too big to be real (${tx.confirmations}), assuming 0`,
+      )
       tx.confirmations = 0
     }
     const isConfirmed = Boolean(tx.confirmations && tx.confirmations > 0)
     const status = isConfirmed ? TransactionStatus.Confirmed : TransactionStatus.Pending
-    const inputUtxos = tx.vin.map((utxo) => ({
+    const inputUtxos = tx.vin.map(utxo => ({
       txid: utxo.txid || '',
       vout: utxo.vout || 0,
       value: this.toMainDenominationString(utxo.value ?? 0),
@@ -302,10 +317,10 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
       fromAddress = fromAddresses[0]
     }
 
-    const outputUtxos = tx.vout.map((output) => this.txVoutToUtxoInfo(tx, output as NormalizedTxBitcoinVout))
+    const outputUtxos = tx.vout.map(output => this.txVoutToUtxoInfo(tx, output as NormalizedTxBitcoinVout))
     const outputAddresses = outputUtxos.map(({ address }) => address)
 
-    let externalAddresses = outputAddresses.filter((oA) => !changeAddresses.includes(oA))
+    let externalAddresses = outputAddresses.filter(oA => !changeAddresses.includes(oA))
     if (options?.filterChangeAddresses) {
       externalAddresses = await options.filterChangeAddresses(externalAddresses)
     }
@@ -317,7 +332,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     const amount = externalOutputs.reduce((total, { value }) => total.plus(value), new BigNumber(0)).toFixed()
 
     let toAddress = 'batch'
-    if (externalOutputs.length === 0){
+    if (externalOutputs.length === 0) {
       // throw new Error(`${this.coinSymbol} transaction has no external outputs ${txId}`)
     } else if (externalOutputs.length === 1) {
       toAddress = externalOutputs[0].address
@@ -349,5 +364,12 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
       weight,
     }
   }
-}
 
+  abstract isSupportedAddressType(addressType: string): boolean
+
+  abstract getSupportedAddressTypes(): string[] | null
+
+  abstract determinePathForIndex<O extends { addressType?: string }>(accountIndex: number, options?: O): string
+
+  abstract deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string
+}

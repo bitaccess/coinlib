@@ -19,3 +19,10 @@ export const DEFAULT_MAINNET_SERVER = 'https://horizon.stellar.org'
 export const DEFAULT_TESTNET_SERVER = 'https://horizon-testnet.stellar.org'
 
 export const PUBLIC_CONFIG_OMIT_FIELDS = ['logger', 'server', 'api', 'seed', 'depositAccount', 'hotAccount', 'hdKey']
+
+export const STELLAR_COINTYPES = {
+  [NetworkType.Mainnet]: '148',
+  [NetworkType.Testnet]: '148',
+}
+
+export const STELLAR_SUPPORTED_ADDRESS_TYPES: string[] = []

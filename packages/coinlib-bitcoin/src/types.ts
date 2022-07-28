@@ -114,6 +114,8 @@ export const MultisigBitcoinPaymentsConfig = extendCodec(
 )
 export type MultisigBitcoinPaymentsConfig = t.TypeOf<typeof MultisigBitcoinPaymentsConfig>
 
+export type PartialBitcoinPaymentsConfig = Partial<SinglesigBitcoinPaymentsConfig | MultisigBitcoinPaymentsConfig>
+
 export const BitcoinPaymentsConfig = t.union(
   [HdBitcoinPaymentsConfig, KeyPairBitcoinPaymentsConfig, MultisigBitcoinPaymentsConfig],
   'BitcoinPaymentsConfig',

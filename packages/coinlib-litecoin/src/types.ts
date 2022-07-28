@@ -24,15 +24,10 @@ export type LitecoinjsKeyPair = BitcoinjsSigner & {
 
 export interface PsbtInputData extends PsbtInput, TransactionInput {}
 
-export enum AddressType {
-  Legacy = 'p2pkh',
-  SegwitP2SH = 'p2sh-p2wpkh',
-  SegwitNative = 'p2wpkh',
-  MultisigLegacy = 'p2sh-p2ms',
-  MultisigSegwitP2SH = 'p2sh-p2wsh-p2ms',
-  MultisigSegwitNative = 'p2wsh-p2ms',
-}
+export type AddressType = bitcoinish.AddressType
+export const AddressType = bitcoinish.AddressType
 export const AddressTypeT = enumCodec<AddressType>(AddressType, 'AddressType')
+
 
 // For unclear reasons tsc throws TS4023 when this type is used in an external module.
 // Re-exporting the codec cast to the inferred type helps fix this.

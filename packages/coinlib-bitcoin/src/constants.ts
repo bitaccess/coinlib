@@ -41,6 +41,9 @@ export const DEFAULT_DERIVATION_PATHS = {
   [AddressType.SegwitNative]: "m/84'/0'/0'",
 }
 
+export const BITCOIN_COINTYPE_MAINNET = `0`
+export const BITCOIN_COINTYPE_TESTNET = `1`
+
 export const DEFAULT_NETWORK = NetworkType.Mainnet
 
 export const NETWORK_MAINNET = networks.bitcoin
@@ -61,3 +64,26 @@ export const DEFAULT_TESTNET_SERVER = process.env.BITCOIN_TESTNET_SERVER_URL
 export const DEFAULT_FEE_LEVEL = FeeLevel.Medium
 
 export const PUBLIC_CONFIG_OMIT_FIELDS = ['logger', 'server', 'api', 'hdKey', 'keyPairs', 'blockcypherToken']
+
+export const BITCOIN_SUPPORTED_ADDRESS_TYPES = [
+  AddressType.Legacy,
+  AddressType.SegwitNative,
+  AddressType.SegwitP2SH,
+  AddressType.MultisigLegacy,
+  AddressType.MultisigSegwitNative,
+  AddressType.MultisigSegwitP2SH,
+]
+
+export const DEFAULT_ADDRESS_TYPE: AddressType = AddressType.Legacy
+export const DEFAULT_PURPOSE: string = '84'
+
+export const BITCOIN_COINTYPES = {
+  [NetworkType.Mainnet]: '0',
+  [NetworkType.Testnet]: '0',
+}
+
+export const BITCOIN_NETWORK_CONSTANTS = {
+  coinName: COIN_NAME,
+  defaultPurpose: DEFAULT_PURPOSE,
+  coinTypes: BITCOIN_COINTYPES,
+}
