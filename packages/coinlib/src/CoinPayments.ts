@@ -1,4 +1,5 @@
 import * as bip39 from 'bip39'
+import crypto from 'crypto'
 import { assertType, Logger } from '@faast/ts-common'
 import { PaymentsFactory, AnyPayments, NetworkType, bip32 } from '@bitaccess/coinlib-common'
 
@@ -11,12 +12,7 @@ import {
 import { keysOf } from './utils'
 import { SUPPORTED_NETWORK_SYMBOLS, PAYMENTS_FACTORIES } from './constants'
 
-
-function addSeedIfNecessary(
-  network: SupportedCoinPaymentsSymbol,
-  seed: Buffer,
-  config: any,
-): any {
+function addSeedIfNecessary(network: SupportedCoinPaymentsSymbol, seed: Buffer, config: any): any {
   const configCodec = paymentsConfigCodecs[network]
   let result = config
   if (configCodec.is(result)) {
@@ -24,7 +20,7 @@ function addSeedIfNecessary(
   }
   result = {
     ...config,
-    seed: seed.toString('hex')
+    seed: seed.toString('hex'),
   }
   if (configCodec.is(result)) {
     return result
@@ -50,18 +46,19 @@ export class CoinPayments {
     assertType(CoinPaymentsConfig, config)
     this.network = config.network || NetworkType.Mainnet
     this.logger = config.logger || console
-    this.seedBuffer = (config.seed && (config.seed.includes(' ')
-      ? bip39.mnemonicToSeedSync(config.seed)
-      : Buffer.from(config.seed, 'hex'))) || undefined
+    this.seedBuffer =
+      (config.seed &&
+        (config.seed.includes(' ') ? bip39.mnemonicToSeedSync(config.seed) : Buffer.from(config.seed, 'hex'))) ||
+      undefined
     const accountIdSet = new Set<string>()
-    SUPPORTED_NETWORK_SYMBOLS.forEach((networkSymbol) => {
+    SUPPORTED_NETWORK_SYMBOLS.forEach(networkSymbol => {
       const networkConfig = config[networkSymbol]
       if (!networkConfig && !this.seedBuffer) {
         return
       }
       const networkPayments = this.newPayments(networkSymbol, networkConfig)
       this.payments[networkSymbol] = networkPayments
-      networkPayments.getAccountIds().forEach((id) => accountIdSet.add(id))
+      networkPayments.getAccountIds().forEach(id => accountIdSet.add(id))
     })
     this.accountIds = Array.from(accountIdSet)
   }
@@ -75,10 +72,7 @@ export class CoinPayments {
     return paymentsFactory
   }
 
-  private newPayments(
-    networkSymbol: SupportedCoinPaymentsSymbol,
-    partialConfig: any,
-  ): AnyPayments {
+  private newPayments(networkSymbol: SupportedCoinPaymentsSymbol, partialConfig: any): AnyPayments {
     let paymentsConfig: any = partialConfig
     if (this.seedBuffer) {
       paymentsConfig = addSeedIfNecessary(networkSymbol, this.seedBuffer, paymentsConfig || {})
@@ -131,7 +125,7 @@ export class CoinPayments {
         ...extraConfig,
       })
     }
-    return payments 
+    return payments
   }
 
   isNetworkSupported(networkSymbol: string): networkSymbol is SupportedCoinPaymentsSymbol {
@@ -144,10 +138,24 @@ export class CoinPayments {
 
   getFingerprint(): string {
     if (!this.seedBuffer) {
-      throw new Error("Seed missing from CoinPayments")
+      throw new Error('Seed missing from CoinPayments')
     }
     const root = bip32.fromSeed(this.seedBuffer)
     return root.fingerprint.toString('hex')
+  }
+
+  getRawSignerId(): string {
+    if (!this.seedBuffer) {
+      throw new Error('Seed missing from CoinPayments')
+    }
+    const root = bip32.fromSeed(this.seedBuffer)
+    const { publicKey, chainCode } = root.derivePath("m/45'")
+    const signerId = crypto
+      .createHash('sha256')
+      .update(chainCode)
+      .update(publicKey)
+      .digest('hex')
+    return signerId
   }
 }
 
