@@ -283,7 +283,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       value: tx.value,
       gasUsed,
       gasPrice: tx.gasPrice,
-      confirmations: tx.blockNumber ? currentBlockNumber - tx.blockNumber : 0,
+      confirmations: tx.blockNumber ? Math.max(currentBlockNumber - tx.blockNumber + 1, 0) : 0,
       contractAddress,
       status,
       currentBlockNumber,
