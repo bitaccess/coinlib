@@ -1,4 +1,4 @@
-import { NetworkType, bip32 } from '@bitaccess/coinlib-common'
+import { NetworkType, bip32, hexToBuff } from '@bitaccess/coinlib-common'
 import { ETHEREUM_COINTYPES, ETHEREUM_SUPPORTED_ADDRESS_TYPES } from './constants'
 
 export function isSupportedAddressType(addressType: string): boolean {
@@ -17,8 +17,7 @@ export function determinePathForIndex(accountIndex: number, addressType?: any, n
 }
 
 export function hexSeedToBuffer(seedHex: string): Buffer {
-  const seedBuffer = Buffer.from(seedHex, 'hex')
-  return seedBuffer
+  return hexToBuff(seedHex)
 }
 
 export function deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
