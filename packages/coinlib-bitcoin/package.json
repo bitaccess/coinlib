@@ -1,6 +1,6 @@
 {
   "name": "@bitaccess/coinlib-bitcoin",
-  "version": "6.0.5",
+  "version": "6.1.0",
   "description": "Library to assist in processing bitcoin payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -58,6 +58,5 @@
     "lodash": "^4.17.15",
     "promise-retry": "^1.1.1",
     "request-promise-native": "^1.0.8"
-  },
-  "devDependencies": {}
+  }
 }
