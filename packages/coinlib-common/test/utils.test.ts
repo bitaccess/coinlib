@@ -1,4 +1,4 @@
-import { createUnitConverters } from '../src/utils'
+import { createUnitConverters, keysOf } from '../src/utils'
 import { BigNumber } from '../src/SharedDependencies'
 const MAIN_STRING = '1234567.1234567'
 const MAIN_NUMBER = 1234567.1234567
@@ -59,6 +59,12 @@ describe('utils', () => {
     })
     test('toBaseDenominationNumber from BigNumber', () => {
       expect(toBaseDenominationNumber(MAIN_BIGNUMBER)).toEqual(BASE_NUMBER)
+    })
+  })
+  describe('keysOf', () => {
+    it('works', () => {
+      const result: ('a' | 'b' | 'c')[] = keysOf({ a: 1, b: 2, c: 5 })
+      expect(result).toEqual(['a', 'b', 'c'])
     })
   })
 })

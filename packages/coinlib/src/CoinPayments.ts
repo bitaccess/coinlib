@@ -1,7 +1,6 @@
-import * as bip39 from 'bip39'
+import { assertType, Logger } from '@bitaccess/ts-common'
+import { PaymentsFactory, AnyPayments, NetworkType, bip32, bip39, keysOf } from '@bitaccess/coinlib-common'
 import crypto from 'crypto'
-import { assertType, Logger } from '@faast/ts-common'
-import { PaymentsFactory, AnyPayments, NetworkType, bip32 } from '@bitaccess/coinlib-common'
 
 import {
   CoinPaymentsConfig,
@@ -9,7 +8,6 @@ import {
   paymentsConfigCodecs,
   CoinPaymentsPartialConfigs,
 } from './types'
-import { keysOf } from './utils'
 import { SUPPORTED_NETWORK_SYMBOLS, PAYMENTS_FACTORIES } from './constants'
 
 function addSeedIfNecessary(network: SupportedCoinPaymentsSymbol, seed: Buffer, config: any): any {

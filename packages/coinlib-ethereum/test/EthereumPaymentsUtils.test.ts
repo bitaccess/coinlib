@@ -1,19 +1,19 @@
 import Web3 from 'web3'
 import { EthereumPaymentsUtils } from '../src/EthereumPaymentsUtils'
-import { hdAccount } from './fixtures/accounts'
-import { NetworkType } from '@bitaccess/coinlib-common'
-import { hexSeedToBuffer } from '../src/helpers'
+import { DEFAULT_PATH_FIXTURE } from './fixtures/accounts'
 
 import { TestLogger } from '../../../common/testUtils'
 import { EthereumAddressFormat } from '../src/types'
+import { NetworkType } from '@bitaccess/coinlib-common'
+import { hexSeedToBuffer } from '../src/helpers'
 const web3 = new Web3()
-const logger = new TestLogger('EthereumPaymentUtilssTest')
+const logger = new TestLogger(__filename)
 
 const INVALID_ADDRESS = 'totally invalid'
-const VALID_ADDRESS = hdAccount.rootChild[0].address
-const VALID_PRVKEY = hdAccount.rootChild[0].keys.prv
-const VALID_XPRVKEY = hdAccount.rootChild[0].xkeys.xprv
-const VALID_XPUBKEY = hdAccount.rootChild[0].xkeys.xpub
+const VALID_ADDRESS = DEFAULT_PATH_FIXTURE.children[0].address
+const VALID_PRVKEY = DEFAULT_PATH_FIXTURE.children[0].keys.prv
+const VALID_XPRVKEY = DEFAULT_PATH_FIXTURE.xkeys.xprv
+const VALID_XPUBKEY = DEFAULT_PATH_FIXTURE.xkeys.xpub
 
 const VALID_ADDRESS_CHECKSUM = web3.utils.toChecksumAddress(VALID_ADDRESS)
 const VALID_ADDRESS_LOWERCASE = VALID_ADDRESS.toLowerCase()
@@ -170,7 +170,7 @@ describe('EthereumPaymentsUtils', () => {
       } catch (e) {
         err = e.message
       }
-      expect(err).toBe('Invalid payport address')
+      expect(err).toBe('Invalid ethereum mainnet payport address')
     })
 
     test('rejects for invalid address', async () => {
@@ -180,7 +180,7 @@ describe('EthereumPaymentsUtils', () => {
       } catch (e) {
         err = e.message
       }
-      expect(err).toBe('Invalid payport address')
+      expect(err).toBe('Invalid ethereum mainnet payport address')
     })
 
     test('rejects for null address', async () => {
@@ -190,7 +190,7 @@ describe('EthereumPaymentsUtils', () => {
       } catch (e) {
         err = e.message
       }
-      expect(err).toBe('Invalid payport address')
+      expect(err).toBe('Invalid ethereum mainnet payport address')
     })
 
     test('rejects for undefined address', async () => {
@@ -200,7 +200,7 @@ describe('EthereumPaymentsUtils', () => {
       } catch (e) {
         err = e.message
       }
-      expect(err).toBe('Invalid payport address')
+      expect(err).toBe('Invalid ethereum mainnet payport address')
     })
   })
 

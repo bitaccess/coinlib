@@ -1,7 +1,6 @@
 import {
   deriveAddress,
   derivePrivateKey,
-  splitDerivationPath,
   deriveHDNode,
   deriveKeyPair,
   xprvToXpub,
@@ -21,11 +20,6 @@ export const BASE_NODE = bip32.fromBase58(DERIVED_XPRV, NETWORK)
 const format = LitecoinAddressFormat.Modern
 
 describe('bip44', () => {
-  describe('splitDerivationPath', () => {
-    it('returns correct value', () => {
-      expect(splitDerivationPath(DERIVATION_PATH)).toEqual(["44'", "2'", "0'"])
-    })
-  })
   describe('deriveHDNode', () => {
     it('derives root xprv correctly', () => {
       expect(deriveHDNode(ROOT_XPRV, DERIVATION_PATH, NETWORK_TYPE).toBase58()).toEqual(DERIVED_XPRV)

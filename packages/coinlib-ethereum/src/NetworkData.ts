@@ -1,5 +1,5 @@
 import { AutoFeeLevels, BlockInfo, FunctionPropertyNames, NewBlockCallback, BigNumber } from '@bitaccess/coinlib-common'
-import { Logger, DelegateLogger } from '@faast/ts-common'
+import { Logger, DelegateLogger, Numeric } from '@bitaccess/ts-common'
 import { GetAddressDetailsOptions, NormalizedTxEthereum } from 'blockbook-client'
 import * as request from 'request-promise-native'
 import { TransactionConfig } from 'web3-core'
@@ -18,10 +18,11 @@ import { NetworkDataWeb3 } from './NetworkDataWeb3'
 
 export class NetworkData {
   private gasStationUrl: string | undefined
-  private parityUrl: string | undefined
   private logger: Logger
   blockBookService: NetworkDataBlockbook
   web3Service: NetworkDataWeb3
+
+  blockbookEnabled = false
 
   constructor(config: NetworkDataConfig) {
     this.gasStationUrl = config.gasStationUrl ?? GAS_STATION_URL
@@ -32,13 +33,12 @@ export class NetworkData {
       server: config.blockBookConfig.nodes,
       logger: this.logger,
     })
+    this.blockbookEnabled = Boolean(this.blockBookService.api)
 
     this.web3Service = new NetworkDataWeb3({
       ...config.web3Config,
       logger: this.logger,
     })
-
-    this.parityUrl = config.parityUrl
   }
 
   async connectBlockBook(): Promise<void> {
@@ -55,6 +55,9 @@ export class NetworkData {
   ): Promise<ReturnType<EthereumNetworkDataProvider[K]>> {
     // Typescript compiler doesn't support spreading arguments that have a generic type, so the method
     // must be cast to a plain Function before invocation to avoid error ts(2556)
+    if (!this.blockbookEnabled) {
+      return await (this.web3Service[methodName] as Function)(...args)
+    }
     try {
       return await (this.blockBookService[methodName] as Function)(...args)
     } catch (error) {
@@ -63,7 +66,7 @@ export class NetworkData {
     }
   }
 
-  async getBlock(blockId: string | number): Promise<BlockInfo> {
+  async getBlock(blockId: string | number, includeTransactionObjects: boolean = false): Promise<BlockInfo> {
     return this.callBlockbookWithWeb3Fallback('getBlock', blockId)
   }
 
@@ -83,8 +86,12 @@ export class NetworkData {
     amountOfGas: number
   }> {
     const pricePerGasUnit = await this.getGasPrice(speed)
-    const nonce = await this.getNonce(from)
-    const amountOfGas = await this.estimateGas({ from, to, data }, txType)
+    const nonce = await this.getNextNonce(from)
+    const amountOfGas = await this.estimateGas({
+      from,
+      to,
+      ...(data ? { data } : {}),
+    }, txType)
 
     return {
       pricePerGasUnit,
@@ -93,19 +100,32 @@ export class NetworkData {
     }
   }
 
-  async getNonce(address: string): Promise<string> {
-    const web3Nonce = (await this.web3Service.getWeb3Nonce(address)) || '0'
-    const parityNonce = (await this.getParityNonce(address)) || '0'
+  private async fetchNonceOrZero(service: EthereumNetworkDataProvider, address: string): Promise<Numeric> {
+    try {
+      const nonceRaw = await service.getNextNonce(address)
+      const nonceBn = new BigNumber(nonceRaw)
+      return nonceBn.isNaN() ? 0 : nonceBn
+    } catch (e) {
+      this.logger.warn(`Failed to retrieve next nonce from ${service.constructor.name} - `, e.toString())
+      return 0
+    }
+  }
 
-    const nonce = BigNumber.maximum(web3Nonce, parityNonce)
-    return nonce.toNumber() ? nonce.toString() : '0'
+  async getNextNonce(address: string): Promise<string> {
+    const web3Nonce = await this.fetchNonceOrZero(this.web3Service, address)
+    const blockbookNonce = this.blockbookEnabled
+      ? await this.fetchNonceOrZero(this.blockBookService, address)
+      : 0
+
+    const nonce = BigNumber.maximum(web3Nonce, blockbookNonce, 0)
+    return nonce.toString()
   }
 
   async getGasPrice(speed: AutoFeeLevels): Promise<string> {
     let gasPrice = await this.getGasStationGasPrice(speed)
     if (gasPrice) return gasPrice
 
-    gasPrice = await this.web3Service.getWeb3GasPrice()
+    gasPrice = await this.web3Service.getGasPrice()
     if (gasPrice) return gasPrice
 
     return DEFAULT_GAS_PRICE_IN_WEI
@@ -133,33 +153,6 @@ export class NetworkData {
 
   async getAddressBalanceERC20(address: string, tokenAddress: string) {
     return this.callBlockbookWithWeb3Fallback('getAddressBalanceERC20', address, tokenAddress)
-  }
-
-  private async getParityNonce(address: string): Promise<string> {
-    const data = {
-      method: 'parity_nextNonce',
-      params: [address],
-      id: 1,
-      jsonrpc: '2.0',
-    }
-    const options = {
-      url: this.parityUrl || '',
-      json: data,
-    }
-
-    let body: { [key: string]: string }
-    try {
-      body = await request.post(options)
-    } catch (e) {
-      this.logger.warn('Failed to retrieve nonce from parity - ', e.toString())
-      return ''
-    }
-    if (!body || !body.result) {
-      this.logger.warn('Bad result or missing fields in parity nextNonce response', body)
-      return ''
-    }
-
-    return new BigNumber(body.result, 16).toString()
   }
 
   private async getGasStationGasPrice(level: AutoFeeLevels): Promise<string> {

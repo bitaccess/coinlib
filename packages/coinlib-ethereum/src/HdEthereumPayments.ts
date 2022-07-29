@@ -1,6 +1,6 @@
 import { BaseEthereumPayments } from './BaseEthereumPayments'
 import { HdEthereumPaymentsConfig, EthereumSignatory } from './types'
-import { deriveSignatory } from './bip44'
+import { EthereumBIP44 } from './bip44'
 import { Payport } from '@bitaccess/coinlib-common'
 import { omit } from 'lodash'
 import { PUBLIC_CONFIG_OMIT_FIELDS } from './constants'
@@ -9,28 +9,18 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
   readonly xprv: string | null
   readonly xpub: string
   readonly derivationPath: string
+  private readonly bip44: EthereumBIP44
 
   constructor(config: HdEthereumPaymentsConfig) {
     super(config)
     this.derivationPath = config.derivationPath ?? this.networkConstants.defaultDerivationPath
-    try {
-      this.xprv = ''
-      this.xpub = ''
-      if (this.isValidXpub(config.hdKey)) {
-        this.xpub = config.hdKey
-      } else if (this.isValidXprv(config.hdKey)) {
-        this.xprv = config.hdKey
-        this.xpub = deriveSignatory(config.hdKey, 0, this.derivationPath).xkeys.xpub
-      } else {
-        throw new Error(config.hdKey)
-      }
-    } catch (e) {
-      throw new Error(`Account must be a valid xprv or xpub: ${e.message}`)
-    }
+    this.bip44 = EthereumBIP44.fromXKey(config.hdKey, this.derivationPath)
+    this.xprv = this.bip44.getXPrivateKey()
+    this.xpub = this.bip44.getXPublicKey()
   }
 
   static generateNewKeys(derivationPath?: string): EthereumSignatory {
-    return deriveSignatory(undefined, undefined, derivationPath)
+    return EthereumBIP44.generateNewKeys(derivationPath).getSignatory(0)
   }
 
   getXpub(): string {
@@ -46,7 +36,7 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
     }
   }
 
-  getAccountId(index: number): string {
+  getAccountId(): string {
     return this.getXpub()
   }
 
@@ -55,12 +45,12 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
   }
 
   async getPayport(index: number): Promise<Payport> {
-    const { address } = deriveSignatory(this.getXpub(), index, this.derivationPath)
+    const address = this.bip44.getAddress(index)
     if (!this.isValidAddress(address)) {
       // This should never happen
       throw new Error(`Cannot get address ${index} - validation failed for derived address`)
     }
-    return { address }
+    return { address: this.standardizeAddressOrThrow(address) }
   }
 
   async getPrivateKey(index: number): Promise<string> {
@@ -68,7 +58,11 @@ export class HdEthereumPayments extends BaseEthereumPayments<HdEthereumPaymentsC
       throw new Error(`Cannot get private key ${index} - HdEthereumPayments was created with an xpub`)
     }
 
-    return deriveSignatory(deriveSignatory(this.xprv, 0, this.derivationPath).xkeys.xprv, index, this.derivationPath).keys.prv
+    const privateKey = this.bip44.getPrivateKey(index)
+    if (!privateKey) {
+      throw new Error(`Failed to derive private key ${index}`)
+    }
+    return privateKey
   }
 }
 

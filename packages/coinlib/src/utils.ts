@@ -1,9 +1,4 @@
-import * as bip39 from 'bip39'
-import { bip32 } from '@bitaccess/coinlib-common'
-
-export function keysOf<T extends { [k: string]: any } | { [k: number]: any }>(o: T): (keyof T)[] {
-  return Object.keys(o) as (keyof T)[]
-}
+import { bip32, bip39 } from '@bitaccess/coinlib-common'
 
 /** Used to generate root xpub fingerprint when establishing signer */
 export function getSeedHexFromMnemonic(mnemonic: string): string {

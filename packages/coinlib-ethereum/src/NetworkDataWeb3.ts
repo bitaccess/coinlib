@@ -3,14 +3,14 @@ import { Logger, DelegateLogger, isNull, isNumber } from '@faast/ts-common'
 import Web3 from 'web3'
 import { TransactionConfig } from 'web3-core'
 import Contract from 'web3-eth-contract'
-import { BlockTransactionObject, Transaction, TransactionReceipt } from 'web3-eth'
+import { Block, Transaction, TransactionReceipt } from 'web3-eth'
+import * as t from 'io-ts'
 
 import {
   TOKEN_METHODS_ABI,
   FULL_ERC20_TOKEN_METHODS_ABI,
   MAXIMUM_GAS,
   GAS_ESTIMATE_MULTIPLIER,
-  NETWORK_DATA_PROVIDERS,
   PACKAGE_NAME,
 } from './constants'
 import {
@@ -19,9 +19,9 @@ import {
   EthereumNetworkDataProvider,
   EthereumStandardizedTransaction,
   EthereumStandardizedERC20Transaction,
+  NetworkDataProviders,
 } from './types'
-import { retryIfDisconnected } from './utils'
-import { get } from 'lodash'
+import { deriveCreate1Address, retryIfDisconnected } from './utils'
 
 export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
   web3: Web3
@@ -65,11 +65,20 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     }
 
     this.eth = this.web3.eth
+
+    // Set timeouts to -1 so sendRawTransaction doesn't poll or wait for confirmation
+    this.eth.transactionPollingTimeout = -1
+    this.eth.transactionBlockTimeout = -1
+    // Set this to 1 so that transactions are considered "confirmed" after 1, not 24 blocks
+    this.eth.transactionConfirmationBlocks = -1
   }
 
   protected newContract(...args: ConstructorParameters<typeof Contract>) {
     const contract = new Contract(...args)
     contract.setProvider(this.eth.currentProvider)
+    contract.transactionPollingTimeout = -1
+    contract.transactionBlockTimeout = -1
+    contract.transactionConfirmationBlocks = -1
     return contract
   }
 
@@ -77,7 +86,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     return this._retryDced(() => this.eth.getBlockNumber())
   }
 
-  async getTransactionReceipt(txId: string) {
+  async getTransactionReceipt(txId: string): Promise<TransactionReceipt | null> {
     return this._retryDced(() => this.eth.getTransactionReceipt(txId))
   }
 
@@ -93,8 +102,14 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     return { tokenSymbol, tokenDecimals, tokenName }
   }
 
-  async getBlock(id?: string | number): Promise<BlockInfo> {
-    const block = await this._retryDced(() => this.eth.getBlock(id ?? 'latest', true))
+  async getBlock(id?: string | number, includeTransactionObjects: boolean = false): Promise<BlockInfo> {
+    const idParam = id ?? 'latest'
+    let block: Block
+    if (includeTransactionObjects) {
+      block = await this._retryDced(() => this.eth.getBlock(idParam, true))
+    } else {
+      block = await this._retryDced(() => this.eth.getBlock(idParam, false))
+    }
 
     return this.standardizeBlock(block)
   }
@@ -133,6 +148,11 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     try {
       // estimateGas mutates txObject so must pass in a clone
       let gas = await this._retryDced(() => this.eth.estimateGas({ ...txObject }))
+      if (!isNumber(gas) || isNaN(gas)) {
+        this.logger.warn(`Received invalid non-numeric gas estimate from web3: ${gas}`)
+        return MAXIMUM_GAS[txType]
+      }
+
       if (gas > 21000) {
         // No need for multiplier for regular ethereum transfers
         gas = gas * GAS_ESTIMATE_MULTIPLIER
@@ -152,18 +172,17 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     }
   }
 
-  async getWeb3Nonce(address: string): Promise<string> {
-    try {
-      const nonce = await this._retryDced(() => this.eth.getTransactionCount(address, 'pending'))
-      return new BigNumber(nonce).toString()
-    } catch (e) {
-      return ''
-    }
+  async getNextNonce(address: string): Promise<number> {
+    return this._retryDced(() => this.eth.getTransactionCount(address, 'pending'))
   }
 
-  async getWeb3GasPrice(): Promise<string> {
+  async getGasPrice(): Promise<string> {
     try {
       const wei = new BigNumber(await this._retryDced(() => this.eth.getGasPrice()))
+      if (wei.isNaN()) {
+        this.logger.warn('Retrieved invalid NaN gas price from web3')
+        return ''
+      }
       this.logger.log(`Retrieved gas price of ${wei.div(1e9)} Gwei from web3`)
       return wei.dp(0, BigNumber.ROUND_DOWN).toFixed()
     } catch (e) {
@@ -179,35 +198,38 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     const currentBlockNumber = await this.getCurrentBlockNumber()
     const block = await this.getBlock(tx.blockHash!)
 
-    return this.standardizeTransaction(tx, {
+    return this.standardizeTransaction(tx, txReceipt, {
       blockTime: block.time,
       currentBlockNumber,
-      gasUsed: txReceipt.gasUsed,
-      contractAddress: txReceipt.contractAddress,
-      status: txReceipt.status,
     })
   }
 
-  async standardizeBlock(block: BlockTransactionObject) {
+  async standardizeBlock(block: Block) {
     const blockTime = block.timestamp
       ? new Date(isNumber(block.timestamp) ? block.timestamp * 1000 : block.timestamp)
       : null
-    const currentBlockNumber = await this.getCurrentBlockNumber()
 
-    const standardizedTransactionsPromise = block.transactions.map(async tx => {
-      const txHash = get(tx, 'hash', tx) as string
+    let transactionHashes: string[] = []
+    let standardizedTransactions: EthereumStandardizedTransaction[] = []
+    if (t.array(t.string).is(block.transactions)) {
+      transactionHashes = block.transactions
+    } else {
+      const currentBlockNumber = await this.getCurrentBlockNumber()
+      const standardizedTransactionsPromise = block.transactions.map(async tx => {
+        const txHash = tx.hash
+        transactionHashes.push(txHash)
 
-      const txReceipt = await this.getTransactionReceipt(txHash)
+        // TODO: Use this.eth.BatchRequest here
+        const txReceipt = await this.getTransactionReceipt(txHash)
 
-      return this.standardizeTransaction(tx, {
-        blockTime,
-        gasUsed: txReceipt.gasUsed,
-        currentBlockNumber,
-        status: txReceipt.status,
+        return this.standardizeTransaction(tx, txReceipt, {
+          blockTime,
+          currentBlockNumber,
+        })
       })
-    })
 
-    const standardizedTransactions = await Promise.all(standardizedTransactionsPromise)
+      standardizedTransactions = await Promise.all(standardizedTransactionsPromise)
+    }
 
     const blockInfo: BlockInfo = {
       id: block.hash,
@@ -217,7 +239,8 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       raw: {
         ...block,
         transactions: standardizedTransactions,
-        dataProvider: NETWORK_DATA_PROVIDERS.INFURA,
+        transactionHashes,
+        dataProvider: NetworkDataProviders.Web3,
       },
     }
 
@@ -226,23 +249,32 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
 
   standardizeTransaction(
     tx: Transaction,
+    txReceipt: TransactionReceipt | null,
     {
       blockTime,
       currentBlockNumber,
-      gasUsed,
-      contractAddress,
-      status,
     }: {
       blockTime: Date | null
       currentBlockNumber: number
-      gasUsed: number
-      contractAddress?: string
-      status: boolean
     },
   ): EthereumStandardizedTransaction {
+    const gasUsed = txReceipt?.gasUsed ?? 0
+    const status = txReceipt?.status ?? false
+    let contractAddress = txReceipt?.contractAddress ?? undefined
+
+    if (!tx.from) {
+      this.logger.warn(`Missing tx.from in tx ${tx.hash}`, tx, txReceipt)
+      throw new Error(`Missing tx.from in tx ${tx.hash}`)
+    }
+
+    let to = tx.to ?? contractAddress
+    if (!to) {
+      to = deriveCreate1Address(tx.from, tx.nonce)
+      contractAddress = to
+    }
     const standardizedTransaction: EthereumStandardizedTransaction = {
       from: tx.from,
-      to: tx.to!,
+      to,
       blockHash: tx.blockHash!,
       blockHeight: tx.blockNumber!,
       blockTime,
@@ -251,16 +283,18 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       value: tx.value,
       gasUsed,
       gasPrice: tx.gasPrice,
-      confirmations: tx.blockNumber ? currentBlockNumber - tx.blockNumber : 0,
+      confirmations: tx.blockNumber ? Math.max(currentBlockNumber - tx.blockNumber + 1, 0) : 0,
       contractAddress,
       status,
-      raw: {
-        ...tx,
-        blockTime,
-        currentBlockNumber,
-        gasUsed,
-        dataProvider: NETWORK_DATA_PROVIDERS.INFURA,
+      currentBlockNumber,
+      dataProvider: NetworkDataProviders.Web3,
+      receipt: {
+        ...(txReceipt ?? {}),
+        gasUsed: String(gasUsed),
+        status,
+        logs: txReceipt?.logs ?? [],
       },
+      raw: tx,
     }
 
     return standardizedTransaction
@@ -272,7 +306,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       txReceipt,
     }: {
       tx: Transaction
-      txReceipt: TransactionReceipt
+      txReceipt: TransactionReceipt | null
     },
     {
       blockTime,
@@ -282,12 +316,9 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       tokenSymbol,
     }: { blockTime: Date; currentBlockNumber: number; tokenDecimals: string; tokenName: string; tokenSymbol: string },
   ): EthereumStandardizedERC20Transaction {
-    const standardizedTx = this.standardizeTransaction(tx, {
-      gasUsed: txReceipt.gasUsed,
+    const standardizedTx = this.standardizeTransaction(tx, txReceipt, {
       currentBlockNumber,
       blockTime,
-      contractAddress: txReceipt.contractAddress,
-      status: txReceipt.status,
     })
 
     const result: EthereumStandardizedERC20Transaction = {
@@ -296,11 +327,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       tokenSymbol,
       tokenDecimals,
       tokenName,
-      receipt: {
-        gasUsed: txReceipt.gasUsed.toString(),
-        logs: txReceipt.logs,
-        status: txReceipt.status,
-      },
+      receipt: standardizedTx.receipt!
     }
 
     return result

@@ -23,6 +23,7 @@ import {
   NetworkTypeT,
   createUnitConverters,
   BlockInfo,
+  BigNumber,
 } from '@bitaccess/coinlib-common'
 import { BlockbookEthereum, BlockInfoEthereum } from 'blockbook-client'
 import Web3 from 'web3'
@@ -68,7 +69,7 @@ const networkConstantsCodecFields = {
   chainId: t.number,
 }
 
-export const NetworkConstants = t.type(networkConstantsCodecFields, 'NetworkConstants')
+export const NetworkConstants = t.partial(networkConstantsCodecFields, 'NetworkConstants')
 export type NetworkConstants = t.TypeOf<typeof NetworkConstants>
 
 export const PartialNetworkConstants = t.partial(networkConstantsCodecFields, 'PartialNetworkConstants')
@@ -79,7 +80,6 @@ export const EthereumPaymentsUtilsConfig = extendCodec(
   {},
   {
     fullNode: OptionalString,
-    parityNode: OptionalString,
     blockbookNode: t.union([t.string, t.array(t.string)]),
     blockbookApi: instanceofCodec(BlockbookEthereum),
     gasStation: OptionalString,
@@ -117,6 +117,15 @@ export const HdEthereumPaymentsConfig = extendCodec(
   'HdEthereumPaymentsConfig',
 )
 export type HdEthereumPaymentsConfig = t.TypeOf<typeof HdEthereumPaymentsConfig>
+
+export const SeedEthereumPaymentsConfig = extendCodec(
+  BaseEthereumPaymentsConfig,
+  {
+    seed: t.string,
+  },
+  'SeedEthereumPaymentsConfig',
+)
+export type SeedEthereumPaymentsConfig = t.TypeOf<typeof SeedEthereumPaymentsConfig>
 
 export const KeyPairEthereumPaymentsConfig = extendCodec(
   BaseEthereumPaymentsConfig,
@@ -166,7 +175,12 @@ export const Erc20PaymentsConfig = t.union([HdErc20PaymentsConfig, KeyPairErc20P
 export type Erc20PaymentsConfig = t.TypeOf<typeof Erc20PaymentsConfig>
 
 export const EthereumPaymentsConfig = t.union(
-  [HdEthereumPaymentsConfig, KeyPairEthereumPaymentsConfig, HdErc20PaymentsConfig, KeyPairErc20PaymentsConfig],
+  [
+    HdEthereumPaymentsConfig,
+    KeyPairEthereumPaymentsConfig,
+    HdErc20PaymentsConfig,
+    KeyPairErc20PaymentsConfig,
+  ],
   'EthereumPaymentsConfig',
 )
 export type EthereumPaymentsConfig = t.TypeOf<typeof EthereumPaymentsConfig>
@@ -184,16 +198,34 @@ export const EthereumTransactionOptions = extendCodec(
     data: t.string,
     gas: Numeric,
     proxyAddress: t.string,
+    legacySweep: t.boolean,
   },
   'EthereumTransactionOptions',
 )
 export type EthereumTransactionOptions = t.TypeOf<typeof EthereumTransactionOptions>
+
+export const EthereumUnsignedTxData = requiredOptionalCodec(
+  {
+    from: t.string,
+    value: t.string,
+    gas: t.string,
+    gasPrice: t.string,
+    nonce: t.string,
+  },
+  {
+    to: t.string,
+    data: t.string,
+  },
+  'EthereumUnsignedTxData'
+)
+export type EthereumUnsignedTxData = t.TypeOf<typeof EthereumUnsignedTxData>
 
 export const EthereumUnsignedTransaction = extendCodec(
   BaseUnsignedTransaction,
   {
     amount: t.string,
     fee: t.string,
+    data: EthereumUnsignedTxData,
   },
   'EthereumUnsignedTransaction',
 )
@@ -318,7 +350,6 @@ export const NetworkDataConfig = requiredOptionalCodec(
     blockBookConfig: BlockBookConfig,
   },
   {
-    parityUrl: t.string,
     logger: Logger,
     gasStationUrl: t.string,
     requestTimeoutMs: t.number,
@@ -341,6 +372,17 @@ export interface EthereumNodesConnection {
   blockbookApi?: BlockbookEthereum
 }
 
+export enum NetworkDataProviders {
+  Blockbook = 'blockbook',
+  Web3 = 'web3',
+}
+
+export interface EthereumStandardizedReceipt {
+  gasUsed: string
+  status: string | boolean
+  logs: any[]
+}
+
 export interface EthereumStandardizedTransaction {
   from: string
   to: string
@@ -356,6 +398,9 @@ export interface EthereumStandardizedTransaction {
   raw: object,
   contractAddress?: string
   status: boolean,
+  currentBlockNumber: number,
+  dataProvider: NetworkDataProviders,
+  receipt?: EthereumStandardizedReceipt,
 }
 
 export interface EthereumStandardizedERC20Transaction extends EthereumStandardizedTransaction {
@@ -363,15 +408,14 @@ export interface EthereumStandardizedERC20Transaction extends EthereumStandardiz
   tokenName: string
   tokenDecimals: string
   txInput: string
-  receipt: {
-    gasUsed: string
-    status: string | boolean
-    logs: any[]
-  }
+  receipt: EthereumStandardizedReceipt
 }
+
 export interface EthereumNetworkDataProvider {
-  getBlock(id?: string | number): Promise<BlockInfo>
+  getBlock(id?: string | number, includeTransactionObjects?: boolean): Promise<BlockInfo>
   getCurrentBlockNumber(): Promise<number>
+
+  getNextNonce(address: string): Promise<Numeric>
 
   getAddressBalance(address: string): Promise<string>
   getAddressBalanceERC20(address: string, tokenAddress: string): Promise<string>

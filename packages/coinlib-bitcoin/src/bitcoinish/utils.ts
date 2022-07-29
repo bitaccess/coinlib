@@ -1,15 +1,16 @@
-import { NetworkType, UtxoInfo, AutoFeeLevels, FeeRate, FeeRateType, BigNumber, } from '@bitaccess/coinlib-common'
+import { NetworkType, UtxoInfo, AutoFeeLevels, FeeRate, FeeRateType, BigNumber, bip32MagicNumberToPrefix } from '@bitaccess/coinlib-common'
 import { BlockbookBitcoin } from 'blockbook-client'
-import { isString, Logger, isMatchingError, toBigNumber, isNumber, assertType } from '@faast/ts-common'
+import { isString, Logger, isMatchingError, toBigNumber, assertType } from '@faast/ts-common'
 import request from 'request-promise-native'
 import promiseRetry from 'promise-retry'
 import crypto from 'crypto'
-import bs58 from 'bs58'
 
 import {
   AddressType, AddressTypeT, BlockbookConnectedConfig,
   BlockbookServerAPI, MultisigAddressType, SinglesigAddressType,
 } from './types'
+
+export { bip32MagicNumberToPrefix }
 
 export function resolveServer(config: BlockbookConnectedConfig, logger: Logger): {
   api: BlockbookServerAPI
@@ -293,10 +294,4 @@ export function estimateTxSize(
   totalWeight += varIntLength(totalOutputs) * 4
 
   return Math.ceil(totalWeight / 4)
-}
-
-export function bip32MagicNumberToPrefix(magicNum: number): string {
-  const b = Buffer.alloc(82)
-  b.writeUInt32BE(magicNum, 0)
-  return bs58.encode(b).slice(0, 4)
 }

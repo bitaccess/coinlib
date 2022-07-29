@@ -1,50 +1,49 @@
 import { BigNumber } from 'bignumber.js'
 import { HdEthereumPayments } from '../src/HdEthereumPayments'
-import { hdAccount } from './fixtures/accounts'
+import { DEFAULT_PATH_FIXTURE } from './fixtures/accounts'
 import { TestLogger } from '../../../common/testUtils'
-import { deriveSignatory } from '../src/bip44'
+import { EthereumBIP44 } from '../src/bip44'
 
-import { NetworkType, FeeLevel, FeeOption, FeeRateType, TransactionStatus } from '@bitaccess/coinlib-common'
+import { NetworkType, FeeLevel, FeeOption, FeeRateType, TransactionStatus, numericToHex } from '@bitaccess/coinlib-common'
 import nock from 'nock'
 
 import {
   getGasStationResponse,
-  getNextNonceMocks,
   getBalanceMocks,
   getTransactionCountMocks,
   getSendRawTransactionMocks,
   getEstimateGasMocks,
-  getTransactionApisMocks,
+  addTransactionApisMocks,
 } from './fixtures/mocks'
-import { EthereumSignedTransaction, EthereumUnsignedTransaction } from 'src'
+import { EthereumSignedTransaction, EthereumUnsignedTransaction, DEFAULT_DERIVATION_PATH } from '../src'
+import Web3 from 'web3'
+import { TestWeb3Provider } from './fixtures/TestWeb3Provider'
 
 const GAS_STATION_URL = 'https://gasstation.test.url'
-const PARITY_URL = 'https://parity.test.url'
 const INFURA_URL = 'https://infura.test.url'
-const BLOCKBOOK_URL = 'https://blockbook.test.url'
-const nockG = nock(GAS_STATION_URL)
-const nockP = nock(PARITY_URL)
-const nockI = nock(INFURA_URL)
 
-const logger = new TestLogger('HdEthereumPaymentsTest')
+const nockG = nock(GAS_STATION_URL)
+
+const logger = new TestLogger(__filename)
+
+const testWeb3Provider = new TestWeb3Provider(logger)
+const web3Utils = new Web3().utils
 
 const CONFIG = {
   network: NetworkType.Testnet,
   gasStation: GAS_STATION_URL,
-  parityNode: PARITY_URL,
   fullNode: INFURA_URL,
-  hdKey: hdAccount.rootChild[0].xkeys.xprv,
+  web3: new Web3(testWeb3Provider),
+  hdKey: DEFAULT_PATH_FIXTURE.xkeys.xprv,
   logger,
-  blockbookNode: BLOCKBOOK_URL,
 }
 
-const INSTANCE_KEYS = deriveSignatory(hdAccount.rootChild[0].xkeys.xprv, 0)
+const BIP44 = EthereumBIP44.fromXKey(DEFAULT_PATH_FIXTURE.xkeys.xprv)
+const INSTANCE_KEYS = BIP44.getSignatory(0)
 
-const FROM_ADDRESS = deriveSignatory(INSTANCE_KEYS.xkeys.xprv, 1).address.toLowerCase()
-const TO_ADDRESS = hdAccount.rootChild[1].address.toLowerCase()
-
-// web3 sequential id used by nock
-let id = 1
+// Convert these to checksum addresses so we can validate they become lowercased in returned objects
+const FROM_ADDRESS = web3Utils.toChecksumAddress(BIP44.getAddress(1))
+const TO_ADDRESS = web3Utils.toChecksumAddress(BIP44.getAddress(2))
 
 // methods from base
 describe('HdEthereumPayments', () => {
@@ -113,7 +112,6 @@ describe('HdEthereumPayments', () => {
 
       test('returns payport using input payport with index', async () => {
         expect(await hdEP.resolvePayport({ index: 1, address: FROM_ADDRESS })).toStrictEqual({
-          index: 1,
           address: FROM_ADDRESS.toLowerCase(),
         })
       })
@@ -125,7 +123,7 @@ describe('HdEthereumPayments', () => {
         } catch (e) {
           err = e.message
         }
-        expect(err).toBe('Invalid Ethereum address: 1')
+        expect(err).toBe('Invalid Ethereum Ropsten address: 1')
       })
 
       test('thorws an error for invalid object', async () => {
@@ -135,7 +133,7 @@ describe('HdEthereumPayments', () => {
         } catch (e) {
           err = e.message
         }
-        expect(err).toBe('Invalid Ethereum payport: {"address":"1"}')
+        expect(err).toBe('Invalid Ethereum Ropsten payport: {"address":"1"}')
       })
     })
 
@@ -237,8 +235,7 @@ describe('HdEthereumPayments', () => {
 
     describe('getBalance', () => {
       test('sends rpc request to node with correct paramaters', async () => {
-        const balanceMocks = getBalanceMocks(id++, FROM_ADDRESS, '10000000')
-        nockI.post(/.*/, balanceMocks.req).reply(200, balanceMocks.res)
+        testWeb3Provider.addMock(getBalanceMocks(FROM_ADDRESS, '10000000'))
 
         nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
@@ -256,31 +253,26 @@ describe('HdEthereumPayments', () => {
 
     describe('getNextSequenceNumber', () => {
       test('returns nonce for account', async () => {
-        const parityMock = getNextNonceMocks(1, FROM_ADDRESS, '0x1b')
-        nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
-
-        const transactionCountMocks = getTransactionCountMocks(id++, FROM_ADDRESS, '0x1a')
-        nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
+        testWeb3Provider.addMock(getTransactionCountMocks(FROM_ADDRESS, numericToHex(27)))
 
         expect(await hdEP.getNextSequenceNumber(FROM_ADDRESS)).toBe('27')
       })
     })
 
     describe('getTransactionInfo', () => {
-      test('returns unconfirmed transaction by id)', async () => {
+      test('returns unconfirmed transaction by id', async () => {
         const txId = '0x9fc76417374aa880d4449a1f7f31ec597f00b1f6f3dd2d66f4c9c6c445836d8b'
         const blockId = '0xef95f2f1ed3ca60b048b4bf67cde2195961e0bba6f70bcbea9a2c4e133e34b46'
         const amount = '123450000000000000'
 
-        id = getTransactionApisMocks({
-          requestId: id,
+        addTransactionApisMocks({
+          testProvider: testWeb3Provider,
           txId,
           blockId,
           blockNumber: '0x3',
           amount,
           fromAddress: FROM_ADDRESS,
           toAddress: TO_ADDRESS,
-          nock: nockI,
           isConfirmed: false,
           isFailedTransaction: false,
         })
@@ -308,22 +300,47 @@ describe('HdEthereumPayments', () => {
           status: 'pending',
           currentBlockNumber: 3,
           data: {
-            hash: txId,
-            nonce: 2,
             blockHash: blockId,
-            transactionIndex: 0,
+            txHash: txId,
+            blockHeight: null,
+            blockTime: null,
+            confirmations: 0,
+            contractAddress: undefined,
+            currentBlockNumber: 3,
+            dataProvider: 'web3',
             from: FROM_ADDRESS,
             to: TO_ADDRESS,
-            value: '123450000000000000',
-            gas: 21000,
             gasPrice: '2000000000000',
-            input: '0x57cb2fc4',
+            value: amount,
             gasUsed: 21000,
-            blockTime: null,
-            blockNumber: null,
-            currentBlockNumber: 3,
-            dataProvider: 'infura',
-            contractAddress: null,
+            nonce: 2,
+            status: true,
+            raw: {
+              blockHash: blockId,
+              blockNumber: null,
+              from: FROM_ADDRESS,
+              gas: 21000,
+              gasPrice: '2000000000000',
+              hash: txId,
+              input: '0x57cb2fc4',
+              nonce: 2,
+              to: TO_ADDRESS,
+              transactionIndex: 0,
+              value: amount,
+            },
+            receipt: {
+              blockHash: blockId,
+              blockNumber: null,
+              contractAddress: null,
+              cumulativeGasUsed: 314159,
+              from: FROM_ADDRESS,
+              gasUsed: '21000',
+              logs: [],
+              status: true,
+              to: TO_ADDRESS,
+              transactionHash: txId,
+              transactionIndex: 0,
+            },
           },
         })
       })
@@ -334,15 +351,14 @@ describe('HdEthereumPayments', () => {
         const amount = '123450000000000000'
         const blockNumber = '0x3'
 
-        id = getTransactionApisMocks({
-          requestId: id,
+        addTransactionApisMocks({
+          testProvider: testWeb3Provider,
           txId,
           blockId,
           blockNumber,
           amount,
           fromAddress: FROM_ADDRESS,
           toAddress: TO_ADDRESS,
-          nock: nockI,
           isConfirmed: true,
           isFailedTransaction: false,
         })
@@ -363,30 +379,55 @@ describe('HdEthereumPayments', () => {
           weight: 21000,
           isExecuted: true,
           isConfirmed: true,
-          confirmations: 12,
+          confirmations: 13,
           confirmationId: blockId,
           confirmationTimestamp: new Date('2015-04-17T16:21:29.000Z'),
           confirmationNumber: Number(blockNumber),
           status: 'confirmed',
           currentBlockNumber: 15,
           data: {
-            hash: txId,
-            nonce: 2,
             blockHash: blockId,
-            blockNumber: 3,
-            transactionIndex: 0,
-            from: FROM_ADDRESS.toLowerCase(),
-            to: TO_ADDRESS.toLowerCase(),
-            value: '123450000000000000',
-            gas: 21000,
-            gasPrice: '2000000000000',
-            input: '0x57cb2fc4',
-            gasUsed: 21000,
+            txHash: txId,
+            blockHeight: 3,
             blockTime: new Date('2015-04-17T16:21:29.000Z'),
+            confirmations: 13,
+            contractAddress: undefined,
             currentBlockNumber: 15,
-            dataProvider: 'infura',
-            contractAddress: null,
-          },
+            dataProvider: 'web3',
+            from: FROM_ADDRESS,
+            to: TO_ADDRESS,
+            status: true,
+            value: amount,
+            gasPrice: '2000000000000',
+            gasUsed: 21000,
+            nonce: 2,
+            raw: {
+              blockHash: blockId,
+              blockNumber: 3,
+              from: FROM_ADDRESS,
+              gas: 21000,
+              gasPrice: '2000000000000',
+              hash: txId,
+              input: '0x57cb2fc4',
+              nonce: 2,
+              to: TO_ADDRESS,
+              transactionIndex: 0,
+              value: amount,
+            },
+            receipt: {
+              blockHash: blockId,
+              blockNumber: 3,
+              contractAddress: null,
+              cumulativeGasUsed: 314159,
+              from: FROM_ADDRESS,
+              gasUsed: '21000',
+              logs: [],
+              status: true,
+              to: TO_ADDRESS,
+              transactionHash: txId,
+              transactionIndex: 0,
+            },
+          }
         })
       })
 
@@ -396,15 +437,14 @@ describe('HdEthereumPayments', () => {
         const amount = '123450000000000000'
         const blockNumber = '0x3'
 
-        id = getTransactionApisMocks({
-          requestId: id,
+        addTransactionApisMocks({
+          testProvider: testWeb3Provider,
           txId,
           blockId,
           blockNumber,
           amount,
           fromAddress: FROM_ADDRESS,
           toAddress: TO_ADDRESS,
-          nock: nockI,
           isConfirmed: true,
           isFailedTransaction: true,
         })
@@ -425,29 +465,54 @@ describe('HdEthereumPayments', () => {
           weight: 21000,
           isExecuted: false,
           isConfirmed: true,
-          confirmations: 12,
+          confirmations: 13,
           confirmationId: blockId,
           confirmationTimestamp: new Date('2015-04-17T16:21:29.000Z'),
           status: 'failed',
           currentBlockNumber: 15,
           confirmationNumber: Number(blockNumber),
           data: {
-            hash: txId,
-            nonce: 2,
             blockHash: blockId,
-            blockNumber: 3,
-            transactionIndex: 0,
-            from: FROM_ADDRESS.toLowerCase(),
-            to: TO_ADDRESS.toLowerCase(),
-            value: '123450000000000000',
-            gas: 21000,
-            gasPrice: '2000000000000',
-            input: '0x57cb2fc4',
-            gasUsed: 21000,
+            txHash: txId,
+            blockHeight: 3,
             blockTime: new Date('2015-04-17T16:21:29.000Z'),
+            confirmations: 13,
+            contractAddress: undefined,
             currentBlockNumber: 15,
-            dataProvider: 'infura',
-            contractAddress: null,
+            dataProvider: 'web3',
+            status: false,
+            from: FROM_ADDRESS,
+            to: TO_ADDRESS,
+            value: amount,
+            gasPrice: '2000000000000',
+            gasUsed: 21000,
+            nonce: 2,
+            raw: {
+              blockHash: blockId,
+              blockNumber: 3,
+              from: FROM_ADDRESS,
+              gas: 21000,
+              gasPrice: '2000000000000',
+              hash: txId,
+              input: '0x57cb2fc4',
+              nonce: 2,
+              to: TO_ADDRESS,
+              transactionIndex: 0,
+              value: amount,
+            },
+            receipt: {
+              blockHash: blockId,
+              blockNumber: 3,
+              contractAddress: null,
+              cumulativeGasUsed: 314159,
+              from: FROM_ADDRESS,
+              gasUsed: '21000',
+              logs: [],
+              status: false,
+              to: TO_ADDRESS,
+              transactionHash: txId,
+              transactionIndex: 0,
+            },
           },
         })
       })
@@ -459,21 +524,14 @@ describe('HdEthereumPayments', () => {
         const to = { address: TO_ADDRESS }
         const amountEth = '0.005'
 
-        const estimateGasMocks = getEstimateGasMocks(id++, FROM_ADDRESS, TO_ADDRESS, '0xaaaa')
-        nockI.post(/.*/, estimateGasMocks.req).reply(200, estimateGasMocks.res)
+        testWeb3Provider.addMock(getEstimateGasMocks(FROM_ADDRESS, TO_ADDRESS, '0xaaaa'))
 
-        // nock for get balance
-        const balanceMocks = getBalanceMocks(id++, FROM_ADDRESS, '9999999999999999999999999999')
-        nockI.post(/.*/, balanceMocks.req).reply(200, balanceMocks.res)
+        testWeb3Provider.addMock(getBalanceMocks(FROM_ADDRESS, '9999999999999999999999999999'))
 
         // nock for gas station
         nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
-        const transactionCountMocks = getTransactionCountMocks(id++, FROM_ADDRESS, '0x1a')
-        nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
-
-        const parityMock = getNextNonceMocks(1, FROM_ADDRESS, '0x1b')
-        nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
+        testWeb3Provider.addMock(getTransactionCountMocks(FROM_ADDRESS, numericToHex(27)))
 
         const res = await hdEP.createTransaction(from, to, amountEth)
 
@@ -512,20 +570,13 @@ describe('HdEthereumPayments', () => {
         const to = { address: TO_ADDRESS }
         const amountEth = '50000'
 
-        const estimateGasMocks = getEstimateGasMocks(id++, FROM_ADDRESS, TO_ADDRESS, '0xaaaa')
-        nockI.post(/.*/, estimateGasMocks.req).reply(200, estimateGasMocks.res)
+        testWeb3Provider.addMock(getEstimateGasMocks(FROM_ADDRESS, TO_ADDRESS, numericToHex(43690)))
 
-        // nock for get balance
-        const balanceMocks = getBalanceMocks(id++, FROM_ADDRESS, '49999')
-        nockI.post(/.*/, balanceMocks.req).reply(200, balanceMocks.res)
+        testWeb3Provider.addMock(getBalanceMocks(FROM_ADDRESS, '49999'))
 
         nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
-        const transactionCountMocks = getTransactionCountMocks(id++, FROM_ADDRESS, '0x1a')
-        nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
-
-        const parityMock = getNextNonceMocks(1, FROM_ADDRESS, '0x1b')
-        nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
+        testWeb3Provider.addMock(getTransactionCountMocks(FROM_ADDRESS, numericToHex(27)))
 
         let err: string = ''
         try {
@@ -543,21 +594,14 @@ describe('HdEthereumPayments', () => {
         const to = { address: '0x6295eE1B4F6dD65047762F924Ecd367c17eaBf8f' }
         const balance = '142334532324980082'
 
-        const estimateGasMocks = getEstimateGasMocks(id++, FROM_ADDRESS, to.address, '0x52bc')
-        nockI.post(/.*/, estimateGasMocks.req).reply(200, estimateGasMocks.res)
+        testWeb3Provider.addMock(getEstimateGasMocks(FROM_ADDRESS, to.address, numericToHex(21180)))
 
-        // nock for get balance
-        const balanceMocks = getBalanceMocks(id++, FROM_ADDRESS, balance)
-        nockI.post(/.*/, balanceMocks.req).reply(200, balanceMocks.res)
+        testWeb3Provider.addMock(getBalanceMocks(FROM_ADDRESS, balance))
 
         // nock for gas station
         nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
-        const transactionCountMocks = getTransactionCountMocks(id++, FROM_ADDRESS, '0x1a')
-        nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
-
-        const parityMock = getNextNonceMocks(1, FROM_ADDRESS, '0x1b')
-        nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
+        testWeb3Provider.addMock(getTransactionCountMocks(FROM_ADDRESS, numericToHex(27)))
 
         const res = await hdEP.createSweepTransaction(from, to)
 
@@ -605,21 +649,14 @@ describe('HdEthereumPayments', () => {
         const from = 1
         const to = { address: TO_ADDRESS }
 
-        const estimateGasMocks = getEstimateGasMocks(id++, FROM_ADDRESS, TO_ADDRESS, '0x52bc')
-        nockI.post(/.*/, estimateGasMocks.req).reply(200, estimateGasMocks.res)
+        testWeb3Provider.addMock(getEstimateGasMocks(FROM_ADDRESS, TO_ADDRESS, numericToHex(21180)))
 
-        // nock for get balance
-        const balanceMocks = getBalanceMocks(id++, FROM_ADDRESS, '999')
-        nockI.post(/.*/, balanceMocks.req).reply(200, balanceMocks.res)
+        testWeb3Provider.addMock(getBalanceMocks(FROM_ADDRESS, '999'))
 
         // nock for gas station
         nockG.get('/json/ethgasAPI.json').reply(200, getGasStationResponse())
 
-        const transactionCountMocks = getTransactionCountMocks(id++, FROM_ADDRESS, '0x1a')
-        nockI.post(/.*/, transactionCountMocks.req).reply(200, transactionCountMocks.res)
-
-        const parityMock = getNextNonceMocks(1, FROM_ADDRESS, '0x1b')
-        nockP.post(/.*/, parityMock.req).reply(200, parityMock.res)
+        testWeb3Provider.addMock(getTransactionCountMocks(FROM_ADDRESS, numericToHex(27)))
 
         let err: string = ''
         try {
@@ -665,7 +702,7 @@ describe('HdEthereumPayments', () => {
         const res = await hdEP.signTransaction(unsignedTx)
 
         expect(res).toStrictEqual({
-          id: '0x3137b3336975aabfcf141469727d8d805f5e6d343de7fcc93e61d8d19d5d238f',
+          id: '0x2bc0bc3c23a46aedafe4a94933b91e90bca122c784a5de0334d53e8b019570ea',
           status: 'signed',
           fromAddress: FROM_ADDRESS.toLowerCase(),
           toAddress: to.address.toLowerCase(),
@@ -680,8 +717,16 @@ describe('HdEthereumPayments', () => {
           sequenceNumber: '27',
           weight: 21000,
           data: {
-            hex:
-              '0xf86c1b8545d964b80082523c948f0bb36577b19da9826fc726fec2b4943c45e0148801e33c7f8ff555728029a0a7dafa27f75d1fd50e8544a0f1f31ac4275a65855b05585fdbe2796fab967e5aa057b626e4f993d1e2152fb0fa1ca72943aacaf27d56adca2f3f195ab90d253d73',
+            data: '0x',
+            gasLimit: unsignedTx.data.gas,
+            gasPrice: unsignedTx.data.gasPrice,
+            hex: '0xf86c1b8545d964b80082523c94370d63dbf533f4c79e83d7d13b39c88b188efeeb8801e33c7f8ff555728029a0e97c97005272506f43f0bf20b43ba49816bf28cf3d3e6c2de8f66eebd0750608a0171677049edc2e89bbf623f9c33c8c8d7a5981855a1d3c76c3a234d0cfcabd81',
+            nonce: unsignedTx.data.nonce,
+            r: '0xe97c97005272506f43f0bf20b43ba49816bf28cf3d3e6c2de8f66eebd0750608',
+            s: '0x171677049edc2e89bbf623f9c33c8c8d7a5981855a1d3c76c3a234d0cfcabd81',
+            to: '0x370d63dbf533f4c79e83d7d13b39c88b188efeeb',
+            v: '0x29',
+            value: unsignedTx.data.value,
           },
         })
       })
@@ -711,8 +756,7 @@ describe('HdEthereumPayments', () => {
         }
 
         // sends rpc request with transaction and receives id
-        const rawTxMock = getSendRawTransactionMocks(id++, rawTx, txId)
-        nockI.post(/.*/, rawTxMock.req).reply(200, rawTxMock.res)
+        testWeb3Provider.addMock(getSendRawTransactionMocks(rawTx, txId))
 
         const res = await hdEP.broadcastTransaction(signedTx)
 
@@ -748,7 +792,7 @@ describe('HdEthereumPayments', () => {
         expect(pubConf).toStrictEqual({
           depositKeyIndex: 0,
           network: NetworkType.Testnet,
-          derivationPath: "m/44'/60'/0'/0",
+          derivationPath: DEFAULT_DERIVATION_PATH,
           hdKey: INSTANCE_KEYS.xkeys.xpub,
         })
       })
@@ -756,7 +800,7 @@ describe('HdEthereumPayments', () => {
 
     describe('getAccountId', () => {
       test('returns xpub regardless of index', () => {
-        expect(hdEP.getAccountId(1320842)).toBe(INSTANCE_KEYS.xkeys.xpub)
+        expect(hdEP.getAccountId()).toBe(INSTANCE_KEYS.xkeys.xpub)
       })
     })
 
@@ -776,7 +820,7 @@ describe('HdEthereumPayments', () => {
 
     describe('getPrivateKey', () => {
       test('returns prv', async () => {
-        expect(await hdEP.getPrivateKey(0)).toBe(deriveSignatory(INSTANCE_KEYS.xkeys.xprv, 0).keys.prv)
+        expect(await hdEP.getPrivateKey(0)).toBe(INSTANCE_KEYS.keys.prv)
       })
     })
   })

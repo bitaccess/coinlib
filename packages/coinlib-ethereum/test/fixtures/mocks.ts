@@ -1,42 +1,37 @@
-import nock from 'nock'
-import { RequestBodyMatcher } from 'nock/types'
-import { MIN_CONFIRMATIONS } from '../../src'
+import { Transaction } from 'web3-eth'
 
-interface Mock {
-  req: RequestBodyMatcher
-  res: Object
-}
+import { TestWeb3Provider } from './TestWeb3Provider'
+import { Mock, MockReq, MockRes } from './types'
 
-export function getNextNonceMocks(id: number | RegExp, address: string, nonce: string): Mock {
+export function getParityNextNonceMocks(address: string, nonce: string): Mock {
   return {
-    req: getNextNonceRequest(id, address),
-    res: getNextNonceResponse(id, nonce),
+    req: getParityNextNonceRequest(address),
+    res: getParityNextNonceResponse(nonce),
   }
 }
 
-export function getBalanceMocks(id: number | RegExp, address: string, balance: string): Mock {
+export function getBalanceMocks(address: string, balance: string): Mock {
   return {
-    req: getBalanceRequest(id, address),
-    res: getBalanceResponse(id, balance),
+    req: getBalanceRequest(address),
+    res: getBalanceResponse(balance),
   }
 }
 
-export function getTransactionCountMocks(id: number | RegExp, address: string, nonce: string): Mock {
+export function getTransactionCountMocks(address: string, nonce: string): Mock {
   return {
-    req: getTransactionCountRequest(id, address),
-    res: getTransactionCountResponse(id, nonce),
+    req: getTransactionCountRequest(address),
+    res: getTransactionCountResponse(nonce),
   }
 }
 
-export function getSendRawTransactionMocks(id: number | RegExp, rawTx: string, txHash: string): Mock {
+export function getSendRawTransactionMocks(rawTx: string, txHash: string): Mock {
   return {
-    req: getSendRawTransactionRequest(id, rawTx),
-    res: getSendRawTransactionResponse(id, txHash),
+    req: getSendRawTransactionRequest(rawTx),
+    res: getSendRawTransactionResponse(txHash),
   }
 }
 
 export function getTransactionReceiptMocks(
-  id: number | RegExp,
   from: string,
   to: string,
   status: number,
@@ -46,13 +41,12 @@ export function getTransactionReceiptMocks(
   isConfirmed: boolean,
 ): Mock {
   return {
-    req: getTransactionReceiptRequest(id, txHash),
-    res: getTransactionReceiptResponse(id, from, to, status, blockNumber, txHash, blockHash, isConfirmed),
+    req: getTransactionReceiptRequest(txHash),
+    res: getTransactionReceiptResponse(from, to, status, blockNumber, txHash, blockHash, isConfirmed),
   }
 }
 
 export function getTransactionByHashMocks(
-  id: number | RegExp,
   txHash: string,
   blockHash: string | null,
   blockNumber: number | null,
@@ -62,44 +56,42 @@ export function getTransactionByHashMocks(
   isConfirmed: boolean,
 ): Mock {
   return {
-    req: getTransactionByHashRequest(id, txHash),
-    res: getTransactionByHashResponse(id, txHash, blockHash, blockNumber, from, to, value, isConfirmed),
+    req: getTransactionByHashRequest(txHash),
+    res: getTransactionByHashResponse(txHash, blockHash, blockNumber, from, to, value, isConfirmed),
   }
 }
 
-export function getBlockNumberMocks(id: number | RegExp, count: string, isSufficientlyConfirmed: boolean): Mock {
+export function getBlockNumberMocks(count: string, isSufficientlyConfirmed: boolean): Mock {
   return {
-    req: getBlockNumberRequest(id),
-    res: getBlockNumberResponse(id, count, isSufficientlyConfirmed),
+    req: getBlockNumberRequest(),
+    res: getBlockNumberResponse(count, isSufficientlyConfirmed),
   }
 }
 
 export function getBlockByNumberMocks(
-  id: number | RegExp,
-  blockNumber: string,
+  blockNumber: number,
   blockHash: string,
   txHashes: [string],
 ): Mock {
   return {
-    req: getBlockByNumberRequest(id, blockNumber),
-    res: getBlockByNumberResponse(id, blockNumber, blockHash, txHashes),
+    req: getBlockByNumberRequest(blockNumber),
+    res: getBlockByNumberResponse(blockNumber, blockHash, txHashes),
   }
 }
 
 export function getBlockByHashMocks(
-  id: number | RegExp,
   blockNumber: string,
   blockHash: string,
   txHashes: [string],
   isConfirmed: boolean,
 ): Mock {
   return {
-    req: getBlockByHashRequest(id, blockHash),
-    res: getBlockByHashResponse(id, blockNumber, blockHash, txHashes, isConfirmed),
+    req: getBlockByHashRequest(blockHash),
+    res: getBlockByHashResponse(blockNumber, blockHash, txHashes, isConfirmed),
   }
 }
 
-export function getGasStationResponse(): Object {
+export function getGasStationResponse() {
   return {
     fast: 80,
     fastest: 100,
@@ -139,121 +131,95 @@ export function getGasStationResponse(): Object {
   }
 }
 
-export function getGasPriceMocks(id: number | RegExp, price: string) {
+export function getGasPriceMocks(price: string) {
   return {
     req: {
-      jsonrpc: '2.0',
-      id,
       method: 'eth_gasPrice',
       params: [],
     },
     res: {
-      jsonrpc: '2.0',
-      id,
       result: price,
     },
   }
 }
 
-export function getEstimateGasMocks(id: number | RegExp, from: string, to: string, result: string) {
+export function getEstimateGasMocks(from: string, to: string, result: string, data?: string) {
   return {
     req: {
-      jsonrpc: '2.0',
-      id,
       method: 'eth_estimateGas',
       params: [
         {
           from: from.toLowerCase(),
           to: to.toLowerCase(),
+          ...(data ? { data } : {}),
         },
       ],
     },
     res: {
-      jsonrpc: '2.0',
-      id,
       result,
     },
   }
 }
-function getNextNonceRequest(id: number | RegExp, address: string): RequestBodyMatcher {
+function getParityNextNonceRequest(address: string): MockReq {
   return {
-    jsonrpc: '2.0',
     method: 'parity_nextNonce',
     params: [address.toLowerCase()],
-    id,
   }
 }
 
-function getNextNonceResponse(id: number | RegExp, nonce: string): Object {
+function getParityNextNonceResponse(nonce: string): MockRes {
   return {
-    jsonrpc: '2.0',
-    id,
     result: nonce,
   }
 }
 
-function getBalanceRequest(id: number | RegExp, address: string): RequestBodyMatcher {
+function getBalanceRequest(address: string): MockReq {
   return {
-    jsonrpc: '2.0',
-    id,
     method: 'eth_getBalance',
     params: [address.toLowerCase(), 'latest'],
   }
 }
 
-function getBalanceResponse(id: number | RegExp, balance: string): Object {
+function getBalanceResponse(balance: string): MockRes {
   return {
-    jsonrpc: '2.0',
-    id,
     result: balance,
   }
 }
 
-function getTransactionCountRequest(id: number | RegExp, address: string): RequestBodyMatcher {
+function getTransactionCountRequest(address: string): MockReq {
   return {
-    jsonrpc: '2.0',
     method: 'eth_getTransactionCount',
     params: [address.toLowerCase(), 'pending'],
-    id,
   }
 }
 
-function getTransactionCountResponse(id: number | RegExp, nonce: string): Object {
+function getTransactionCountResponse(nonce: string): MockRes<string> {
   return {
-    jsonrpc: '2.0',
-    id,
     result: nonce,
   }
 }
 
-function getSendRawTransactionRequest(id: number | RegExp, rawTx: string): RequestBodyMatcher {
+function getSendRawTransactionRequest(rawTx: string): MockReq {
   return {
-    jsonrpc: '2.0',
     method: 'eth_sendRawTransaction',
     params: [rawTx],
-    id,
   }
 }
 
-function getSendRawTransactionResponse(id: number | RegExp, txHash: string): Object {
+function getSendRawTransactionResponse(txHash: string): MockRes<string> {
   return {
-    jsonrpc: '2.0',
-    id,
     result: txHash,
   }
 }
 
-function getTransactionReceiptRequest(id: number | RegExp, txHash: string): RequestBodyMatcher {
+function getTransactionReceiptRequest(txHash: string): MockReq {
   return {
-    jsonrpc: '2.0',
-    id,
     method: 'eth_getTransactionReceipt',
     params: [txHash],
   }
 }
 
 function getTransactionReceiptResponse(
-  id: number | RegExp,
   from: string,
   to: string,
   status: number,
@@ -261,10 +227,8 @@ function getTransactionReceiptResponse(
   txHash: string,
   blockHash: string | null,
   isConfirmed: boolean,
-): Object {
+): MockRes {
   return {
-    jsonrpc: '2.0',
-    id,
     result: {
       from,
       to,
@@ -281,17 +245,14 @@ function getTransactionReceiptResponse(
   }
 }
 
-function getTransactionByHashRequest(id: number | RegExp, txHash: string): RequestBodyMatcher {
+function getTransactionByHashRequest(txHash: string): MockReq {
   return {
-    jsonrpc: '2.0',
-    id,
     method: 'eth_getTransactionByHash',
     params: [txHash],
   }
 }
 
 function getTransactionByHashResponse(
-  id: number | RegExp,
   txHash: string,
   blockHash: string | null,
   blockNumber: number | null,
@@ -299,10 +260,8 @@ function getTransactionByHashResponse(
   to: string,
   value: string,
   isConfirmed: boolean,
-): Object {
+): MockRes<Transaction> {
   return {
-    jsonrpc: '2.0',
-    id,
     result: {
       hash: txHash,
       nonce: 2,
@@ -319,45 +278,36 @@ function getTransactionByHashResponse(
   }
 }
 
-function getBlockNumberRequest(id: number | RegExp): RequestBodyMatcher {
+function getBlockNumberRequest(): MockReq {
   return {
-    jsonrpc: '2.0',
-    id,
     method: 'eth_blockNumber',
     params: [],
   }
 }
 
-function getBlockNumberResponse(id: number | RegExp, count: string, isSufficientlyConfirmed: boolean = false): Object {
+function getBlockNumberResponse(count: string, isSufficientlyConfirmed: boolean = false): MockRes<string> {
   const result = isSufficientlyConfirmed ? getBlockNumberWithSufficientConfirmations(count) : count
 
   return {
-    jsonrpc: '2.0',
-    id,
     result,
   }
 }
 
-function getBlockByNumberRequest(id: number | RegExp, blockNumber: string): RequestBodyMatcher {
+function getBlockByNumberRequest(blockNumber: number): MockReq {
   return {
-    jsonrpc: '2.0',
-    id,
     method: 'eth_getBlockByNumber',
-    params: [blockNumber, false],
+    params: [String(blockNumber), false],
   }
 }
 
 function getBlockByNumberResponse(
-  id: number | RegExp,
-  blockNumber: string,
+  blockNumber: number,
   blockHash: string,
   txHashes: [string],
-): Object {
+): MockRes {
   return {
-    jsonrpc: '2.0',
-    id,
     result: {
-      number: 3,
+      number: blockNumber,
       hash: blockHash,
       parentHash: '0x2302e1c0b972d00932deb5dab9eb2982f570597d9d42504c05d9c2147eaf9c88',
       nonce: '0xfb6e1a62d119228b',
@@ -380,25 +330,20 @@ function getBlockByNumberResponse(
   }
 }
 
-function getBlockByHashRequest(id: number | RegExp, blockHash: string): RequestBodyMatcher {
+function getBlockByHashRequest(blockHash: string): MockReq {
   return {
-    jsonrpc: '2.0',
-    id,
     method: 'eth_getBlockByHash',
-    params: [blockHash, true],
+    params: [blockHash, false],
   }
 }
 
 function getBlockByHashResponse(
-  id: number | RegExp,
   blockNumber: string,
   blockHash: string,
   txHashes: string[],
   isConfirmed: boolean,
-): Object {
+): MockRes {
   return {
-    jsonrpc: '2.0',
-    id,
     result: {
       number: isConfirmed ? blockNumber : null,
       hash: blockHash,
@@ -424,14 +369,13 @@ function getBlockByHashResponse(
 }
 
 const getBlockNumberWithSufficientConfirmations = (blockNumber: string | number) => {
-  const result = Math.max(MIN_CONFIRMATIONS, 12) + Number(blockNumber)
+  const result = 12 + Number(blockNumber)
 
   return `0x${result.toString(16)}`
 }
 
-export const getTransactionApisMocks = ({
-  requestId,
-  nock,
+export const addTransactionApisMocks = ({
+  testProvider,
   txId,
   blockId,
   blockNumber,
@@ -441,8 +385,7 @@ export const getTransactionApisMocks = ({
   isConfirmed = true,
   isFailedTransaction,
 }: {
-  requestId: number
-  nock: nock.Scope
+  testProvider: TestWeb3Provider,
   txId: string
   blockId: string
   blockNumber: string
@@ -452,11 +395,10 @@ export const getTransactionApisMocks = ({
   isConfirmed: boolean
   isFailedTransaction: boolean
 }) => {
-  let id = requestId
+  const id = /\d+/
   const status = isFailedTransaction ? 0x0 : 0x1
 
-  const transactionByHashMock = getTransactionByHashMocks(
-    id++,
+  testProvider.addMock(getTransactionByHashMocks(
     txId,
     blockId,
     Number(blockNumber),
@@ -464,11 +406,9 @@ export const getTransactionApisMocks = ({
     toAddress,
     amount,
     isConfirmed,
-  )
-  nock.post(/.*/, transactionByHashMock.req).reply(200, transactionByHashMock.res)
+  ))
 
-  const mockTransactionReceipt = getTransactionReceiptMocks(
-    id++,
+  testProvider.addMock(getTransactionReceiptMocks(
     fromAddress,
     toAddress,
     status,
@@ -476,33 +416,11 @@ export const getTransactionApisMocks = ({
     txId,
     blockId,
     isConfirmed,
-  )
-  nock.post(/.*/, mockTransactionReceipt.req).reply(200, mockTransactionReceipt.res)
+  ))
 
-  const blockNumberNock = getBlockNumberMocks(id++, blockNumber, isConfirmed)
-  nock.post(/.*/, blockNumberNock.req).reply(200, blockNumberNock.res)
+  testProvider.addMock(getBlockNumberMocks(blockNumber, isConfirmed))
 
-  const blockNock = getBlockByHashMocks(id++, blockNumber, blockId, [txId], isConfirmed)
-
-  nock.post(/.*/, blockNock.req).reply(200, blockNock.res)
-
-  const blockNumberNock2 = getBlockNumberMocks(id++, blockNumber, isConfirmed)
-  nock.post(/.*/, blockNumberNock2.req).reply(200, blockNumberNock2.res)
-
-  const mockTransactionReceipt2 = getTransactionReceiptMocks(
-    id++,
-    fromAddress,
-    toAddress,
-    status,
-    blockNumber,
-    txId,
-    blockId,
-    isConfirmed,
-  )
-  nock.post(/.*/, mockTransactionReceipt2.req).reply(200, mockTransactionReceipt2.res)
-
-  const blockNumberNock3 = getBlockNumberMocks(id++, blockNumber, isConfirmed)
-  nock.post(/.*/, blockNumberNock3.req).reply(200, blockNumberNock3.res)
+  testProvider.addMock(getBlockByHashMocks(blockNumber, blockId, [txId], isConfirmed))
 
   return id
 }
@@ -532,5 +450,17 @@ export const BLOCKBOOK_STATUS_MOCK = {
     "bestBlockHash": "0x6fff5cb18e42375abec0d7ab83540481699d5edaf4ca2048ae452b36c9584aca",
     "difficulty": "11213687248219436",
     "version": "Geth/v1.10.19-stable-23bee162/linux-amd64/go1.18.1"
+  }
+}
+
+export function getBlockbookAddressBasicMock(from: string, nonce: number) {
+  return {
+    address: from,
+    balance: "0",
+    unconfirmedBalance: "0",
+    unconfirmedTxs: 0,
+    txs: nonce + 4,
+    nonTokenTxs: nonce + 2,
+    nonce: String(nonce)
   }
 }

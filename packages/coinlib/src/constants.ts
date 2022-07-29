@@ -6,8 +6,7 @@ import { EthereumPaymentsFactory } from '@bitaccess/coinlib-ethereum'
 import { LitecoinPaymentsFactory } from '@bitaccess/coinlib-litecoin'
 import { BitcoinCashPaymentsFactory } from '@bitaccess/coinlib-bitcoin-cash'
 import { DogePaymentsFactory } from '@bitaccess/coinlib-doge'
-
-import { keysOf } from './utils'
+import { keysOf } from '@bitaccess/coinlib-common'
 
 export const PAYMENTS_FACTORIES = {
   TRX: new TronPaymentsFactory(),

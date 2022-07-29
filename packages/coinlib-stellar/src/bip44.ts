@@ -1,7 +1,7 @@
 import { StellarSignatory } from './types'
 import { deriveKeyPairForAnyPath, removeTrailingSlash } from './helpers'
 import StellarHDWallet from 'stellar-hd-wallet'
-import * as bip39 from 'bip39'
+import { bip39 } from '@bitaccess/coinlib-common'
 
 export function deriveSignatory(seed: string, index: number): StellarSignatory {
   const wallet = seed.includes(' ') ? StellarHDWallet.fromMnemonic(seed) : StellarHDWallet.fromSeed(seed)

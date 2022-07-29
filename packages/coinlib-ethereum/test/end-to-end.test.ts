@@ -1,20 +1,21 @@
-import server from 'ganache'
+import server, { ServerOptions } from 'ganache'
 import {
   NetworkType,
   BigNumber,
+  strip0x,
 } from '@bitaccess/coinlib-common'
 
 import { TestLogger } from '../../../common/testUtils'
 
 import EthereumPaymentsFactory from '../src/EthereumPaymentsFactory'
-import { hdAccount } from './fixtures/accounts'
-import { deriveSignatory } from '../src/bip44'
+import { DEFAULT_PATH_FIXTURE, hdAccount } from './fixtures/accounts'
+import { EthereumBIP44 } from '../src/bip44'
 
 const LOCAL_NODE = 'http://localhost'
 const LOCAL_NODE_WS = 'ws://localhost'
 const LOCAL_PORT = 8546
 
-const logger = new TestLogger('ethereum-payments')
+const logger = new TestLogger(__filename)
 
 const factory = new EthereumPaymentsFactory()
 
@@ -25,8 +26,8 @@ const HD_CONFIG = {
   logger,
 }
 
-const source = hdAccount.child0Child[0]
-const target = deriveSignatory()
+const source = DEFAULT_PATH_FIXTURE.children[0]
+const target = EthereumBIP44.generateNewKeys().getSignatory(0)
 
 const hd = factory.newPayments(HD_CONFIG)
 
@@ -36,19 +37,24 @@ jest.setTimeout(100000)
 describe('end to end tests', () => {
   let ethNode: any
   beforeAll(async () => {
-  const ganacheConfig = {
-    ws: true,
+  const ganacheConfig: ServerOptions = {
     accounts: [
       {
-        balance: 0xde0b6b3a7640000, // 1 ETH
-        secretKey: source.keys.prv
+        balance: 1e18, // 1 ETH
+        secretKey: source.keys.prv,
       },
       {
         balance: 0x0,
         secretKey: target.keys.prv
       },
     ],
-    chainId: 3
+    chainId: 3,
+    logging: {
+      logger,
+      debug: false, // Set to `true` to log EVM opcodes.
+      verbose: false, // Set to `true` to log all RPC requests and responses.
+      quiet: false, // Set to `true` to disable logging.
+    }
   }
 
 
