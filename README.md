@@ -75,7 +75,7 @@ See [@bitaccess/coinlib README](./packages/coinlib/README.md) for usage.
 
 ## Publishing new version
 
-*Note*: Never use `npm version`, it doesn't work with monorepo
+*Note*: Never use `npm version`, it doesn't work with lerna monorepo
 
 ### Version types
 
@@ -83,13 +83,10 @@ See [@bitaccess/coinlib README](./packages/coinlib/README.md) for usage.
 - `minor` - feature changes
 - `major` - breaking changes
 
-### Steps to publish
+### Steps to version & publish
 
 1. Run tests `npm run test`
-2. Create version commit and publish to npm `lerna publish (patch|minor|major)`
-
-or
-
-2. Create a new version commit `lerna version (patch|minor|major)`
-3. Publish to npm `lerna publish from-git`
+2. Create release candidate PR `bin/version.sh`
+3. Have someone review & approve new release. Merge PR, pull master
+4. Publish to npm `bin/publish.sh`
 
