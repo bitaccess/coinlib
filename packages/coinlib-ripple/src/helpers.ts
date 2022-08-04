@@ -8,7 +8,7 @@ import {
   RIPPLE_COINTYPES,
   RIPPLE_SUPPORTED_ADDRESS_TYPES,
 } from './constants'
-import { isNil } from '@faast/ts-common'
+import { isNil } from '@bitaccess/ts-common'
 
 const {
   toMainDenominationBigNumber,
