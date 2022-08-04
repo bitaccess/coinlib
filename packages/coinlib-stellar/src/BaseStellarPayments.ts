@@ -18,7 +18,7 @@ import {
   FeeOptionCustom,
   BigNumber,
 } from '@bitaccess/coinlib-common'
-import { assertType, isNil, Numeric, isString, toBigNumber } from '@faast/ts-common'
+import { assertType, isNil, Numeric, isString, toBigNumber } from '@bitaccess/ts-common'
 import { omit } from 'lodash'
 import * as Stellar from 'stellar-sdk'
 

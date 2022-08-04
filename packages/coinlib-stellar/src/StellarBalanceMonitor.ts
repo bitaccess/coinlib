@@ -7,7 +7,7 @@ import {
   isMatchingError,
   BigNumber,
 } from '@bitaccess/coinlib-common'
-import { Numeric, isUndefined } from '@faast/ts-common'
+import { Numeric, isUndefined } from '@bitaccess/ts-common'
 import { EventEmitter } from 'events'
 
 import { padLeft } from './utils'

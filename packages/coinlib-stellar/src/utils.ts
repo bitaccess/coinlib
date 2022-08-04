@@ -1,7 +1,7 @@
 import * as Stellar from 'stellar-sdk'
 import { NetworkType, Payport, isMatchingError } from '@bitaccess/coinlib-common'
 import promiseRetry from 'promise-retry'
-import { Logger, isString, isObject, isNil, isUndefined } from '@faast/ts-common'
+import { Logger, isString, isObject, isNil, isUndefined } from '@bitaccess/ts-common'
 
 import { BaseStellarConfig, StellarRawTransaction, StellarLedger, StellarTransaction, StellarServerAPI } from './types'
 import { DEFAULT_TESTNET_SERVER, DEFAULT_MAINNET_SERVER } from './constants'
