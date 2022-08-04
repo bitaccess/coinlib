@@ -17,7 +17,7 @@ import {
   NormalizedTxBitcoinVin,
   NormalizedTxBitcoinVout,
 } from 'blockbook-client'
-import { isUndefined, Numeric } from '@faast/ts-common'
+import { isUndefined, Numeric } from '@bitaccess/ts-common'
 
 import { BitcoinishBalanceMonitorConfig, BitcoinishBlock } from './types'
 import { BlockbookConnected } from './BlockbookConnected'

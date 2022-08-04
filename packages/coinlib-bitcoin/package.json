@@ -50,7 +50,6 @@
   "dependencies": {
     "@bitaccess/coinlib-common": "file:../coinlib-common",
     "@bitaccess/ts-common": "^1.0.2",
-    "@faast/ts-common": "^0.6.0",
     "bip174-bigint": "github:bitaccess/bip174#bigint",
     "bitcoinjs-lib-bigint": "github:bitaccess/bitcoinjs-lib#bigintv6",
     "blockbook-client": "^0.7.4",

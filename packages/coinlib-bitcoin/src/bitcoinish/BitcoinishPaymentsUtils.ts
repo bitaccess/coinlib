@@ -14,7 +14,7 @@ import {
   BigNumber,
   NetworkType,
 } from '@bitaccess/coinlib-common'
-import { isNil, assertType, Numeric, isUndefined } from '@faast/ts-common'
+import { isNil, assertType, Numeric, isUndefined } from '@bitaccess/ts-common'
 import { GetBlockOptions } from 'blockbook-client'
 
 import { DEFAULT_FEE_LEVEL_BLOCK_TARGETS } from './constants'

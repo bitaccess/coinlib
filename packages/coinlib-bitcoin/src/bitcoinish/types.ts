@@ -3,7 +3,7 @@ import {
   BaseUnsignedTransaction, BaseSignedTransaction, FeeRate, AutoFeeLevels,
   BaseTransactionInfo, BaseBroadcastResult, UtxoInfo, NetworkTypeT, FeeLevel,
 } from '@bitaccess/coinlib-common'
-import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger, Numeric, enumCodec } from '@faast/ts-common'
+import { extendCodec, nullable, instanceofCodec, requiredOptionalCodec, Logger, Numeric, enumCodec } from '@bitaccess/ts-common'
 import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib-bigint'
 import { BlockbookBitcoin, BlockInfoBitcoin, NormalizedTxBitcoin, NormalizedTxBitcoinVin, NormalizedTxBitcoinVout } from 'blockbook-client'
 import { BitcoinishPaymentsUtils } from './BitcoinishPaymentsUtils'

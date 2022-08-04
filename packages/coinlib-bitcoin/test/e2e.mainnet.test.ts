@@ -9,7 +9,7 @@ import {
   UtxoInfo,
   BigNumber,
 } from '@bitaccess/coinlib-common'
-import { toBigNumber } from '@faast/ts-common'
+import { toBigNumber } from '@bitaccess/ts-common'
 
 import {
   HdBitcoinPayments,

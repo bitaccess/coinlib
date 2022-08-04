@@ -7,7 +7,7 @@ import {
   TransactionStatus,
 } from '@bitaccess/coinlib-common'
 import { BitcoinishSignedTransaction, BitcoinishUnsignedTransaction, BitcoinishSignedTransactionData } from './types'
-import { isNumber } from '@faast/ts-common'
+import { isNumber } from '@bitaccess/ts-common'
 import { publicKeyToString, validateAndFinalizeSignedTx, isMultisigFullySigned } from './helpers'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { cloneDeep } from 'lodash'

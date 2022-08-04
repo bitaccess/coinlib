@@ -4,7 +4,7 @@ import { HdBitcoinPayments, HdBitcoinPaymentsConfig, AddressType, SinglesigAddre
 
 import { EXTERNAL_ADDRESS, accountsByAddressType, AccountFixture } from './fixtures'
 import { logger, makeUtxos, makeOutputs, expectUtxosEqual } from './utils'
-import { toBigNumber } from '@faast/ts-common'
+import { toBigNumber } from '@bitaccess/ts-common'
 
 jest.setTimeout(30 * 1000)
 
