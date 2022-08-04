@@ -44,7 +44,6 @@
   },
   "dependencies": {
     "@bitaccess/ts-common": "^1.0.2",
-    "@faast/ts-common": "^0.6.0",
     "bip32": "^3.0.1",
     "bip39": "^3.0.4",
     "bs58check": "^2.1.2",
