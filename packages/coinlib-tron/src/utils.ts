@@ -1,4 +1,4 @@
-import { isMatchingError, Logger } from '@faast/ts-common'
+import { isMatchingError, Logger } from '@bitaccess/ts-common'
 import promiseRetry from 'promise-retry'
 
 /** Converts strings to Error */

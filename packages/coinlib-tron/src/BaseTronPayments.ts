@@ -17,7 +17,7 @@ import {
   PaymentsErrorCode,
   PayportOutput,
 } from '@bitaccess/coinlib-common'
-import { isType, Numeric } from '@faast/ts-common'
+import { isType, Numeric } from '@bitaccess/ts-common'
 
 import {
   TronTransactionInfo,
