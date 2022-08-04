@@ -1,4 +1,4 @@
-const base = require('@faast/ts-config/library/prettier.config.js')
+const base = require('@bitaccess/ts-config/library/prettier.config.js')
 
 module.exports = Object.assign({}, base, {
   // overrides here
