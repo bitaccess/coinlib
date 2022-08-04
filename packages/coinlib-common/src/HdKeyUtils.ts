@@ -66,13 +66,19 @@ export function hdKeyToHdNode(hdKey: string, network?: Bip32Network): HDNode {
  * This partially applies the derivation path starting at the already derived depth of the provided key.
  */
 export function deriveHDNode(hdKey: string | HDNode, derivationPath: string, network?: Bip32Network): HDNode {
-  const rootNode = typeof hdKey === 'string'
+  const baseNode = typeof hdKey === 'string'
     ? hdKeyToHdNode(hdKey, network)
     : hdKey
-  const parts = splitDerivationPath(derivationPath).slice(rootNode.depth)
-  let node = rootNode
-  if (parts.length > 0) {
-    node = rootNode.derivePath(parts.join('/'))
+  const fullPathParts = splitDerivationPath(derivationPath)
+  if (baseNode.depth > fullPathParts.length) {
+    throw new Error(
+      `Cannot deriveHDNode to path ${derivationPath} because hdKey depth (${baseNode.depth}) is already deeper`
+    )
+  }
+  const partialPathParts = fullPathParts.slice(baseNode.depth)
+  let node = baseNode
+  if (partialPathParts.length > 0) {
+    node = baseNode.derivePath(partialPathParts.join('/'))
   }
   return node
 }
