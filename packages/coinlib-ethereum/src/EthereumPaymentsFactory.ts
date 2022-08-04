@@ -1,5 +1,5 @@
 import { BalanceMonitor, NetworkType, PaymentsFactory } from '@bitaccess/coinlib-common'
-import { assertType, Logger } from '@faast/ts-common'
+import { assertType, Logger } from '@bitaccess/ts-common'
 import {
   EthereumBalanceMonitorConfig,
   EthereumPaymentsUtilsConfig,

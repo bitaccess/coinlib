@@ -1,4 +1,4 @@
-import { DelegateLogger } from '@faast/ts-common'
+import { DelegateLogger } from '@bitaccess/ts-common'
 import { AbstractProvider } from 'web3-core'
 import { JsonRpcPayload, JsonRpcResponse } from 'web3-core-helpers'
 import { isEqual } from 'lodash'

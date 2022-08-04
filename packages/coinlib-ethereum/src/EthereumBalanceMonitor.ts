@@ -10,7 +10,7 @@ import {
   BigNumber,
 } from '@bitaccess/coinlib-common'
 import { isString } from '@bitaccess/ts-common'
-import { isUndefined, Numeric } from '@faast/ts-common'
+import { isUndefined, Numeric } from '@bitaccess/ts-common'
 
 import { AddressDetailsEthereumTxs, NormalizedTxEthereum } from 'blockbook-client'
 import { EventEmitter } from 'events'
