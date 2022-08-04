@@ -2,6 +2,7 @@ import { BaseLitecoinPayments } from './BaseLitecoinPayments'
 import {
   MultisigLitecoinPaymentsConfig,
   HdLitecoinPaymentsConfig,
+  UHdLitecoinPaymentsConfig,
   LitecoinUnsignedTransaction,
   LitecoinSignedTransaction,
   MultisigAddressType,
@@ -10,6 +11,7 @@ import {
 
 import { omit } from 'lodash'
 import { HdLitecoinPayments } from './HdLitecoinPayments'
+import { UHdLitecoinPayments } from './UHdLitecoinPayments'
 import { KeyPairLitecoinPayments } from './KeyPairLitecoinPayments'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { CreateTransactionOptions, ResolveablePayport, PayportOutput } from '@bitaccess/coinlib-common'
@@ -22,8 +24,8 @@ import { DEFAULT_MULTISIG_ADDRESS_TYPE } from './constants'
 export class MultisigLitecoinPayments extends BaseLitecoinPayments<MultisigLitecoinPaymentsConfig> {
   addressType: MultisigAddressType
   m: number
-  signers: (HdLitecoinPayments | KeyPairLitecoinPayments)[]
-  accountIdToSigner: { [accountId: string]: HdLitecoinPayments | KeyPairLitecoinPayments } = {}
+  signers: (HdLitecoinPayments | UHdLitecoinPayments | KeyPairLitecoinPayments)[]
+  accountIdToSigner: { [accountId: string]: HdLitecoinPayments | UHdLitecoinPayments | KeyPairLitecoinPayments } = {}
 
   constructor(private config: MultisigLitecoinPaymentsConfig) {
     super(config)
@@ -40,9 +42,15 @@ export class MultisigLitecoinPayments extends BaseLitecoinPayments<MultisigLitec
           `MultisigLitecoinPayments is on network ${this.networkType} but signer config ${i} is on ${signerConfig.network}`,
         )
       }
-      const payments = HdLitecoinPaymentsConfig.is(signerConfig)
-        ? new HdLitecoinPayments(signerConfig)
-        : new KeyPairLitecoinPayments(signerConfig)
+
+      let payments: HdLitecoinPayments | UHdLitecoinPayments | KeyPairLitecoinPayments
+      if (HdLitecoinPaymentsConfig.is(signerConfig)) {
+        payments = new HdLitecoinPayments(signerConfig)
+      } else if (UHdLitecoinPaymentsConfig.is(signerConfig)) {
+        payments = new UHdLitecoinPayments(signerConfig)
+      } else {
+        payments = new KeyPairLitecoinPayments(signerConfig)
+      }
 
       payments.getAccountIds().forEach(accountId => {
         this.accountIdToSigner[accountId] = payments

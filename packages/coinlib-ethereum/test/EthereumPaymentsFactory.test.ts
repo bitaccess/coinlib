@@ -4,16 +4,19 @@ import {
   EthereumPaymentsFactory,
   EthereumPaymentsUtils,
   HdEthereumPayments,
+  UHdEthereumPayments,
   KeyPairEthereumPayments,
   HdEthereumPaymentsConfig,
+  UHdEthereumPaymentsConfig,
   KeyPairEthereumPaymentsConfig,
   DEFAULT_MAINNET_CONSTANTS,
   NetworkConstants,
   EthereumPaymentsUtilsConfig,
   HdErc20Payments,
+  UHdErc20Payments,
 } from '../src'
 
-import { DEFAULT_PATH_FIXTURE, BBB_DERIVATION_PATH, BBB_PATH_FIXTURE, hdAccount } from './fixtures/accounts'
+import { DEFAULT_PATH_FIXTURE, BBB_DERIVATION_PATH, BBB_PATH_FIXTURE, hdAccount, SEED_ACCOUNT_FIXTURE} from './fixtures/accounts'
 
 const logger = new TestLogger(__filename)
 
@@ -24,6 +27,11 @@ const FULL_NODE = 'http://localhost'
 const HD_CONFIG: HdEthereumPaymentsConfig = {
   fullNode: FULL_NODE,
   hdKey: hdAccount.root.KEYS.xprv,
+  logger,
+}
+const UHD_CONFIG: UHdEthereumPaymentsConfig = {
+  fullNode: FULL_NODE,
+  seed: SEED_ACCOUNT_FIXTURE.seed,
   logger,
 }
 const KP_CONFIG: KeyPairEthereumPaymentsConfig = {
@@ -73,7 +81,6 @@ describe('EthereumPaymentsFactory', () => {
       expect(hdP.nativeCoinSymbol).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinSymbol)
       expect(hdP.networkConstants).toEqual(DEFAULT_MAINNET_CONSTANTS)
     })
-
     it('should instantiate HdEthereumPayments for custom network', () => {
       const hdP = factory.newPayments({
         ...HD_CONFIG,
@@ -93,6 +100,44 @@ describe('EthereumPaymentsFactory', () => {
       expect(hdP.nativeCoinName).toBe(BBB_NETWORK.nativeCoinName)
       expect(hdP.nativeCoinSymbol).toBe(BBB_NETWORK.nativeCoinSymbol)
       expect(hdP.networkConstants).toEqual(BBB_NETWORK)
+    })
+
+    it('should instantiate UHdEthereumPayments', () => {
+      const uhdP = factory.newPayments(UHD_CONFIG)
+
+      expect(uhdP).toBeInstanceOf(UHdEthereumPayments)
+      expect(uhdP.getPublicConfig()).toStrictEqual({
+        depositKeyIndex: 0,
+        hdKey: SEED_ACCOUNT_FIXTURE.xpub,
+        derivationPath: DEFAULT_MAINNET_CONSTANTS.defaultDerivationPath,
+      })
+      expect(uhdP.coinDecimals).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinDecimals)
+      expect(uhdP.coinName).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinName)
+      expect(uhdP.coinSymbol).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinSymbol)
+      expect(uhdP.nativeCoinDecimals).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinDecimals)
+      expect(uhdP.nativeCoinName).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinName)
+      expect(uhdP.nativeCoinSymbol).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinSymbol)
+      expect(uhdP.networkConstants).toEqual(DEFAULT_MAINNET_CONSTANTS)
+    })
+    it('should instantiate UHdEthereumPayments for custom network', () => {
+      const uhdP = factory.newPayments({
+        ...UHD_CONFIG,
+        networkConstants: BBB_NETWORK,
+      })
+
+      expect(uhdP).toBeInstanceOf(UHdEthereumPayments)
+      expect(uhdP.getPublicConfig()).toStrictEqual({
+        depositKeyIndex: 0,
+        hdKey: SEED_ACCOUNT_FIXTURE.xpub,
+        derivationPath: BBB_NETWORK.defaultDerivationPath,
+      })
+      expect(uhdP.coinDecimals).toBe(BBB_NETWORK.nativeCoinDecimals)
+      expect(uhdP.coinName).toBe(BBB_NETWORK.nativeCoinName)
+      expect(uhdP.coinSymbol).toBe(BBB_NETWORK.nativeCoinSymbol)
+      expect(uhdP.nativeCoinDecimals).toBe(BBB_NETWORK.nativeCoinDecimals)
+      expect(uhdP.nativeCoinName).toBe(BBB_NETWORK.nativeCoinName)
+      expect(uhdP.nativeCoinSymbol).toBe(BBB_NETWORK.nativeCoinSymbol)
+      expect(uhdP.networkConstants).toEqual(BBB_NETWORK)
     })
 
     it('should instantiate HdErc20Payments', () => {
@@ -142,6 +187,53 @@ describe('EthereumPaymentsFactory', () => {
       expect(hdP.networkConstants).toEqual(BBB_NETWORK)
     })
 
+    it('should instantiate UHdErc20Payments', () => {
+      const uhdP = factory.newPayments({
+        ...UHD_CONFIG,
+        ...TOKEN_CONFIG,
+      })
+
+      expect(uhdP).toBeInstanceOf(UHdErc20Payments)
+      expect(uhdP.getPublicConfig()).toStrictEqual({
+        depositKeyIndex: 0,
+        hdKey: SEED_ACCOUNT_FIXTURE.xpub,
+        derivationPath: DEFAULT_MAINNET_CONSTANTS.defaultDerivationPath,
+        ...TOKEN_CONFIG,
+        tokenAddress: TOKEN_CONFIG.tokenAddress.toLowerCase()
+      })
+      expect(uhdP.coinDecimals).toBe(TOKEN_CONFIG.decimals)
+      expect(uhdP.coinName).toBe(TOKEN_CONFIG.name)
+      expect(uhdP.coinSymbol).toBe(TOKEN_CONFIG.symbol)
+      expect(uhdP.nativeCoinDecimals).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinDecimals)
+      expect(uhdP.nativeCoinName).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinName)
+      expect(uhdP.nativeCoinSymbol).toBe(DEFAULT_MAINNET_CONSTANTS.nativeCoinSymbol)
+      expect(uhdP.networkConstants).toEqual(DEFAULT_MAINNET_CONSTANTS)
+    })
+
+    it('should instantiate UHdErc20Payments for custom network', () => {
+      const uhdP = factory.newPayments({
+        ...UHD_CONFIG,
+        ...TOKEN_CONFIG,
+        networkConstants: BBB_NETWORK,
+      })
+
+      expect(uhdP).toBeInstanceOf(UHdErc20Payments)
+      expect(uhdP.getPublicConfig()).toStrictEqual({
+        depositKeyIndex: 0,
+        hdKey: SEED_ACCOUNT_FIXTURE.xpub,
+        derivationPath: BBB_NETWORK.defaultDerivationPath,
+        ...TOKEN_CONFIG,
+        tokenAddress: TOKEN_CONFIG.tokenAddress.toLowerCase()
+      })
+      expect(uhdP.coinDecimals).toBe(TOKEN_CONFIG.decimals)
+      expect(uhdP.coinName).toBe(TOKEN_CONFIG.name)
+      expect(uhdP.coinSymbol).toBe(TOKEN_CONFIG.symbol)
+      expect(uhdP.nativeCoinDecimals).toBe(BBB_NETWORK.nativeCoinDecimals)
+      expect(uhdP.nativeCoinName).toBe(BBB_NETWORK.nativeCoinName)
+      expect(uhdP.nativeCoinSymbol).toBe(BBB_NETWORK.nativeCoinSymbol)
+      expect(uhdP.networkConstants).toEqual(BBB_NETWORK)
+    })
+
     it('should instantiate KeyPairEthereumPayments', () => {
       const kP = factory.newPayments(KP_CONFIG)
 
@@ -174,10 +266,12 @@ describe('EthereumPaymentsFactory', () => {
     it('should instantiate both payments with same web3 instance', async () => {
       const payments1 = await factory.initPayments(HD_CONFIG)
       const payments2 = await factory.initPayments(KP_CONFIG)
+      const payments3 = await factory.initPayments(UHD_CONFIG)
       const utils = await factory.initUtils(UTILS_CONFIG)
       expect(payments1.web3).toBeInstanceOf(Web3)
       expect(payments1.web3).toBe(payments2.web3)
-      expect(payments2.web3).toBe(utils.web3)
+      expect(payments1.web3).toBe(payments3.web3)
+      expect(payments1.web3).toBe(utils.web3)
     })
   })
 })

@@ -69,6 +69,8 @@ export const PUBLIC_CONFIG_OMIT_FIELDS: EthereumPaymentsConfigKeys[] = [
   'networkConstants',
 ]
 
+export const UHD_PAYMENTS_CONFIG_OMIT_FIELDS: string[] = ['seed', 'uniPubKey']
+
 export const DEFAULT_ADDRESS_FORMAT = EthereumAddressFormat.Lowercase
 
 export const FULL_ERC20_TOKEN_METHODS_ABI = JSON.parse(

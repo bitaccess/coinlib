@@ -2,17 +2,17 @@ import { DEFAULT_DERIVATION_PATH } from '../../src'
 
 export { DEFAULT_DERIVATION_PATH }
 export type AccountFixture = {
-  derivationPath: string,
+  derivationPath: string
   xkeys: {
-    xprv: string,
+    xprv: string
     xpub: string
-  },
+  }
   children: {
     [index: number]: {
-      address: string,
+      address: string
       keys: {
-        prv: string,
-        pub: string,
+        prv: string
+        pub: string
       }
     }
   }
@@ -26,8 +26,10 @@ export type AccountFixture = {
 export const DEFAULT_PATH_FIXTURE: AccountFixture = {
   derivationPath: DEFAULT_DERIVATION_PATH,
   xkeys: {
-    xprv: 'xprv9zmyKoBX1c55iUJ4nRsNTkt76uNMv1oeH1ZHXr9WuA78WrDFRZvNrA4mcqdXFuAUT9iQMcz3jTEB6M6NHLfGcznegNzmZgMPF5DkW365Lop',
-    xpub: 'xpub6DmKjJiQqydNvxNXtTQNptpqewCrKUXVeEUtLEZ8TVe7PeYPy7EdPxPFU8CgndT4xhowU5QUwjMm9JwanqF12z5n67jY2fd9qQXshybcRaq',
+    xprv:
+      'xprv9zmyKoBX1c55iUJ4nRsNTkt76uNMv1oeH1ZHXr9WuA78WrDFRZvNrA4mcqdXFuAUT9iQMcz3jTEB6M6NHLfGcznegNzmZgMPF5DkW365Lop',
+    xpub:
+      'xpub6DmKjJiQqydNvxNXtTQNptpqewCrKUXVeEUtLEZ8TVe7PeYPy7EdPxPFU8CgndT4xhowU5QUwjMm9JwanqF12z5n67jY2fd9qQXshybcRaq',
   },
   children: {
     0: {
@@ -43,16 +45,18 @@ export const DEFAULT_PATH_FIXTURE: AccountFixture = {
         prv: '0x8195f08756bdb4324748d622fc821d9ddc34eb249fe152bba7e5b4539aff9cad',
         pub: '0x0383f4af96bfbb731d2ca34b6c0ce5136980f2fbcc87494b8f46d480f4108ea090',
       },
-    }
-  }
+    },
+  },
 }
 
 export const CUSTOM_DERIVATION_PATH = "m/44'/666'/5'"
 export const CUSTOM_PATH_FIXTURE: AccountFixture = {
   derivationPath: CUSTOM_DERIVATION_PATH,
   xkeys: {
-    xprv: 'xprv9ykjpw1vU9pWxFLFX3sTFnPKUWCBTaF5FGorCePr9RaS1xxR7mgGmUiVqMN7mnhFouuKntTqeT592YcD3S5QYhW3mDLYZNkSJCViZRqimgU',
-    xpub: 'xpub6Ck6ESYpJXNpAjQid5QTcvL42Y2fs2xvcVjT12oThm7QtmHZfJzXKH2ygdqkSTycurZpp6HUm7Ucj2CgWPZRso2vdeE2WGH2eoyu1MnpFGd',
+    xprv:
+      'xprv9ykjpw1vU9pWxFLFX3sTFnPKUWCBTaF5FGorCePr9RaS1xxR7mgGmUiVqMN7mnhFouuKntTqeT592YcD3S5QYhW3mDLYZNkSJCViZRqimgU',
+    xpub:
+      'xpub6Ck6ESYpJXNpAjQid5QTcvL42Y2fs2xvcVjT12oThm7QtmHZfJzXKH2ygdqkSTycurZpp6HUm7Ucj2CgWPZRso2vdeE2WGH2eoyu1MnpFGd',
   },
   children: {
     0: {
@@ -60,31 +64,33 @@ export const CUSTOM_PATH_FIXTURE: AccountFixture = {
       keys: {
         prv: '0xd303dc2222c87c93c45e372d09d9d679e86439744f63c19611dc35ce3ae19fa7',
         pub: '0x033f31704eff6cb98595119a5f786a57062a796b88e280043f6ea62856c7f56d7b',
-      }
+      },
     },
     1: {
       address: '0x663F6e4E3db1Afce6ac88524DAcbE11841ba7F27',
       keys: {
         prv: '0xf31ef247e5f17e9bd252f0353d137d0ffa67c15e3746f1f9c1f88ffa8f89d226',
         pub: '0x0302e110eb75b37008fac0d535eaf16df00d6ac71201649828f958bc6237757729',
-      }
+      },
     },
     15: {
       address: '0x526F00d69e8b5617A4893C673F200d760d69897F',
       keys: {
         prv: '0x4d9adf3778c2e9b25580f86d9a1cdfc56dba88e02837c3f5e9af99fc3e4e4a42',
         pub: '0x03d226b0a39ad1788fe46481790b498a88227d2a994d74dea5d43377d27758c5fd',
-      }
+      },
     },
-  }
+  },
 }
 
 export const BBB_DERIVATION_PATH = "m/44'/888'/0'/0"
 export const BBB_PATH_FIXTURE: AccountFixture = {
   derivationPath: BBB_DERIVATION_PATH,
   xkeys: {
-    xpub: 'xpub6EXMcCvrckxdxrjEEbtwLAjQKPbRjnBbkRNpX1Mj1PiCRuvinjJmfiNSaE6Q4VGPGyH7oxGjAYJoqsGuyjMNKj9bmLhQwvhuqLCb4qGBdNh',
-    xprv: 'xprvA1Y1ChPxnPQLkNem8aMvy2nfmMkwLKTkPCTDicx7T4BDZ7baFBzX7v3xixXWE3zkqPjAFdxqCDt4fURCndvp6jSZC8J6e214adJYPyoKWCY',
+    xpub:
+      'xpub6EXMcCvrckxdxrjEEbtwLAjQKPbRjnBbkRNpX1Mj1PiCRuvinjJmfiNSaE6Q4VGPGyH7oxGjAYJoqsGuyjMNKj9bmLhQwvhuqLCb4qGBdNh',
+    xprv:
+      'xprvA1Y1ChPxnPQLkNem8aMvy2nfmMkwLKTkPCTDicx7T4BDZ7baFBzX7v3xixXWE3zkqPjAFdxqCDt4fURCndvp6jSZC8J6e214adJYPyoKWCY',
   },
   children: {
     0: {
@@ -92,17 +98,19 @@ export const BBB_PATH_FIXTURE: AccountFixture = {
       keys: {
         prv: '0xd0c066bbd459568bc2c11cd72f315e2566430788ce8b8717ee33c54f3979c57f',
         pub: '0x034e2b2d670a3a46904474f2c5d494ea12af1e45945c169b17f23303805985b68b',
-      }
-    }
-  }
+      },
+    },
+  },
 }
 
 export const hdAccount = {
   root: {
     SEED: 'fFwoLowuySpBbmZymT4NzNXgDqxdeGxzQhUr4BqV2GVSBYSiM4LmEmrAgyMaCdeMFD39Tsn8i3vTK8NHRD91Efn',
     KEYS: {
-      xprv: 'xprv9s21ZrQH143K2enHCdFUPj1vHf6GMt2CpLYmr7vLjVWZxSyVXY8pEuUMkT4yK3uQ93M5xP4pp8gjgZGmpXrTGQtnS4YLvq4H71rTGcTr4qg',
-      xpub: 'xpub661MyMwAqRbcF8rkJenUkrxeqgvkmLk4BZUNeWKxHq3YqFJe55T4nhnqbhjkwfrKjjSqj2uqpuDsTMG8mydy6sE1TSWwCvY7SATvSndEJvd'
+      xprv:
+        'xprv9s21ZrQH143K2enHCdFUPj1vHf6GMt2CpLYmr7vLjVWZxSyVXY8pEuUMkT4yK3uQ93M5xP4pp8gjgZGmpXrTGQtnS4YLvq4H71rTGcTr4qg',
+      xpub:
+        'xpub661MyMwAqRbcF8rkJenUkrxeqgvkmLk4BZUNeWKxHq3YqFJe55T4nhnqbhjkwfrKjjSqj2uqpuDsTMG8mydy6sE1TSWwCvY7SATvSndEJvd',
     },
   },
   paths: {
@@ -111,4 +119,13 @@ export const hdAccount = {
     [CUSTOM_DERIVATION_PATH]: CUSTOM_PATH_FIXTURE,
     [BBB_DERIVATION_PATH]: BBB_PATH_FIXTURE,
   },
+}
+
+export const SEED_ACCOUNT_FIXTURE = {
+  seed: 'maximum atom crisp settle blossom total case laugh common pilot grow cook noodle custom ridge',
+  derivationPath: DEFAULT_DERIVATION_PATH,
+  xprv:
+    'xprvA1MdTgeY1kVUDL6fNhtPCtRXDHat6twSYZDP8KYVD3AdCp6H54jyfj2pfcGx797dMkNeNSmX5AwsCEA8ip5v2ZvY1Hg3mTkqnfMponTHKeg',
+  xpub:
+    'xpub6ELysCBRr83mRpB8UjRPa2NFmKRNWMfHun8yvhx6mNhc5cRRcc4EDXMJWtAiAxutVV4zHEqKu8PMTZB3ssB7h4aftaWses3vEhixw7gV37z',
 }

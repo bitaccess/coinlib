@@ -4,6 +4,7 @@ import { assertType } from '@faast/ts-common'
 import {
   RipplePaymentsConfig,
   HdRipplePaymentsConfig,
+  UHdRipplePaymentsConfig,
   AccountRipplePaymentsConfig,
   BaseRipplePaymentsConfig,
   RippleBalanceMonitorConfig,
@@ -13,6 +14,7 @@ import {
 import { PACKAGE_NAME } from './constants'
 import { BaseRipplePayments } from './BaseRipplePayments'
 import { HdRipplePayments } from './HdRipplePayments'
+import { UHdRipplePayments } from './UHdRipplePayments'
 import { AccountRipplePayments } from './AccountRipplePayments'
 import { RipplePaymentsUtils } from './RipplePaymentsUtils'
 import { RippleBalanceMonitor } from './RippleBalanceMonitor'
@@ -27,6 +29,7 @@ export class RipplePaymentsFactory extends PaymentsFactory<
   readonly packageName = PACKAGE_NAME
 
   newPayments(config: HdRipplePaymentsConfig): HdRipplePayments
+  newPayments(config: UHdRipplePaymentsConfig): UHdRipplePayments
   newPayments(config: AccountRipplePaymentsConfig): AccountRipplePayments
   newPayments(config: RipplePaymentsConfig) {
     if (AccountRipplePaymentsConfig.is(config)) {
@@ -34,6 +37,9 @@ export class RipplePaymentsFactory extends PaymentsFactory<
     }
     if (HdRipplePaymentsConfig.is(config)) {
       return new HdRipplePayments(config)
+    }
+    if (UHdRipplePaymentsConfig.is(config)) {
+      return new UHdRipplePayments(config)
     }
     throw new Error(`Cannot instantiate ${this.packageName} for unsupported config`)
   }

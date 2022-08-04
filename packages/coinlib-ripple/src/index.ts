@@ -1,5 +1,6 @@
 export * from './BaseRipplePayments'
 export * from './HdRipplePayments'
+export * from './UHdRipplePayments'
 export * from './AccountRipplePayments'
 export * from './RipplePaymentsUtils'
 export * from './RippleBalanceMonitor'

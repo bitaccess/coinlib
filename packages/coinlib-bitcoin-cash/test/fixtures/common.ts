@@ -1,1 +1,2 @@
 export const EXTERNAL_ADDRESS = 'bitcoincash:qqq50km70cjgpla3tnkt8nxgdt09wp0m7y9ctca8f6'
+export const TESTNET_EXTERNAL_ADDRESS = 'bchtest:qze8g4gx3z428jjcxzpycpxl7ke7d947gca2a7n2la'

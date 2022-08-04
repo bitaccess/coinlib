@@ -27,6 +27,18 @@ export type TransactionInfoRaw = StellarRawTransaction & {
   currentLedger: StellarRawLedger
 }
 
+export const StellarSignatory = t.type(
+  {
+    address: t.string,
+    secret: t.string,
+  },
+  'StellarSignatory',
+)
+export type StellarSignatory = t.TypeOf<typeof StellarSignatory>
+
+export const PartialStellarSignatory = t.partial(StellarSignatory.props, 'PartialStellarSignatory')
+export type PartialStellarSignatory = t.TypeOf<typeof PartialStellarSignatory>
+
 export const BaseStellarConfig = extendCodec(
   BaseConfig,
   {},
@@ -51,37 +63,58 @@ export const BaseStellarPaymentsConfig = extendCodec(
 )
 export type BaseStellarPaymentsConfig = t.TypeOf<typeof BaseStellarPaymentsConfig>
 
+/**
+ * address, or secret+address
+ */
+ export const StellarAccountConfig = t.union([t.string, PartialStellarSignatory], 'StellarAccountConfig')
+ export type StellarAccountConfig = t.TypeOf<typeof StellarAccountConfig>
+
 export const HdStellarPaymentsConfig = extendCodec(
   BaseStellarPaymentsConfig,
   {
     seed: t.string,
   },
   {
-    derivationPath: t.string
+    derivationPath: t.string,
+    hotAccount: StellarAccountConfig,
+    depositAccount: StellarAccountConfig,
   },
   'HdStellarPaymentsConfig',
 )
 export type HdStellarPaymentsConfig = t.TypeOf<typeof HdStellarPaymentsConfig>
 
-export const StellarSignatory = t.type(
+
+export const SeedStellarPaymentsConfig = extendCodec(
+  BaseStellarPaymentsConfig,
   {
-    address: t.string,
-    secret: t.string,
+    seed: t.string,
   },
-  'StellarSignatory',
+  {
+    derivationPath: t.string,
+  },
+  'SeedStellarPaymentsConfig',
 )
-export type StellarSignatory = t.TypeOf<typeof StellarSignatory>
+export type SeedStellarPaymentsConfig = t.TypeOf<typeof SeedStellarPaymentsConfig>
 
-export const PartialStellarSignatory = t.partial(StellarSignatory.props, 'PartialStellarSignatory')
-export type PartialStellarSignatory = t.TypeOf<typeof PartialStellarSignatory>
+export const UniPubKeyStellarPaymentsConfig = extendCodec(
+  BaseStellarPaymentsConfig,
+  {
+    uniPubKey: t.string,
+  },
+  {
+    derivationPath: t.string,
+  },
+  'UniPubKeyStellarPaymentsConfig',
+)
+export type UniPubKeyStellarPaymentsConfig = t.TypeOf<typeof UniPubKeyStellarPaymentsConfig>
 
-/**
- * address, or secret+address
- */
-export const StellarAccountConfig = t.union([
-  t.string, PartialStellarSignatory,
-], 'StellarAccountConfig')
-export type StellarAccountConfig = t.TypeOf<typeof StellarAccountConfig>
+export const UHdStellarPaymentsConfig = t.union(
+  [SeedStellarPaymentsConfig, UniPubKeyStellarPaymentsConfig],
+  'UHdStellarPaymentsConfig',
+)
+export type UHdStellarPaymentsConfig = t.TypeOf<typeof UHdStellarPaymentsConfig>
+
+
 
 export const AccountStellarPaymentsConfig = extendCodec(
   BaseStellarPaymentsConfig,
@@ -94,7 +127,7 @@ export const AccountStellarPaymentsConfig = extendCodec(
 export type AccountStellarPaymentsConfig = t.TypeOf<typeof AccountStellarPaymentsConfig>
 
 export const StellarPaymentsConfig = t.union(
-  [HdStellarPaymentsConfig, AccountStellarPaymentsConfig],
+  [HdStellarPaymentsConfig, UHdStellarPaymentsConfig, AccountStellarPaymentsConfig],
   'StellarPaymentsConfig',
 )
 export type StellarPaymentsConfig = t.TypeOf<typeof StellarPaymentsConfig>
@@ -109,11 +142,7 @@ export const StellarUnsignedTransaction = extendCodec(
 )
 export type StellarUnsignedTransaction = t.TypeOf<typeof StellarUnsignedTransaction>
 
-export const StellarSignedTransaction = extendCodec(
-  BaseSignedTransaction,
-  {},
-  'StellarSignedTransaction',
-)
+export const StellarSignedTransaction = extendCodec(BaseSignedTransaction, {}, 'StellarSignedTransaction')
 export type StellarSignedTransaction = t.TypeOf<typeof StellarSignedTransaction>
 
 export const StellarTransactionInfo = extendCodec(

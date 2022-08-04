@@ -5,6 +5,7 @@ import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import {
   DogePaymentsConfig,
   HdDogePaymentsConfig,
+  UHdDogePaymentsConfig,
   KeyPairDogePaymentsConfig,
   MultisigDogePaymentsConfig,
   DogePaymentsUtilsConfig,
@@ -16,6 +17,7 @@ import { PACKAGE_NAME } from './constants'
 import { BaseDogePayments } from './BaseDogePayments'
 import { DogePaymentsUtils } from './DogePaymentsUtils'
 import { HdDogePayments } from './HdDogePayments'
+import { UHdDogePayments } from './UHdDogePayments'
 import { KeyPairDogePayments } from './KeyPairDogePayments'
 import { MultisigDogePayments } from './MultisigDogePayments'
 import { DogeBalanceMonitor } from './DogeBalanceMonitor'
@@ -31,6 +33,9 @@ export class DogePaymentsFactory extends PaymentsFactory<
   newPayments(config: DogePaymentsConfig) {
     if (HdDogePaymentsConfig.is(config)) {
       return new HdDogePayments(config)
+    }
+    if (UHdDogePaymentsConfig.is(config)) {
+      return new UHdDogePayments(config)
     }
     if (KeyPairDogePaymentsConfig.is(config)) {
       return new KeyPairDogePayments(config)

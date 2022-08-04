@@ -1,8 +1,10 @@
 import {
   BitcoinPaymentsFactory,
   HdBitcoinPayments,
+  UHdBitcoinPayments,
   KeyPairBitcoinPayments,
   HdBitcoinPaymentsConfig,
+  UHdBitcoinPaymentsConfig,
   KeyPairBitcoinPaymentsConfig,
   BitcoinPaymentsUtils,
   BitcoinBalanceMonitor,
@@ -13,7 +15,7 @@ import {
 } from '../src'
 import { PRIVATE_KEY } from './fixtures'
 
-import { nativeSegwitAccount } from './fixtures/accounts'
+import { nativeSegwitAccount, seedNativeSegwitAccount } from './fixtures/accounts'
 import { logger } from './utils'
 
 const { xprv } = nativeSegwitAccount
@@ -23,6 +25,11 @@ const HD_CONFIG: HdBitcoinPaymentsConfig = {
   logger,
   server: SERVER,
   hdKey: xprv,
+}
+const UHD_CONFIG: UHdBitcoinPaymentsConfig = {
+  logger,
+  server: SERVER,
+  seed: seedNativeSegwitAccount.seed,
 }
 const KEYPAIR_CONFIG: KeyPairBitcoinPaymentsConfig = {
   logger,
@@ -53,6 +60,9 @@ describe('BitcoinPaymentsFactory', () => {
   describe('newPayments', () => {
     it('should instantiate HdBitcoinPayments', () => {
       expect(factory.newPayments(HD_CONFIG)).toBeInstanceOf(HdBitcoinPayments)
+    })
+    it('should instantiate UHdBitcoinPayments', () => {
+      expect(factory.newPayments(UHD_CONFIG)).toBeInstanceOf(UHdBitcoinPayments)
     })
     it('should instantiate KeyPairBitcoinPayments', () => {
       expect(factory.newPayments(KEYPAIR_CONFIG)).toBeInstanceOf(KeyPairBitcoinPayments)

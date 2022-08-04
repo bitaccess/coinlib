@@ -1,8 +1,10 @@
 import {
   BitcoinCashPaymentsFactory,
   HdBitcoinCashPayments,
+  UHdBitcoinCashPayments,
   KeyPairBitcoinCashPayments,
   HdBitcoinCashPaymentsConfig,
+  UHdBitcoinCashPaymentsConfig,
   KeyPairBitcoinCashPaymentsConfig,
   MultisigBitcoinCashPayments,
   MultisigBitcoinCashPaymentsConfig,
@@ -15,7 +17,7 @@ import {
 } from '../src'
 import { logger } from './utils'
 import { PRIVATE_KEY } from './fixtures'
-import { hdAccount } from './fixtures/accounts'
+import { hdAccount, seedAccount } from './fixtures/accounts'
 
 const { xprv } = hdAccount
 
@@ -24,6 +26,11 @@ const HD_CONFIG: HdBitcoinCashPaymentsConfig = {
   logger,
   server: SERVER,
   hdKey: xprv,
+}
+const UHD_CONFIG: UHdBitcoinCashPaymentsConfig = {
+  logger,
+  server: SERVER,
+  seed: seedAccount.seed,
 }
 const KEYPAIR_CONFIG: KeyPairBitcoinCashPaymentsConfig = {
   logger,
@@ -64,6 +71,9 @@ describe('BitcoinCashPaymentsFactory', () => {
         hdKey: xprv,
       }
       expect(factory.newPayments(config)).toBeInstanceOf(HdBitcoinCashPayments)
+    })
+    it('should instantiate UHdBitcoinCashPayments', () => {
+      expect(factory.newPayments(UHD_CONFIG)).toBeInstanceOf(HdBitcoinCashPayments)
     })
     it('should instantiate KeyPairBitcoinCashPayments', () => {
       const config: KeyPairBitcoinCashPaymentsConfig = {
@@ -106,12 +116,14 @@ describe('BitcoinCashPaymentsFactory', () => {
       const payments1 = await factory.initPayments(HD_CONFIG)
       const payments2 = await factory.initPayments(KEYPAIR_CONFIG)
       const payments3 = await factory.initPayments(MULTISIG_CONFIG)
+      const payments4 = await factory.initPayments(UHD_CONFIG)
       const utils = await factory.initUtils(UTILS_CONFIG)
       const bm = await factory.initBalanceMonitor(BM_CONFIG)
       expect(payments1.api).toBeInstanceOf(bitcoinish.BlockbookServerAPI)
       expect(payments1.api).toBe(payments2.api)
       expect(payments1.api).toBe(payments3.api)
-      expect(payments2.api).toBe(utils.api)
+      expect(payments1.api).toBe(payments4.api)
+      expect(payments1.api).toBe(utils.api)
       expect(utils.api).toBe(bm.api)
       expect(bm.api.wsConnected).toBe(true)
     })

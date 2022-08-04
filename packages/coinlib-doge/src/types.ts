@@ -110,6 +110,38 @@ export const HdDogePaymentsConfig = extendCodec(
 )
 export type HdDogePaymentsConfig = t.TypeOf<typeof HdDogePaymentsConfig>
 
+export const SeedDogePaymentsConfig = extendCodec(
+  BaseDogePaymentsConfig,
+  {
+    seed: t.string,
+  },
+  {
+    addressType: SinglesigAddressType,
+    derivationPath: t.string,
+  },
+  'SeedDogePaymentsConfig',
+)
+export type SeedDogePaymentsConfig = t.TypeOf<typeof SeedDogePaymentsConfig>
+
+export const UniPubKeyDogePaymentsConfig = extendCodec(
+  BaseDogePaymentsConfig,
+  {
+    uniPubKey: t.string,
+  },
+  {
+    addressType: SinglesigAddressType,
+    derivationPath: t.string,
+  },
+  'UniPubKeyDogePaymentsConfig',
+)
+export type UniPubKeyDogePaymentsConfig = t.TypeOf<typeof UniPubKeyDogePaymentsConfig>
+
+export const UHdDogePaymentsConfig = t.union(
+  [SeedDogePaymentsConfig, UniPubKeyDogePaymentsConfig],
+  'UHdDogePaymentsConfig',
+)
+export type UHdDogePaymentsConfig = t.TypeOf<typeof UHdDogePaymentsConfig>
+
 export const KeyPairDogePaymentsConfig = extendCodec(
   BaseDogePaymentsConfig,
   {
@@ -123,7 +155,7 @@ export const KeyPairDogePaymentsConfig = extendCodec(
 export type KeyPairDogePaymentsConfig = t.TypeOf<typeof KeyPairDogePaymentsConfig>
 
 export const SinglesigDogePaymentsConfig = t.union(
-  [HdDogePaymentsConfig, KeyPairDogePaymentsConfig],
+  [HdDogePaymentsConfig, UHdDogePaymentsConfig, KeyPairDogePaymentsConfig],
   'SinglesigDogePaymentsConfig',
 )
 export type SinglesigDogePaymentsConfig = t.TypeOf<typeof SinglesigDogePaymentsConfig>
@@ -142,7 +174,7 @@ export const MultisigDogePaymentsConfig = extendCodec(
 export type MultisigDogePaymentsConfig = t.TypeOf<typeof MultisigDogePaymentsConfig>
 
 export const DogePaymentsConfig = t.union(
-  [HdDogePaymentsConfig, KeyPairDogePaymentsConfig, MultisigDogePaymentsConfig],
+  [HdDogePaymentsConfig, UHdDogePaymentsConfig, KeyPairDogePaymentsConfig, MultisigDogePaymentsConfig],
   'DogePaymentsConfig',
 )
 export type DogePaymentsConfig = t.TypeOf<typeof DogePaymentsConfig>

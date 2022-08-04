@@ -2,19 +2,21 @@ import { BaseBitcoinCashPayments } from './BaseBitcoinCashPayments'
 import {
   MultisigBitcoinCashPaymentsConfig,
   HdBitcoinCashPaymentsConfig,
+  UHdBitcoinCashPaymentsConfig,
   BitcoinCashUnsignedTransaction,
   BitcoinCashSignedTransaction,
   MultisigAddressType,
-  SinglesigBitcoinCashPaymentsConfig
+  SinglesigBitcoinCashPaymentsConfig,
 } from './types'
-import { SinglesigBitcoinCashPayments } from "./SinglesigBitcoinCashPayments"
+import { SinglesigBitcoinCashPayments } from './SinglesigBitcoinCashPayments'
 
 import { omit } from 'lodash'
 import { HdBitcoinCashPayments } from './HdBitcoinCashPayments'
+import { UHdBitcoinCashPayments } from './UHdBitcoinCashPayments'
 import { KeyPairBitcoinCashPayments } from './KeyPairBitcoinCashPayments'
 import * as bitcoin from 'bitcoinforksjs-lib'
 import { CreateTransactionOptions, ResolveablePayport, PayportOutput } from '@bitaccess/coinlib-common'
-import { bitcoinish } from "@bitaccess/coinlib-bitcoin"
+import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { createMultisigData, preCombinePartiallySignedTransactions } from './multisigPaymentHelper'
 
 import { getMultisigPaymentScript } from './helpers'
@@ -43,9 +45,15 @@ export class MultisigBitcoinCashPayments extends BaseBitcoinCashPayments<Multisi
           `MultisigBitcoinCashPayments is on network ${this.networkType} but signer config ${i} is on ${signerConfig.network}`,
         )
       }
-      const payments: SinglesigBitcoinCashPayments<SinglesigBitcoinCashPaymentsConfig> = HdBitcoinCashPaymentsConfig.is(signerConfig)
-        ? new HdBitcoinCashPayments(signerConfig)
-        : new KeyPairBitcoinCashPayments(signerConfig)
+
+      let payments: SinglesigBitcoinCashPayments<SinglesigBitcoinCashPaymentsConfig>
+      if (HdBitcoinCashPaymentsConfig.is(signerConfig)) {
+        payments = new HdBitcoinCashPayments(signerConfig)
+      } else if (UHdBitcoinCashPaymentsConfig.is(signerConfig)) {
+        payments = new UHdBitcoinCashPayments(signerConfig)
+      } else {
+        payments = new KeyPairBitcoinCashPayments(signerConfig)
+      }
 
       payments.getAccountIds().forEach(accountId => {
         this.accountIdToSigner[accountId] = payments

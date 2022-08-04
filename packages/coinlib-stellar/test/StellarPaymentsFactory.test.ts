@@ -1,6 +1,16 @@
 import {
-  StellarPaymentsFactory, HdStellarPayments, AccountStellarPayments,
-  HdStellarPaymentsConfig, AccountStellarPaymentsConfig, BaseStellarPaymentsConfig, StellarBalanceMonitorConfig, StellarPaymentsUtils, StellarBalanceMonitor, StellarServerAPI,
+  StellarPaymentsFactory,
+  HdStellarPayments,
+  UHdStellarPayments,
+  AccountStellarPayments,
+  HdStellarPaymentsConfig,
+  UHdStellarPaymentsConfig,
+  AccountStellarPaymentsConfig,
+  BaseStellarPaymentsConfig,
+  StellarBalanceMonitorConfig,
+  StellarPaymentsUtils,
+  StellarBalanceMonitor,
+  StellarServerAPI,
 } from '../src'
 
 import { hdAccount } from './fixtures/accounts'
@@ -12,6 +22,11 @@ const logger = new TestLogger('stellar-payments')
 
 const SERVER = 'https://horizon.stellar.org'
 const HD_CONFIG: HdStellarPaymentsConfig = {
+  logger,
+  server: SERVER,
+  seed: SEED,
+}
+const UHD_CONFIG: UHdStellarPaymentsConfig = {
   logger,
   server: SERVER,
   seed: SEED,
@@ -43,6 +58,9 @@ describe('StellarPaymentsFactory', () => {
   describe('newPayments', () => {
     it('should instantiate HdStellarPayments', () => {
       expect(factory.newPayments(HD_CONFIG)).toBeInstanceOf(HdStellarPayments)
+    })
+    it('should instantiate UHdStellarPayments', () => {
+      expect(factory.newPayments(UHD_CONFIG)).toBeInstanceOf(UHdStellarPayments)
     })
     it('should instantiate AccountStellarPayments from key pairs', () => {
       expect(factory.newPayments(ACCOUNT_CONFIG)).toBeInstanceOf(AccountStellarPayments)
@@ -76,11 +94,13 @@ describe('StellarPaymentsFactory', () => {
     it('should instantiate all with same ripple API instance', async () => {
       const payments1 = await factory.initPayments(HD_CONFIG)
       const payments2 = await factory.initPayments(ACCOUNT_CONFIG)
+      const payments3 = await factory.initPayments(UHD_CONFIG)
       const utils = await factory.initUtils(UTILS_CONFIG)
       const bm = await factory.initBalanceMonitor(BM_CONFIG)
       expect(payments1.api).toBeInstanceOf(StellarServerAPI)
       expect(payments1.api).toBe(payments2.api)
-      expect(payments2.api).toBe(utils.api)
+      expect(payments1.api).toBe(payments3.api)
+      expect(payments1.api).toBe(utils.api)
       expect(utils.api).toBe(bm.api)
     })
   })

@@ -83,6 +83,38 @@ export const HdBitcoinPaymentsConfig = extendCodec(
 )
 export type HdBitcoinPaymentsConfig = t.TypeOf<typeof HdBitcoinPaymentsConfig>
 
+export const SeedBitcoinPaymentsConfig = extendCodec(
+  BaseBitcoinPaymentsConfig,
+  {
+    seed: t.string,
+  },
+  {
+    addressType: SinglesigAddressType,
+    derivationPath: t.string,
+  },
+  'SeedBitcoinPaymentsConfig',
+)
+export type SeedBitcoinPaymentsConfig = t.TypeOf<typeof SeedBitcoinPaymentsConfig>
+
+export const UniPubKeyBitcoinPaymentsConfig = extendCodec(
+  BaseBitcoinPaymentsConfig,
+  {
+    uniPubKey: t.string,
+  },
+  {
+    addressType: SinglesigAddressType,
+    derivationPath: t.string,
+  },
+  'UniPubKeyBitcoinPaymentsConfig',
+)
+export type UniPubKeyBitcoinPaymentsConfig = t.TypeOf<typeof UniPubKeyBitcoinPaymentsConfig>
+
+export const UHdBitcoinPaymentsConfig = t.union(
+  [SeedBitcoinPaymentsConfig, UniPubKeyBitcoinPaymentsConfig],
+  'UHdBitcoinPaymentsConfig',
+)
+export type UHdBitcoinPaymentsConfig = t.TypeOf<typeof UHdBitcoinPaymentsConfig>
+
 export const KeyPairBitcoinPaymentsConfig = extendCodec(
   BaseBitcoinPaymentsConfig,
   {
@@ -96,7 +128,7 @@ export const KeyPairBitcoinPaymentsConfig = extendCodec(
 export type KeyPairBitcoinPaymentsConfig = t.TypeOf<typeof KeyPairBitcoinPaymentsConfig>
 
 export const SinglesigBitcoinPaymentsConfig = t.union(
-  [HdBitcoinPaymentsConfig, KeyPairBitcoinPaymentsConfig],
+  [HdBitcoinPaymentsConfig, UHdBitcoinPaymentsConfig, KeyPairBitcoinPaymentsConfig],
   'SinglesigBitcoinPaymentsConfig',
 )
 export type SinglesigBitcoinPaymentsConfig = t.TypeOf<typeof SinglesigBitcoinPaymentsConfig>
@@ -117,7 +149,7 @@ export type MultisigBitcoinPaymentsConfig = t.TypeOf<typeof MultisigBitcoinPayme
 export type PartialBitcoinPaymentsConfig = Partial<SinglesigBitcoinPaymentsConfig | MultisigBitcoinPaymentsConfig>
 
 export const BitcoinPaymentsConfig = t.union(
-  [HdBitcoinPaymentsConfig, KeyPairBitcoinPaymentsConfig, MultisigBitcoinPaymentsConfig],
+  [HdBitcoinPaymentsConfig, UHdBitcoinPaymentsConfig, KeyPairBitcoinPaymentsConfig, MultisigBitcoinPaymentsConfig],
   'BitcoinPaymentsConfig',
 )
 export type BitcoinPaymentsConfig = t.TypeOf<typeof BitcoinPaymentsConfig>

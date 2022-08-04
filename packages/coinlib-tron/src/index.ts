@@ -1,5 +1,6 @@
 export * from './BaseTronPayments'
 export * from './HdTronPayments'
+export * from './UHdTronPayments'
 export * from './KeyPairTronPayments'
 export * from './TronPaymentsFactory'
 export * from './TronPaymentsUtils'

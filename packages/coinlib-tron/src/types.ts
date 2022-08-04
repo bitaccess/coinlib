@@ -45,6 +45,31 @@ export const HdTronPaymentsConfig = extendCodec(
 )
 export type HdTronPaymentsConfig = t.TypeOf<typeof HdTronPaymentsConfig>
 
+export const SeedPaymentConfig = extendCodec(
+  BaseTronPaymentsConfig,
+  {
+    seed: t.string,
+  },
+  {
+    derivationPath: t.string,
+  },
+  'SeedPaymentConfig',
+)
+export type SeedPaymentConfig = t.TypeOf<typeof SeedPaymentConfig>
+export const UniPubKeyPaymentConfig = extendCodec(
+  BaseTronPaymentsConfig,
+  {
+    uniPubKey: t.string,
+  },
+  {
+    derivationPath: t.string,
+  },
+  'UniPubKeyPaymentConfig',
+)
+export type UniPubKeyPaymentConfig = t.TypeOf<typeof UniPubKeyPaymentConfig>
+export const UHdTronPaymentsConfig = t.union([SeedPaymentConfig, UniPubKeyPaymentConfig], 'UHdTronPaymentsConfig')
+export type UHdTronPaymentsConfig = t.TypeOf<typeof UHdTronPaymentsConfig>
+
 const NullableOptionalString = t.union([t.string, t.null, t.undefined])
 
 export const KeyPairTronPaymentsConfig = extendCodec(
@@ -57,7 +82,10 @@ export const KeyPairTronPaymentsConfig = extendCodec(
 )
 export type KeyPairTronPaymentsConfig = t.TypeOf<typeof KeyPairTronPaymentsConfig>
 
-export const TronPaymentsConfig = t.union([HdTronPaymentsConfig, KeyPairTronPaymentsConfig], 'TronPaymentsConfig')
+export const TronPaymentsConfig = t.union(
+  [HdTronPaymentsConfig, UHdTronPaymentsConfig, KeyPairTronPaymentsConfig],
+  'TronPaymentsConfig',
+)
 export type TronPaymentsConfig = t.TypeOf<typeof TronPaymentsConfig>
 
 export const TronUnsignedTransaction = extendCodec(

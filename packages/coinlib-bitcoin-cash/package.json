@@ -47,7 +47,8 @@
     "test": "jest --runInBand --bail",
     "testMultisig": "node --inspect-brk ../../node_modules/jest/bin/jest.js --runInBand test/e2e.mainnet.multisig.test.ts",
     "report-coverage": "cat ./coverage/lcov.info | coveralls",
-    "version": "npm run build"
+    "version": "npm run build",
+    "testU": "jest test/UHdBitcoinCashPayments.test.ts"
   },
   "dependencies": {
     "@bitaccess/coinlib-bitcoin": "file:../coinlib-bitcoin",

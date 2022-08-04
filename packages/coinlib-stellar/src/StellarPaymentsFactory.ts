@@ -4,6 +4,7 @@ import { assertType } from '@faast/ts-common'
 import {
   StellarPaymentsConfig,
   HdStellarPaymentsConfig,
+  UHdStellarPaymentsConfig,
   AccountStellarPaymentsConfig,
   BaseStellarPaymentsConfig,
   StellarBalanceMonitorConfig,
@@ -12,6 +13,7 @@ import {
 import { PACKAGE_NAME } from './constants'
 import { BaseStellarPayments } from './BaseStellarPayments'
 import { HdStellarPayments } from './HdStellarPayments'
+import { UHdStellarPayments } from './UHdStellarPayments'
 import { AccountStellarPayments } from './AccountStellarPayments'
 import { StellarPaymentsUtils } from './StellarPaymentsUtil'
 import { StellarBalanceMonitor } from './StellarBalanceMonitor'
@@ -24,9 +26,15 @@ export class StellarPaymentsFactory extends PaymentsFactory<
 > {
   readonly packageName = PACKAGE_NAME
 
+  newPayments(config: UHdStellarPaymentsConfig): UHdStellarPayments
   newPayments(config: HdStellarPaymentsConfig): HdStellarPayments
   newPayments(config: AccountStellarPaymentsConfig): AccountStellarPayments
   newPayments(config: StellarPaymentsConfig) {
+    // UHdStellarPaymentsConfig is child of HdStellarPaymentsConfig, so it should has higher priority
+    // Because parent cannot be assigned to child
+    if (UHdStellarPaymentsConfig.is(config)) {
+      return new UHdStellarPayments(config)
+    }
     if (AccountStellarPaymentsConfig.is(config)) {
       return new AccountStellarPayments(config)
     }
