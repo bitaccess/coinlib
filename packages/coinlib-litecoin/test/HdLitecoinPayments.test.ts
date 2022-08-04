@@ -6,7 +6,7 @@ import {
 
 import { EXTERNAL_ADDRESS, accountsByAddressType, AccountFixture, ADDRESS_SEGWIT_P2SH_DEPRECATED } from './fixtures'
 import { logger, makeUtxos, makeOutputs, expectUtxosEqual } from './utils'
-import { toBigNumber } from '@faast/ts-common'
+import { toBigNumber } from '@bitaccess/ts-common'
 
 jest.setTimeout(30 * 1000)
 
