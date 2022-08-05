@@ -1,7 +1,7 @@
 import { UHdStellarPaymentsConfig, SeedStellarPaymentsConfig, StellarAccountConfig } from './types'
-import { generateMnemonic, deriveSignatory, deriveSignatoryByPath } from './bip44'
+import { generateMnemonic } from './bip44'
+import { isValidAddress } from './helpers'
 import { HdStellarPayments } from './HdStellarPayments'
-import { StrKey } from 'stellar-sdk'
 
 export class UHdStellarPayments extends HdStellarPayments {
 
@@ -13,7 +13,7 @@ export class UHdStellarPayments extends HdStellarPayments {
     } else {
       const { uniPubKey, derivationPath, ...restConfig } = config
       const [sendingAddress, receivingAddress] = uniPubKey.split(':')
-      if (!StrKey.isValidEd25519PublicKey(sendingAddress) || !StrKey.isValidEd25519PublicKey(receivingAddress)) {
+      if (!isValidAddress(sendingAddress) || !isValidAddress(receivingAddress)) {
         throw new Error(`Invalid stellar uniPubKey ${uniPubKey}`)
       }
       hotAccount = { address: sendingAddress }

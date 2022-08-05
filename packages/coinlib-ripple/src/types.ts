@@ -70,7 +70,7 @@ export type SeedRipplePaymentsConfig = t.TypeOf<typeof SeedRipplePaymentsConfig>
 export const UniPubKeyRipplePaymentsConfig = extendCodec(
   BaseRipplePaymentsConfig,
   {
-    uniPubKey: t.string, // xprv or xpub
+    uniPubKey: t.string,
   },
   'UniPubKeyRipplePaymentsConfig',
 )
