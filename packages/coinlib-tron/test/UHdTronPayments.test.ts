@@ -388,48 +388,6 @@ describe('UHdTronPayments', () => {
         expect(tx.confirmations).toBeGreaterThan(0)
         return tx
       }
-
-      jest.setTimeout(300 * 1000)
-
-      it('end to end sweep', async () => {
-        const indicesToTry = [5, 6]
-        const balances: { [i: number]: BalanceResult } = {}
-        let indexToSweep: number = -1
-        for (const index of indicesToTry) {
-          const balanceResult = await tp.getBalance(index)
-          balances[index] = balanceResult
-          if (balanceResult.sweepable) {
-            indexToSweep = index
-            break
-          }
-        }
-        if (indexToSweep < 0) {
-          const allAddresses = await Promise.all(indicesToTry.map(i => tp.getPayport(i)))
-          logger.log(
-            'Cannot end to end test sweeping due to lack of funds. Send TRX to any of the following addresses and try again.',
-            allAddresses,
-          )
-          return
-        }
-        const recipientIndex = indexToSweep === indicesToTry[0] ? indicesToTry[1] : indicesToTry[0]
-        try {
-          const unsignedTx = await tp.createSweepTransaction(indexToSweep, recipientIndex)
-          const signedTx = await tp.signTransaction(unsignedTx)
-          logger.log(`Sweeping ${signedTx.amount} TRX from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
-          expect(await tp.broadcastTransaction(signedTx)).toEqual({
-            id: signedTx.id,
-            rebroadcast: false,
-          })
-          const tx = await pollUntilEnded(signedTx)
-          expect(tx.amount).toEqual(signedTx.amount)
-          expect(tx.fee).toEqual(signedTx.fee)
-        } catch (e) {
-          if ((e?.message || (e as string)).includes('Validate TransferContract error, balance is not sufficient')) {
-            logger.log('Ran consecutive tests too soon, previous sweep not complete. Wait a minute and retry')
-          }
-          throw e
-        }
-      })
     })
   }
 })

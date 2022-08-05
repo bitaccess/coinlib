@@ -101,7 +101,7 @@ export class CoinPayments {
       }
       o[k] = publicConfig
       return o
-    }, {} as CoinPaymentsConfig)
+    }, {} as any)
   }
 
   getAccountIds(): string[] {
