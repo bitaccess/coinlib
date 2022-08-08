@@ -1,7 +1,7 @@
 import { UHdRipplePayments, XPUB_REGEX, XPRV_REGEX } from '../src'
 import { hdAccount } from './fixtures/accounts'
 
-const { XPRV, XPUB, PRIVATE_KEYS, PUBLIC_KEYS, ADDRESSES } = hdAccount
+const { SEED, XPUB, PRIVATE_KEYS, PUBLIC_KEYS, ADDRESSES } = hdAccount
 
 function commonTests(rp: UHdRipplePayments) {
   it('getPublicConfig should return xpub', () => {
@@ -31,7 +31,7 @@ describe('UHdRipplePayments', () => {
       expect(() => new UHdRipplePayments({ uniPubKey: 'invalid' })).toThrow()
     })
     it('should instantiate with valid xprv', () => {
-      const rp = new UHdRipplePayments({ uniPubKey: XPRV })
+      const rp = new UHdRipplePayments({ seed: SEED })
       expect(rp).toBeInstanceOf(UHdRipplePayments)
     })
     it('should instantiate with valid xpub', () => {
@@ -40,7 +40,7 @@ describe('UHdRipplePayments', () => {
     })
   })
   describe('xprv', () => {
-    const rp = new UHdRipplePayments({ uniPubKey: XPRV })
+    const rp = new UHdRipplePayments({ seed: SEED })
     it('should not be readonly', () => {
       expect(rp.isReadOnly()).toBe(false)
     })
