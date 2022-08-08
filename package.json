@@ -28,8 +28,8 @@
     "cleaninstall": "npm run clean-node-modules && npm install"
   },
   "devDependencies": {
-    "@faast/ts-common": "^0.6.0",
-    "@faast/ts-config": "^1.3.5",
+    "@bitaccess/ts-common": "^1.0.2",
+    "@bitaccess/ts-config": "^1.3.5",
     "@types/bs58check": "^2.1.0",
     "@types/elliptic": "^6.4.10",
     "@types/events": "^3.0.0",

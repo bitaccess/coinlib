@@ -16,7 +16,7 @@ import { CreateTransactionOptions, ResolveablePayport, PayportOutput } from '@bi
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { getMultisigPaymentScript } from './helpers'
 
-import { Numeric } from '@faast/ts-common'
+import { Numeric } from '@bitaccess/ts-common'
 import { DEFAULT_MULTISIG_ADDRESS_TYPE } from './constants'
 
 export class MultisigLitecoinPayments extends BaseLitecoinPayments<MultisigLitecoinPaymentsConfig> {

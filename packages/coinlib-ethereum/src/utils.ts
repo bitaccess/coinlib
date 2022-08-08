@@ -1,4 +1,4 @@
-import { isMatchingError, isString, Logger } from '@faast/ts-common'
+import { isMatchingError, isString, Logger } from '@bitaccess/ts-common'
 import { BlockbookEthereum, NormalizedTxEthereum } from 'blockbook-client'
 import promiseRetry from 'promise-retry'
 import { buffToHex, hexToBuff, numericToHex, strip0x, prepend0x } from '@bitaccess/coinlib-common'

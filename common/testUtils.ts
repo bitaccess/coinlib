@@ -1,5 +1,5 @@
 import { omit } from 'lodash'
-import { Logger } from '@faast/ts-common'
+import { Logger } from '@bitaccess/ts-common'
 import util from 'util'
 import fs from 'fs'
 import path from 'path'

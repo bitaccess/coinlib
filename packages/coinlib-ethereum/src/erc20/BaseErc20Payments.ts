@@ -8,7 +8,7 @@ import {
   BigNumber,
   numericToHex,
 } from '@bitaccess/coinlib-common'
-import { Numeric } from '@faast/ts-common'
+import { Numeric } from '@bitaccess/ts-common'
 
 import {
   BaseErc20PaymentsConfig,

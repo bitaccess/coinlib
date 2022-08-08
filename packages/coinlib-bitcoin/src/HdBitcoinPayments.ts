@@ -1,5 +1,5 @@
 import { omit } from 'lodash'
-import { assertType } from '@faast/ts-common'
+import { assertType } from '@bitaccess/ts-common'
 import {
   isValidXprv as isValidXprvHelper,
   isValidXpub as isValidXpubHelper,

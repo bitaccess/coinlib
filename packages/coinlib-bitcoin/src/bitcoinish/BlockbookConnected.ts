@@ -1,5 +1,5 @@
 import { NetworkType } from '@bitaccess/coinlib-common'
-import { Logger, assertType, DelegateLogger } from '@faast/ts-common'
+import { Logger, assertType, DelegateLogger } from '@bitaccess/ts-common'
 import { BlockbookBitcoin } from 'blockbook-client'
 
 import { BlockbookConnectedConfig, BlockbookServerAPI } from './types'

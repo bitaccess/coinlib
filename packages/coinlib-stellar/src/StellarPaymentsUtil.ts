@@ -10,7 +10,7 @@ import {
   BigNumber,
   NetworkType,
 } from '@bitaccess/coinlib-common'
-import { isNil, assertType, Numeric, isMatchingError } from '@faast/ts-common'
+import { isNil, assertType, Numeric, isMatchingError } from '@bitaccess/ts-common'
 import * as Stellar from 'stellar-sdk'
 
 import {

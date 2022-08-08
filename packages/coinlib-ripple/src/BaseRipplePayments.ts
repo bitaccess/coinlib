@@ -18,7 +18,7 @@ import {
   CreateTransactionOptions,
   BigNumber,
 } from '@bitaccess/coinlib-common'
-import { assertType, isNil, Numeric, isUndefined } from '@faast/ts-common'
+import { assertType, isNil, Numeric, isUndefined } from '@bitaccess/ts-common'
 import { Prepare } from 'ripple-lib/dist/npm/transaction/types'
 import { Adjustment } from 'ripple-lib/dist/npm/common/types/objects'
 import { omit } from 'lodash'

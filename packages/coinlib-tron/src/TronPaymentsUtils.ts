@@ -10,7 +10,7 @@ import {
   BlockInfo,
   BigNumber,
 } from '@bitaccess/coinlib-common'
-import { Logger, DelegateLogger, isNil, assertType, Numeric, isUndefined } from '@faast/ts-common'
+import { Logger, DelegateLogger, isNil, assertType, Numeric, isUndefined } from '@bitaccess/ts-common'
 import TronWeb, { Transaction as TronTransaction } from 'tronweb'
 
 import {

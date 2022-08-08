@@ -1,5 +1,5 @@
 import { NetworkType, BlockInfo, BigNumber, }  from '@bitaccess/coinlib-common'
-import { Logger, assertType, DelegateLogger } from '@faast/ts-common'
+import { Logger, assertType, DelegateLogger } from '@bitaccess/ts-common'
 import * as Stellar from 'stellar-sdk'
 
 import { BaseStellarConfig, StellarRawTransaction, StellarLedger } from './types'

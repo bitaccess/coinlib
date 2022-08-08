@@ -23,7 +23,7 @@ import {
 } from '../src'
 
 import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectUtxosEqual } from './utils'
-import { toBigNumber } from '@faast/ts-common'
+import { toBigNumber } from '@bitaccess/ts-common'
 import fixtures from './fixtures/singlesigTestnet'
 import { forcedUtxos, availableUtxos, unsignedHash, signedHex, mitxId } from './fixtures/multiInput'
 import { HdBitcoinPaymentsConfig } from '../src/types'

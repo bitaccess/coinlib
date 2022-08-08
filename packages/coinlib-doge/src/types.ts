@@ -6,7 +6,7 @@ import {
   BaseBroadcastResult,
   KeyPairsConfigParam,
 } from '@bitaccess/coinlib-common'
-import { extendCodec, enumCodec, requiredOptionalCodec, instanceofCodec } from '@faast/ts-common'
+import { extendCodec, enumCodec, requiredOptionalCodec, instanceofCodec } from '@bitaccess/ts-common'
 import { Signer as BitcoinjsSigner } from 'bitcoinjs-lib-bigint'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { PsbtInput, TransactionInput, TransactionOutput } from 'bip174-bigint/src/lib/interfaces'

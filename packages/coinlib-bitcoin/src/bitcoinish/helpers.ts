@@ -18,7 +18,7 @@ import {
   bip32,
 } from '@bitaccess/coinlib-common'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
-import { isString } from '@faast/ts-common'
+import { isString } from '@bitaccess/ts-common'
 
 export function isValidAddress(address: string, network: BitcoinjsNetwork): boolean {
   try {

@@ -50,7 +50,6 @@
   "dependencies": {
     "@bitaccess/coinlib-common": "file:../coinlib-common",
     "@bitaccess/ts-common": "^1.0.2",
-    "@faast/ts-common": "^0.6.0",
     "elliptic": "^6.4.1",
     "io-ts": "^1.10.4",
     "js-sha3": "^0.8.0",

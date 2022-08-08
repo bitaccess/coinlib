@@ -1,6 +1,6 @@
 import { NetworkType, UtxoInfo, AutoFeeLevels, FeeRate, FeeRateType, BigNumber, bip32MagicNumberToPrefix } from '@bitaccess/coinlib-common'
 import { BlockbookBitcoin } from 'blockbook-client'
-import { isString, Logger, isMatchingError, toBigNumber, assertType } from '@faast/ts-common'
+import { isString, Logger, isMatchingError, toBigNumber, assertType } from '@bitaccess/ts-common'
 import request from 'request-promise-native'
 import promiseRetry from 'promise-retry'
 import crypto from 'crypto'

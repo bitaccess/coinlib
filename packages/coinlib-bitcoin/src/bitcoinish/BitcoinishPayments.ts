@@ -24,7 +24,7 @@ import {
   LookupTxDataByHashes,
   BigNumber,
 } from '@bitaccess/coinlib-common'
-import { isUndefined, isType, Numeric, toBigNumber, assertType, isNumber } from '@faast/ts-common'
+import { isUndefined, isType, Numeric, toBigNumber, assertType, isNumber } from '@bitaccess/ts-common'
 import * as t from 'io-ts'
 
 import {
