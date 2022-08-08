@@ -14,6 +14,7 @@ export const hdAccount = {
     0: 'TXw3bBhMwZgCvNWJG4oGB5Z96YkPLGu5ju',
     1: 'TBJhvDc8pCZkbEi1iWy4RD5VHYAS94XgWg',
     2: 'TTC1WfyFtswjkY4gjFmhw2QLURkGAfdEaX',
+    3: 'TNRP8h1vVZFTKKJReobU4fpHhSAVh2hJab',
     5: 'TQmBbYtAu3GjexTRJFvQaEW2sRB5pdMcZ3',
     6: 'TPZfLDAWoVBZL3EfN5C96E7JzrsRpLsN1k',
     10: 'TF543gR2jUN1S2rxf68397wDCMEePnF7rQ',
