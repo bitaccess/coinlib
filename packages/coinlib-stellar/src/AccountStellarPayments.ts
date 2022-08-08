@@ -5,7 +5,7 @@ import {
   PartialStellarSignatory,
 } from './types'
 import { BaseStellarPayments } from './BaseStellarPayments'
-import { assertType } from '@faast/ts-common'
+import { assertType } from '@bitaccess/ts-common'
 import { isValidAddress, isValidSecret } from './helpers'
 import * as Stellar from 'stellar-sdk'
 

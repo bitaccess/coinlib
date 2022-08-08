@@ -1,6 +1,6 @@
 {
   "name": "@bitaccess/coinlib-litecoin",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "description": "Library to assist in processing litecoin payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -52,7 +52,6 @@
     "@bitaccess/coinlib-bitcoin": "file:../coinlib-bitcoin",
     "@bitaccess/coinlib-common": "file:../coinlib-common",
     "@bitaccess/ts-common": "^1.0.2",
-    "@faast/ts-common": "^0.6.0",
     "@types/lodash": "^4.14.150",
     "bip174-bigint": "github:bitaccess/bip174#bigint",
     "bitcoinjs-lib-bigint": "github:bitaccess/bitcoinjs-lib#bigintv6",

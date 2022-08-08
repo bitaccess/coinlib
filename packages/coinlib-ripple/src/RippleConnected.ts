@@ -1,6 +1,6 @@
 import { NetworkType } from '@bitaccess/coinlib-common'
 import { RippleAPI } from 'ripple-lib'
-import { Logger, assertType, DelegateLogger, isString } from '@faast/ts-common'
+import { Logger, assertType, DelegateLogger, isString } from '@bitaccess/ts-common'
 import promiseRetry from 'promise-retry'
 import { BaseRippleConfig, RippleServerAPI } from './types'
 import {

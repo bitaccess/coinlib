@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { FeeRateType, BalanceResult, TransactionStatus, NetworkType, FeeLevel, BigNumber, } from '@bitaccess/coinlib-common'
-import { toBigNumber } from '@faast/ts-common'
+import { toBigNumber } from '@bitaccess/ts-common'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import { assertBitcoinishTxInfoEquality } from '@bitaccess/coinlib-bitcoin/test/utils'
 

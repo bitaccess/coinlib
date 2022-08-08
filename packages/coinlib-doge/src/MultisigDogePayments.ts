@@ -16,7 +16,7 @@ import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { CreateTransactionOptions, ResolveablePayport, PayportOutput } from '@bitaccess/coinlib-common'
 import { bitcoinish, AddressType } from '@bitaccess/coinlib-bitcoin'
 import { getMultisigPaymentScript } from './helpers'
-import { Numeric } from '@faast/ts-common'
+import { Numeric } from '@bitaccess/ts-common'
 import { DEFAULT_MULTISIG_ADDRESS_TYPE } from './constants'
 
 export class MultisigDogePayments extends BaseDogePayments<MultisigDogePaymentsConfig> {

@@ -15,7 +15,7 @@ import { KeyPairBitcoinPayments } from './KeyPairBitcoinPayments'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { CreateTransactionOptions, ResolveablePayport, PayportOutput } from '@bitaccess/coinlib-common'
 import { getMultisigPaymentScript } from './helpers'
-import { Numeric } from '@faast/ts-common'
+import { Numeric } from '@bitaccess/ts-common'
 import { DEFAULT_MULTISIG_ADDRESS_TYPE } from './constants'
 import { createMultisigData, preCombinePartiallySignedTransactions, updateSignedMultisigTx } from './bitcoinish'
 export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoinPaymentsConfig> {

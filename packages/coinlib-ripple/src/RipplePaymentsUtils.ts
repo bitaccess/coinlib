@@ -10,7 +10,7 @@ import {
   BigNumber,
   NetworkType,
 } from '@bitaccess/coinlib-common'
-import { isNil, assertType, Numeric, isMatchingError, isUndefined, isString } from '@faast/ts-common'
+import { isNil, assertType, Numeric, isMatchingError, isUndefined, isString } from '@bitaccess/ts-common'
 
 import {
   toMainDenominationString,

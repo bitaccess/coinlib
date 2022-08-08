@@ -1,5 +1,5 @@
 import { omit } from 'lodash'
-import { isUndefined, isString } from '@faast/ts-common'
+import { isUndefined, isString } from '@bitaccess/ts-common'
 
 import { SinglesigBitcoinPayments } from './SinglesigBitcoinPayments'
 import { KeyPairBitcoinPaymentsConfig, BitcoinjsKeyPair, SinglesigAddressType } from './types'

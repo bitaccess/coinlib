@@ -7,7 +7,7 @@ import {
   Numeric,
   optional,
   requiredOptionalCodec,
-} from '@faast/ts-common'
+} from '@bitaccess/ts-common'
 
 import {
   BaseTransactionInfo,

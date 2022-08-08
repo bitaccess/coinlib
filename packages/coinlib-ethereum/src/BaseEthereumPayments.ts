@@ -21,7 +21,7 @@ import {
   BigNumber,
   DerivablePayport,
 } from '@bitaccess/coinlib-common'
-import { isType, isMatchingError, Numeric } from '@faast/ts-common'
+import { isType, isMatchingError, Numeric } from '@bitaccess/ts-common'
 import request from 'request-promise-native'
 
 import {

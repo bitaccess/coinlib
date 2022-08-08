@@ -5,7 +5,7 @@ import { BitcoinishTxOutput } from '../src/bitcoinish/types'
 import { BitcoinishPayments } from '../src/bitcoinish/BitcoinishPayments'
 import { toBaseDenominationNumber, BitcoinjsNetwork } from '../src'
 import { omit } from 'lodash'
-import { toBigNumber } from '@faast/ts-common'
+import { toBigNumber } from '@bitaccess/ts-common'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 
 export * from '../../../common/testUtils'

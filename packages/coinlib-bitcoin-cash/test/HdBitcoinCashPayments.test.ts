@@ -1,11 +1,10 @@
 import fs from 'fs'
 import path from 'path'
-import { NetworkType, FeeRateType } from '@bitaccess/coinlib-common'
+import { NetworkType } from '@bitaccess/coinlib-common'
 import { BitcoinCashAddressFormat, HdBitcoinCashPayments, HdBitcoinCashPaymentsConfig } from '../src'
 
-import { EXTERNAL_ADDRESS, AccountFixture, hdAccount as accountFixture, ADDRESS_LEGACY } from './fixtures'
-import { logger, makeUtxos, makeOutputs, expectUtxosEqual } from './utils'
-import { toBigNumber } from '@faast/ts-common'
+import { hdAccount as accountFixture } from './fixtures'
+import { logger } from './utils'
 import { runHardcodedPublicKeyTests } from './helper'
 
 jest.setTimeout(30 * 1000)

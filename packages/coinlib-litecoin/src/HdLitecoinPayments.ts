@@ -1,5 +1,5 @@
 import { omit } from 'lodash'
-import { assertType } from '@faast/ts-common'
+import { assertType } from '@bitaccess/ts-common'
 import { PUBLIC_CONFIG_OMIT_FIELDS, bitcoinish } from '@bitaccess/coinlib-bitcoin'
 
 import {

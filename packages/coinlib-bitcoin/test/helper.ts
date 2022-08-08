@@ -1,6 +1,6 @@
 import { FeeRateType } from '@bitaccess/coinlib-common'
 import { makeUtxos, makeOutputs, expectUtxosEqual, logger } from './utils'
-import { toBigNumber } from '@faast/ts-common'
+import { toBigNumber } from '@bitaccess/ts-common'
 import {
   HdBitcoinPayments,
   UHdBitcoinPayments,

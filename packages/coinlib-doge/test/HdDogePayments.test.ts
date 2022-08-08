@@ -1,5 +1,5 @@
-import fs from 'fs'
-import path from 'path'
+import * as fs from 'fs'
+import * as path from 'path'
 import { NetworkType } from '@bitaccess/coinlib-common'
 import { HdDogePayments, HdDogePaymentsConfig, SinglesigAddressType } from '../src'
 import { accountsByAddressType, legacyAccount } from './fixtures'

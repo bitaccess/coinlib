@@ -1,5 +1,5 @@
 import * as t from 'io-ts'
-import { extendCodec, Logger } from '@faast/ts-common'
+import { extendCodec, Logger } from '@bitaccess/ts-common'
 import {
   BaseTransactionInfo,
   BaseUnsignedTransaction,

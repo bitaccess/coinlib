@@ -1,5 +1,5 @@
 import { createUnitConverters, NetworkType } from '@bitaccess/coinlib-common'
-import { isNil, isString } from '@faast/ts-common'
+import { isNil, isString } from '@bitaccess/ts-common'
 import * as Stellar from 'stellar-sdk'
 import StellarHDWallet from 'stellar-hd-wallet'
 import {Keypair} from "stellar-base";

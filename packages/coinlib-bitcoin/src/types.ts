@@ -7,7 +7,7 @@ import {
   BaseBroadcastResult,
   KeyPairsConfigParam,
 } from '@bitaccess/coinlib-common'
-import { extendCodec, requiredOptionalCodec, instanceofCodec } from '@faast/ts-common'
+import { extendCodec, requiredOptionalCodec, instanceofCodec } from '@bitaccess/ts-common'
 import { BlockInfoBitcoin } from 'blockbook-client'
 import {
   BitcoinishPaymentTx,

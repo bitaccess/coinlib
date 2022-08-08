@@ -10,7 +10,7 @@ import {
   BigNumber,
 } from '@bitaccess/coinlib-common'
 import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
-import { toBigNumber } from '@faast/ts-common'
+import { toBigNumber } from '@bitaccess/ts-common'
 import { assertBitcoinishTxInfoEquality, getFromTo } from '@bitaccess/coinlib-bitcoin/test/utils'
 
 import {

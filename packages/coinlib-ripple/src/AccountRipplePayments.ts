@@ -6,7 +6,7 @@ import {
   RippleSecretPair,
 } from './types'
 import { BaseRipplePayments } from './BaseRipplePayments'
-import { assertType } from '@faast/ts-common'
+import { assertType } from '@bitaccess/ts-common'
 import { isValidAddress } from './helpers'
 
 export class AccountRipplePayments extends BaseRipplePayments<AccountRipplePaymentsConfig> {

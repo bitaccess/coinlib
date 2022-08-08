@@ -1,6 +1,6 @@
 {
   "name": "@bitaccess/coinlib-stellar",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "description": "Library to assist in processing stellar payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -47,7 +47,6 @@
   "dependencies": {
     "@bitaccess/coinlib-common": "file:../coinlib-common",
     "@bitaccess/ts-common": "^1.0.2",
-    "@faast/ts-common": "^0.6.0",
     "base-x": "^3.0.6",
     "events": "^3.3.0",
     "io-ts": "^1.10.4",

@@ -1,4 +1,4 @@
-import { assertType } from '@faast/ts-common'
+import { assertType } from '@bitaccess/ts-common'
 import {
   BalanceResult,
   TransactionStatus,

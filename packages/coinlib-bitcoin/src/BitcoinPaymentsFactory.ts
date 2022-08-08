@@ -1,5 +1,5 @@
 import { PaymentsFactory, StandardConnectionManager } from '@bitaccess/coinlib-common'
-import { assertType } from '@faast/ts-common'
+import { assertType } from '@bitaccess/ts-common'
 
 import {
   BitcoinPaymentsConfig,

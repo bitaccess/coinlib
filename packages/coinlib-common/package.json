@@ -1,6 +1,6 @@
 {
   "name": "@bitaccess/coinlib-common",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "description": "Common module used by coinlib",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -44,7 +44,6 @@
   },
   "dependencies": {
     "@bitaccess/ts-common": "^1.0.2",
-    "@faast/ts-common": "^0.6.0",
     "bip32": "^3.0.1",
     "bip39": "^3.0.4",
     "bs58check": "^2.1.2",
