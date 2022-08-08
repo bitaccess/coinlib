@@ -1,8 +1,7 @@
-import { DelegateLogger } from '@bitaccess/ts-common'
+import { DelegateLogger, Logger } from '@bitaccess/ts-common'
 import { AbstractProvider } from 'web3-core'
 import { JsonRpcPayload, JsonRpcResponse } from 'web3-core-helpers'
 import { isEqual } from 'lodash'
-import { Logger } from '@bitaccess/ts-common'
 import { Mock } from './types'
 
 export class TestWeb3Provider implements AbstractProvider {
