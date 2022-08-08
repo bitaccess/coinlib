@@ -58,6 +58,30 @@ export const HdRipplePaymentsConfig = extendCodec(
 )
 export type HdRipplePaymentsConfig = t.TypeOf<typeof HdRipplePaymentsConfig>
 
+export const SeedRipplePaymentsConfig = extendCodec(
+  BaseRipplePaymentsConfig,
+  {
+    seed: t.string,
+  },
+  'SeedRipplePaymentsConfig',
+)
+export type SeedRipplePaymentsConfig = t.TypeOf<typeof SeedRipplePaymentsConfig>
+
+export const UniPubKeyRipplePaymentsConfig = extendCodec(
+  BaseRipplePaymentsConfig,
+  {
+    uniPubKey: t.string,
+  },
+  'UniPubKeyRipplePaymentsConfig',
+)
+export type UniPubKeyRipplePaymentsConfig = t.TypeOf<typeof UniPubKeyRipplePaymentsConfig>
+
+export const UHdRipplePaymentsConfig = t.union(
+  [SeedRipplePaymentsConfig, UniPubKeyRipplePaymentsConfig],
+  'UHdRipplePaymentsConfig',
+)
+export type UHdRipplePaymentsConfig = t.TypeOf<typeof UHdRipplePaymentsConfig>
+
 export const RippleKeyPair = t.type(
   {
     publicKey: t.string,
@@ -93,7 +117,7 @@ export const AccountRipplePaymentsConfig = extendCodec(
 export type AccountRipplePaymentsConfig = t.TypeOf<typeof AccountRipplePaymentsConfig>
 
 export const RipplePaymentsConfig = t.union(
-  [HdRipplePaymentsConfig, AccountRipplePaymentsConfig],
+  [HdRipplePaymentsConfig, UHdRipplePaymentsConfig, AccountRipplePaymentsConfig],
   'RipplePaymentsConfig',
 )
 export type RipplePaymentsConfig = t.TypeOf<typeof RipplePaymentsConfig>

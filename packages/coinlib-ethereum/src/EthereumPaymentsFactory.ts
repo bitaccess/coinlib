@@ -5,16 +5,20 @@ import {
   EthereumPaymentsUtilsConfig,
   EthereumPaymentsConfig,
   HdEthereumPaymentsConfig,
+  UHdEthereumPaymentsConfig,
   KeyPairEthereumPaymentsConfig,
   HdErc20PaymentsConfig,
   KeyPairErc20PaymentsConfig,
+  UHdErc20PaymentsConfig,
 } from './types'
 import { PACKAGE_NAME } from './constants'
 import { EthereumConnectionManager } from './EthereumConnectionManager'
 import { BaseEthereumPayments } from './BaseEthereumPayments'
 import { EthereumPaymentsUtils } from './EthereumPaymentsUtils'
 import { HdEthereumPayments } from './HdEthereumPayments'
+import { UHdEthereumPayments } from './UHdEthereumPayments'
 import { KeyPairEthereumPayments } from './KeyPairEthereumPayments'
+import { UHdErc20Payments } from './erc20/UHdErc20Payments'
 import { HdErc20Payments } from './erc20/HdErc20Payments'
 import { KeyPairErc20Payments } from './erc20/KeyPairErc20Payments'
 import { EthereumBalanceMonitor } from './EthereumBalanceMonitor'
@@ -28,13 +32,18 @@ export class EthereumPaymentsFactory extends PaymentsFactory<
   readonly packageName = PACKAGE_NAME
 
   newPayments(config: HdErc20PaymentsConfig): HdErc20Payments
+  newPayments(config: UHdErc20PaymentsConfig): UHdErc20Payments
   newPayments(config: KeyPairErc20PaymentsConfig): KeyPairErc20Payments
   newPayments(config: HdEthereumPaymentsConfig): HdEthereumPayments
+  newPayments(config: UHdEthereumPaymentsConfig): UHdEthereumPayments
   newPayments(config: KeyPairEthereumPaymentsConfig): KeyPairEthereumPayments
 
   newPayments(config: EthereumPaymentsConfig) {
     if (HdErc20PaymentsConfig.is(config)) {
       return new HdErc20Payments(config)
+    }
+    if (UHdErc20PaymentsConfig.is(config)) {
+      return new UHdErc20Payments(config)
     }
     if (KeyPairErc20PaymentsConfig.is(config)) {
       throw new Error(`Cannot instantiate ${this.packageName} for unsupported KeyPairErc20PaymentsConfig`)
@@ -42,6 +51,9 @@ export class EthereumPaymentsFactory extends PaymentsFactory<
     }
     if (HdEthereumPaymentsConfig.is(config)) {
       return new HdEthereumPayments(config)
+    }
+    if (UHdEthereumPaymentsConfig.is(config)) {
+      return new UHdEthereumPayments(config)
     }
     if (KeyPairEthereumPaymentsConfig.is(config)) {
       return new KeyPairEthereumPayments(config)

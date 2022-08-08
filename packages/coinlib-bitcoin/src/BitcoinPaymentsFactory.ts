@@ -4,6 +4,7 @@ import { assertType } from '@bitaccess/ts-common'
 import {
   BitcoinPaymentsConfig,
   HdBitcoinPaymentsConfig,
+  UHdBitcoinPaymentsConfig,
   KeyPairBitcoinPaymentsConfig,
   MultisigBitcoinPaymentsConfig,
   BitcoinPaymentsUtilsConfig,
@@ -16,6 +17,7 @@ import { PACKAGE_NAME } from './constants'
 import { BaseBitcoinPayments } from './BaseBitcoinPayments'
 import { BitcoinPaymentsUtils } from './BitcoinPaymentsUtils'
 import { HdBitcoinPayments } from './HdBitcoinPayments'
+import { UHdBitcoinPayments } from './UHdBitcoinPayments'
 import { KeyPairBitcoinPayments } from './KeyPairBitcoinPayments'
 import { MultisigBitcoinPayments } from './MultisigBitcoinPayments'
 import { BitcoinBalanceMonitor } from './BitcoinBalanceMonitor'
@@ -31,6 +33,9 @@ export class BitcoinPaymentsFactory extends PaymentsFactory<
   newPayments(config: BitcoinPaymentsConfig) {
     if (HdBitcoinPaymentsConfig.is(config)) {
       return new HdBitcoinPayments(config)
+    }
+    if (UHdBitcoinPaymentsConfig.is(config)) {
+      return new UHdBitcoinPayments(config)
     }
     if (KeyPairBitcoinPaymentsConfig.is(config)) {
       return new KeyPairBitcoinPayments(config)

@@ -28,7 +28,6 @@ export type AddressType = bitcoinish.AddressType
 export const AddressType = bitcoinish.AddressType
 export const AddressTypeT = enumCodec<AddressType>(AddressType, 'AddressType')
 
-
 // For unclear reasons tsc throws TS4023 when this type is used in an external module.
 // Re-exporting the codec cast to the inferred type helps fix this.
 const SinglesigAddressTypeT = t.keyof(
@@ -116,6 +115,38 @@ export const HdLitecoinPaymentsConfig = extendCodec(
 )
 export type HdLitecoinPaymentsConfig = t.TypeOf<typeof HdLitecoinPaymentsConfig>
 
+export const SeedLitecoinPaymentsConfig = extendCodec(
+  BaseLitecoinPaymentsConfig,
+  {
+    seed: t.string,
+  },
+  {
+    addressType: SinglesigAddressType,
+    derivationPath: t.string,
+  },
+  'SeedLitecoinPaymentsConfig',
+)
+export type SeedLitecoinPaymentsConfig = t.TypeOf<typeof SeedLitecoinPaymentsConfig>
+
+export const UniPubKeyLitecoinPaymentsConfig = extendCodec(
+  BaseLitecoinPaymentsConfig,
+  {
+    uniPubKey: t.string,
+  },
+  {
+    addressType: SinglesigAddressType,
+    derivationPath: t.string,
+  },
+  'UniPubKeyLitecoinPaymentsConfig',
+)
+export type UniPubKeyLitecoinPaymentsConfig = t.TypeOf<typeof UniPubKeyLitecoinPaymentsConfig>
+
+export const UHdLitecoinPaymentsConfig = t.union(
+  [SeedLitecoinPaymentsConfig, UniPubKeyLitecoinPaymentsConfig],
+  'UHdLitecoinPaymentsConfig',
+)
+export type UHdLitecoinPaymentsConfig = t.TypeOf<typeof UHdLitecoinPaymentsConfig>
+
 export const KeyPairLitecoinPaymentsConfig = extendCodec(
   BaseLitecoinPaymentsConfig,
   {
@@ -129,7 +160,7 @@ export const KeyPairLitecoinPaymentsConfig = extendCodec(
 export type KeyPairLitecoinPaymentsConfig = t.TypeOf<typeof KeyPairLitecoinPaymentsConfig>
 
 export const SinglesigLitecoinPaymentsConfig = t.union(
-  [HdLitecoinPaymentsConfig, KeyPairLitecoinPaymentsConfig],
+  [HdLitecoinPaymentsConfig, UHdLitecoinPaymentsConfig, KeyPairLitecoinPaymentsConfig],
   'SinglesigLitecoinPaymentsConfig',
 )
 export type SinglesigLitecoinPaymentsConfig = t.TypeOf<typeof SinglesigLitecoinPaymentsConfig>
@@ -148,7 +179,7 @@ export const MultisigLitecoinPaymentsConfig = extendCodec(
 export type MultisigLitecoinPaymentsConfig = t.TypeOf<typeof MultisigLitecoinPaymentsConfig>
 
 export const LitecoinPaymentsConfig = t.union(
-  [HdLitecoinPaymentsConfig, KeyPairLitecoinPaymentsConfig, MultisigLitecoinPaymentsConfig],
+  [HdLitecoinPaymentsConfig, UHdLitecoinPaymentsConfig, KeyPairLitecoinPaymentsConfig, MultisigLitecoinPaymentsConfig],
   'LitecoinPaymentsConfig',
 )
 export type LitecoinPaymentsConfig = t.TypeOf<typeof LitecoinPaymentsConfig>

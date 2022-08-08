@@ -1,8 +1,10 @@
 import {
   LitecoinPaymentsFactory,
   HdLitecoinPayments,
+  UHdLitecoinPayments,
   KeyPairLitecoinPayments,
   HdLitecoinPaymentsConfig,
+  UHdLitecoinPaymentsConfig,
   KeyPairLitecoinPaymentsConfig,
   MultisigLitecoinPayments,
   MultisigLitecoinPaymentsConfig,
@@ -14,7 +16,7 @@ import {
   bitcoinish,
 } from '../src'
 
-import { legacyAccount } from './fixtures/accounts'
+import { legacyAccount, seedLegacyAccount } from './fixtures/accounts'
 import { PRIVATE_KEY } from './fixtures/bip44'
 import { logger } from './utils'
 
@@ -25,6 +27,11 @@ const HD_CONFIG: HdLitecoinPaymentsConfig = {
   logger,
   server: SERVER,
   hdKey: xprv,
+}
+const UHD_CONFIG: UHdLitecoinPaymentsConfig = {
+  logger,
+  server: SERVER,
+  seed: seedLegacyAccount.seed,
 }
 const KEYPAIR_CONFIG: KeyPairLitecoinPaymentsConfig = {
   logger,
@@ -68,6 +75,9 @@ describe('LitecoinPaymentsFactory', () => {
       }
       expect(factory.newPayments(config)).toBeInstanceOf(HdLitecoinPayments)
     })
+    it('should instantiate UHdLitecoinPayments', () => {
+      expect(factory.newPayments(UHD_CONFIG)).toBeInstanceOf(UHdLitecoinPayments)
+    })
     it('should instantiate KeyPairLitecoinPayments', () => {
       const config: KeyPairLitecoinPaymentsConfig = {
         keyPairs: [PRIVATE_KEY],
@@ -108,12 +118,14 @@ describe('LitecoinPaymentsFactory', () => {
       const payments1 = await factory.initPayments(HD_CONFIG)
       const payments2 = await factory.initPayments(KEYPAIR_CONFIG)
       const payments3 = await factory.initPayments(MULTISIG_CONFIG)
+      const payments4 = await factory.initPayments(UHD_CONFIG)
       const utils = await factory.initUtils(UTILS_CONFIG)
       const bm = await factory.initBalanceMonitor(BM_CONFIG)
       expect(payments1.api).toBeInstanceOf(bitcoinish.BlockbookServerAPI)
       expect(payments1.api).toBe(payments2.api)
       expect(payments1.api).toBe(payments3.api)
-      expect(payments2.api).toBe(utils.api)
+      expect(payments1.api).toBe(payments4.api)
+      expect(payments1.api).toBe(utils.api)
       expect(utils.api).toBe(bm.api)
       expect(bm.api.wsConnected).toBe(true)
     })

@@ -2,6 +2,7 @@ import { BaseBitcoinPayments } from './BaseBitcoinPayments'
 import {
   MultisigBitcoinPaymentsConfig,
   HdBitcoinPaymentsConfig,
+  UHdBitcoinPaymentsConfig,
   BitcoinUnsignedTransaction,
   BitcoinSignedTransaction,
   MultisigAddressType,
@@ -9,6 +10,7 @@ import {
 } from './types'
 import { omit } from 'lodash'
 import { HdBitcoinPayments } from './HdBitcoinPayments'
+import { UHdBitcoinPayments } from './UHdBitcoinPayments'
 import { KeyPairBitcoinPayments } from './KeyPairBitcoinPayments'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { CreateTransactionOptions, ResolveablePayport, PayportOutput } from '@bitaccess/coinlib-common'
@@ -19,8 +21,8 @@ import { createMultisigData, preCombinePartiallySignedTransactions, updateSigned
 export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoinPaymentsConfig> {
   addressType: MultisigAddressType
   m: number
-  signers: (HdBitcoinPayments | KeyPairBitcoinPayments)[]
-  accountIdToSigner: { [accountId: string]: HdBitcoinPayments | KeyPairBitcoinPayments } = {}
+  signers: (HdBitcoinPayments | UHdBitcoinPayments | KeyPairBitcoinPayments)[]
+  accountIdToSigner: { [accountId: string]: HdBitcoinPayments | UHdBitcoinPayments | KeyPairBitcoinPayments } = {}
 
   constructor(private config: MultisigBitcoinPaymentsConfig) {
     super(config)
@@ -37,9 +39,15 @@ export class MultisigBitcoinPayments extends BaseBitcoinPayments<MultisigBitcoin
           `MultisigBitcoinPayments is on network ${this.networkType} but signer config ${i} is on ${signerConfig.network}`,
         )
       }
-      const payments = HdBitcoinPaymentsConfig.is(signerConfig)
-        ? new HdBitcoinPayments(signerConfig)
-        : new KeyPairBitcoinPayments(signerConfig)
+      let payments : HdBitcoinPayments | UHdBitcoinPayments | KeyPairBitcoinPayments
+      if (HdBitcoinPaymentsConfig.is(signerConfig)) {
+        payments = new HdBitcoinPayments(signerConfig)
+      } else if (UHdBitcoinPaymentsConfig.is(signerConfig)) {
+        payments = new UHdBitcoinPayments(signerConfig)
+      } else {
+        payments = new KeyPairBitcoinPayments(signerConfig)
+      }
+
 
       payments.getAccountIds().forEach(accountId => {
         this.accountIdToSigner[accountId] = payments

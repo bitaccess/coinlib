@@ -1,8 +1,10 @@
 import {
   DogePaymentsFactory,
   HdDogePayments,
+  UHdDogePayments,
   KeyPairDogePayments,
   HdDogePaymentsConfig,
+  UHdDogePaymentsConfig,
   KeyPairDogePaymentsConfig,
   MultisigDogePayments,
   MultisigDogePaymentsConfig,
@@ -15,7 +17,7 @@ import {
 } from '../src'
 import { PRIVATE_KEY } from './fixtures'
 
-import { legacyAccount } from './fixtures/accounts'
+import { legacyAccount, seedLegacyAccount } from './fixtures/accounts'
 import { logger } from './utils'
 
 const { xprv } = legacyAccount
@@ -25,6 +27,11 @@ const HD_CONFIG: HdDogePaymentsConfig = {
   logger,
   server: SERVER,
   hdKey: xprv,
+}
+const UHD_CONFIG: UHdDogePaymentsConfig = {
+  logger,
+  server: SERVER,
+  seed: seedLegacyAccount.seed,
 }
 const KEYPAIR_CONFIG: KeyPairDogePaymentsConfig = {
   logger,
@@ -65,6 +72,9 @@ describe('DogePaymentsFactory', () => {
     it('should instantiate HdDogePayments', () => {
       expect(factory.newPayments(HD_CONFIG)).toBeInstanceOf(HdDogePayments)
     })
+    it('should instantiate UHdDogePayments', () => {
+      expect(factory.newPayments(UHD_CONFIG)).toBeInstanceOf(UHdDogePayments)
+    })
     it('should instantiate KeyPairDogePayments', () => {
       expect(factory.newPayments(KEYPAIR_CONFIG)).toBeInstanceOf(KeyPairDogePayments)
     })
@@ -102,12 +112,14 @@ describe('DogePaymentsFactory', () => {
       const payments1 = await factory.initPayments(HD_CONFIG)
       const payments2 = await factory.initPayments(KEYPAIR_CONFIG)
       const payments3 = await factory.initPayments(MULTISIG_CONFIG)
+      const payments4 = await factory.initPayments(UHD_CONFIG)
       const utils = await factory.initUtils(UTILS_CONFIG)
       const bm = await factory.initBalanceMonitor(BM_CONFIG)
       expect(payments1.api).toBeInstanceOf(bitcoinish.BlockbookServerAPI)
       expect(payments1.api).toBe(payments2.api)
       expect(payments1.api).toBe(payments3.api)
-      expect(payments2.api).toBe(utils.api)
+      expect(payments1.api).toBe(payments4.api)
+      expect(payments1.api).toBe(utils.api)
       expect(utils.api).toBe(bm.api)
       expect(bm.api.wsConnected).toBe(true)
     })

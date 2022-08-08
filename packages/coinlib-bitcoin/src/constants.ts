@@ -63,7 +63,21 @@ export const DEFAULT_TESTNET_SERVER = process.env.BITCOIN_TESTNET_SERVER_URL
 
 export const DEFAULT_FEE_LEVEL = FeeLevel.Medium
 
-export const PUBLIC_CONFIG_OMIT_FIELDS = ['logger', 'server', 'api', 'hdKey', 'keyPairs', 'blockcypherToken']
+export const PUBLIC_CONFIG_OMIT_FIELDS = [
+  'logger',
+  'server',
+  'api',
+  'seed',
+  'hdKey',
+  'uniPubKey',
+  'keyPairs',
+  'blockcypherToken',
+]
+
+export const UHD_PAYMENTS_CONFIG_OMIT_FIELDS = [
+  'seed',
+  'uniPubKey',
+]
 
 export const BITCOIN_SUPPORTED_ADDRESS_TYPES = [
   AddressType.Legacy,

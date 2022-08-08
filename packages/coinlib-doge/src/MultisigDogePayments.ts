@@ -2,12 +2,15 @@ import { BaseDogePayments } from './BaseDogePayments'
 import {
   MultisigDogePaymentsConfig,
   HdDogePaymentsConfig,
+  UHdDogePaymentsConfig,
+  SeedDogePaymentsConfig,
   DogeUnsignedTransaction,
   DogeSignedTransaction,
   MultisigAddressType,
 } from './types'
 import { omit } from 'lodash'
 import { HdDogePayments } from './HdDogePayments'
+import { UHdDogePayments } from './UHdDogePayments'
 import { KeyPairDogePayments } from './KeyPairDogePayments'
 import * as bitcoin from 'bitcoinjs-lib-bigint'
 import { CreateTransactionOptions, ResolveablePayport, PayportOutput } from '@bitaccess/coinlib-common'
@@ -19,8 +22,8 @@ import { DEFAULT_MULTISIG_ADDRESS_TYPE } from './constants'
 export class MultisigDogePayments extends BaseDogePayments<MultisigDogePaymentsConfig> {
   addressType: MultisigAddressType
   m: number
-  signers: (HdDogePayments | KeyPairDogePayments)[]
-  accountIdToSigner: { [accountId: string]: HdDogePayments | KeyPairDogePayments } = {}
+  signers: (HdDogePayments | UHdDogePayments | KeyPairDogePayments)[]
+  accountIdToSigner: { [accountId: string]: HdDogePayments | UHdDogePayments | KeyPairDogePayments } = {}
 
   constructor(private config: MultisigDogePaymentsConfig) {
     super(config)
@@ -37,9 +40,14 @@ export class MultisigDogePayments extends BaseDogePayments<MultisigDogePaymentsC
           `MultisigDogePayments is on network ${this.networkType} but signer config ${i} is on ${signerConfig.network}`,
         )
       }
-      const payments = HdDogePaymentsConfig.is(signerConfig)
-        ? new HdDogePayments(signerConfig)
-        : new KeyPairDogePayments(signerConfig)
+      let payments: HdDogePayments | UHdDogePayments | KeyPairDogePayments
+      if (HdDogePaymentsConfig.is(signerConfig)) {
+        payments = new HdDogePayments(signerConfig)
+      } else if (UHdDogePaymentsConfig.is(signerConfig)) {
+        payments = new UHdDogePayments(signerConfig)
+      } else {
+        payments = new KeyPairDogePayments(signerConfig)
+      }
 
       payments.getAccountIds().forEach(accountId => {
         this.accountIdToSigner[accountId] = payments

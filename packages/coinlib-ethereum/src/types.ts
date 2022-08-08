@@ -59,7 +59,6 @@ export const EthereumSignatory = t.type(
 )
 export type EthereumSignatory = t.TypeOf<typeof EthereumSignatory>
 
-
 const networkConstantsCodecFields = {
   networkName: t.string,
   nativeCoinSymbol: t.string,
@@ -123,9 +122,30 @@ export const SeedEthereumPaymentsConfig = extendCodec(
   {
     seed: t.string,
   },
+  {
+    derivationPath: t.string,
+  },
   'SeedEthereumPaymentsConfig',
 )
 export type SeedEthereumPaymentsConfig = t.TypeOf<typeof SeedEthereumPaymentsConfig>
+
+export const UniPubKeyEthereumPaymentsConfig = extendCodec(
+  BaseEthereumPaymentsConfig,
+  {
+    uniPubKey: t.string,
+  },
+  {
+    derivationPath: t.string,
+  },
+  'UniPubKeyEthereumPaymentsConfig',
+)
+export type UniPubKeyEthereumPaymentsConfig = t.TypeOf<typeof UniPubKeyEthereumPaymentsConfig>
+
+export const UHdEthereumPaymentsConfig = t.union(
+  [SeedEthereumPaymentsConfig, UniPubKeyEthereumPaymentsConfig],
+  'UHdEthereumPaymentsConfig',
+)
+export type UHdEthereumPaymentsConfig = t.TypeOf<typeof UHdEthereumPaymentsConfig>
 
 export const KeyPairEthereumPaymentsConfig = extendCodec(
   BaseEthereumPaymentsConfig,
@@ -161,6 +181,36 @@ export const HdErc20PaymentsConfig = extendCodec(
 )
 export type HdErc20PaymentsConfig = t.TypeOf<typeof HdErc20PaymentsConfig>
 
+export const SeedErc20PaymentsConfig = extendCodec(
+  BaseErc20PaymentsConfig,
+  {
+    seed: t.string,
+  },
+  {
+    derivationPath: t.string,
+  },
+  'SeedErc20PaymentsConfig',
+)
+export type SeedErc20PaymentsConfig = t.TypeOf<typeof SeedErc20PaymentsConfig>
+
+export const UniPubKeyErc20PaymentsConfig = extendCodec(
+  BaseErc20PaymentsConfig,
+  {
+    uniPubKey: t.string,
+  },
+  {
+    derivationPath: t.string,
+  },
+  'UniPubKeyErc20PaymentsConfig',
+)
+export type UniPubKeyErc20PaymentsConfig = t.TypeOf<typeof UniPubKeyErc20PaymentsConfig>
+
+export const UHdErc20PaymentsConfig = t.union(
+  [SeedErc20PaymentsConfig, UniPubKeyErc20PaymentsConfig],
+  'UHdErc20PaymentsConfig',
+)
+export type UHdErc20PaymentsConfig = t.TypeOf<typeof UHdErc20PaymentsConfig>
+
 export const KeyPairErc20PaymentsConfig = extendCodec(
   BaseErc20PaymentsConfig,
   {
@@ -171,24 +221,21 @@ export const KeyPairErc20PaymentsConfig = extendCodec(
 )
 export type KeyPairErc20PaymentsConfig = t.TypeOf<typeof KeyPairErc20PaymentsConfig>
 
-export const Erc20PaymentsConfig = t.union([HdErc20PaymentsConfig, KeyPairErc20PaymentsConfig], 'Erc20PaymentsConfig')
+export const Erc20PaymentsConfig = t.union([HdErc20PaymentsConfig, UHdErc20PaymentsConfig, KeyPairErc20PaymentsConfig], 'Erc20PaymentsConfig')
 export type Erc20PaymentsConfig = t.TypeOf<typeof Erc20PaymentsConfig>
 
 export const EthereumPaymentsConfig = t.union(
-  [
-    HdEthereumPaymentsConfig,
-    KeyPairEthereumPaymentsConfig,
-    HdErc20PaymentsConfig,
-    KeyPairErc20PaymentsConfig,
-  ],
+  [HdEthereumPaymentsConfig, UHdEthereumPaymentsConfig, KeyPairEthereumPaymentsConfig, HdErc20PaymentsConfig, UHdErc20PaymentsConfig, KeyPairErc20PaymentsConfig],
   'EthereumPaymentsConfig',
 )
 export type EthereumPaymentsConfig = t.TypeOf<typeof EthereumPaymentsConfig>
 
 export type EthereumPaymentsConfigKeys =
-  | keyof HdEthereumPaymentsConfig
-  | keyof KeyPairEthereumPaymentsConfig
+| keyof HdEthereumPaymentsConfig
+| keyof UHdEthereumPaymentsConfig
+| keyof KeyPairEthereumPaymentsConfig
   | keyof HdErc20PaymentsConfig
+  | keyof UHdErc20PaymentsConfig
   | keyof KeyPairErc20PaymentsConfig
 
 export const EthereumTransactionOptions = extendCodec(
@@ -216,7 +263,7 @@ export const EthereumUnsignedTxData = requiredOptionalCodec(
     to: t.string,
     data: t.string,
   },
-  'EthereumUnsignedTxData'
+  'EthereumUnsignedTxData',
 )
 export type EthereumUnsignedTxData = t.TypeOf<typeof EthereumUnsignedTxData>
 
@@ -321,7 +368,7 @@ export type EthereumBlockbookConnectedConfig = t.TypeOf<typeof EthereumBlockbook
 
 export const EthereumWeb3Config = requiredOptionalCodec(
   {
-    web3: instanceofCodec(Web3)
+    web3: instanceofCodec(Web3),
   },
   {
     fullNode: t.string,
@@ -395,12 +442,12 @@ export interface EthereumStandardizedTransaction {
   confirmations: number
   gasUsed: number
   gasPrice: string
-  raw: object,
+  raw: object
   contractAddress?: string
-  status: boolean,
-  currentBlockNumber: number,
-  dataProvider: NetworkDataProviders,
-  receipt?: EthereumStandardizedReceipt,
+  status: boolean
+  currentBlockNumber: number
+  dataProvider: NetworkDataProviders
+  receipt?: EthereumStandardizedReceipt
 }
 
 export interface EthereumStandardizedERC20Transaction extends EthereumStandardizedTransaction {

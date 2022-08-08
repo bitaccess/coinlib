@@ -1,11 +1,18 @@
 import {
-  TronPaymentsFactory, HdTronPayments, KeyPairTronPayments, TronPaymentsConfig,
-  HdTronPaymentsConfig, KeyPairTronPaymentsConfig, TronPaymentsUtils,
+  TronPaymentsFactory,
+  HdTronPayments,
+  UHdTronPayments,
+  KeyPairTronPayments,
+  TronPaymentsConfig,
+  HdTronPaymentsConfig,
+  UHdTronPaymentsConfig,
+  KeyPairTronPaymentsConfig,
+  TronPaymentsUtils,
 } from '../src'
 
 import { hdAccount } from './fixtures/accounts'
 
-const { XPRV, PRIVATE_KEYS, ADDRESSES } = hdAccount
+const { SEED, XPRV, PRIVATE_KEYS, ADDRESSES } = hdAccount
 
 describe('TronPaymentsFactory', () => {
   const factory = new TronPaymentsFactory()
@@ -16,6 +23,12 @@ describe('TronPaymentsFactory', () => {
         hdKey: XPRV,
       }
       expect(factory.newPayments(config)).toBeInstanceOf(HdTronPayments)
+    })
+    it('should instantiate UHdTronPayments', () => {
+      const config: UHdTronPaymentsConfig = {
+        seed: SEED,
+      }
+      expect(factory.newPayments(config)).toBeInstanceOf(UHdTronPayments)
     })
     it('should instantiate KeyPairTronPayments', () => {
       const config: KeyPairTronPaymentsConfig = {

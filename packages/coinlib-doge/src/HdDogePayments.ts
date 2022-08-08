@@ -23,6 +23,9 @@ export class HdDogePayments extends SinglesigDogePayments<HdDogePaymentsConfig> 
   readonly hdNode: HDNode
 
   constructor(private config: HdDogePaymentsConfig) {
+    if (!('hdKey' in config)) {
+      throw new Error('hdKey is missing from config')
+    }
     super(config)
     assertType(HdDogePaymentsConfig, config)
     this.derivationPath = config.derivationPath || DEFAULT_DERIVATION_PATH

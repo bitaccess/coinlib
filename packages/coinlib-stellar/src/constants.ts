@@ -26,3 +26,5 @@ export const STELLAR_COINTYPES = {
 }
 
 export const STELLAR_SUPPORTED_ADDRESS_TYPES: string[] = []
+
+export const STELLAR_UNIPUBKEY_REGEX = /^[0-9A-Za-z]{56}:[0-9A-Za-z]{56}$/

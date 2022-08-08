@@ -1,12 +1,21 @@
 import {
-  RipplePaymentsFactory, HdRipplePayments, AccountRipplePayments,
-  HdRipplePaymentsConfig, AccountRipplePaymentsConfig, RipplePaymentsUtils, BaseRipplePaymentsConfig, RippleServerAPI, RippleBalanceMonitor,
+  RipplePaymentsFactory,
+  HdRipplePayments,
+  UHdRipplePayments,
+  AccountRipplePayments,
+  HdRipplePaymentsConfig,
+  UHdRipplePaymentsConfig,
+  AccountRipplePaymentsConfig,
+  RipplePaymentsUtils,
+  BaseRipplePaymentsConfig,
+  RippleServerAPI,
+  RippleBalanceMonitor,
 } from '../src'
 
 import { hdAccount } from './fixtures/accounts'
 import { TestLogger } from './utils'
 
-const { XPRV, PRIVATE_KEYS, PUBLIC_KEYS, ADDRESSES } = hdAccount
+const { SEED, XPRV, PRIVATE_KEYS, PUBLIC_KEYS, ADDRESSES } = hdAccount
 
 const logger = new TestLogger('ripple-payments')
 
@@ -15,6 +24,11 @@ const HD_CONFIG: HdRipplePaymentsConfig = {
   logger,
   server: SERVER,
   hdKey: XPRV,
+}
+const UHD_CONFIG: UHdRipplePaymentsConfig = {
+  logger,
+  server: SERVER,
+  seed: SEED,
 }
 const ACCOUNT_CONFIG: AccountRipplePaymentsConfig = {
   logger,
@@ -46,12 +60,15 @@ describe('RipplePaymentsFactory', () => {
 
   afterEach(async () => {
     // disconnect all connections
-    await Promise.all(Object.values(factory.connectionManager.connections).map((connection) => connection.disconnect()))
+    await Promise.all(Object.values(factory.connectionManager.connections).map(connection => connection.disconnect()))
   })
 
   describe('newPayments', () => {
     it('should instantiate HdRipplePayments', () => {
       expect(factory.newPayments(HD_CONFIG)).toBeInstanceOf(HdRipplePayments)
+    })
+    it('should instantiate UHdRipplePayments', () => {
+      expect(factory.newPayments(UHD_CONFIG)).toBeInstanceOf(UHdRipplePayments)
     })
     it('should instantiate AccountRipplePayments from key pairs', () => {
       expect(factory.newPayments(ACCOUNT_CONFIG)).toBeInstanceOf(AccountRipplePayments)
@@ -85,11 +102,13 @@ describe('RipplePaymentsFactory', () => {
     it('should instantiate all with same ripple API instance', async () => {
       const payments1 = await factory.initPayments(HD_CONFIG)
       const payments2 = await factory.initPayments(ACCOUNT_CONFIG)
+      const payments3 = await factory.initPayments(UHD_CONFIG)
       const utils = await factory.initUtils(UTILS_CONFIG)
       const bm = await factory.initBalanceMonitor(BM_CONFIG)
       expect(payments1.api).toBeInstanceOf(RippleServerAPI)
       expect(payments1.api).toBe(payments2.api)
-      expect(payments2.api).toBe(utils.api)
+      expect(payments1.api).toBe(payments3.api)
+      expect(payments1.api).toBe(utils.api)
       expect(utils.api).toBe(bm.api)
       expect(bm.api.isConnected()).toBe(true)
     })

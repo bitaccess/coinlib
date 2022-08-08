@@ -5,6 +5,7 @@ import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import {
   BitcoinCashPaymentsConfig,
   HdBitcoinCashPaymentsConfig,
+  UHdBitcoinCashPaymentsConfig,
   KeyPairBitcoinCashPaymentsConfig,
   MultisigBitcoinCashPaymentsConfig,
   BitcoinCashPaymentsUtilsConfig,
@@ -16,6 +17,7 @@ import { PACKAGE_NAME } from './constants'
 import { BaseBitcoinCashPayments } from './BaseBitcoinCashPayments'
 import { BitcoinCashPaymentsUtils } from './BitcoinCashPaymentsUtils'
 import { HdBitcoinCashPayments } from './HdBitcoinCashPayments'
+import { UHdBitcoinCashPayments } from './UHdBitcoinCashPayments'
 import { KeyPairBitcoinCashPayments } from './KeyPairBitcoinCashPayments'
 import { MultisigBitcoinCashPayments } from './MultisigBitcoinCashPayments'
 import { BitcoinCashBalanceMonitor } from './BitcoinCashBalanceMonitor'
@@ -31,6 +33,9 @@ export class BitcoinCashPaymentsFactory extends PaymentsFactory<
   newPayments(config: BitcoinCashPaymentsConfig) {
     if (HdBitcoinCashPaymentsConfig.is(config)) {
       return new HdBitcoinCashPayments(config)
+    }
+    if (UHdBitcoinCashPaymentsConfig.is(config)) {
+      return new UHdBitcoinCashPayments(config)
     }
     if (KeyPairBitcoinCashPaymentsConfig.is(config)) {
       return new KeyPairBitcoinCashPayments(config)

@@ -5,6 +5,7 @@ import { bitcoinish } from '@bitaccess/coinlib-bitcoin'
 import {
   LitecoinPaymentsConfig,
   HdLitecoinPaymentsConfig,
+  UHdLitecoinPaymentsConfig,
   KeyPairLitecoinPaymentsConfig,
   MultisigLitecoinPaymentsConfig,
   LitecoinPaymentsUtilsConfig,
@@ -16,6 +17,7 @@ import { PACKAGE_NAME } from './constants'
 import { BaseLitecoinPayments } from './BaseLitecoinPayments'
 import { LitecoinPaymentsUtils } from './LitecoinPaymentsUtils'
 import { HdLitecoinPayments } from './HdLitecoinPayments'
+import { UHdLitecoinPayments } from './UHdLitecoinPayments'
 import { KeyPairLitecoinPayments } from './KeyPairLitecoinPayments'
 import { MultisigLitecoinPayments } from './MultisigLitecoinPayments'
 import { LitecoinBalanceMonitor } from './LitecoinBalanceMonitor'
@@ -31,6 +33,9 @@ export class LitecoinPaymentsFactory extends PaymentsFactory<
   newPayments(config: LitecoinPaymentsConfig) {
     if (HdLitecoinPaymentsConfig.is(config)) {
       return new HdLitecoinPayments(config)
+    }
+    if (UHdLitecoinPaymentsConfig.is(config)) {
+      return new UHdLitecoinPayments(config)
     }
     if (KeyPairLitecoinPaymentsConfig.is(config)) {
       return new KeyPairLitecoinPayments(config)

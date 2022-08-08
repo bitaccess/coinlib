@@ -1,5 +1,6 @@
 export * from './BaseStellarPayments'
 export * from './HdStellarPayments'
+export * from './UHdStellarPayments'
 export * from './AccountStellarPayments'
 export * from './StellarPaymentsUtil'
 export * from './StellarBalanceMonitor'

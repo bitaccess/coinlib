@@ -112,7 +112,7 @@ describe('CoinPayments', () => {
     const cp = new CoinPayments({
       network: NetworkType.Mainnet,
       logger: console,
-      seed: 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+      seed: '14109019bf61f2b9290934469986b23dc8ea94a90b74dbcaa68ec5a03103c549fe5737ac803cf4a4e22564e387b03ee35b67d84f99c46f739504abb502782302',
       BTC: { addressType: AddressType.SegwitP2SH },
     })
     describe('getPublicConfig', () => {
@@ -141,7 +141,7 @@ describe('CoinPayments', () => {
     describe('getFingerprint', () => {
       it('returns fingerprint', () => {
         const fingerprint: string = cp.getFingerprint()
-        const expectedFingerprint: string = "dca7ab4b"
+        const expectedFingerprint: string = "335fbec6"
         expect(fingerprint).toBe(expectedFingerprint)
       })
     })
