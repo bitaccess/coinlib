@@ -1,5 +1,5 @@
 import { omit } from 'lodash'
-import { assertType } from '@faast/ts-common'
+import { assertType } from '@bitaccess/ts-common'
 import { UHD_PAYMENTS_CONFIG_OMIT_FIELDS } from '@bitaccess/coinlib-bitcoin'
 import { determineHdNode } from '@bitaccess/coinlib-common'
 import { UHdLitecoinPaymentsConfig, SeedLitecoinPaymentsConfig } from './types'
