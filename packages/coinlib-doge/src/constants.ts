@@ -8,22 +8,23 @@ export const COIN_SYMBOL = 'DOGE'
 export const COIN_NAME = 'Dogecoin'
 export const DEFAULT_PURPOSE = '44'
 
-// Most nodes require 1 DOGE minimum fee and dust threshold
-// https://github.com/dogecoin/dogecoin/issues/1650
-
 /**
  * The minimum value a transaction output must be in order to not get rejected by the network.
  *
- * Unit: `satoshis`
+ * See: https://github.com/dogecoin/dogecoin/blob/v1.14.6/src/policy/policy.h#L70
+ *
+ * Unit: `sat`
  */
-export const DEFAULT_DUST_THRESHOLD = 1e8
+export const DEFAULT_DUST_THRESHOLD = 1e6 // 0.01 DOGE
 
 /**
  * The minimum fee required by *most* nodes to relay a transaction.
  *
- * Unit: `satoshis`
+ * See https://github.com/dogecoin/dogecoin/blob/v1.14.6/src/validation.h#L57
+ *
+ * Unit: `sat/byte`
  */
-export const DEFAULT_NETWORK_MIN_RELAY_FEE = 1e8
+export const DEFAULT_NETWORK_MIN_RELAY_FEE = 1e2 // 0.001 DOGE per kb
 
 /** Sequence to use for each input such that RBF is opted into */
 export const BITCOIN_SEQUENCE_RBF = 0xfffffffd
@@ -31,9 +32,11 @@ export const BITCOIN_SEQUENCE_RBF = 0xfffffffd
 /**
  * The minimum fee this library should ever use for a transaction (overrides recommended levels).
  *
+ * See: https://github.com/dogecoin/dogecoin/blob/v1.14.6/src/policy/policy.h#L23
+ *
  * Unit: `sat/byte`
  */
-export const DEFAULT_MIN_TX_FEE = 1000000 // 10 DOGE per kb
+export const DEFAULT_MIN_TX_FEE = 1e3 // 0.01 DOGE per kb
 
 export const SINGLESIG_ADDRESS_TYPE: SinglesigAddressType = AddressType.Legacy
 export const DEFAULT_MULTISIG_ADDRESS_TYPE: MultisigAddressType = AddressType.MultisigLegacy

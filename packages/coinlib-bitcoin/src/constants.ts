@@ -18,9 +18,11 @@ export const DEFAULT_DUST_THRESHOLD = 546
 /**
  * The minimum fee required by *most* nodes to relay a transaction.
  *
- * Unit: `satoshis`
+ * See: https://github.com/bitcoin/bitcoin/blob/master/src/policy/policy.h#L57
+ *
+ * Unit: `sat/vb`
  */
-export const DEFAULT_NETWORK_MIN_RELAY_FEE = 1000
+export const DEFAULT_NETWORK_MIN_RELAY_FEE_RATE = 1 // 1000 sat/kb
 
 /** Sequence to use for each input such that RBF is opted into */
 export const BITCOIN_SEQUENCE_RBF = 0xfffffffd
@@ -28,9 +30,9 @@ export const BITCOIN_SEQUENCE_RBF = 0xfffffffd
 /**
  * The minimum fee this library should ever use for a transaction (overrides recommended levels).
  *
- * Unit: `sat/byte`
+ * Unit: `sat/vb`
  */
-export const DEFAULT_MIN_TX_FEE = 5
+export const DEFAULT_MIN_TX_FEE_RATE = 1
 
 export const DEFAULT_SINGLESIG_ADDRESS_TYPE: SinglesigAddressType = AddressType.SegwitNative
 export const DEFAULT_MULTISIG_ADDRESS_TYPE: MultisigAddressType = AddressType.MultisigSegwitNative

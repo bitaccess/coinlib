@@ -1,6 +1,7 @@
 import { FeeLevel } from '@bitaccess/coinlib-common'
 import { FeeLevelBlockTargets, AddressType } from './types'
 
+export const MIN_P2PKH_SWEEP_BYTES = 191
 
 export const DEFAULT_FEE_LEVEL_BLOCK_TARGETS: FeeLevelBlockTargets = {
   [FeeLevel.High]: 1,

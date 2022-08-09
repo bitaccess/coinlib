@@ -100,7 +100,8 @@ export const BitcoinishPaymentsUtilsConfig = extendCodec(
     coinName: t.string,
     coinDecimals: t.number,
     bitcoinjsNetwork: BitcoinjsNetwork,
-    networkMinRelayFee: t.number, // base denom
+    networkMinRelayFee: t.number, // sat/vb
+    dustThreshold: t.number, // sat
   },
   {
     blockcypherToken: t.string,
@@ -116,7 +117,6 @@ export type BitcoinishBalanceMonitorConfig = BlockbookConnectedConfig & {
 
 export type BitcoinishPaymentsConfig = BitcoinishPaymentsUtilsConfig & {
   minTxFee: FeeRate,
-  dustThreshold: number,
   defaultFeeLevel: AutoFeeLevels,
   targetUtxoPoolSize?: number, // # of available utxos to try and maintain
   minChange?: Numeric, // Soft minimum for each change generated to maintain utxo pool
