@@ -17,7 +17,7 @@ import {
 import { isNil, assertType, Numeric, isUndefined } from '@bitaccess/ts-common'
 import { GetBlockOptions } from 'blockbook-client'
 
-import { DEFAULT_FEE_LEVEL_BLOCK_TARGETS } from './constants'
+import { DEFAULT_FEE_LEVEL_BLOCK_TARGETS, MIN_P2PKH_SWEEP_BYTES } from './constants'
 import { BlockbookConnected } from './BlockbookConnected'
 import {
   AddressType,
@@ -28,7 +28,7 @@ import {
   NormalizedTxBitcoin,
   NormalizedTxBitcoinVout,
 } from './types'
-import { getBlockbookFeeRecommendation, getBlockcypherFeeRecommendation } from './utils'
+import { estimateTxSize, getBlockbookFeeRecommendation, getBlockcypherFeeRecommendation } from './utils'
 
 type UnitConverters = ReturnType<typeof createUnitConverters>
 
@@ -37,7 +37,8 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
   readonly coinName: string
   readonly coinDecimals: number
   readonly bitcoinjsNetwork: BitcoinjsNetwork
-  readonly networkMinRelayFee: number // base denom
+  readonly networkMinRelayFee: number // sat/vb
+  readonly dustThreshold: number // sats
   readonly blockcypherToken?: string
   feeLevelBlockTargets: FeeLevelBlockTargets
   protected determinePathForIndexFn:
@@ -53,6 +54,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
     this.coinDecimals = config.coinDecimals
     this.bitcoinjsNetwork = config.bitcoinjsNetwork
     this.networkMinRelayFee = config.networkMinRelayFee
+    this.dustThreshold = config.dustThreshold
     this.feeLevelBlockTargets = config.feeLevelBlockTargets ?? DEFAULT_FEE_LEVEL_BLOCK_TARGETS
     this.blockcypherToken = config.blockcypherToken
 
@@ -196,7 +198,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
   }
 
   isAddressBalanceSweepable(balance: Numeric): boolean {
-    return this.toBaseDenominationNumber(balance) > this.networkMinRelayFee
+    return this.toBaseDenominationNumber(balance) >= this.dustThreshold + this.networkMinRelayFee * MIN_P2PKH_SWEEP_BYTES
   }
 
   async getAddressBalance(address: string): Promise<BalanceResult> {

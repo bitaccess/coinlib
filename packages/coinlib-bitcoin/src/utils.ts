@@ -1,6 +1,6 @@
 import { NetworkType, FeeRateType, AutoFeeLevels } from '@bitaccess/coinlib-common'
-import { 
-  BitcoinBaseConfig, 
+import {
+  BitcoinBaseConfig,
  } from './types'
 import { BitcoinishPaymentsConfig } from './bitcoinish'
 import {
@@ -13,8 +13,8 @@ import {
   COIN_NAME,
   DECIMAL_PLACES,
   DEFAULT_DUST_THRESHOLD,
-  DEFAULT_NETWORK_MIN_RELAY_FEE,
-  DEFAULT_MIN_TX_FEE,
+  DEFAULT_NETWORK_MIN_RELAY_FEE_RATE,
+  DEFAULT_MIN_TX_FEE_RATE,
   DEFAULT_FEE_LEVEL,
   PACKAGE_NAME,
 } from './constants'
@@ -24,9 +24,9 @@ const DEFAULT_BITCOINISH_CONFIG = {
   coinName: COIN_NAME,
   coinDecimals: DECIMAL_PLACES,
   dustThreshold: DEFAULT_DUST_THRESHOLD,
-  networkMinRelayFee: DEFAULT_NETWORK_MIN_RELAY_FEE,
+  networkMinRelayFee: DEFAULT_NETWORK_MIN_RELAY_FEE_RATE,
   minTxFee: {
-    feeRate: DEFAULT_MIN_TX_FEE.toString(),
+    feeRate: DEFAULT_MIN_TX_FEE_RATE.toString(),
     feeRateType: FeeRateType.BasePerWeight,
   },
   defaultFeeLevel: DEFAULT_FEE_LEVEL as AutoFeeLevels,

@@ -18,9 +18,9 @@ export const DEFAULT_DUST_THRESHOLD = 546
 /**
  * The minimum fee required by *most* nodes to relay a transaction.
  *
- * Unit: `satoshis`
+ * Unit: `sat/vb`
  */
-export const DEFAULT_NETWORK_MIN_RELAY_FEE = 1000
+export const DEFAULT_NETWORK_MIN_RELAY_FEE = 1 // 1000 sat/kb
 
 /** Sequence to use for each input such that RBF is opted into */
 export const LITECOIN_SEQUENCE_RBF = 0xfffffffd
@@ -28,7 +28,7 @@ export const LITECOIN_SEQUENCE_RBF = 0xfffffffd
 /**
  * The minimum fee this library should ever use for a transaction (overrides recommended levels).
  *
- * Unit: `sat/byte`
+ * Unit: `sat/vb`
  */
 export const DEFAULT_MIN_TX_FEE = 10
 

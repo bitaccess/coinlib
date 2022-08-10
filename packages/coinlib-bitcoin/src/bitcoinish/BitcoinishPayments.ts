@@ -54,7 +54,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       BitcoinishTransactionInfo
     > {
   minTxFee?: FeeRate
-  dustThreshold: number // base denom
   defaultFeeLevel: AutoFeeLevels
   targetUtxoPoolSize: number
   minChangeSat: number
@@ -63,7 +62,6 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   constructor(config: BitcoinishPaymentsConfig) {
     super(config)
     this.minTxFee = config.minTxFee
-    this.dustThreshold = config.dustThreshold
     this.defaultFeeLevel = config.defaultFeeLevel
     this.targetUtxoPoolSize = isUndefined(config.targetUtxoPoolSize) ? 1 : config.targetUtxoPoolSize
 
@@ -257,6 +255,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     externalOutputAddresses: string[],
   ): number {
     let feeSat = this.feeRateToSatoshis(targetRate, inputCount, changeOutputCount, externalOutputAddresses)
+
     // Ensure calculated fee is above configured minimum
     if (this.minTxFee) {
       const minTxFeeSat = this.feeRateToSatoshis(this.minTxFee, inputCount, changeOutputCount, externalOutputAddresses)
@@ -265,11 +264,22 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         feeSat = minTxFeeSat
       }
     }
+
     // Ensure calculated fee is above network relay minimum
-    if (feeSat < this.networkMinRelayFee) {
+    const minRelaySat = this.feeRateToSatoshis(
+      {
+        feeRate: String(this.networkMinRelayFee),
+        feeRateType: FeeRateType.BasePerWeight
+      },
+      inputCount,
+      changeOutputCount,
+      externalOutputAddresses,
+    )
+    if (feeSat < minRelaySat) {
       this.logger.debug(`Using network min relay fee of ${this.networkMinRelayFee} sat instead of ${feeSat} sat`)
-      feeSat = this.networkMinRelayFee
+      feeSat = minRelaySat
     }
+
     const result = Math.ceil(feeSat)
     this.logger.debug(
       `${this.coinSymbol} buildPaymentTx - ` +
