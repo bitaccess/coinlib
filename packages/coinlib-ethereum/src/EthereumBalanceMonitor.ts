@@ -307,6 +307,11 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
   }
 
   async txToBalanceActivity(address: string, tx: NormalizedTxEthereum): Promise<BalanceActivity[]> {
+    if (tx.blockHeight === -1) {
+      // NOTE not yet confirmed on blockbook
+      return []
+    }
+
     const fee = new BigNumber(tx.ethereumSpecific.gasPrice).multipliedBy(tx.ethereumSpecific.gasUsed)
 
     if (!tx.tokenTransfers || tx.tokenTransfers.length === 0) {
