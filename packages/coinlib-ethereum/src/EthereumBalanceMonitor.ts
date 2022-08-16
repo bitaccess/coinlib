@@ -307,7 +307,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
   }
 
   async txToBalanceActivity(address: string, tx: NormalizedTxEthereum): Promise<BalanceActivity[]> {
-    if (tx.blockHeight === -1) {
+    if (tx.blockHeight <= 0) {
       // NOTE not yet confirmed on blockbook
       return []
     }
