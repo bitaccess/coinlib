@@ -9,7 +9,7 @@ import { ETHEREUM_ADDRESS_REGEX, TOKEN_PROXY_DATA, WELL_FORMED_HEX_REGEX } from 
 
 export { buffToHex, hexToBuff, numericToHex, strip0x, prepend0x }
 
-const RETRYABLE_ERRORS = ['request failed or timed out']
+const RETRYABLE_ERRORS = ['request failed or timed out', 'EAI_AGAIN']
 const MAX_RETRIES = 2
 
 export function retryIfDisconnected<T>(
@@ -171,4 +171,3 @@ export function deriveCreate1Address(senderAddress: string, nonce: number): stri
   }
   return prepend0x(sha3(rlp.encode([senderAddress.toLowerCase(), nonce])).slice(-40))
 }
-
