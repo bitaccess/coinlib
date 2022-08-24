@@ -202,27 +202,14 @@ describeAll('e2e testnet', () => {
   it(
     'end to end multi-input send',
     async () => {
-      /*
-      p2pkh 1 n4Rk4fqGfY9HqZ41K6KNo44eG3MXA4YPMg
-      p2sh-p2wpkh 1 2MyRADTg8pPEReSLL6HGYVAAQwixJ278dki
-      p2wpkh 1 tb1qld8f5lh09h9ckh7spdkrz2rw4g3y0vpj0s5dla
-
-      p2pkh 2 mhFduWNyuHrWYwPhyGZNnuDYtPVgCshGg6
-      p2sh-p2wpkh 2 2N5wGX6qKBYe78LBfK8jRpsbvqnV7T6mpEP
-      p2wpkh 2 tb1qzv92j7996qv7kt2fts7skqqfz5sx7cx6n00248
-
-      p2pkh 3 mrv2DZTNQeqhj9rqDJvb8YqCEJ1Lqbwgd5
-      p2sh-p2wpkh 3 2MvBJ2J4K36pYadpaoDL1JzyUtmzN4TwBgd
-      p2wpkh 3 tb1q05rrngpddrtc470cg0wnq5m95u7977ega6vsut
-
-      p2pkh 4 n12JSAoPSsMvUrAvReGMvZeHcrxiYhvGBx
-      p2sh-p2wpkh 4 2MwjsSV2uh7SBWf4M6Dtmv3oogNaoWLE2Zt
-      p2wpkh 4 tb1q6hm58359np407zf5e4au9zlvl3wus9klafgt2v
-     */
+      // In this test we are exactly recreating the already confirmed multi-input transaction with hash.
+      // All test fixtures and inputs must match for this test to succeed
+      // f75b5c41d11210704c57bc13cce5d7e66339730a0493553bccebd205edb1de25
+      const outputAddressType = AddressType.Legacy
       const paymentsConfig: HdBitcoinPaymentsConfig = {
         hdKey: secretXprv,
         network: NetworkType.Testnet,
-        addressType: addressTypesToTest[0],
+        addressType: outputAddressType,
         logger,
         minChange: '0.0001',
         targetUtxoPoolSize: 5,
@@ -238,25 +225,25 @@ describeAll('e2e testnet', () => {
 
       const changeAddresses = [4, 5, 6].map((i: number) => clientPayments.getAddress(i))
 
+      const outputPayportIndex = 3
+      const outputAmount = '0.0021'
       const unsignedTx = await clientPayments.createMultiInputTransaction(
         fromIndexes,
         [
           {
-            payport: 3,
-            amount: '0.0021',
+            payport: outputPayportIndex,
+            amount: outputAmount,
           },
         ],
         {
           useUnconfirmedUtxos: true, // Prevents consecutive tests from failing
-          feeRate: '1',
+          feeRate: '5',
           feeRateType: FeeRateType.BasePerWeight,
           changeAddress: changeAddresses,
           forcedUtxos, // total is 0.0007
           availableUtxos,
         },
       )
-
-      expect(unsignedTx.data.rawHash).toEqual(unsignedHash)
 
       for (const utxo of forcedUtxos) {
         expect(unsignedTx.inputUtxos!.indexOf(utxo) >= 0)
@@ -267,6 +254,14 @@ describeAll('e2e testnet', () => {
       for (const cO of unsignedTx.data.changeOutputs!) {
         expect(changeAddresses.indexOf(cO.address) >= 0)
       }
+      const expectedExternalOutputs = [{
+        address: fixtures[outputAddressType].addresses[outputPayportIndex],
+        value: outputAmount,
+      }]
+      expect(unsignedTx.externalOutputs).toEqual(expectedExternalOutputs)
+      expect(unsignedTx.fee).toBe('0.0000648')
+
+      expect(unsignedTx.data.rawHash).toEqual(unsignedHash)
 
       const signedTx = await hotWalletPayments.signTransaction(unsignedTx)
 
@@ -297,13 +292,14 @@ describeAll('e2e testnet', () => {
 
       expectUtxosEqual(expectedUtxos, actualUtxos)
       expect(tx.data.hex).toEqual(signedHex)
-      expect(tx.amount).toBe('0.0021')
-      expect(tx.externalOutputs).toEqual([{ address: 'mrv2DZTNQeqhj9rqDJvb8YqCEJ1Lqbwgd5', value: '0.0021' }])
+      expect(tx.amount).toBe(expectedExternalOutputs[0].value)
+      expect(tx.externalOutputs).toEqual(expectedExternalOutputs)
     },
     5 * 60 * 1000,
   )
 
   for (let i = 0; i < addressTypesToTest.length; i++) {
+
     const addressType = addressTypesToTest[i]
     const { xpub, addresses, sweepTxSize } = fixtures[addressType]
 
