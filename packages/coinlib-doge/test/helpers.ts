@@ -1,11 +1,12 @@
 import { EXTERNAL_ADDRESS, SeedAccountFixture, AccountFixture } from './fixtures'
-import { logger } from './utils'
 import { HdDogePayments, UHdDogePayments, HdDogePaymentsConfig } from '../src'
+import { TestLogger } from '../../../common/testUtils'
 
 export function runHardcodedPublicKeyTests(
   payments: HdDogePayments | UHdDogePayments,
   config: HdDogePaymentsConfig,
   accountFixture: AccountFixture | SeedAccountFixture,
+  logger: TestLogger,
 ) {
   const { xpub, addresses, derivationPath, balances } = accountFixture
   it('getFullConfig', () => {

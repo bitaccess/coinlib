@@ -4,7 +4,9 @@ import { NetworkType } from '@bitaccess/coinlib-common'
 import { HdDogePayments, HdDogePaymentsConfig, SinglesigAddressType } from '../src'
 import { accountsByAddressType, legacyAccount } from './fixtures'
 import { runHardcodedPublicKeyTests } from './helpers'
-import { logger } from './utils'
+import { TestLogger } from '../../../common/testUtils'
+
+const logger = new TestLogger(__filename)
 
 jest.setTimeout(30 * 1000)
 
@@ -46,7 +48,7 @@ describe('HdDogePayments', () => {
         }
         const payments = new HdDogePayments(config)
 
-        runHardcodedPublicKeyTests(payments, config, accountFixture)
+        runHardcodedPublicKeyTests(payments, config, accountFixture, logger)
       })
 
       describe('hardcoded xprv', () => {
@@ -58,7 +60,7 @@ describe('HdDogePayments', () => {
         }
         const payments = new HdDogePayments(config)
 
-        runHardcodedPublicKeyTests(payments, config, accountFixture)
+        runHardcodedPublicKeyTests(payments, config, accountFixture, logger)
       })
     })
   }

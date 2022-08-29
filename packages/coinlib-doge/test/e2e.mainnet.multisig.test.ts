@@ -9,19 +9,21 @@ import {
   DogeSignedTransaction,
   publicKeyToString,
 } from '../src'
-import { delay, END_TRANSACTION_STATES, expectEqualWhenTruthy, logger } from './utils'
-import { NetworkType, TransactionStatus, FeeRateType, MultiInputMultisigData, BigNumber, } from '@bitaccess/coinlib-common'
+import { delay, END_TRANSACTION_STATES, expectEqualWhenTruthy } from './utils'
+import { NetworkType, TransactionStatus, FeeRateType, MultiInputMultisigData, BigNumber } from '@bitaccess/coinlib-common'
 import { NETWORKS } from '../src/constants'
 import path from 'path'
 import fs from 'fs'
 import { DERIVATION_PATH, MAINNET_ADDRESSES as ADDRESSES, M } from './fixtures/multisigMainnet'
 import { deriveHDNode, deriveKeyPair, xprvToXpub } from '../src/bip44'
 import { getFromTo } from '@bitaccess/coinlib-bitcoin/test/utils'
+import { TestLogger } from '../../../common/testUtils'
 
 // Load secret key
 const SECRET_KEY_FILE = 'test/keys/mainnet.key'
 const rootDir = path.resolve(__dirname, '..')
 const secretKeyFilePath = path.resolve(rootDir, SECRET_KEY_FILE)
+const logger = new TestLogger(__filename)
 let rootSecretKey: string | undefined
 if (fs.existsSync(secretKeyFilePath)) {
   rootSecretKey = fs

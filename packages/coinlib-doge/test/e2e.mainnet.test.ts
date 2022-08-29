@@ -14,8 +14,10 @@ import {
 
 import { txInfo_example } from './fixtures/transactions'
 import { legacyAccount } from './fixtures/accounts'
-import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, logger, expectEqualOmit } from './utils'
+import { END_TRANSACTION_STATES, delay, expectEqualWhenTruthy, expectEqualOmit } from './utils'
+import { TestLogger } from '../../../common/testUtils'
 
+const logger = new TestLogger(__filename)
 const EXTERNAL_ADDRESS = 'DB15Lt7u8hxkbT8s1JAKHA9Xbxr8SbxnC8'
 
 const SECRET_XPRV_FILE = 'test/keys/mainnet.key'
