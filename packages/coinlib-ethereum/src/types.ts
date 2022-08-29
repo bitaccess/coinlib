@@ -221,19 +221,29 @@ export const KeyPairErc20PaymentsConfig = extendCodec(
 )
 export type KeyPairErc20PaymentsConfig = t.TypeOf<typeof KeyPairErc20PaymentsConfig>
 
-export const Erc20PaymentsConfig = t.union([HdErc20PaymentsConfig, UHdErc20PaymentsConfig, KeyPairErc20PaymentsConfig], 'Erc20PaymentsConfig')
+export const Erc20PaymentsConfig = t.union(
+  [HdErc20PaymentsConfig, UHdErc20PaymentsConfig, KeyPairErc20PaymentsConfig],
+  'Erc20PaymentsConfig',
+)
 export type Erc20PaymentsConfig = t.TypeOf<typeof Erc20PaymentsConfig>
 
 export const EthereumPaymentsConfig = t.union(
-  [HdEthereumPaymentsConfig, UHdEthereumPaymentsConfig, KeyPairEthereumPaymentsConfig, HdErc20PaymentsConfig, UHdErc20PaymentsConfig, KeyPairErc20PaymentsConfig],
+  [
+    HdEthereumPaymentsConfig,
+    UHdEthereumPaymentsConfig,
+    KeyPairEthereumPaymentsConfig,
+    HdErc20PaymentsConfig,
+    UHdErc20PaymentsConfig,
+    KeyPairErc20PaymentsConfig,
+  ],
   'EthereumPaymentsConfig',
 )
 export type EthereumPaymentsConfig = t.TypeOf<typeof EthereumPaymentsConfig>
 
 export type EthereumPaymentsConfigKeys =
-| keyof HdEthereumPaymentsConfig
-| keyof UHdEthereumPaymentsConfig
-| keyof KeyPairEthereumPaymentsConfig
+  | keyof HdEthereumPaymentsConfig
+  | keyof UHdEthereumPaymentsConfig
+  | keyof KeyPairEthereumPaymentsConfig
   | keyof HdErc20PaymentsConfig
   | keyof UHdErc20PaymentsConfig
   | keyof KeyPairErc20PaymentsConfig
@@ -430,6 +440,17 @@ export interface EthereumStandardizedReceipt {
   logs: any[]
 }
 
+export interface ERC20TokenTransfer {
+  type: 'ERC20' | string
+  from: string
+  to: string
+  token: string
+  name: string
+  symbol: string
+  decimals: number
+  value: string
+}
+
 export interface EthereumStandardizedTransaction {
   from: string
   to: string
@@ -448,6 +469,7 @@ export interface EthereumStandardizedTransaction {
   currentBlockNumber: number
   dataProvider: NetworkDataProviders
   receipt?: EthereumStandardizedReceipt
+  tokenTransfers: ERC20TokenTransfer[]
 }
 
 export interface EthereumStandardizedERC20Transaction extends EthereumStandardizedTransaction {

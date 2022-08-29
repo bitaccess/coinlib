@@ -20,8 +20,10 @@ import {
   EthereumStandardizedTransaction,
   EthereumStandardizedERC20Transaction,
   NetworkDataProviders,
+  ERC20TokenTransfer,
 } from './types'
 import { deriveCreate1Address, retryIfDisconnected } from './utils'
+import { LOG_TOPIC_ERC20_TRANSFER } from './erc20/constants'
 
 export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
   web3: Web3
@@ -90,7 +92,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     return this._retryDced(() => this.eth.getTransactionReceipt(txId))
   }
 
-  async getTokenInfo(tokenAddress: string) {
+  async getTokenInfo(tokenAddress: string): Promise<{ tokenSymbol: string; tokenDecimals: string; tokenName: string }> {
     const tokenContract = this.newContract(FULL_ERC20_TOKEN_METHODS_ABI, tokenAddress)
 
     const [tokenSymbol, tokenDecimals, tokenName] = await Promise.all([
@@ -247,7 +249,38 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     return blockInfo
   }
 
-  standardizeTransaction(
+  async getTokenTransfers(txReceipt: TransactionReceipt | null): Promise<ERC20TokenTransfer[]> {
+    if (!txReceipt || txReceipt.logs.length < 1) {
+      return []
+    }
+
+    const erc20TokenTransfers = txReceipt.logs.filter(log => log.topics[0] === LOG_TOPIC_ERC20_TRANSFER)
+    const result: ERC20TokenTransfer[] = []
+
+    for (const tokenTransfer of erc20TokenTransfers) {
+      const tokenInfo = await this.getTokenInfo(tokenTransfer.address)
+
+      const [, from, to] = tokenTransfer.topics
+
+      const fromAddress = this.web3.eth.abi.decodeParameter('address', from) as unknown
+      const toAddress = this.web3.eth.abi.decodeParameter('address', to) as unknown
+
+      result.push({
+        decimals: new BigNumber(tokenInfo.tokenDecimals).toNumber(),
+        symbol: tokenInfo.tokenSymbol,
+        name: tokenInfo.tokenName,
+        token: tokenTransfer.address,
+        type: 'ERC20',
+        value: new BigNumber(tokenTransfer.data).toString(),
+        from: fromAddress as string,
+        to: toAddress as string,
+      })
+    }
+
+    return result
+  }
+
+  async standardizeTransaction(
     tx: Transaction,
     txReceipt: TransactionReceipt | null,
     {
@@ -257,7 +290,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       blockTime: Date | null
       currentBlockNumber: number
     },
-  ): EthereumStandardizedTransaction {
+  ): Promise<EthereumStandardizedTransaction> {
     const gasUsed = txReceipt?.gasUsed ?? 0
     const status = txReceipt?.status ?? false
     let contractAddress = txReceipt?.contractAddress ?? undefined
@@ -295,12 +328,13 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
         logs: txReceipt?.logs ?? [],
       },
       raw: tx,
+      tokenTransfers: await this.getTokenTransfers(txReceipt),
     }
 
     return standardizedTransaction
   }
 
-  standardizeERC20Transaction(
+  async standardizeERC20Transaction(
     {
       tx,
       txReceipt,
@@ -315,8 +349,8 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       tokenName,
       tokenSymbol,
     }: { blockTime: Date; currentBlockNumber: number; tokenDecimals: string; tokenName: string; tokenSymbol: string },
-  ): EthereumStandardizedERC20Transaction {
-    const standardizedTx = this.standardizeTransaction(tx, txReceipt, {
+  ): Promise<EthereumStandardizedERC20Transaction> {
+    const standardizedTx = await this.standardizeTransaction(tx, txReceipt, {
       currentBlockNumber,
       blockTime,
     })
@@ -327,7 +361,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       tokenSymbol,
       tokenDecimals,
       tokenName,
-      receipt: standardizedTx.receipt!
+      receipt: standardizedTx.receipt!,
     }
 
     return result

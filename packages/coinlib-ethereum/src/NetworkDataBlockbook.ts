@@ -63,14 +63,16 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
 
     const transactionHashes: string[] = []
     const standardizedTransactions: EthereumStandardizedTransaction[] = []
-    for (const tx of (block.txs ?? [])) {
+    for (const tx of block.txs ?? []) {
       transactionHashes.push(tx.txid)
 
       if (includeTransactionObjects) {
-        standardizedTransactions.push(this.standardizeTransaction(tx, {
-          blockInfoTime,
-          currentBlockNumber,
-        }))
+        standardizedTransactions.push(
+          this.standardizeTransaction(tx, {
+            blockInfoTime,
+            currentBlockNumber,
+          }),
+        )
       }
     }
 
@@ -162,15 +164,18 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
     return token.balance!
   }
 
-  standardizeTransaction(tx: NormalizedTxEthereum, {
-    currentBlockNumber,
-    blockInfoTime,
-    txSpecific,
-  }: {
-    currentBlockNumber: number,
-    txSpecific?: SpecificTxEthereum,
-    blockInfoTime?: Date
-  }): EthereumStandardizedTransaction {
+  standardizeTransaction(
+    tx: NormalizedTxEthereum,
+    {
+      currentBlockNumber,
+      blockInfoTime,
+      txSpecific,
+    }: {
+      currentBlockNumber: number
+      txSpecific?: SpecificTxEthereum
+      blockInfoTime?: Date
+    },
+  ): EthereumStandardizedTransaction {
     const { fromAddress, toAddress, contractAddress } = getBlockBookTxFromAndToAddress(tx)
 
     const blockTime = blockInfoTime ? new Date(blockInfoTime) : new Date(tx.blockTime * 1000)
@@ -196,6 +201,7 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
         ...tx,
         ...txSpecific?.tx,
       },
+      tokenTransfers: tx.tokenTransfers ?? [],
     }
 
     return standardizedTransaction
@@ -214,7 +220,7 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
     tokenSymbol: string
     tokenDecimals: string
     tokenName: string
-    currentBlockNumber: number,
+    currentBlockNumber: number
   }): EthereumStandardizedERC20Transaction {
     const standardizedTx = this.standardizeTransaction(tx, { txSpecific, currentBlockNumber })
 

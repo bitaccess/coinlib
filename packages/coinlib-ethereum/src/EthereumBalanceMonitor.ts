@@ -50,9 +50,13 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     const validAddresses = addresses.filter(address => this.standardizeAddressOrThrow(address))
 
     await this.networkData.subscribeAddresses(validAddresses, async (address, rawTx) => {
+      const currentBlockNumber = await this.getCurrentBlockNumber()
+
       this.events.emit('tx', { address, tx: rawTx })
 
-      const activity = await this.txToBalanceActivity(address, rawTx)
+      const standardizedTx = this.networkData.blockBookService.standardizeTransaction(rawTx, { currentBlockNumber })
+
+      const activity = await this.txToBalanceActivity(address, standardizedTx)
 
       if (activity) {
         if (Array.isArray(activity)) {
@@ -93,6 +97,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     let transactionPage: AddressDetailsEthereumTxs | undefined
     let transactions: NormalizedTxEthereum[] | undefined
     let lastTx: NormalizedTxEthereum | undefined
+    const currentBlockNumber = await this.getCurrentBlockNumber()
 
     while (
       isUndefined(transactionPage) ||
@@ -127,7 +132,9 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
           continue
         }
 
-        const balanceActivities = await this.txToBalanceActivity(address, tx)
+        const standardizedTx = this.networkData.blockBookService.standardizeTransaction(tx, { currentBlockNumber })
+
+        const balanceActivities = await this.txToBalanceActivity(address, standardizedTx)
 
         await callbackFn(balanceActivities, tx)
       }
@@ -143,10 +150,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     tx: EthereumStandardizedTransaction,
     cache: { [txid: string]: NormalizedTxEthereum },
   ) {
-    const involvedAddresses = new Set(
-      [tx.from, tx.to]
-        .map((a) => this.standardizeAddressOrThrow(a))
-    )
+    const involvedAddresses = new Set([tx.from, tx.to].map(a => this.standardizeAddressOrThrow(a)))
 
     const rawTx = await this.getTxWithMemoization(tx.txHash, cache)
 
@@ -190,13 +194,17 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
       page: 1,
     })
 
+    const currentBlockNumber = await this.getCurrentBlockNumber()
+
     for (let relevantAddress of relevantAddresses) {
       relevantAddress = this.standardizeAddressOrThrow(relevantAddress)
       const relevantAddressTransactions = addressTransactions[relevantAddress]
       for (const { txHash } of relevantAddressTransactions) {
         const rawTx = await this.getTxWithMemoization(txHash, hardTxQueries)
 
-        const balanceActivities = await this.txToBalanceActivity(relevantAddress, rawTx)
+        const standardizedTx = this.networkData.blockBookService.standardizeTransaction(rawTx, { currentBlockNumber })
+
+        const balanceActivities = await this.txToBalanceActivity(relevantAddress, standardizedTx)
 
         await callbackFn(balanceActivities, rawTx)
       }
@@ -249,23 +257,22 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
 
   private getBalanceActivityForNonTokenTransfer(
     address: string,
-    tx: NormalizedTxEthereum,
+    tx: EthereumStandardizedTransaction,
     fee: BigNumber,
   ): BalanceActivity[] {
-    const { fromAddress, toAddress } = getBlockBookTxFromAndToAddress(tx)
-
-    const timestamp = new Date(tx.blockTime * 1000)
+    const fromAddress = tx.from
+    const toAddress = tx.to
 
     const baseBalanceActivity: BalanceActivity = {
       networkType: this.networkType,
       networkSymbol: this.coinSymbol,
       assetSymbol: this.coinSymbol,
       address: this.standardizeAddressOrThrow(address),
-      externalId: tx.txid,
-      activitySequence: String(tx.ethereumSpecific.nonce),
+      externalId: tx.txHash,
+      activitySequence: String(tx.nonce),
       confirmationId: tx.blockHash ?? '',
       confirmationNumber: tx.blockHeight,
-      timestamp,
+      timestamp: tx.blockTime!,
       amount: this.toMainDenomination(tx.value),
       extraId: null,
       confirmations: tx.confirmations,
@@ -278,7 +285,11 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
       return this.getSelfBalanceActivities(baseBalanceActivity, fee)
     }
 
-    const type = this.getActivityType(address, { txFromAddress: fromAddress, txToAddress: toAddress, txHash: tx.txid })
+    const type = this.getActivityType(address, {
+      txFromAddress: fromAddress,
+      txToAddress: toAddress,
+      txHash: tx.txHash,
+    })
 
     const balanceActivities: BalanceActivity[] = []
 
@@ -306,22 +317,22 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     return balanceActivities
   }
 
-  async txToBalanceActivity(address: string, tx: NormalizedTxEthereum): Promise<BalanceActivity[]> {
+  async txToBalanceActivity(address: string, tx: EthereumStandardizedTransaction): Promise<BalanceActivity[]> {
     if (tx.blockHeight <= 0) {
       // NOTE not yet confirmed on blockbook
       return []
     }
 
-    const fee = new BigNumber(tx.ethereumSpecific.gasPrice).multipliedBy(tx.ethereumSpecific.gasUsed)
+    const fee = new BigNumber(tx.gasPrice).multipliedBy(tx.gasUsed)
 
     if (!tx.tokenTransfers || tx.tokenTransfers.length === 0) {
       return this.getBalanceActivityForNonTokenTransfer(address, tx, fee)
     }
 
-    const nonce = String(tx.ethereumSpecific.nonce)
-    const txHash = tx.txid
+    const nonce = String(tx.nonce)
+    const txHash = tx.txHash
 
-    const timestamp = new Date(tx.blockTime * 1000)
+    const timestamp = tx.blockTime!
 
     const balanceActivities: BalanceActivity[] = tx.tokenTransfers
       .filter(tokenTransfer => {
@@ -364,8 +375,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
         return balanceActivity
       })
 
-    const { fromAddress } = getBlockBookTxFromAndToAddress(tx)
-    const isTxSender = this.isAddressEqual(fromAddress, address)
+    const isTxSender = this.isAddressEqual(tx.from, address)
 
     if (isTxSender) {
       // add the balance activity for the fee
@@ -374,8 +384,8 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
         networkSymbol: this.coinSymbol,
         assetSymbol: this.coinSymbol,
         address: this.standardizeAddressOrThrow(address),
-        externalId: tx.txid,
-        activitySequence: String(tx.ethereumSpecific.nonce),
+        externalId: tx.txHash,
+        activitySequence: String(tx.nonce),
         confirmationId: tx.blockHash ?? '',
         confirmationNumber: tx.blockHeight,
         timestamp,

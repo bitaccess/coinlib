@@ -4,7 +4,14 @@ import { DEFAULT_PATH_FIXTURE } from './fixtures/accounts'
 import { TestLogger } from '../../../common/testUtils'
 import { EthereumBIP44 } from '../src/bip44'
 
-import { NetworkType, FeeLevel, FeeOption, FeeRateType, TransactionStatus, numericToHex } from '@bitaccess/coinlib-common'
+import {
+  NetworkType,
+  FeeLevel,
+  FeeOption,
+  FeeRateType,
+  TransactionStatus,
+  numericToHex,
+} from '@bitaccess/coinlib-common'
 import nock from 'nock'
 
 import {
@@ -341,6 +348,7 @@ describe('HdEthereumPayments', () => {
               transactionHash: txId,
               transactionIndex: 0,
             },
+            tokenTransfers: [],
           },
         })
       })
@@ -427,7 +435,8 @@ describe('HdEthereumPayments', () => {
               transactionHash: txId,
               transactionIndex: 0,
             },
-          }
+            tokenTransfers: [],
+          },
         })
       })
 
@@ -513,6 +522,7 @@ describe('HdEthereumPayments', () => {
               transactionHash: txId,
               transactionIndex: 0,
             },
+            tokenTransfers: [],
           },
         })
       })
@@ -720,7 +730,8 @@ describe('HdEthereumPayments', () => {
             data: '0x',
             gasLimit: unsignedTx.data.gas,
             gasPrice: unsignedTx.data.gasPrice,
-            hex: '0xf86c1b8545d964b80082523c94370d63dbf533f4c79e83d7d13b39c88b188efeeb8801e33c7f8ff555728029a0e97c97005272506f43f0bf20b43ba49816bf28cf3d3e6c2de8f66eebd0750608a0171677049edc2e89bbf623f9c33c8c8d7a5981855a1d3c76c3a234d0cfcabd81',
+            hex:
+              '0xf86c1b8545d964b80082523c94370d63dbf533f4c79e83d7d13b39c88b188efeeb8801e33c7f8ff555728029a0e97c97005272506f43f0bf20b43ba49816bf28cf3d3e6c2de8f66eebd0750608a0171677049edc2e89bbf623f9c33c8c8d7a5981855a1d3c76c3a234d0cfcabd81',
             nonce: unsignedTx.data.nonce,
             r: '0xe97c97005272506f43f0bf20b43ba49816bf28cf3d3e6c2de8f66eebd0750608',
             s: '0x171677049edc2e89bbf623f9c33c8c8d7a5981855a1d3c76c3a234d0cfcabd81',
