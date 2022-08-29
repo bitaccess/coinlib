@@ -46,19 +46,14 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     return rawTx
   }
 
-  private async getStandardizedTx(rawTx: NormalizedTxEthereum) {
-    const currentBlockNumber = await this.getCurrentBlockNumber()
-
-    return this.networkData.blockBookService.standardizeTransaction(rawTx, { currentBlockNumber })
-  }
-
   async subscribeAddresses(addresses: string[]): Promise<void> {
     const validAddresses = addresses.filter(address => this.standardizeAddressOrThrow(address))
+    const currentBlockNumber = await this.getCurrentBlockNumber()
 
     await this.networkData.subscribeAddresses(validAddresses, async (address, rawTx) => {
       this.events.emit('tx', { address, tx: rawTx })
 
-      const standardizedTx = await this.getStandardizedTx(rawTx)
+      const standardizedTx = this.networkData.blockBookService.standardizeTransaction(rawTx, { currentBlockNumber })
 
       const activity = await this.txToBalanceActivity(address, standardizedTx)
 
@@ -101,6 +96,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
     let transactionPage: AddressDetailsEthereumTxs | undefined
     let transactions: NormalizedTxEthereum[] | undefined
     let lastTx: NormalizedTxEthereum | undefined
+    const currentBlockNumber = await this.getCurrentBlockNumber()
 
     while (
       isUndefined(transactionPage) ||
@@ -135,7 +131,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
           continue
         }
 
-        const standardizedTx = await this.getStandardizedTx(tx)
+        const standardizedTx = this.networkData.blockBookService.standardizeTransaction(tx, { currentBlockNumber })
 
         const balanceActivities = await this.txToBalanceActivity(address, standardizedTx)
 
@@ -197,13 +193,15 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
       page: 1,
     })
 
+    const currentBlockNumber = await this.getCurrentBlockNumber()
+
     for (let relevantAddress of relevantAddresses) {
       relevantAddress = this.standardizeAddressOrThrow(relevantAddress)
       const relevantAddressTransactions = addressTransactions[relevantAddress]
       for (const { txHash } of relevantAddressTransactions) {
         const rawTx = await this.getTxWithMemoization(txHash, hardTxQueries)
 
-        const standardizedTx = await this.getStandardizedTx(rawTx)
+        const standardizedTx = this.networkData.blockBookService.standardizeTransaction(rawTx, { currentBlockNumber })
 
         const balanceActivities = await this.txToBalanceActivity(relevantAddress, standardizedTx)
 
