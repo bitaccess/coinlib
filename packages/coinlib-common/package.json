@@ -1,6 +1,6 @@
 {
   "name": "@bitaccess/coinlib-common",
-  "version": "7.0.2",
+  "version": "7.0.3",
   "description": "Common module used by coinlib",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
