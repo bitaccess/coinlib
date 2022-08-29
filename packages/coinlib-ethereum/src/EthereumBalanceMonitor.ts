@@ -48,9 +48,10 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
 
   async subscribeAddresses(addresses: string[]): Promise<void> {
     const validAddresses = addresses.filter(address => this.standardizeAddressOrThrow(address))
-    const currentBlockNumber = await this.getCurrentBlockNumber()
 
     await this.networkData.subscribeAddresses(validAddresses, async (address, rawTx) => {
+      const currentBlockNumber = await this.getCurrentBlockNumber()
+
       this.events.emit('tx', { address, tx: rawTx })
 
       const standardizedTx = this.networkData.blockBookService.standardizeTransaction(rawTx, { currentBlockNumber })
