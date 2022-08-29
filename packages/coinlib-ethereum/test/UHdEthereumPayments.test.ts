@@ -356,6 +356,7 @@ describe('UHdEthereumPayments', () => {
               transactionHash: txId,
               transactionIndex: 0,
             },
+            tokenTransfers: [],
           },
         })
       })
@@ -442,7 +443,8 @@ describe('UHdEthereumPayments', () => {
               transactionHash: txId,
               transactionIndex: 0,
             },
-          }
+            tokenTransfers: [],
+          },
         })
       })
 
@@ -528,6 +530,7 @@ describe('UHdEthereumPayments', () => {
               transactionHash: txId,
               transactionIndex: 0,
             },
+            tokenTransfers: [],
           },
         })
       })
@@ -735,7 +738,8 @@ describe('UHdEthereumPayments', () => {
             data: '0x',
             gasLimit: unsignedTx.data.gas,
             gasPrice: unsignedTx.data.gasPrice,
-            hex: '0xf86c1b8545d964b80082523c943d4717ade8fe244d28c413b979ae8f82731162718801e33c7f8ff555728029a0dd8146cf8c08795d37924feac6a2ac473cab58911ca9e45a59b221c191107516a03175470516164a36172e77589c400e28a8191d97bd4975d5b46d9d99ffa5888e',
+            hex:
+              '0xf86c1b8545d964b80082523c943d4717ade8fe244d28c413b979ae8f82731162718801e33c7f8ff555728029a0dd8146cf8c08795d37924feac6a2ac473cab58911ca9e45a59b221c191107516a03175470516164a36172e77589c400e28a8191d97bd4975d5b46d9d99ffa5888e',
             nonce: unsignedTx.data.nonce,
             r: '0xdd8146cf8c08795d37924feac6a2ac473cab58911ca9e45a59b221c191107516',
             s: '0x3175470516164a36172e77589c400e28a8191d97bd4975d5b46d9d99ffa5888e',
@@ -782,61 +786,61 @@ describe('UHdEthereumPayments', () => {
     })
   })
 
-    describe('native methods', () => {
-      describe('static generateNewKeys', () => {
-        test('generates new keys', () => {
-          const res = UHdEthereumPayments.generateNewKeys()
+  describe('native methods', () => {
+    describe('static generateNewKeys', () => {
+      test('generates new keys', () => {
+        const res = UHdEthereumPayments.generateNewKeys()
 
-          expect(res.address)
-          expect(res.xkeys.xpub).toMatch(/^xpub.+$/)
-          expect(res.xkeys.xprv).toMatch(/^xprv.+$/)
-          expect(res.keys.prv)
-          expect(res.keys.pub)
-        })
+        expect(res.address)
+        expect(res.xkeys.xpub).toMatch(/^xpub.+$/)
+        expect(res.xkeys.xprv).toMatch(/^xprv.+$/)
+        expect(res.keys.prv)
+        expect(res.keys.pub)
       })
+    })
 
-      describe('getXpub', () => {
-        test('returns xpub derived by 0th index from xkey provided in config', () => {
-          expect(hdEP.getXpub()).toBe(INSTANCE_KEYS.xkeys.xpub)
-        })
+    describe('getXpub', () => {
+      test('returns xpub derived by 0th index from xkey provided in config', () => {
+        expect(hdEP.getXpub()).toBe(INSTANCE_KEYS.xkeys.xpub)
       })
+    })
 
-      describe('getPublicConfig', () => {
-        test('returns public part of the provided config data', () => {
-          const pubConf = hdEP.getPublicConfig()
-          expect(pubConf).toStrictEqual({
-            depositKeyIndex: 0,
-            network: NetworkType.Testnet,
-            derivationPath: DEFAULT_DERIVATION_PATH,
-            hdKey: INSTANCE_KEYS.xkeys.xpub,
-          })
-        })
-      })
-
-      describe('getAccountId', () => {
-        test('returns xpub regardless of index', () => {
-          expect(hdEP.getAccountId()).toBe(INSTANCE_KEYS.xkeys.xpub)
-        })
-      })
-
-      describe('getAccountIds', () => {
-        test('returns array with xpub as only element', () => {
-          expect(hdEP.getAccountIds()).toStrictEqual([INSTANCE_KEYS.xkeys.xpub])
-        })
-      })
-
-      describe('getPayport', () => {
-        test('returns object address derived from the provided key', async () => {
-          expect(await hdEP.getPayport(1)).toStrictEqual({
-            address: FROM_ADDRESS.toLowerCase(),
-          })
-        })
-      })
-
-      describe('getPrivateKey', () => {
-        test('returns prv', async () => {
-          expect(await hdEP.getPrivateKey(0)).toBe(INSTANCE_KEYS.keys.prv)
+    describe('getPublicConfig', () => {
+      test('returns public part of the provided config data', () => {
+        const pubConf = hdEP.getPublicConfig()
+        expect(pubConf).toStrictEqual({
+          depositKeyIndex: 0,
+          network: NetworkType.Testnet,
+          derivationPath: DEFAULT_DERIVATION_PATH,
+          hdKey: INSTANCE_KEYS.xkeys.xpub,
         })
       })
     })
+
+    describe('getAccountId', () => {
+      test('returns xpub regardless of index', () => {
+        expect(hdEP.getAccountId()).toBe(INSTANCE_KEYS.xkeys.xpub)
+      })
+    })
+
+    describe('getAccountIds', () => {
+      test('returns array with xpub as only element', () => {
+        expect(hdEP.getAccountIds()).toStrictEqual([INSTANCE_KEYS.xkeys.xpub])
+      })
+    })
+
+    describe('getPayport', () => {
+      test('returns object address derived from the provided key', async () => {
+        expect(await hdEP.getPayport(1)).toStrictEqual({
+          address: FROM_ADDRESS.toLowerCase(),
+        })
+      })
+    })
+
+    describe('getPrivateKey', () => {
+      test('returns prv', async () => {
+        expect(await hdEP.getPrivateKey(0)).toBe(INSTANCE_KEYS.keys.prv)
+      })
+    })
+  })
 })
