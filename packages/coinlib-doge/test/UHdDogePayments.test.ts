@@ -4,7 +4,9 @@ import { NetworkType } from '@bitaccess/coinlib-common'
 import { UHdDogePayments, UHdDogePaymentsConfig, HdDogePaymentsConfig, SinglesigAddressType } from '../src'
 import { seedAccountsByAddressType, seedLegacyAccount, seedLegacyAccountXPrv } from './fixtures'
 import { runHardcodedPublicKeyTests } from './helpers'
-import { logger } from './utils'
+import { TestLogger } from '../../../common/testUtils'
+
+const logger = new TestLogger(__filename)
 jest.setTimeout(30 * 1000)
 
 const SECRET_XPRV_FILE = 'test/keys/mainnet.key'
@@ -50,7 +52,7 @@ describe('UHdDogePayments', () => {
           logger,
         }
         const payments = new UHdDogePayments(config)
-        runHardcodedPublicKeyTests(payments, oldConfig, accountFixture)
+        runHardcodedPublicKeyTests(payments, oldConfig, accountFixture, logger)
       })
 
       describe('hardcoded xprv', () => {
@@ -68,7 +70,7 @@ describe('UHdDogePayments', () => {
           logger,
         }
         const payments = new UHdDogePayments(config)
-        runHardcodedPublicKeyTests(payments, oldConfig, accountFixture)
+        runHardcodedPublicKeyTests(payments, oldConfig, accountFixture, logger)
       })
     })
   }

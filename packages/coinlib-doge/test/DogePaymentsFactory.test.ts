@@ -18,8 +18,9 @@ import {
 import { PRIVATE_KEY } from './fixtures'
 
 import { legacyAccount, seedLegacyAccount } from './fixtures/accounts'
-import { logger } from './utils'
+import { TestLogger } from '../../../common/testUtils'
 
+const logger = new TestLogger(__filename)
 const { xprv } = legacyAccount
 
 const SERVER = DEFAULT_MAINNET_SERVER
