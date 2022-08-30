@@ -8,7 +8,13 @@ echo "Publishing $LERNA_V"
 
 lerna run --stream build
 
-git tag $LERNA_V
-git push --tags
+TAGGED_COMMIT=$(git rev-list -n 1 $LERNA_V 2>/dev/null)
+if [ -z "$TAGGED_COMMIT" ]; then
+  echo "Tagging current commit as $LERNA_V"
+  git tag $LERNA_V
+  git push --tags
+else
+  git checkout "$LERNA_V"
+fi
 
 lerna publish from-package
