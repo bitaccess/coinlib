@@ -53,7 +53,6 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
       StellarBroadcastResult,
       StellarTransactionInfo
     > {
-
   constructor(public config: Config) {
     super(config)
   }
@@ -237,15 +236,13 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
   }
 
   private getStellarNetwork() {
-    return this.networkType === NetworkType.Testnet
-      ? Stellar.Networks.TESTNET
-      : Stellar.Networks.PUBLIC
+    return this.networkType === NetworkType.Testnet ? Stellar.Networks.TESTNET : Stellar.Networks.PUBLIC
   }
 
   private serializeTransaction(tx: Stellar.Transaction): { serializedTx: string } {
     const xdr = tx.toEnvelope().toXDR('base64')
     return {
-      serializedTx: xdr.toString()
+      serializedTx: xdr.toString(),
     }
   }
 
@@ -278,8 +275,8 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     } = await this.getBalance({ address: fromAddress })
     if (fromAddressRequiresActivation) {
       throw new Error(
-        `Cannot send from unactivated stellar address ${fromAddress} - min balance of `
-          + `${MIN_BALANCE} XLM required (${fromAddressBalance} XLM)`,
+        `Cannot send from unactivated stellar address ${fromAddress} - min balance of ` +
+          `${MIN_BALANCE} XLM required (${fromAddressBalance} XLM)`,
       )
     }
     const totalValue = amount.plus(feeMain)
@@ -289,8 +286,8 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
         ? 'due to insufficient balance'
         : `because it would reduce the balance below the ${MIN_BALANCE} XLM minimum`
       throw new Error(
-        `Cannot send ${amountString} XLM with fee of ${feeMain} XLM from ${fromAddress} `
-          + `${reason} (${fromAddressBalance} XLM)`,
+        `Cannot send ${amountString} XLM with fee of ${feeMain} XLM from ${fromAddress} ` +
+          `${reason} (${fromAddressBalance} XLM)`,
       )
     }
     if (typeof fromExtraId === 'string' && totalValue.gt(payportBalance)) {
@@ -305,8 +302,8 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
     } = await this.getBalance({ address: toAddress })
     if (toAddressRequiresActivation && amount.lt(MIN_BALANCE)) {
       throw new Error(
-        `Cannot send ${amountString} XLM to recipient ${toAddress} because address requires `
-          + `a balance of at least ${MIN_BALANCE} XLM to receive funds (${toAddressBalance} XLM)`
+        `Cannot send ${amountString} XLM to recipient ${toAddress} because address requires ` +
+          `a balance of at least ${MIN_BALANCE} XLM to receive funds (${toAddressBalance} XLM)`,
       )
     }
     const fromAccount = await this.loadAccountOrThrow(fromAddress)
@@ -319,22 +316,23 @@ export abstract class BaseStellarPayments<Config extends BaseStellarPaymentsConf
 
     const toAccount = await this.loadAccount(toAddress)
 
-    const operation = toAccount === null
-      ? Stellar.Operation.createAccount({
-          destination: toAddress,
-          startingBalance: amount.toString(),
-        })
-      : Stellar.Operation.payment({
-          destination: toAddress,
-          asset: Stellar.Asset.native(),
-          amount: amount.toString(),
-        })
+    const operation =
+      toAccount === null
+        ? Stellar.Operation.createAccount({
+            destination: toAddress,
+            startingBalance: amount.toString(),
+          })
+        : Stellar.Operation.payment({
+            destination: toAddress,
+            asset: Stellar.Asset.native(),
+            amount: amount.toString(),
+          })
 
     const preparedTx = new Stellar.TransactionBuilder(sourceAccount, {
-        fee: feeBase,
-        networkPassphrase: this.getStellarNetwork(),
-        memo: toExtraId ? Stellar.Memo.text(toExtraId) : undefined,
-      })
+      fee: feeBase,
+      networkPassphrase: this.getStellarNetwork(),
+      memo: toExtraId ? Stellar.Memo.text(toExtraId) : undefined,
+    })
       .addOperation(operation)
       .setTimeout(txTimeoutSecs)
       .build()

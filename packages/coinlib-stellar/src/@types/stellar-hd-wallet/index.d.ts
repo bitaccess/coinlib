@@ -1,7 +1,7 @@
 /// <reference types='node'/>
 
 declare module 'stellar-hd-wallet' {
-  import { Keypair } from 'stellar-base'
+  import { Keypair } from 'stellar-sdk'
 
   export default class StellarHDWallet {
     /**
@@ -31,11 +31,7 @@ declare module 'stellar-hd-wallet' {
      * @throws {TypeError} Langauge not supported by bip39 module
      * @throws {TypeError} Invalid entropy
      */
-    static generateMnemonic(props?: {
-      entropyBits?: number,
-      language?: string,
-      rngFn?: Function
-    }): string
+    static generateMnemonic(props?: { entropyBits?: number; language?: string; rngFn?: Function }): string
 
     /**
      * Validate a mnemonic using BIP39

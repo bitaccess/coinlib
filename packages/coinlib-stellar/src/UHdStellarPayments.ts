@@ -4,7 +4,6 @@ import { isValidAddress } from './helpers'
 import { HdStellarPayments } from './HdStellarPayments'
 
 export class UHdStellarPayments extends HdStellarPayments {
-
   constructor(config: UHdStellarPaymentsConfig) {
     let hotAccount: StellarAccountConfig
     let depositAccount: StellarAccountConfig

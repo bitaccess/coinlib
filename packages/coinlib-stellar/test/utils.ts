@@ -91,7 +91,12 @@ export async function setupTestnetPayments(): Promise<AccountStellarPayments> {
     hotBalance = await payments.getBalance(0)
     depositBalance = await payments.getBalance(1)
   } catch (e) {
-    if (e.toString().toLowerCase().includes('not found')) {
+    if (
+      e
+        .toString()
+        .toLowerCase()
+        .includes('not found')
+    ) {
       logger.warn('Cached testnet accounts are not found, will regenerate')
       await regenerate()
       return payments

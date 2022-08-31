@@ -12,18 +12,15 @@ import StellarHD from 'stellar-hd-wallet'
 import crypto from 'crypto'
 
 import {
-  isValidAddress, StellarSignedTransaction, AccountStellarPayments,
-  StellarTransactionInfo, StellarBalanceMonitor,
+  isValidAddress,
+  StellarSignedTransaction,
+  AccountStellarPayments,
+  StellarTransactionInfo,
+  StellarBalanceMonitor,
 } from '../src'
 import { padLeft } from '../src/utils'
 
-import {
-  setupTestnetPayments,
-  delay,
-  END_TRANSACTION_STATES,
-  expectEqualWhenTruthy,
-  logger,
-} from './utils'
+import { setupTestnetPayments, delay, END_TRANSACTION_STATES, expectEqualWhenTruthy, logger } from './utils'
 
 jest.setTimeout(60 * 1000)
 
@@ -146,26 +143,29 @@ describe('e2e', () => {
 
   describe('broadcastTransaction', () => {
     it('handles request errors', async () => {
-      await expect(payments.broadcastTransaction({
-        id: '',
-        fee: '0.00001',
-        data: {
-          serializedTx: 'AAAAALnz8HxfXnQ9n5RzXR4+NHTDWl/lkVxF8zxoFV5YmwfcAAAAZAHD52IAAAASAAAAAQAAAAAAAAAAAAAAAF8XIkIAAAABAAAACjEwNjIzMDk1ODMAAAAAAAEAAAAAAAAAAQAAAAAOr5CG1ax6qG2fBEgXJlF0sw5W0irOS6N/NRDbavBm4QAAAAAAAAACXm1iWgAAAAAAAAABWJsH3AAAAEDya9FtoZGghZ4T0GXIE2n+AfqqazClXVCssXjEP7UdG/xioZTZgNyhIOsI84G6frcGxK7e9F++L09XvoiV/E0F'
-        },
-        amount: '1017.4161498',
-        status: TransactionStatus.Signed,
-        toIndex: null,
-        fromIndex: 48,
-        toAddress: 'GAHK7EEG2WWHVKDNT4CEQFZGKF2LGDSW2IVM4S5DP42RBW3K6BTODB4A',
-        toExtraId: '1062309583',
-        fromAddress: 'GC47H4D4L5PHIPM7SRZV2HR6GR2MGWS74WIVYRPTHRUBKXSYTMD5YUF2',
-        fromExtraId: '48',
-        targetFeeRate: '0.00001',
-        sequenceNumber: '127199622589317138',
-        targetFeeLevel: FeeLevel.Custom,
-        targetFeeRateType: FeeRateType.Main,
-      })).rejects.toThrow(
-        'submitTransaction failed: Request failed with status code 400 -- {"type":"https://stellar.org/horizon-errors/transaction_failed"'
+      await expect(
+        payments.broadcastTransaction({
+          id: '',
+          fee: '0.00001',
+          data: {
+            serializedTx:
+              'AAAAALnz8HxfXnQ9n5RzXR4+NHTDWl/lkVxF8zxoFV5YmwfcAAAAZAHD52IAAAASAAAAAQAAAAAAAAAAAAAAAF8XIkIAAAABAAAACjEwNjIzMDk1ODMAAAAAAAEAAAAAAAAAAQAAAAAOr5CG1ax6qG2fBEgXJlF0sw5W0irOS6N/NRDbavBm4QAAAAAAAAACXm1iWgAAAAAAAAABWJsH3AAAAEDya9FtoZGghZ4T0GXIE2n+AfqqazClXVCssXjEP7UdG/xioZTZgNyhIOsI84G6frcGxK7e9F++L09XvoiV/E0F',
+          },
+          amount: '1017.4161498',
+          status: TransactionStatus.Signed,
+          toIndex: null,
+          fromIndex: 48,
+          toAddress: 'GAHK7EEG2WWHVKDNT4CEQFZGKF2LGDSW2IVM4S5DP42RBW3K6BTODB4A',
+          toExtraId: '1062309583',
+          fromAddress: 'GC47H4D4L5PHIPM7SRZV2HR6GR2MGWS74WIVYRPTHRUBKXSYTMD5YUF2',
+          fromExtraId: '48',
+          targetFeeRate: '0.00001',
+          sequenceNumber: '127199622589317138',
+          targetFeeLevel: FeeLevel.Custom,
+          targetFeeRateType: FeeRateType.Main,
+        }),
+      ).rejects.toThrow(
+        'submitTransaction failed: Request failed with status code 400 -- {"type":"https://stellar.org/horizon-errors/transaction_failed"',
       )
     })
   })
@@ -234,64 +234,82 @@ describe('e2e', () => {
   let sendTxPromise: Promise<StellarTransactionInfo>
   let sendFreshTxPromise: Promise<StellarTransactionInfo>
 
-  it('end to end sweep', async () => {
-    const indexToSweep = 5
-    const recipientIndex = 0
-    const payportBalance = '1.333' // Pretend the payport has this much balance
+  it(
+    'end to end sweep',
+    async () => {
+      const indexToSweep = 5
+      const recipientIndex = 0
+      const payportBalance = '1.333' // Pretend the payport has this much balance
 
-    const unsignedTx = await payments.createSweepTransaction(indexToSweep, recipientIndex, { payportBalance })
-    const signedTx = await payments.signTransaction(unsignedTx)
-    logger.log(`Sweeping ${signedTx.amount} XLM from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
-    const broadcastResult = await payments.broadcastTransaction(signedTx)
-    expect(broadcastResult.id).toBeTruthy()
-    expect(broadcastResult.rebroadcast).toBe(false)
-    sweepTxPromise = pollSignedTx(broadcastResult.id, signedTx)
-    const tx = await sweepTxPromise
-    const amount = new BigNumber(tx.amount)
-    const fee = new BigNumber(unsignedTx.fee)
-    const sendTotal = amount.plus(fee)
-    expect(sendTotal.toString()).toEqual(payportBalance)
-    expect(parseFloat(tx.fee)).toBeLessThanOrEqual(parseFloat(unsignedTx.fee))
-  }, 300 * 1000)
+      const unsignedTx = await payments.createSweepTransaction(indexToSweep, recipientIndex, { payportBalance })
+      const signedTx = await payments.signTransaction(unsignedTx)
+      logger.log(`Sweeping ${signedTx.amount} XLM from ${indexToSweep} to ${recipientIndex} in tx ${signedTx.id}`)
+      const broadcastResult = await payments.broadcastTransaction(signedTx)
+      expect(broadcastResult.id).toBeTruthy()
+      expect(broadcastResult.rebroadcast).toBe(false)
+      sweepTxPromise = pollSignedTx(broadcastResult.id, signedTx)
+      const tx = await sweepTxPromise
+      const amount = new BigNumber(tx.amount)
+      const fee = new BigNumber(unsignedTx.fee)
+      const sendTotal = amount.plus(fee)
+      expect(sendTotal.toString()).toEqual(payportBalance)
+      expect(parseFloat(tx.fee)).toBeLessThanOrEqual(parseFloat(unsignedTx.fee))
+    },
+    300 * 1000,
+  )
 
-  it('end to end send', async () => {
-    const sourceIndex = 0
-    const recipientIndex = 5
-    const sendAmount = '1.222'
+  it(
+    'end to end send',
+    async () => {
+      const sourceIndex = 0
+      const recipientIndex = 5
+      const sendAmount = '1.222'
 
-    const unsignedTx = await payments.createTransaction(sourceIndex, recipientIndex, sendAmount)
-    const signedTx = await payments.signTransaction(unsignedTx)
-    logger.log(`Sending ${signedTx.amount} XLM from ${sourceIndex} to ${recipientIndex} in tx ${signedTx.id}`)
-    const broadcastResult = await payments.broadcastTransaction(signedTx)
-    expect(broadcastResult.id).toBeTruthy()
-    expect(broadcastResult.rebroadcast).toBe(false)
-    sendTxPromise = pollSignedTx(broadcastResult.id, signedTx)
-    const tx = await sendTxPromise
-    expect(tx.amount).toEqual(sendAmount)
-    const fee = new BigNumber(tx.fee)
-    expect(fee.toNumber()).toBeGreaterThan(0)
-  }, 300 * 1000)
+      const unsignedTx = await payments.createTransaction(sourceIndex, recipientIndex, sendAmount)
+      const signedTx = await payments.signTransaction(unsignedTx)
+      logger.log(`Sending ${signedTx.amount} XLM from ${sourceIndex} to ${recipientIndex} in tx ${signedTx.id}`)
+      const broadcastResult = await payments.broadcastTransaction(signedTx)
+      expect(broadcastResult.id).toBeTruthy()
+      expect(broadcastResult.rebroadcast).toBe(false)
+      sendTxPromise = pollSignedTx(broadcastResult.id, signedTx)
+      const tx = await sendTxPromise
+      expect(tx.amount).toEqual(sendAmount)
+      const fee = new BigNumber(tx.fee)
+      expect(fee.toNumber()).toBeGreaterThan(0)
+    },
+    300 * 1000,
+  )
 
-  it('end to end send to fresh address', async () => {
-    const sourceIndex = 0
-    const recipientAddress = FRESH_ADDRESS
-    const sendAmount = '1.111'
+  it(
+    'end to end send to fresh address',
+    async () => {
+      const sourceIndex = 0
+      const recipientAddress = FRESH_ADDRESS
+      const sendAmount = '1.111'
 
-    const unsignedTx = await payments.createTransaction(sourceIndex, recipientAddress, sendAmount)
-    const signedTx = await payments.signTransaction(unsignedTx)
-    logger.log(`Sending ${signedTx.amount} XLM from ${sourceIndex} to fresh address ${recipientAddress} in tx ${signedTx.id}`)
-    const broadcastResult = await payments.broadcastTransaction(signedTx)
-    expect(broadcastResult.id).toBeTruthy()
-    expect(broadcastResult.rebroadcast).toBe(false)
-    sendFreshTxPromise = pollSignedTx(broadcastResult.id, signedTx)
-    const tx = await sendFreshTxPromise
-    expect(tx.amount).toEqual(sendAmount)
-    const fee = new BigNumber(tx.fee)
-    expect(fee.toNumber()).toBeGreaterThan(0)
-  }, 300 * 1000)
+      const unsignedTx = await payments.createTransaction(sourceIndex, recipientAddress, sendAmount)
+      const signedTx = await payments.signTransaction(unsignedTx)
+      logger.log(
+        `Sending ${signedTx.amount} XLM from ${sourceIndex} to fresh address ${recipientAddress} in tx ${signedTx.id}`,
+      )
+      const broadcastResult = await payments.broadcastTransaction(signedTx)
+      expect(broadcastResult.id).toBeTruthy()
+      expect(broadcastResult.rebroadcast).toBe(false)
+      sendFreshTxPromise = pollSignedTx(broadcastResult.id, signedTx)
+      const tx = await sendFreshTxPromise
+      expect(tx.amount).toEqual(sendAmount)
+      const fee = new BigNumber(tx.fee)
+      expect(fee.toNumber()).toBeGreaterThan(0)
+    },
+    300 * 1000,
+  )
 
   function getExpectedActivitySequence(tx: StellarTransactionInfo, type: 'out' | 'in'): string {
-    return `${padLeft((tx.confirmationNumber || 0).toString(), 12, '0')}.${padLeft((tx.confirmationTimestamp as Date).getTime().toString(), 18, '0')}.${type === 'out' ? '00' : '01'}`
+    return `${padLeft((tx.confirmationNumber || 0).toString(), 12, '0')}.${padLeft(
+      (tx.confirmationTimestamp as Date).getTime().toString(),
+      18,
+      '0',
+    )}.${type === 'out' ? '00' : '01'}`
   }
 
   async function getExpectedDepositActivities() {
@@ -405,20 +423,21 @@ describe('e2e', () => {
     })
 
     it('should retrieve nothing for a range without activity', async () => {
-      const txs = [
-        await sweepTxPromise, await sendTxPromise, await sendFreshTxPromise
-      ]
-      const from = BigNumber.max(...txs.map((tx) => tx.confirmationNumber || startLedgerVersion))
-        .plus(1)
+      const txs = [await sweepTxPromise, await sendTxPromise, await sendFreshTxPromise]
+      const from = BigNumber.max(...txs.map(tx => tx.confirmationNumber || startLedgerVersion)).plus(1)
       const actual = await accumulateRetrievedActivities(payments.hotSignatory.address, { from })
       expectBalanceActivities(actual, [])
     })
 
     it('should be able to retrieve more activities than page limit', async () => {
-      const actual = await accumulateRetrievedActivities('GDHMECSDSY3U66WAZMO3RFJXTNCGCFFVHINONHTWU2VPHHRFSBKHWMOL', {
-        from: 24895758,
-        to: 26463647,
-      }, monitorMainnet)
+      const actual = await accumulateRetrievedActivities(
+        'GDHMECSDSY3U66WAZMO3RFJXTNCGCFFVHINONHTWU2VPHHRFSBKHWMOL',
+        {
+          from: 24895758,
+          to: 26463647,
+        },
+        monitorMainnet,
+      )
       expect(actual.length).toBeGreaterThan(10)
     })
 
@@ -427,5 +446,4 @@ describe('e2e', () => {
       expect(activities).toEqual([])
     })
   })
-
 })
