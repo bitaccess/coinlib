@@ -211,5 +211,4 @@ describe('StellarPaymentsUtils', () => {
       expect(xpub).toBe(expectedXpub)
     })
   })
-
 })

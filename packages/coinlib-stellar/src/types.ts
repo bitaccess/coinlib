@@ -66,8 +66,8 @@ export type BaseStellarPaymentsConfig = t.TypeOf<typeof BaseStellarPaymentsConfi
 /**
  * address, or secret+address
  */
- export const StellarAccountConfig = t.union([t.string, PartialStellarSignatory], 'StellarAccountConfig')
- export type StellarAccountConfig = t.TypeOf<typeof StellarAccountConfig>
+export const StellarAccountConfig = t.union([t.string, PartialStellarSignatory], 'StellarAccountConfig')
+export type StellarAccountConfig = t.TypeOf<typeof StellarAccountConfig>
 
 export const HdStellarPaymentsConfig = extendCodec(
   BaseStellarPaymentsConfig,
@@ -82,7 +82,6 @@ export const HdStellarPaymentsConfig = extendCodec(
   'HdStellarPaymentsConfig',
 )
 export type HdStellarPaymentsConfig = t.TypeOf<typeof HdStellarPaymentsConfig>
-
 
 export const SeedStellarPaymentsConfig = extendCodec(
   BaseStellarPaymentsConfig,
@@ -113,8 +112,6 @@ export const UHdStellarPaymentsConfig = t.union(
   'UHdStellarPaymentsConfig',
 )
 export type UHdStellarPaymentsConfig = t.TypeOf<typeof UHdStellarPaymentsConfig>
-
-
 
 export const AccountStellarPaymentsConfig = extendCodec(
   BaseStellarPaymentsConfig,

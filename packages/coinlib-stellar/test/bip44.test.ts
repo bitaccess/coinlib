@@ -4,7 +4,6 @@ import { hdAccount } from './fixtures/accounts'
 const { MNEMONIC, SEED, ADDRESSES, SECRETS } = hdAccount
 
 describe('bip44', () => {
-
   test('generateMnemonic', () => {
     expect(generateMnemonic()).toBeTruthy()
   })

@@ -1,9 +1,4 @@
-import {
-  AccountStellarPaymentsConfig,
-  StellarSignatory,
-  StellarAccountConfig,
-  PartialStellarSignatory,
-} from './types'
+import { AccountStellarPaymentsConfig, StellarSignatory, StellarAccountConfig, PartialStellarSignatory } from './types'
 import { BaseStellarPayments } from './BaseStellarPayments'
 import { assertType } from '@bitaccess/ts-common'
 import { isValidAddress, isValidSecret } from './helpers'

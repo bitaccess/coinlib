@@ -1,6 +1,5 @@
 import { HdStellarPayments, UHdStellarPayments } from '../src'
 
-
 export function commonTests(
   payments: HdStellarPayments | UHdStellarPayments,
   addresses: { [key: number]: string },

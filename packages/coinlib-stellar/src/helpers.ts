@@ -1,6 +1,6 @@
 import { createUnitConverters, NetworkType } from '@bitaccess/coinlib-common'
 import { isNil, isString } from '@bitaccess/ts-common'
-import { StrKey, Keypair} from "stellar-sdk";
+import { StrKey, Keypair } from 'stellar-sdk'
 import StellarHDWallet from 'stellar-hd-wallet'
 
 import { DECIMAL_PLACES, STELLAR_COINTYPES, STELLAR_SUPPORTED_ADDRESS_TYPES } from './constants'
@@ -75,12 +75,12 @@ export function hexSeedToBuffer(seedHex: string): Buffer {
 
 export function deriveKeyPairForAnyPath(wallet: StellarHDWallet, anyPath: string): Keypair {
   const key: Buffer = wallet.derive(anyPath)
-  const keypair: Keypair =  Keypair.fromRawEd25519Seed(key)
+  const keypair: Keypair = Keypair.fromRawEd25519Seed(key)
   return keypair
 }
 
 export function removeTrailingSlash(path: string): string {
-  return path.replace(/\/+$/, '');
+  return path.replace(/\/+$/, '')
 }
 
 export function deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): string {
@@ -90,8 +90,8 @@ export function deriveUniPubKeyForPath(seed: Buffer, derivationPath: string): st
   const hotAccountPath: string = `${derivationPath}/0'`
   const depositAccountPath: string = `${derivationPath}/1'`
 
-  const hotAccountPubKey: string =  deriveKeyPairForAnyPath(wallet, hotAccountPath).publicKey()
-  const depositAccountPubKey: string =  deriveKeyPairForAnyPath(wallet, depositAccountPath).publicKey()
+  const hotAccountPubKey: string = deriveKeyPairForAnyPath(wallet, hotAccountPath).publicKey()
+  const depositAccountPubKey: string = deriveKeyPairForAnyPath(wallet, depositAccountPath).publicKey()
 
   return `${hotAccountPubKey}:${depositAccountPubKey}`
 }

@@ -1,11 +1,11 @@
-import { NetworkType, BlockInfo, BigNumber, }  from '@bitaccess/coinlib-common'
+import { NetworkType, BlockInfo, BigNumber } from '@bitaccess/coinlib-common'
 import { Logger, assertType, DelegateLogger } from '@bitaccess/ts-common'
 import * as Stellar from 'stellar-sdk'
 
 import { BaseStellarConfig, StellarRawTransaction, StellarLedger } from './types'
 import { DEFAULT_NETWORK, PACKAGE_NAME } from './constants'
 import { resolveStellarServer, retryIfDisconnected, isStellarLedger } from './utils'
-import { toMainDenominationBigNumber } from './helpers';
+import { toMainDenominationBigNumber } from './helpers'
 
 export abstract class StellarConnected {
   networkType: NetworkType
@@ -66,8 +66,13 @@ export abstract class StellarConnected {
 
   async _normalizeTxOperation(
     tx: StellarRawTransaction,
-  ): Promise<{ amount: BigNumber, fee: BigNumber, fromAddress: string, toAddress: string }> {
-    const opPage = await this._retryDced(() => this.getApi().operations().forTransaction(tx.id).call())
+  ): Promise<{ amount: BigNumber; fee: BigNumber; fromAddress: string; toAddress: string }> {
+    const opPage = await this._retryDced(() =>
+      this.getApi()
+        .operations()
+        .forTransaction(tx.id)
+        .call(),
+    )
     const op = opPage.records.find(({ type }) => type === 'create_account' || type === 'payment')
     if (!op) {
       throw new Error(`Cannot normalize stellar tx - operation not found for transaction ${tx.id}`)
