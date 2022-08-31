@@ -1,7 +1,7 @@
 /// <reference types='node'/>
 
 declare module 'stellar-hd-wallet' {
-  import { Keypair } from 'stellar-base'
+  import { Keypair } from 'stellar-sdk'
 
   export default class StellarHDWallet {
     /**
