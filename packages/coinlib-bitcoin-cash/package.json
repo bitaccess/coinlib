@@ -1,6 +1,6 @@
 {
   "name": "@bitaccess/coinlib-bitcoin-cash",
-  "version": "7.0.4",
+  "version": "7.0.5",
   "description": "Library to assist in processing bitcoin cash payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
