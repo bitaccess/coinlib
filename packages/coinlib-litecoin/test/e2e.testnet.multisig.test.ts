@@ -195,7 +195,11 @@ describeAll('e2e multisig testnet', () => {
             maxFeePercent: 100,
           })
           expect(tx.multisigData).toBeDefined()
-          expect(new BigNumber(tx.amount).plus(tx.fee).toFixed()).toBe(fromBalance.toString())
+          const EPSILON: number = 0.001
+          const balanceLeft: number = fromBalance.minus(tx.amount).minus(tx.fee).toNumber()
+          expect(balanceLeft).toBeGreaterThanOrEqual(0)
+          expect(balanceLeft).toBeLessThan(EPSILON)
+
         },
         30 * 1000,
       )

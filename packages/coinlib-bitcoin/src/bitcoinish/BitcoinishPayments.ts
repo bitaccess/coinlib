@@ -269,7 +269,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     // add one sat extra to avoid inaccurate size estimate resulting in insufficient relay fee
     const minRelaySat = 1 + this.feeRateToSatoshis(
       {
-        feeRate: String(this.networkMinRelayFee),
+        feeRate: String(this.networkMinRelayFee / 1000),
         feeRateType: FeeRateType.BasePerWeight
       },
       inputCount,
