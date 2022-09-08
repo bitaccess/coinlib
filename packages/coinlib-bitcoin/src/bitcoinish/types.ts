@@ -100,7 +100,7 @@ export const BitcoinishPaymentsUtilsConfig = extendCodec(
     coinName: t.string,
     coinDecimals: t.number,
     bitcoinjsNetwork: BitcoinjsNetwork,
-    networkMinRelayFee: t.number, // sat/vb
+    networkMinRelayFee: t.number, // sat/kbytes
     dustThreshold: t.number, // sat
   },
   {

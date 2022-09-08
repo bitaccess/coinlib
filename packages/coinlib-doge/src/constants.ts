@@ -22,9 +22,9 @@ export const DEFAULT_DUST_THRESHOLD = 1e6 // 0.01 DOGE
  *
  * See https://github.com/dogecoin/dogecoin/blob/v1.14.6/src/validation.h#L57
  *
- * Unit: `sat/byte`
+ * Unit: `sat/kbyte`
  */
-export const DEFAULT_NETWORK_MIN_RELAY_FEE = 1e2 // 0.001 DOGE per kb
+export const DEFAULT_NETWORK_MIN_RELAY_FEE = 1e5 // 0.001 DOGE per kb
 
 /** Sequence to use for each input such that RBF is opted into */
 export const BITCOIN_SEQUENCE_RBF = 0xfffffffd

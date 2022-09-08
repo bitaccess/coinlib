@@ -37,7 +37,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
   readonly coinName: string
   readonly coinDecimals: number
   readonly bitcoinjsNetwork: BitcoinjsNetwork
-  readonly networkMinRelayFee: number // sat/vb
+  readonly networkMinRelayFee: number // sat/kb
   readonly dustThreshold: number // sats
   readonly blockcypherToken?: string
   feeLevelBlockTargets: FeeLevelBlockTargets
@@ -198,7 +198,7 @@ export abstract class BitcoinishPaymentsUtils extends BlockbookConnected impleme
   }
 
   isAddressBalanceSweepable(balance: Numeric): boolean {
-    return this.toBaseDenominationNumber(balance) >= this.dustThreshold + this.networkMinRelayFee * MIN_P2PKH_SWEEP_BYTES
+    return this.toBaseDenominationNumber(balance) >= this.dustThreshold + this.networkMinRelayFee * MIN_P2PKH_SWEEP_BYTES / 1000
   }
 
   async getAddressBalance(address: string): Promise<BalanceResult> {

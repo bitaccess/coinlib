@@ -20,9 +20,9 @@ export const DEFAULT_DUST_THRESHOLD = 546
  *
  * See: https://github.com/bitcoin/bitcoin/blob/master/src/policy/policy.h#L57
  *
- * Unit: `sat/vb`
+ * Unit: `sat/kbytes`
  */
-export const DEFAULT_NETWORK_MIN_RELAY_FEE_RATE = 1 // 1000 sat/kb
+export const DEFAULT_NETWORK_MIN_RELAY_FEE_RATE = 1000 // 1000 sat/kb
 
 /** Sequence to use for each input such that RBF is opted into */
 export const BITCOIN_SEQUENCE_RBF = 0xfffffffd
