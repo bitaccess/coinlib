@@ -126,6 +126,13 @@ export class CoinPayments {
     return payments
   }
 
+  getSpecificPayments<T extends SupportedCoinPaymentsSymbol>(
+    networkSymbol: T,
+    networkConfig: CoinPaymentsPartialConfigs[T],
+  ): AnyPayments {
+    return this.newPayments(networkSymbol, networkConfig)
+  }
+
   isNetworkSupported(networkSymbol: string): networkSymbol is SupportedCoinPaymentsSymbol {
     return SupportedCoinPaymentsSymbol.is(networkSymbol)
   }
