@@ -67,7 +67,7 @@ export class NetworkData {
   }
 
   async getBlock(blockId: string | number, includeTransactionObjects: boolean = false): Promise<BlockInfo> {
-    return this.callBlockbookWithWeb3Fallback('getBlock', blockId)
+    return this.callBlockbookWithWeb3Fallback('getBlock', blockId, includeTransactionObjects)
   }
 
   async getAddressDetails(address: string, options?: GetAddressDetailsOptions) {
