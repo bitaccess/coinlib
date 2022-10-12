@@ -49,15 +49,17 @@ export class CoinPayments {
         (config.seed.includes(' ') ? bip39.mnemonicToSeedSync(config.seed) : Buffer.from(config.seed, 'hex'))) ||
       undefined
     const accountIdSet = new Set<string>()
-    SUPPORTED_NETWORK_SYMBOLS.forEach(networkSymbol => {
-      const networkConfig = config[networkSymbol]
-      if (!networkConfig && !this.seedBuffer) {
-        return
-      }
-      const networkPayments = this.newPayments(networkSymbol, networkConfig)
-      this.payments[networkSymbol] = networkPayments
-      networkPayments.getAccountIds().forEach(id => accountIdSet.add(id))
-    })
+    if (!config.emptyPayment) {
+      SUPPORTED_NETWORK_SYMBOLS.forEach(networkSymbol => {
+        const networkConfig = config[networkSymbol]
+        if (!networkConfig && !this.seedBuffer) {
+          return
+        }
+        const networkPayments = this.newPayments(networkSymbol, networkConfig)
+        this.payments[networkSymbol] = networkPayments
+        networkPayments.getAccountIds().forEach(id => accountIdSet.add(id))
+      })
+    }
     this.accountIds = Array.from(accountIdSet)
   }
 

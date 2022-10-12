@@ -115,6 +115,13 @@ describe('CoinPayments', () => {
         expect(cp.getPublicConfig()).toEqual(omit(CONFIG, [UNCONFIGURED_ASSET]))
       })
     })
+    describe('getPublicConfig with emptyPayment client should return emtpy object', () => {
+      it('returns correctly', () => {
+        const emptyPayment = new CoinPayments({ ...CONFIG, emptyPayment: true })
+        expect(emptyPayment.getPublicConfig()).toEqual({})
+      })
+    })
+
   })
 
   describe('instance seed', () => {
