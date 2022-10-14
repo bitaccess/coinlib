@@ -117,8 +117,8 @@ describe('CoinPayments', () => {
     })
     describe('getPublicConfig with skipInitialInstantiation client should return emtpy object', () => {
       it('returns correctly', () => {
-        const skipInitialInstantiation = new CoinPayments({ ...CONFIG, skipInitialInstantiation: true })
-        expect(skipInitialInstantiation.getPublicConfig()).toEqual({})
+        const emptyPayment = new CoinPayments({ ...CONFIG, skipInitialInstantiation: true })
+        expect(emptyPayment.getPublicConfig()).toEqual({})
       })
     })
 
