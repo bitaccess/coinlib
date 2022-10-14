@@ -69,7 +69,7 @@ export const CoinPaymentsConfig = extendCodec(
     network: NetworkTypeT,
     logger: Logger,
     seed: t.string,
-    emptyPayment: t.boolean,
+    skipInitialInstantiation: t.boolean,
   },
   'CoinPaymentsConfig',
 )

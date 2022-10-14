@@ -49,7 +49,7 @@ export class CoinPayments {
         (config.seed.includes(' ') ? bip39.mnemonicToSeedSync(config.seed) : Buffer.from(config.seed, 'hex'))) ||
       undefined
     const accountIdSet = new Set<string>()
-    if (!config.emptyPayment) {
+    if (!config.skipInitialInstantiation) {
       SUPPORTED_NETWORK_SYMBOLS.forEach(networkSymbol => {
         const networkConfig = config[networkSymbol]
         if (!networkConfig && !this.seedBuffer) {

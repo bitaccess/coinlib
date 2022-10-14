@@ -115,10 +115,10 @@ describe('CoinPayments', () => {
         expect(cp.getPublicConfig()).toEqual(omit(CONFIG, [UNCONFIGURED_ASSET]))
       })
     })
-    describe('getPublicConfig with emptyPayment client should return emtpy object', () => {
+    describe('getPublicConfig with skipInitialInstantiation client should return emtpy object', () => {
       it('returns correctly', () => {
-        const emptyPayment = new CoinPayments({ ...CONFIG, emptyPayment: true })
-        expect(emptyPayment.getPublicConfig()).toEqual({})
+        const skipInitialInstantiation = new CoinPayments({ ...CONFIG, skipInitialInstantiation: true })
+        expect(skipInitialInstantiation.getPublicConfig()).toEqual({})
       })
     })
 
