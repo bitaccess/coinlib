@@ -21,7 +21,7 @@ export function runBuildPaymentTxTests(
   const feeMain = '0.001'
   const desiredFeeRate = { feeRate: feeMain, feeRateType: FeeRateType.Main }
   it('sweep from single confirmed utxo', async () => {
-    const utxos = makeUtxos(['0.05'], ['0.06'])
+    const utxos = makeUtxos(['0.05'], ['0.06'], changeAddress)
     const outputs = [{ address: EXTERNAL_ADDRESS, value: '0.05' }]
     const paymentTx = await payments.buildPaymentTx({
       enforcedUtxos: [],
@@ -45,7 +45,7 @@ export function runBuildPaymentTxTests(
     expect(paymentTx.fee).toBe(feeMain)
   })
   it('sweep from multiple confirmed and unconfirmed utxo', async () => {
-    const utxos = makeUtxos(['0.05', '0.1'], ['2.2'])
+    const utxos = makeUtxos(['0.05', '0.1'], ['2.2'], changeAddress)
     const outputs = [{ address: EXTERNAL_ADDRESS, value: '2.35' }]
     const paymentTx = await payments.buildPaymentTx({
       enforcedUtxos: [],
@@ -69,7 +69,7 @@ export function runBuildPaymentTxTests(
     expect(paymentTx.fee).toBe(feeMain)
   })
   it('send using single ideal utxo', async () => {
-    const utxos = makeUtxos(['0.1', '0.8', '1.5'], ['3'])
+    const utxos = makeUtxos(['0.1', '0.8', '1.5'], ['3'], changeAddress)
     const outputs = [{ address: EXTERNAL_ADDRESS, value: '0.799' }]
     const paymentTx = await payments.buildPaymentTx({
       enforcedUtxos: [],
@@ -92,7 +92,7 @@ export function runBuildPaymentTxTests(
     expect(paymentTx.fee).toBe(feeMain)
   })
   it('send using multiple utxos with single small change output', async () => {
-    const utxos = makeUtxos(['1', '1.001'], ['3'])
+    const utxos = makeUtxos(['1', '1.001'], ['3'], changeAddress)
     const outputs = [{ address: EXTERNAL_ADDRESS, value: '1.995' }]
     const paymentTx = await payments.buildPaymentTx({
       enforcedUtxos: [],
@@ -116,7 +116,7 @@ export function runBuildPaymentTxTests(
     expect(paymentTx.fee).toBe(feeMain)
   })
   it('send using multiple utxos with multiple change outputs', async () => {
-    const utxos = makeUtxos(['1', '1.001', '1.7'], ['4'])
+    const utxos = makeUtxos(['1', '1.001', '1.7'], ['4'], changeAddress)
     const outputs = [{ address: EXTERNAL_ADDRESS, value: '3' }]
     const paymentTx = await payments.buildPaymentTx({
       enforcedUtxos: [],
@@ -140,7 +140,7 @@ export function runBuildPaymentTxTests(
     expect(paymentTx.fee).toBe(feeMain)
   })
   it('send using multiple utxos and one forced with multiple change outputs', async () => {
-    const utxos = makeUtxos(['1', '1.001', '1.7'], ['4'])
+    const utxos = makeUtxos(['1', '1.001', '1.7'], ['4'], changeAddress)
     const outputs = [{ address: EXTERNAL_ADDRESS, value: '3' }]
     const paymentTx = await payments.buildPaymentTx({
       enforcedUtxos: [utxos[0]],
@@ -160,7 +160,7 @@ export function runBuildPaymentTxTests(
     expect(paymentTx.changeAddress).toBe(null)
   })
   it('change below dust threshold gets added to fee', async () => {
-    const utxos = makeUtxos(['1', '1.001'])
+    const utxos = makeUtxos(['1', '1.001'], [], changeAddress)
     const outputs = [{ address: EXTERNAL_ADDRESS, value: '1.999999' }]
     const paymentTx = await payments.buildPaymentTx({
       enforcedUtxos: [],
@@ -189,7 +189,7 @@ export function runBuildPaymentTxTests(
   it('loose change below dust threshold gets added to first change output', async () => {
     // This test is designed to have 3 change outputs and 1 satoshi loose change that gets allocated
     // to the first change output
-    const unusedUtxos = makeUtxos(['1', '1.00000001'])
+    const unusedUtxos = makeUtxos(['1', '1.00000001'], [], changeAddress)
     const amount = '1.93'
     const paymentTx = await payments.buildPaymentTx({
       enforcedUtxos: [],
@@ -237,7 +237,7 @@ export function runBuildPaymentTxTests(
   it('loose change below dust threshold gets added to fee when there are no change outputs', async () => {
     // This test is designed to have no change outputs and 1 satoshi loose change that gets allocated
     // to the fee without further deducting the output amount
-    const unusedUtxos = makeUtxos(['1', '1.00000001'])
+    const unusedUtxos = makeUtxos(['1', '1.00000001'], [], changeAddress)
     const amount = '2'
     const paymentTx = await payments.buildPaymentTx({
       enforcedUtxos: [],
@@ -273,7 +273,7 @@ export function runBuildPaymentTxTests(
     )
   })
   it('recalculated dynamic fee doesnt create loose change when recipient pays fee', async () => {
-    const unusedUtxos = makeUtxos(['1', '1.00000001'])
+    const unusedUtxos = makeUtxos(['1', '1.00000001'], [], changeAddress)
     const amount = '1.93'
     const paymentTx = await payments.buildPaymentTx({
       enforcedUtxos: [],
@@ -334,7 +334,7 @@ export function runBuildPaymentTxTests(
     expect(payments.estimateTxSize(inputUtxos, 1, [EXTERNAL_ADDRESS, EXTERNAL_ADDRESS, EXTERNAL_ADDRESS])).toBe(211)
   })
 
-  it.only('estimateTxSize provides correct estimate when spending from multiple inputs', () => {
+  it('estimateTxSize provides correct estimate when spending from multiple inputs', () => {
     const inputUtxos = [
       { txid: '1234', vout: 0, value: '0.1234', address: account.addresses[0], signer: 0 },
       { txid: '5678', vout: 1, value: '0.5678', address: account.addresses[1], signer: 1 },
@@ -343,7 +343,7 @@ export function runBuildPaymentTxTests(
     expect(payments.estimateTxSize(inputUtxos, 1, [EXTERNAL_ADDRESS])).toBe(279)
   })
 
-  it.only('estimateTxSize provides correct estimate when inputs are not all the same address type', () => {
+  it('estimateTxSize provides correct estimate when inputs are not all the same address type', () => {
     const inputUtxos = [
       { txid: '1234', vout: 0, value: '0.1234', address: account.addresses[0], signer: 0 },
       { txid: '5678', vout: 1, value: '0.5678', address: payments.getAddress(1, AddressType.Legacy), signer: 1 },
