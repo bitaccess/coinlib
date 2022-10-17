@@ -61,9 +61,9 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
     return this.addressType
   }
 
-  estimateTxSize(inputCount: number, changeOutputCount: number, externalOutputAddresses: string[]): number {
+  estimateTxSize(inputUtxos: UtxoInfo[], changeOutputCount: number, externalOutputAddresses: string[]): number {
     return estimateDogeTxSize(
-      { [this.getEstimateTxSizeInputKey()]: inputCount },
+      bitcoinish.countOccurences(this.getInputUtxoAddressTypes(inputUtxos)),
       {
         ...bitcoinish.countOccurences(externalOutputAddresses),
         [this.addressType]: changeOutputCount,

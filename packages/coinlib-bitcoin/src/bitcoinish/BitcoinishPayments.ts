@@ -107,7 +107,19 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         return addressType
       }
     }
-    throw new Error(`Failed to identify address ${address} at index ${index}`)
+    throw new Error(`Failed to identify type of address ${address} at index ${index}`)
+  }
+
+  getInputUtxoAddressTypes(inputUtxos: UtxoInfo[]) {
+    return inputUtxos.map(({ address, signer }) => {
+      if (!address) {
+        throw new Error('Missing inputUtxo address field')
+      }
+      if (isUndefined(signer)) {
+        throw new Error('Missing inputUtxo signer field')
+      }
+      return this.getAddressType(address, signer)
+    })
   }
 
   async resolvePayport(payport: ResolveablePayport): Promise<Payport> {
@@ -222,22 +234,22 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
    * Estimate the size of a tx in vbytes. Override this if the coin supports segwit, multisig, or any
    * non P2PKH style transaction. Default implementation assumes P2PKH.
    */
-  estimateTxSize(inputCount: number, changeOutputCount: number, externalOutputAddresses: string[]): number {
-    return 10 + 148 * inputCount + 34 * (changeOutputCount + externalOutputAddresses.length)
+  estimateTxSize(inputUtxos: UtxoInfo[], changeOutputCount: number, externalOutputAddresses: string[]): number {
+    return 10 + 148 * inputUtxos.length + 34 * (changeOutputCount + externalOutputAddresses.length)
   }
 
   /** Helper for calculateTxFeeSatoshis */
   private feeRateToSatoshis(
     { feeRate, feeRateType }: FeeRate,
-    inputCount: number,
+    inputUtxos: UtxoInfo[],
     changeOutputCount: number,
     externalOutputAddresses: string[],
   ): number {
     if (feeRateType === FeeRateType.BasePerWeight) {
-      const estimatedTxSize = this.estimateTxSize(inputCount, changeOutputCount, externalOutputAddresses)
+      const estimatedTxSize = this.estimateTxSize(inputUtxos, changeOutputCount, externalOutputAddresses)
       this.logger.debug(
         `${this.coinSymbol} buildPaymentTx - ` +
-          `Estimated tx size of ${estimatedTxSize} vbytes for a tx with ${inputCount} inputs, ` +
+          `Estimated tx size of ${estimatedTxSize} vbytes for a tx with ${inputUtxos.length} inputs, ` +
           `${externalOutputAddresses.length} external outputs, and ${changeOutputCount} change outputs`,
       )
       return Number.parseFloat(feeRate) * estimatedTxSize
@@ -250,15 +262,15 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   /** Estimate the tx fee in satoshis */
   private estimateTxFee(
     targetRate: FeeRate,
-    inputCount: number,
+    inputUtxos: UtxoInfo[],
     changeOutputCount: number,
     externalOutputAddresses: string[],
   ): number {
-    let feeSat = this.feeRateToSatoshis(targetRate, inputCount, changeOutputCount, externalOutputAddresses)
+    let feeSat = this.feeRateToSatoshis(targetRate, inputUtxos, changeOutputCount, externalOutputAddresses)
 
     // Ensure calculated fee is above configured minimum
     if (this.minTxFee) {
-      const minTxFeeSat = this.feeRateToSatoshis(this.minTxFee, inputCount, changeOutputCount, externalOutputAddresses)
+      const minTxFeeSat = this.feeRateToSatoshis(this.minTxFee, inputUtxos, changeOutputCount, externalOutputAddresses)
       if (feeSat < minTxFeeSat) {
         this.logger.debug(`Using min tx fee of ${minTxFeeSat} sat (${this.minTxFee} sat/byte) instead of ${feeSat} sat`)
         feeSat = minTxFeeSat
@@ -272,7 +284,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
         feeRate: String(this.networkMinRelayFee / 1000),
         feeRateType: FeeRateType.BasePerWeight
       },
-      inputCount,
+      inputUtxos,
       changeOutputCount,
       externalOutputAddresses,
     )
@@ -288,7 +300,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     this.logger.debug(
       `${this.coinSymbol} buildPaymentTx - ` +
         `Estimated fee of ${result} sat for target rate ${targetRate.feeRate} ${targetRate.feeRateType} for a tx with ` +
-        `${inputCount} inputs, ${externalOutputAddresses.length} external outputs, and ${changeOutputCount} change outputs`,
+        `${inputUtxos.length} inputs, ${externalOutputAddresses.length} external outputs, and ${changeOutputCount} change outputs`,
     )
     return result
   }
@@ -417,7 +429,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       this.adjustOutputAmounts(tbc, tbc.inputTotal, 'dust inputs filtering')
     }
 
-    const feeSat = this.estimateTxFee(tbc.desiredFeeRate, tbc.inputUtxos.length, 0, tbc.externalOutputAddresses)
+    const feeSat = this.estimateTxFee(tbc.desiredFeeRate, tbc.inputUtxos, 0, tbc.externalOutputAddresses)
     this.adjustTxFee(tbc, feeSat, 'sweep fee')
   }
 
@@ -429,8 +441,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
   }
 
-  private estimateIdealUtxoSelectionFee(tbc: BitcoinishTxBuildContext, inputCount: number) {
-    return this.estimateTxFee(tbc.desiredFeeRate, inputCount, 0, tbc.externalOutputAddresses)
+  private estimateIdealUtxoSelectionFee(tbc: BitcoinishTxBuildContext, inputUtxos: UtxoInfo[]) {
+    return this.estimateTxFee(tbc.desiredFeeRate, inputUtxos, 0, tbc.externalOutputAddresses)
   }
 
   /** Ideal utxo selection is one which creates no change outputs */
@@ -451,7 +463,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     }
 
     // Check if an ideal solution is possible
-    const idealSolutionFeeSat = this.estimateIdealUtxoSelectionFee(tbc, tbc.inputUtxos.length)
+    const idealSolutionFeeSat = this.estimateIdealUtxoSelectionFee(tbc, tbc.inputUtxos)
     if (this.isIdealUtxoSelection(tbc, tbc.inputUtxos, idealSolutionFeeSat)) {
       this.adjustTxFee(tbc, idealSolutionFeeSat, 'forced inputs ideal solution fee')
       return
@@ -461,7 +473,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     const targetChangeOutputCount = this.determineTargetChangeOutputCount(tbc.nonDustUtxoCount, tbc.inputUtxos.length)
     const feeSat = this.estimateTxFee(
       tbc.desiredFeeRate,
-      tbc.inputUtxos.length,
+      tbc.inputUtxos,
       targetChangeOutputCount,
       tbc.externalOutputAddresses,
     )
@@ -476,10 +488,11 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   private selectFromAvailableUtxos(tbc: BitcoinishTxBuildContext) {
-    // Ideal solution consists of a single additional input that covers outputs without creating change
-    const idealSolutionFeeSat = this.estimateIdealUtxoSelectionFee(tbc, tbc.inputUtxos.length + 1)
     for (const utxo of tbc.selectableUtxos) {
-      if (this.isIdealUtxoSelection(tbc, [...tbc.inputUtxos, utxo], idealSolutionFeeSat)) {
+      // Ideal solution consists of a single additional input that covers outputs without creating change
+      const potentialIdealInputs = [...tbc.inputUtxos, utxo]
+      const idealSolutionFeeSat = this.estimateIdealUtxoSelectionFee(tbc, potentialIdealInputs)
+      if (this.isIdealUtxoSelection(tbc, potentialIdealInputs, idealSolutionFeeSat)) {
         tbc.inputUtxos.push(utxo)
         tbc.inputTotal += utxo.satoshis
         this.logger.log(
@@ -502,7 +515,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       const targetChangeOutputCount = this.determineTargetChangeOutputCount(tbc.nonDustUtxoCount, tbc.inputUtxos.length)
       feeSat = this.estimateTxFee(
         tbc.desiredFeeRate,
-        tbc.inputUtxos.length,
+        tbc.inputUtxos,
         targetChangeOutputCount,
         tbc.externalOutputAddresses,
       )
@@ -607,9 +620,9 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   }
 
   private omitDustUtxos(utxos: UtxoInfo[], feeRate: FeeRate, maxFeePercent: number): UtxoInfoWithSats[] {
-    const utxoSpendCost = this.estimateTxFee(feeRate, 1, 0, []) - this.estimateTxFee(feeRate, 0, 0, [])
-    const minUtxoSatoshis = Math.ceil((100 * utxoSpendCost) / maxFeePercent)
     return this.prepareUtxos(utxos).filter(utxo => {
+      const utxoSpendCost = this.estimateTxFee(feeRate, [utxo], 0, []) - this.estimateTxFee(feeRate, [], 0, [])
+      const minUtxoSatoshis = Math.ceil((100 * utxoSpendCost) / maxFeePercent)
       if (utxo.satoshis > minUtxoSatoshis) {
         return true
       }
@@ -692,7 +705,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     this.logger.debug(`${this.coinSymbol} buildPaymentTx - context after allocating change outputs`, tbc)
 
     const estimatedWeight = this.estimateTxSize(
-      tbc.inputUtxos.length,
+      tbc.inputUtxos,
       tbc.changeOutputs.length,
       tbc.externalOutputAddresses,
     )
@@ -777,7 +790,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   ): number {
     const recalculatedFee = this.estimateTxFee(
       tbc.desiredFeeRate,
-      tbc.inputUtxos.length,
+      tbc.inputUtxos,
       changeOutputCount || 1, // minimum one change output for loose change
       tbc.externalOutputAddresses,
     )
