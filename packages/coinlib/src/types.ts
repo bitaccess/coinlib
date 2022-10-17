@@ -7,18 +7,22 @@ import { StellarPaymentsConfig, BaseStellarPaymentsConfig, StellarPaymentsUtils 
 import { BitcoinPaymentsConfig, BaseBitcoinPaymentsConfig, BitcoinPaymentsUtils } from '@bitaccess/coinlib-bitcoin'
 import { EthereumPaymentsConfig, BaseEthereumPaymentsConfig, EthereumPaymentsUtils } from '@bitaccess/coinlib-ethereum'
 import { LitecoinPaymentsConfig, BaseLitecoinPaymentsConfig, LitecoinPaymentsUtils } from '@bitaccess/coinlib-litecoin'
-import { BitcoinCashPaymentsConfig, BaseBitcoinCashPaymentsConfig, BitcoinCashPaymentsUtils } from '@bitaccess/coinlib-bitcoin-cash'
+import {
+  BitcoinCashPaymentsConfig,
+  BaseBitcoinCashPaymentsConfig,
+  BitcoinCashPaymentsUtils,
+} from '@bitaccess/coinlib-bitcoin-cash'
 import { DogePaymentsConfig, BaseDogePaymentsConfig, DogePaymentsUtils } from '@bitaccess/coinlib-doge'
 
 export type CoinPaymentsUtilsClasses = {
-  TRX: TronPaymentsUtils,
-  XRP: RipplePaymentsUtils,
-  XLM: StellarPaymentsUtils,
-  BTC: BitcoinPaymentsUtils,
-  ETH: EthereumPaymentsUtils,
-  LTC: LitecoinPaymentsUtils,
-  BCH: BitcoinCashPaymentsUtils,
-  DOGE: DogePaymentsUtils,
+  TRX: TronPaymentsUtils
+  XRP: RipplePaymentsUtils
+  XLM: StellarPaymentsUtils
+  BTC: BitcoinPaymentsUtils
+  ETH: EthereumPaymentsUtils
+  LTC: LitecoinPaymentsUtils
+  BCH: BitcoinCashPaymentsUtils
+  DOGE: DogePaymentsUtils
 }
 
 export const basePaymentsConfigCodecs = {
@@ -29,7 +33,7 @@ export const basePaymentsConfigCodecs = {
   ETH: BaseEthereumPaymentsConfig,
   LTC: BaseLitecoinPaymentsConfig,
   BCH: BaseBitcoinCashPaymentsConfig,
-  DOGE: BaseDogePaymentsConfig
+  DOGE: BaseDogePaymentsConfig,
 }
 
 export const CoinPaymentsBaseConfigs = t.type(basePaymentsConfigCodecs, 'CoinPaymentsBaseConfigs')
@@ -54,10 +58,9 @@ export type SupportedCoinPaymentsSymbol = t.TypeOf<typeof SupportedCoinPaymentsS
 export type CoinPaymentsPartialConfigs = {
   [T in SupportedCoinPaymentsSymbol]?: Partial<CoinPaymentsConfigs[T]>
 }
-export const CoinPaymentsPartialConfigs = t.partial(
-  basePaymentsConfigCodecs,
-  'CoinPaymentsPartialConfigs',
-) as t.Type<CoinPaymentsPartialConfigs>
+export const CoinPaymentsPartialConfigs = t.partial(basePaymentsConfigCodecs, 'CoinPaymentsPartialConfigs') as t.Type<
+  CoinPaymentsPartialConfigs
+>
 
 export const CoinPaymentsConfig = extendCodec(
   CoinPaymentsPartialConfigs,
@@ -66,6 +69,7 @@ export const CoinPaymentsConfig = extendCodec(
     network: NetworkTypeT,
     logger: Logger,
     seed: t.string,
+    skipInitialInstantiation: t.boolean,
   },
   'CoinPaymentsConfig',
 )

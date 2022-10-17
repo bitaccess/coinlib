@@ -171,7 +171,7 @@ describeAll('e2e mainnet', () => {
       it('succeeds for high level', async () => {
         const estimate = await payments.getFeeRateRecommendation(FeeLevel.High, { source: 'blockbook' })
         expect(estimate.feeRateType).toBe(FeeRateType.BasePerWeight)
-        expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThanOrEqual(1)
+        expect(Number.parseFloat(estimate.feeRate)).toBeGreaterThan(0)
       })
 
       it('succeeds for low level', async () => {

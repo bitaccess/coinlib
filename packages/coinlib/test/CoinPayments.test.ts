@@ -71,6 +71,15 @@ describe('CoinPayments', () => {
       })
     })
 
+    describe('getSpecificPayments', () => {
+      it('returns for configured', () => {
+        expect(cp.getSpecificPayments(CONFIGURED_ASSET, CONFIG[CONFIGURED_ASSET])).toBeInstanceOf(EXPECTED_PAYMENTS_TYPE)
+      })
+      it('throws for unsupported', () => {
+        expect(() => cp.forNetwork(UNSUPPORTED_ASSET, CONFIG[CONFIGURED_ASSET])).toThrow()
+      })
+    })
+
     describe('isNetworkConfigured', () => {
       it('returns true for configured', () => {
         expect(cp.isNetworkConfigured(CONFIGURED_ASSET)).toBe(true)
@@ -106,6 +115,13 @@ describe('CoinPayments', () => {
         expect(cp.getPublicConfig()).toEqual(omit(CONFIG, [UNCONFIGURED_ASSET]))
       })
     })
+    describe('getPublicConfig with skipInitialInstantiation client should return emtpy object', () => {
+      it('returns correctly', () => {
+        const emptyPayment = new CoinPayments({ ...CONFIG, skipInitialInstantiation: true })
+        expect(emptyPayment.getPublicConfig()).toEqual({})
+      })
+    })
+
   })
 
   describe('instance seed', () => {
