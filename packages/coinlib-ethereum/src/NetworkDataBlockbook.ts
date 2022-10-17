@@ -158,7 +158,7 @@ export class NetworkDataBlockbook implements EthereumNetworkDataProvider {
     )
 
     if (!token) {
-      throw new Error(`Failed to find tokenAddress=${tokenAddress} in tokens list`)
+      return '0'
     }
 
     return token.balance!
