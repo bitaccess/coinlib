@@ -1,10 +1,11 @@
-import { FeeRateType } from '@bitaccess/coinlib-common'
+import { FeeRateType, UtxoInfo } from '@bitaccess/coinlib-common'
 import { makeUtxos, makeOutputs, expectUtxosEqual, logger } from './utils'
 import { toBigNumber } from '@bitaccess/ts-common'
 import {
   HdBitcoinPayments,
   UHdBitcoinPayments,
   HdBitcoinPaymentsConfig,
+  AddressType,
 } from '../src'
 import {
   EXTERNAL_ADDRESS,
@@ -327,7 +328,28 @@ export function runBuildPaymentTxTests(
   })
 
   it('estimateTxSize provides correct estimate when address has multiple external outputs', () => {
-    expect(payments.estimateTxSize(1, 1, [EXTERNAL_ADDRESS, EXTERNAL_ADDRESS, EXTERNAL_ADDRESS])).toBe(211)
+    const inputUtxos: UtxoInfo[] = [
+      { txid: '1234', vout: 0, value: '0.1234', address: account.addresses[0], signer: 0 }
+    ]
+    expect(payments.estimateTxSize(inputUtxos, 1, [EXTERNAL_ADDRESS, EXTERNAL_ADDRESS, EXTERNAL_ADDRESS])).toBe(211)
+  })
+
+  it.only('estimateTxSize provides correct estimate when spending from multiple inputs', () => {
+    const inputUtxos = [
+      { txid: '1234', vout: 0, value: '0.1234', address: account.addresses[0], signer: 0 },
+      { txid: '5678', vout: 1, value: '0.5678', address: account.addresses[1], signer: 1 },
+      { txid: '9012', vout: 2, value: '0.9012', address: account.addresses[2], signer: 2 },
+    ]
+    expect(payments.estimateTxSize(inputUtxos, 1, [EXTERNAL_ADDRESS])).toBe(279)
+  })
+
+  it.only('estimateTxSize provides correct estimate when inputs are not all the same address type', () => {
+    const inputUtxos = [
+      { txid: '1234', vout: 0, value: '0.1234', address: account.addresses[0], signer: 0 },
+      { txid: '5678', vout: 1, value: '0.5678', address: payments.getAddress(1, AddressType.Legacy), signer: 1 },
+      { txid: '9012', vout: 2, value: '0.9012', address: payments.getAddress(2, AddressType.SegwitP2SH), signer: 2 },
+    ]
+    expect(payments.estimateTxSize(inputUtxos, 1, [EXTERNAL_ADDRESS])).toBe(382)
   })
 }
 
