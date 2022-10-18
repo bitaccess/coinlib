@@ -85,6 +85,14 @@ export class KeyPairBitcoinPayments extends SinglesigBitcoinPayments<KeyPairBitc
   }
 
   getAddress(index: number, addressType?: SinglesigAddressType): string {
+    if (addressType && addressType !== this.addressType) {
+      const { publicKey } = this.getKeyPair(index)
+      return publicKeyToAddress(
+        publicKey,
+        this.bitcoinjsNetwork,
+        addressType,
+      )
+    }
     const address = this.addresses[index] || ''
     if (!this.isValidAddress(address)) {
       throw new Error(`Cannot get address ${index} - keyPair[${index}] is undefined or invalid address`)
