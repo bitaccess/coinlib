@@ -56,14 +56,9 @@ export abstract class BaseDogePayments<Config extends BaseDogePaymentsConfig> ex
     return isValidPublicKey(publicKey, this.networkType)
   }
 
-  /** Return a string that can be passed into estimateDogeTxSize. Override to support multisig */
-  getEstimateTxSizeInputKey(): string {
-    return this.addressType
-  }
-
   estimateTxSize(inputUtxos: UtxoInfo[], changeOutputCount: number, externalOutputAddresses: string[]): number {
     return estimateDogeTxSize(
-      bitcoinish.countOccurences(this.getInputUtxoAddressTypes(inputUtxos)),
+      bitcoinish.countOccurences(this.getInputUtxoTxSizeEstimateKeys(inputUtxos)),
       {
         ...bitcoinish.countOccurences(externalOutputAddresses),
         [this.addressType]: changeOutputCount,

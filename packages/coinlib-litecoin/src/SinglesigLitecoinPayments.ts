@@ -42,4 +42,8 @@ export abstract class SinglesigLitecoinPayments<
   getSupportedAddressTypes(): AddressType[] {
     return [AddressType.Legacy, AddressType.SegwitNative, AddressType.SegwitP2SH]
   }
+
+  getRequiredSignatureCounts(): { m: number; n: number; } {
+    return { m: 1, n: 1 }
+  }
 }

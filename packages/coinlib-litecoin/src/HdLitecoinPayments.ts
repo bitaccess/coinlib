@@ -1,3 +1,4 @@
+import { SinglesigAddressType } from './../../coinlib-doge/src/types';
 import { omit } from 'lodash'
 import { assertType } from '@bitaccess/ts-common'
 import { PUBLIC_CONFIG_OMIT_FIELDS, bitcoinish } from '@bitaccess/coinlib-bitcoin'
@@ -87,12 +88,12 @@ export class HdLitecoinPayments extends SinglesigLitecoinPayments<HdLitecoinPaym
     return [this.xpub]
   }
 
-  getAddress(index: number): string {
+  getAddress(index: number, addressType?: SinglesigAddressType): string {
     return deriveAddress(
       this.hdNode,
       index,
       this.networkType,
-      this.addressType,
+      addressType ?? this.addressType,
       this.validAddressFormat ?? DEFAULT_ADDRESS_FORMAT,
     )
   }

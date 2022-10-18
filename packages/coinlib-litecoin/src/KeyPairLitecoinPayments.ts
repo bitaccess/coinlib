@@ -1,6 +1,6 @@
 import { omit } from 'lodash'
 import { isUndefined, isString } from '@bitaccess/ts-common'
-import { PUBLIC_CONFIG_OMIT_FIELDS } from '@bitaccess/coinlib-bitcoin'
+import { PUBLIC_CONFIG_OMIT_FIELDS, SinglesigAddressType } from '@bitaccess/coinlib-bitcoin'
 
 import { SinglesigLitecoinPayments } from './SinglesigLitecoinPayments'
 import { KeyPairLitecoinPaymentsConfig, LitecoinjsKeyPair } from './types'
@@ -90,7 +90,16 @@ export class KeyPairLitecoinPayments extends SinglesigLitecoinPayments<KeyPairLi
     return publicKeyToKeyPair(publicKey, this.bitcoinjsNetwork)
   }
 
-  getAddress(index: number): string {
+  getAddress(index: number, addressType?: SinglesigAddressType): string {
+    if (addressType && addressType !== this.addressType) {
+      const { publicKey } = this.getKeyPair(index)
+      return publicKeyToAddress(
+        publicKey,
+        this.networkType,
+        addressType,
+        this.validAddressFormat ?? DEFAULT_ADDRESS_FORMAT,
+      )
+    }
     const address = this.addresses[index] || ''
     if (!this.isValidAddress(address)) {
       throw new Error(`Cannot get address ${index} - keyPair[${index}] is undefined or invalid address`)

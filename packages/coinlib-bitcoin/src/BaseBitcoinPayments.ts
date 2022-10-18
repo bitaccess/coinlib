@@ -55,14 +55,9 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     return isValidPublicKey(publicKey, this.networkType)
   }
 
-  /** Return a string that can be passed into estimateBitcoinTxSize. Override to support multisig */
-  getEstimateTxSizeInputKey(): string {
-    return this.addressType
-  }
-
   estimateTxSize(inputUtxos: UtxoInfo[], changeOutputCount: number, externalOutputAddresses: string[]): number {
     return estimateBitcoinTxSize(
-      countOccurences(this.getInputUtxoAddressTypes(inputUtxos)),
+      countOccurences(this.getInputUtxoTxSizeEstimateKeys(inputUtxos)),
       {
         ...countOccurences(externalOutputAddresses),
         [this.addressType]: changeOutputCount,

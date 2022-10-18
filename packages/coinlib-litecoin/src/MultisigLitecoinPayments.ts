@@ -74,8 +74,8 @@ export class MultisigLitecoinPayments extends BaseLitecoinPayments<MultisigLitec
     }
   }
 
-  getEstimateTxSizeInputKey() {
-    return `${this.addressType}:${this.m}-${this.signers.length}`
+  getRequiredSignatureCounts(): { m: number; n: number; } {
+    return { m: this.m, n: this.signers.length }
   }
 
   getAccountId(index: number): string {

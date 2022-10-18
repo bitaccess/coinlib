@@ -40,4 +40,8 @@ export abstract class SinglesigDogePayments<Config extends SinglesigDogePayments
   getSupportedAddressTypes(): AddressType[] {
     return [AddressType.Legacy]
   }
+
+  getRequiredSignatureCounts(): { m: number; n: number; } {
+    return { m: 1, n: 1 }
+  }
 }
