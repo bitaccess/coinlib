@@ -137,7 +137,6 @@ export function estimateLitecoinTxSize(
   outputCounts: { [k: string]: number },
   networkType: NetworkType,
 ) {
-  console.log('estimateLitecoinTxSize', inputCounts, outputCounts, networkType)
   return bitcoinish.estimateTxSize(inputCounts, outputCounts, (address: string) =>
     bitcoin.address.toOutputScript(
       // Modern format needed so address matches the bitcoinjs network
