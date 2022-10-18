@@ -155,4 +155,8 @@ export abstract class SinglesigBitcoinCashPayments<
   getSupportedAddressTypes(): AddressType[] {
     return [AddressType.Legacy]
   }
+
+  getRequiredSignatureCounts(): { m: number; n: number; } {
+    return { m: 1, n: 1 }
+  }
 }

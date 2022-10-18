@@ -49,14 +49,9 @@ export abstract class BaseLitecoinPayments<
     return this.utils.isValidPublicKey(publicKey)
   }
 
-  /** Return a string that can be passed into estimateLitecoinTxSize. Override to support multisig */
-  getEstimateTxSizeInputKey(): string {
-    return this.addressType
-  }
-
   estimateTxSize(inputUtxos: UtxoInfo[], changeOutputCount: number, externalOutputAddresses: string[]): number {
     return estimateLitecoinTxSize(
-      bitcoinish.countOccurences(this.getInputUtxoAddressTypes(inputUtxos)),
+      bitcoinish.countOccurences(this.getInputUtxoTxSizeEstimateKeys(inputUtxos)),
       {
         ...bitcoinish.countOccurences(externalOutputAddresses),
         [this.addressType]: changeOutputCount,

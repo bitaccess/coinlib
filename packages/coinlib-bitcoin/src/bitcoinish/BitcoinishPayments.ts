@@ -79,6 +79,8 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
   abstract getSupportedAddressTypes(): AddressType[] | null
   abstract getAddress(index: number, addressType?: AddressType): string
   abstract signTransaction(tx: BitcoinishUnsignedTransaction): Promise<BitcoinishSignedTransaction>
+  /** Standard m of n values for multisig. Should return m:1 and n:1 for singlesig */
+  abstract getRequiredSignatureCounts(): { m: number, n: number }
 
   /**
    * Serialize the payment tx into an hex string format representing the unsigned transaction.
@@ -110,7 +112,7 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
     throw new Error(`Failed to identify type of address ${address} at index ${index}`)
   }
 
-  getInputUtxoAddressTypes(inputUtxos: UtxoInfo[]) {
+  getInputUtxoTxSizeEstimateKeys(inputUtxos: UtxoInfo[]): string[] {
     return inputUtxos.map(({ address, signer }) => {
       if (!address) {
         throw new Error('Missing inputUtxo address field')
@@ -118,7 +120,12 @@ export abstract class BitcoinishPayments<Config extends BaseConfig> extends Bitc
       if (isUndefined(signer)) {
         throw new Error('Missing inputUtxo signer field')
       }
-      return this.getAddressType(address, signer)
+      const addressType = this.getAddressType(address, signer)
+      const { m, n } = this.getRequiredSignatureCounts()
+      if (n === 1) {
+        return addressType
+      }
+      return `${addressType}:${m}-${n}`
     })
   }
 

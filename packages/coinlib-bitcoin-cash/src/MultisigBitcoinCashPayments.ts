@@ -77,8 +77,8 @@ export class MultisigBitcoinCashPayments extends BaseBitcoinCashPayments<Multisi
     }
   }
 
-  getEstimateTxSizeInputKey() {
-    return `${this.addressType}:${this.m}-${this.signers.length}`
+  getRequiredSignatureCounts(): { m: number; n: number; } {
+    return { m: this.m, n: this.signers.length }
   }
 
   getAccountId(index: number): string {
