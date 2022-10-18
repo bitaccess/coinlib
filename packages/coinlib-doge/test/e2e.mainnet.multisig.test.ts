@@ -199,7 +199,7 @@ describeAll('e2e multisig mainnet', () => {
             maxFeePercent: 100, // not omit any utxos higher than utxoSpendCost
           })
           expect(tx.multisigData).toBeDefined()
-          expect(new BigNumber(tx.amount).plus(tx.fee).toFixed()).toBe(fromBalance.toString())
+          expect(new BigNumber(tx.amount).plus(tx.fee).toString()).toBe(fromBalance.toString())
         },
         30 * 1000,
       )
@@ -355,7 +355,6 @@ describeAll('e2e multisig mainnet', () => {
           const fromIndicies = [1, 2] // Use indices separate from other tests to avoid interference
           const changeAddress = fromIndicies.map(i => payments.getAddress(i))
           const address0 = payments.getAddress(0)
-
           const unsignedTx = await payments.createMultiInputTransaction(
             fromIndicies,
             [

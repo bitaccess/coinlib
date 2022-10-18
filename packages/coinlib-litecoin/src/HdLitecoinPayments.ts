@@ -1,4 +1,3 @@
-import { SinglesigAddressType } from './../../coinlib-doge/src/types';
 import { omit } from 'lodash'
 import { assertType } from '@bitaccess/ts-common'
 import { PUBLIC_CONFIG_OMIT_FIELDS, bitcoinish } from '@bitaccess/coinlib-bitcoin'
@@ -14,7 +13,7 @@ import {
   deriveKeyPair,
   convertXPrefixHdKeys,
 } from './bip44'
-import { HdLitecoinPaymentsConfig } from './types'
+import { HdLitecoinPaymentsConfig, SinglesigAddressType } from './types'
 import { SinglesigLitecoinPayments } from './SinglesigLitecoinPayments'
 import { DEFAULT_ADDRESS_FORMAT, DEFAULT_DERIVATION_PATHS } from './constants'
 
