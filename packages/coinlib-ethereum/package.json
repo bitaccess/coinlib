@@ -49,7 +49,7 @@
     "@bitaccess/ts-common": "^1.0.2",
     "@ethereumjs/common": "^2.6.5",
     "@ethereumjs/tx": "^3.5.2",
-    "blockbook-client": "^0.7.5",
+    "blockbook-client": "^0.7.8",
     "elliptic": "^6.5.4",
     "ethereum-input-data-decoder": "^0.3.5",
     "ethereumjs-util": "^7.1.5",
@@ -62,8 +62,5 @@
     "web3-eth": "^1.7.4",
     "web3-eth-contract": "^1.7.1",
     "web3-utils": "^1.7.4"
-  },
-  "devDependencies": {
-    "ganache": "^7.0.4"
   }
 }
