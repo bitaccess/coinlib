@@ -20,7 +20,7 @@ import {
   createDeterminePathForIndexHelper,
   createDeriveUniPubKeyForPathHelper,
 } from './bitcoinish'
-import { assertType } from '@bitaccess/ts-common'
+import { assertType, isUndefined } from '@bitaccess/ts-common'
 
 export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConfig> extends BitcoinishPayments<Config> {
   readonly maximumFeeRate?: number
@@ -60,9 +60,9 @@ export abstract class BaseBitcoinPayments<Config extends BaseBitcoinPaymentsConf
     return this.addressType
   }
 
-  estimateTxSize(inputCount: number, changeOutputCount: number, externalOutputAddresses: string[]): number {
+  estimateTxSize(inputUtxos: UtxoInfo[], changeOutputCount: number, externalOutputAddresses: string[]): number {
     return estimateBitcoinTxSize(
-      { [this.getEstimateTxSizeInputKey()]: inputCount },
+      countOccurences(this.getInputUtxoAddressTypes(inputUtxos)),
       {
         ...countOccurences(externalOutputAddresses),
         [this.addressType]: changeOutputCount,

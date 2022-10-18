@@ -11,7 +11,7 @@ import * as bitcoin from 'bitcoinjs-lib-bigint'
 export * from '../../../common/testUtils'
 export const logger = new TestLogger(PACKAGE_NAME)
 
-export function makeUtxos(confirmedValues: string[], unconfirmedValues: string[] = []): UtxoInfo[] {
+export function makeUtxos(confirmedValues: string[], unconfirmedValues: string[] = [], address0: string): UtxoInfo[] {
   return [
     ...confirmedValues.map((value, i) => ({
       txid: `utxo-confirmed-${i}`,
@@ -20,12 +20,16 @@ export function makeUtxos(confirmedValues: string[], unconfirmedValues: string[]
       satoshis: toBaseDenominationNumber(value),
       confirmations: 10,
       height: '1234',
+      address: address0,
+      signer: 0,
     })),
     ...unconfirmedValues.map((value, i) => ({
       txid: `utxo-unconfirmed-${i}`,
       vout: i,
       value: value,
       satoshis: toBaseDenominationNumber(value),
+      address: address0,
+      signer: 0,
     })),
   ]
 }

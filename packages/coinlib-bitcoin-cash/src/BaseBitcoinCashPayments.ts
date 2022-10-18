@@ -64,9 +64,9 @@ export abstract class BaseBitcoinCashPayments<
     return this.addressType
   }
 
-  estimateTxSize(inputCount: number, changeOutputCount: number, externalOutputAddresses: string[]): number {
+  estimateTxSize(inputUtxos: UtxoInfo[], changeOutputCount: number, externalOutputAddresses: string[]): number {
     return estimateBitcoinCashTxSize(
-      { [this.getEstimateTxSizeInputKey()]: inputCount },
+      bitcoinish.countOccurences(this.getInputUtxoAddressTypes(inputUtxos)),
       {
         ...bitcoinish.countOccurences(externalOutputAddresses),
         [this.addressType]: changeOutputCount,

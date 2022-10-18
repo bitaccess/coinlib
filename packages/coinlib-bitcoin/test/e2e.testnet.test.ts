@@ -259,7 +259,8 @@ describeAll('e2e testnet', () => {
         value: outputAmount,
       }]
       expect(unsignedTx.externalOutputs).toEqual(expectedExternalOutputs)
-      expect(unsignedTx.fee).toBe('0.0000648')
+      expect(unsignedTx.fee).toBe('0.0000511')
+      expect(unsignedTx.weight).toBe(1022)
 
       expect(unsignedTx.data.rawHash).toEqual(unsignedHash)
 
@@ -283,17 +284,7 @@ describeAll('e2e testnet', () => {
       }
 
       expect(signedTx.data.hex).toEqual(signedHex)
-
-      const tx = await hotWalletPayments.getTransactionInfo(mitxId, { changeAddress: changeAddresses })
-      const expectedUtxos = [...forcedUtxos, ...availableUtxos].map(u =>
-        pick(u, ['txid', 'vout', 'value', 'address', 'satoshis']),
-      )
-      const actualUtxos = tx.inputUtxos!
-
-      expectUtxosEqual(expectedUtxos, actualUtxos)
-      expect(tx.data.hex).toEqual(signedHex)
-      expect(tx.amount).toBe(expectedExternalOutputs[0].value)
-      expect(tx.externalOutputs).toEqual(expectedExternalOutputs)
+      expect(signedTx.id).toBe(mitxId)
     },
     5 * 60 * 1000,
   )
