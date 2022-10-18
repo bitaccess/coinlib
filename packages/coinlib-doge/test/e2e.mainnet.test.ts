@@ -278,7 +278,9 @@ describeAll('e2e mainnet', () => {
       vout: 15,
       value: '2486366091067',
       satoshis: 2486366091067,
-      height: '3587546'
+      height: '3587546',
+      address: 'DQC35AaSvGBVLHXiAeujsXVRbGiE99ZL52',
+      signer: 0
     }]})
   })
 
