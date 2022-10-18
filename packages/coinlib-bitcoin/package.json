@@ -52,7 +52,7 @@
     "@bitaccess/ts-common": "^1.0.2",
     "bip174-bigint": "github:bitaccess/bip174#bigint",
     "bitcoinjs-lib-bigint": "github:bitaccess/bitcoinjs-lib#bigintv6",
-    "blockbook-client": "^0.7.4",
+    "blockbook-client": "^0.7.8",
     "io-ts": "^1.10.4",
     "lodash": "^4.17.15",
     "promise-retry": "^1.1.1",
