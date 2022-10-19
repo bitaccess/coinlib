@@ -193,7 +193,7 @@ describeAll('e2e multisig mainnet', () => {
             2,
           )
           const tx = await payments.createSweepTransaction(fromIndex, toIndex, {
-            useUnconfirmedUtxos: true,
+            useUnconfirmedUtxos: false,
             feeRate: '1',
             feeRateType: FeeRateType.BasePerWeight,
             maxFeePercent: 100, // not omit any utxos higher than utxoSpendCost

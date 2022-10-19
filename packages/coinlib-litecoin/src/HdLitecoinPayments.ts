@@ -1,6 +1,6 @@
 import { omit } from 'lodash'
 import { assertType } from '@bitaccess/ts-common'
-import { PUBLIC_CONFIG_OMIT_FIELDS, bitcoinish } from '@bitaccess/coinlib-bitcoin'
+import { PUBLIC_CONFIG_OMIT_FIELDS, bitcoinish, AddressType } from '@bitaccess/coinlib-bitcoin'
 
 import {
   isValidXprv as isValidXprvHelper,
@@ -87,7 +87,10 @@ export class HdLitecoinPayments extends SinglesigLitecoinPayments<HdLitecoinPaym
     return [this.xpub]
   }
 
-  getAddress(index: number, addressType?: SinglesigAddressType): string {
+  getAddress(index: number, addressType?: AddressType): string {
+    if (addressType) {
+      addressType = assertType(SinglesigAddressType, addressType)
+    }
     return deriveAddress(
       this.hdNode,
       index,
