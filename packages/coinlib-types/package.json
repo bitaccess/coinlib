@@ -1,14 +1,14 @@
 {
-  "name": "@bitaccess/coinlib",
+  "name": "@bitaccess/coinlib-types",
   "version": "7.0.8",
-  "description": "Library to assist in processing cryptocurrency payments, such as deriving addresses and sweeping funds",
+  "description": "Shared types used by coinlib libraries",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "browser": "dist/index.umd.js",
   "types": "dist/lib/index.d.ts",
   "esnext": "dist/lib/index.js",
-  "repository": "https://github.com/bitaccess/coinlib/tree/master/packages/coinlib",
-  "homepage": "https://github.com/bitaccess/coinlib/tree/master/packages/coinlib#readme",
+  "repository": "https://github.com/bitaccess/coinlib/tree/master/packages/coinlib-types",
+  "homepage": "https://github.com/bitaccess/coinlib/tree/master/packages/coinlib-types#readme",
   "bugs": {
     "url": "https://github.com/bitaccess/coinlib/issues"
   },
@@ -43,17 +43,7 @@
     "version": "npm run build"
   },
   "dependencies": {
-    "@bitaccess/coinlib-bitcoin": "file:../coinlib-bitcoin",
-    "@bitaccess/coinlib-bitcoin-cash": "file:../coinlib-bitcoin-cash",
-    "@bitaccess/coinlib-common": "file:../coinlib-common",
-    "@bitaccess/coinlib-doge": "file:../coinlib-doge",
-    "@bitaccess/coinlib-ethereum": "file:../coinlib-ethereum",
-    "@bitaccess/coinlib-litecoin": "file:../coinlib-litecoin",
-    "@bitaccess/coinlib-ripple": "file:../coinlib-ripple",
-    "@bitaccess/coinlib-stellar": "file:../coinlib-stellar",
-    "@bitaccess/coinlib-tron": "file:../coinlib-tron",
     "@bitaccess/ts-common": "^1.0.2",
-    "io-ts": "^1.10.4",
-    "lodash": "^4.17.21"
+    "io-ts": "^1.10.4"
   }
 }

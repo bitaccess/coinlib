@@ -1,6 +1,5 @@
-import { BigNumber, bip32, HDNode, bs58 } from './SharedDependencies'
+import { BigNumber } from './SharedDependencies'
 import { Numeric } from '@bitaccess/ts-common'
-import { Bip32Network } from './types'
 
 export function isMatchingError(e: Error, partialMessages: string[]) {
   const messageLower = e.toString().toLowerCase()

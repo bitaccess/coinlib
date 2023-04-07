@@ -1,8 +1,4 @@
-import { PaymentsConnectionManager } from './PaymentsConnectionManager'
-import { AnyPayments } from './BasePayments';
-import { BaseConfig } from './types';
-import { BalanceMonitor } from './BalanceMonitor';
-import { PaymentsUtils } from './PaymentsUtils';
+import { BaseConfig, PaymentsConnectionManager } from '@bitaccess/coinlib-types'
 
 export class StandardConnectionManager<
   Connection,

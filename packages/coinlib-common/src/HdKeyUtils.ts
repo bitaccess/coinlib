@@ -2,8 +2,12 @@ import crypto from 'crypto'
 import { isString } from '@bitaccess/ts-common'
 
 import { bip32, bip39, bs58, HDNode } from './SharedDependencies'
-import { Bip32Network } from './types'
-import { BIP39_SEED_REGEX, BIP39_SEED_BYTES, DERIVATION_PATH_REGEX } from './constants'
+import {
+  Bip32Network,
+  BIP39_SEED_REGEX,
+  BIP39_SEED_BYTES,
+  DERIVATION_PATH_REGEX,
+} from '@bitaccess/coinlib-types'
 
 export function generateNewSeed(): Buffer {
   return crypto.randomBytes(BIP39_SEED_BYTES)
