@@ -9,6 +9,20 @@ import {
   functionT,
   Numeric,
 } from '@bitaccess/ts-common'
+import { SUPPORTED_NETWORK_SYMBOLS } from './constants'
+
+export type SupportedCoinPaymentsSymbol = typeof SUPPORTED_NETWORK_SYMBOLS[number]
+const supportedNetworkSymbolsMap: { [k in SupportedCoinPaymentsSymbol]: null } = {
+  TRX: null,
+  XRP: null,
+  XLM: null,
+  BTC: null,
+  ETH: null,
+  LTC: null,
+  BCH: null,
+  DOGE: null,
+}
+export const SupportedCoinPaymentsSymbol = t.keyof(supportedNetworkSymbolsMap, 'SupportedCoinPaymentsSymbol')
 
 export interface Bip32Network {
   wif: number

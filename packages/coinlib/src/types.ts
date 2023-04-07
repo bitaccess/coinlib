@@ -1,6 +1,6 @@
 import * as t from 'io-ts'
 import { extendCodec, Logger } from '@bitaccess/ts-common'
-import { NetworkTypeT } from '@bitaccess/coinlib-common'
+import { NetworkTypeT, SupportedCoinPaymentsSymbol } from '@bitaccess/coinlib-common'
 import { TronPaymentsConfig, BaseTronPaymentsConfig, TronPaymentsUtils } from '@bitaccess/coinlib-tron'
 import { RipplePaymentsConfig, BaseRipplePaymentsConfig, RipplePaymentsUtils } from '@bitaccess/coinlib-ripple'
 import { StellarPaymentsConfig, BaseStellarPaymentsConfig, StellarPaymentsUtils } from '@bitaccess/coinlib-stellar'
@@ -13,6 +13,8 @@ import {
   BitcoinCashPaymentsUtils,
 } from '@bitaccess/coinlib-bitcoin-cash'
 import { DogePaymentsConfig, BaseDogePaymentsConfig, DogePaymentsUtils } from '@bitaccess/coinlib-doge'
+
+export { SupportedCoinPaymentsSymbol }
 
 export type CoinPaymentsUtilsClasses = {
   TRX: TronPaymentsUtils
@@ -51,9 +53,6 @@ export const paymentsConfigCodecs = {
 }
 export const CoinPaymentsConfigs = t.type(paymentsConfigCodecs, 'CoinPaymentsConfigs')
 export type CoinPaymentsConfigs = t.TypeOf<typeof CoinPaymentsConfigs>
-
-export const SupportedCoinPaymentsSymbol = t.keyof(paymentsConfigCodecs, 'SupportedCoinPaymentsSymbol')
-export type SupportedCoinPaymentsSymbol = t.TypeOf<typeof SupportedCoinPaymentsSymbol>
 
 export type CoinPaymentsPartialConfigs = {
   [T in SupportedCoinPaymentsSymbol]?: Partial<CoinPaymentsConfigs[T]>
