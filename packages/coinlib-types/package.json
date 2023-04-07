@@ -1,14 +1,14 @@
 {
-  "name": "@bitaccess/coinlib-common",
-  "version": "7.0.7",
-  "description": "Common module used by coinlib",
+  "name": "@bitaccess/coinlib-types",
+  "version": "7.0.6",
+  "description": "Shared types used by coinlib libraries",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "browser": "dist/index.umd.js",
   "types": "dist/lib/index.d.ts",
   "esnext": "dist/lib/index.js",
-  "repository": "https://github.com/bitaccess/coinlib/tree/master/packages/coinlib-common",
-  "homepage": "https://github.com/bitaccess/coinlib/tree/master/packages/coinlib-common#readme",
+  "repository": "https://github.com/bitaccess/coinlib/tree/master/packages/coinlib-types",
+  "homepage": "https://github.com/bitaccess/coinlib/tree/master/packages/coinlib-types#readme",
   "bugs": {
     "url": "https://github.com/bitaccess/coinlib/issues"
   },
@@ -43,13 +43,7 @@
     "version": "npm run build"
   },
   "dependencies": {
-    "@bitaccess/coinlib-types": "file:../coinlib-types",
     "@bitaccess/ts-common": "^1.0.2",
-    "bip32": "^3.0.1",
-    "bip39": "^3.0.4",
-    "bs58check": "^2.1.2",
-    "ecpair": "^2.0.1",
-    "io-ts": "^1.10.4",
-    "tiny-secp256k1": "^2.2.1"
+    "io-ts": "^1.10.4"
   }
 }

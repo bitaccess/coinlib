@@ -1,6 +1,3 @@
-import { BalanceMonitor } from './BalanceMonitor'
-import { AnyPayments } from './BasePayments'
-import { PaymentsUtils } from './PaymentsUtils'
 import { BaseConfig } from './types'
 
 export interface PaymentsConnectionManager<

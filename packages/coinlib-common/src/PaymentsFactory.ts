@@ -1,8 +1,10 @@
-import { BalanceMonitor } from './BalanceMonitor'
-import { AnyPayments } from './BasePayments'
-import { PaymentsConnectionManager } from './PaymentsConnectionManager'
-import { PaymentsUtils } from './PaymentsUtils'
-import { BaseConfig } from './types'
+import {
+  PaymentsConnectionManager,
+  PaymentsUtils,
+  BaseConfig,
+  AnyPayments,
+  BalanceMonitor,
+} from '@bitaccess/coinlib-types'
 
 /**
  * A factory class for instantiating various payments objects. Includes basic connection management

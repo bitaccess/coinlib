@@ -9,9 +9,18 @@ import {
   functionT,
   Numeric,
 } from '@bitaccess/ts-common'
-import { bip32 } from './SharedDependencies'
 
-export type Bip32Network = Exclude<Parameters<typeof bip32['fromBase58']>[1], undefined>
+export interface Bip32Network {
+  wif: number
+  bip32: {
+      public: number
+      private: number
+  }
+  messagePrefix?: string
+  bech32?: string
+  pubKeyHash?: number
+  scriptHash?: number
+}
 
 export type MaybePromise<T> = Promise<T> | T
 

@@ -50,7 +50,7 @@ Add payment factory to `packages/coinlib/src/constants.ts`
 Add payment config to `packages/coinlib/src/types.ts`
 
 ### Abstractions to implement
-Find types and interfaces at `packages/coinlib-common/src/`
+Find types and interfaces at `packages/coinlib-types/src/`
 
 ## Usage
 
@@ -63,7 +63,8 @@ See [@bitaccess/coinlib README](./packages/coinlib/README.md) for usage.
 ## Packages
 
 - [@bitaccess/coinlib](https://github.com/bitaccess/coinlib/blob/master/packages/coinlib) - Wrapper for all coins
-- [@bitaccess/coinlib-common](https://github.com/bitaccess/coinlib/blob/master/packages/coinlib-common) - Common interfaces
+- [@bitaccess/coinlib-types](https://github.com/bitaccess/coinlib/blob/master/packages/coinlib-types) - Common types
+- [@bitaccess/coinlib-common](https://github.com/bitaccess/coinlib/blob/master/packages/coinlib-common) - Common utilities and classes
 - [@bitaccess/coinlib-bitcoin](https://github.com/bitaccess/coinlib/blob/master/packages/coinlib-bitcoin) - BTC
 - [@bitaccess/coinlib-ethereum](https://github.com/bitaccess/coinlib/blob/master/packages/coinlib-ethereum) - ETH & ERC20
 - [@bitaccess/coinlib-litecoin](https://github.com/bitaccess/coinlib/blob/master/packages/coinlib-litecoin) - LTC

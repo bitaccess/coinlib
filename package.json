@@ -88,6 +88,7 @@
     "@bitaccess/coinlib-litecoin": "file:packages/coinlib-litecoin",
     "@bitaccess/coinlib-ripple": "file:packages/coinlib-ripple",
     "@bitaccess/coinlib-stellar": "file:packages/coinlib-stellar",
-    "@bitaccess/coinlib-tron": "file:packages/coinlib-tron"
+    "@bitaccess/coinlib-tron": "file:packages/coinlib-tron",
+    "@bitaccess/coinlib-types": "file:packages/coinlib-types"
   }
 }
