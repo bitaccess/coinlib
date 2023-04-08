@@ -57,7 +57,7 @@
     "lodash": "^4.17.21",
     "promise-retry": "^1.1.1",
     "request-promise-native": "^1.0.8",
-    "web3": "^1.7.1",
+    "web3": "^1.8.2",
     "web3-core": "^1.7.4",
     "web3-eth": "^1.7.4",
     "web3-eth-contract": "^1.7.1",
