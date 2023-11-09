@@ -5,50 +5,52 @@ import { PRIVATE_KEY, ADDRESS_SEGWIT_P2SH, ADDRESS_BECH32M } from './fixtures'
 const VALID_ADDRESS = ADDRESS_SEGWIT_P2SH
 
 describe('BitcoinPaymentUtils', () => {
-  let pu: BitcoinPaymentsUtils
+  let puMainnet: BitcoinPaymentsUtils
+  let puTestnet: BitcoinPaymentsUtils
   beforeEach(() => {
-    pu = new BitcoinPaymentsUtils()
+    puMainnet = new BitcoinPaymentsUtils()
+    puTestnet = new BitcoinPaymentsUtils({network: NetworkType.Testnet})
   })
 
   describe('isValidAddress', () => {
     test('should return true for valid', async () => {
-      expect(pu.isValidAddress(VALID_ADDRESS)).toBe(true)
+      expect(puMainnet.isValidAddress(VALID_ADDRESS)).toBe(true)
     })
     test('should return true for valid bech32m address', async () => {
-      expect(pu.isValidAddress(ADDRESS_BECH32M)).toBe(true)
+      expect(puMainnet.isValidAddress(ADDRESS_BECH32M)).toBe(true)
     })
     test('should return false for invalid', async () => {
-      expect(pu.isValidAddress('fake')).toBe(false)
+      expect(puMainnet.isValidAddress('fake')).toBe(false)
     })
   })
 
   describe('isValidExtraId', () => {
     test('should return false', async () => {
-      expect(pu.isValidExtraId('fake')).toBe(false)
+      expect(puMainnet.isValidExtraId('fake')).toBe(false)
     })
   })
 
   describe('isValidPrivateKey', () => {
     test('should return true for valid', async () => {
-      expect(pu.isValidPrivateKey(PRIVATE_KEY)).toBe(true)
+      expect(puMainnet.isValidPrivateKey(PRIVATE_KEY)).toBe(true)
     })
     test('should return false for invalid', async () => {
-      expect(pu.isValidPrivateKey('fake')).toBe(false)
+      expect(puMainnet.isValidPrivateKey('fake')).toBe(false)
     })
   })
 
   describe('getPayportValidationMessage', () => {
     it('returns string for empty object', async () => {
-      expect(pu.getPayportValidationMessage({} as any)).toMatch('Invalid payport')
+      expect(puMainnet.getPayportValidationMessage({} as any)).toMatch('Invalid payport')
     })
     it('return string for valid address with invalid extraId', async () => {
-      expect(pu.getPayportValidationMessage({ address: VALID_ADDRESS, extraId: '' })).toMatch('Invalid payport')
+      expect(puMainnet.getPayportValidationMessage({ address: VALID_ADDRESS, extraId: '' })).toMatch('Invalid payport')
     })
   })
 
   describe('getCurrentBlockNumber', () => {
     it('returns a nonzero number', async () => {
-      expect(await pu.getCurrentBlockNumber()).toBeGreaterThan(0)
+      expect(await puMainnet.getCurrentBlockNumber()).toBeGreaterThan(0)
     })
   })
 
@@ -56,7 +58,7 @@ describe('BitcoinPaymentUtils', () => {
     it(
       'can retrieve latest',
       async () => {
-        const block = await pu.getBlock()
+        const block = await puMainnet.getBlock()
         expect(block.id).toBeTruthy()
         expect(block.height).toBeGreaterThan(0)
         expect(block.previousId).toBeTruthy()
@@ -69,7 +71,7 @@ describe('BitcoinPaymentUtils', () => {
     it(
       'can retrieve 666666',
       async () => {
-        const block = await pu.getBlock(666666)
+        const block = await puMainnet.getBlock(666666)
         expect(block.id).toBe('0000000000000000000b7b8574bc6fd285825ec2dbcbeca149121fc05b0c828c')
         expect(block.height).toBe(666666)
         expect(block.previousId).toBe('0000000000000000000d3ac711558b41b477e4d2c178aa816f267ee9e82c71a3')
@@ -81,21 +83,27 @@ describe('BitcoinPaymentUtils', () => {
   })
 
   describe('getFeeRateRecommendation', () => {
-    const levels: AutoFeeLevels[] = [FeeLevel.High, FeeLevel.Medium, FeeLevel.Low]
-    for (const level of levels) {
-      for (const source of [undefined, 'blockbook', 'blockcypher']) {
-        it(`can retrieve ${level} fee level recommendation with ${source} source`, async () => {
-          const { feeRate, feeRateType } = await pu.getFeeRateRecommendation(level, { source })
-          expect(Number.parseFloat(feeRate)).toBeGreaterThan(0)
-          expect(feeRateType).toBe(FeeRateType.BasePerWeight)
-        })
+    describe('mainnet', () => {
+      const levels: AutoFeeLevels[] = [FeeLevel.High, FeeLevel.Medium, FeeLevel.Low]
+      for (const level of levels) {
+        for (const source of [undefined, 'blockbook', 'blockcypher', 'mempool']) {
+          it(`can retrieve ${level} fee level recommendation with ${source} source`, async () => {
+            const { feeRate, feeRateType } = await puMainnet.getFeeRateRecommendation(level, { source })
+            expect(Number.parseFloat(feeRate)).toBeGreaterThan(0)
+            expect(feeRateType).toBe(FeeRateType.BasePerWeight)
+          })
+        }
       }
-    }
+    })
+    describe('testnet', () => {
+      it('cannot retrieve unsupported testnet mempool source', async () => {
+        await expect(puTestnet.getFeeRateRecommendation(FeeLevel.High, { source: 'mempool' }))
+          .rejects.toThrow('only support mainnet')
+      })
+    })
   })
 
   describe('determinePathForIndex', () => {
-    const puMainnet = new BitcoinPaymentsUtils({network: NetworkType.Mainnet})
-    const puTestnet = new BitcoinPaymentsUtils({network: NetworkType.Testnet})
     test('Mainnet SegwitNative', () => {
       const options = {addressType: AddressType.SegwitNative}
       const path = puMainnet.determinePathForIndex(3, options)
@@ -119,8 +127,6 @@ describe('BitcoinPaymentUtils', () => {
   })
 
   describe('deriveUniPubKeyForPath', () => {
-    const puMainnet = new BitcoinPaymentsUtils()
-    const puTestnet = new BitcoinPaymentsUtils({network: NetworkType.Testnet})
     const seedHex =
       '716bbb2c373406156d6fc471db0c62d957e27d97f1d07bfb0b2d22f04d07b75b32f2542e20f077251d7bc390cac8847ac6e64d94bccff1e1b2cd82802df35a78'
     const seedBuffer = hexSeedToBuffer(seedHex)

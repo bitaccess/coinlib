@@ -1,4 +1,4 @@
-import { NetworkType, FeeRateType, AutoFeeLevels } from '@bitaccess/coinlib-common'
+import { NetworkType, FeeRateType, AutoFeeLevels, FeeRate, FeeLevel } from '@bitaccess/coinlib-common'
 import {
   BitcoinBaseConfig,
  } from './types'
@@ -18,6 +18,8 @@ import {
   DEFAULT_FEE_LEVEL,
   PACKAGE_NAME,
 } from './constants'
+import { Logger } from '@bitaccess/ts-common'
+import request from 'request-promise-native'
 
 const DEFAULT_BITCOINISH_CONFIG = {
   coinSymbol: COIN_SYMBOL,
@@ -47,5 +49,37 @@ export function toBitcoinishConfig<T extends BitcoinBaseConfig>(config: T): Bitc
       config?.api?.nodes ??
       server ??
       (network === NetworkType.Testnet ? DEFAULT_TESTNET_SERVER : DEFAULT_MAINNET_SERVER),
+  }
+}
+
+const FEE_LEVEL_TO_MEMPOOL_FIELD = {
+  [FeeLevel.High]: 'fastestFee',
+  [FeeLevel.Medium]: 'economyFee',
+  [FeeLevel.Low]: 'minimumFee',
+}
+
+export async function getMempoolSpaceMainnetFeeRecommendation(
+  feeLevel: AutoFeeLevels,
+  logger: Logger,
+): Promise<FeeRate> {
+  let feeRate: string
+  try {
+    const body = await request.get(
+      process.env.MEMPOOL_SPACE_FEE_URL ?? `https://mempool.space/api/v1/fees/recommended`,
+      { json: true },
+    )
+    const feePerKbField = FEE_LEVEL_TO_MEMPOOL_FIELD[feeLevel]
+    const satPerByte = body[feePerKbField]
+    if (!satPerByte) {
+      throw new Error(`Response is missing expected field ${feePerKbField}`)
+    }
+    feeRate = String(satPerByte)
+    logger.log(`Retrieved BTC mainnet fee rate of ${satPerByte} sat/vbyte from mempool.space for ${feeLevel} level`)
+  } catch (e) {
+    throw new Error(`Failed to retrieve BTC mainnet fee rate from mempool.space - ${e.toString()}`)
+  }
+  return {
+    feeRate,
+    feeRateType: FeeRateType.BasePerWeight,
   }
 }
