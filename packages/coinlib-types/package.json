@@ -1,6 +1,6 @@
 {
   "name": "@bitaccess/coinlib-types",
-  "version": "7.0.8",
+  "version": "7.0.9",
   "description": "Shared types used by coinlib libraries",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
