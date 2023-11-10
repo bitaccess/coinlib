@@ -18,4 +18,4 @@ else
   git checkout "$LERNA_V"
 fi
 
-lerna publish from-package
+./node_modules/.bin/lerna publish from-package
