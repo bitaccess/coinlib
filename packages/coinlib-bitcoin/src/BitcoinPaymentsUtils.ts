@@ -3,7 +3,7 @@ import {
   createDeterminePathForIndexHelper,
   createDeriveUniPubKeyForPathHelper,
 } from './bitcoinish'
-import { toBitcoinishConfig } from './utils'
+import { getMempoolSpaceMainnetFeeRecommendation, toBitcoinishConfig } from './utils'
 import { BitcoinPaymentsUtilsConfig, AddressType, AddressTypeT } from './types'
 import {
   isValidAddress,
@@ -13,7 +13,7 @@ import {
   isSupportedAddressType,
   getSupportedAddressTypes,
 } from './helpers'
-import { NetworkType } from '@bitaccess/coinlib-common'
+import { AutoFeeLevels, FeeRate, GetFeeRecommendationOptions, NetworkType } from '@bitaccess/coinlib-common'
 import { assertType } from '@bitaccess/ts-common'
 import { DEFAULT_ADDRESS_TYPE, BITCOIN_NETWORK_CONSTANTS, NETWORKS } from './constants'
 
@@ -69,5 +69,15 @@ export class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
     }
     const uniPubKey = this.deriveUniPubKeyForPathFn(seed, derivationPath)
     return uniPubKey
+  }
+
+  async getFeeRateRecommendation(feeLevel: AutoFeeLevels, options: GetFeeRecommendationOptions = {}): Promise<FeeRate> {
+    if (options.source === 'mempool') {
+      if (this.networkType !== 'mainnet') {
+        throw new Error('Mempool.space fee rate recommendations only support mainnet network type')
+      }
+      return getMempoolSpaceMainnetFeeRecommendation(feeLevel, this.logger)
+    }
+    return super.getFeeRateRecommendation(feeLevel, options)
   }
 }
