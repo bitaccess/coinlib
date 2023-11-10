@@ -19,7 +19,7 @@ if [ "$CURRENT_TAG" ]; then
   exit 1
 fi
 
-lerna version $1 --no-push --no-git-tag-version
+./node_modules/.bin/lerna version $1 --no-push --no-git-tag-version
 NEW_TAG="v$($ROOT/bin/extract-version.sh $ROOT/lerna.json)"
 if [ "$NEW_TAG" = "$CURRENT_TAG" ]; then
   echo "NEW_TAG is the same as CURRENT_TAG, this shouldn't happen"

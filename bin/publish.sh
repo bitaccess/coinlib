@@ -6,7 +6,7 @@ ROOT=$(cd $(dirname $0)/..; pwd)
 LERNA_V="v$($ROOT/bin/extract-version.sh $ROOT/lerna.json)"
 echo "Publishing $LERNA_V"
 
-lerna run --stream build
+./node_modules/.bin/lerna run --stream build
 
 TAGGED_COMMIT=$(git rev-list -n 1 $LERNA_V 2>/dev/null || true)
 if [ -z "$TAGGED_COMMIT" ]; then
@@ -18,4 +18,4 @@ else
   git checkout "$LERNA_V"
 fi
 
-lerna publish from-package
+./node_modules/.bin/lerna publish from-package
