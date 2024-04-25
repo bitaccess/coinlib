@@ -18,13 +18,13 @@ export function retryIfDisconnected<T>(
   additionalRetryableErrors: string[] = [],
 ): Promise<T> {
   return promiseRetry(
-    (retry, attempt) => {
+    (retry) => {
       return fn().catch(async e => {
         if (isMatchingError(e, [...RETRYABLE_ERRORS, ...additionalRetryableErrors])) {
-          logger.log(
-            `Retryable error during ethereum-payments call, retrying ${MAX_RETRIES - attempt} more times`,
-            e.toString(),
-          )
+          // logger.log(
+          //   `Retryable error during ethereum-payments call, retrying ${MAX_RETRIES - attempt} more times`,
+          //   e.toString(),
+          // )
           retry(e)
         }
         throw e
@@ -88,14 +88,14 @@ export function resolveServer(
 
 export function getBlockBookTxFromAndToAddress(tx: NormalizedTxEthereum) {
   if (tx.vin.length !== 1 || tx.vout.length !== 1) {
-    throw new Error('transaction has less or more than one input or output')
+    // throw new Error('transaction has less or more than one input or output')
   }
 
   const inputAddresses = tx.vin[0].addresses
   const outputAddresses = tx.vout[0].addresses
 
   if (!inputAddresses) {
-    throw new Error(`txId = ${tx.txid} is missing input address`)
+    // throw new Error(`txId = ${tx.txid} is missing input address`)
   }
 
   const fromAddress = inputAddresses[0]
@@ -119,7 +119,7 @@ export function getBlockBookTxFromAndToAddress(tx: NormalizedTxEthereum) {
 
 export function assertWellFormedHex(x: string): string {
   if (!WELL_FORMED_HEX_REGEX.test(x)) {
-    throw new Error(`Invalid or poorly formed hex value: ${x}`)
+    // throw new Error(`Invalid or poorly formed hex value: ${x}`)
   }
   return x
 }
@@ -164,10 +164,10 @@ export function deriveProxyCreate2Address(creatorAddress: string, salt: string):
  */
 export function deriveCreate1Address(senderAddress: string, nonce: number): string {
   if (!ETHEREUM_ADDRESS_REGEX.test(senderAddress)) {
-    throw new Error(`Invalid ethereum senderAddress provided to deriveCreate1Address: ${senderAddress}`)
+    // throw new Error(`Invalid ethereum senderAddress provided to deriveCreate1Address: ${senderAddress}`)
   }
   if (nonce < 0 || nonce >= Number.MAX_SAFE_INTEGER) {
-    throw new Error(`Invalid nonce provided to deriveCreate1Address: ${nonce}`)
+    // throw new Error(`Invalid nonce provided to deriveCreate1Address: ${nonce}`)
   }
   return prepend0x(sha3(rlp.encode([senderAddress.toLowerCase(), nonce])).slice(-40))
 }

@@ -72,9 +72,9 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
 
   onBalanceActivity(callbackFn: BalanceActivityCallback) {
     this.events.on(BALANCE_ACTIVITY_EVENT, ({ activity, tx }) => {
-      callbackFn(activity, tx)?.catch(e =>
-        this.logger.error(`Error in ${this.coinSymbol} ${this.networkType} onBalanceActivity callback`, e),
-      )
+      callbackFn(activity, tx)?.catch(() => {
+        // this.logger.error(`Error in ${this.coinSymbol} ${this.networkType} onBalanceActivity callback`, e),
+      })
     })
   }
 
@@ -116,7 +116,7 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
         break
       }
       transactions = transactionPage.transactions
-      this.logger.debug(`retrieved ${transactions?.length} txs for ${address} on page = ${page}`)
+      // this.logger.debug(`retrieved ${transactions?.length} txs for ${address} on page = ${page}`)
 
       if (!transactions || transactions.length === 0) {
         break
@@ -124,11 +124,11 @@ export class EthereumBalanceMonitor extends EthereumPaymentsUtils implements Bal
 
       for (const tx of transactions) {
         if (lastTx && tx.txid === lastTx.txid) {
-          this.logger.debug('ignoring duplicate tx', tx)
+          // this.logger.debug('ignoring duplicate tx', tx)
           continue
         }
         if (tx.blockHeight > 0 && (from > tx.blockHeight || to < tx.blockHeight)) {
-          this.logger.debug('ignoring out of range balance activity tx', tx)
+          // this.logger.debug('ignoring out of range balance activity tx', tx)
           continue
         }
 

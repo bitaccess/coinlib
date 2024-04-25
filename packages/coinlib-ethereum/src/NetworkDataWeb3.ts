@@ -54,12 +54,12 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     if (provider && process.env.NODE_DEBUG && process.env.NODE_DEBUG.includes(PACKAGE_NAME)) {
       const send = provider.send
       provider.send = (payload: any, cb: Function) => {
-        this.logger.debug(`web3 provider request ${this.server}`, payload)
+        // this.logger.debug(`web3 provider request ${this.server}`, payload)
         send.call(provider, payload, (error: Error, result: any) => {
           if (error) {
-            this.logger.debug(`web3 provider response error ${this.server}`, error)
+            // this.logger.debug(`web3 provider response error ${this.server}`, error)
           } else {
-            this.logger.debug(`web3 provider response result ${this.server}`, result)
+            // this.logger.debug(`web3 provider response result ${this.server}`, result)
           }
           cb(error, result)
         })
@@ -151,7 +151,7 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       // estimateGas mutates txObject so must pass in a clone
       let gas = await this._retryDced(() => this.eth.estimateGas({ ...txObject }))
       if (!isNumber(gas) || isNaN(gas)) {
-        this.logger.warn(`Received invalid non-numeric gas estimate from web3: ${gas}`)
+        // this.logger.warn(`Received invalid non-numeric gas estimate from web3: ${gas}`)
         return MAXIMUM_GAS[txType]
       }
 
@@ -166,10 +166,10 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
       }
 
       const result = Math.ceil(gas)
-      this.logger.debug(`Estimated gas limit of ${result} for ${txType}`)
+      // this.logger.debug(`Estimated gas limit of ${result} for ${txType}`)
       return result
     } catch (e) {
-      this.logger.warn(`Failed to estimate gas for ${txType} -- ${e}`)
+      // this.logger.warn(`Failed to estimate gas for ${txType} -- ${e}`)
       return MAXIMUM_GAS[txType]
     }
   }
@@ -182,13 +182,13 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     try {
       const wei = new BigNumber(await this._retryDced(() => this.eth.getGasPrice()))
       if (wei.isNaN()) {
-        this.logger.warn('Retrieved invalid NaN gas price from web3')
+        // this.logger.warn('Retrieved invalid NaN gas price from web3')
         return ''
       }
-      this.logger.log(`Retrieved gas price of ${wei.div(1e9)} Gwei from web3`)
+      // this.logger.log(`Retrieved gas price of ${wei.div(1e9)} Gwei from web3`)
       return wei.dp(0, BigNumber.ROUND_DOWN).toFixed()
     } catch (e) {
-      this.logger.warn('Failed to retrieve gas price from web3 - ', e.toString())
+      // this.logger.warn('Failed to retrieve gas price from web3 - ', e.toString())
       return ''
     }
   }
@@ -296,8 +296,8 @@ export class NetworkDataWeb3 implements EthereumNetworkDataProvider {
     let contractAddress = txReceipt?.contractAddress ?? undefined
 
     if (!tx.from) {
-      this.logger.warn(`Missing tx.from in tx ${tx.hash}`, tx, txReceipt)
-      throw new Error(`Missing tx.from in tx ${tx.hash}`)
+      // this.logger.warn(`Missing tx.from in tx ${tx.hash}`, tx, txReceipt)
+      // throw new Error(`Missing tx.from in tx ${tx.hash}`)
     }
 
     let to = tx.to ?? contractAddress

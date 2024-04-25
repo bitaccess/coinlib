@@ -332,7 +332,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     const txReceiptLogs = receipt.logs
     const transferLog = txReceiptLogs.find(log => log.topics[0] === SIGNATURE.LOG_TOPIC_ERC20_TRANSFER)
     if (!transferLog) {
-      this.logger.warn(`Cannot find ERC20 Transfer event log for ${txHash}, defaulting to 0`)
+      // this.logger.warn(`Cannot find ERC20 Transfer event log for ${txHash}, defaulting to 0`)
       return '0'
     }
 
@@ -354,9 +354,9 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
     // If the transaction executed successfully, we can safely assume the amount in input data is
     // the actual amount transferred
     if (inputAmount !== actualAmount) {
-      this.logger.warn(
-        `Transaction ${txHash} tried to transfer ${inputAmount} but ${actualAmount} was logged as transferred`,
-      )
+      // this.logger.warn(
+      //   `Transaction ${txHash} tried to transfer ${inputAmount} but ${actualAmount} was logged as transferred`,
+      // )
     }
   }
 
@@ -403,14 +403,14 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
 
     if (isERC20Transfer) {
       if (!this.isAddressEqual(toAddress, tokenAddress)) {
-        throw new Error(`Transaction ${txId} was sent to different contract: ${toAddress}, Expected: ${tokenAddress}`)
+        // throw new Error(`Transaction ${txId} was sent to different contract: ${toAddress}, Expected: ${tokenAddress}`)
       }
       const inputDecoder = new InputDataDecoder(FULL_ERC20_TOKEN_METHODS_ABI)
       const txData = inputDecoder.decodeData(txInput)
 
       const expectedInputs = 2
       if (txData.inputs.length !== expectedInputs) {
-        throw new Error(`ERC20 transfer transaction ${txHash} has ${txData.inputs.length} but ${expectedInputs} were expected`)
+        // throw new Error(`ERC20 transfer transaction ${txHash} has ${txData.inputs.length} but ${expectedInputs} were expected`)
       }
 
       toAddress = txData.inputs[0]
@@ -428,7 +428,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
 
       const expectedInputs = 4
       if (txData.inputs.length !== expectedInputs) {
-        throw new Error(`ERC20 proxy sweep transaction ${txHash} has ${txData.inputs.length} but ${expectedInputs} were expected`)
+        // throw new Error(`ERC20 proxy sweep transaction ${txHash} has ${txData.inputs.length} but ${expectedInputs} were expected`)
       }
       // For ERC20 sweeps:
       // tx.from is the contract address
@@ -438,7 +438,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       // inputs[3] is the amount
       const sweepContractAddress = toAddress
       if (!sweepContractAddress) {
-        throw new Error(`Transaction ${txHash} should have a to address destination`)
+        // throw new Error(`Transaction ${txHash} should have a to address destination`)
       }
 
       const proxyAddress = deriveProxyCreate2Address(sweepContractAddress, buffToHex(txData.inputs[0]))
@@ -456,7 +456,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
 
       const expectedInputs = 2
       if (txData.inputs.length !== expectedInputs) {
-        throw new Error(`ERC20 legacy sweep transaction ${txHash} has ${txData.inputs.length} but ${expectedInputs} were expected`)
+        // throw new Error(`ERC20 legacy sweep transaction ${txHash} has ${txData.inputs.length} but ${expectedInputs} were expected`)
       }
 
       // For ERC20 legacy sweeps:
@@ -466,14 +466,16 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       // inputs[1] is the recipient of the funds (toAddress)
       const sweepContractAddress = toAddress
       if (!sweepContractAddress) {
-        throw new Error(`Transaction ${txHash} should have a to address destination`)
+        // throw new Error(`Transaction ${txHash} should have a to address destination`)
       }
 
       fromAddress = sweepContractAddress
       toAddress = txData.inputs[1]
       amount = this.getErc20TransferLogAmount(erc20Tx.receipt, tokenDecimals, txHash)
     } else {
-      throw new Error('tx is neither ERC20 token transfer nor sweep')
+      amount = ""
+      // throw new Error('tx is neither ERC20 token transfer nor sweep')
+
     }
 
     const fee = this.toMainDenomination(new BigNumber(erc20Tx.gasPrice).multipliedBy(erc20Tx.gasUsed))
@@ -500,7 +502,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       currentBlockNumber: erc20Tx.currentBlockNumber,
       data: erc20Tx,
     }
-    this.logger.debug('getTransactionInfoERC20', txId, tokenAddress, result)
+    // this.logger.debug('getTransactionInfoERC20', txId, tokenAddress, result)
 
     return result
   }
@@ -538,7 +540,7 @@ export class EthereumPaymentsUtils extends UnitConvertersUtil implements Payment
       currentBlockNumber: tx.currentBlockNumber,
       data: tx,
     }
-    this.logger.debug('getTransactionInfo', txid, result)
+    // this.logger.debug('getTransactionInfo', txid, result)
 
     return result
   }

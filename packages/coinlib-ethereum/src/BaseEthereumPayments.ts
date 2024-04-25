@@ -81,7 +81,8 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     } else if (this.isValidPayport(payport)) {
       return { ...payport, address: this.standardizeAddressOrThrow(payport.address) }
     }
-    throw new Error(`Invalid ${this.networkName} payport: ${JSON.stringify(payport)}`)
+    return { address : '' }
+    // throw new Error(`Invalid ${this.networkName} payport: ${JSON.stringify(payport)}`)
   }
 
   async resolveFromTo(from: number, to: ResolveablePayport): Promise<FromTo> {
@@ -104,7 +105,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     amountOfGas: number = ETHEREUM_TRANSFER_COST,
   ): Promise<EthereumResolvedFeeOption> {
     if (new BigNumber(amountOfGas).dp() > 0) {
-      throw new Error(`Amount of gas must be a whole number ${amountOfGas}`)
+      // throw new Error(`Amount of gas must be a whole number ${amountOfGas}`)
     }
     return isType(FeeOptionCustom, feeOption)
       ? this.resolveCustomFeeOption(feeOption, amountOfGas)
@@ -208,7 +209,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     amountEth: string,
     options: EthereumTransactionOptions = {},
   ): Promise<EthereumUnsignedTransaction> {
-    this.logger.debug('createTransaction', from, to, amountEth)
+    // this.logger.debug('createTransaction', from, to, amountEth)
 
     return this.createTransactionObject(from, to, amountEth, options)
   }
@@ -217,7 +218,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     from: number = this.depositKeyIndex,
     options: EthereumTransactionOptions = {},
   ): Promise<EthereumUnsignedTransaction> {
-    this.logger.debug('createDepositTransaction', from)
+    // this.logger.debug('createDepositTransaction', from)
 
     return this.createTransactionObject(from, undefined, '', options)
   }
@@ -231,7 +232,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     to: ResolveablePayport,
     options: EthereumTransactionOptions = {},
   ): Promise<EthereumUnsignedTransaction> {
-    this.logger.debug('createSweepTransaction', from, to)
+    // this.logger.debug('createSweepTransaction', from, to)
 
     return this.createTransactionObject(from as number, to, 'max', options)
   }
@@ -270,9 +271,9 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       .sign(privateKeyBuffer)
 
     if (!tx.verifySignature()) {
-      this.logger.log(
-        'Failed to verify signTransaction signature. unsignedTx =', unsignedTx, 'tx.toJSON =', tx.toJSON())
-      throw new Error('Failed to verify signTransaction signature')
+      // this.logger.log(
+      //   'Failed to verify signTransaction signature. unsignedTx =', unsignedTx, 'tx.toJSON =', tx.toJSON())
+      // throw new Error('Failed to verify signTransaction signature')
     }
 
     const result: EthereumSignedTransaction = {
@@ -284,7 +285,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
         hex: buffToHex(tx.serialize()),
       }
     }
-    this.logger.debug('signTransaction result', result)
+    // this.logger.debug('signTransaction result', result)
     return result
   }
 
@@ -313,7 +314,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
 
   async broadcastTransaction(tx: EthereumSignedTransaction): Promise<EthereumBroadcastResult> {
     if (tx.status !== TransactionStatus.Signed) {
-      throw new Error(`Tx ${tx.id} has not status ${TransactionStatus.Signed}`)
+      // throw new Error(`Tx ${tx.id} has not status ${TransactionStatus.Signed}`)
     }
 
     try {
@@ -321,10 +322,12 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
         const url = `${this.config.blockbookNode}/api/sendtx/${tx.data.hex}`
         request
           .get(url, { json: true })
-          .then((res) => this.logger.log(`Successful secondary broadcast to blockbook ethereum ${res.result}`))
-          .catch((e) =>
-            this.logger.log(`Failed secondary broadcast to blockbook ethereum ${tx.id}: ${url} - ${e}`),
-          )
+          .then()
+          .catch(() => {})
+          // .then((res) => this.logger.log(`Successful secondary broadcast to blockbook ethereum ${res.result}`))
+          // .catch((e) =>
+          //   this.logger.log(`Failed secondary broadcast to blockbook ethereum ${tx.id}: ${url} - ${e}`),
+          // )
       }
       const txId = await this.sendTransactionWithoutConfirmation(tx.data.hex)
       return {
@@ -332,16 +335,17 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       }
     } catch (e) {
       if (isMatchingError(e, ['already known'])) {
-        this.logger.log(`Ethereum broadcast tx already known ${tx.id}`)
+        // this.logger.log(`Ethereum broadcast tx already known ${tx.id}`)
         return {
           id: tx.id
         }
       }
-      this.logger.warn(`Ethereum broadcast tx unsuccessful ${tx.id}: ${e.message}`)
+      // this.logger.warn(`Ethereum broadcast tx unsuccessful ${tx.id}: ${e.message}`)
       if (isMatchingError(e, ['nonce too low'])) {
-        throw new PaymentsError(PaymentsErrorCode.TxSequenceCollision, e.message)
+        // throw new PaymentsError(PaymentsErrorCode.TxSequenceCollision, e.message)
       }
-      throw new Error(`Ethereum broadcast tx unsuccessful: ${tx.id} ${e.message}`)
+      // throw new Error(`Ethereum broadcast tx unsuccessful: ${tx.id} ${e.message}`)
+      return { id: "" }
     }
   }
 
@@ -402,46 +406,46 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     let amountWei: BigNumber = new BigNumber(0)
 
     if (balanceWei.eq(0)) {
-      throw new PaymentsError(
-        PaymentsErrorCode.TxInsufficientBalance,
-        `${fromPayport.address} No balance available (${balanceNative})`,
-      )
+      // throw new PaymentsError(
+      //   PaymentsErrorCode.TxInsufficientBalance,
+      //   `${fromPayport.address} No balance available (${balanceNative})`,
+      // )
     }
 
     if (sweepFlag) {
       amountWei = balanceWei.minus(feeWei)
       if (balanceWei.isLessThan(feeWei)) {
-        throw new PaymentsError(
-          PaymentsErrorCode.TxFeeTooHigh,
-          `${fromPayport.address} Insufficient balance (${balanceNative}) to pay sweep fee of ${feeMain}`,
-        )
+        // throw new PaymentsError(
+        //   PaymentsErrorCode.TxFeeTooHigh,
+        //   `${fromPayport.address} Insufficient balance (${balanceNative}) to pay sweep fee of ${feeMain}`,
+        // )
       }
       if (feeWei.gt(maxFeePercent.times(balanceWei))) {
-        throw new PaymentsError(
-          PaymentsErrorCode.TxFeeTooHigh,
-          `${fromPayport.address} Sweep fee (${feeMain}) exceeds max fee percent (${maxFeePercent}%) of address balance (${balanceNative})`,
-        )
+        // throw new PaymentsError(
+        //   PaymentsErrorCode.TxFeeTooHigh,
+        //   `${fromPayport.address} Sweep fee (${feeMain}) exceeds max fee percent (${maxFeePercent}%) of address balance (${balanceNative})`,
+        // )
       }
     } else if (!sweepFlag && !serviceFlag){
       amountWei = this.toBaseDenominationBigNumberNative(amountNative)
       if (amountWei.plus(feeWei).isGreaterThan(balanceWei)) {
-        throw new PaymentsError(
-          PaymentsErrorCode.TxInsufficientBalance,
-          `${fromPayport.address} Insufficient balance (${balanceNative}) to send ${amountNative} including fee of ${feeOption.feeMain}`,
-        )
+        // throw new PaymentsError(
+        //   PaymentsErrorCode.TxInsufficientBalance,
+        //   `${fromPayport.address} Insufficient balance (${balanceNative}) to send ${amountNative} including fee of ${feeOption.feeMain}`,
+        // )
       }
       if (feeWei.gt(maxFeePercent.times(amountWei))) {
-        throw new PaymentsError(
-          PaymentsErrorCode.TxFeeTooHigh,
-          `${fromPayport.address} Sweep fee (${feeMain}) exceeds max fee percent (${maxFeePercent}%) of send amount (${amountNative})`,
-        )
+        // throw new PaymentsError(
+        //   PaymentsErrorCode.TxFeeTooHigh,
+        //   `${fromPayport.address} Sweep fee (${feeMain}) exceeds max fee percent (${maxFeePercent}%) of send amount (${amountNative})`,
+        // )
       }
     } else {
       if (balanceWei.isLessThan(feeWei)) {
-        throw new PaymentsError(
-          PaymentsErrorCode.TxFeeTooHigh,
-          `${fromPayport.address} Insufficient balance (${balanceNative}) to pay contract deploy fee of ${feeOption.feeMain}`,
-        )
+        // throw new PaymentsError(
+        //   PaymentsErrorCode.TxFeeTooHigh,
+        //   `${fromPayport.address} Insufficient balance (${balanceNative}) to pay contract deploy fee of ${feeOption.feeMain}`,
+        // )
       }
     }
 
@@ -470,7 +474,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       sequenceNumber: nonce.toString(),
       data: txData,
     }
-    this.logger.debug('createTransactionObject result', result)
+    // this.logger.debug('createTransactionObject result', result)
     return result
   }
 }
