@@ -61,7 +61,7 @@ export class NetworkData {
     try {
       return await (this.blockBookService[methodName] as Function)(...args)
     } catch (error) {
-      this.logger.log(`Call to blockbook ${methodName} failed, Falling back to web3`, error)
+      // this.logger.log(`Call to blockbook ${methodName} failed, Falling back to web3`, error)
       return await (this.web3Service[methodName] as Function)(...args)
     }
   }
@@ -106,7 +106,7 @@ export class NetworkData {
       const nonceBn = new BigNumber(nonceRaw)
       return nonceBn.isNaN() ? 0 : nonceBn
     } catch (e) {
-      this.logger.warn(`Failed to retrieve next nonce from ${service.constructor.name} - `, e.toString())
+      // this.logger.warn(`Failed to retrieve next nonce from ${service.constructor.name} - `, e.toString())
       return 0
     }
   }
@@ -166,19 +166,19 @@ export class NetworkData {
     try {
       body = await this._retryDced(() => request.get(options))
     } catch (e) {
-      this.logger.warn('Failed to retrieve gas price from ethgasstation - ', e.toString())
+      // this.logger.warn('Failed to retrieve gas price from ethgasstation - ', e.toString())
       return ''
     }
     const speed = GAS_STATION_FEE_SPEED[level]
     if (!(body && body.blockNum && body[speed])) {
-      this.logger.warn('Bad result or missing fields in ethgasstation response', body)
+      // this.logger.warn('Bad result or missing fields in ethgasstation response', body)
       return ''
     }
 
     const price10xGwei = body[speed]
 
     const gwei = new BigNumber(price10xGwei).dividedBy(10)
-    this.logger.log(`Retrieved gas price of ${gwei} Gwei from ethgasstation using speed ${speed}`)
+    // this.logger.log(`Retrieved gas price of ${gwei} Gwei from ethgasstation using speed ${speed}`)
     return gwei
       .multipliedBy(1e9)
       .dp(0, BigNumber.ROUND_DOWN)

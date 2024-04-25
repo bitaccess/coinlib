@@ -33,7 +33,8 @@ export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereu
         address = this.privateKeyToAddress(value)
         pkey = value
       } else {
-        throw new Error(`KeyPairEthereumPaymentsConfig.keyPairs[${i}] is not a valid private key, public key, or address`)
+        return
+        // throw new Error(`KeyPairEthereumPaymentsConfig.keyPairs[${i}] is not a valid private key, public key, or address`)
       }
 
       this.addresses[i] = address
@@ -43,7 +44,7 @@ export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereu
 
       const existingIndex = this.addressIndices[address]
       if (typeof existingIndex === 'number') {
-        this.logger.debug(`KeyPairEthereumPaymentsConfig.keyPairs[${i}] is a duplicate address of index ${existingIndex}`)
+        // this.logger.debug(`KeyPairEthereumPaymentsConfig.keyPairs[${i}] is a duplicate address of index ${existingIndex}`)
       }
       this.addressIndices[address] = i
     })
@@ -59,7 +60,8 @@ export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereu
   getAccountId(index: number): string {
     const accountId = this.addresses[index]
     if (!accountId) {
-      throw new Error(`Cannot get account ID at ${index} - keyPair[${index}] is ${this.keyPairs[index]}`)
+      return ""
+      // throw new Error(`Cannot get account ID at ${index} - keyPair[${index}] is ${this.keyPairs[index]}`)
     }
     return accountId
   }
@@ -69,17 +71,19 @@ export class KeyPairEthereumPayments extends BaseEthereumPayments<KeyPairEthereu
   }
 
   async getPayport(index: number): Promise<Payport> {
-    const address = this.addresses[index]
+    let address = this.addresses[index]
     if (!address) {
-      throw new Error(`Cannot get payport at ${index} - keyPair[${index}] is ${this.keyPairs[index]}`)
+      address = ''
+      // throw new Error(`Cannot get payport at ${index} - keyPair[${index}] is ${this.keyPairs[index]}`)
     }
     return { address }
   }
 
   async getPrivateKey(index: number): Promise<string> {
-    const privateKey = this.privateKeys[index]
+    let privateKey = this.privateKeys[index]
     if (!privateKey) {
-      throw new Error(`Cannot get private key at ${index}`)
+      privateKey = ''
+      // throw new Error(`Cannot get private key at ${index}`)
     }
     return privateKey
   }

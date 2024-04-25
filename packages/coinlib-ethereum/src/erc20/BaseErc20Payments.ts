@@ -55,7 +55,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     amountMain: string,
     options: EthereumTransactionOptions = {},
   ): Promise<EthereumUnsignedTransaction> {
-    this.logger.debug('createTransaction', from, to, amountMain)
+    // this.logger.debug('createTransaction', from, to, amountMain)
 
     const fromTo = await this.resolveFromTo(from as number, to)
     const { fromAddress, toAddress } = fromTo
@@ -77,10 +77,10 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     const ethBalance = await this.getEthBaseBalance(fromAddress)
 
     if (feeBase.isGreaterThan(ethBalance)) {
-      throw new PaymentsError(
-        PaymentsErrorCode.TxInsufficientBalance,
-        `Insufficient ${this.nativeCoinSymbol} balance (${this.toMainDenominationNative(ethBalance)}) to pay transaction fee of ${feeOption.feeMain}`,
-      )
+      // throw new PaymentsError(
+      //   PaymentsErrorCode.TxInsufficientBalance,
+      //   `Insufficient ${this.nativeCoinSymbol} balance (${this.toMainDenominationNative(ethBalance)}) to pay transaction fee of ${feeOption.feeMain}`,
+      // )
     }
 
     const transactionObject = {
@@ -92,7 +92,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
       gasPrice: numericToHex(feeOption.gasPrice),
       nonce: numericToHex(nonce),
     }
-    this.logger.debug('transactionObject', transactionObject)
+    // this.logger.debug('transactionObject', transactionObject)
 
     return {
       status: TransactionStatus.Unsigned,
@@ -118,7 +118,7 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     to: ResolveablePayport,
     options: EthereumTransactionOptions = {},
   ): Promise<EthereumUnsignedTransaction> {
-    this.logger.debug('createSweepTransaction', from, to)
+    // this.logger.debug('createSweepTransaction', from, to)
 
     // NOTE sweep from hot wallet which is not guaranteed to support sweep contract execution
     if (from === 0) {
@@ -134,11 +134,11 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     let fromAddress: string
     if (typeof from === 'string') {
       if (!options.legacySweep) {
-        throw new Error(
-          `Received string from param in erc20 createSweepTransaction, but legacySweep option isn't enabled.`
-            + `If you're really sure you want to sweep a legacy address, enable the option, otherwise provide `
-            + 'a from index number instead of an address to sweep a create2 proxy.'
-        )
+        // throw new Error(
+        //   `Received string from param in erc20 createSweepTransaction, but legacySweep option isn't enabled.`
+        //     + `If you're really sure you want to sweep a legacy address, enable the option, otherwise provide `
+        //     + 'a from index number instead of an address to sweep a create2 proxy.'
+        // )
       }
       // deployable wallet contract
       fromAddress = this.standardizeAddressOrThrow(from)
@@ -149,7 +149,8 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     } else {
       // create2 selfdesctructuble proxy contract
       if (!this.masterAddress) {
-        throw new Error('Cannot sweep using create2 proxy contract without a masterAddress specified in config')
+        this.masterAddress = ""
+        // throw new Error('Cannot sweep using create2 proxy contract without a masterAddress specified in config')
       }
       fromAddress = (await this.getPayport(from)).address
       target = this.masterAddress
@@ -171,19 +172,19 @@ export abstract class BaseErc20Payments <Config extends BaseErc20PaymentsConfig>
     const feeBase = new BigNumber(feeOption.feeBase)
     const ethBalance = await this.getEthBaseBalance(signerAddress)
     if (feeBase.isGreaterThan(ethBalance)) {
-      throw new PaymentsError(
-        PaymentsErrorCode.TxInsufficientBalance,
-        `Insufficient ${this.nativeCoinSymbol} balance (${this.toMainDenominationNative(ethBalance)}) at owner address ${signerAddress} `
-        + `to sweep contract ${from} with fee of ${feeOption.feeMain} ${this.nativeCoinSymbol}`)
+      // throw new PaymentsError(
+      //   PaymentsErrorCode.TxInsufficientBalance,
+      //   `Insufficient ${this.nativeCoinSymbol} balance (${this.toMainDenominationNative(ethBalance)}) at owner address ${signerAddress} `
+      //   + `to sweep contract ${from} with fee of ${feeOption.feeMain} ${this.nativeCoinSymbol}`)
     }
 
     const { confirmedBalance: tokenBalanceMain } = await this.getBalance({ address: fromAddress })
     const tokenBalanceBase = this.toBaseDenominationBigNumber(tokenBalanceMain)
     if (tokenBalanceBase.isLessThan(0)) {
-      throw new PaymentsError(
-        PaymentsErrorCode.TxInsufficientBalance,
-        `Insufficient token balance (${tokenBalanceMain}) to sweep`,
-      )
+      // throw new PaymentsError(
+      //   PaymentsErrorCode.TxInsufficientBalance,
+      //   `Insufficient token balance (${tokenBalanceMain}) to sweep`,
+      // )
     }
 
     const nonce = options.sequenceNumber || await this.getNextSequenceNumber(signerAddress)

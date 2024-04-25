@@ -6,6 +6,7 @@
 .DS_Store
 .awcache
 .env*
+!.envrc
 .idea
 .nyc_output
 .rpt2_cache/
@@ -19,3 +20,4 @@ simple.ts
 vendor/
 logs/
 tmp/
+.direnv
