@@ -61,6 +61,6 @@
     "web3-core": "^1.7.4",
     "web3-eth": "^1.7.4",
     "web3-eth-contract": "^1.7.1",
-    "web3-utils": "^1.7.4"
+    "web3-utils": "^1.8.2"
   }
 }
