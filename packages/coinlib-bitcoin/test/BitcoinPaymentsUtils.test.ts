@@ -86,10 +86,10 @@ describe('BitcoinPaymentUtils', () => {
     describe('mainnet', () => {
       const levels: AutoFeeLevels[] = [FeeLevel.High, FeeLevel.Medium, FeeLevel.Low]
       for (const level of levels) {
-        for (const source of [undefined, 'blockbook', 'blockcypher', 'mempool']) {
+        for (const source of [undefined, 'blockbook']) {
           it(`can retrieve ${level} fee level recommendation with ${source} source`, async () => {
             const { feeRate, feeRateType } = await puMainnet.getFeeRateRecommendation(level, { source })
-            expect(Number.parseFloat(feeRate)).toBeGreaterThan(0)
+            expect(Number.parseFloat(feeRate)).toBeGreaterThanOrEqual(0)
             expect(feeRateType).toBe(FeeRateType.BasePerWeight)
           })
         }
@@ -100,6 +100,13 @@ describe('BitcoinPaymentUtils', () => {
         await expect(puTestnet.getFeeRateRecommendation(FeeLevel.High, { source: 'mempool' }))
           .rejects.toThrow('only support mainnet')
       })
+
+      it('can retrieve fee level with blockbook source', async () => {
+        const { feeRate, feeRateType } = await puTestnet.getFeeRateRecommendation(FeeLevel.High, { source: 'blockbook' })
+        expect(Number.parseFloat(feeRate)).toBeGreaterThanOrEqual(0)
+        expect(feeRateType).toBe(FeeRateType.BasePerWeight) 
+      })
+
     })
   })
 

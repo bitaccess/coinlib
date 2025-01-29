@@ -175,7 +175,7 @@ export async function getBlockbookFeeRecommendation(
   try {
     const btcPerKbString = await blockbookClient.estimateFee(blockTarget)
     const fee = new BigNumber(btcPerKbString)
-    if (fee.isNaN() || fee.lte(0)) {
+    if (fee.isNaN() || fee.lt(0)) {
       throw new Error(`Blockbook estimatefee result is not a positive number: ${btcPerKbString}`)
     }
     const satPerByte = fee.times(100000)
