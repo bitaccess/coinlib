@@ -76,7 +76,20 @@ export class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
       if (this.networkType !== 'mainnet') {
         throw new Error('Mempool.space fee rate recommendations only support mainnet network type')
       }
-      return getMempoolSpaceMainnetFeeRecommendation(feeLevel, this.logger)
+      try {
+        // try using mempool.space
+        return getMempoolSpaceMainnetFeeRecommendation(feeLevel, this.logger)
+      } catch (e) {
+        this.logger.warn(e.toString())
+        // fall back to blockbook if mempool.space fails
+        try {
+          return super.getBlockbookFeeRecommendation(feeLevel)
+        } catch (e) {
+          this.logger.warn(e.toString())
+          // fall back to blockcypher if blockbook fails
+          return super.getBlockcypherFeeRecommendation(feeLevel)
+        }
+      }
     }
     return super.getFeeRateRecommendation(feeLevel, options)
   }
