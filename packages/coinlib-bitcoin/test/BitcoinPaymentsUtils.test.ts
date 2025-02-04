@@ -116,7 +116,7 @@ describe('BitcoinPaymentUtils', () => {
     describe('testnet', () => {
       it('cannot retrieve unsupported testnet mempool source', async () => {
         await expect(puTestnet.getFeeRateRecommendation(FeeLevel.High, { source: 'mempool' }))
-          .rejects.toThrow('only support mainnet')
+          .rejects.toThrow('Unsupported fee recommendation source: mempool')
       })
 
       it('can retrieve fee level with blockbook source', async () => {
