@@ -86,7 +86,7 @@ describe('BitcoinPaymentUtils', () => {
     describe('mainnet', () => {
       const levels: AutoFeeLevels[] = [FeeLevel.High, FeeLevel.Medium, FeeLevel.Low]
       for (const level of levels) {
-        for (const source of [undefined, 'blockbook']) {
+        for (const source of [undefined, 'blockbook', 'mempool']) {
           it(`can retrieve ${level} fee level recommendation with ${source} source`, async () => {
             const { feeRate, feeRateType } = await puMainnet.getFeeRateRecommendation(level, { source })
             expect(Number.parseFloat(feeRate)).toBeGreaterThanOrEqual(0)
