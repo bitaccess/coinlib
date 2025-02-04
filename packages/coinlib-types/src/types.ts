@@ -13,14 +13,14 @@ import { SUPPORTED_NETWORK_SYMBOLS } from './constants'
 
 export type SupportedCoinPaymentsSymbol = typeof SUPPORTED_NETWORK_SYMBOLS[number]
 const supportedNetworkSymbolsMap: { [k in SupportedCoinPaymentsSymbol]: null } = {
-  TRX: null,
-  XRP: null,
-  XLM: null,
+  BCH: null,
   BTC: null,
+  DOGE: null,
   ETH: null,
   LTC: null,
-  BCH: null,
-  DOGE: null,
+  TRX: null,
+  XLM: null,
+  XRP: null,
 }
 export const SupportedCoinPaymentsSymbol = t.keyof(supportedNetworkSymbolsMap, 'SupportedCoinPaymentsSymbol')
 
