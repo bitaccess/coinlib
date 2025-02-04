@@ -1,6 +1,7 @@
 import { FeeLevel, FeeRateType, AutoFeeLevels, NetworkType } from '@bitaccess/coinlib-common'
 import { BitcoinPaymentsUtils, AddressType, hexSeedToBuffer } from '../src'
 import { PRIVATE_KEY, ADDRESS_SEGWIT_P2SH, ADDRESS_BECH32M } from './fixtures'
+import * as utils from '../src/utils'
 
 const VALID_ADDRESS = ADDRESS_SEGWIT_P2SH
 
@@ -86,7 +87,7 @@ describe('BitcoinPaymentUtils', () => {
     describe('mainnet', () => {
       const levels: AutoFeeLevels[] = [FeeLevel.High, FeeLevel.Medium, FeeLevel.Low]
       for (const level of levels) {
-        for (const source of [undefined, 'blockbook']) {
+        for (const source of [undefined, 'blockbook', 'mempool']) {
           it(`can retrieve ${level} fee level recommendation with ${source} source`, async () => {
             const { feeRate, feeRateType } = await puMainnet.getFeeRateRecommendation(level, { source })
             expect(Number.parseFloat(feeRate)).toBeGreaterThanOrEqual(0)
@@ -94,11 +95,28 @@ describe('BitcoinPaymentUtils', () => {
           })
         }
       }
+      it(`if mempool.space fails, it should fall back to blockbook`, async () => {
+        // Mock the mempool.space function to simulate failure
+        jest.spyOn(utils, 'getMempoolSpaceMainnetFeeRecommendation')
+          .mockImplementation(() => {
+            throw new Error('Failed to retrieve BTC mainnet fee rate from mempool.space - API Error')
+          });
+
+        const { feeRate, feeRateType } = await puMainnet.getFeeRateRecommendation(FeeLevel.High, { 
+          source: 'mempool'
+        });
+
+        expect(Number.parseFloat(feeRate)).toBeGreaterThanOrEqual(0)
+        expect(feeRateType).toBe(FeeRateType.BasePerWeight)
+
+        // Restore the original implementation
+        jest.restoreAllMocks();
+      })
     })
     describe('testnet', () => {
       it('cannot retrieve unsupported testnet mempool source', async () => {
         await expect(puTestnet.getFeeRateRecommendation(FeeLevel.High, { source: 'mempool' }))
-          .rejects.toThrow('only support mainnet')
+          .rejects.toThrow('Unsupported fee recommendation source: mempool')
       })
 
       it('can retrieve fee level with blockbook source', async () => {

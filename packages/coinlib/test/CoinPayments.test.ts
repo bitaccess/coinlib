@@ -112,7 +112,8 @@ describe('CoinPayments', () => {
 
     describe('getPublicConfig', () => {
       it('returns correctly', () => {
-        expect(cp.getPublicConfig()).toEqual(omit(CONFIG, [UNCONFIGURED_ASSET]))
+        const publicConfig = cp.getPublicConfig()
+        expect(publicConfig).toEqual(omit(CONFIG, [UNCONFIGURED_ASSET]))
       })
     })
     describe('getPublicConfig with skipInitialInstantiation client should return emtpy object', () => {
@@ -134,7 +135,7 @@ describe('CoinPayments', () => {
     describe('getPublicConfig', () => {
       it('returns all assets', () => {
         const publicConfig = cp.getPublicConfig()
-        expect(Object.keys(publicConfig).sort()).toEqual(SUPPORTED_NETWORK_SYMBOLS.sort())
+        expect(Object.keys(publicConfig).sort()).toEqual(SUPPORTED_NETWORK_SYMBOLS)
         expect(publicConfig.logger).toBeUndefined()
         expect(publicConfig.network).toBeUndefined()
         expect(publicConfig.seed).toBeUndefined()
