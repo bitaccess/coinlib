@@ -97,3 +97,4 @@ See [@bitaccess/coinlib README](./packages/coinlib/README.md) for usage.
 3. Have someone review & approve new release. Merge PR, pull master
 4. Publish to npm `bin/publish.sh`
 
+
