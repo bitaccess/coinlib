@@ -141,6 +141,7 @@ export async function getBlockcypherFeeRecommendation(
 ): Promise<FeeRate> {
   let feeRate: string
   try {
+    logger.log('Attempting to use blockcypher for fee rate recommendation')
     const networkParam = networkType === NetworkType.Mainnet ? 'main' : 'test3'
     const tokenQs = blockcypherToken ? `?token=${blockcypherToken}` : ''
     const body = await request.get(
@@ -173,6 +174,7 @@ export async function getBlockbookFeeRecommendation(
 ): Promise<FeeRate> {
   let feeRate: string
   try {
+    logger.log('Attempting to use blockbook for fee rate recommendation')
     const btcPerKbString = await blockbookClient.estimateFee(blockTarget)
     const fee = new BigNumber(btcPerKbString)
     if (fee.isNaN() || fee.lt(0)) {

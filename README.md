@@ -16,12 +16,18 @@ brew install autoconf automake libtool
 npm install
 ```
 
-3. Execute tests (done by [Jest](https://jestjs.io/))
+3. Set environment variables
+```bash
+export BITCOIN_SERVER_URL="btc1.<my-blockbook-url>,btc2.<my-blockbook-url>"
+export BITCOIN_TESTNET_SERVER_URL="tbtc1.<my-blockbook-url>"
+```
+
+4. Execute tests (done by [Jest](https://jestjs.io/))
 ```bash
 npm run test
 ```
 
-4. Dependency management
+5. Dependency management
 
 * To remove dependency from leaf package, remove it from its `package.json` and run `lerna bootstrap`
 * To regenerate `package-lock.json` for package, run `npm install --package-lock-only`
