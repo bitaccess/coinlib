@@ -73,26 +73,24 @@ export class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
 
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels, options: GetFeeRecommendationOptions = {}): Promise<FeeRate> {
     if (options.source === 'mempool') {
-      if (this.networkType === 'mainnet') {
+      try {
+        // try using mempool.space
+        this.logger.log(`Attempting to use mempool.space for fee rate recommendation for ${this.networkType} network`)
+        return getMempoolSpaceMainnetFeeRecommendation(feeLevel, this.logger, this.networkType)
+      } catch (e) {
+        this.logger.warn(e.toString())
+        // fall back to blockbook if mempool.space fails
         try {
-          // try using mempool.space
-          this.logger.log('Attempting to use mempool.space for fee rate recommendation')
-          return getMempoolSpaceMainnetFeeRecommendation(feeLevel, this.logger)
+          this.logger.log(
+            `Could not use mempool.space for fee rate recommendation, falling back to blockbook with feeLevel ${feeLevel}`,
+          )
+          return super.getBlockbookFeeRecommendation(feeLevel)
         } catch (e) {
           this.logger.warn(e.toString())
-          // fall back to blockbook if mempool.space fails
-          try {
-            this.logger.log(`Could not use mempool.space for fee rate recommendation, falling back to blockbook with feeLevel ${feeLevel}`)
-            return super.getBlockbookFeeRecommendation(feeLevel)
-          } catch (e) {
-            this.logger.warn(e.toString())
-            // fall back to blockcypher if blockbook fails
-            this.logger.log('Could not use blockbook for fee rate recommendation, falling back to blockcypher')
-            return super.getBlockcypherFeeRecommendation(feeLevel)
-          }
+          // fall back to blockcypher if blockbook fails
+          this.logger.log('Could not use blockbook for fee rate recommendation, falling back to blockcypher')
+          return super.getBlockcypherFeeRecommendation(feeLevel)
         }
-      } else {
-        return super.getFeeRateRecommendation(feeLevel, options)
       }
     } else {
       return super.getFeeRateRecommendation(feeLevel, options)

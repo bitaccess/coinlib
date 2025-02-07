@@ -10,7 +10,7 @@ describe('BitcoinPaymentUtils', () => {
   let puTestnet: BitcoinPaymentsUtils
   beforeEach(() => {
     puMainnet = new BitcoinPaymentsUtils()
-    puTestnet = new BitcoinPaymentsUtils({network: NetworkType.Testnet})
+    puTestnet = new BitcoinPaymentsUtils({ network: NetworkType.Testnet })
   })
 
   describe('isValidAddress', () => {
@@ -97,55 +97,76 @@ describe('BitcoinPaymentUtils', () => {
       }
       it(`if mempool.space fails, it should fall back to blockbook`, async () => {
         // Mock the mempool.space function to simulate failure
-        jest.spyOn(utils, 'getMempoolSpaceMainnetFeeRecommendation')
-          .mockImplementation(() => {
-            throw new Error('Failed to retrieve BTC mainnet fee rate from mempool.space - API Error')
-          });
+        jest.spyOn(utils, 'getMempoolSpaceMainnetFeeRecommendation').mockImplementation(() => {
+          throw new Error('Failed to retrieve BTC mainnet fee rate from mempool.space - API Error')
+        })
 
-        const { feeRate, feeRateType } = await puMainnet.getFeeRateRecommendation(FeeLevel.High, { 
-          source: 'mempool'
-        });
+        const { feeRate, feeRateType } = await puMainnet.getFeeRateRecommendation(FeeLevel.High, {
+          source: 'mempool',
+        })
 
         expect(Number.parseFloat(feeRate)).toBeGreaterThanOrEqual(0)
         expect(feeRateType).toBe(FeeRateType.BasePerWeight)
 
         // Restore the original implementation
-        jest.restoreAllMocks();
+        jest.restoreAllMocks()
       })
     })
     describe('testnet', () => {
-      it('cannot retrieve unsupported testnet mempool source', async () => {
-        await expect(puTestnet.getFeeRateRecommendation(FeeLevel.High, { source: 'mempool' }))
-          .rejects.toThrow('Unsupported fee recommendation source: mempool')
-      })
+      const levels: AutoFeeLevels[] = [FeeLevel.High, FeeLevel.Medium, FeeLevel.Low]
+      for (const level of levels) {
+        for (const source of [undefined, 'blockbook', 'mempool']) {
+          it(`can retrieve ${level} fee level recommendation with ${source} source`, async () => {
+            const { feeRate, feeRateType } = await puTestnet.getFeeRateRecommendation(level, { source })
+            expect(Number.parseFloat(feeRate)).toBeGreaterThanOrEqual(0)
+            expect(feeRateType).toBe(FeeRateType.BasePerWeight)
+          })
+        }
+      }
+      it(`if mempool.space fails, it should fall back to blockbook`, async () => {
+        // Mock the mempool.space function to simulate failure
+        jest.spyOn(utils, 'getMempoolSpaceMainnetFeeRecommendation').mockImplementation(() => {
+          throw new Error('Failed to retrieve BTC testnet fee rate from mempool.space - API Error')
+        })
 
-      it('can retrieve fee level with blockbook source', async () => {
-        const { feeRate, feeRateType } = await puTestnet.getFeeRateRecommendation(FeeLevel.High, { source: 'blockbook' })
+        const { feeRate, feeRateType } = await puMainnet.getFeeRateRecommendation(FeeLevel.High, {
+          source: 'mempool',
+        })
+
         expect(Number.parseFloat(feeRate)).toBeGreaterThanOrEqual(0)
-        expect(feeRateType).toBe(FeeRateType.BasePerWeight) 
-      })
+        expect(feeRateType).toBe(FeeRateType.BasePerWeight)
 
+        // Restore the original implementation
+        jest.restoreAllMocks()
+      })
+      it('can retrieve fee level with blockbook source', async () => {
+        const { feeRate, feeRateType } = await puTestnet.getFeeRateRecommendation(FeeLevel.High, {
+          source: 'blockbook',
+        })
+        expect(Number.parseFloat(feeRate)).toBeGreaterThanOrEqual(0)
+        expect(feeRateType).toBe(FeeRateType.BasePerWeight)
+      })
     })
   })
 
   describe('determinePathForIndex', () => {
     test('Mainnet SegwitNative', () => {
-      const options = {addressType: AddressType.SegwitNative}
+      const options = { addressType: AddressType.SegwitNative }
       const path = puMainnet.determinePathForIndex(3, options)
       expect(path).toBe(`m/84'/0'/3'`)
     })
     test('Mainnet MultisigSegwitNative', () => {
-      const options = {addressType: AddressType.MultisigSegwitNative}
+      const options = { addressType: AddressType.MultisigSegwitNative }
       const path = puMainnet.determinePathForIndex(3, options)
       expect(path).toBe(`m/87'/0'/3'`)
     })
     test('Testnet SegwitP2SH', () => {
-      const options = {addressType: AddressType.SegwitP2SH}
+      const options = { addressType: AddressType.SegwitP2SH }
       const path = puTestnet.determinePathForIndex(4, options)
       expect(path).toBe(`m/49'/0'/4'`)
     })
     test('Testnet MultisigLegacy', () => {
-      const options = {addressType: AddressType.MultisigLegacy}
+      const options = { addressType: AddressType.MultisigLegacy }
       const path = puTestnet.determinePathForIndex(4, options)
       expect(path).toBe(`m/87'/0'/4'`)
     })
@@ -177,6 +198,4 @@ describe('BitcoinPaymentUtils', () => {
       expect(xpub).toBe(expectedXpub)
     })
   })
-
-
 })
