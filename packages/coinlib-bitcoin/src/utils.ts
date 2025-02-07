@@ -1,7 +1,5 @@
-import { NetworkType, FeeRateType, AutoFeeLevels, FeeRate, FeeLevel } from '@bitaccess/coinlib-common'
-import {
-  BitcoinBaseConfig,
- } from './types'
+import { NetworkType, FeeRateType, AutoFeeLevels, FeeRate, FeeLevel, NetworkTypeT } from '@bitaccess/coinlib-common'
+import { BitcoinBaseConfig } from './types'
 import { BitcoinishPaymentsConfig } from './bitcoinish'
 import {
   DEFAULT_NETWORK,
@@ -61,22 +59,29 @@ const FEE_LEVEL_TO_MEMPOOL_FIELD = {
 export async function getMempoolSpaceMainnetFeeRecommendation(
   feeLevel: AutoFeeLevels,
   logger: Logger,
+  networkType: NetworkType,
 ): Promise<FeeRate> {
   let feeRate: string
+  let url: string
+  const MEMPOOL_SPACE_FEE_URL_MAINNET =
+    process.env.MEMPOOL_SPACE_FEE_URL_MAINNET ?? 'https://mempool.space/api/v1/fees/recommended'
+  const MEMPOOL_SPACE_FEE_URL_TESTNET =
+    process.env.MEMPOOL_SPACE_FEE_URL_TESTNET ?? 'https://mempool.space/testnet/api/v1/fees/recommended'
+  if (networkType === NetworkType.Testnet) url = MEMPOOL_SPACE_FEE_URL_TESTNET
+  else url = MEMPOOL_SPACE_FEE_URL_MAINNET
   try {
-    const body = await request.get(
-      process.env.MEMPOOL_SPACE_FEE_URL ?? `https://mempool.space/api/v1/fees/recommended`,
-      { json: true },
-    )
+    const body = await request.get(url, { json: true })
     const feePerKbField = FEE_LEVEL_TO_MEMPOOL_FIELD[feeLevel]
     const satPerByte = body[feePerKbField]
     if (!satPerByte) {
       throw new Error(`Response is missing expected field ${feePerKbField}`)
     }
     feeRate = String(satPerByte)
-    logger.log(`Retrieved BTC mainnet fee rate of ${satPerByte} sat/vbyte from mempool.space for ${feeLevel} level`)
+    logger.log(
+      `Retrieved BTC ${networkType} fee rate of ${satPerByte} sat/vbyte from mempool.space for ${feeLevel} level`,
+    )
   } catch (e) {
-    throw new Error(`Failed to retrieve BTC mainnet fee rate from mempool.space - ${e.toString()}`)
+    throw new Error(`Failed to retrieve BTC ${networkType} fee rate from mempool.space - ${e.toString()}`)
   }
   return {
     feeRate,
