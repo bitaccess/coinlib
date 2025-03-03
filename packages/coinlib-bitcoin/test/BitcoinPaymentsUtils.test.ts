@@ -98,7 +98,7 @@ describe('BitcoinPaymentUtils', () => {
       it(`if mempool.space fails, it should fall back to blockbook`, async () => {
         // Mock the mempool.space function to simulate failure
         jest.spyOn(puMainnet, 'getMempoolSpaceFeeRecommendation').mockImplementation(() => {
-          throw new Error('Failed to retrieve BTC mainnet fee rate from mempool.space - API Error')
+          throw new Error('Failed to retrieve BTC mainnet fee rate from mempool.space - Mock API Error')
         })
         const { feeRate, feeRateType } = await puMainnet.getFeeRateRecommendation(FeeLevel.High, {
           source: 'mempool',
@@ -124,7 +124,7 @@ describe('BitcoinPaymentUtils', () => {
       it(`if mempool.space fails, it should fall back to blockbook`, async () => {
         // Mock the mempool.space function to simulate failure
         jest.spyOn(puTestnet, 'getMempoolSpaceFeeRecommendation').mockImplementation(() => {
-          throw new Error('Failed to retrieve BTC testnet fee rate from mempool.space - API Error')
+          throw new Error('Failed to retrieve BTC testnet fee rate from mempool.space - Mock API Error')
         })
         const { feeRate, feeRateType } = await puTestnet.getFeeRateRecommendation(FeeLevel.High, {
           source: 'mempool',

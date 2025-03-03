@@ -102,20 +102,20 @@ export class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
         feeRateType: FeeRateType.BasePerWeight,
       }
     } catch (e) {
-      this.logger.log(
-        `Could not use mempool.space for fee rate recommendation, falling back to blockbook with feeLevel ${feeLevel}`,
-      )
-      return this.getBlockbookFeeRecommendation(feeLevel)
+      throw new Error(`Failed to retrieve BTC ${this.networkType} fee rate from mempool.space - ${e.name}: ${e.message}`)
     }
   }
 
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels, options: GetFeeRecommendationOptions = {}): Promise<FeeRate> {
     if (options.source === 'mempool') {
       try {
-        return this.getMempoolSpaceFeeRecommendation(feeLevel)
+        return await this.getMempoolSpaceFeeRecommendation(feeLevel)
       } catch (e) {
         this.logger.error(`${e.name} - ${e.message}`)
-        return super.getFeeRateRecommendation(feeLevel)
+      this.logger.log(
+        `Could not use mempool.space for fee rate recommendation, falling back to blockbook with feeLevel ${feeLevel}`,
+      )
+        return this.getBlockbookFeeRecommendation(feeLevel)
       }
     } else {
       return super.getFeeRateRecommendation(feeLevel, options)
