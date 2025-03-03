@@ -184,7 +184,7 @@ export async function getBlockbookFeeRecommendation(
     feeRate = satPerByte.toFixed()
     logger.log(`Retrieved ${coinSymbol} ${networkType} fee rate of ${satPerByte} sat/vbyte from blockbook, using ${feeRate} for ${blockTarget} block target`)
   } catch (e) {
-    throw new Error(`Failed to retrieve ${coinSymbol} ${networkType} fee rate from blockbook - ${e.toString()}`)
+    throw new Error(`Failed to retrieve ${coinSymbol} ${networkType} fee rate from blockbook - ${e.name} - ${e.message}`)
   }
   return {
     feeRate,

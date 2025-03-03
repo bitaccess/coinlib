@@ -3,7 +3,7 @@ import {
   createDeterminePathForIndexHelper,
   createDeriveUniPubKeyForPathHelper,
 } from './bitcoinish'
-import { getMempoolSpaceMainnetFeeRecommendation, toBitcoinishConfig } from './utils'
+import { toBitcoinishConfig } from './utils'
 import { BitcoinPaymentsUtilsConfig, AddressType, AddressTypeT } from './types'
 import {
   isValidAddress,
@@ -13,11 +13,18 @@ import {
   isSupportedAddressType,
   getSupportedAddressTypes,
 } from './helpers'
-import { AutoFeeLevels, FeeRate, GetFeeRecommendationOptions, NetworkType } from '@bitaccess/coinlib-common'
+import { AutoFeeLevels, FeeRate, GetFeeRecommendationOptions, NetworkType, FeeLevel, FeeRateType } from '@bitaccess/coinlib-common'
 import { assertType } from '@bitaccess/ts-common'
 import { DEFAULT_ADDRESS_TYPE, BITCOIN_NETWORK_CONSTANTS, NETWORKS } from './constants'
+import request from 'request-promise-native'
 
 export class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
+  private readonly FEE_LEVEL_TO_MEMPOOL_FIELD = {
+    [FeeLevel.High]: 'fastestFee',
+    [FeeLevel.Medium]: 'economyFee',
+    [FeeLevel.Low]: 'minimumFee',
+  }
+
   constructor(config: BitcoinPaymentsUtilsConfig = {}) {
     super(toBitcoinishConfig(config))
   }
@@ -71,26 +78,44 @@ export class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
     return uniPubKey
   }
 
+  async getMempoolSpaceFeeRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
+    let feeRate: string
+    let url: string
+    const MEMPOOL_SPACE_FEE_URL_MAINNET = process.env.MEMPOOL_SPACE_FEE_URL_MAINNET ?? 'https://mempool.space/api/v1/fees/recommended'
+    const MEMPOOL_SPACE_FEE_URL_TESTNET = process.env.MEMPOOL_SPACE_FEE_URL_TESTNET ?? 'https://mempool.space/testnet/api/v1/fees/recommended'
+    if (this.networkType === NetworkType.Testnet) url = MEMPOOL_SPACE_FEE_URL_TESTNET
+    else url = MEMPOOL_SPACE_FEE_URL_MAINNET
+    this.logger.log(`Attempting to use mempool.space for fee rate recommendation for ${this.networkType} network`)
+    try {
+      const body = await request.get(url, { json: true })
+      const feePerKbField = this.FEE_LEVEL_TO_MEMPOOL_FIELD[feeLevel]
+      const satPerByte = body[feePerKbField]
+      if (!satPerByte) {
+        throw new Error(`Response is missing expected field ${feePerKbField}`)
+      }
+      feeRate = String(satPerByte)
+      this.logger.log(
+        `Retrieved BTC ${this.networkType} fee rate of ${satPerByte} sat/vbyte from mempool.space for ${feeLevel} level`,
+      )
+      return {
+        feeRate,
+        feeRateType: FeeRateType.BasePerWeight,
+      }
+    } catch (e) {
+      this.logger.log(
+        `Could not use mempool.space for fee rate recommendation, falling back to blockbook with feeLevel ${feeLevel}`,
+      )
+      return this.getBlockbookFeeRecommendation(feeLevel)
+    }
+  }
+
   async getFeeRateRecommendation(feeLevel: AutoFeeLevels, options: GetFeeRecommendationOptions = {}): Promise<FeeRate> {
     if (options.source === 'mempool') {
       try {
-        // try using mempool.space
-        this.logger.log(`Attempting to use mempool.space for fee rate recommendation for ${this.networkType} network`)
-        return getMempoolSpaceMainnetFeeRecommendation(feeLevel, this.logger, this.networkType)
+        return this.getMempoolSpaceFeeRecommendation(feeLevel)
       } catch (e) {
-        this.logger.warn(e.toString())
-        // fall back to blockbook if mempool.space fails
-        try {
-          this.logger.log(
-            `Could not use mempool.space for fee rate recommendation, falling back to blockbook with feeLevel ${feeLevel}`,
-          )
-          return super.getBlockbookFeeRecommendation(feeLevel)
-        } catch (e) {
-          this.logger.warn(e.toString())
-          // fall back to blockcypher if blockbook fails
-          this.logger.log('Could not use blockbook for fee rate recommendation, falling back to blockcypher')
-          return super.getBlockcypherFeeRecommendation(feeLevel)
-        }
+        this.logger.error(`${e.name} - ${e.message}`)
+        return super.getFeeRateRecommendation(feeLevel)
       }
     } else {
       return super.getFeeRateRecommendation(feeLevel, options)
