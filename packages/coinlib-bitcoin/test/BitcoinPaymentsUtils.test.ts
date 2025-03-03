@@ -87,7 +87,7 @@ describe('BitcoinPaymentUtils', () => {
     describe('mainnet', () => {
       const levels: AutoFeeLevels[] = [FeeLevel.High, FeeLevel.Medium, FeeLevel.Low]
       for (const level of levels) {
-        for (const source of [undefined, 'blockbook', 'mempool']) {
+        for (const source of [ undefined, 'blockbook', 'mempool' ]) {
           it(`can retrieve ${level} fee level recommendation with ${source} source`, async () => {
             const { feeRate, feeRateType } = await puMainnet.getFeeRateRecommendation(level, { source })
             expect(Number.parseFloat(feeRate)).toBeGreaterThanOrEqual(0)
@@ -97,17 +97,14 @@ describe('BitcoinPaymentUtils', () => {
       }
       it(`if mempool.space fails, it should fall back to blockbook`, async () => {
         // Mock the mempool.space function to simulate failure
-        jest.spyOn(utils, 'getMempoolSpaceMainnetFeeRecommendation').mockImplementation(() => {
-          throw new Error('Failed to retrieve BTC mainnet fee rate from mempool.space - API Error')
+        jest.spyOn(puMainnet, 'getMempoolSpaceFeeRecommendation').mockImplementation(() => {
+          throw new Error('Failed to retrieve BTC mainnet fee rate from mempool.space - Mock API Error')
         })
-
         const { feeRate, feeRateType } = await puMainnet.getFeeRateRecommendation(FeeLevel.High, {
           source: 'mempool',
         })
-
         expect(Number.parseFloat(feeRate)).toBeGreaterThanOrEqual(0)
         expect(feeRateType).toBe(FeeRateType.BasePerWeight)
-
         // Restore the original implementation
         jest.restoreAllMocks()
       })
@@ -115,8 +112,9 @@ describe('BitcoinPaymentUtils', () => {
     describe('testnet', () => {
       const levels: AutoFeeLevels[] = [FeeLevel.High, FeeLevel.Medium, FeeLevel.Low]
       for (const level of levels) {
-        for (const source of [undefined, 'blockbook', 'mempool']) {
+        for (const source of [ undefined, 'blockbook', 'mempool' ]) {
           it(`can retrieve ${level} fee level recommendation with ${source} source`, async () => {
+            console.log(``)
             const { feeRate, feeRateType } = await puTestnet.getFeeRateRecommendation(level, { source })
             expect(Number.parseFloat(feeRate)).toBeGreaterThanOrEqual(0)
             expect(feeRateType).toBe(FeeRateType.BasePerWeight)
@@ -125,26 +123,16 @@ describe('BitcoinPaymentUtils', () => {
       }
       it(`if mempool.space fails, it should fall back to blockbook`, async () => {
         // Mock the mempool.space function to simulate failure
-        jest.spyOn(utils, 'getMempoolSpaceMainnetFeeRecommendation').mockImplementation(() => {
-          throw new Error('Failed to retrieve BTC testnet fee rate from mempool.space - API Error')
+        jest.spyOn(puTestnet, 'getMempoolSpaceFeeRecommendation').mockImplementation(() => {
+          throw new Error('Failed to retrieve BTC testnet fee rate from mempool.space - Mock API Error')
         })
-
-        const { feeRate, feeRateType } = await puMainnet.getFeeRateRecommendation(FeeLevel.High, {
+        const { feeRate, feeRateType } = await puTestnet.getFeeRateRecommendation(FeeLevel.High, {
           source: 'mempool',
         })
-
         expect(Number.parseFloat(feeRate)).toBeGreaterThanOrEqual(0)
         expect(feeRateType).toBe(FeeRateType.BasePerWeight)
-
         // Restore the original implementation
         jest.restoreAllMocks()
-      })
-      it('can retrieve fee level with blockbook source', async () => {
-        const { feeRate, feeRateType } = await puTestnet.getFeeRateRecommendation(FeeLevel.High, {
-          source: 'blockbook',
-        })
-        expect(Number.parseFloat(feeRate)).toBeGreaterThanOrEqual(0)
-        expect(feeRateType).toBe(FeeRateType.BasePerWeight)
       })
     })
   })
