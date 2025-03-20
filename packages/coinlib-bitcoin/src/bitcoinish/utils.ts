@@ -1,18 +1,34 @@
-import { NetworkType, UtxoInfo, AutoFeeLevels, FeeRate, FeeRateType, BigNumber, bip32MagicNumberToPrefix } from '@bitaccess/coinlib-common'
+import {
+  NetworkType,
+  UtxoInfo,
+  AutoFeeLevels,
+  FeeRate,
+  FeeRateType,
+  BigNumber,
+  bip32MagicNumberToPrefix,
+} from '@bitaccess/coinlib-common'
 import { BlockbookBitcoin } from 'blockbook-client'
 import { isString, Logger, isMatchingError, toBigNumber, assertType } from '@bitaccess/ts-common'
-import request from 'request-promise-native'
+// import request from 'request-promise-native'
+import fetch from 'node-fetch'
 import promiseRetry from 'promise-retry'
 import crypto from 'crypto'
 
 import {
-  AddressType, AddressTypeT, BlockbookConnectedConfig,
-  BlockbookServerAPI, MultisigAddressType, SinglesigAddressType,
+  AddressType,
+  AddressTypeT,
+  BlockbookConnectedConfig,
+  BlockbookServerAPI,
+  MultisigAddressType,
+  SinglesigAddressType,
 } from './types'
 
 export { bip32MagicNumberToPrefix }
 
-export function resolveServer(config: BlockbookConnectedConfig, logger: Logger): {
+export function resolveServer(
+  config: BlockbookConnectedConfig,
+  logger: Logger,
+): {
   api: BlockbookServerAPI
   server: string[] | null
 } {
@@ -59,7 +75,14 @@ export function resolveServer(config: BlockbookConnectedConfig, logger: Logger):
 }
 
 const RETRYABLE_ERRORS = [
-  'timeout', 'disconnected', 'time-out', 'StatusCodeError: 522', 'StatusCodeError: 504', 'ENOTFOUND', 'ESOCKETTIMEDOUT', 'ETIMEDOUT',
+  'timeout',
+  'disconnected',
+  'time-out',
+  'StatusCodeError: 522',
+  'StatusCodeError: 504',
+  'ENOTFOUND',
+  'ESOCKETTIMEDOUT',
+  'ETIMEDOUT',
 ]
 const MAX_RETRIES = 2
 
@@ -71,7 +94,7 @@ export function retryIfDisconnected<T>(
 ): Promise<T> {
   return promiseRetry(
     (retry, attempt) => {
-      return fn().catch(async e => {
+      return fn().catch(async (e) => {
         if (isMatchingError(e, [...RETRYABLE_ERRORS, ...additionalRetryableErrors])) {
           logger.log(
             `Retryable error during blockbook server call, retrying ${MAX_RETRIES - attempt} more times`,
@@ -102,10 +125,13 @@ export function sumUtxoValue(utxos: UtxoInfo[], includeUnconfirmed?: boolean): B
 }
 
 export function countOccurences<T extends string[]>(a: T): { [key: string]: number } {
-  return a.reduce((result, element) => {
-    result[element] = (result[element] ?? 0) + 1
-    return result
-  }, {} as { [key: string]: number })
+  return a.reduce(
+    (result, element) => {
+      result[element] = (result[element] ?? 0) + 1
+      return result
+    },
+    {} as { [key: string]: number },
+  )
 }
 
 /**
@@ -127,9 +153,7 @@ export function isConfirmedUtxo(utxo: UtxoInfo): boolean {
 }
 
 export function sha256FromHex(hex: string): string {
-  return hex
-    ? crypto.createHash('sha256').update(Buffer.from(hex, 'hex')).digest('hex')
-    : ''
+  return hex ? crypto.createHash('sha256').update(Buffer.from(hex, 'hex')).digest('hex') : ''
 }
 
 export async function getBlockcypherFeeRecommendation(
@@ -144,18 +168,23 @@ export async function getBlockcypherFeeRecommendation(
     logger.log('Attempting to use blockcypher for fee rate recommendation')
     const networkParam = networkType === NetworkType.Mainnet ? 'main' : 'test3'
     const tokenQs = blockcypherToken ? `?token=${blockcypherToken}` : ''
-    const body = await request.get(
-      `https://api.blockcypher.com/v1/${coinSymbol.toLowerCase()}/${networkParam}${tokenQs}`,
-      { json: true },
-    )
+    // const body = await request.get(
+    //   `https://api.blockcypher.com/v1/${coinSymbol.toLowerCase()}/${networkParam}${tokenQs}`,
+    //   { json: true },
+    // )
+    const url = `https://api.blockcypher.com/v1/${coinSymbol.toLowerCase()}/${networkParam}${tokenQs}`
+    const response = await fetch(url)
+    const data: any = await response.json()
     const feePerKbField = `${feeLevel}_fee_per_kb`
-    const feePerKb = body[feePerKbField]
+    const feePerKb = data[feePerKbField]
     if (!feePerKb) {
       throw new Error(`Response is missing expected field ${feePerKbField}`)
     }
     const satPerByte = feePerKb / 1000
     feeRate = String(satPerByte)
-    logger.log(`Retrieved ${coinSymbol} ${networkType} fee rate of ${satPerByte} sat/vbyte from blockcypher for ${feeLevel} level`)
+    logger.log(
+      `Retrieved ${coinSymbol} ${networkType} fee rate of ${satPerByte} sat/vbyte from blockcypher for ${feeLevel} level`,
+    )
   } catch (e) {
     throw new Error(`Failed to retrieve ${coinSymbol} ${networkType} fee rate from blockcypher - ${e.toString()}`)
   }
@@ -182,9 +211,13 @@ export async function getBlockbookFeeRecommendation(
     }
     const satPerByte = fee.times(100000)
     feeRate = satPerByte.toFixed()
-    logger.log(`Retrieved ${coinSymbol} ${networkType} fee rate of ${satPerByte} sat/vbyte from blockbook, using ${feeRate} for ${blockTarget} block target`)
+    logger.log(
+      `Retrieved ${coinSymbol} ${networkType} fee rate of ${satPerByte} sat/vbyte from blockbook, using ${feeRate} for ${blockTarget} block target`,
+    )
   } catch (e) {
-    throw new Error(`Failed to retrieve ${coinSymbol} ${networkType} fee rate from blockbook - ${e.name} - ${e.message}`)
+    throw new Error(
+      `Failed to retrieve ${coinSymbol} ${networkType} fee rate from blockbook - ${e.name} - ${e.message}`,
+    )
   }
   return {
     feeRate,
@@ -195,11 +228,11 @@ export async function getBlockbookFeeRecommendation(
 // assumes compressed pubkeys in all cases.
 export const ADDRESS_INPUT_WEIGHTS: { [k in AddressType]: number } = {
   [AddressType.Legacy]: 148 * 4,
-  [AddressType.SegwitP2SH]: 108 + (64 * 4),
-  [AddressType.SegwitNative]: 108 + (41 * 4),
+  [AddressType.SegwitP2SH]: 108 + 64 * 4,
+  [AddressType.SegwitNative]: 108 + 41 * 4,
   [AddressType.MultisigLegacy]: 49 * 4,
-  [AddressType.MultisigSegwitP2SH]: 6 + (76 * 4),
-  [AddressType.MultisigSegwitNative]: 6 + (41 * 4),
+  [AddressType.MultisigSegwitP2SH]: 6 + 76 * 4,
+  [AddressType.MultisigSegwitNative]: 6 + 41 * 4,
 }
 
 export const ADDRESS_OUTPUT_WEIGHTS: { [k in AddressType]: number } = {
@@ -208,22 +241,17 @@ export const ADDRESS_OUTPUT_WEIGHTS: { [k in AddressType]: number } = {
   [AddressType.SegwitNative]: 31 * 4,
   [AddressType.MultisigLegacy]: 34 * 4,
   [AddressType.MultisigSegwitP2SH]: 34 * 4,
-  [AddressType.MultisigSegwitNative]: 43 * 4
+  [AddressType.MultisigSegwitNative]: 43 * 4,
 }
 
-function checkUInt53 (n: number) {
+function checkUInt53(n: number) {
   if (n < 0 || n > Number.MAX_SAFE_INTEGER || n % 1 !== 0) throw new RangeError('value out of range')
 }
 
-function varIntLength (n: number) {
+function varIntLength(n: number) {
   checkUInt53(n)
 
-  return (
-    n < 0xfd ? 1
-      : n <= 0xffff ? 3
-      : n <= 0xffffffff ? 5
-      : 9
-  )
+  return n < 0xfd ? 1 : n <= 0xffff ? 3 : n <= 0xffffffff ? 5 : 9
 }
 
 /**
@@ -245,7 +273,7 @@ function varIntLength (n: number) {
 export function estimateTxSize(
   inputCounts: { [k: string]: number },
   outputCounts: { [k: string]: number },
-  toOutputScript: (address: string) => Buffer
+  toOutputScript: (address: string) => Buffer,
 ) {
   let totalWeight = 0
   let hasWitness = false
@@ -260,11 +288,11 @@ export function estimateTxSize(
       const keyParts = key.split(':')
       if (keyParts.length !== 2) throw new Error('invalid inputCounts key: ' + key)
       const addressType = assertType(MultisigAddressType, keyParts[0], 'inputCounts key')
-      const [m,n] = keyParts[1].split('-').map((x) => parseInt(x))
+      const [m, n] = keyParts[1].split('-').map((x) => parseInt(x))
 
       totalWeight += ADDRESS_INPUT_WEIGHTS[addressType] * count
-      const multiplyer = (addressType === AddressType.MultisigLegacy) ? 4 : 1
-      totalWeight += ((73 * m) + (34 * n)) * multiplyer * count
+      const multiplyer = addressType === AddressType.MultisigLegacy ? 4 : 1
+      totalWeight += (73 * m + 34 * n) * multiplyer * count
     } else {
       const addressType = assertType(SinglesigAddressType, key, 'inputCounts key')
       totalWeight += ADDRESS_INPUT_WEIGHTS[addressType] * count
@@ -273,7 +301,7 @@ export function estimateTxSize(
     if (key.indexOf('W') >= 0) hasWitness = true
   })
 
-  Object.keys(outputCounts).forEach(function(key) {
+  Object.keys(outputCounts).forEach(function (key) {
     const count = outputCounts[key]
     checkUInt53(count)
     if (AddressTypeT.is(key)) {
@@ -282,7 +310,7 @@ export function estimateTxSize(
       try {
         const outputScript = toOutputScript(key)
         totalWeight += (outputScript.length + 9) * 4 * count
-      } catch(e) {
+      } catch (e) {
         throw new Error('invalid outputCounts key: ' + key)
       }
     }

@@ -17,7 +17,7 @@ import {
   PACKAGE_NAME,
 } from './constants'
 import { Logger } from '@bitaccess/ts-common'
-import request from 'request-promise-native'
+// import request from 'request-promise-native'
 
 const DEFAULT_BITCOINISH_CONFIG = {
   coinSymbol: COIN_SYMBOL,

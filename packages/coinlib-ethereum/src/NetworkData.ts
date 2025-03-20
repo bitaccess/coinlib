@@ -1,7 +1,8 @@
 import { AutoFeeLevels, BlockInfo, FunctionPropertyNames, NewBlockCallback, BigNumber } from '@bitaccess/coinlib-common'
 import { Logger, DelegateLogger, Numeric } from '@bitaccess/ts-common'
 import { GetAddressDetailsOptions, NormalizedTxEthereum } from 'blockbook-client'
-import * as request from 'request-promise-native'
+// import * as request from 'request-promise-native'
+import fetch from 'node-fetch'
 import { TransactionConfig } from 'web3-core'
 
 import { DEFAULT_GAS_PRICE_IN_WEI, GAS_STATION_URL, GAS_STATION_FEE_SPEED } from './constants'
@@ -87,11 +88,14 @@ export class NetworkData {
   }> {
     const pricePerGasUnit = await this.getGasPrice(speed)
     const nonce = await this.getNextNonce(from)
-    const amountOfGas = await this.estimateGas({
-      from,
-      to,
-      ...(data ? { data } : {}),
-    }, txType)
+    const amountOfGas = await this.estimateGas(
+      {
+        from,
+        to,
+        ...(data ? { data } : {}),
+      },
+      txType,
+    )
 
     return {
       pricePerGasUnit,
@@ -113,9 +117,7 @@ export class NetworkData {
 
   async getNextNonce(address: string): Promise<string> {
     const web3Nonce = await this.fetchNonceOrZero(this.web3Service, address)
-    const blockbookNonce = this.blockbookEnabled
-      ? await this.fetchNonceOrZero(this.blockBookService, address)
-      : 0
+    const blockbookNonce = this.blockbookEnabled ? await this.fetchNonceOrZero(this.blockBookService, address) : 0
 
     const nonce = BigNumber.maximum(web3Nonce, blockbookNonce, 0)
     return nonce.toString()
@@ -164,7 +166,7 @@ export class NetworkData {
     }
     let body: { [key: string]: number }
     try {
-      body = await this._retryDced(() => request.get(options))
+      body = await this._retryDced(() => fetch(options.url).then())
     } catch (e) {
       // this.logger.warn('Failed to retrieve gas price from ethgasstation - ', e.toString())
       return ''
@@ -179,10 +181,7 @@ export class NetworkData {
 
     const gwei = new BigNumber(price10xGwei).dividedBy(10)
     // this.logger.log(`Retrieved gas price of ${gwei} Gwei from ethgasstation using speed ${speed}`)
-    return gwei
-      .multipliedBy(1e9)
-      .dp(0, BigNumber.ROUND_DOWN)
-      .toFixed()
+    return gwei.multipliedBy(1e9).dp(0, BigNumber.ROUND_DOWN).toFixed()
   }
 
   async getTxRaw(txId: string) {
