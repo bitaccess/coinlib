@@ -1,6 +1,6 @@
 {
   "name": "@bitaccess/coinlib-doge",
-  "version": "7.5.1",
+  "version": "8.0.0",
   "description": "Library to assist in processing doge payments, such as deriving addresses and sweeping funds",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
