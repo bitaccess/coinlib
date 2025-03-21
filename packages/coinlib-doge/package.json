@@ -55,7 +55,6 @@
     "bitcoinjs-lib-bigint": "github:bitaccess/bitcoinjs-lib#bigintv6",
     "io-ts": "^1.10.4",
     "lodash": "^4.17.21",
-    "promise-retry": "^1.1.1",
-    "request-promise-native": "^1.0.8"
+    "promise-retry": "^1.1.1"
   }
 }

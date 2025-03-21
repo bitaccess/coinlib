@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Builds the docs for a specified package. Designed to be run within that package dir.
 # Usage: docs.sh <package_dir> [...args]

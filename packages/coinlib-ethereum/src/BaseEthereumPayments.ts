@@ -22,7 +22,8 @@ import {
   DerivablePayport,
 } from '@bitaccess/coinlib-common'
 import { isType, isMatchingError, Numeric } from '@bitaccess/ts-common'
-import request from 'request-promise-native'
+// import request from 'request-promise-native'
+import fetch from 'node-fetch'
 
 import {
   EthereumTransactionInfo,
@@ -47,9 +48,15 @@ import { buffToHex, hexToBuff, numericToHex, strip0x } from './utils'
 
 export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsConfig>
   extends EthereumPaymentsUtils
-  implements BasePayments<
-    Config, EthereumUnsignedTransaction, EthereumSignedTransaction, EthereumBroadcastResult, EthereumTransactionInfo
-  > {
+  implements
+    BasePayments<
+      Config,
+      EthereumUnsignedTransaction,
+      EthereumSignedTransaction,
+      EthereumBroadcastResult,
+      EthereumTransactionInfo
+    >
+{
   private config: Config
   private ejsCommon: EjsCommon
   public depositKeyIndex: number
@@ -57,7 +64,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
   constructor(config: Config) {
     super(config)
     this.config = config
-    this.depositKeyIndex = (typeof config.depositKeyIndex === 'undefined') ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
+    this.depositKeyIndex = typeof config.depositKeyIndex === 'undefined' ? DEPOSIT_KEY_INDEX : config.depositKeyIndex
     const { chainId } = this.networkConstants
     this.ejsCommon = EjsCommon.isSupportedChainId(chainId as any)
       ? new EjsCommon({ chain: chainId })
@@ -81,7 +88,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     } else if (this.isValidPayport(payport)) {
       return { ...payport, address: this.standardizeAddressOrThrow(payport.address) }
     }
-    return { address : '' }
+    return { address: '' }
     // throw new Error(`Invalid ${this.networkName} payport: ${JSON.stringify(payport)}`)
   }
 
@@ -104,7 +111,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     feeOption: FeeOption,
     amountOfGas: number = ETHEREUM_TRANSFER_COST,
   ): Promise<EthereumResolvedFeeOption> {
-    if (new BigNumber(amountOfGas).dp() > 0) {
+    if (new BigNumber(amountOfGas).dp()! > 0) {
       // throw new Error(`Amount of gas must be a whole number ${amountOfGas}`)
     }
     return isType(FeeOptionCustom, feeOption)
@@ -112,10 +119,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       : this.resolveLeveledFeeOption(feeOption.feeLevel, amountOfGas)
   }
 
-  resolveCustomFeeOption(
-    feeOption: FeeOptionCustom,
-    amountOfGas: number,
-  ): EthereumResolvedFeeOption {
+  resolveCustomFeeOption(feeOption: FeeOptionCustom, amountOfGas: number): EthereumResolvedFeeOption {
     const { feeRate, feeRateType } = feeOption
 
     // Determine the gas price first
@@ -123,9 +127,8 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     if (feeRateType === FeeRateType.BasePerWeight) {
       gasPrice = new BigNumber(feeRate)
     } else {
-      const feeRateBase = feeRateType === FeeRateType.Main
-        ? this.toBaseDenominationBigNumberNative(feeRate)
-        : new BigNumber(feeRate)
+      const feeRateBase =
+        feeRateType === FeeRateType.Main ? this.toBaseDenominationBigNumberNative(feeRate) : new BigNumber(feeRate)
       gasPrice = feeRateBase.dividedBy(amountOfGas)
     }
     gasPrice = gasPrice.dp(0, BigNumber.ROUND_DOWN) // Round down to avoid exceeding target
@@ -135,12 +138,12 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     const feeMain = this.toMainDenominationBigNumberNative(feeBase)
 
     return {
-      targetFeeRate:     feeOption.feeRate,
-      targetFeeLevel:    FeeLevel.Custom,
+      targetFeeRate: feeOption.feeRate,
+      targetFeeLevel: FeeLevel.Custom,
       targetFeeRateType: feeOption.feeRateType,
-      feeBase:           feeBase.toFixed(),
-      feeMain:           feeMain.toFixed(),
-      gasPrice:          gasPrice.toFixed(),
+      feeBase: feeBase.toFixed(),
+      feeMain: feeMain.toFixed(),
+      gasPrice: gasPrice.toFixed(),
     }
   }
 
@@ -267,8 +270,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       data,
     }
 
-    const tx = new EjsTx(txData, { common: this.ejsCommon })
-      .sign(privateKeyBuffer)
+    const tx = new EjsTx(txData, { common: this.ejsCommon }).sign(privateKeyBuffer)
 
     if (!tx.verifySignature()) {
       // this.logger.log(
@@ -283,33 +285,37 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       data: {
         ...tx.toJSON(),
         hex: buffToHex(tx.serialize()),
-      }
+      },
     }
     // this.logger.debug('signTransaction result', result)
     return result
   }
 
   private sendTransactionWithoutConfirmation(txHex: string): Promise<string> {
-    return this._retryDced(() => new Promise((resolve, reject) => {
-      let done = false
-      const errorHandler = (e: Error) => {
-        if (!done) {
-          done = true
-          reject(e)
-        }
-      }
-      const successHandler = (hash: string) => {
-        if (!done) {
-          done = true
-          resolve(hash)
-        }
-      }
-      this.eth.sendSignedTransaction(txHex)
-        .on('transactionHash', successHandler)
-        .on('error', errorHandler)
-        .then((r) => successHandler(r.transactionHash))
-        .catch(errorHandler)
-    }))
+    return this._retryDced(
+      () =>
+        new Promise((resolve, reject) => {
+          let done = false
+          const errorHandler = (e: Error) => {
+            if (!done) {
+              done = true
+              reject(e)
+            }
+          }
+          const successHandler = (hash: string) => {
+            if (!done) {
+              done = true
+              resolve(hash)
+            }
+          }
+          this.eth
+            .sendSignedTransaction(txHex)
+            .on('transactionHash', successHandler)
+            .on('error', errorHandler)
+            .then((r) => successHandler(r.transactionHash))
+            .catch(errorHandler)
+        }),
+    )
   }
 
   async broadcastTransaction(tx: EthereumSignedTransaction): Promise<EthereumBroadcastResult> {
@@ -320,14 +326,13 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     try {
       if (this.config.blockbookNode) {
         const url = `${this.config.blockbookNode}/api/sendtx/${tx.data.hex}`
-        request
-          .get(url, { json: true })
+        fetch(url)
           .then()
           .catch(() => {})
-          // .then((res) => this.logger.log(`Successful secondary broadcast to blockbook ethereum ${res.result}`))
-          // .catch((e) =>
-          //   this.logger.log(`Failed secondary broadcast to blockbook ethereum ${tx.id}: ${url} - ${e}`),
-          // )
+        // .then((res) => this.logger.log(`Successful secondary broadcast to blockbook ethereum ${res.result}`))
+        // .catch((e) =>
+        //   this.logger.log(`Failed secondary broadcast to blockbook ethereum ${tx.id}: ${url} - ${e}`),
+        // )
       }
       const txId = await this.sendTransactionWithoutConfirmation(tx.data.hex)
       return {
@@ -337,7 +342,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       if (isMatchingError(e, ['already known'])) {
         // this.logger.log(`Ethereum broadcast tx already known ${tx.id}`)
         return {
-          id: tx.id
+          id: tx.id,
         }
       }
       // this.logger.warn(`Ethereum broadcast tx unsuccessful ${tx.id}: ${e.message}`)
@@ -345,7 +350,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
         // throw new PaymentsError(PaymentsErrorCode.TxSequenceCollision, e.message)
       }
       // throw new Error(`Ethereum broadcast tx unsuccessful: ${tx.id} ${e.message}`)
-      return { id: "" }
+      return { id: '' }
     }
   }
 
@@ -365,9 +370,9 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     from: number,
     to: ResolveablePayport | undefined,
     amountNative: string,
-    options: EthereumTransactionOptions = {}
+    options: EthereumTransactionOptions = {},
   ): Promise<EthereumUnsignedTransaction> {
-    const serviceFlag = (amountNative === '' && typeof to === 'undefined')
+    const serviceFlag = amountNative === '' && typeof to === 'undefined'
     const sweepFlag = amountNative === 'max'
     const txType = serviceFlag ? 'CONTRACT_DEPLOY' : 'ETHEREUM_TRANSFER'
 
@@ -382,8 +387,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
       if (options.data) {
         txConfig.data = options.data
       } else if (options.proxyAddress) {
-        txConfig.data = TOKEN_PROXY_DATA
-          .replace(/<address to proxy>/g, strip0x(options.proxyAddress).toLowerCase())
+        txConfig.data = TOKEN_PROXY_DATA.replace(/<address to proxy>/g, strip0x(options.proxyAddress).toLowerCase())
       } else {
         txConfig.data = TOKEN_WALLET_DATA
       }
@@ -397,7 +401,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
     const feeOption = await this.resolveFeeOption(options, amountOfGas)
 
     const { confirmedBalance: balanceNative } = await this.getBalance(fromPayport)
-    const nonce = options.sequenceNumber || await this.getNextSequenceNumber(fromPayport.address)
+    const nonce = options.sequenceNumber || (await this.getNextSequenceNumber(fromPayport.address))
 
     const { feeMain, feeBase } = feeOption
     const feeWei = new BigNumber(feeBase)
@@ -426,7 +430,7 @@ export abstract class BaseEthereumPayments<Config extends BaseEthereumPaymentsCo
         //   `${fromPayport.address} Sweep fee (${feeMain}) exceeds max fee percent (${maxFeePercent}%) of address balance (${balanceNative})`,
         // )
       }
-    } else if (!sweepFlag && !serviceFlag){
+    } else if (!sweepFlag && !serviceFlag) {
       amountWei = this.toBaseDenominationBigNumberNative(amountNative)
       if (amountWei.plus(feeWei).isGreaterThan(balanceWei)) {
         // throw new PaymentsError(

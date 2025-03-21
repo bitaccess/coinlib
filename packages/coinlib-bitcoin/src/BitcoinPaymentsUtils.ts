@@ -13,10 +13,18 @@ import {
   isSupportedAddressType,
   getSupportedAddressTypes,
 } from './helpers'
-import { AutoFeeLevels, FeeRate, GetFeeRecommendationOptions, NetworkType, FeeLevel, FeeRateType } from '@bitaccess/coinlib-common'
+import {
+  AutoFeeLevels,
+  FeeRate,
+  GetFeeRecommendationOptions,
+  NetworkType,
+  FeeLevel,
+  FeeRateType,
+} from '@bitaccess/coinlib-common'
 import { assertType } from '@bitaccess/ts-common'
 import { DEFAULT_ADDRESS_TYPE, BITCOIN_NETWORK_CONSTANTS, NETWORKS } from './constants'
-import request from 'request-promise-native'
+// import request from 'request-promise-native'
+import fetch from 'node-fetch'
 
 export class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
   private readonly FEE_LEVEL_TO_MEMPOOL_FIELD = {
@@ -81,15 +89,19 @@ export class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
   async getMempoolSpaceFeeRecommendation(feeLevel: AutoFeeLevels): Promise<FeeRate> {
     let feeRate: string
     let url: string
-    const MEMPOOL_SPACE_FEE_URL_MAINNET = process.env.MEMPOOL_SPACE_FEE_URL_MAINNET ?? 'https://mempool.space/api/v1/fees/recommended'
-    const MEMPOOL_SPACE_FEE_URL_TESTNET = process.env.MEMPOOL_SPACE_FEE_URL_TESTNET ?? 'https://mempool.space/testnet/api/v1/fees/recommended'
+    const MEMPOOL_SPACE_FEE_URL_MAINNET =
+      process.env.MEMPOOL_SPACE_FEE_URL_MAINNET ?? 'https://mempool.space/api/v1/fees/recommended'
+    const MEMPOOL_SPACE_FEE_URL_TESTNET =
+      process.env.MEMPOOL_SPACE_FEE_URL_TESTNET ?? 'https://mempool.space/testnet/api/v1/fees/recommended'
     if (this.networkType === NetworkType.Testnet) url = MEMPOOL_SPACE_FEE_URL_TESTNET
     else url = MEMPOOL_SPACE_FEE_URL_MAINNET
     this.logger.log(`Attempting to use mempool.space for fee rate recommendation for ${this.networkType} network`)
     try {
-      const body = await request.get(url, { json: true })
+      // const body = await request.get(url, { json: true })
+      const response = await fetch(url)
+      const data: any = await response.json()
       const feePerKbField = this.FEE_LEVEL_TO_MEMPOOL_FIELD[feeLevel]
-      const satPerByte = body[feePerKbField]
+      const satPerByte = data[feePerKbField]
       if (!satPerByte) {
         throw new Error(`Response is missing expected field ${feePerKbField}`)
       }
@@ -102,7 +114,9 @@ export class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
         feeRateType: FeeRateType.BasePerWeight,
       }
     } catch (e) {
-      throw new Error(`Failed to retrieve BTC ${this.networkType} fee rate from mempool.space - ${e.name}: ${e.message}`)
+      throw new Error(
+        `Failed to retrieve BTC ${this.networkType} fee rate from mempool.space - ${e.name}: ${e.message}`,
+      )
     }
   }
 
@@ -112,9 +126,9 @@ export class BitcoinPaymentsUtils extends BitcoinishPaymentsUtils {
         return await this.getMempoolSpaceFeeRecommendation(feeLevel)
       } catch (e) {
         this.logger.error(`${e.name} - ${e.message}`)
-      this.logger.log(
-        `Could not use mempool.space for fee rate recommendation, falling back to blockbook with feeLevel ${feeLevel}`,
-      )
+        this.logger.log(
+          `Could not use mempool.space for fee rate recommendation, falling back to blockbook with feeLevel ${feeLevel}`,
+        )
         return this.getBlockbookFeeRecommendation(feeLevel)
       }
     } else {
